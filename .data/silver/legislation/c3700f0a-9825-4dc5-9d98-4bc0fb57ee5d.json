@@ -1,0 +1,15 @@
+{
+  "id": "c3700f0a-9825-4dc5-9d98-4bc0fb57ee5d",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#5605",
+  "created_at": "2025-12-25T12:25:46.285Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1996/30/contents",
+    "type": "ukpga",
+    "year": 1996,
+    "number": 30,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1996/30/2014-04-01/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1996,\"number\":30,\"url\":\"http://www.legislation.gov.uk/ukpga/1996/30/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1996/30/2014-04-01/data.htm\"}"
+}

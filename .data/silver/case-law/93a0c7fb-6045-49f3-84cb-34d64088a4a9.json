@@ -1,0 +1,21 @@
+{
+  "id": "93a0c7fb-6045-49f3-84cb-34d64088a4a9",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Stocker (Appellant) v Stocker (Respondent)",
+  "created_at": "2025-12-25T11:49:55.501Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0045",
+    "score": 1,
+    "title": "Stocker (Appellant) v Stocker (Respondent)",
+    "summary": "2. The respondent to this appeal, Ronald Stocker, is the former husband of the appellant, Nicola Stocker.",
+    "category": "procedure",
+    "citation": "UKSC/2018/0045",
+    "extracts": [
+      "2. The respondent to this appeal, Ronald Stocker, is the former husband of the appellant, Nicola Stocker. Their marriage ended in acrimony in 2012. Mr Stocker subsequently formed a relationship with Ms Deborah Bligh. On 23 December 2012 an exchange took place between Mrs Stocker and Ms Bligh on the Facebook website. In the course of that exchange, Mrs Stocker informed Ms Bligh that her former husband (now Ms Bligh’s partner) had tried to strangle her. It is now clear that the date on which this is alleged to have occurred is 23 March 2003.",
+      "3. Mrs Stocker also said that her husband had been removed from the house following a number of threats that he had made; that there were some “gun issues”; and that the police felt that he had broken the terms of a non-molestation order. These statements and the allegation that Mr Stocker had tried to strangle her were the basis on which he took proceedings against her for defamation."
+    ],
+    "title_key": "stocker v stocker"
+  },
+  "content": "{\"title\":\"Stocker (Appellant) v Stocker (Respondent)\",\"citation\":\"UKSC/2018/0045\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0045\",\"summary\":\"2. The respondent to this appeal, Ronald Stocker, is the former husband of the appellant, Nicola Stocker.\",\"extracts\":[\"2. The respondent to this appeal, Ronald Stocker, is the former husband of the appellant, Nicola Stocker. Their marriage ended in acrimony in 2012. Mr Stocker subsequently formed a relationship with Ms Deborah Bligh. On 23 December 2012 an exchange took place between Mrs Stocker and Ms Bligh on the Facebook website. In the course of that exchange, Mrs Stocker informed Ms Bligh that her former husband (now Ms Bligh’s partner) had tried to strangle her. It is now clear that the date on which this is alleged to have occurred is 23 March 2003.\",\"3. Mrs Stocker also said that her husband had been removed from the house following a number of threats that he had made; that there were some “gun issues”; and that the police felt that he had broken the terms of a non-molestation order. These statements and the allegation that Mr Stocker had tried to strangle her were the basis on which he took proceedings against her for defamation.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"stocker v stocker\"}"
+}

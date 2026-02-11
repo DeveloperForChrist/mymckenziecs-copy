@@ -1,0 +1,21 @@
+{
+  "id": "3953ab7b-12d6-4a4c-8e51-c566c3280220",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "West London Mental Health NHS Trust (Respondent) v Chhabra (Appellant)",
+  "created_at": "2025-12-25T11:48:08.805Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0046",
+    "score": 3,
+    "title": "West London Mental Health NHS Trust (Respondent) v Chhabra (Appellant)",
+    "summary": "1. This appeal is concerned with the operation of the disciplinary procedures for doctors and dentists in the National Health Service, which the Secretary of State for Health introduced over eight years ago.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0046",
+    "extracts": [
+      "1. This appeal is concerned with the operation of the disciplinary procedures for doctors and dentists in the National Health Service, which the Secretary of State for Health introduced over eight years ago. It raises an important question about the roles of the case investigator and the case manager when handling concerns about a doctor’s performance.",
+      "2. In December 2003 the Secretary of State for Health exercised his powers under section 17 of the National Health Service Act 1977 to give directions called the Restriction of Practice and Exclusion from Work Directions 2003. These required all NHS bodies to comply with a document which set out new procedures for the initial handling of concerns about doctors and dentists in the NHS (Health Service Circular 2003/12). Those procedures became parts I and II of the framework for disciplinary procedures for doctors and dentists in the NHS which was agreed by the Department of Health, the British Medical Association and the British Dental Association and was issued in February 2005. By the Directions on Disciplinary Procedures 2005 the Secretary of State directed all NHS bodies in England and Wales to implement the full version of the framework contained in a document called “Maintaining High Professional Standards in the Modern NHS” (“MHPS”)."
+    ],
+    "title_key": "west london mental health nhs trust v chhabra"
+  },
+  "content": "{\"title\":\"West London Mental Health NHS Trust (Respondent) v Chhabra (Appellant)\",\"citation\":\"UKSC/2013/0046\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0046\",\"summary\":\"1. This appeal is concerned with the operation of the disciplinary procedures for doctors and dentists in the National Health Service, which the Secretary of State for Health introduced over eight years ago.\",\"extracts\":[\"1. This appeal is concerned with the operation of the disciplinary procedures for doctors and dentists in the National Health Service, which the Secretary of State for Health introduced over eight years ago. It raises an important question about the roles of the case investigator and the case manager when handling concerns about a doctor’s performance.\",\"2. In December 2003 the Secretary of State for Health exercised his powers under section 17 of the National Health Service Act 1977 to give directions called the Restriction of Practice and Exclusion from Work Directions 2003. These required all NHS bodies to comply with a document which set out new procedures for the initial handling of concerns about doctors and dentists in the NHS (Health Service Circular 2003/12). Those procedures became parts I and II of the framework for disciplinary procedures for doctors and dentists in the NHS which was agreed by the Department of Health, the British Medical Association and the British Dental Association and was issued in February 2005. By the Directions on Disciplinary Procedures 2005 the Secretary of State directed all NHS bodies in England and Wales to implement the full version of the framework contained in a document called “Maintaining High Professional Standards in the Modern NHS” (“MHPS”).\"],\"category\":\"procedure\",\"score\":3,\"title_key\":\"west london mental health nhs trust v chhabra\"}"
+}

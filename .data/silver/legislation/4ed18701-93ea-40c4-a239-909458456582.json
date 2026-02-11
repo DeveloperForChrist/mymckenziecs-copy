@@ -1,0 +1,15 @@
+{
+  "id": "4ed18701-93ea-40c4-a239-909458456582",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9092",
+  "created_at": "2025-12-25T12:46:24.574Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1972/1949/contents/made",
+    "type": "uksi",
+    "year": 1972,
+    "number": 1949,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1972,\"number\":1949,\"url\":\"http://www.legislation.gov.uk/uksi/1972/1949/contents/made\",\"dataUrl\":null}"
+}

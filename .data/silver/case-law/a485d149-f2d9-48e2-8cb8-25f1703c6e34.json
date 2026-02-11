@@ -1,0 +1,21 @@
+{
+  "id": "a485d149-f2d9-48e2-8cb8-25f1703c6e34",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Candey Ltd (Appellant) v Crumpler and another (as Joint Liquidators of Peak Hotels and Resorts Ltd (In Liquidation)) (Respondents)",
+  "created_at": "2025-12-25T11:50:24.083Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2020-0039",
+    "score": 1,
+    "title": "Candey Ltd (Appellant) v Crumpler and another (as Joint Liquidators of Peak Hotels and Resorts Ltd (In Liquidation)) (Respondents)",
+    "summary": "Principle issue: In what circumstances will solicitors have waived (or be inferred to have waived) their equitable lien when a solicitor enters into a security arrangement with a client?",
+    "category": "procedure",
+    "citation": "UKSC/2020/0039",
+    "extracts": [
+      "1. This appeal concerns the circumstances in which solicitors may be taken to have waived their equitable lien, that is to say, in its most traditional form, the means by which equity provides a form of security for the recovery by solicitors of their agreed charges for the successful conduct of litigation out of the fruits of that litigation.",
+      "2. The nature of the solicitor’s equitable lien was explored in the decision of this Court in Gavin Edmondson Solicitors Ltd v Haven Insurance Co Ltd [2018] UKSC 21; [2018] 1 WLR 2052. As Lord Briggs explained, at paras 3 and 4, the solicitor’s equitable lien is a security interest and is enforceable against the proceeds of the litigation up to the amount contractually due to the solicitor, in priority to the interest of the successful client, or anyone claiming through the client. The interest is in the nature of an equitable charge and, as such, may be enforced in personam against anyone whose conscience is affected by having notice of it, either to prevent him from dealing inconsistently with it, or by holding him to account if he does."
+    ],
+    "title_key": "candey ltd v crumpler and another"
+  },
+  "content": "{\"title\":\"Candey Ltd (Appellant) v Crumpler and another (as Joint Liquidators of Peak Hotels and Resorts Ltd (In Liquidation)) (Respondents)\",\"citation\":\"UKSC/2020/0039\",\"url\":\"https://supremecourt.uk/cases/uksc-2020-0039\",\"summary\":\"Principle issue: In what circumstances will solicitors have waived (or be inferred to have waived) their equitable lien when a solicitor enters into a security arrangement with a client?\",\"extracts\":[\"1. This appeal concerns the circumstances in which solicitors may be taken to have waived their equitable lien, that is to say, in its most traditional form, the means by which equity provides a form of security for the recovery by solicitors of their agreed charges for the successful conduct of litigation out of the fruits of that litigation.\",\"2. The nature of the solicitor’s equitable lien was explored in the decision of this Court in Gavin Edmondson Solicitors Ltd v Haven Insurance Co Ltd [2018] UKSC 21; [2018] 1 WLR 2052. As Lord Briggs explained, at paras 3 and 4, the solicitor’s equitable lien is a security interest and is enforceable against the proceeds of the litigation up to the amount contractually due to the solicitor, in priority to the interest of the successful client, or anyone claiming through the client. The interest is in the nature of an equitable charge and, as such, may be enforced in personam against anyone whose conscience is affected by having notice of it, either to prevent him from dealing inconsistently with it, or by holding him to account if he does.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"candey ltd v crumpler and another\"}"
+}

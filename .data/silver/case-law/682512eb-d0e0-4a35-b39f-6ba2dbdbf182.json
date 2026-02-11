@@ -1,0 +1,21 @@
+{
+  "id": "682512eb-d0e0-4a35-b39f-6ba2dbdbf182",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Banca Nazionale del Lavoro SPA (Respondent) v Playboy Club London Limited and others (Appellants)",
+  "created_at": "2025-12-25T11:49:24.673Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0121",
+    "score": 1,
+    "title": "Banca Nazionale del Lavoro SPA (Respondent) v Playboy Club London Limited and others (Appellants)",
+    "summary": "1. This case is about a credit reference negligently supplied by a bank for a person who subsequently defaulted.",
+    "category": "procedure",
+    "citation": "UKSC/2016/0121",
+    "extracts": [
+      "1. This case is about a credit reference negligently supplied by a bank for a person who subsequently defaulted. The facts are to that extent similar to those of Hedley Byrne & Co Ltd v Heller & Partners Ltd [1964] AC 465. But there is a critical difference. The reference was relied upon not by the party to whom it was addressed but by that party’s undisclosed principal. The question at issue on this appeal is whether the bank is liable to the latter.",
+      "2. In October 2010 Hassan Barakat wished to gamble at the London Playboy Club. He visited the club and applied for a cheque cashing facility for up to £800,000. Mr Barakat was a Lebanese resident and a well-known figure at a casino in Lebanon. But he had only once played at the London club. Playboy Club’s policy for gamblers like him was to require a credit reference from his bankers for twice the amount of the facility, ie £1.6m. But in order to avoid disclosing the purpose of the credit facility, the Club’s practice was not itself to ask its customer’s bank for the reference. Instead, it arranged for an associated company called Burlington Street Services Ltd to do so without disclosing the purpose of the inquiry or the fact that the reference was required for the benefit of another company."
+    ],
+    "title_key": "banca nazionale del lavoro spa v playboy club london limited and others"
+  },
+  "content": "{\"title\":\"Banca Nazionale del Lavoro SPA (Respondent) v Playboy Club London Limited and others (Appellants)\",\"citation\":\"UKSC/2016/0121\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0121\",\"summary\":\"1. This case is about a credit reference negligently supplied by a bank for a person who subsequently defaulted.\",\"extracts\":[\"1. This case is about a credit reference negligently supplied by a bank for a person who subsequently defaulted. The facts are to that extent similar to those of Hedley Byrne & Co Ltd v Heller & Partners Ltd [1964] AC 465. But there is a critical difference. The reference was relied upon not by the party to whom it was addressed but by that party’s undisclosed principal. The question at issue on this appeal is whether the bank is liable to the latter.\",\"2. In October 2010 Hassan Barakat wished to gamble at the London Playboy Club. He visited the club and applied for a cheque cashing facility for up to £800,000. Mr Barakat was a Lebanese resident and a well-known figure at a casino in Lebanon. But he had only once played at the London club. Playboy Club’s policy for gamblers like him was to require a credit reference from his bankers for twice the amount of the facility, ie £1.6m. But in order to avoid disclosing the purpose of the credit facility, the Club’s practice was not itself to ask its customer’s bank for the reference. Instead, it arranged for an associated company called Burlington Street Services Ltd to do so without disclosing the purpose of the inquiry or the fact that the reference was required for the benefit of another company.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"banca nazionale del lavoro spa v playboy club london limited and others\"}"
+}

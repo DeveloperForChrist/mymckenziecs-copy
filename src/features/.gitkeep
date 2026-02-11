@@ -1,0 +1,15 @@
+# Features Directory
+
+Feature-based modules will be organized here.
+
+Each feature will have its own directory with:
+- components/
+- hooks/
+- types/
+- utils/
+
+Example features:
+- cases/
+- documents/
+- case-law/
+- chat/

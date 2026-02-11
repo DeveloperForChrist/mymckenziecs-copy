@@ -1,0 +1,15 @@
+{
+  "id": "276d91df-d1f2-41d6-ab1f-3227f4a5ff8c",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#2255",
+  "created_at": "2025-12-25T12:05:20.460Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo6/4-5/14/contents/enacted",
+    "type": "ukpga",
+    "year": 1941,
+    "number": 14,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1941,\"number\":14,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo6/4-5/14/contents/enacted\",\"dataUrl\":null}"
+}

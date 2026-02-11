@@ -1,0 +1,21 @@
+{
+  "id": "063c1ed3-4345-4b3a-ae69-5651c139ed78",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of an application by the Northern Ireland Human Rights Commission for Judicial Review (Northern Ireland)",
+  "created_at": "2025-12-25T11:49:45.245Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0131",
+    "score": 2,
+    "title": "In the matter of an application by the Northern Ireland Human Rights Commission for Judicial Review (Northern Ireland)",
+    "summary": "In the matter of an application by the Northern Ireland Human Rights Commission for Judicial Review (Northern Ireland) Reference by the Court of Appeal in Northern Ireland pursuant to Paragraph 33 of Schedule 10 to the Northern Ireland Act 1998 (Abortion) (Northern Ireland)",
+    "category": "public_law",
+    "citation": "UKSC/2017/0131",
+    "extracts": [
+      "In the matter of an application by the Northern Ireland Human Rights Commission for Judicial Review (Northern Ireland) Reference by the Court of Appeal in Northern Ireland pursuant to Paragraph 33 of Schedule 10 to the Northern Ireland Act 1998 (Abortion) (Northern Ireland)",
+      "6th Intervener – Centre of Lord Goldsmith QC Debevoise and Plimpton Reproductive Rights LLP (Written submissions only) 7th Interveners – Dinah Rose QC Leigh Day (a) Family Planning Jude Bunting Association (b) British Pregnancy Advisory Service (c) Abortion Support Network (d) Birthrights (e) Royal College of Midwives (f) Alliance for Choice (g) Antenatal Results and Choices"
+    ],
+    "title_key": "in the matter of an application by the northern ireland human rights commission for judicial review"
+  },
+  "content": "{\"title\":\"In the matter of an application by the Northern Ireland Human Rights Commission for Judicial Review (Northern Ireland)\",\"citation\":\"UKSC/2017/0131\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0131\",\"summary\":\"In the matter of an application by the Northern Ireland Human Rights Commission for Judicial Review (Northern Ireland) Reference by the Court of Appeal in Northern Ireland pursuant to Paragraph 33 of Schedule 10 to the Northern Ireland Act 1998 (Abortion) (Northern Ireland)\",\"extracts\":[\"In the matter of an application by the Northern Ireland Human Rights Commission for Judicial Review (Northern Ireland) Reference by the Court of Appeal in Northern Ireland pursuant to Paragraph 33 of Schedule 10 to the Northern Ireland Act 1998 (Abortion) (Northern Ireland)\",\"6th Intervener – Centre of Lord Goldsmith QC Debevoise and Plimpton Reproductive Rights LLP (Written submissions only) 7th Interveners – Dinah Rose QC Leigh Day (a) Family Planning Jude Bunting Association (b) British Pregnancy Advisory Service (c) Abortion Support Network (d) Birthrights (e) Royal College of Midwives (f) Alliance for Choice (g) Antenatal Results and Choices\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"in the matter of an application by the northern ireland human rights commission for judicial review\"}"
+}

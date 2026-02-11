@@ -1,0 +1,21 @@
+{
+  "id": "7be6a99e-5e79-4da9-bbe6-4922322a1ecc",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Lehtimaki and others (Respondents) v Cooper (Appellant)",
+  "created_at": "2025-12-25T11:50:02.598Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0150",
+    "score": 1,
+    "title": "Lehtimaki and others (Respondents) v Cooper (Appellant)",
+    "summary": "Principle issue: Does the court have jurisdiction to direct members of a charitable company on how to exercise their powers absent a breach of fiduciary duty?",
+    "category": "procedure",
+    "citation": "UKSC/2018/0150",
+    "extracts": [
+      "Issue 2: Have circumstances arisen with respect to the section 217 resolution in which the Court can exercise its jurisdiction over fiduciaries in relation to Dr Lehtimäki?......................................................................... 37 The competing positions of the parties ........................................................................................................... 37 My conclusion on this issue ............................................................................................................................. 39",
+      "Issue 3: Does section 217 of the Companies Act 2006 allow the Court to direct a member to exercise his discretion in a particular way when Parliament has provided for members to pass the resolution?............. 50 The range of the arguments on this issue........................................................................................................ 50 My conclusions on the third issue ................................................................................................................... 51"
+    ],
+    "title_key": "lehtimaki and others v cooper"
+  },
+  "content": "{\"title\":\"Lehtimaki and others (Respondents) v Cooper (Appellant)\",\"citation\":\"UKSC/2018/0150\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0150\",\"summary\":\"Principle issue: Does the court have jurisdiction to direct members of a charitable company on how to exercise their powers absent a breach of fiduciary duty?\",\"extracts\":[\"Issue 2: Have circumstances arisen with respect to the section 217 resolution in which the Court can exercise its jurisdiction over fiduciaries in relation to Dr Lehtimäki?......................................................................... 37 The competing positions of the parties ........................................................................................................... 37 My conclusion on this issue ............................................................................................................................. 39\",\"Issue 3: Does section 217 of the Companies Act 2006 allow the Court to direct a member to exercise his discretion in a particular way when Parliament has provided for members to pass the resolution?............. 50 The range of the arguments on this issue........................................................................................................ 50 My conclusions on the third issue ................................................................................................................... 51\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"lehtimaki and others v cooper\"}"
+}

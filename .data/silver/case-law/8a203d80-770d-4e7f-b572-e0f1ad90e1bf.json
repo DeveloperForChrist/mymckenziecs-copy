@@ -1,0 +1,21 @@
+{
+  "id": "8a203d80-770d-4e7f-b572-e0f1ad90e1bf",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Hotak (Appellant) v London Borough of Southwark (Respondent)",
+  "created_at": "2025-12-25T11:48:26.834Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0234",
+    "score": 1,
+    "title": "Hotak (Appellant) v London Borough of Southwark (Respondent)",
+    "summary": "1. These three appeals raise a number of issues concerning the duty of local housing authorities towards homeless people who claim to be “vulnerable”, and therefore to have “a priority need” for the provision of housing accommodation under Part VII of the Housing Act 1996.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0234",
+    "extracts": [
+      "1. These three appeals raise a number of issues concerning the duty of local housing authorities towards homeless people who claim to be “vulnerable”, and therefore to have “a priority need” for the provision of housing accommodation under Part VII of the Housing Act 1996. Those issues turn on the interpretation of the 1996 Act, but some of them also involve consideration of the Equality Act 2010.",
+      "2. As its title indicates, Part VII of the 1996 Act is concerned with homelessness, and it imposes duties on local housing authorities to provide assistance and advice, or suitable accommodation, to those who are “homeless” or “threatened with homelessness”."
+    ],
+    "title_key": "hotak v london borough of southwark"
+  },
+  "content": "{\"title\":\"Hotak (Appellant) v London Borough of Southwark (Respondent)\",\"citation\":\"UKSC/2013/0234\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0234\",\"summary\":\"1. These three appeals raise a number of issues concerning the duty of local housing authorities towards homeless people who claim to be “vulnerable”, and therefore to have “a priority need” for the provision of housing accommodation under Part VII of the Housing Act 1996.\",\"extracts\":[\"1. These three appeals raise a number of issues concerning the duty of local housing authorities towards homeless people who claim to be “vulnerable”, and therefore to have “a priority need” for the provision of housing accommodation under Part VII of the Housing Act 1996. Those issues turn on the interpretation of the 1996 Act, but some of them also involve consideration of the Equality Act 2010.\",\"2. As its title indicates, Part VII of the 1996 Act is concerned with homelessness, and it imposes duties on local housing authorities to provide assistance and advice, or suitable accommodation, to those who are “homeless” or “threatened with homelessness”.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"hotak v london borough of southwark\"}"
+}

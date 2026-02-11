@@ -1,0 +1,21 @@
+{
+  "id": "aae2fb05-ef57-4d3d-8444-3f94ddb415af",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "TRIGGER - Excess Insurance Company Limited (Respondent) v Edwards (Appellant)",
+  "created_at": "2025-12-25T11:47:21.063Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0025",
+    "score": 1,
+    "title": "TRIGGER - Excess Insurance Company Limited (Respondent) v Edwards (Appellant)",
+    "summary": "1. The liability of employers for deaths caused by mesothelioma has pre- occupied courts and legislators over recent years.",
+    "category": "procedure",
+    "citation": "UKSC/2011/0025",
+    "extracts": [
+      "1. The liability of employers for deaths caused by mesothelioma has pre- occupied courts and legislators over recent years. The present appeals concern claims to pass the burden of this liability on to insurers, made either by employers or in the case of insolvent employers by the personal representatives of former employees using the mechanism of the Third Party (Rights against Insurers) Act 1930.",
+      "2. The appeals concern employers’ liability insurance. This is in contrast with Bolton MBC v Municipal Mutual Insurance Ltd [2006] EWCA Civ 50, [2006] 1 WLR 1492 where public liability insurance was in issue. Employers’ liability focuses necessarily upon the relevant employment relationships and activities. Public liability relates to any of the insured’s relationships and to activities affecting the world at large. Another feature of employers’ liability is that, under the Employers’ Liability (Compulsory Insurance) Act 1969 (the “ELCIA”), it has since 1 January 1972 been compulsory for every employer other than local authorities carrying on any business in Great Britain to"
+    ],
+    "title_key": "trigger excess insurance company limited v edwards"
+  },
+  "content": "{\"title\":\"TRIGGER - Excess Insurance Company Limited (Respondent) v Edwards (Appellant)\",\"citation\":\"UKSC/2011/0025\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0025\",\"summary\":\"1. The liability of employers for deaths caused by mesothelioma has pre- occupied courts and legislators over recent years.\",\"extracts\":[\"1. The liability of employers for deaths caused by mesothelioma has pre- occupied courts and legislators over recent years. The present appeals concern claims to pass the burden of this liability on to insurers, made either by employers or in the case of insolvent employers by the personal representatives of former employees using the mechanism of the Third Party (Rights against Insurers) Act 1930.\",\"2. The appeals concern employers’ liability insurance. This is in contrast with Bolton MBC v Municipal Mutual Insurance Ltd [2006] EWCA Civ 50, [2006] 1 WLR 1492 where public liability insurance was in issue. Employers’ liability focuses necessarily upon the relevant employment relationships and activities. Public liability relates to any of the insured’s relationships and to activities affecting the world at large. Another feature of employers’ liability is that, under the Employers’ Liability (Compulsory Insurance) Act 1969 (the “ELCIA”), it has since 1 January 1972 been compulsory for every employer other than local authorities carrying on any business in Great Britain to\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"trigger excess insurance company limited v edwards\"}"
+}

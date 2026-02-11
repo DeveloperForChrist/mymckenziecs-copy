@@ -1,0 +1,21 @@
+{
+  "id": "06446134-505d-4a24-944c-5b2e790da6c4",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "British Telecommunications plc (Appellant) v Telefónica O2 Ltd and others (Respondents)",
+  "created_at": "2025-12-25T11:48:02.452Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0204",
+    "score": 1,
+    "title": "British Telecommunications plc (Appellant) v Telefónica O2 Ltd and others (Respondents)",
+    "summary": "1. These appeals arise out of a dispute between British Telecommunications Plc, whom I shall call “BT”, and four mobile network operators.",
+    "category": "procedure",
+    "citation": "UKSC/2012/0204",
+    "extracts": [
+      "1. These appeals arise out of a dispute between British Telecommunications Plc, whom I shall call “BT”, and four mobile network operators. The dispute is about the termination charges which BT is entitled to charge to mobile network operators for putting calls from the latter’s networks through to BT fixed lines with associated 08 numbers. The dispute is a highly technical one, both factually and legally, and like most such disputes involves a surfeit of acronyms. But it raises issues of great importance to the telecommunications industry, to its regulator, and indirectly to millions of consumers.",
+      "3. In 2009 BT notified mobile network operators of a revised scheme of termination charges for 08 numbers. The defining feature of the new scheme was that mobile network operators would be charged at a rate which varied according to the amount which the originating network charged the caller. The higher the charges to the caller, the greater the termination charge. The new scheme was rejected by the four mobile network operators party to these appeals. The issue was submitted"
+    ],
+    "title_key": "british telecommunications plc v telef nica o2 ltd and others"
+  },
+  "content": "{\"title\":\"British Telecommunications plc (Appellant) v Telefónica O2 Ltd and others (Respondents)\",\"citation\":\"UKSC/2012/0204\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0204\",\"summary\":\"1. These appeals arise out of a dispute between British Telecommunications Plc, whom I shall call “BT”, and four mobile network operators.\",\"extracts\":[\"1. These appeals arise out of a dispute between British Telecommunications Plc, whom I shall call “BT”, and four mobile network operators. The dispute is about the termination charges which BT is entitled to charge to mobile network operators for putting calls from the latter’s networks through to BT fixed lines with associated 08 numbers. The dispute is a highly technical one, both factually and legally, and like most such disputes involves a surfeit of acronyms. But it raises issues of great importance to the telecommunications industry, to its regulator, and indirectly to millions of consumers.\",\"3. In 2009 BT notified mobile network operators of a revised scheme of termination charges for 08 numbers. The defining feature of the new scheme was that mobile network operators would be charged at a rate which varied according to the amount which the originating network charged the caller. The higher the charges to the caller, the greater the termination charge. The new scheme was rejected by the four mobile network operators party to these appeals. The issue was submitted\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"british telecommunications plc v telef nica o2 ltd and others\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "78682b31-06a4-47f4-8861-7d35ee572bd2",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7547",
+  "created_at": "2025-12-25T12:37:39.212Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1956/1892/contents/made",
+    "type": "uksi",
+    "year": 1956,
+    "number": 1892,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1956,\"number\":1892,\"url\":\"http://www.legislation.gov.uk/uksi/1956/1892/contents/made\",\"dataUrl\":null}"
+}

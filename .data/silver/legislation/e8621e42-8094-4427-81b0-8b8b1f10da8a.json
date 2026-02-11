@@ -1,0 +1,15 @@
+{
+  "id": "e8621e42-8094-4427-81b0-8b8b1f10da8a",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#10849",
+  "created_at": "2025-12-25T12:57:13.769Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1982/1625/contents/made",
+    "type": "uksi",
+    "year": 1982,
+    "number": 1625,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1982,\"number\":1625,\"url\":\"http://www.legislation.gov.uk/uksi/1982/1625/contents/made\",\"dataUrl\":null}"
+}

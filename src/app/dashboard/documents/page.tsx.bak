@@ -1,0 +1,59 @@
+import MyDraftsWrapper from "@/components/dashboard/MyDraftsWrapper";
+import styles from "@/components/dashboard/userdashboard.module.css";
+
+export default function MyDraftsPage() {
+  return (
+    <div className={styles.theme}>
+      <header>
+        <nav
+          className="navbar"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "0 30px",
+            backgroundColor: "#270427",
+            borderBottom: "1px solid #E5E7EB",
+            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.05)",
+            height: "70px",
+            position: "sticky",
+            top: 0,
+            zIndex: 1000,
+          }}
+        >
+          <div className="nav-logo">
+            <span style={{ fontSize: "1.8rem", fontWeight: 700, color: "#ffffff", textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>MyMcKenzieFriend</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <a
+              href="/dashboard"
+              className="nav-link"
+              style={{
+                padding: "10px 18px",
+                color: "#ffffff",
+                backgroundColor: "#270427",
+                fontSize: "1.12rem",
+                borderRadius: "30px",
+                transition: "0.25s ease",
+                fontWeight: "bold",
+                textDecoration: "none",
+                display: "block",
+              }}
+            >
+              Go To Dashboard
+            </a>
+          </div>
+        </nav>
+      </header>
+
+      <main style={{ background: "#270427", minHeight: "100vh", color: "#ffffff" }}>
+        <div className={styles.dashboardHeader}>
+          <h1>My Drafts</h1>
+          <p>Create, continue and manage your draft letters and statements.</p>
+        </div>
+
+        <MyDraftsWrapper />
+      </main>
+    </div>
+  );
+}

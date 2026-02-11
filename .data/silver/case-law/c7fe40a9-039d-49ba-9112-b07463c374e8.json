@@ -1,0 +1,21 @@
+{
+  "id": "c7fe40a9-039d-49ba-9112-b07463c374e8",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Akçil and others (Appellants) v Koza Ltd and another (Respondents)",
+  "created_at": "2025-12-25T11:49:49.587Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0195",
+    "score": 2,
+    "title": "Akçil and others (Appellants) v Koza Ltd and another (Respondents)",
+    "summary": "1. This appeal is concerned with the interpretation of article 24(2) of the Brussels I Recast Regulation (Parliament and Council Regulation (EU) No 1215/2012 of 12 December 2012 on jurisdiction and the recognition and enforcement of judgments in civil and commercial matters (“the Recast Regulatio...",
+    "category": "procedure",
+    "citation": "UKSC/2017/0195",
+    "extracts": [
+      "1. This appeal is concerned with the interpretation of article 24(2) of the Brussels I Recast Regulation (Parliament and Council Regulation (EU) No 1215/2012 of 12 December 2012 on jurisdiction and the recognition and enforcement of judgments in civil and commercial matters (“the Recast Regulation”)), which sets out a special regime to determine jurisdiction in relation to certain matters regarding the governance of corporations. Although the issue in the present case relates to where a Turkish company and certain Turkish-domiciled individuals may be sued, and Turkey is of course not an EU member state, it is common ground that article 24(2) of the Recast Regulation applies to determine the question of jurisdiction which arises in this case.",
+      "(2) in proceedings which have as their object the validity of the constitution, the nullity or the dissolution of companies or other legal persons or associations of natural or legal persons, or the validity of the decisions of their organs, the courts of the member state in which the company, legal person or association has its seat. In order to determine that seat, the court shall apply its rules of private international law; …”"
+    ],
+    "title_key": "ak il and others v koza ltd and another"
+  },
+  "content": "{\"title\":\"Akçil and others (Appellants) v Koza Ltd and another (Respondents)\",\"citation\":\"UKSC/2017/0195\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0195\",\"summary\":\"1. This appeal is concerned with the interpretation of article 24(2) of the Brussels I Recast Regulation (Parliament and Council Regulation (EU) No 1215/2012 of 12 December 2012 on jurisdiction and the recognition and enforcement of judgments in civil and commercial matters (“the Recast Regulatio...\",\"extracts\":[\"1. This appeal is concerned with the interpretation of article 24(2) of the Brussels I Recast Regulation (Parliament and Council Regulation (EU) No 1215/2012 of 12 December 2012 on jurisdiction and the recognition and enforcement of judgments in civil and commercial matters (“the Recast Regulation”)), which sets out a special regime to determine jurisdiction in relation to certain matters regarding the governance of corporations. Although the issue in the present case relates to where a Turkish company and certain Turkish-domiciled individuals may be sued, and Turkey is of course not an EU member state, it is common ground that article 24(2) of the Recast Regulation applies to determine the question of jurisdiction which arises in this case.\",\"(2) in proceedings which have as their object the validity of the constitution, the nullity or the dissolution of companies or other legal persons or associations of natural or legal persons, or the validity of the decisions of their organs, the courts of the member state in which the company, legal person or association has its seat. In order to determine that seat, the court shall apply its rules of private international law; …”\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"ak il and others v koza ltd and another\"}"
+}

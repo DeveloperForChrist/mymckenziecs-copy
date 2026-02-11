@@ -1,0 +1,15 @@
+{
+  "id": "b8b827f2-863c-40e7-8681-ecf0bc6c395c",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#22166",
+  "created_at": "2025-12-25T14:08:29.651Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2005/862/contents/made",
+    "type": "uksi",
+    "year": 2005,
+    "number": 862,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2005/862/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2005,\"number\":862,\"url\":\"http://www.legislation.gov.uk/uksi/2005/862/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2005/862/made/data.htm\"}"
+}

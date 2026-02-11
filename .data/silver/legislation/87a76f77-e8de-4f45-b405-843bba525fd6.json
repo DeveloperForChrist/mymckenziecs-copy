@@ -1,0 +1,15 @@
+{
+  "id": "87a76f77-e8de-4f45-b405-843bba525fd6",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#25746",
+  "created_at": "2025-12-25T14:33:45.677Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2018/1117/made",
+    "type": "uksi",
+    "year": 2018,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2018,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2018/1117/made\",\"dataUrl\":null}"
+}

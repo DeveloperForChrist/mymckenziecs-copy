@@ -1,0 +1,15 @@
+{
+  "id": "b9c42960-5c86-47d6-a76a-b984a45a6607",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#27719",
+  "created_at": "2025-12-25T14:47:58.392Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2020/838/made",
+    "type": "uksi",
+    "year": 2020,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2020,\"number\":null,\"url\":\"http://www.legislation.gov.uk/wsi/2020/838/made\",\"dataUrl\":null}"
+}

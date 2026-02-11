@@ -1,0 +1,21 @@
+{
+  "id": "9e01db0b-dd61-4327-bb15-07e3334151b5",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "AIG Europe Limited (Appellant) v Woodman and others (Respondents)",
+  "created_at": "2025-12-25T11:49:23.394Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0100",
+    "score": 0,
+    "title": "AIG Europe Limited (Appellant) v Woodman and others (Respondents)",
+    "summary": "1. Under section 37 of the Solicitors Act 1974 the Law Society may make rules requiring solicitors to maintain professional indemnity insurance with authorised insurers and specifying the terms on which indemnity is to be available.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2016/0100",
+    "extracts": [
+      "1. Under section 37 of the Solicitors Act 1974 the Law Society may make rules requiring solicitors to maintain professional indemnity insurance with authorised insurers and specifying the terms on which indemnity is to be available. As the House of Lords explained in Swain v Law Society [1983] AC 598, the power is intended to be for the protection of the public as well as the premium-paying solicitor. The rules made by the Law Society require such insurance to satisfy certain Minimum Terms and Conditions (MTC). There is a prescribed minimum figure for which solicitors must be insured for any one claim, but clause 2.5 of the MTC permits the aggregation of claims in the following circumstances:",
+      "Page 2 2. Sub-clauses (iii) and (iv) were added in 2005 in circumstances to which I will refer. The dispute in this appeal arises from sub-clause (iv). More specifically, it is about the meaning of the expression “related matters or transactions”."
+    ],
+    "title_key": "aig europe limited v woodman and others"
+  },
+  "content": "{\"title\":\"AIG Europe Limited (Appellant) v Woodman and others (Respondents)\",\"citation\":\"UKSC/2016/0100\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0100\",\"summary\":\"1. Under section 37 of the Solicitors Act 1974 the Law Society may make rules requiring solicitors to maintain professional indemnity insurance with authorised insurers and specifying the terms on which indemnity is to be available.\",\"extracts\":[\"1. Under section 37 of the Solicitors Act 1974 the Law Society may make rules requiring solicitors to maintain professional indemnity insurance with authorised insurers and specifying the terms on which indemnity is to be available. As the House of Lords explained in Swain v Law Society [1983] AC 598, the power is intended to be for the protection of the public as well as the premium-paying solicitor. The rules made by the Law Society require such insurance to satisfy certain Minimum Terms and Conditions (MTC). There is a prescribed minimum figure for which solicitors must be insured for any one claim, but clause 2.5 of the MTC permits the aggregation of claims in the following circumstances:\",\"Page 2 2. Sub-clauses (iii) and (iv) were added in 2005 in circumstances to which I will refer. The dispute in this appeal arises from sub-clause (iv). More specifically, it is about the meaning of the expression “related matters or transactions”.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"aig europe limited v woodman and others\"}"
+}

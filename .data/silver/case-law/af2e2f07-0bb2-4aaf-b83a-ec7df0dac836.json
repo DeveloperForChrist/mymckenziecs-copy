@@ -1,0 +1,21 @@
+{
+  "id": "af2e2f07-0bb2-4aaf-b83a-ec7df0dac836",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of an application by the Secretary of State for Northern Ireland for Judicial Review (Appellant)",
+  "created_at": "2025-12-25T11:51:09.031Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2024-0083",
+    "score": 3,
+    "title": "In the matter of an application by the Secretary of State for Northern Ireland for Judicial Review (Appellant)",
+    "summary": "Principle issue: What is the correct test to be applied when a court judicially reviews a decision by a coroner to disclose gists of information over which Public Interest Immunity (“PII”) is asserted by a Minister on behalf of the Crown?",
+    "category": "public_law",
+    "citation": "UKSC/2024/0083",
+    "extracts": [
+      "In the matter of an application by the Secretary of State for Northern Ireland for Judicial Review (Appellant) before Lord Reed, President Lord Hodge, Deputy President Lord Lloyd-Jones Lord Sales Lord Stephens",
+      "2. These questions arise for consideration in relation to a PII certificate issued by Mr Steve Baker MP, the Minister of State for Northern Ireland (“the Minister”). The Minister certified on behalf of the Crown that the public interest in non-disclosure of certain documents, in order to prevent a real risk of serious harm being caused to national security, outweighed the public interest in open justice in an inquest by the disclosure of those documents. Louisa Fee (“the Coroner”) upheld the PII certificate but nevertheless decided to disclose gists of information contained in those documents."
+    ],
+    "title_key": "in the matter of an application by the secretary of state for northern ireland for judicial review"
+  },
+  "content": "{\"title\":\"In the matter of an application by the Secretary of State for Northern Ireland for Judicial Review (Appellant)\",\"citation\":\"UKSC/2024/0083\",\"url\":\"https://supremecourt.uk/cases/uksc-2024-0083\",\"summary\":\"Principle issue: What is the correct test to be applied when a court judicially reviews a decision by a coroner to disclose gists of information over which Public Interest Immunity (“PII”) is asserted by a Minister on behalf of the Crown?\",\"extracts\":[\"In the matter of an application by the Secretary of State for Northern Ireland for Judicial Review (Appellant) before Lord Reed, President Lord Hodge, Deputy President Lord Lloyd-Jones Lord Sales Lord Stephens\",\"2. These questions arise for consideration in relation to a PII certificate issued by Mr Steve Baker MP, the Minister of State for Northern Ireland (“the Minister”). The Minister certified on behalf of the Crown that the public interest in non-disclosure of certain documents, in order to prevent a real risk of serious harm being caused to national security, outweighed the public interest in open justice in an inquest by the disclosure of those documents. Louisa Fee (“the Coroner”) upheld the PII certificate but nevertheless decided to disclose gists of information contained in those documents.\"],\"category\":\"public_law\",\"score\":3,\"title_key\":\"in the matter of an application by the secretary of state for northern ireland for judicial review\"}"
+}

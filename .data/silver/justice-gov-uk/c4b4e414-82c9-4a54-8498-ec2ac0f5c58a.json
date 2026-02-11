@@ -1,0 +1,13 @@
+{
+  "id": "c4b4e414-82c9-4a54-8498-ec2ac0f5c58a",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#249",
+  "created_at": "2025-12-25T15:21:34.669Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/protocol/prot_rcd",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_protocol_prot_rcd_42745cc06c.html",
+    "fetchedAt": "2025-12-23T00:24:34.546Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/protocol/prot_rcd\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_protocol_prot_rcd_42745cc06c.html\",\"fetchedAt\":\"2025-12-23T00:24:34.546Z\"}"
+}

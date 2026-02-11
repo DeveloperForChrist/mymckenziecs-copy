@@ -1,0 +1,15 @@
+{
+  "id": "3733bc82-2d13-4a92-91a1-1a9ed24f0758",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#6719",
+  "created_at": "2025-12-25T12:32:26.416Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1949/2431/contents/made",
+    "type": "uksi",
+    "year": 1949,
+    "number": 2431,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1949,\"number\":2431,\"url\":\"http://www.legislation.gov.uk/uksi/1949/2431/contents/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "c8acfcbe-e23e-47ac-a16b-c59c3781a290",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#3537",
+  "created_at": "2025-12-25T12:13:14.761Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1964/85/contents/enacted",
+    "type": "ukpga",
+    "year": 1964,
+    "number": 85,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1964,\"number\":85,\"url\":\"http://www.legislation.gov.uk/ukpga/1964/85/contents/enacted\",\"dataUrl\":null}"
+}

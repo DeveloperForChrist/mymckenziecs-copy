@@ -1,0 +1,15 @@
+{
+  "id": "0f898dc4-9c71-48f8-b5f6-e1baaef8186c",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7197",
+  "created_at": "2025-12-25T12:35:29.425Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1953/1679/contents/made",
+    "type": "uksi",
+    "year": 1953,
+    "number": 1679,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1953,\"number\":1679,\"url\":\"http://www.legislation.gov.uk/uksi/1953/1679/contents/made\",\"dataUrl\":null}"
+}

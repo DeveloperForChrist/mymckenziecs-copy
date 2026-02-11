@@ -1,0 +1,21 @@
+{
+  "id": "412ba01b-78d5-4206-b0a4-452a1c7a74e3",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "The Soldiers, Sailors, Airmen and Families Association - Forces Help and another (Respondents) v Allgemeines Krankenhaus Viersen GmbH (Appellant)",
+  "created_at": "2025-12-25T11:50:28.401Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2020-0154",
+    "score": 1,
+    "title": "The Soldiers, Sailors, Airmen and Families Association - Forces Help and another (Respondents) v Allgemeines Krankenhaus Viersen GmbH (Appellant)",
+    "summary": "Principle issue: This appeal concerns the interpretation of the Civil Liability (Contribution) Act 1978 (the 1978 Act). The single issue is whether the 1978 Act has overriding effect. If it does then a contribution claim can be brought under the 1978 Act even though the contribution claim is governed by a foreign law rather than English law. Allgemeines Krankenhaus Viersen GmbH (AKV) argues that it does not have overriding effect.",
+    "category": "procedure",
+    "citation": "UKSC/2020/0154",
+    "extracts": [
+      "1. This appeal raises an important question as to the effect of the Civil Liability (Contribution) Act 1978 (“the 1978 Act”), namely whether it has mandatory or overriding effect (“overriding effect”) so that it applies to all contribution claims brought in England and Wales, or whether it applies only when domestic choice of law rules indicate that the contribution claim in question is governed by the law of England and Wales (hereinafter “English law”).",
+      "2. On 14 June 2000 the claimant, Mr Harry Roberts, was born at a hospital in Viersen, North-Rhine Westphalia, Germany (“the hospital”) operated by the third party, Allgemeines Krankenhaus Viersen GmbH. The claimant alleges that in the course of his birth he suffered an acute hypoxic brain injury as a result of negligence on the part of the attending midwife."
+    ],
+    "title_key": "the soldiers sailors airmen and families association forces help and another v allgemeines krankenhaus viersen gmbh"
+  },
+  "content": "{\"title\":\"The Soldiers, Sailors, Airmen and Families Association - Forces Help and another (Respondents) v Allgemeines Krankenhaus Viersen GmbH (Appellant)\",\"citation\":\"UKSC/2020/0154\",\"url\":\"https://supremecourt.uk/cases/uksc-2020-0154\",\"summary\":\"Principle issue: This appeal concerns the interpretation of the Civil Liability (Contribution) Act 1978 (the 1978 Act). The single issue is whether the 1978 Act has overriding effect. If it does then a contribution claim can be brought under the 1978 Act even though the contribution claim is governed by a foreign law rather than English law. Allgemeines Krankenhaus Viersen GmbH (AKV) argues that it does not have overriding effect.\",\"extracts\":[\"1. This appeal raises an important question as to the effect of the Civil Liability (Contribution) Act 1978 (“the 1978 Act”), namely whether it has mandatory or overriding effect (“overriding effect”) so that it applies to all contribution claims brought in England and Wales, or whether it applies only when domestic choice of law rules indicate that the contribution claim in question is governed by the law of England and Wales (hereinafter “English law”).\",\"2. On 14 June 2000 the claimant, Mr Harry Roberts, was born at a hospital in Viersen, North-Rhine Westphalia, Germany (“the hospital”) operated by the third party, Allgemeines Krankenhaus Viersen GmbH. The claimant alleges that in the course of his birth he suffered an acute hypoxic brain injury as a result of negligence on the part of the attending midwife.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"the soldiers sailors airmen and families association forces help and another v allgemeines krankenhaus viersen gmbh\"}"
+}

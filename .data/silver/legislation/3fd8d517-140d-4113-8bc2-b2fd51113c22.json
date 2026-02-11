@@ -1,0 +1,15 @@
+{
+  "id": "3fd8d517-140d-4113-8bc2-b2fd51113c22",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8807",
+  "created_at": "2025-12-25T12:44:47.974Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1969/1543/contents/made",
+    "type": "uksi",
+    "year": 1969,
+    "number": 1543,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1969,\"number\":1543,\"url\":\"http://www.legislation.gov.uk/uksi/1969/1543/contents/made\",\"dataUrl\":null}"
+}

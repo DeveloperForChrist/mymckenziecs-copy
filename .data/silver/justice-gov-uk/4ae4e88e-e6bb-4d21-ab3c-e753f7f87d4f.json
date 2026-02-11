@@ -1,0 +1,13 @@
+{
+  "id": "4ae4e88e-e6bb-4d21-ab3c-e753f7f87d4f",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#257",
+  "created_at": "2025-12-25T15:21:37.823Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/protocol/pre-action-protocol-for-claims-for-damages-in-relation-to-the-physical-state-of-commercial-property-at-termination-of-a-tenancy-the-dilapidations-protocol",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_protocol_pre_action_protocol_for_c698aec961.html",
+    "fetchedAt": "2025-12-23T00:24:37.679Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/protocol/pre-action-protocol-for-claims-for-damages-in-relation-to-the-physical-state-of-commercial-property-at-termination-of-a-tenancy-the-dilapidations-protocol\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_protocol_pre_action_protocol_for_c698aec961.html\",\"fetchedAt\":\"2025-12-23T00:24:37.679Z\"}"
+}

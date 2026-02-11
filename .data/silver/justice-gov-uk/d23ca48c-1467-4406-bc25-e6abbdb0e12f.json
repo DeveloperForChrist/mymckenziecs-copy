@@ -1,0 +1,13 @@
+{
+  "id": "d23ca48c-1467-4406-bc25-e6abbdb0e12f",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#224",
+  "created_at": "2025-12-25T15:21:23.603Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part-86-stakeholder-claims-and-applications",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part_86_stakeholder_claims_7cf940a9dd.html",
+    "fetchedAt": "2025-12-23T00:24:24.879Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part-86-stakeholder-claims-and-applications\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part_86_stakeholder_claims_7cf940a9dd.html\",\"fetchedAt\":\"2025-12-23T00:24:24.879Z\"}"
+}

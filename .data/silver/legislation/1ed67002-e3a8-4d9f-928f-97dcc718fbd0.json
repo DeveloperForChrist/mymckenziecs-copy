@@ -1,0 +1,15 @@
+{
+  "id": "1ed67002-e3a8-4d9f-928f-97dcc718fbd0",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#22231",
+  "created_at": "2025-12-25T14:09:00.340Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2006/3426/contents/made",
+    "type": "uksi",
+    "year": 2006,
+    "number": 3426,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2006/3426/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2006,\"number\":3426,\"url\":\"http://www.legislation.gov.uk/uksi/2006/3426/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2006/3426/made/data.htm\"}"
+}

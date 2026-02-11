@@ -1,0 +1,21 @@
+{
+  "id": "72349af9-f15f-4280-8758-5c751bdc6b15",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "JP Whitter (Water Well Engineers) Limited (Appellant) v Commissioners for Her Majesty’s Revenue and Customs (Respondent)",
+  "created_at": "2025-12-25T11:49:38.798Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0016",
+    "score": 2,
+    "title": "JP Whitter (Water Well Engineers) Limited (Appellant) v Commissioners for Her Majesty’s Revenue and Customs (Respondent)",
+    "summary": "1. This appeal raises a short question on the operation by the respondent Commissioners (“HMRC”) of the Construction Industry Scheme under the Finance Act 2004 (“the Act”).",
+    "category": "public_law",
+    "citation": "UKSC/2017/0016",
+    "extracts": [
+      "1. This appeal raises a short question on the operation by the respondent Commissioners (“HMRC”) of the Construction Industry Scheme under the Finance Act 2004 (“the Act”). The appellant company (“the company”) was registered for gross payment under the scheme. As is now accepted, it failed to comply with the requirements of the scheme without reasonable excuse. In consequence, on 30 May 2011, HMRC exercised their power under the Act to revoke its registration. In doing so, they took no account of the likely effect of their action on the company’s business. The company contends that this represented a failure to take account of a material consideration, in breach of both domestic public law, and of the European Convention on Human Rights (“the Convention”).",
+      "2. The facts are set out in detail in the judgment of Henderson LJ in the Court of Appeal: [2016] EWCA Civ 1160. A summary is sufficient for present purposes. The company is a family-run business of water well engineers, started in 1972. In 2011 it had about 25 employees, and an annual turnover of about £4.4m, much of it derived from contracts with a small number of major customers."
+    ],
+    "title_key": "jp whitter limited v commissioners for her majesty s revenue and customs"
+  },
+  "content": "{\"title\":\"JP Whitter (Water Well Engineers) Limited (Appellant) v Commissioners for Her Majesty’s Revenue and Customs (Respondent)\",\"citation\":\"UKSC/2017/0016\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0016\",\"summary\":\"1. This appeal raises a short question on the operation by the respondent Commissioners (“HMRC”) of the Construction Industry Scheme under the Finance Act 2004 (“the Act”).\",\"extracts\":[\"1. This appeal raises a short question on the operation by the respondent Commissioners (“HMRC”) of the Construction Industry Scheme under the Finance Act 2004 (“the Act”). The appellant company (“the company”) was registered for gross payment under the scheme. As is now accepted, it failed to comply with the requirements of the scheme without reasonable excuse. In consequence, on 30 May 2011, HMRC exercised their power under the Act to revoke its registration. In doing so, they took no account of the likely effect of their action on the company’s business. The company contends that this represented a failure to take account of a material consideration, in breach of both domestic public law, and of the European Convention on Human Rights (“the Convention”).\",\"2. The facts are set out in detail in the judgment of Henderson LJ in the Court of Appeal: [2016] EWCA Civ 1160. A summary is sufficient for present purposes. The company is a family-run business of water well engineers, started in 1972. In 2011 it had about 25 employees, and an annual turnover of about £4.4m, much of it derived from contracts with a small number of major customers.\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"jp whitter limited v commissioners for her majesty s revenue and customs\"}"
+}

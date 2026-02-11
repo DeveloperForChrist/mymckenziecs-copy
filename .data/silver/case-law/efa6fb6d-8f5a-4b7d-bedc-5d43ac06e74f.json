@@ -1,0 +1,21 @@
+{
+  "id": "efa6fb6d-8f5a-4b7d-bedc-5d43ac06e74f",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Littlewoods Limited and others (Appellants) v Commissioners for Her Majesty's Revenue and Customs (Respondent)",
+  "created_at": "2025-12-25T11:49:09.916Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0177",
+    "score": 0,
+    "title": "Littlewoods Limited and others (Appellants) v Commissioners for Her Majesty's Revenue and Customs (Respondent)",
+    "summary": "Littlewoods Limited and others (Respondents) v Commissioners for Her Majesty’s Revenue and Customs (Appellant) Littlewoods Limited and others (Appellants) v Commissioners for Her Majesty’s Revenue and Customs (Respondent)",
+    "category": "evidence_misc",
+    "citation": "UKSC/2015/0177",
+    "extracts": [
+      "Littlewoods Limited and others (Respondents) v Commissioners for Her Majesty’s Revenue and Customs (Appellant) Littlewoods Limited and others (Appellants) v Commissioners for Her Majesty’s Revenue and Customs (Respondent)",
+      "1. During the period with which this case is concerned, the claimants (whom we shall refer to as “Littlewoods”) carried on catalogue sales businesses: that is to say, they distributed catalogues to customers and sold them goods shown in the catalogues. In order to carry on their businesses, they employed agents, who received a commission in return for their services. They could elect to be paid the commission either in cash or in kind. Commission was paid in cash at the rate of 10% of the sales achieved by the agent. Commission paid in kind took the form of goods supplied by Littlewoods, equal in price to 12.5% of the sales achieved by the agent."
+    ],
+    "title_key": "littlewoods limited and others v commissioners for her majesty s revenue and customs"
+  },
+  "content": "{\"title\":\"Littlewoods Limited and others (Appellants) v Commissioners for Her Majesty's Revenue and Customs (Respondent)\",\"citation\":\"UKSC/2015/0177\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0177\",\"summary\":\"Littlewoods Limited and others (Respondents) v Commissioners for Her Majesty’s Revenue and Customs (Appellant) Littlewoods Limited and others (Appellants) v Commissioners for Her Majesty’s Revenue and Customs (Respondent)\",\"extracts\":[\"Littlewoods Limited and others (Respondents) v Commissioners for Her Majesty’s Revenue and Customs (Appellant) Littlewoods Limited and others (Appellants) v Commissioners for Her Majesty’s Revenue and Customs (Respondent)\",\"1. During the period with which this case is concerned, the claimants (whom we shall refer to as “Littlewoods”) carried on catalogue sales businesses: that is to say, they distributed catalogues to customers and sold them goods shown in the catalogues. In order to carry on their businesses, they employed agents, who received a commission in return for their services. They could elect to be paid the commission either in cash or in kind. Commission was paid in cash at the rate of 10% of the sales achieved by the agent. Commission paid in kind took the form of goods supplied by Littlewoods, equal in price to 12.5% of the sales achieved by the agent.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"littlewoods limited and others v commissioners for her majesty s revenue and customs\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "4bf9b47c-0e97-4462-9b74-ce11e988117a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "El-Husseiny and another (Appellants) v Invest Bank PSC (Respondent)",
+  "created_at": "2025-12-25T11:50:59.567Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2023-0080",
+    "score": 1,
+    "title": "El-Husseiny and another (Appellants) v Invest Bank PSC (Respondent)",
+    "summary": "Principle issue: Did the Court of Appeal correctly interpret section 423 of the Insolvency Act 1986 by determining that: (1) a person can 'enter into' a transaction where they act on behalf of a company; and (2) there can be a 'transaction' for the purposes of section 423 where the asset which is alleged to have been disposed of at an undervalue was not beneficially owned by the 'debtor'?",
+    "category": "procedure",
+    "citation": "UKSC/2023/0080",
+    "extracts": [
+      "2. This issue arose in proceedings commenced in the High Court in July 2021 to enforce judgments previously obtained in Abu Dhabi by the first respondent, Invest Bank PSC (“the Bank”), against Mr Ahmad El-Husseini (“Mr El-Husseini”) for AED 96 million, which is equivalent to about £20 million. The judgment debt arose under guarantees given by Mr El-Husseini in respect of credit facilities granted by the Bank to two companies connected with him.",
+      "3. The Bank identified valuable assets in this jurisdiction against which it wished to enforce those judgments. These included houses in central London or companies owning such houses, which, it said, ought to be made available for this purpose. It alleged that Mr El-Husseini had arranged for these assets to be transferred to other people in order to put them beyond the reach of the Bank and its judgment debt or to reduce the value of the companies which owned them. It sought relief under section 423."
+    ],
+    "title_key": "el husseiny and another v invest bank psc"
+  },
+  "content": "{\"title\":\"El-Husseiny and another (Appellants) v Invest Bank PSC (Respondent)\",\"citation\":\"UKSC/2023/0080\",\"url\":\"https://supremecourt.uk/cases/uksc-2023-0080\",\"summary\":\"Principle issue: Did the Court of Appeal correctly interpret section 423 of the Insolvency Act 1986 by determining that: (1) a person can 'enter into' a transaction where they act on behalf of a company; and (2) there can be a 'transaction' for the purposes of section 423 where the asset which is alleged to have been disposed of at an undervalue was not beneficially owned by the 'debtor'?\",\"extracts\":[\"2. This issue arose in proceedings commenced in the High Court in July 2021 to enforce judgments previously obtained in Abu Dhabi by the first respondent, Invest Bank PSC (“the Bank”), against Mr Ahmad El-Husseini (“Mr El-Husseini”) for AED 96 million, which is equivalent to about £20 million. The judgment debt arose under guarantees given by Mr El-Husseini in respect of credit facilities granted by the Bank to two companies connected with him.\",\"3. The Bank identified valuable assets in this jurisdiction against which it wished to enforce those judgments. These included houses in central London or companies owning such houses, which, it said, ought to be made available for this purpose. It alleged that Mr El-Husseini had arranged for these assets to be transferred to other people in order to put them beyond the reach of the Bank and its judgment debt or to reduce the value of the companies which owned them. It sought relief under section 423.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"el husseiny and another v invest bank psc\"}"
+}

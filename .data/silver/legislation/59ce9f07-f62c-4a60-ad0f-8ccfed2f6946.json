@@ -1,0 +1,15 @@
+{
+  "id": "59ce9f07-f62c-4a60-ad0f-8ccfed2f6946",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#27592",
+  "created_at": "2025-12-25T14:47:04.700Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2020/970/made",
+    "type": "uksi",
+    "year": 2020,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2020,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2020/970/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "5add6055-c817-48f4-8c56-339de3d7acb9",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#6979",
+  "created_at": "2025-12-25T12:34:06.735Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1951/2248/contents/made",
+    "type": "uksi",
+    "year": 1951,
+    "number": 2248,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1951,\"number\":2248,\"url\":\"http://www.legislation.gov.uk/uksi/1951/2248/contents/made\",\"dataUrl\":null}"
+}

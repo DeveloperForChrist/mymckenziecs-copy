@@ -1,0 +1,21 @@
+{
+  "id": "45ca4694-2f86-4cdc-ab6f-98bc252a463a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of an application by JR55 for Judicial Review (Northern Ireland)",
+  "created_at": "2025-12-25T11:48:38.825Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0094",
+    "score": 1,
+    "title": "In the matter of an application by JR55 for Judicial Review (Northern Ireland)",
+    "summary": "2. In 1969, two ombudsmen were established for Northern Ireland.",
+    "category": "procedure",
+    "citation": "UKSC/2014/0094",
+    "extracts": [
+      "2. In 1969, two ombudsmen were established for Northern Ireland. The Parliamentary Commissioner Act (Northern Ireland) 1969 established a Northern Ireland Parliamentary Commissioner for Administration (later known as the Assembly Ombudsman for Northern Ireland). His role and powers were closely modelled on those of the Commissioner established by the United Kingdom Act of 1967. The Commissioner for Complaints Act (Northern Ireland) 1969 established a Northern Ireland Commissioner for Complaints. I shall call him the “Complaints Commissioner”. He is charged with reporting on complaints against bodies which were not within the jurisdiction of the Northern Ireland Parliamentary Commissioner, notably local authorities, the Northern Ireland Health Board and various public statutory undertakers. Since 1972, the same person has held both offices. But until recently (see below) his two roles have had distinct legislative foundations. It is therefore necessary to have regard to the particular capacity in which an ombudsman is acting and the particular legislation governing that function",
+      "Page 2 in order to determine what his powers are. The current legislation comprises two Orders in Council made on the same day in 1996, which repealed and replaced the corresponding Acts of 1969. They are the Ombudsman (Northern Ireland) Order 1996 (SI 1996/1298 (NI 8)), governing the work of the Assembly Ombudsman, and the Commissioner for Complaints (Northern Ireland) Order 1996 (SI 1996/1297 (NI 7)), governing that of the Complaints Commissioner."
+    ],
+    "title_key": "in the matter of an application by jr55 for judicial review"
+  },
+  "content": "{\"title\":\"In the matter of an application by JR55 for Judicial Review (Northern Ireland)\",\"citation\":\"UKSC/2014/0094\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0094\",\"summary\":\"2. In 1969, two ombudsmen were established for Northern Ireland.\",\"extracts\":[\"2. In 1969, two ombudsmen were established for Northern Ireland. The Parliamentary Commissioner Act (Northern Ireland) 1969 established a Northern Ireland Parliamentary Commissioner for Administration (later known as the Assembly Ombudsman for Northern Ireland). His role and powers were closely modelled on those of the Commissioner established by the United Kingdom Act of 1967. The Commissioner for Complaints Act (Northern Ireland) 1969 established a Northern Ireland Commissioner for Complaints. I shall call him the “Complaints Commissioner”. He is charged with reporting on complaints against bodies which were not within the jurisdiction of the Northern Ireland Parliamentary Commissioner, notably local authorities, the Northern Ireland Health Board and various public statutory undertakers. Since 1972, the same person has held both offices. But until recently (see below) his two roles have had distinct legislative foundations. It is therefore necessary to have regard to the particular capacity in which an ombudsman is acting and the particular legislation governing that function\",\"Page 2 in order to determine what his powers are. The current legislation comprises two Orders in Council made on the same day in 1996, which repealed and replaced the corresponding Acts of 1969. They are the Ombudsman (Northern Ireland) Order 1996 (SI 1996/1298 (NI 8)), governing the work of the Assembly Ombudsman, and the Commissioner for Complaints (Northern Ireland) Order 1996 (SI 1996/1297 (NI 7)), governing that of the Complaints Commissioner.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"in the matter of an application by jr55 for judicial review\"}"
+}

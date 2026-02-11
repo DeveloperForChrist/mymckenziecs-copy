@@ -1,0 +1,13 @@
+{
+  "id": "ae69b211-d439-4dd4-92c6-133347d38898",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#135",
+  "created_at": "2025-12-25T15:20:42.981Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part51/practice-direction-51ze-small-claims-track-automatic-referral-to-mediation-pilot-scheme",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part51_practice_direction__31124d873e.html",
+    "fetchedAt": "2025-12-22T23:49:49.271Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part51/practice-direction-51ze-small-claims-track-automatic-referral-to-mediation-pilot-scheme\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part51_practice_direction__31124d873e.html\",\"fetchedAt\":\"2025-12-22T23:49:49.271Z\"}"
+}

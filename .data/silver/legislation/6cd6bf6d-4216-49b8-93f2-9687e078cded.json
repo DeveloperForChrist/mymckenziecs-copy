@@ -1,0 +1,15 @@
+{
+  "id": "6cd6bf6d-4216-49b8-93f2-9687e078cded",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9142",
+  "created_at": "2025-12-25T12:46:42.255Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1974/2225/contents/made",
+    "type": "uksi",
+    "year": 1974,
+    "number": 2225,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1974,\"number\":2225,\"url\":\"http://www.legislation.gov.uk/uksi/1974/2225/contents/made\",\"dataUrl\":null}"
+}

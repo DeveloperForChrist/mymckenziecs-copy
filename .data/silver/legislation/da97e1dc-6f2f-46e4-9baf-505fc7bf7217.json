@@ -1,0 +1,15 @@
+{
+  "id": "da97e1dc-6f2f-46e4-9baf-505fc7bf7217",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#25042",
+  "created_at": "2025-12-25T14:28:44.669Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2015/1232/contents/made",
+    "type": "uksi",
+    "year": 2015,
+    "number": 1232,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2015,\"number\":1232,\"url\":\"http://www.legislation.gov.uk/uksi/2015/1232/contents/made\",\"dataUrl\":null}"
+}

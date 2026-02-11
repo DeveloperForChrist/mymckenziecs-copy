@@ -1,0 +1,21 @@
+{
+  "id": "44e02330-b977-45f6-8b72-8836a1679870",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Morge (FC) (Appellant) v Hampshire County Council (Respondent)",
+  "created_at": "2025-12-25T11:47:06.559Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0120",
+    "score": 2,
+    "title": "Morge (FC) (Appellant) v Hampshire County Council (Respondent)",
+    "summary": "1. This appeal concerns a planning permission granted on 29 July 2009 for a proposed three mile (4.7km) stretch of roadway to provide a rapid bus service between Fareham and Gosport in South East Hampshire.",
+    "category": "procedure",
+    "citation": "UKSC/2010/0120",
+    "extracts": [
+      "1. This appeal concerns a planning permission granted on 29 July 2009 for a proposed three mile (4.7km) stretch of roadway to provide a rapid bus service between Fareham and Gosport in South East Hampshire. The permission was challenged on environmental grounds including not least its likely impact on several species of European protected bats inhabiting the general area around the proposed busway. The challenge having failed before Judge Bidder QC (sitting as a Deputy High Court judge) on 17 November 2009 – [2009] EWHC 2940 (Admin) – and before the Court of Appeal (Ward, Hughes and Patten LJJ) on 10 June 2010 – [2010] EWCA Civ 608, [2010] PTSR 1882 – this Court on 27 July 2010 gave the appellant limited permission to appeal so as to raise two issues of some general importance.",
+      "“Member States shall take the requisite measures to establish a system of strict protection for the animal species listed [the protected species] in their natural range, prohibiting . . . (b) deliberate disturbance of these species, particularly during the period of breeding, rearing, hibernation and migration; . . .”"
+    ],
+    "title_key": "morge v hampshire county council"
+  },
+  "content": "{\"title\":\"Morge (FC) (Appellant) v Hampshire County Council (Respondent)\",\"citation\":\"UKSC/2010/0120\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0120\",\"summary\":\"1. This appeal concerns a planning permission granted on 29 July 2009 for a proposed three mile (4.7km) stretch of roadway to provide a rapid bus service between Fareham and Gosport in South East Hampshire.\",\"extracts\":[\"1. This appeal concerns a planning permission granted on 29 July 2009 for a proposed three mile (4.7km) stretch of roadway to provide a rapid bus service between Fareham and Gosport in South East Hampshire. The permission was challenged on environmental grounds including not least its likely impact on several species of European protected bats inhabiting the general area around the proposed busway. The challenge having failed before Judge Bidder QC (sitting as a Deputy High Court judge) on 17 November 2009 – [2009] EWHC 2940 (Admin) – and before the Court of Appeal (Ward, Hughes and Patten LJJ) on 10 June 2010 – [2010] EWCA Civ 608, [2010] PTSR 1882 – this Court on 27 July 2010 gave the appellant limited permission to appeal so as to raise two issues of some general importance.\",\"“Member States shall take the requisite measures to establish a system of strict protection for the animal species listed [the protected species] in their natural range, prohibiting . . . (b) deliberate disturbance of these species, particularly during the period of breeding, rearing, hibernation and migration; . . .”\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"morge v hampshire county council\"}"
+}

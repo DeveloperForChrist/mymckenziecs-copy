@@ -1,0 +1,15 @@
+{
+  "id": "43ccd078-9270-444f-8e52-9c779aef0829",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#25469",
+  "created_at": "2025-12-25T14:31:46.894Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2018/1403/contents",
+    "type": "uksi",
+    "year": 2018,
+    "number": 1403,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2018/1403/2023-08-29/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2018,\"number\":1403,\"url\":\"http://www.legislation.gov.uk/uksi/2018/1403/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2018/1403/2023-08-29/data.htm\"}"
+}

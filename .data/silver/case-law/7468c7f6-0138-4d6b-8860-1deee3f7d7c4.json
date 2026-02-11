@@ -1,0 +1,21 @@
+{
+  "id": "7468c7f6-0138-4d6b-8860-1deee3f7d7c4",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Vestergaard Frandsen A/S (now called MVF3 APS) and others (Appellants) v Bestnet Europe Limited and others (Respondents)",
+  "created_at": "2025-12-25T11:47:30.874Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0144",
+    "score": 1,
+    "title": "Vestergaard Frandsen A/S (now called MVF3 APS) and others (Appellants) v Bestnet Europe Limited and others (Respondents)",
+    "summary": "1. This is an appeal brought by three companies, MVF 3 APS (formerly known as Vestergaard Frandsen A/S), Vestergaard Frandsen SA, and Disease Control Textiles SA, which are effectively in common ownership, and can conveniently be referred to compendiously as “Vestergaard”.",
+    "category": "procedure",
+    "citation": "UKSC/2011/0144",
+    "extracts": [
+      "1. This is an appeal brought by three companies, MVF 3 APS (formerly known as Vestergaard Frandsen A/S), Vestergaard Frandsen SA, and Disease Control Textiles SA, which are effectively in common ownership, and can conveniently be referred to compendiously as “Vestergaard”. Their appeal is against the Court of Appeal’s reversal of a decision by Arnold J that Mrs Trine Sig was liable to Vestergaard for misuse of their trade secrets after she ceased her employment with them.",
+      "2. A major aspect of Vestergaard’s business is the development, manufacture and marketing of insecticidal bednets, whose purpose is to prevent the sleeper from being bitten by mosquitos, and also to reduce the mosquito population. An important challenge of the relevant technology is to find ways of ensuring that such bednets retain their insecticidal activity over a long period of time, despite vicissitudes such as repeated washing. To that end, Vestergaard developed techniques (which I shall call “the techniques”) which enabled them to manufacture and sell long lasting insecticidal nets, known as LLINs. The techniques involved incorporating insecticide and other additives into molten polyethylene, before it is extruded into filaments, which are then knitted to form LLINs."
+    ],
+    "title_key": "vestergaard frandsen a s and others v bestnet europe limited and others"
+  },
+  "content": "{\"title\":\"Vestergaard Frandsen A/S (now called MVF3 APS) and others (Appellants) v Bestnet Europe Limited and others (Respondents)\",\"citation\":\"UKSC/2011/0144\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0144\",\"summary\":\"1. This is an appeal brought by three companies, MVF 3 APS (formerly known as Vestergaard Frandsen A/S), Vestergaard Frandsen SA, and Disease Control Textiles SA, which are effectively in common ownership, and can conveniently be referred to compendiously as “Vestergaard”.\",\"extracts\":[\"1. This is an appeal brought by three companies, MVF 3 APS (formerly known as Vestergaard Frandsen A/S), Vestergaard Frandsen SA, and Disease Control Textiles SA, which are effectively in common ownership, and can conveniently be referred to compendiously as “Vestergaard”. Their appeal is against the Court of Appeal’s reversal of a decision by Arnold J that Mrs Trine Sig was liable to Vestergaard for misuse of their trade secrets after she ceased her employment with them.\",\"2. A major aspect of Vestergaard’s business is the development, manufacture and marketing of insecticidal bednets, whose purpose is to prevent the sleeper from being bitten by mosquitos, and also to reduce the mosquito population. An important challenge of the relevant technology is to find ways of ensuring that such bednets retain their insecticidal activity over a long period of time, despite vicissitudes such as repeated washing. To that end, Vestergaard developed techniques (which I shall call “the techniques”) which enabled them to manufacture and sell long lasting insecticidal nets, known as LLINs. The techniques involved incorporating insecticide and other additives into molten polyethylene, before it is extruded into filaments, which are then knitted to form LLINs.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"vestergaard frandsen a s and others v bestnet europe limited and others\"}"
+}

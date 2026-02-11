@@ -1,0 +1,21 @@
+{
+  "id": "f03d009f-64f6-4033-9c2b-8711f5bf4282",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Greater Glasgow Health Board (Appellant) v Doogan and another (Respondents) (Scotland)",
+  "created_at": "2025-12-25T11:48:14.792Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0124",
+    "score": 2,
+    "title": "Greater Glasgow Health Board (Appellant) v Doogan and another (Respondents) (Scotland)",
+    "summary": "1. The Abortion Act 1967 provides a comprehensive code of the circumstances in which it is lawful to bring about the termination of a pregnancy in England, Wales and Scotland.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0124",
+    "extracts": [
+      "1. The Abortion Act 1967 provides a comprehensive code of the circumstances in which it is lawful to bring about the termination of a pregnancy in England, Wales and Scotland. It enlarged and replaced the limited circumstances in which this was recognised as lawful by the common law. It also regulated the procedure. Other than in an emergency, two doctors must be of the opinion that the grounds for bringing about a termination exist and the termination must take place either in a National Health Service Hospital or in a clinic approved for the purpose. While the Bill was going through Parliament, a clause protecting the right of conscientious objection to taking part in an abortion was introduced. This case is about the precise scope of that right.",
+      "“(1) Subject to the provisions of this section, a person shall not be guilty of an offence under the law relating to abortion when a pregnancy is terminated by a registered medical practitioner if two registered medical practitioners are of the opinion, formed in good faith -"
+    ],
+    "title_key": "greater glasgow health board v doogan and another"
+  },
+  "content": "{\"title\":\"Greater Glasgow Health Board (Appellant) v Doogan and another (Respondents) (Scotland)\",\"citation\":\"UKSC/2013/0124\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0124\",\"summary\":\"1. The Abortion Act 1967 provides a comprehensive code of the circumstances in which it is lawful to bring about the termination of a pregnancy in England, Wales and Scotland.\",\"extracts\":[\"1. The Abortion Act 1967 provides a comprehensive code of the circumstances in which it is lawful to bring about the termination of a pregnancy in England, Wales and Scotland. It enlarged and replaced the limited circumstances in which this was recognised as lawful by the common law. It also regulated the procedure. Other than in an emergency, two doctors must be of the opinion that the grounds for bringing about a termination exist and the termination must take place either in a National Health Service Hospital or in a clinic approved for the purpose. While the Bill was going through Parliament, a clause protecting the right of conscientious objection to taking part in an abortion was introduced. This case is about the precise scope of that right.\",\"“(1) Subject to the provisions of this section, a person shall not be guilty of an offence under the law relating to abortion when a pregnancy is terminated by a registered medical practitioner if two registered medical practitioners are of the opinion, formed in good faith -\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"greater glasgow health board v doogan and another\"}"
+}

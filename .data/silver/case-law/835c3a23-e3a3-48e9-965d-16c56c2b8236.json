@@ -1,0 +1,13 @@
+{
+  "id": "835c3a23-e3a3-48e9-965d-16c56c2b8236",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-progress.json",
+  "title": "uksc-progress.json",
+  "created_at": "2025-12-25T11:51:12.819Z",
+  "metadata": {
+    "index": 1662,
+    "total": 1662,
+    "updatedAt": "2025-12-23T11:48:04Z"
+  },
+  "content": "{\"index\":1662,\"total\":1662,\"updatedAt\":\"2025-12-23T11:48:04Z\"}"
+}

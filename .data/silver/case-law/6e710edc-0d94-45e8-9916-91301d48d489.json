@@ -1,0 +1,21 @@
+{
+  "id": "6e710edc-0d94-45e8-9916-91301d48d489",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Recovery of Medical Costs for Asbestos Diseases (Wales) Bill - Reference by the Counsel General for Wales",
+  "created_at": "2025-12-25T11:48:34.437Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0043",
+    "score": 1,
+    "title": "Recovery of Medical Costs for Asbestos Diseases (Wales) Bill - Reference by the Counsel General for Wales",
+    "summary": "1. This reference, made by the Counsel General for Wales, raises for determination whether the Recovery of Medical Costs for Asbestos Diseases (Wales) Bill is within the legislative competence of the National Assembly for Wales (the “Welsh Assembly”).",
+    "category": "procedure",
+    "citation": "UKSC/2014/0043",
+    "extracts": [
+      "1. This reference, made by the Counsel General for Wales, raises for determination whether the Recovery of Medical Costs for Asbestos Diseases (Wales) Bill is within the legislative competence of the National Assembly for Wales (the “Welsh Assembly”). The issues involved are novel and important, and the Counsel General was right to recognise them as such and to make the present reference with a view to resolving them. The reference has been well-presented and argued on both sides.",
+      "“(a) imposes liability on persons by whom or on whose behalf compensation payments are made to or in respect of victims of asbestos-related diseases to pay charges in respect of National Health Service services provided to the victims as a result of the diseases;"
+    ],
+    "title_key": "recovery of medical costs for asbestos diseases bill reference by the counsel general for wales"
+  },
+  "content": "{\"title\":\"Recovery of Medical Costs for Asbestos Diseases (Wales) Bill - Reference by the Counsel General for Wales\",\"citation\":\"UKSC/2014/0043\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0043\",\"summary\":\"1. This reference, made by the Counsel General for Wales, raises for determination whether the Recovery of Medical Costs for Asbestos Diseases (Wales) Bill is within the legislative competence of the National Assembly for Wales (the “Welsh Assembly”).\",\"extracts\":[\"1. This reference, made by the Counsel General for Wales, raises for determination whether the Recovery of Medical Costs for Asbestos Diseases (Wales) Bill is within the legislative competence of the National Assembly for Wales (the “Welsh Assembly”). The issues involved are novel and important, and the Counsel General was right to recognise them as such and to make the present reference with a view to resolving them. The reference has been well-presented and argued on both sides.\",\"“(a) imposes liability on persons by whom or on whose behalf compensation payments are made to or in respect of victims of asbestos-related diseases to pay charges in respect of National Health Service services provided to the victims as a result of the diseases;\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"recovery of medical costs for asbestos diseases bill reference by the counsel general for wales\"}"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "8df953f5-9839-4978-a9f9-7faa940a97ee",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#149",
+  "created_at": "2025-12-25T15:20:49.023Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part54/cyfarwyddyd-ymarfer-54a-adolygiad-barnwrol",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part54_cyfarwyddyd_ymarfer_6d531d084d.html",
+    "fetchedAt": "2025-12-22T23:49:54.760Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part54/cyfarwyddyd-ymarfer-54a-adolygiad-barnwrol\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part54_cyfarwyddyd_ymarfer_6d531d084d.html\",\"fetchedAt\":\"2025-12-22T23:49:54.760Z\"}"
+}

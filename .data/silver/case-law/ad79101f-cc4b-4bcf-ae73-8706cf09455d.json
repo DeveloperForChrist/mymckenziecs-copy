@@ -1,0 +1,21 @@
+{
+  "id": "ad79101f-cc4b-4bcf-ae73-8706cf09455d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Armstead (Appellant) v Royal & Sun Alliance Insurance Company Ltd (Respondent)",
+  "created_at": "2025-12-25T11:50:50.313Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2022-0100",
+    "score": 1,
+    "title": "Armstead (Appellant) v Royal & Sun Alliance Insurance Company Ltd (Respondent)",
+    "summary": "Principle issue: Where the hirer of a car contractually agrees to pay the car hire company a sum for loss of use if the hire car is damaged during the hire period, and the hire car is then damaged due to the negligent driving of a third party, can the hirer recover that contractual liability from the negligent driver (or their insurer)?",
+    "category": "procedure",
+    "citation": "UKSC/2022/0100",
+    "extracts": [
+      "1. This claim for £1,560 has reached the Supreme Court on a third appeal. Although the sum at stake is small, the decision has the potential to affect a significant number of other cases. Moreover, it raises some fundamental questions in applying the tort of negligence in a situation where economic loss, comprising a contractual liability to pay a sum of money, has resulted from physical damage to property. In particular, is that loss irrecoverable, either because it is “pure economic loss” or because it is too remote?",
+      "2. The claim arises from a road traffic collision in which a hire car was damaged through the fault of the other driver. The main issue is whether the damages recoverable by the hirer from the other driver (or their insurer) include, as well as the cost of repair, a sum which the hirer has agreed to pay to the hire company for the company’s loss of use of the car while it is unavailable for hire because it is off the road for repairs."
+    ],
+    "title_key": "armstead v royal sun alliance insurance company ltd"
+  },
+  "content": "{\"title\":\"Armstead (Appellant) v Royal & Sun Alliance Insurance Company Ltd (Respondent)\",\"citation\":\"UKSC/2022/0100\",\"url\":\"https://supremecourt.uk/cases/uksc-2022-0100\",\"summary\":\"Principle issue: Where the hirer of a car contractually agrees to pay the car hire company a sum for loss of use if the hire car is damaged during the hire period, and the hire car is then damaged due to the negligent driving of a third party, can the hirer recover that contractual liability from the negligent driver (or their insurer)?\",\"extracts\":[\"1. This claim for £1,560 has reached the Supreme Court on a third appeal. Although the sum at stake is small, the decision has the potential to affect a significant number of other cases. Moreover, it raises some fundamental questions in applying the tort of negligence in a situation where economic loss, comprising a contractual liability to pay a sum of money, has resulted from physical damage to property. In particular, is that loss irrecoverable, either because it is “pure economic loss” or because it is too remote?\",\"2. The claim arises from a road traffic collision in which a hire car was damaged through the fault of the other driver. The main issue is whether the damages recoverable by the hirer from the other driver (or their insurer) include, as well as the cost of repair, a sum which the hirer has agreed to pay to the hire company for the company’s loss of use of the car while it is unavailable for hire because it is off the road for repairs.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"armstead v royal sun alliance insurance company ltd\"}"
+}

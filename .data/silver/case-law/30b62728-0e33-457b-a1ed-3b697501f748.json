@@ -1,0 +1,21 @@
+{
+  "id": "30b62728-0e33-457b-a1ed-3b697501f748",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "A (Appellant) v Essex County Council (Respondent)",
+  "created_at": "2025-12-25T11:46:40.070Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0065",
+    "score": 0,
+    "title": "A (Appellant) v Essex County Council (Respondent)",
+    "summary": "2. A was born on 3 July 1989 and is now 21 years of age.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2009/0065",
+    "extracts": [
+      "2. A was born on 3 July 1989 and is now 21 years of age. At the time the relevant events occurred, between January 2002 and July 2003, he was 12 and 13 years of age. His problems during that period can be summarised in this way. He was autistic and had serious learning difficulties and a severe communication disorder. His behaviour was challenging. He suffered from epilepsy, frequently having 10 to 15 short epileptic fits a day despite medication. He was doubly incontinent, had no concept of danger and required constant supervision. He was dependant upon adults for every need.",
+      "4. A issued these proceedings on 5 May 2005. Essex sought an order that the claim be dismissed under CPR 24 on the basis that it had no real prospect of success. On 13 July 2007 Field J (‘the judge’) granted the application and dismissed the claim: see [2007] EWHC 1652 (QB). He also refused an application on behalf of A to extend the period of one year provided for in section 7(5) of the HRA. He refused permission to appeal. Three similar applications were heard by Page 2 the judge in other actions at the same time. He reached the same conclusion in each. None of those is the subject of this appeal. A appealed to the Court of Appeal with the permission of that court. The appeal was dismissed on 16 April 2008: see [2008] EWCA Civ 364. The court upheld the decision of the judge that the claim had no real prospect of success and did not consider the limitation point. The only substantive judgment was given by Sedley LJ, with whom Ward and Hughes LJJ agreed. The Court of Appeal refused permission to appeal to this court. This court subsequently granted permission to appeal."
+    ],
+    "title_key": "a v essex county council"
+  },
+  "content": "{\"title\":\"A (Appellant) v Essex County Council (Respondent)\",\"citation\":\"UKSC/2009/0065\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0065\",\"summary\":\"2. A was born on 3 July 1989 and is now 21 years of age.\",\"extracts\":[\"2. A was born on 3 July 1989 and is now 21 years of age. At the time the relevant events occurred, between January 2002 and July 2003, he was 12 and 13 years of age. His problems during that period can be summarised in this way. He was autistic and had serious learning difficulties and a severe communication disorder. His behaviour was challenging. He suffered from epilepsy, frequently having 10 to 15 short epileptic fits a day despite medication. He was doubly incontinent, had no concept of danger and required constant supervision. He was dependant upon adults for every need.\",\"4. A issued these proceedings on 5 May 2005. Essex sought an order that the claim be dismissed under CPR 24 on the basis that it had no real prospect of success. On 13 July 2007 Field J (‘the judge’) granted the application and dismissed the claim: see [2007] EWHC 1652 (QB). He also refused an application on behalf of A to extend the period of one year provided for in section 7(5) of the HRA. He refused permission to appeal. Three similar applications were heard by Page 2 the judge in other actions at the same time. He reached the same conclusion in each. None of those is the subject of this appeal. A appealed to the Court of Appeal with the permission of that court. The appeal was dismissed on 16 April 2008: see [2008] EWCA Civ 364. The court upheld the decision of the judge that the claim had no real prospect of success and did not consider the limitation point. The only substantive judgment was given by Sedley LJ, with whom Ward and Hughes LJJ agreed. The Court of Appeal refused permission to appeal to this court. This court subsequently granted permission to appeal.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"a v essex county council\"}"
+}

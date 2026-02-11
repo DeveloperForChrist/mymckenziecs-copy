@@ -1,0 +1,15 @@
+{
+  "id": "abdcf174-ebf3-42fc-a3dd-4c72d71717c0",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#2474",
+  "created_at": "2025-12-25T12:06:42.242Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo6/9-10/45/contents",
+    "type": "ukpga",
+    "year": 1946,
+    "number": 45,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/Geo6/9-10/45/1999-07-01/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1946,\"number\":45,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo6/9-10/45/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/Geo6/9-10/45/1999-07-01/data.htm\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "25cf456b-ef30-46f5-ac97-d0c8b4ffb7e5",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "G Hamilton (Tullochgribban Mains) Limited (Appellant) v The Highland Council and another (Respondents) (Scotland)",
+  "created_at": "2025-12-25T11:47:23.918Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0039",
+    "score": 1,
+    "title": "G Hamilton (Tullochgribban Mains) Limited (Appellant) v The Highland Council and another (Respondents) (Scotland)",
+    "summary": "1. This appeal is concerned with legislation under which planning authorities have the duty of reviewing what are commonly referred to as “old” planning permissions for mineral working.",
+    "category": "procedure",
+    "citation": "UKSC/2011/0039",
+    "extracts": [
+      "1. This appeal is concerned with legislation under which planning authorities have the duty of reviewing what are commonly referred to as “old” planning permissions for mineral working. The process of review is sometimes referred to by the acronym ROMP (Review [of] Old Mineral [planning] Permissions). The statutory provisions were introduced by the Environment Act 1995 and then reenacted in substantially the same form in the Town and Country Planning (Scotland) Act 1997 (“the 1997 Act”).",
+      "2. The principal legislative purpose of these provisions is to ensure that old mineral permissions are made subject to conditions meeting modern environmental standards. Some of the old permissions were granted many years ago subject to conditions less stringent and less precise than are appropriate today. Where more stringent conditions are imposed compensation is payable in certain cases, but only where the mineral site in question is classified as “active” rather than “dormant”. A subsidiary purpose of the legislation is to achieve better and more reliable records of old planning permissions for mineral working. The evolution of the legislation has been described in detail by the Lord President (Lord Cullen) in Lafarge Aggregates Ltd v Scottish Ministers 2004 SC 524, paras 2 and 3."
+    ],
+    "title_key": "g hamilton limited v the highland council and another"
+  },
+  "content": "{\"title\":\"G Hamilton (Tullochgribban Mains) Limited (Appellant) v The Highland Council and another (Respondents) (Scotland)\",\"citation\":\"UKSC/2011/0039\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0039\",\"summary\":\"1. This appeal is concerned with legislation under which planning authorities have the duty of reviewing what are commonly referred to as “old” planning permissions for mineral working.\",\"extracts\":[\"1. This appeal is concerned with legislation under which planning authorities have the duty of reviewing what are commonly referred to as “old” planning permissions for mineral working. The process of review is sometimes referred to by the acronym ROMP (Review [of] Old Mineral [planning] Permissions). The statutory provisions were introduced by the Environment Act 1995 and then reenacted in substantially the same form in the Town and Country Planning (Scotland) Act 1997 (“the 1997 Act”).\",\"2. The principal legislative purpose of these provisions is to ensure that old mineral permissions are made subject to conditions meeting modern environmental standards. Some of the old permissions were granted many years ago subject to conditions less stringent and less precise than are appropriate today. Where more stringent conditions are imposed compensation is payable in certain cases, but only where the mineral site in question is classified as “active” rather than “dormant”. A subsidiary purpose of the legislation is to achieve better and more reliable records of old planning permissions for mineral working. The evolution of the legislation has been described in detail by the Lord President (Lord Cullen) in Lafarge Aggregates Ltd v Scottish Ministers 2004 SC 524, paras 2 and 3.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"g hamilton limited v the highland council and another\"}"
+}

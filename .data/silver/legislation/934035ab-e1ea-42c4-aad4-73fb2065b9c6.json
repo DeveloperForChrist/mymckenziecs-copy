@@ -1,0 +1,15 @@
+{
+  "id": "934035ab-e1ea-42c4-aad4-73fb2065b9c6",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#31030",
+  "created_at": "2025-12-25T15:16:43.344Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2024/443/made",
+    "type": "uksi",
+    "year": 2024,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2024,\"number\":null,\"url\":\"http://www.legislation.gov.uk/wsi/2024/443/made\",\"dataUrl\":null}"
+}

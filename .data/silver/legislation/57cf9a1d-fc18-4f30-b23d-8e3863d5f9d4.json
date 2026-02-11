@@ -1,0 +1,15 @@
+{
+  "id": "57cf9a1d-fc18-4f30-b23d-8e3863d5f9d4",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#21920",
+  "created_at": "2025-12-25T14:06:49.868Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2005/1539/contents",
+    "type": "uksi",
+    "year": 2005,
+    "number": 1539,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2005/1539/2024-01-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2005,\"number\":1539,\"url\":\"http://www.legislation.gov.uk/uksi/2005/1539/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2005/1539/2024-01-01/data.htm\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "ffa40ad2-b7c3-46d0-8f49-fda3685c2227",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of an application by Hugh Jordan for Judicial Review (Northern Ireland)",
+  "created_at": "2025-12-25T11:49:47.084Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0159",
+    "score": 1,
+    "title": "In the matter of an application by Hugh Jordan for Judicial Review (Northern Ireland)",
+    "summary": "(1) Coroners Service for Northern Ireland (written submissions only) (2) Chief Constable of the Police Service for Northern Ireland (3) Department of Justice LORD REED: (with whom Lady Hale, Lord Carnwath, Lord Lloyd-Jones and Lady Arden agree)",
+    "category": "procedure",
+    "citation": "UKSC/2017/0159",
+    "extracts": [
+      "(1) Coroners Service for Northern Ireland (written submissions only) (2) Chief Constable of the Police Service for Northern Ireland (3) Department of Justice LORD REED: (with whom Lady Hale, Lord Carnwath, Lord Lloyd-Jones and Lady Arden agree)",
+      "1. The central issue in this appeal is whether the Court of Appeal in Northern Ireland was entitled to order that a claim for damages under section 8 of the Human Rights Act 1998, for breach of the requirement under article 2 of the European Convention on Human Rights that an investigation into a death should begin promptly and proceed with reasonable expedition, should not be brought until an inquest has been concluded, or if already brought should be stayed until after that date."
+    ],
+    "title_key": "in the matter of an application by hugh jordan for judicial review"
+  },
+  "content": "{\"title\":\"In the matter of an application by Hugh Jordan for Judicial Review (Northern Ireland)\",\"citation\":\"UKSC/2017/0159\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0159\",\"summary\":\"(1) Coroners Service for Northern Ireland (written submissions only) (2) Chief Constable of the Police Service for Northern Ireland (3) Department of Justice LORD REED: (with whom Lady Hale, Lord Carnwath, Lord Lloyd-Jones and Lady Arden agree)\",\"extracts\":[\"(1) Coroners Service for Northern Ireland (written submissions only) (2) Chief Constable of the Police Service for Northern Ireland (3) Department of Justice LORD REED: (with whom Lady Hale, Lord Carnwath, Lord Lloyd-Jones and Lady Arden agree)\",\"1. The central issue in this appeal is whether the Court of Appeal in Northern Ireland was entitled to order that a claim for damages under section 8 of the Human Rights Act 1998, for breach of the requirement under article 2 of the European Convention on Human Rights that an investigation into a death should begin promptly and proceed with reasonable expedition, should not be brought until an inquest has been concluded, or if already brought should be stayed until after that date.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"in the matter of an application by hugh jordan for judicial review\"}"
+}

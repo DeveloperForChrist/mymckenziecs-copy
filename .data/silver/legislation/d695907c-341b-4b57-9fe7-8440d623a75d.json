@@ -1,0 +1,15 @@
+{
+  "id": "d695907c-341b-4b57-9fe7-8440d623a75d",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#10667",
+  "created_at": "2025-12-25T12:56:02.452Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1982/1846/contents/made",
+    "type": "uksi",
+    "year": 1982,
+    "number": 1846,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1982,\"number\":1846,\"url\":\"http://www.legislation.gov.uk/uksi/1982/1846/contents/made\",\"dataUrl\":null}"
+}

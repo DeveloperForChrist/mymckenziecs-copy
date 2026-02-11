@@ -1,0 +1,15 @@
+{
+  "id": "c7d04de2-e67f-4cff-bd88-9b4ad0224a2b",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#18504",
+  "created_at": "2025-12-25T13:44:44.818Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1997/470/contents",
+    "type": "uksi",
+    "year": 1997,
+    "number": 470,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1997/470/2012-04-06/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1997,\"number\":470,\"url\":\"http://www.legislation.gov.uk/uksi/1997/470/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1997/470/2012-04-06/data.htm\"}"
+}

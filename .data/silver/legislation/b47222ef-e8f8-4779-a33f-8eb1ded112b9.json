@@ -1,0 +1,15 @@
+{
+  "id": "b47222ef-e8f8-4779-a33f-8eb1ded112b9",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#5194",
+  "created_at": "2025-12-25T12:23:23.786Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1988/9/contents",
+    "type": "ukpga",
+    "year": 1988,
+    "number": 9,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1988/9/2025-02-24/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1988,\"number\":9,\"url\":\"http://www.legislation.gov.uk/ukpga/1988/9/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1988/9/2025-02-24/data.htm\"}"
+}

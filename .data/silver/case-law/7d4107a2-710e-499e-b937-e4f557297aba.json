@@ -1,0 +1,21 @@
+{
+  "id": "7d4107a2-710e-499e-b937-e4f557297aba",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "FirstGroup Plc (Respondent) v Paulley (Appellant)",
+  "created_at": "2025-12-25T11:48:55.742Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0025",
+    "score": 1,
+    "title": "FirstGroup Plc (Respondent) v Paulley (Appellant)",
+    "summary": "2. At around 9.35 in the morning of 24 February 2012, Mr Doug Paulley, who is a wheelchair user, arrived at Wetherby bus station, expecting to catch the 9.40 bus (“the Bus”) to Leeds.",
+    "category": "contract_consumer",
+    "citation": "UKSC/2015/0025",
+    "extracts": [
+      "2. At around 9.35 in the morning of 24 February 2012, Mr Doug Paulley, who is a wheelchair user, arrived at Wetherby bus station, expecting to catch the 9.40 bus (“the Bus”) to Leeds. On arrival at Leeds he intended to catch the train to Stalybridge to meet his parents for lunch. The Bus was operated by a subsidiary of FirstGroup PLC (“FirstGroup”), which is the parent company of a group of companies which operates a total of about 6,300 buses. The Bus was equipped with a lowering platform and a wheelchair ramp. The Bus also had a space (a “space”) for wheelchairs, which included a sign that read “Please give up this space if needed for a wheelchair user.”",
+      "3. When Mr Paulley started to board the Bus, the driver, Mr Britcliffe, asked him to wait because the space was occupied by a woman with a sleeping child in a pushchair. The space had a sign with the familiar designation of a wheelchair sign, and in addition it had a notice (“the Notice”) saying “Please give up this space for a wheelchair user”. Mr Britcliffe asked the woman to fold down her pushchair and move out of the space so that Mr Paulley could occupy it in his wheelchair. She replied that her pushchair did not fold down, and refused to move. Mr Paulley then asked whether he could fold down his wheelchair and use an ordinary passenger seat. Mr Britcliffe refused that request, because there was no safe way of securing the wheelchair and the Bus had to take a rather winding route."
+    ],
+    "title_key": "firstgroup plc v paulley"
+  },
+  "content": "{\"title\":\"FirstGroup Plc (Respondent) v Paulley (Appellant)\",\"citation\":\"UKSC/2015/0025\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0025\",\"summary\":\"2. At around 9.35 in the morning of 24 February 2012, Mr Doug Paulley, who is a wheelchair user, arrived at Wetherby bus station, expecting to catch the 9.40 bus (“the Bus”) to Leeds.\",\"extracts\":[\"2. At around 9.35 in the morning of 24 February 2012, Mr Doug Paulley, who is a wheelchair user, arrived at Wetherby bus station, expecting to catch the 9.40 bus (“the Bus”) to Leeds. On arrival at Leeds he intended to catch the train to Stalybridge to meet his parents for lunch. The Bus was operated by a subsidiary of FirstGroup PLC (“FirstGroup”), which is the parent company of a group of companies which operates a total of about 6,300 buses. The Bus was equipped with a lowering platform and a wheelchair ramp. The Bus also had a space (a “space”) for wheelchairs, which included a sign that read “Please give up this space if needed for a wheelchair user.”\",\"3. When Mr Paulley started to board the Bus, the driver, Mr Britcliffe, asked him to wait because the space was occupied by a woman with a sleeping child in a pushchair. The space had a sign with the familiar designation of a wheelchair sign, and in addition it had a notice (“the Notice”) saying “Please give up this space for a wheelchair user”. Mr Britcliffe asked the woman to fold down her pushchair and move out of the space so that Mr Paulley could occupy it in his wheelchair. She replied that her pushchair did not fold down, and refused to move. Mr Paulley then asked whether he could fold down his wheelchair and use an ordinary passenger seat. Mr Britcliffe refused that request, because there was no safe way of securing the wheelchair and the Bus had to take a rather winding route.\"],\"category\":\"contract_consumer\",\"score\":1,\"title_key\":\"firstgroup plc v paulley\"}"
+}

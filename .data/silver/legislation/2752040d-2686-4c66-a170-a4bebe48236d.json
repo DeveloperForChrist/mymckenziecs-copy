@@ -1,0 +1,15 @@
+{
+  "id": "2752040d-2686-4c66-a170-a4bebe48236d",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#30640",
+  "created_at": "2025-12-25T15:09:52.232Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2024/866/made",
+    "type": "uksi",
+    "year": 2024,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2024,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2024/866/made\",\"dataUrl\":null}"
+}

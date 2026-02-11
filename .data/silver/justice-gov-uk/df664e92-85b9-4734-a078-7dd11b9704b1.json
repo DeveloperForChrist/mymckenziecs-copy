@@ -1,0 +1,13 @@
+{
+  "id": "df664e92-85b9-4734-a078-7dd11b9704b1",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#170",
+  "created_at": "2025-12-25T15:20:58.610Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/practice-direction-57ab-shorter-and-flexible-trials-schemes",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_practice_direction_57ab_sh_4e1d501c61.html",
+    "fetchedAt": "2025-12-22T23:50:03.452Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/practice-direction-57ab-shorter-and-flexible-trials-schemes\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_practice_direction_57ab_sh_4e1d501c61.html\",\"fetchedAt\":\"2025-12-22T23:50:03.452Z\"}"
+}

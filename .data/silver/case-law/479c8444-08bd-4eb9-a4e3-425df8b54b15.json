@@ -1,0 +1,21 @@
+{
+  "id": "479c8444-08bd-4eb9-a4e3-425df8b54b15",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "S-B (Children)",
+  "created_at": "2025-12-25T11:46:52.127Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0184",
+    "score": 0,
+    "title": "S-B (Children)",
+    "summary": "2. This case is about the proper approach to deciding who has been responsible for harming a child in proceedings taken to protect that child, and others in the family, from harm.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2009/0184",
+    "extracts": [
+      "2. This case is about the proper approach to deciding who has been responsible for harming a child in proceedings taken to protect that child, and others in the family, from harm. It raises profound issues: on the one hand, children need to be protected from harm; but on the other hand, both they and their families need to be protected from the injustice and potential damage to their whole futures done by removing children from a parent who is not, in fact, responsible for causing them any harm at all. The facts of this case present us with that dilemma in an unusually stark form.",
+      "3. Because we have decided to allow this appeal and send the case back to be decided afresh, we should say only enough about the facts to explain how the dilemma arises. We shall use pseudonyms for the two children concerned, one who has been harmed and one who has not. Jason was born on 19 May 2007. On 15 June 2007, when he was just four weeks old, he was found to have bruising on his arms and face, which the doctors immediately thought was caused non- accidentally and not, as the mother suggested, by the baby pinching himself or sleeping on his dummy. Jason has not lived with his family since then, although he has had frequent and good quality contact with his mother."
+    ],
+    "title_key": "s b"
+  },
+  "content": "{\"title\":\"S-B (Children)\",\"citation\":\"UKSC/2009/0184\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0184\",\"summary\":\"2. This case is about the proper approach to deciding who has been responsible for harming a child in proceedings taken to protect that child, and others in the family, from harm.\",\"extracts\":[\"2. This case is about the proper approach to deciding who has been responsible for harming a child in proceedings taken to protect that child, and others in the family, from harm. It raises profound issues: on the one hand, children need to be protected from harm; but on the other hand, both they and their families need to be protected from the injustice and potential damage to their whole futures done by removing children from a parent who is not, in fact, responsible for causing them any harm at all. The facts of this case present us with that dilemma in an unusually stark form.\",\"3. Because we have decided to allow this appeal and send the case back to be decided afresh, we should say only enough about the facts to explain how the dilemma arises. We shall use pseudonyms for the two children concerned, one who has been harmed and one who has not. Jason was born on 19 May 2007. On 15 June 2007, when he was just four weeks old, he was found to have bruising on his arms and face, which the doctors immediately thought was caused non- accidentally and not, as the mother suggested, by the baby pinching himself or sleeping on his dummy. Jason has not lived with his family since then, although he has had frequent and good quality contact with his mother.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"s b\"}"
+}

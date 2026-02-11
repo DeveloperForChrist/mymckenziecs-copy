@@ -1,0 +1,15 @@
+{
+  "id": "92d88374-0c75-428a-875a-97deb3b343a0",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4274",
+  "created_at": "2025-12-25T12:17:38.218Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1974/16/contents/enacted",
+    "type": "ukpga",
+    "year": 1974,
+    "number": 16,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1974,\"number\":16,\"url\":\"http://www.legislation.gov.uk/ukpga/1974/16/contents/enacted\",\"dataUrl\":null}"
+}

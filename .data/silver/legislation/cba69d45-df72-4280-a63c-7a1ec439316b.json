@@ -1,0 +1,15 @@
+{
+  "id": "cba69d45-df72-4280-a63c-7a1ec439316b",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7367",
+  "created_at": "2025-12-25T12:36:32.288Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1954/1595/contents/made",
+    "type": "uksi",
+    "year": 1954,
+    "number": 1595,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1954,\"number\":1595,\"url\":\"http://www.legislation.gov.uk/uksi/1954/1595/contents/made\",\"dataUrl\":null}"
+}

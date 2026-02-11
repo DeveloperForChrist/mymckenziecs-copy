@@ -1,0 +1,21 @@
+{
+  "id": "68921d5d-bebf-4cc9-b333-f75dcc0ccfaf",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Rainy Sky SA and others (Appellants) v Kookmin Bank (Respondent)",
+  "created_at": "2025-12-25T11:47:07.241Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0127",
+    "score": 1,
+    "title": "Rainy Sky SA and others (Appellants) v Kookmin Bank (Respondent)",
+    "summary": "1. This appeal raises a short question of construction of shipbuilder’s refund guarantees given pursuant to six shipbuilding contracts (“the Contracts”).",
+    "category": "procedure",
+    "citation": "UKSC/2010/0127",
+    "extracts": [
+      "1. This appeal raises a short question of construction of shipbuilder’s refund guarantees given pursuant to six shipbuilding contracts (“the Contracts”). The Contracts, which were all dated 11 May 2007, were between each of the first to sixth claimants (“the Buyers”) and Jinse Shipbuilding Co Ltd (“the Builder”). Under the Contracts the Builder agreed to build and sell one vessel to each of the Buyers. The price of each vessel was US$33,300,000, payable in five equal instalments of US$6,660,000 due at specified points of time, with the final instalment payable on delivery.1 By Article X.8 of the Contracts it was a condition precedent to payment by the Buyers of the first instalment that the Builder would deliver to the Buyers refund guarantees relating to the first and subsequent instalments in a form acceptable to the Buyers’ financiers. As envisaged by Article X.8, by letter dated 22 August 2007 the respondent, Kookmin Bank (“the Bank”), issued six materially identical “Advance Payment Bonds” (“the Bonds”), one to each of the Buyers. The seventh claimant (“the Assignee”) is the assignee of the benefit of the Bonds.",
+      "2. On 29 August 2007, the Buyers each paid the first instalment of US$6,660,000 due under the Contracts. On 29 September 2007, the first claimant paid the second instalment of US$6,660,000 under the contract to which it is a party."
+    ],
+    "title_key": "rainy sky sa and others v kookmin bank"
+  },
+  "content": "{\"title\":\"Rainy Sky SA and others (Appellants) v Kookmin Bank (Respondent)\",\"citation\":\"UKSC/2010/0127\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0127\",\"summary\":\"1. This appeal raises a short question of construction of shipbuilder’s refund guarantees given pursuant to six shipbuilding contracts (“the Contracts”).\",\"extracts\":[\"1. This appeal raises a short question of construction of shipbuilder’s refund guarantees given pursuant to six shipbuilding contracts (“the Contracts”). The Contracts, which were all dated 11 May 2007, were between each of the first to sixth claimants (“the Buyers”) and Jinse Shipbuilding Co Ltd (“the Builder”). Under the Contracts the Builder agreed to build and sell one vessel to each of the Buyers. The price of each vessel was US$33,300,000, payable in five equal instalments of US$6,660,000 due at specified points of time, with the final instalment payable on delivery.1 By Article X.8 of the Contracts it was a condition precedent to payment by the Buyers of the first instalment that the Builder would deliver to the Buyers refund guarantees relating to the first and subsequent instalments in a form acceptable to the Buyers’ financiers. As envisaged by Article X.8, by letter dated 22 August 2007 the respondent, Kookmin Bank (“the Bank”), issued six materially identical “Advance Payment Bonds” (“the Bonds”), one to each of the Buyers. The seventh claimant (“the Assignee”) is the assignee of the benefit of the Bonds.\",\"2. On 29 August 2007, the Buyers each paid the first instalment of US$6,660,000 due under the Contracts. On 29 September 2007, the first claimant paid the second instalment of US$6,660,000 under the contract to which it is a party.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"rainy sky sa and others v kookmin bank\"}"
+}

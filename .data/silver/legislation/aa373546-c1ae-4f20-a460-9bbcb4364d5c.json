@@ -1,0 +1,15 @@
+{
+  "id": "aa373546-c1ae-4f20-a460-9bbcb4364d5c",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4020",
+  "created_at": "2025-12-25T12:16:06.308Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1971/64/contents",
+    "type": "ukpga",
+    "year": 1971,
+    "number": 64,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1971/64/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1971,\"number\":64,\"url\":\"http://www.legislation.gov.uk/ukpga/1971/64/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1971/64/2020-12-31/data.htm\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "85dcfadc-691c-4425-a28d-ce032928eb91",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Mills (Appellant) v Mills (Respondent)",
+  "created_at": "2025-12-25T11:49:40.691Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0040",
+    "score": 0,
+    "title": "Mills (Appellant) v Mills (Respondent)",
+    "summary": "1. In circumstances in which at the time of a divorce a spouse, say a wife, is awarded capital which enables her to purchase a home but later she exhausts the capital by entry into a series of unwise transactions and so develops a need to pay rent, is the court entitled to decline to increase the...",
+    "category": "evidence_misc",
+    "citation": "UKSC/2017/0040",
+    "extracts": [
+      "1. In circumstances in which at the time of a divorce a spouse, say a wife, is awarded capital which enables her to purchase a home but later she exhausts the capital by entry into a series of unwise transactions and so develops a need to pay rent, is the court entitled to decline to increase the order for the husband to make periodical payments to her so as to fund payment of all (or perhaps even any) of her rent even if he could afford to do so?",
+      "2. Mr Mills (whom it will be convenient to describe as “the husband” notwithstanding his divorce from Mrs Mills, “the wife”, in 2002) appeals against an order for upwards variation of an order for periodical payments against him in favour of the wife. The order for variation was made by the Court of Appeal (Longmore LJ and Sir Ernest Ryder, Senior President of Tribunals) on 1 February 2017: [2017] EWCA Civ 129. By that order, the Court of Appeal allowed the wife’s appeal against the dismissal of her application to vary the order for periodical payments by Judge Everall QC (“the judge”) in the Central Family Court in London on 9 June 2015."
+    ],
+    "title_key": "mills v mills"
+  },
+  "content": "{\"title\":\"Mills (Appellant) v Mills (Respondent)\",\"citation\":\"UKSC/2017/0040\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0040\",\"summary\":\"1. In circumstances in which at the time of a divorce a spouse, say a wife, is awarded capital which enables her to purchase a home but later she exhausts the capital by entry into a series of unwise transactions and so develops a need to pay rent, is the court entitled to decline to increase the...\",\"extracts\":[\"1. In circumstances in which at the time of a divorce a spouse, say a wife, is awarded capital which enables her to purchase a home but later she exhausts the capital by entry into a series of unwise transactions and so develops a need to pay rent, is the court entitled to decline to increase the order for the husband to make periodical payments to her so as to fund payment of all (or perhaps even any) of her rent even if he could afford to do so?\",\"2. Mr Mills (whom it will be convenient to describe as “the husband” notwithstanding his divorce from Mrs Mills, “the wife”, in 2002) appeals against an order for upwards variation of an order for periodical payments against him in favour of the wife. The order for variation was made by the Court of Appeal (Longmore LJ and Sir Ernest Ryder, Senior President of Tribunals) on 1 February 2017: [2017] EWCA Civ 129. By that order, the Court of Appeal allowed the wife’s appeal against the dismissal of her application to vary the order for periodical payments by Judge Everall QC (“the judge”) in the Central Family Court in London on 9 June 2015.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"mills v mills\"}"
+}

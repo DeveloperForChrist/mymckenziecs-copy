@@ -1,0 +1,15 @@
+{
+  "id": "28d267b0-7168-4ca8-8a09-fc5fe8f7c379",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20746",
+  "created_at": "2025-12-25T13:58:26.405Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2001/4037/contents/made",
+    "type": "uksi",
+    "year": 2001,
+    "number": 4037,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2001/4037/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2001,\"number\":4037,\"url\":\"http://www.legislation.gov.uk/uksi/2001/4037/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2001/4037/made/data.htm\"}"
+}

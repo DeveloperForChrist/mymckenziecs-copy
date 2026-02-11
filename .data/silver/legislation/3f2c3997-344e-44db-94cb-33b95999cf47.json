@@ -1,0 +1,15 @@
+{
+  "id": "3f2c3997-344e-44db-94cb-33b95999cf47",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#11245",
+  "created_at": "2025-12-25T12:59:43.736Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1983/1390/contents",
+    "type": "uksi",
+    "year": 1983,
+    "number": 1390,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1983/1390/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1983,\"number\":1390,\"url\":\"http://www.legislation.gov.uk/uksi/1983/1390/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1983/1390/2020-12-31/data.htm\"}"
+}

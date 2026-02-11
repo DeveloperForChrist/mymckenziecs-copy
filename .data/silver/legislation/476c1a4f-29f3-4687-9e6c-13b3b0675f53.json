@@ -1,0 +1,15 @@
+{
+  "id": "476c1a4f-29f3-4687-9e6c-13b3b0675f53",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8387",
+  "created_at": "2025-12-25T12:42:30.281Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1964/1724/contents/made",
+    "type": "uksi",
+    "year": 1964,
+    "number": 1724,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1964,\"number\":1724,\"url\":\"http://www.legislation.gov.uk/uksi/1964/1724/contents/made\",\"dataUrl\":null}"
+}

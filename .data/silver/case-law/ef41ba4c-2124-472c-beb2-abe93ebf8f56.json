@@ -1,0 +1,21 @@
+{
+  "id": "ef41ba4c-2124-472c-beb2-abe93ebf8f56",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "The Christian Institute and others (Appellants) v The Lord Advocate (Respondent) (Scotland)",
+  "created_at": "2025-12-25T11:49:12.408Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0216",
+    "score": 1,
+    "title": "The Christian Institute and others (Appellants) v The Lord Advocate (Respondent) (Scotland)",
+    "summary": "2. On its introduction in April 2013, the Children and Young People (Scotland) Bill was accompanied by a Policy Memorandum which was similar in content to the consultation paper.",
+    "category": "public_law",
+    "citation": "UKSC/2015/0216",
+    "extracts": [
+      "2. On its introduction in April 2013, the Children and Young People (Scotland) Bill was accompanied by a Policy Memorandum which was similar in content to the consultation paper. It stated, in relation to named persons:",
+      "“They can monitor what children and young people need, within the context of their professional responsibilities, link with the relevant services that can help them, and be a single point of contact for services that children and families can use, if they wish. The named person is in a position to intervene early to prevent difficulties escalating. The role offers a way for children and young people to make sense of a complicated"
+    ],
+    "title_key": "the christian institute and others v the lord advocate"
+  },
+  "content": "{\"title\":\"The Christian Institute and others (Appellants) v The Lord Advocate (Respondent) (Scotland)\",\"citation\":\"UKSC/2015/0216\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0216\",\"summary\":\"2. On its introduction in April 2013, the Children and Young People (Scotland) Bill was accompanied by a Policy Memorandum which was similar in content to the consultation paper.\",\"extracts\":[\"2. On its introduction in April 2013, the Children and Young People (Scotland) Bill was accompanied by a Policy Memorandum which was similar in content to the consultation paper. It stated, in relation to named persons:\",\"“They can monitor what children and young people need, within the context of their professional responsibilities, link with the relevant services that can help them, and be a single point of contact for services that children and families can use, if they wish. The named person is in a position to intervene early to prevent difficulties escalating. The role offers a way for children and young people to make sense of a complicated\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"the christian institute and others v the lord advocate\"}"
+}

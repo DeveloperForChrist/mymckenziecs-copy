@@ -1,0 +1,15 @@
+{
+  "id": "bea5f689-93b4-4da2-ba81-229b9353d368",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#26253",
+  "created_at": "2025-12-25T14:37:39.466Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2018/603/made",
+    "type": "uksi",
+    "year": 2018,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2018,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2018/603/made\",\"dataUrl\":null}"
+}

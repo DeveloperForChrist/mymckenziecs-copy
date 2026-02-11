@@ -1,0 +1,15 @@
+{
+  "id": "a85d7cff-c3bd-4e0e-8cfe-9f152e9ec6d9",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8899",
+  "created_at": "2025-12-25T12:45:16.935Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1970/1958/contents",
+    "type": "uksi",
+    "year": 1970,
+    "number": 1958,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1970/1958/2012-10-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1970,\"number\":1958,\"url\":\"http://www.legislation.gov.uk/uksi/1970/1958/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1970/1958/2012-10-01/data.htm\"}"
+}

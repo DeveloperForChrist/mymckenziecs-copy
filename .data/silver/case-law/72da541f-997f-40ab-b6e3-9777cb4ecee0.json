@@ -1,0 +1,21 @@
+{
+  "id": "72da541f-997f-40ab-b6e3-9777cb4ecee0",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Iconix Luxembourg Holdings SARL (Respondent) v Dream Pairs Europe Inc and another (Appellants)",
+  "created_at": "2025-12-25T11:51:06.494Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2024-0032",
+    "score": 1,
+    "title": "Iconix Luxembourg Holdings SARL (Respondent) v Dream Pairs Europe Inc and another (Appellants)",
+    "summary": "Principle issue: Was the Court of Appeal right to conclude the trial judge’s conclusion on the similarity of logos was irrational? What approach should the court take when assessing whether trade marks are similar? At what point of time should the confusion of consumers be assessed in a claim for trade mark infringement?",
+    "category": "procedure",
+    "citation": "UKSC/2024/0032",
+    "extracts": [
+      "1. This appeal concerns a trade mark dispute about logos on football boots. It raises two main issues of trade mark law of general public importance. It also raises the issue as to whether the circumstances were such as to justify the Court of Appeal substituting its own decision on trade mark infringement for the multi-factorial decision of the trial judge.",
+      "2. The respondent Iconix Luxembourg Holdings SARL (“Iconix”) owns the well- known sportswear brand UMBRO and is the registered proprietor of the two trade marks pictured below (“the UMBRO Trade Marks”):"
+    ],
+    "title_key": "iconix luxembourg holdings sarl v dream pairs europe inc and another"
+  },
+  "content": "{\"title\":\"Iconix Luxembourg Holdings SARL (Respondent) v Dream Pairs Europe Inc and another (Appellants)\",\"citation\":\"UKSC/2024/0032\",\"url\":\"https://supremecourt.uk/cases/uksc-2024-0032\",\"summary\":\"Principle issue: Was the Court of Appeal right to conclude the trial judge’s conclusion on the similarity of logos was irrational? What approach should the court take when assessing whether trade marks are similar? At what point of time should the confusion of consumers be assessed in a claim for trade mark infringement?\",\"extracts\":[\"1. This appeal concerns a trade mark dispute about logos on football boots. It raises two main issues of trade mark law of general public importance. It also raises the issue as to whether the circumstances were such as to justify the Court of Appeal substituting its own decision on trade mark infringement for the multi-factorial decision of the trial judge.\",\"2. The respondent Iconix Luxembourg Holdings SARL (“Iconix”) owns the well- known sportswear brand UMBRO and is the registered proprietor of the two trade marks pictured below (“the UMBRO Trade Marks”):\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"iconix luxembourg holdings sarl v dream pairs europe inc and another\"}"
+}

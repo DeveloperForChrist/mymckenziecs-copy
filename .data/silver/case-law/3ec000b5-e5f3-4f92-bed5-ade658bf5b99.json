@@ -1,0 +1,21 @@
+{
+  "id": "3ec000b5-e5f3-4f92-bed5-ade658bf5b99",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "McGraddie (Appellant) v McGraddie and another (Respondents) (Scotland)",
+  "created_at": "2025-12-25T11:47:57.316Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0112",
+    "score": 0,
+    "title": "McGraddie (Appellant) v McGraddie and another (Respondents) (Scotland)",
+    "summary": "1. In the sets of Session Cases in the Advocates Library, the volumes for 1947 fall open at Thomas v Thomas 1947 SC (HL) 45; [1947] AC 484, where one finds in the speech of Lord Thankerton at pp 54 and 487-488 what may be the most frequently cited of all judicial dicta in the Scottish courts:",
+    "category": "evidence_misc",
+    "citation": "UKSC/2012/0112",
+    "extracts": [
+      "1. In the sets of Session Cases in the Advocates Library, the volumes for 1947 fall open at Thomas v Thomas 1947 SC (HL) 45; [1947] AC 484, where one finds in the speech of Lord Thankerton at pp 54 and 487-488 what may be the most frequently cited of all judicial dicta in the Scottish courts:",
+      "“(1) Where a question of fact has been tried by a judge without a jury, and there is no question of misdirection of himself by the judge, an appellate court which is disposed to come to a different conclusion on the printed evidence should not do so unless it is satisfied that any advantage enjoyed by the trial judge by reason of having seen and heard the witnesses could not be sufficient to explain or justify the trial judge's conclusion. (2) The appellate court may take the view that, without having seen or heard the witnesses, it is not in a position to come to any satisfactory conclusion on the printed evidence. (3) The appellate court, either because the reasons given by the trial judge are not satisfactory, or because it unmistakably so appears from the evidence, may be satisfied that he has not taken proper advantage of his having seen and heard the witnesses, and the matter will then become at large for the appellate court.”"
+    ],
+    "title_key": "mcgraddie v mcgraddie and another"
+  },
+  "content": "{\"title\":\"McGraddie (Appellant) v McGraddie and another (Respondents) (Scotland)\",\"citation\":\"UKSC/2012/0112\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0112\",\"summary\":\"1. In the sets of Session Cases in the Advocates Library, the volumes for 1947 fall open at Thomas v Thomas 1947 SC (HL) 45; [1947] AC 484, where one finds in the speech of Lord Thankerton at pp 54 and 487-488 what may be the most frequently cited of all judicial dicta in the Scottish courts:\",\"extracts\":[\"1. In the sets of Session Cases in the Advocates Library, the volumes for 1947 fall open at Thomas v Thomas 1947 SC (HL) 45; [1947] AC 484, where one finds in the speech of Lord Thankerton at pp 54 and 487-488 what may be the most frequently cited of all judicial dicta in the Scottish courts:\",\"“(1) Where a question of fact has been tried by a judge without a jury, and there is no question of misdirection of himself by the judge, an appellate court which is disposed to come to a different conclusion on the printed evidence should not do so unless it is satisfied that any advantage enjoyed by the trial judge by reason of having seen and heard the witnesses could not be sufficient to explain or justify the trial judge's conclusion. (2) The appellate court may take the view that, without having seen or heard the witnesses, it is not in a position to come to any satisfactory conclusion on the printed evidence. (3) The appellate court, either because the reasons given by the trial judge are not satisfactory, or because it unmistakably so appears from the evidence, may be satisfied that he has not taken proper advantage of his having seen and heard the witnesses, and the matter will then become at large for the appellate court.”\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"mcgraddie v mcgraddie and another\"}"
+}

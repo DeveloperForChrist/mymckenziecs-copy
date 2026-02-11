@@ -1,0 +1,15 @@
+{
+  "id": "b44135ef-4cec-4211-b0c0-75cfaf0c88f8",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4519",
+  "created_at": "2025-12-25T12:19:06.896Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1978/52/contents/enacted",
+    "type": "ukpga",
+    "year": 1978,
+    "number": 52,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1978,\"number\":52,\"url\":\"http://www.legislation.gov.uk/ukpga/1978/52/contents/enacted\",\"dataUrl\":null}"
+}

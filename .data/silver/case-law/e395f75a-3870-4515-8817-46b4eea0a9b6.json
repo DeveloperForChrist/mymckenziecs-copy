@@ -1,0 +1,21 @@
+{
+  "id": "e395f75a-3870-4515-8817-46b4eea0a9b6",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Duncombe and others (Respondents) v Secretary of State for Children, Schools and Families (Appellant)",
+  "created_at": "2025-12-25T11:46:58.884Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0025",
+    "score": 1,
+    "title": "Duncombe and others (Respondents) v Secretary of State for Children, Schools and Families (Appellant)",
+    "summary": "1. We are concerned with the employment, by the Secretary of State for Children, Schools and Families, of teachers to work in the European Schools.",
+    "category": "public_law",
+    "citation": "UKSC/2010/0025",
+    "extracts": [
+      "1. We are concerned with the employment, by the Secretary of State for Children, Schools and Families, of teachers to work in the European Schools. These are schools set up to provide a distinctively European education principally for the children of officials and employees of the European Communities. The Staff Regulations, made by the Board of Governors pursuant to the Convention defining the Statute of the European Schools, limit the period for which teachers may be seconded to work in those schools to a total of nine years (or exceptionally ten). This is made up of an initial probationary period of two years, and a further period of three years, which is renewable for a further four years.",
+      "2. The principal question before us is whether these arrangements can be objectively justified as required by the Fixed-term Employees (Prevention of Less Favourable Treatment) Regulations 2002 (SI 2002/2034) (‘the Fixed-term Regulations’). This was the measure chosen by the United Kingdom to implement Council Directive 1999/70/EC concerning the framework agreement on fixed-term work concluded by ETUC, UNICE and CEEP (‘the Fixed-term Directive’). The effect of regulation 8 is that a successive fixed-term contract is turned into a permanent employment unless the use of such a contract can be objectively justified."
+    ],
+    "title_key": "duncombe and others v secretary of state for children schools and families"
+  },
+  "content": "{\"title\":\"Duncombe and others (Respondents) v Secretary of State for Children, Schools and Families (Appellant)\",\"citation\":\"UKSC/2010/0025\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0025\",\"summary\":\"1. We are concerned with the employment, by the Secretary of State for Children, Schools and Families, of teachers to work in the European Schools.\",\"extracts\":[\"1. We are concerned with the employment, by the Secretary of State for Children, Schools and Families, of teachers to work in the European Schools. These are schools set up to provide a distinctively European education principally for the children of officials and employees of the European Communities. The Staff Regulations, made by the Board of Governors pursuant to the Convention defining the Statute of the European Schools, limit the period for which teachers may be seconded to work in those schools to a total of nine years (or exceptionally ten). This is made up of an initial probationary period of two years, and a further period of three years, which is renewable for a further four years.\",\"2. The principal question before us is whether these arrangements can be objectively justified as required by the Fixed-term Employees (Prevention of Less Favourable Treatment) Regulations 2002 (SI 2002/2034) (‘the Fixed-term Regulations’). This was the measure chosen by the United Kingdom to implement Council Directive 1999/70/EC concerning the framework agreement on fixed-term work concluded by ETUC, UNICE and CEEP (‘the Fixed-term Directive’). The effect of regulation 8 is that a successive fixed-term contract is turned into a permanent employment unless the use of such a contract can be objectively justified.\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"duncombe and others v secretary of state for children schools and families\"}"
+}

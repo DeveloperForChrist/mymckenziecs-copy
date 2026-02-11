@@ -1,0 +1,21 @@
+{
+  "id": "187e0ea2-281f-4407-a90c-649e084de8be",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Office of Fair Trading (Respondents) v Abbey National plc & others (Appellants)",
+  "created_at": "2025-12-25T11:46:40.335Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0070",
+    "score": 1,
+    "title": "Office of Fair Trading (Respondents) v Abbey National plc & others (Appellants)",
+    "summary": "2. Some would regard the United Kingdom system as being, in some sense at least, obviously unfair, though Mr Sumption QC (for the banks) vigorously disputed Lord Mance’s suggestion that his clients were engaged in a sort of “reverse Robin Hood exercise”.",
+    "category": "contract_consumer",
+    "citation": "UKSC/2009/0070",
+    "extracts": [
+      "2. Some would regard the United Kingdom system as being, in some sense at least, obviously unfair, though Mr Sumption QC (for the banks) vigorously disputed Lord Mance’s suggestion that his clients were engaged in a sort of “reverse Robin Hood exercise”. That is an imponderable question which depends partly on whether one’s perception of the average customer who incurs unauthorised overdraft charges is that he is spendthrift and improvident, or that she is disadvantaged and finding it hard to make ends meet. But it is not the question for the Court.",
+      "3. The question for the Court is much more limited, and more technical. It is whether as a matter of law the fairness of bank charges levied on personal current account customers in respect of unauthorised overdrafts (including unpaid item charges and other related charges as described below) can be challenged by the respondent the Office of Fair Trading (the “OFT”) as excessive in relation to the services supplied to the customers."
+    ],
+    "title_key": "office of fair trading v abbey national plc others"
+  },
+  "content": "{\"title\":\"Office of Fair Trading (Respondents) v Abbey National plc & others (Appellants)\",\"citation\":\"UKSC/2009/0070\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0070\",\"summary\":\"2. Some would regard the United Kingdom system as being, in some sense at least, obviously unfair, though Mr Sumption QC (for the banks) vigorously disputed Lord Mance’s suggestion that his clients were engaged in a sort of “reverse Robin Hood exercise”.\",\"extracts\":[\"2. Some would regard the United Kingdom system as being, in some sense at least, obviously unfair, though Mr Sumption QC (for the banks) vigorously disputed Lord Mance’s suggestion that his clients were engaged in a sort of “reverse Robin Hood exercise”. That is an imponderable question which depends partly on whether one’s perception of the average customer who incurs unauthorised overdraft charges is that he is spendthrift and improvident, or that she is disadvantaged and finding it hard to make ends meet. But it is not the question for the Court.\",\"3. The question for the Court is much more limited, and more technical. It is whether as a matter of law the fairness of bank charges levied on personal current account customers in respect of unauthorised overdrafts (including unpaid item charges and other related charges as described below) can be challenged by the respondent the Office of Fair Trading (the “OFT”) as excessive in relation to the services supplied to the customers.\"],\"category\":\"contract_consumer\",\"score\":1,\"title_key\":\"office of fair trading v abbey national plc others\"}"
+}

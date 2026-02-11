@@ -1,0 +1,21 @@
+{
+  "id": "1f7fe724-6774-4443-82c0-57d34f2f84fd",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "BNY Mellon Corporate Trustee Services Limited (Appellant) v LBG Capital No. 1 Plc and another (Respondents)",
+  "created_at": "2025-12-25T11:49:17.152Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0007",
+    "score": 1,
+    "title": "BNY Mellon Corporate Trustee Services Limited (Appellant) v LBG Capital No. 1 Plc and another (Respondents)",
+    "summary": "1. The issue in this case is whether Lloyds Banking Group (“LBG”) is entitled to redeem £3.3 billion of loan notes which would otherwise carry a relatively high rate of interest, namely over 10% per annum.",
+    "category": "procedure",
+    "citation": "UKSC/2016/0007",
+    "extracts": [
+      "1. The issue in this case is whether Lloyds Banking Group (“LBG”) is entitled to redeem £3.3 billion of loan notes which would otherwise carry a relatively high rate of interest, namely over 10% per annum. The loan notes are contingent convertible securities (perhaps inevitably known as “Cocos”), and are formally described as enhanced capital notes, or the ECNs. The ECNs are potentially convertible into fully paid up shares in LBG, and they were issued in November 2009, at a time when LBG, like many other banks, was in dire need of recapitalisation in order to protect its capital position and to comply with regulatory requirements.",
+      "2. Before turning to the terms on which the ECNs were issued, it is necessary to understand a little about the Regulations as at that time, and, in order to understand the issues on this appeal, it is necessary to set out some of those terms and then explain a few of the changes effected to the Regulations in 2013 and the way in which they were applied."
+    ],
+    "title_key": "bny mellon corporate trustee services limited v lbg capital no 1 plc and another"
+  },
+  "content": "{\"title\":\"BNY Mellon Corporate Trustee Services Limited (Appellant) v LBG Capital No. 1 Plc and another (Respondents)\",\"citation\":\"UKSC/2016/0007\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0007\",\"summary\":\"1. The issue in this case is whether Lloyds Banking Group (“LBG”) is entitled to redeem £3.3 billion of loan notes which would otherwise carry a relatively high rate of interest, namely over 10% per annum.\",\"extracts\":[\"1. The issue in this case is whether Lloyds Banking Group (“LBG”) is entitled to redeem £3.3 billion of loan notes which would otherwise carry a relatively high rate of interest, namely over 10% per annum. The loan notes are contingent convertible securities (perhaps inevitably known as “Cocos”), and are formally described as enhanced capital notes, or the ECNs. The ECNs are potentially convertible into fully paid up shares in LBG, and they were issued in November 2009, at a time when LBG, like many other banks, was in dire need of recapitalisation in order to protect its capital position and to comply with regulatory requirements.\",\"2. Before turning to the terms on which the ECNs were issued, it is necessary to understand a little about the Regulations as at that time, and, in order to understand the issues on this appeal, it is necessary to set out some of those terms and then explain a few of the changes effected to the Regulations in 2013 and the way in which they were applied.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"bny mellon corporate trustee services limited v lbg capital no 1 plc and another\"}"
+}

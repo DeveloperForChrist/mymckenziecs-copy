@@ -1,0 +1,21 @@
+{
+  "id": "fba08760-ebdd-4082-aa6d-0d30ff8f47e4",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Coughlan) (Appellant) v Minister for the Cabinet Office (Respondent)",
+  "created_at": "2025-12-25T11:50:27.687Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2020-0129",
+    "score": 2,
+    "title": "R (on the application of Coughlan) (Appellant) v Minister for the Cabinet Office (Respondent)",
+    "summary": "Principle issue: Are the voter identification (\"ID\") pilot schemes that were implemented in the May 2019 local government elections unlawful?",
+    "category": "public_law",
+    "citation": "UKSC/2020/0129",
+    "extracts": [
+      "1. In January 2019, the appellant sought judicial review of an announcement made in November 2018 that the Minister for the Cabinet Office (“the respondent”) intended to authorise proposed schemes that would pilot temporary changes to rules set out in secondary legislation governing local elections. These changes were to take place in respect of the local government elections in May 2019. In February and March 2019, orders were made by the respondent to implement pilot schemes in respect of Braintree District Council (“Braintree”) and nine other local authorities (“the Pilot Orders”). All of these pilot schemes introduced a new requirement for some form of voter identification.",
+      "2. The appellant believes that voter identification requirements in elections “will serve to disenfranchise the poor and vulnerable who already struggle to have their voices heard.” The first to third interveners, Runnymede Trust, Operation Black Vote and Voice4Change England, express similar concerns stating that voter identification requirements “present a significant barrier to democratic participation” for ethnic minority communities by deterring or preventing those who are entitled to vote from voting. The fourth and fifth interveners, LGBT Foundation and Stonewall, express comparable concerns on behalf of individuals who are lesbian, gay, bisexual and/or transgender."
+    ],
+    "title_key": "r v minister for the cabinet office"
+  },
+  "content": "{\"title\":\"R (on the application of Coughlan) (Appellant) v Minister for the Cabinet Office (Respondent)\",\"citation\":\"UKSC/2020/0129\",\"url\":\"https://supremecourt.uk/cases/uksc-2020-0129\",\"summary\":\"Principle issue: Are the voter identification (\\\\\"ID\\\\\") pilot schemes that were implemented in the May 2019 local government elections unlawful?\",\"extracts\":[\"1. In January 2019, the appellant sought judicial review of an announcement made in November 2018 that the Minister for the Cabinet Office (“the respondent”) intended to authorise proposed schemes that would pilot temporary changes to rules set out in secondary legislation governing local elections. These changes were to take place in respect of the local government elections in May 2019. In February and March 2019, orders were made by the respondent to implement pilot schemes in respect of Braintree District Council (“Braintree”) and nine other local authorities (“the Pilot Orders”). All of these pilot schemes introduced a new requirement for some form of voter identification.\",\"2. The appellant believes that voter identification requirements in elections “will serve to disenfranchise the poor and vulnerable who already struggle to have their voices heard.” The first to third interveners, Runnymede Trust, Operation Black Vote and Voice4Change England, express similar concerns stating that voter identification requirements “present a significant barrier to democratic participation” for ethnic minority communities by deterring or preventing those who are entitled to vote from voting. The fourth and fifth interveners, LGBT Foundation and Stonewall, express comparable concerns on behalf of individuals who are lesbian, gay, bisexual and/or transgender.\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"r v minister for the cabinet office\"}"
+}

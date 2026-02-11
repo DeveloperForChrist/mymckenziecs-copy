@@ -1,0 +1,21 @@
+{
+  "id": "38e4491e-c184-4f67-ae9a-949a871a03eb",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Glengary Overseas Limited (Appellant) v JKX Oil & Gas Plc (Respondent)",
+  "created_at": "2025-12-25T11:48:43.363Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0175",
+    "score": 1,
+    "title": "Glengary Overseas Limited (Appellant) v JKX Oil & Gas Plc (Respondent)",
+    "summary": "1. This appeal is about an alleged “corporate raid”.",
+    "category": "procedure",
+    "citation": "UKSC/2014/0175",
+    "extracts": [
+      "1. This appeal is about an alleged “corporate raid”. According to the judgment of Mann J, at para 224, this expression is a “loose, convenient and pejorative shorthand” which can be applied to a variety of situations, but in this case means an attempt to exploit a minority shareholding in a company to obtain effective management or voting control without paying what other shareholders would regard as a proper price. I shall use the expression in that sense in spite of its pejorative overtones, but only because it is convenient.",
+      "2. One of the tools available to a public company seeking to resist the covert acquisition of control by raiders is a statutory disclosure notice calling for information about persons interested in its shares. There are statutory provisions empowering the court to restrict the exercise of rights attaching to shares if those interested in them fail to comply with a disclosure notice. But it is common for the articles of a public company to empower the board to impose such restrictions. The questions at issue on this appeal affect companies which have adopted powers of this kind in their articles. They are, in bald summary, what are the proper purposes for which the board may restrict the exercise of rights attaching to shares, and in what circumstances can the restrictions be challenged on the ground that they were imposed for a collateral purpose?"
+    ],
+    "title_key": "glengary overseas limited v jkx oil gas plc"
+  },
+  "content": "{\"title\":\"Glengary Overseas Limited (Appellant) v JKX Oil & Gas Plc (Respondent)\",\"citation\":\"UKSC/2014/0175\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0175\",\"summary\":\"1. This appeal is about an alleged “corporate raid”.\",\"extracts\":[\"1. This appeal is about an alleged “corporate raid”. According to the judgment of Mann J, at para 224, this expression is a “loose, convenient and pejorative shorthand” which can be applied to a variety of situations, but in this case means an attempt to exploit a minority shareholding in a company to obtain effective management or voting control without paying what other shareholders would regard as a proper price. I shall use the expression in that sense in spite of its pejorative overtones, but only because it is convenient.\",\"2. One of the tools available to a public company seeking to resist the covert acquisition of control by raiders is a statutory disclosure notice calling for information about persons interested in its shares. There are statutory provisions empowering the court to restrict the exercise of rights attaching to shares if those interested in them fail to comply with a disclosure notice. But it is common for the articles of a public company to empower the board to impose such restrictions. The questions at issue on this appeal affect companies which have adopted powers of this kind in their articles. They are, in bald summary, what are the proper purposes for which the board may restrict the exercise of rights attaching to shares, and in what circumstances can the restrictions be challenged on the ground that they were imposed for a collateral purpose?\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"glengary overseas limited v jkx oil gas plc\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "c9bb8fa8-f6e2-40f6-93aa-a27f2df72e3b",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Benedetti (Appellant) v Sawiris and others (Respondents)",
+  "created_at": "2025-12-25T11:47:27.312Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0087",
+    "score": 1,
+    "title": "Benedetti (Appellant) v Sawiris and others (Respondents)",
+    "summary": "1. This is an unusual case.",
+    "category": "procedure",
+    "citation": "UKSC/2011/0087",
+    "extracts": [
+      "1. This is an unusual case. It involves a claim for unjust enrichment and, in the course of the argument, has led to a wide ranging discussion of the principles relevant to an aspect of unjust enrichment which has been the subject of lively debate among academics. It will be necessary to give consideration to at least some of the principles but, as is so often the case, the appeal can be determined on the facts without the necessity for the Court to express a final view on all the legal issues which have been the subject of argument.",
+      "2. Mr Benedetti is an Italian citizen resident in Switzerland. Mr Sawiris is an Egyptian and American national and was at all material times the Chairman and CEO of Orascom Telecom Holding SAE (“Orascom”), an Egyptian company quoted on the Egyptian Stock Exchange and (through Global Depositary Receipts) on the London Stock Exchange, which operates a telecommunications business concentrated in the Middle East, Africa and South East Asia. Cylo Investments Ltd (“Cylo”) is Mr Sawiris’ BVI registered company. April Holding (“April”) and OS Holding (“OS”) (“the Holding Companies”) are Cayman Island companies set up by Mr Sawiris’ brother and father respectively (who had held the shares in Orascom before the two companies were created), and held under discretionary trusts for the benefit of the wider Sawiris family. Immediately before the relevant events, Cylo had a holding of 4.1% in Orascom, April had a holding of 34.6% in Orascom and OS had a holding of 17.7% in Orascom; so that, between them, they held about 56.4% of Orascom’s shares, with the remaining 43.6% of the shares being publicly held."
+    ],
+    "title_key": "benedetti v sawiris and others"
+  },
+  "content": "{\"title\":\"Benedetti (Appellant) v Sawiris and others (Respondents)\",\"citation\":\"UKSC/2011/0087\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0087\",\"summary\":\"1. This is an unusual case.\",\"extracts\":[\"1. This is an unusual case. It involves a claim for unjust enrichment and, in the course of the argument, has led to a wide ranging discussion of the principles relevant to an aspect of unjust enrichment which has been the subject of lively debate among academics. It will be necessary to give consideration to at least some of the principles but, as is so often the case, the appeal can be determined on the facts without the necessity for the Court to express a final view on all the legal issues which have been the subject of argument.\",\"2. Mr Benedetti is an Italian citizen resident in Switzerland. Mr Sawiris is an Egyptian and American national and was at all material times the Chairman and CEO of Orascom Telecom Holding SAE (“Orascom”), an Egyptian company quoted on the Egyptian Stock Exchange and (through Global Depositary Receipts) on the London Stock Exchange, which operates a telecommunications business concentrated in the Middle East, Africa and South East Asia. Cylo Investments Ltd (“Cylo”) is Mr Sawiris’ BVI registered company. April Holding (“April”) and OS Holding (“OS”) (“the Holding Companies”) are Cayman Island companies set up by Mr Sawiris’ brother and father respectively (who had held the shares in Orascom before the two companies were created), and held under discretionary trusts for the benefit of the wider Sawiris family. Immediately before the relevant events, Cylo had a holding of 4.1% in Orascom, April had a holding of 34.6% in Orascom and OS had a holding of 17.7% in Orascom; so that, between them, they held about 56.4% of Orascom’s shares, with the remaining 43.6% of the shares being publicly held.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"benedetti v sawiris and others\"}"
+}

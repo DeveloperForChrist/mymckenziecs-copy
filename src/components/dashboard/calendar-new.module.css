@@ -1,0 +1,414 @@
+.calendarPage {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(29, 111, 120, 0.08), transparent 40%),
+    radial-gradient(circle at 30% 90%, rgba(180, 83, 9, 0.08), transparent 45%),
+    linear-gradient(135deg, #fdf8f1 0%, #f3ebe0 55%, #eee1d3 100%);
+  padding: 32px;
+  color: var(--admin-ink);
+}
+
+.header {
+  background: #fff;
+  border-radius: 22px;
+  padding: 24px 28px;
+  border: 1px solid rgba(16, 22, 31, 0.08);
+  box-shadow: 0 22px 50px rgba(16, 22, 31, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.headerTitle h1 {
+  font-family: "DM Serif Display", serif;
+  font-size: 2rem;
+  margin: 0 0 6px;
+}
+
+.headerTitle p {
+  color: var(--admin-muted);
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navButton {
+  border: 1px solid rgba(16, 22, 31, 0.15);
+  background: transparent;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navButton:hover {
+  border-color: rgba(25, 114, 120, 0.5);
+  color: var(--admin-teal-dark);
+  box-shadow: 0 8px 16px rgba(25, 114, 120, 0.12);
+}
+
+.primaryButton {
+  background: var(--admin-teal);
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(25, 114, 120, 0.25);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1.4fr 0.65fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 20px;
+  border: 1px solid rgba(16, 22, 31, 0.08);
+  box-shadow: 0 18px 40px rgba(16, 22, 31, 0.08);
+}
+
+.calendarCard {
+  padding: 18px;
+}
+
+.monthHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.monthTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.dayHeader {
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  color: var(--admin-muted);
+  text-align: center;
+  padding: 6px 0;
+}
+
+.dayCell {
+  background: #fbf9f5;
+  border-radius: 12px;
+  padding: 10px;
+  min-height: 90px;
+  border: 1px solid rgba(16, 22, 31, 0.08);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.dayCell:hover {
+  border-color: rgba(25, 114, 120, 0.45);
+  box-shadow: 0 10px 24px rgba(16, 22, 31, 0.1);
+  transform: translateY(-1px);
+}
+
+.dayCellMuted {
+  opacity: 0.45;
+}
+
+.dayCellActive {
+  border-color: var(--admin-teal);
+  box-shadow: 0 0 0 2px rgba(25, 114, 120, 0.15);
+}
+
+.dayCellToday {
+  background: rgba(25, 114, 120, 0.12);
+}
+
+.dayNumber {
+  font-weight: 700;
+  color: var(--admin-ink);
+  font-size: 0.9rem;
+}
+
+.eventPill {
+  font-size: 0.7rem;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: rgba(25, 114, 120, 0.12);
+  color: var(--admin-teal-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eventPillDeadline {
+  background: rgba(239, 68, 68, 0.14);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.eventPillHearing {
+  background: rgba(59, 130, 246, 0.14);
+  color: #1d4ed8;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.eventPillMeeting {
+  background: rgba(34, 197, 94, 0.14);
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.eventPillReminder {
+  background: rgba(245, 158, 11, 0.16);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.eventPillOther {
+  background: rgba(107, 114, 128, 0.12);
+  color: #374151;
+  border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+.eventPillDone {
+  background: rgba(16, 185, 129, 0.15);
+  color: #0f766e;
+  text-decoration: line-through;
+}
+
+.sidebarColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sidebar {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sidebarTitle {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--admin-muted);
+}
+
+.eventList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eventItem {
+  border: 1px solid rgba(16, 22, 31, 0.08);
+  border-radius: 12px;
+  padding: 12px;
+  background: #fbf9f5;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.eventItemDeadline {
+  border-left: 4px solid #ef4444;
+}
+
+.eventItemHearing {
+  border-left: 4px solid #3b82f6;
+}
+
+.eventItemMeeting {
+  border-left: 4px solid #22c55e;
+}
+
+.eventItemReminder {
+  border-left: 4px solid #f59e0b;
+}
+
+.eventItemOther {
+  border-left: 4px solid #6b7280;
+}
+
+.eventItemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.eventTitle {
+  font-weight: 600;
+}
+
+.eventMeta {
+  font-size: 0.8rem;
+  color: var(--admin-muted);
+}
+
+.eventActions {
+  display: flex;
+  gap: 8px;
+}
+
+.badge {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(25, 114, 120, 0.15);
+  color: var(--admin-teal-dark);
+}
+
+.badgeHigh {
+  background: rgba(239, 68, 68, 0.15);
+  color: #b91c1c;
+}
+
+.inlineButton {
+  border: 1px solid rgba(16, 22, 31, 0.12);
+  background: #fff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.inlineButtonPrimary {
+  background: var(--admin-teal);
+  border: none;
+  color: #fff;
+}
+
+.emptyState {
+  padding: 20px;
+  text-align: center;
+  color: var(--admin-muted);
+  background: #fbf9f5;
+  border-radius: 14px;
+  border: 1px dashed rgba(16, 22, 31, 0.12);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formGroup label {
+  font-size: 0.8rem;
+  color: var(--admin-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  border: 1px solid rgba(16, 22, 31, 0.12);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.addCard {
+  padding: 20px 22px 22px;
+}
+
+.preferenceCard {
+  padding: 18px 22px;
+}
+
+.preferenceRow {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.preferenceLabel {
+  font-weight: 600;
+  color: var(--admin-ink);
+}
+
+.preferenceHint {
+  font-size: 0.8rem;
+  color: var(--admin-muted);
+  margin-top: 4px;
+}
+
+.preferenceError {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: #b91c1c;
+}
+
+.toggleButton {
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid rgba(16, 22, 31, 0.18);
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.toggleOn {
+  background: #1f9d96;
+  border-color: #1f9d96;
+}
+
+.toggleKnob {
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 999px;
+  transform: translateX(0);
+  transition: transform 0.2s ease;
+}
+
+.toggleOn .toggleKnob {
+  transform: translateX(20px);
+}
+
+@media (max-width: 1100px) {
+  .calendarPage {
+    padding: 24px;
+  }
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

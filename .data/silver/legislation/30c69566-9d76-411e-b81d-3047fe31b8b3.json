@@ -1,0 +1,15 @@
+{
+  "id": "30c69566-9d76-411e-b81d-3047fe31b8b3",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#19483",
+  "created_at": "2025-12-25T13:50:48.206Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1998/2070/contents",
+    "type": "uksi",
+    "year": 1998,
+    "number": 2070,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1998/2070/2023-12-13/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1998,\"number\":2070,\"url\":\"http://www.legislation.gov.uk/uksi/1998/2070/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1998/2070/2023-12-13/data.htm\"}"
+}

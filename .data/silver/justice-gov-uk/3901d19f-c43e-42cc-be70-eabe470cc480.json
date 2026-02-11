@@ -1,0 +1,13 @@
+{
+  "id": "3901d19f-c43e-42cc-be70-eabe470cc480",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#167",
+  "created_at": "2025-12-25T15:20:57.169Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/practice-direction-57c-proceedings-under-the-guardianship-missing-persons-act-2017",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_practice_direction_57c_pro_78881809b3.html",
+    "fetchedAt": "2025-12-22T23:50:02.311Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/practice-direction-57c-proceedings-under-the-guardianship-missing-persons-act-2017\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_practice_direction_57c_pro_78881809b3.html\",\"fetchedAt\":\"2025-12-22T23:50:02.311Z\"}"
+}

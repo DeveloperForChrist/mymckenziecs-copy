@@ -1,0 +1,21 @@
+{
+  "id": "8acdaa46-61db-4058-848f-d0ae42e68f28",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Bloomsbury International Limited and others (Respondents) v Sea Fish Industry Authority and Department for Environment, Food and Rural Affairs (Appellant)",
+  "created_at": "2025-12-25T11:47:04.451Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0098",
+    "score": 1,
+    "title": "Bloomsbury International Limited and others (Respondents) v Sea Fish Industry Authority and Department for Environment, Food and Rural Affairs (Appellant)",
+    "summary": "1. The Sea Fish Industry Authority (“the Authority”) is established under the Fisheries Act 1981 with powers granted “for the purpose of promoting the efficiency of the sea fish industry and so as to serve the interests of that industry as a whole” (section 2(1)).",
+    "category": "public_law",
+    "citation": "UKSC/2010/0098",
+    "extracts": [
+      "1. The Sea Fish Industry Authority (“the Authority”) is established under the Fisheries Act 1981 with powers granted “for the purpose of promoting the efficiency of the sea fish industry and so as to serve the interests of that industry as a whole” (section 2(1)). For the purpose of financing its activities, the Authority may, by regulations confirmed by ministerial order, “impose a levy on persons engaged in the sea fish industry” (section 4(1) and (2)).",
+      "2. The issues on this appeal are, firstly, whether this power extends to imposing a levy in respect of sea fish or parts of sea fish first brought to land (by the catching or another vessel) outside the United Kingdom and only later imported into the United Kingdom (in the same form or in the form of some other fish product); and, secondly, if it does, whether the imposition of any such levy was and is a charge equivalent to a customs duty, contrary to articles 28 and 30 of the Treaty on the Functioning of the European Union (“TFEU”), in so far as it applies to imports from other EU member states."
+    ],
+    "title_key": "bloomsbury international limited and others v sea fish industry authority and department for environment food and rural affairs"
+  },
+  "content": "{\"title\":\"Bloomsbury International Limited and others (Respondents) v Sea Fish Industry Authority and Department for Environment, Food and Rural Affairs (Appellant)\",\"citation\":\"UKSC/2010/0098\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0098\",\"summary\":\"1. The Sea Fish Industry Authority (“the Authority”) is established under the Fisheries Act 1981 with powers granted “for the purpose of promoting the efficiency of the sea fish industry and so as to serve the interests of that industry as a whole” (section 2(1)).\",\"extracts\":[\"1. The Sea Fish Industry Authority (“the Authority”) is established under the Fisheries Act 1981 with powers granted “for the purpose of promoting the efficiency of the sea fish industry and so as to serve the interests of that industry as a whole” (section 2(1)). For the purpose of financing its activities, the Authority may, by regulations confirmed by ministerial order, “impose a levy on persons engaged in the sea fish industry” (section 4(1) and (2)).\",\"2. The issues on this appeal are, firstly, whether this power extends to imposing a levy in respect of sea fish or parts of sea fish first brought to land (by the catching or another vessel) outside the United Kingdom and only later imported into the United Kingdom (in the same form or in the form of some other fish product); and, secondly, if it does, whether the imposition of any such levy was and is a charge equivalent to a customs duty, contrary to articles 28 and 30 of the Treaty on the Functioning of the European Union (“TFEU”), in so far as it applies to imports from other EU member states.\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"bloomsbury international limited and others v sea fish industry authority and department for environment food and rural affairs\"}"
+}

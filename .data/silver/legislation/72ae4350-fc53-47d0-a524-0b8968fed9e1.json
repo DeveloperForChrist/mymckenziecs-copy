@@ -1,0 +1,15 @@
+{
+  "id": "72ae4350-fc53-47d0-a524-0b8968fed9e1",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#25216",
+  "created_at": "2025-12-25T14:29:56.426Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2016/1116/contents/made",
+    "type": "uksi",
+    "year": 2016,
+    "number": 1116,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2016,\"number\":1116,\"url\":\"http://www.legislation.gov.uk/uksi/2016/1116/contents/made\",\"dataUrl\":null}"
+}

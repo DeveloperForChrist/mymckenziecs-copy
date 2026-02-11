@@ -1,0 +1,15 @@
+{
+  "id": "08463744-43ea-4292-94f4-916668e9ab6d",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#2295",
+  "created_at": "2025-12-25T12:05:36.881Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo6/6-7/3/contents/enacted",
+    "type": "ukpga",
+    "year": 1942,
+    "number": 3,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1942,\"number\":3,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo6/6-7/3/contents/enacted\",\"dataUrl\":null}"
+}

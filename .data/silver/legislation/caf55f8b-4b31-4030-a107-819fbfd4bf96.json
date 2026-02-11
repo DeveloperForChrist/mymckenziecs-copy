@@ -1,0 +1,15 @@
+{
+  "id": "caf55f8b-4b31-4030-a107-819fbfd4bf96",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#18462",
+  "created_at": "2025-12-25T13:44:26.430Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1997/531/contents/made",
+    "type": "uksi",
+    "year": 1997,
+    "number": 531,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1997/531/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1997,\"number\":531,\"url\":\"http://www.legislation.gov.uk/uksi/1997/531/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1997/531/made/data.htm\"}"
+}

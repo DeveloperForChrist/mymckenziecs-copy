@@ -1,0 +1,15 @@
+{
+  "id": "2cfd1568-0a0c-42f0-854f-3a8fb2f22dfe",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#10053",
+  "created_at": "2025-12-25T12:52:25.020Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1979/1587/contents/made",
+    "type": "uksi",
+    "year": 1979,
+    "number": 1587,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1979,\"number\":1587,\"url\":\"http://www.legislation.gov.uk/uksi/1979/1587/contents/made\",\"dataUrl\":null}"
+}

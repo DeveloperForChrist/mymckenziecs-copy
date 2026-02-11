@@ -1,0 +1,21 @@
+{
+  "id": "b6dc0af5-abfc-42bb-9646-7fdc41466238",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Parkwood Leisure Limited (Respondent) v Alemo-Herron and others (Appellants)",
+  "created_at": "2025-12-25T11:47:00.975Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0035",
+    "score": 1,
+    "title": "Parkwood Leisure Limited (Respondent) v Alemo-Herron and others (Appellants)",
+    "summary": "1. The appellants are former employees of the London Borough of Lewisham (“the council”).",
+    "category": "procedure",
+    "citation": "UKSC/2010/0035",
+    "extracts": [
+      "1. The appellants are former employees of the London Borough of Lewisham (“the council”). They worked in the council’s leisure department until 2002. Their part of the council’s undertaking was then contracted out to a private sector employer named CCL Ltd and they were transferred into its employment. In May 2004 CCL’s undertaking was taken over by another private sector employer named Parkwood Leisure Ltd (“Parkwood”), which is the respondent to this appeal. As a result of that transfer the appellants became employees of Parkwood. The Transfer of Undertakings (Protection of Employment) Regulations 1981 (SI 1981/1794) (“TUPE”) applied to each of these transfers.",
+      "2. TUPE safeguards the rights of employees when the business in which they worked changes hands between employers. It preserves their contractual rights so that they are enforceable against the transferee after the transfer. Regulations 5(1) and 5(2) of TUPE provided that their contracts of employment were to have effect after the transfer as if originally made between the persons so employed and the transferee. TUPE was replaced by the Transfer of Undertakings (Protection of Employment) Regulations 2006 (SI 2006/246) which came into force on 5 April 2006. But the transfers with which this case is concerned took place before that date. So the position that applies to them is governed by the 1981 Regulations, which I shall continue to refer to as TUPE."
+    ],
+    "title_key": "parkwood leisure limited v alemo herron and others"
+  },
+  "content": "{\"title\":\"Parkwood Leisure Limited (Respondent) v Alemo-Herron and others (Appellants)\",\"citation\":\"UKSC/2010/0035\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0035\",\"summary\":\"1. The appellants are former employees of the London Borough of Lewisham (“the council”).\",\"extracts\":[\"1. The appellants are former employees of the London Borough of Lewisham (“the council”). They worked in the council’s leisure department until 2002. Their part of the council’s undertaking was then contracted out to a private sector employer named CCL Ltd and they were transferred into its employment. In May 2004 CCL’s undertaking was taken over by another private sector employer named Parkwood Leisure Ltd (“Parkwood”), which is the respondent to this appeal. As a result of that transfer the appellants became employees of Parkwood. The Transfer of Undertakings (Protection of Employment) Regulations 1981 (SI 1981/1794) (“TUPE”) applied to each of these transfers.\",\"2. TUPE safeguards the rights of employees when the business in which they worked changes hands between employers. It preserves their contractual rights so that they are enforceable against the transferee after the transfer. Regulations 5(1) and 5(2) of TUPE provided that their contracts of employment were to have effect after the transfer as if originally made between the persons so employed and the transferee. TUPE was replaced by the Transfer of Undertakings (Protection of Employment) Regulations 2006 (SI 2006/246) which came into force on 5 April 2006. But the transfers with which this case is concerned took place before that date. So the position that applies to them is governed by the 1981 Regulations, which I shall continue to refer to as TUPE.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"parkwood leisure limited v alemo herron and others\"}"
+}

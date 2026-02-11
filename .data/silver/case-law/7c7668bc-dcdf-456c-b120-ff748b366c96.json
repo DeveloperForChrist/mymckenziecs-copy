@@ -1,0 +1,21 @@
+{
+  "id": "7c7668bc-dcdf-456c-b120-ff748b366c96",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Makhlouf (Appellant) v Secretary of State for the Home Department (Respondent) (Northern Ireland)",
+  "created_at": "2025-12-25T11:49:02.131Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0092",
+    "score": 1,
+    "title": "Makhlouf (Appellant) v Secretary of State for the Home Department (Respondent) (Northern Ireland)",
+    "summary": "1. Ben Belacum Makhlouf was born in Tunisia on 18 July 1971.",
+    "category": "public_law",
+    "citation": "UKSC/2015/0092",
+    "extracts": [
+      "1. Ben Belacum Makhlouf was born in Tunisia on 18 July 1971. On 4 June 1996 he married Ruth Henderson. She came from Northern Ireland and was a citizen of the United Kingdom. The marriage took place in Tunisia. On 13 November 1997, Mrs Makhlouf gave birth to their only child, a daughter called Sarah-Jayne. She was born in Northern Ireland, to where Mrs Makhlouf had returned. Her husband joined her there on 19 November 1997, six days after the birth of their daughter. He has lived in Northern Ireland since then. He had come to the United Kingdom and to Northern Ireland in particular with leave to enter as the spouse of a person settled in the UK. The leave to enter was initially valid for one year but on 19 August 1999 he was given indefinite leave to remain.",
+      "2. On 14 September 1999, Mrs Makhlouf informed the United Kingdom Border Agency (UKBA) that she and her husband had separated. She claimed that he had been violent to her. He disputes that claim. It has never been alleged that he was violent to his daughter. Indeed, Mr Makhlouf has said that, following the separation from his wife, he enjoyed regular weekly contact with Sarah-Jayne. Differences arose between him and his wife concerning their daughter’s upbringing, he claims and as a result, Mrs Makhlouf refused to allow him to see Sarah-Jayne since the beginning of 2003. Notwithstanding that they have not lived together since 1999, Mr and Mrs Makhlouf have never divorced."
+    ],
+    "title_key": "makhlouf v secretary of state for the home department"
+  },
+  "content": "{\"title\":\"Makhlouf (Appellant) v Secretary of State for the Home Department (Respondent) (Northern Ireland)\",\"citation\":\"UKSC/2015/0092\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0092\",\"summary\":\"1. Ben Belacum Makhlouf was born in Tunisia on 18 July 1971.\",\"extracts\":[\"1. Ben Belacum Makhlouf was born in Tunisia on 18 July 1971. On 4 June 1996 he married Ruth Henderson. She came from Northern Ireland and was a citizen of the United Kingdom. The marriage took place in Tunisia. On 13 November 1997, Mrs Makhlouf gave birth to their only child, a daughter called Sarah-Jayne. She was born in Northern Ireland, to where Mrs Makhlouf had returned. Her husband joined her there on 19 November 1997, six days after the birth of their daughter. He has lived in Northern Ireland since then. He had come to the United Kingdom and to Northern Ireland in particular with leave to enter as the spouse of a person settled in the UK. The leave to enter was initially valid for one year but on 19 August 1999 he was given indefinite leave to remain.\",\"2. On 14 September 1999, Mrs Makhlouf informed the United Kingdom Border Agency (UKBA) that she and her husband had separated. She claimed that he had been violent to her. He disputes that claim. It has never been alleged that he was violent to his daughter. Indeed, Mr Makhlouf has said that, following the separation from his wife, he enjoyed regular weekly contact with Sarah-Jayne. Differences arose between him and his wife concerning their daughter’s upbringing, he claims and as a result, Mrs Makhlouf refused to allow him to see Sarah-Jayne since the beginning of 2003. Notwithstanding that they have not lived together since 1999, Mr and Mrs Makhlouf have never divorced.\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"makhlouf v secretary of state for the home department\"}"
+}

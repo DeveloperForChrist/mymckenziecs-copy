@@ -1,0 +1,18 @@
+{
+  "id": "04e1125e-db10-429c-b37a-53e8862e94cb",
+  "source": "case-law",
+  "path": "data/bronze/case-law/curated.json",
+  "title": "Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Ashloch Ltd and another (Respondents)",
+  "created_at": "2025-12-25T11:46:00.096Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2021-0051",
+    "title": "Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Ashloch Ltd and another (Respondents)",
+    "summary": "Principle issue: Does the Upper Tribunal have jurisdiction to confer rights over land in favour of an operator under the Electronic Communications Code (the Code) where that operator has a Landlord and Tenant Act 1954 (LTA 1954) protected tenancy and is in occupation of the land?",
+    "citation": "UKSC/2021/0051",
+    "extracts": [
+      "Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Compton Beauchamp Estates Ltd (Respondent) Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Ashloch Ltd and AP Wireless II (UK) Ltd (Respondents) On Tower UK Ltd (formerly known as Arqiva Services Ltd) (Appellant) v AP Wireless II (UK) Ltd (Respondent)",
+      "1. When the revised Electronic Communications Code with which these appeals are concerned was published in May 2016, the Minister of State for Culture and the Digital Economy described the roll out of digital communications infrastructure as vitally important to citizens across the UK, as digital communications become an ever more essential part of the economic and social fabric of this country. The new Code was, the Minister said, intended to “provide a robust platform to enable long-term investment and development of digital communications infrastructure in the 21st Century”: see the Foreword to the Government’s consultation response “A New Electronic Communications Code”."
+    ]
+  },
+  "content": "{\"title\":\"Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Ashloch Ltd and another (Respondents)\",\"citation\":\"UKSC/2021/0051\",\"url\":\"https://supremecourt.uk/cases/uksc-2021-0051\",\"summary\":\"Principle issue: Does the Upper Tribunal have jurisdiction to confer rights over land in favour of an operator under the Electronic Communications Code (the Code) where that operator has a Landlord and Tenant Act 1954 (LTA 1954) protected tenancy and is in occupation of the land?\",\"extracts\":[\"Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Compton Beauchamp Estates Ltd (Respondent) Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Ashloch Ltd and AP Wireless II (UK) Ltd (Respondents) On Tower UK Ltd (formerly known as Arqiva Services Ltd) (Appellant) v AP Wireless II (UK) Ltd (Respondent)\",\"1. When the revised Electronic Communications Code with which these appeals are concerned was published in May 2016, the Minister of State for Culture and the Digital Economy described the roll out of digital communications infrastructure as vitally important to citizens across the UK, as digital communications become an ever more essential part of the economic and social fabric of this country. The new Code was, the Minister said, intended to “provide a robust platform to enable long-term investment and development of digital communications infrastructure in the 21st Century”: see the Foreword to the Government’s consultation response “A New Electronic Communications Code”.\"]}"
+}

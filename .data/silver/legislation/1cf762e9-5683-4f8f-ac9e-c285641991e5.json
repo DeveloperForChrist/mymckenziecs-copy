@@ -1,0 +1,15 @@
+{
+  "id": "1cf762e9-5683-4f8f-ac9e-c285641991e5",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7429",
+  "created_at": "2025-12-25T12:36:54.178Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1955/1942/contents/made",
+    "type": "uksi",
+    "year": 1955,
+    "number": 1942,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1955,\"number\":1942,\"url\":\"http://www.legislation.gov.uk/uksi/1955/1942/contents/made\",\"dataUrl\":null}"
+}

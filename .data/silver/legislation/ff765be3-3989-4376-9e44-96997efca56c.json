@@ -1,0 +1,15 @@
+{
+  "id": "ff765be3-3989-4376-9e44-96997efca56c",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#3706",
+  "created_at": "2025-12-25T12:14:09.892Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1966/48/contents/enacted",
+    "type": "ukpga",
+    "year": 1966,
+    "number": 48,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1966,\"number\":48,\"url\":\"http://www.legislation.gov.uk/ukpga/1966/48/contents/enacted\",\"dataUrl\":null}"
+}

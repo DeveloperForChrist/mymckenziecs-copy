@@ -1,0 +1,21 @@
+{
+  "id": "1e3cfe0e-e1d0-4963-9fb3-1e41126c5b59",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of an application by Clifford Peeples for Judicial Review (Appellant)\n                  (Northern Ireland)",
+  "created_at": "2025-12-25T11:50:49.461Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2022-0089",
+    "score": 1,
+    "title": "In the matter of an application by Clifford Peeples for Judicial Review (Appellant)\n                  (Northern Ireland)",
+    "summary": "Principle issue: In these conjoined appeals, the appellants challenge the lawfulness and constitutionality of the respondents’ decisions and actions in the implementation, and operation of the Northern Ireland Protocol (“the Protocol”). The issues raised concern the constitutional settlement of the UK, the operation and interpretation of the Belfast Agreement, and the effect of the Withdrawal Agreement between the UK and the EU and the Protocol in domestic law.The grounds of appeal are, among others, the claimed incompatibility of the Protocol and related regulations with the Acts of Union 1800 and the Northern Ireland Act 1998, the correct approach to statutory interpretation to resolve a conflict or clash between the constitutional provisions of constitutional Acts, and the lawfulness of the Protocol.",
+    "category": "procedure",
+    "citation": "UKSC/2022/0089",
+    "extracts": [
+      "JAMES HUGH ALLISTER, BENYAMIN NAEEM HABIB, STEVE AIKEN, THE RT HON. ARLENE ISOBEL FOSTER, BARONESS CATHARINE HOEY OF LYLEHILL AND RATHLIN and WILLIAM DAVID, THE RT HON. BARON TRIMBLE OF LISNAGARVEY Appellants and",
+      "Mr John Larkin QC and Ms Denise Kiley (instructed by Nelson Singleton Solicitors) for James Allister and others Mr Ronan Lavery QC and Mr Conan Fegan (instructed by McIvor Farrell Solicitors) for Clifford Peeples Mr Tony McGleenan QC with Mr Philip McAteer (instructed by the Crown Solicitor’s Office) for the Respondents ___________"
+    ],
+    "title_key": "in the matter of an application by clifford peeples for judicial review"
+  },
+  "content": "{\"title\":\"In the matter of an application by Clifford Peeples for Judicial Review (Appellant)\\\\n                  (Northern Ireland)\",\"citation\":\"UKSC/2022/0089\",\"url\":\"https://supremecourt.uk/cases/uksc-2022-0089\",\"summary\":\"Principle issue: In these conjoined appeals, the appellants challenge the lawfulness and constitutionality of the respondents’ decisions and actions in the implementation, and operation of the Northern Ireland Protocol (“the Protocol”). The issues raised concern the constitutional settlement of the UK, the operation and interpretation of the Belfast Agreement, and the effect of the Withdrawal Agreement between the UK and the EU and the Protocol in domestic law.The grounds of appeal are, among others, the claimed incompatibility of the Protocol and related regulations with the Acts of Union 1800 and the Northern Ireland Act 1998, the correct approach to statutory interpretation to resolve a conflict or clash between the constitutional provisions of constitutional Acts, and the lawfulness of the Protocol.\",\"extracts\":[\"JAMES HUGH ALLISTER, BENYAMIN NAEEM HABIB, STEVE AIKEN, THE RT HON. ARLENE ISOBEL FOSTER, BARONESS CATHARINE HOEY OF LYLEHILL AND RATHLIN and WILLIAM DAVID, THE RT HON. BARON TRIMBLE OF LISNAGARVEY Appellants and\",\"Mr John Larkin QC and Ms Denise Kiley (instructed by Nelson Singleton Solicitors) for James Allister and others Mr Ronan Lavery QC and Mr Conan Fegan (instructed by McIvor Farrell Solicitors) for Clifford Peeples Mr Tony McGleenan QC with Mr Philip McAteer (instructed by the Crown Solicitor’s Office) for the Respondents ___________\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"in the matter of an application by clifford peeples for judicial review\"}"
+}

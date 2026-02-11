@@ -1,0 +1,21 @@
+{
+  "id": "87406241-cbde-46be-aa99-a074f78492b9",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Child Poverty Action Group (Respondent) v Secretary of State for Work and Pensions (Appellant)",
+  "created_at": "2025-12-25T11:46:52.931Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0202",
+    "score": 1,
+    "title": "Child Poverty Action Group (Respondent) v Secretary of State for Work and Pensions (Appellant)",
+    "summary": "2. In short, what is in issue in this appeal is whether in other cases of mistakenly inflated awards – most obviously in cases arising from “official error” (as it is called in Regulations to which I shall come) – the Secretary of State is entitled to recover the sums overpaid.",
+    "category": "procedure",
+    "citation": "UKSC/2009/0202",
+    "extracts": [
+      "2. In short, what is in issue in this appeal is whether in other cases of mistakenly inflated awards – most obviously in cases arising from “official error” (as it is called in Regulations to which I shall come) – the Secretary of State is entitled to recover the sums overpaid. This question arises, for example, where a claimant has notified a change of circumstances (such as that he has begun full- time work or that his child has left the household) and by mistake the Department overlooks (or delays actioning) the notification and continues making benefit payments at the same rate; or, indeed, where there is simply an erroneous calculation of the award. In cases like that is the Secretary of State permitted to seek recovery of such overpaid benefits at common law or is the exclusive route to recovery that provided by section 71 of the 1992 Act?",
+      "3. The judge at first instance, Michael Supperstone QC, sitting as a deputy High Court Judge, found in favour of the Secretary of State – [2009] EWHC 341 (Admin), [2009] 3 All ER 633. The Court of Appeal (Sedley, Lloyd and Wilson LJJ) [2009] EWCA Civ 1058, [2010] 1 WLR 1886 – allowed the Child Poverty Action Group’s appeal and declared:"
+    ],
+    "title_key": "child poverty action group v secretary of state for work and pensions"
+  },
+  "content": "{\"title\":\"Child Poverty Action Group (Respondent) v Secretary of State for Work and Pensions (Appellant)\",\"citation\":\"UKSC/2009/0202\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0202\",\"summary\":\"2. In short, what is in issue in this appeal is whether in other cases of mistakenly inflated awards – most obviously in cases arising from “official error” (as it is called in Regulations to which I shall come) – the Secretary of State is entitled to recover the sums overpaid.\",\"extracts\":[\"2. In short, what is in issue in this appeal is whether in other cases of mistakenly inflated awards – most obviously in cases arising from “official error” (as it is called in Regulations to which I shall come) – the Secretary of State is entitled to recover the sums overpaid. This question arises, for example, where a claimant has notified a change of circumstances (such as that he has begun full- time work or that his child has left the household) and by mistake the Department overlooks (or delays actioning) the notification and continues making benefit payments at the same rate; or, indeed, where there is simply an erroneous calculation of the award. In cases like that is the Secretary of State permitted to seek recovery of such overpaid benefits at common law or is the exclusive route to recovery that provided by section 71 of the 1992 Act?\",\"3. The judge at first instance, Michael Supperstone QC, sitting as a deputy High Court Judge, found in favour of the Secretary of State – [2009] EWHC 341 (Admin), [2009] 3 All ER 633. The Court of Appeal (Sedley, Lloyd and Wilson LJJ) [2009] EWCA Civ 1058, [2010] 1 WLR 1886 – allowed the Child Poverty Action Group’s appeal and declared:\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"child poverty action group v secretary of state for work and pensions\"}"
+}

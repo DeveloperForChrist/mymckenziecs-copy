@@ -1,0 +1,21 @@
+{
+  "id": "003eb6f8-3b78-487b-886c-24ae4d68eba4",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "BPE Solicitors and another (Respondents) v Hughes-Holland (in substitution for Gabriel) (Appellant)",
+  "created_at": "2025-12-25T11:48:33.494Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0026",
+    "score": 1,
+    "title": "BPE Solicitors and another (Respondents) v Hughes-Holland (in substitution for Gabriel) (Appellant)",
+    "summary": "1. The issue on this appeal is, in summary, what damages are recoverable in a case where (i) but for the negligence of a professional adviser his client would not have embarked on some course of action, but (ii) part or all of the loss which he suffered by doing so arose from risks which it was n...",
+    "category": "procedure",
+    "citation": "UKSC/2014/0026",
+    "extracts": [
+      "1. The issue on this appeal is, in summary, what damages are recoverable in a case where (i) but for the negligence of a professional adviser his client would not have embarked on some course of action, but (ii) part or all of the loss which he suffered by doing so arose from risks which it was no part of the adviser’s duty to protect his client against. The problem may be illustrated by one of the most celebrated legal parables of modern times, the story of the mountaineer’s knee devised by Lord Hoffmann in the course of argument in South Australia Asset Management Corpn v York Montague Ltd [1997] AC 191, at p 213:",
+      "“A mountaineer about to undertake a difficult climb is concerned about the fitness of his knee. He goes to a doctor who negligently makes a superficial examination and pronounces the knee fit. The climber goes on the expedition, which he would not have undertaken if the doctor had told him the true state of his knee. He suffers an injury which is an entirely foreseeable consequence of mountaineering but has nothing to do with his knee.”"
+    ],
+    "title_key": "bpe solicitors and another v hughes holland"
+  },
+  "content": "{\"title\":\"BPE Solicitors and another (Respondents) v Hughes-Holland (in substitution for Gabriel) (Appellant)\",\"citation\":\"UKSC/2014/0026\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0026\",\"summary\":\"1. The issue on this appeal is, in summary, what damages are recoverable in a case where (i) but for the negligence of a professional adviser his client would not have embarked on some course of action, but (ii) part or all of the loss which he suffered by doing so arose from risks which it was n...\",\"extracts\":[\"1. The issue on this appeal is, in summary, what damages are recoverable in a case where (i) but for the negligence of a professional adviser his client would not have embarked on some course of action, but (ii) part or all of the loss which he suffered by doing so arose from risks which it was no part of the adviser’s duty to protect his client against. The problem may be illustrated by one of the most celebrated legal parables of modern times, the story of the mountaineer’s knee devised by Lord Hoffmann in the course of argument in South Australia Asset Management Corpn v York Montague Ltd [1997] AC 191, at p 213:\",\"“A mountaineer about to undertake a difficult climb is concerned about the fitness of his knee. He goes to a doctor who negligently makes a superficial examination and pronounces the knee fit. The climber goes on the expedition, which he would not have undertaken if the doctor had told him the true state of his knee. He suffers an injury which is an entirely foreseeable consequence of mountaineering but has nothing to do with his knee.”\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"bpe solicitors and another v hughes holland\"}"
+}

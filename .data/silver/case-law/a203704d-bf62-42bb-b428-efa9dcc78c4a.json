@@ -1,0 +1,21 @@
+{
+  "id": "a203704d-bf62-42bb-b428-efa9dcc78c4a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R v McGeough (Appellant) (Northern Ireland)",
+  "created_at": "2025-12-25T11:48:27.104Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0248",
+    "score": 0,
+    "title": "R v McGeough (Appellant) (Northern Ireland)",
+    "summary": "1. In 1981 Samuel Brush worked as a postman.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2013/0248",
+    "extracts": [
+      "1. In 1981 Samuel Brush worked as a postman. He was also a member of the Ulster Defence Regiment. Members of that regiment were frequently targeted by paramilitary groups then operating in Northern Ireland. Because of that Mr Brush was wearing light body armour and carrying a personal protection weapon when he was ambushed by two gunmen on 13 June 1981. The ambush took place in a remote area of County Tyrone, some four and a half miles from the village of Aughnacloy.",
+      "2. Although suffering bullet wounds from the attack on him, Mr Brush managed to fire his gun at one of his assailants. One of the bullets which he fired struck one of the gunmen. Some time later that person was admitted to hospital in Monaghan which, despite the fact that it is in the Republic of Ireland, is not far from Aughnacloy. On his trial for the attempted murder of Mr Brush, it was held that the appellant was the man who had been admitted to that hospital and that he had been engaged in the attack and was guilty of attempted murder. Those findings and the appellant’s conviction of the attempted murder of Mr Brush are not under challenge in this appeal."
+    ],
+    "title_key": "r v mcgeough"
+  },
+  "content": "{\"title\":\"R v McGeough (Appellant) (Northern Ireland)\",\"citation\":\"UKSC/2013/0248\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0248\",\"summary\":\"1. In 1981 Samuel Brush worked as a postman.\",\"extracts\":[\"1. In 1981 Samuel Brush worked as a postman. He was also a member of the Ulster Defence Regiment. Members of that regiment were frequently targeted by paramilitary groups then operating in Northern Ireland. Because of that Mr Brush was wearing light body armour and carrying a personal protection weapon when he was ambushed by two gunmen on 13 June 1981. The ambush took place in a remote area of County Tyrone, some four and a half miles from the village of Aughnacloy.\",\"2. Although suffering bullet wounds from the attack on him, Mr Brush managed to fire his gun at one of his assailants. One of the bullets which he fired struck one of the gunmen. Some time later that person was admitted to hospital in Monaghan which, despite the fact that it is in the Republic of Ireland, is not far from Aughnacloy. On his trial for the attempted murder of Mr Brush, it was held that the appellant was the man who had been admitted to that hospital and that he had been engaged in the attack and was guilty of attempted murder. Those findings and the appellant’s conviction of the attempted murder of Mr Brush are not under challenge in this appeal.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"r v mcgeough\"}"
+}

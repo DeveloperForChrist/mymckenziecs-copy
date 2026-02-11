@@ -1,0 +1,15 @@
+{
+  "id": "9e7f86c4-9c6d-4d3e-8e28-56c16a99c8e3",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#22255",
+  "created_at": "2025-12-25T14:09:09.924Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2007/3573/contents",
+    "type": "uksi",
+    "year": 2007,
+    "number": 3573,
+    "dataUrl": "http://www.legislation.gov.uk/wsi/2007/3573/2021-02-22/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2007,\"number\":3573,\"url\":\"http://www.legislation.gov.uk/wsi/2007/3573/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/wsi/2007/3573/2021-02-22/data.htm\"}"
+}

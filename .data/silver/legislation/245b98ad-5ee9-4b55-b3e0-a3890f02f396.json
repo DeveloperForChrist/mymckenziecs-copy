@@ -1,0 +1,15 @@
+{
+  "id": "245b98ad-5ee9-4b55-b3e0-a3890f02f396",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#3156",
+  "created_at": "2025-12-25T12:11:02.076Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Eliz2/6-7/46/contents",
+    "type": "ukpga",
+    "year": 1958,
+    "number": 46,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/Eliz2/6-7/46/1991-02-01/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1958,\"number\":46,\"url\":\"http://www.legislation.gov.uk/ukpga/Eliz2/6-7/46/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/Eliz2/6-7/46/1991-02-01/data.htm\"}"
+}

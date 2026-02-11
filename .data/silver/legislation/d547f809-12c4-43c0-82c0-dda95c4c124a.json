@@ -1,0 +1,15 @@
+{
+  "id": "d547f809-12c4-43c0-82c0-dda95c4c124a",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#27613",
+  "created_at": "2025-12-25T14:47:14.265Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2020/949/made",
+    "type": "uksi",
+    "year": 2020,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2020,\"number\":null,\"url\":\"http://www.legislation.gov.uk/wsi/2020/949/made\",\"dataUrl\":null}"
+}

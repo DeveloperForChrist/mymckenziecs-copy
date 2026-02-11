@@ -1,0 +1,15 @@
+{
+  "id": "191802af-f84a-409b-abf1-0e4f2cc15f84",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#27282",
+  "created_at": "2025-12-25T14:44:49.313Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2020/1291/made",
+    "type": "uksi",
+    "year": 2020,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2020,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2020/1291/made\",\"dataUrl\":null}"
+}

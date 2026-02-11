@@ -1,0 +1,15 @@
+{
+  "id": "3d3c1ff7-88a4-476a-bd44-d0899f98d2fc",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#5146",
+  "created_at": "2025-12-25T12:23:07.249Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1987/2/contents/enacted",
+    "type": "ukpga",
+    "year": 1987,
+    "number": 2,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1987,\"number\":2,\"url\":\"http://www.legislation.gov.uk/ukpga/1987/2/contents/enacted\",\"dataUrl\":null}"
+}

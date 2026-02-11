@@ -1,0 +1,15 @@
+{
+  "id": "05521bd1-abac-4f4e-9179-e3ca7e064a22",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20815",
+  "created_at": "2025-12-25T13:58:52.948Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2001/3897/contents",
+    "type": "uksi",
+    "year": 2001,
+    "number": 3897,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2001/3897/2002-01-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2001,\"number\":3897,\"url\":\"http://www.legislation.gov.uk/uksi/2001/3897/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2001/3897/2002-01-01/data.htm\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "6824269a-b7cd-4745-954d-f92ffe4a1516",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#5766",
+  "created_at": "2025-12-25T12:26:47.702Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1999/22/contents",
+    "type": "ukpga",
+    "year": 1999,
+    "number": 22,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1999/22/2022-11-30/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1999,\"number\":22,\"url\":\"http://www.legislation.gov.uk/ukpga/1999/22/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1999/22/2022-11-30/data.htm\"}"
+}

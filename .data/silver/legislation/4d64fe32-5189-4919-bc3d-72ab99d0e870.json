@@ -1,0 +1,15 @@
+{
+  "id": "4d64fe32-5189-4919-bc3d-72ab99d0e870",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#11580",
+  "created_at": "2025-12-25T13:01:41.555Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1983/764/contents",
+    "type": "uksi",
+    "year": 1983,
+    "number": 764,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/1983/764/2024-08-09/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1983,\"number\":764,\"url\":\"http://www.legislation.gov.uk/nisi/1983/764/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/1983/764/2024-08-09/data.htm\"}"
+}

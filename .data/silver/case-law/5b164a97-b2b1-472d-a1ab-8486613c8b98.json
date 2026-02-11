@@ -1,0 +1,21 @@
+{
+  "id": "5b164a97-b2b1-472d-a1ab-8486613c8b98",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Royal Mail Group Ltd (Respondent) v Efobi (Appellant)",
+  "created_at": "2025-12-25T11:50:13.620Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2019-0068",
+    "score": 1,
+    "title": "Royal Mail Group Ltd (Respondent) v Efobi (Appellant)",
+    "summary": "Principle issue: In a claim for discrimination contrary to the Equality Act 2010, which party bears the burden of proving that discrimination has or has not occurred?",
+    "category": "evidence_misc",
+    "citation": "UKSC/2019/0068",
+    "extracts": [
+      "3. This provision was one of a number of similarly worded provisions inserted in UK legislation by amendment pursuant to the European Communities Act 1972 on various dates between 2001 and 2006 in order to implement European Directives. Other such provisions included: section 63A of the Sex Discrimination Act 1975; section 17A(1C) of the Disability Discrimination Act 1995; regulation 29 of the Employment Equality (Religion or Belief) Regulations 2003 (SI 2003/1660); regulation 29 of the Employment Equality (Sexual Orientation) Regulations 2003 (SI 2003/1661); and regulation 37 of the Employment Equality (Age) Regulations 2006 (SI 2006/1031). (In two later provisions, not required by EU law, slightly different wording was used which referred to “a reasonable alternative explanation” instead of “an adequate explanation”: see section 66(5) of the Equality Act 2006 and",
+      "4. The relevant provisions of the European Directives were also in similar terms. Taking the example of discrimination on grounds of race, article 8(1) of Council Directive 2000/43/EC of 29 June 2000 required member states to take measures to ensure that:"
+    ],
+    "title_key": "royal mail group ltd v efobi"
+  },
+  "content": "{\"title\":\"Royal Mail Group Ltd (Respondent) v Efobi (Appellant)\",\"citation\":\"UKSC/2019/0068\",\"url\":\"https://supremecourt.uk/cases/uksc-2019-0068\",\"summary\":\"Principle issue: In a claim for discrimination contrary to the Equality Act 2010, which party bears the burden of proving that discrimination has or has not occurred?\",\"extracts\":[\"3. This provision was one of a number of similarly worded provisions inserted in UK legislation by amendment pursuant to the European Communities Act 1972 on various dates between 2001 and 2006 in order to implement European Directives. Other such provisions included: section 63A of the Sex Discrimination Act 1975; section 17A(1C) of the Disability Discrimination Act 1995; regulation 29 of the Employment Equality (Religion or Belief) Regulations 2003 (SI 2003/1660); regulation 29 of the Employment Equality (Sexual Orientation) Regulations 2003 (SI 2003/1661); and regulation 37 of the Employment Equality (Age) Regulations 2006 (SI 2006/1031). (In two later provisions, not required by EU law, slightly different wording was used which referred to “a reasonable alternative explanation” instead of “an adequate explanation”: see section 66(5) of the Equality Act 2006 and\",\"4. The relevant provisions of the European Directives were also in similar terms. Taking the example of discrimination on grounds of race, article 8(1) of Council Directive 2000/43/EC of 29 June 2000 required member states to take measures to ensure that:\"],\"category\":\"evidence_misc\",\"score\":1,\"title_key\":\"royal mail group ltd v efobi\"}"
+}

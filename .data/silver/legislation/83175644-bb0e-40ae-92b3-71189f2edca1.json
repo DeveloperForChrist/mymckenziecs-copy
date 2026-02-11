@@ -1,0 +1,15 @@
+{
+  "id": "83175644-bb0e-40ae-92b3-71189f2edca1",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#10461",
+  "created_at": "2025-12-25T12:54:51.440Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1980/1738/contents/made",
+    "type": "uksi",
+    "year": 1980,
+    "number": 1738,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1980,\"number\":1738,\"url\":\"http://www.legislation.gov.uk/uksi/1980/1738/contents/made\",\"dataUrl\":null}"
+}

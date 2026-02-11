@@ -1,0 +1,21 @@
+{
+  "id": "992cd415-c0d6-4832-8858-b5cfbd7af4ea",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Tillman (Respondent) v Egon Zehnder Ltd (Appellant)",
+  "created_at": "2025-12-25T11:49:48.653Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0182",
+    "score": 0,
+    "title": "Tillman (Respondent) v Egon Zehnder Ltd (Appellant)",
+    "summary": "1. A company employs a business executive pursuant to a written agreement.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2017/0182",
+    "extracts": [
+      "1. A company employs a business executive pursuant to a written agreement. Following the termination of her employment she wishes to become employed by a firm whose business is in competition with that of the company. The company contends that her proposed employment would breach a covenant in the agreement. She answers that the covenant is void at common law because part of it is in unreasonable restraint of trade. Before this court the company replies with three contentions, each of which she disputes.",
+      "(A) The hypothesis in Issue (A) is that the employee’s construction of the part of the covenant alleged to be in unreasonable restraint of trade is correct. Here the company contends that the impugned part falls outside the doctrine against restraint of trade (“the doctrine”) and that it is therefore irrelevant that, had it fallen within the doctrine, it would have been in unreasonable restraint of it."
+    ],
+    "title_key": "tillman v egon zehnder ltd"
+  },
+  "content": "{\"title\":\"Tillman (Respondent) v Egon Zehnder Ltd (Appellant)\",\"citation\":\"UKSC/2017/0182\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0182\",\"summary\":\"1. A company employs a business executive pursuant to a written agreement.\",\"extracts\":[\"1. A company employs a business executive pursuant to a written agreement. Following the termination of her employment she wishes to become employed by a firm whose business is in competition with that of the company. The company contends that her proposed employment would breach a covenant in the agreement. She answers that the covenant is void at common law because part of it is in unreasonable restraint of trade. Before this court the company replies with three contentions, each of which she disputes.\",\"(A) The hypothesis in Issue (A) is that the employee’s construction of the part of the covenant alleged to be in unreasonable restraint of trade is correct. Here the company contends that the impugned part falls outside the doctrine against restraint of trade (“the doctrine”) and that it is therefore irrelevant that, had it fallen within the doctrine, it would have been in unreasonable restraint of it.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"tillman v egon zehnder ltd\"}"
+}

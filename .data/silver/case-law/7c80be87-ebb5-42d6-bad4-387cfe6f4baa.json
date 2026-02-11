@@ -1,0 +1,21 @@
+{
+  "id": "7c80be87-ebb5-42d6-bad4-387cfe6f4baa",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Bailey and another (Respondents) v Angove's PTY Limited (Appellant)",
+  "created_at": "2025-12-25T11:48:39.202Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0106",
+    "score": 1,
+    "title": "Bailey and another (Respondents) v Angove's PTY Limited (Appellant)",
+    "summary": "1. This appeal raises two important and controversial questions of commercial law.",
+    "category": "procedure",
+    "citation": "UKSC/2014/0106",
+    "extracts": [
+      "1. This appeal raises two important and controversial questions of commercial law. The first is: in what circumstances will the law treat the authority of an agent as irrevocable. The other is whether the receipt of money at a time when the recipient knows that imminent insolvency will prevent him from performing the corresponding obligation, can give rise to liability to account as a constructive trustee.",
+      "2. Angove’s Pty Ltd is an Australian winemaker, which for many years employed an English company called D&D Wines International Ltd as its agent and distributor in the United Kingdom. D&D acted in both capacities. It bought wines from Angove’s in its own right and it sold wines on Angove’s behalf to UK customers, generally retailers. Both activities were governed at the relevant time by an Agency and Distribution Agreement (or “ADA”) dated 1 December 2011. Under clause 34, the ADA was terminable by either side on six months’ notice, or, under clause 36, by notice with immediate effect in a number of events, including the appointment of an administrator or liquidator."
+    ],
+    "title_key": "bailey and another v angove s pty limited"
+  },
+  "content": "{\"title\":\"Bailey and another (Respondents) v Angove's PTY Limited (Appellant)\",\"citation\":\"UKSC/2014/0106\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0106\",\"summary\":\"1. This appeal raises two important and controversial questions of commercial law.\",\"extracts\":[\"1. This appeal raises two important and controversial questions of commercial law. The first is: in what circumstances will the law treat the authority of an agent as irrevocable. The other is whether the receipt of money at a time when the recipient knows that imminent insolvency will prevent him from performing the corresponding obligation, can give rise to liability to account as a constructive trustee.\",\"2. Angove’s Pty Ltd is an Australian winemaker, which for many years employed an English company called D&D Wines International Ltd as its agent and distributor in the United Kingdom. D&D acted in both capacities. It bought wines from Angove’s in its own right and it sold wines on Angove’s behalf to UK customers, generally retailers. Both activities were governed at the relevant time by an Agency and Distribution Agreement (or “ADA”) dated 1 December 2011. Under clause 34, the ADA was terminable by either side on six months’ notice, or, under clause 36, by notice with immediate effect in a number of events, including the appointment of an administrator or liquidator.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"bailey and another v angove s pty limited\"}"
+}

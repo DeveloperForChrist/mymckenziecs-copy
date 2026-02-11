@@ -1,0 +1,21 @@
+{
+  "id": "0b4f383d-f092-403f-a740-9769fcaeedda",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of LC (Children)",
+  "created_at": "2025-12-25T11:48:25.087Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0221",
+    "score": 1,
+    "title": "In the matter of LC (Children)",
+    "summary": "1. Now that it is clear that the test for determining whether a child was habitually resident in a place is whether there was some degree of integration by her (or him) in a social and family environment there, may the court, in making that determination in relation to an adolescent child who has...",
+    "category": "procedure",
+    "citation": "UKSC/2013/0221",
+    "extracts": [
+      "1. Now that it is clear that the test for determining whether a child was habitually resident in a place is whether there was some degree of integration by her (or him) in a social and family environment there, may the court, in making that determination in relation to an adolescent child who has resided, particularly if only for a short time, in a place under the care of one of her parents, have regard to her own state of mind during her period of residence there in relation to the nature and quality of that residence? In my view this is the principal question raised by these appeals.",
+      "2. The appeals are brought within proceedings issued by a mother against a father for the summary return of their four children from England to Spain pursuant to the Hague Convention on the Civil Aspects of International Child Abduction 1980 (“the Convention”) and to section 1(2) of the Child Abduction and Custody Act 1985 (“the 1985 Act”)."
+    ],
+    "title_key": "in the matter of lc"
+  },
+  "content": "{\"title\":\"In the matter of LC (Children)\",\"citation\":\"UKSC/2013/0221\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0221\",\"summary\":\"1. Now that it is clear that the test for determining whether a child was habitually resident in a place is whether there was some degree of integration by her (or him) in a social and family environment there, may the court, in making that determination in relation to an adolescent child who has...\",\"extracts\":[\"1. Now that it is clear that the test for determining whether a child was habitually resident in a place is whether there was some degree of integration by her (or him) in a social and family environment there, may the court, in making that determination in relation to an adolescent child who has resided, particularly if only for a short time, in a place under the care of one of her parents, have regard to her own state of mind during her period of residence there in relation to the nature and quality of that residence? In my view this is the principal question raised by these appeals.\",\"2. The appeals are brought within proceedings issued by a mother against a father for the summary return of their four children from England to Spain pursuant to the Hague Convention on the Civil Aspects of International Child Abduction 1980 (“the Convention”) and to section 1(2) of the Child Abduction and Custody Act 1985 (“the 1985 Act”).\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"in the matter of lc\"}"
+}

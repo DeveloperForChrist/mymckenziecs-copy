@@ -1,0 +1,15 @@
+{
+  "id": "956a856e-ad4f-4cd9-b387-90b41b39e076",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#14998",
+  "created_at": "2025-12-25T13:22:35.787Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1988/663/contents",
+    "type": "uksi",
+    "year": 1988,
+    "number": 663,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1988/663/1996-10-07/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1988,\"number\":663,\"url\":\"http://www.legislation.gov.uk/uksi/1988/663/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1988/663/1996-10-07/data.htm\"}"
+}

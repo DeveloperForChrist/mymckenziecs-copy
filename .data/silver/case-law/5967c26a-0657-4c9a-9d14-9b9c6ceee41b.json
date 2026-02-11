@@ -1,0 +1,21 @@
+{
+  "id": "5967c26a-0657-4c9a-9d14-9b9c6ceee41b",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Sugar (Deceased) (Represented by Fiona Paveley) (Appellant) v British Broadcasting Corporation and another (Respondents)",
+  "created_at": "2025-12-25T11:47:09.125Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0145",
+    "score": 1,
+    "title": "Sugar (Deceased) (Represented by Fiona Paveley) (Appellant) v British Broadcasting Corporation and another (Respondents)",
+    "summary": "1. Although the British Broadcasting Corporation (“the BBC”) is listed as a public authority in the Freedom of Information Act 2000, the Act, as I will call it, applies to the BBC only to a limited extent.",
+    "category": "procedure",
+    "citation": "UKSC/2010/0145",
+    "extracts": [
+      "1. Although the British Broadcasting Corporation (“the BBC”) is listed as a public authority in the Freedom of Information Act 2000, the Act, as I will call it, applies to the BBC only to a limited extent. The words of limitation are found in Part VI of Schedule 1 to the Act: they provide that the Act applies only “in respect of information held for purposes other than those of journalism, art or literature”. I will describe these words of limitation as the designation. This appeal requires the court to consider the meaning of the designation. The focus of the debate is on the word “journalism” rather than on the words “art” or “literature”. How widely – or narrowly – should the phrase “purposes other than those of journalism” be construed? The answer of course lies in the narrowness – or width – of the concept of the “purposes ... of journalism” in the context of the Act.",
+      "2. But the appeal also presents a more particular conundrum. It proceeds, albeit not on foundations as solid as one might wish, upon the premise that the information in issue was held by the BBC partly for purposes of journalism and partly for purposes other than those of journalism (or, for that matter, of art or literature). In a situation in which information is held for such dual and opposite purposes, does the information fall within the designation and thus within the scope of the Act?"
+    ],
+    "title_key": "sugar v british broadcasting corporation and another"
+  },
+  "content": "{\"title\":\"Sugar (Deceased) (Represented by Fiona Paveley) (Appellant) v British Broadcasting Corporation and another (Respondents)\",\"citation\":\"UKSC/2010/0145\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0145\",\"summary\":\"1. Although the British Broadcasting Corporation (“the BBC”) is listed as a public authority in the Freedom of Information Act 2000, the Act, as I will call it, applies to the BBC only to a limited extent.\",\"extracts\":[\"1. Although the British Broadcasting Corporation (“the BBC”) is listed as a public authority in the Freedom of Information Act 2000, the Act, as I will call it, applies to the BBC only to a limited extent. The words of limitation are found in Part VI of Schedule 1 to the Act: they provide that the Act applies only “in respect of information held for purposes other than those of journalism, art or literature”. I will describe these words of limitation as the designation. This appeal requires the court to consider the meaning of the designation. The focus of the debate is on the word “journalism” rather than on the words “art” or “literature”. How widely – or narrowly – should the phrase “purposes other than those of journalism” be construed? The answer of course lies in the narrowness – or width – of the concept of the “purposes ... of journalism” in the context of the Act.\",\"2. But the appeal also presents a more particular conundrum. It proceeds, albeit not on foundations as solid as one might wish, upon the premise that the information in issue was held by the BBC partly for purposes of journalism and partly for purposes other than those of journalism (or, for that matter, of art or literature). In a situation in which information is held for such dual and opposite purposes, does the information fall within the designation and thus within the scope of the Act?\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"sugar v british broadcasting corporation and another\"}"
+}

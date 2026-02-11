@@ -1,0 +1,15 @@
+{
+  "id": "5e92606b-7af1-4cbc-90d3-883004c218f9",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#24055",
+  "created_at": "2025-12-25T14:21:54.823Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2011/3078/contents/made",
+    "type": "uksi",
+    "year": 2011,
+    "number": 3078,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2011,\"number\":3078,\"url\":\"http://www.legislation.gov.uk/uksi/2011/3078/contents/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "5067a769-867b-461b-ab8f-bc3a135f45b9",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Pimlico Plumbers Ltd and another (Appellants) v Smith (Respondent)",
+  "created_at": "2025-12-25T11:49:41.057Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0053",
+    "score": 0,
+    "title": "Pimlico Plumbers Ltd and another (Appellants) v Smith (Respondent)",
+    "summary": "1. Between August 2005 and April 2011 Mr Smith, the respondent, who is by trade a plumbing and heating engineer, did work for Pimlico Plumbers Ltd (“Pimlico”), the first appellant, which conducts a substantial plumbing business in London.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2017/0053",
+    "extracts": [
+      "1. Between August 2005 and April 2011 Mr Smith, the respondent, who is by trade a plumbing and heating engineer, did work for Pimlico Plumbers Ltd (“Pimlico”), the first appellant, which conducts a substantial plumbing business in London. Mr Mullins, the second appellant, owns Pimlico.",
+      "(a) that he had been an “employee” of Pimlico under a contract of service within the meaning of section 230(1) of the Employment Rights Act 1996 (“the Act”) and as such he complained, among other things, that Pimlico had dismissed him unfairly contrary to section 94(1) of it; and/or"
+    ],
+    "title_key": "pimlico plumbers ltd and another v smith"
+  },
+  "content": "{\"title\":\"Pimlico Plumbers Ltd and another (Appellants) v Smith (Respondent)\",\"citation\":\"UKSC/2017/0053\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0053\",\"summary\":\"1. Between August 2005 and April 2011 Mr Smith, the respondent, who is by trade a plumbing and heating engineer, did work for Pimlico Plumbers Ltd (“Pimlico”), the first appellant, which conducts a substantial plumbing business in London.\",\"extracts\":[\"1. Between August 2005 and April 2011 Mr Smith, the respondent, who is by trade a plumbing and heating engineer, did work for Pimlico Plumbers Ltd (“Pimlico”), the first appellant, which conducts a substantial plumbing business in London. Mr Mullins, the second appellant, owns Pimlico.\",\"(a) that he had been an “employee” of Pimlico under a contract of service within the meaning of section 230(1) of the Employment Rights Act 1996 (“the Act”) and as such he complained, among other things, that Pimlico had dismissed him unfairly contrary to section 94(1) of it; and/or\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"pimlico plumbers ltd and another v smith\"}"
+}

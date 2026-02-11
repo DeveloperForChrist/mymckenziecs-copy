@@ -1,0 +1,15 @@
+{
+  "id": "478860ea-a24e-4374-b84d-645ca91a058d",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#29563",
+  "created_at": "2025-12-25T15:01:36.294Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2022/394/made",
+    "type": "uksi",
+    "year": 2022,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2022,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2022/394/made\",\"dataUrl\":null}"
+}

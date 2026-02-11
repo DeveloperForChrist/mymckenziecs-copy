@@ -1,0 +1,21 @@
+{
+  "id": "52c6c4c4-cfda-4d46-89e0-21d645095d2d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of UNISON) (Appellant) v Lord Chancellor (Respondent)",
+  "created_at": "2025-12-25T11:49:13.760Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0233",
+    "score": 2,
+    "title": "R (on the application of UNISON) (Appellant) v Lord Chancellor (Respondent)",
+    "summary": "1. The issue in this appeal is whether fees imposed by the Lord Chancellor in respect of proceedings in employment tribunals (“ETs”) and the employment appeal tribunal (“EAT”) are unlawful because of their effects on access to justice.",
+    "category": "procedure",
+    "citation": "UKSC/2015/0233",
+    "extracts": [
+      "1. The issue in this appeal is whether fees imposed by the Lord Chancellor in respect of proceedings in employment tribunals (“ETs”) and the employment appeal tribunal (“EAT”) are unlawful because of their effects on access to justice.",
+      "2. ETs have jurisdiction to determine numerous employment-related claims, most of which are based on rights created by or under Acts of Parliament, sometimes giving effect to EU law. They are the only forum in which most such claims may be brought. The EAT hears appeals from ETs on points of law. Until the coming into force of the Employment Tribunals and the Employment Appeal Tribunal Fees Order 2013, SI 2013/1893 (“the Fees Order”), a claimant could bring and pursue proceedings in an ET and appeal to the EAT without paying any fee. The Fees Order prescribes various fees, as will be explained."
+    ],
+    "title_key": "r v lord chancellor"
+  },
+  "content": "{\"title\":\"R (on the application of UNISON) (Appellant) v Lord Chancellor (Respondent)\",\"citation\":\"UKSC/2015/0233\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0233\",\"summary\":\"1. The issue in this appeal is whether fees imposed by the Lord Chancellor in respect of proceedings in employment tribunals (“ETs”) and the employment appeal tribunal (“EAT”) are unlawful because of their effects on access to justice.\",\"extracts\":[\"1. The issue in this appeal is whether fees imposed by the Lord Chancellor in respect of proceedings in employment tribunals (“ETs”) and the employment appeal tribunal (“EAT”) are unlawful because of their effects on access to justice.\",\"2. ETs have jurisdiction to determine numerous employment-related claims, most of which are based on rights created by or under Acts of Parliament, sometimes giving effect to EU law. They are the only forum in which most such claims may be brought. The EAT hears appeals from ETs on points of law. Until the coming into force of the Employment Tribunals and the Employment Appeal Tribunal Fees Order 2013, SI 2013/1893 (“the Fees Order”), a claimant could bring and pursue proceedings in an ET and appeal to the EAT without paying any fee. The Fees Order prescribes various fees, as will be explained.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"r v lord chancellor\"}"
+}

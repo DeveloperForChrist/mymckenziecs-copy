@@ -1,0 +1,21 @@
+{
+  "id": "a9d04f90-0ff3-40ce-a86f-38697edd6054",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R v Docherty (Appellant)",
+  "created_at": "2025-12-25T11:48:47.475Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0207",
+    "score": 2,
+    "title": "R v Docherty (Appellant)",
+    "summary": "(a) because the new scheme was less severe than the earlier one, and therefore to apply the earlier was unlawful as contrary to an international principle of “lex mitior”, which is binding on the English court via article 7 of the European Convention on Human Rights (“ECHR”), as explained by the...",
+    "category": "public_law",
+    "citation": "UKSC/2014/0207",
+    "extracts": [
+      "(a) because the new scheme was less severe than the earlier one, and therefore to apply the earlier was unlawful as contrary to an international principle of “lex mitior”, which is binding on the English court via article 7 of the European Convention on Human Rights (“ECHR”), as explained by the Strasbourg court in Scoppola v Italy (No 2) (2010) 51 EHRR 12 (“Scoppola”); or",
+      "(b) because the purpose of LASPO was to remove IPP from the armoury of sentencing, and therefore transitional provisions which preserved it to any extent were outside the authority given by that statute; or"
+    ],
+    "title_key": "r v docherty"
+  },
+  "content": "{\"title\":\"R v Docherty (Appellant)\",\"citation\":\"UKSC/2014/0207\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0207\",\"summary\":\"(a) because the new scheme was less severe than the earlier one, and therefore to apply the earlier was unlawful as contrary to an international principle of “lex mitior”, which is binding on the English court via article 7 of the European Convention on Human Rights (“ECHR”), as explained by the...\",\"extracts\":[\"(a) because the new scheme was less severe than the earlier one, and therefore to apply the earlier was unlawful as contrary to an international principle of “lex mitior”, which is binding on the English court via article 7 of the European Convention on Human Rights (“ECHR”), as explained by the Strasbourg court in Scoppola v Italy (No 2) (2010) 51 EHRR 12 (“Scoppola”); or\",\"(b) because the purpose of LASPO was to remove IPP from the armoury of sentencing, and therefore transitional provisions which preserved it to any extent were outside the authority given by that statute; or\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"r v docherty\"}"
+}

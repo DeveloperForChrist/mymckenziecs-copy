@@ -1,0 +1,21 @@
+{
+  "id": "71c040ae-47b6-4279-ae56-0fcece82bfcc",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Williams and another (Appellants) v London Borough of Hackney (Respondent)",
+  "created_at": "2025-12-25T11:49:40.329Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0037",
+    "score": 0,
+    "title": "Williams and another (Appellants) v London Borough of Hackney (Respondent)",
+    "summary": "(3) Every local authority shall provide accommodation for any child in need within their area who has reached the age of 16 and whose welfare the authority consider is likely to be seriously prejudiced if they do not provide him with accommodation.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2017/0037",
+    "extracts": [
+      "(3) Every local authority shall provide accommodation for any child in need within their area who has reached the age of 16 and whose welfare the authority consider is likely to be seriously prejudiced if they do not provide him with accommodation.",
+      "(4) A local authority may provide accommodation for any child within their area (even though a person who has parental responsibility for him is able to provide him with accommodation) if they consider that to do so would safeguard or promote the child’s welfare."
+    ],
+    "title_key": "williams and another v london borough of hackney"
+  },
+  "content": "{\"title\":\"Williams and another (Appellants) v London Borough of Hackney (Respondent)\",\"citation\":\"UKSC/2017/0037\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0037\",\"summary\":\"(3) Every local authority shall provide accommodation for any child in need within their area who has reached the age of 16 and whose welfare the authority consider is likely to be seriously prejudiced if they do not provide him with accommodation.\",\"extracts\":[\"(3) Every local authority shall provide accommodation for any child in need within their area who has reached the age of 16 and whose welfare the authority consider is likely to be seriously prejudiced if they do not provide him with accommodation.\",\"(4) A local authority may provide accommodation for any child within their area (even though a person who has parental responsibility for him is able to provide him with accommodation) if they consider that to do so would safeguard or promote the child’s welfare.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"williams and another v london borough of hackney\"}"
+}

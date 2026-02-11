@@ -1,0 +1,15 @@
+{
+  "id": "7df7ed04-a333-46d7-a0e5-9821a96c7dbd",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#19365",
+  "created_at": "2025-12-25T13:50:08.226Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1998/2306/contents",
+    "type": "uksi",
+    "year": 1998,
+    "number": 2306,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1998/2306/2018-07-30/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1998,\"number\":2306,\"url\":\"http://www.legislation.gov.uk/uksi/1998/2306/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1998/2306/2018-07-30/data.htm\"}"
+}

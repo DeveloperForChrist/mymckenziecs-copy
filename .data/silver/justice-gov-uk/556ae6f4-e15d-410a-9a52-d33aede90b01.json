@@ -1,0 +1,13 @@
+{
+  "id": "556ae6f4-e15d-410a-9a52-d33aede90b01",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#111",
+  "created_at": "2025-12-25T15:20:33.310Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part-44-general-rules-about-costs/part-44-general-rules-about-costs2",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part_44_general_rules_abou_4d67f3ec60.html",
+    "fetchedAt": "2025-12-22T23:49:39.860Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part-44-general-rules-about-costs/part-44-general-rules-about-costs2\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part_44_general_rules_abou_4d67f3ec60.html\",\"fetchedAt\":\"2025-12-22T23:49:39.860Z\"}"
+}

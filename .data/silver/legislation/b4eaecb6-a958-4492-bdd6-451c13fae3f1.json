@@ -1,0 +1,15 @@
+{
+  "id": "b4eaecb6-a958-4492-bdd6-451c13fae3f1",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#29319",
+  "created_at": "2025-12-25T14:59:35.049Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2022/641/made",
+    "type": "uksi",
+    "year": 2022,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2022,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2022/641/made\",\"dataUrl\":null}"
+}

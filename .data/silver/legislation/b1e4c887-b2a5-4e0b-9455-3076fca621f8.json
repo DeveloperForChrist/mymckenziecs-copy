@@ -1,0 +1,15 @@
+{
+  "id": "b1e4c887-b2a5-4e0b-9455-3076fca621f8",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#2755",
+  "created_at": "2025-12-25T12:08:22.129Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo6/14-15/52/contents/enacted",
+    "type": "ukpga",
+    "year": 1951,
+    "number": 52,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1951,\"number\":52,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo6/14-15/52/contents/enacted\",\"dataUrl\":null}"
+}

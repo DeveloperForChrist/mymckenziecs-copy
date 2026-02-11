@@ -1,0 +1,15 @@
+{
+  "id": "ae253295-c7cb-41be-b9e2-96c131f65b2b",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4995",
+  "created_at": "2025-12-25T12:22:12.998Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1985/28/contents/enacted",
+    "type": "ukpga",
+    "year": 1985,
+    "number": 28,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1985,\"number\":28,\"url\":\"http://www.legislation.gov.uk/ukpga/1985/28/contents/enacted\",\"dataUrl\":null}"
+}

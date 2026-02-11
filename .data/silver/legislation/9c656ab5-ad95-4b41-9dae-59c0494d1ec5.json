@@ -1,0 +1,15 @@
+{
+  "id": "9c656ab5-ad95-4b41-9dae-59c0494d1ec5",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8438",
+  "created_at": "2025-12-25T12:42:47.638Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1967/1965/contents/made",
+    "type": "uksi",
+    "year": 1967,
+    "number": 1965,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1967,\"number\":1965,\"url\":\"http://www.legislation.gov.uk/uksi/1967/1965/contents/made\",\"dataUrl\":null}"
+}

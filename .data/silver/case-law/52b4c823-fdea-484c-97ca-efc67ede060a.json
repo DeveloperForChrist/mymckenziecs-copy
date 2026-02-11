@@ -1,0 +1,21 @@
+{
+  "id": "52b4c823-fdea-484c-97ca-efc67ede060a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Braganza (Appellant) v BP Shipping Limited and another (Respondents)",
+  "created_at": "2025-12-25T11:48:12.578Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0099",
+    "score": 1,
+    "title": "Braganza (Appellant) v BP Shipping Limited and another (Respondents)",
+    "summary": "1. Between 01.00 and 07.00 on 11 May 2009, Mr Renford Braganza, Chief Engineer on BP’s oil tanker the British Unity, then in the mid-North Atlantic, disappeared.",
+    "category": "contract_consumer",
+    "citation": "UKSC/2013/0099",
+    "extracts": [
+      "1. Between 01.00 and 07.00 on 11 May 2009, Mr Renford Braganza, Chief Engineer on BP’s oil tanker the British Unity, then in the mid-North Atlantic, disappeared. No-one knows for certain what happened to him. But his employers formed the opinion that the most likely explanation for his disappearance was that he had committed suicide by throwing himself overboard. This would mean that his widow was not entitled to the death benefits provided for in his contract of employment. Clause 7.6.3 of that contract provided relevantly as follows:",
+      "“For the avoidance of doubt compensation for death, accidental injury or illness shall not be payable if, in the opinion of the Company or its insurers, the death, accidental injury or illness resulted from amongst other things, the Officer’s wilful act, default or misconduct whether at sea or ashore ….” (emphasis supplied)"
+    ],
+    "title_key": "braganza v bp shipping limited and another"
+  },
+  "content": "{\"title\":\"Braganza (Appellant) v BP Shipping Limited and another (Respondents)\",\"citation\":\"UKSC/2013/0099\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0099\",\"summary\":\"1. Between 01.00 and 07.00 on 11 May 2009, Mr Renford Braganza, Chief Engineer on BP’s oil tanker the British Unity, then in the mid-North Atlantic, disappeared.\",\"extracts\":[\"1. Between 01.00 and 07.00 on 11 May 2009, Mr Renford Braganza, Chief Engineer on BP’s oil tanker the British Unity, then in the mid-North Atlantic, disappeared. No-one knows for certain what happened to him. But his employers formed the opinion that the most likely explanation for his disappearance was that he had committed suicide by throwing himself overboard. This would mean that his widow was not entitled to the death benefits provided for in his contract of employment. Clause 7.6.3 of that contract provided relevantly as follows:\",\"“For the avoidance of doubt compensation for death, accidental injury or illness shall not be payable if, in the opinion of the Company or its insurers, the death, accidental injury or illness resulted from amongst other things, the Officer’s wilful act, default or misconduct whether at sea or ashore ….” (emphasis supplied)\"],\"category\":\"contract_consumer\",\"score\":1,\"title_key\":\"braganza v bp shipping limited and another\"}"
+}

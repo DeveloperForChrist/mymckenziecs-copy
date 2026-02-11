@@ -1,0 +1,13 @@
+{
+  "id": "eebba77b-ed4b-4e5d-99a5-3ba8d74fd12b",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#101",
+  "created_at": "2025-12-25T15:20:28.429Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part40/pd_part40b",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part40_pd_part40b_14a67f0825.html",
+    "fetchedAt": "2025-12-22T23:49:36.059Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part40/pd_part40b\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part40_pd_part40b_14a67f0825.html\",\"fetchedAt\":\"2025-12-22T23:49:36.059Z\"}"
+}

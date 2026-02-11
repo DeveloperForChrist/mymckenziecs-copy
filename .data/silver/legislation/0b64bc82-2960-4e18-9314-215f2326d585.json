@@ -1,0 +1,15 @@
+{
+  "id": "0b64bc82-2960-4e18-9314-215f2326d585",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#11119",
+  "created_at": "2025-12-25T12:58:58.854Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1983/1605/contents/made",
+    "type": "uksi",
+    "year": 1983,
+    "number": 1605,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1983,\"number\":1605,\"url\":\"http://www.legislation.gov.uk/uksi/1983/1605/contents/made\",\"dataUrl\":null}"
+}

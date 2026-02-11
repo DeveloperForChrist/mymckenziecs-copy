@@ -1,0 +1,21 @@
+{
+  "id": "46dc1edb-4a72-45af-9687-9c8300b28849",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of C (Children)",
+  "created_at": "2025-12-25T11:49:45.943Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0135",
+    "score": 0,
+    "title": "In the matter of C (Children)",
+    "summary": "THE COURT ORDERED that no one shall publish or reveal the name or address of the children who are the subject of these proceedings or publish or reveal any information which would be likely to lead to the identification of the children or any member of their family in connection with these procee...",
+    "category": "evidence_misc",
+    "citation": "UKSC/2017/0135",
+    "extracts": [
+      "THE COURT ORDERED that no one shall publish or reveal the name or address of the children who are the subject of these proceedings or publish or reveal any information which would be likely to lead to the identification of the children or any member of their family in connection with these proceedings.",
+      "(2) whether and when a wrongful retention of a child may occur if the travelling parent originally left the home State temporarily with the consent of the left-behind parent or under court permission, and the agreed or stipulated time for return has not yet arrived."
+    ],
+    "title_key": "in the matter of c"
+  },
+  "content": "{\"title\":\"In the matter of C (Children)\",\"citation\":\"UKSC/2017/0135\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0135\",\"summary\":\"THE COURT ORDERED that no one shall publish or reveal the name or address of the children who are the subject of these proceedings or publish or reveal any information which would be likely to lead to the identification of the children or any member of their family in connection with these procee...\",\"extracts\":[\"THE COURT ORDERED that no one shall publish or reveal the name or address of the children who are the subject of these proceedings or publish or reveal any information which would be likely to lead to the identification of the children or any member of their family in connection with these proceedings.\",\"(2) whether and when a wrongful retention of a child may occur if the travelling parent originally left the home State temporarily with the consent of the left-behind parent or under court permission, and the agreed or stipulated time for return has not yet arrived.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"in the matter of c\"}"
+}

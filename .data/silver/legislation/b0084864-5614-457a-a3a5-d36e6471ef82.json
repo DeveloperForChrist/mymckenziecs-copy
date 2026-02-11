@@ -1,0 +1,15 @@
+{
+  "id": "b0084864-5614-457a-a3a5-d36e6471ef82",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#17949",
+  "created_at": "2025-12-25T13:41:13.171Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1997/1180/contents",
+    "type": "uksi",
+    "year": 1997,
+    "number": 1180,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/1997/1180/2022-02-21/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1997,\"number\":1180,\"url\":\"http://www.legislation.gov.uk/nisi/1997/1180/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/1997/1180/2022-02-21/data.htm\"}"
+}

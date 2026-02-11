@@ -1,0 +1,15 @@
+{
+  "id": "a7a12681-4c1d-4652-93a7-ab78f2aab093",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#12288",
+  "created_at": "2025-12-25T13:06:08.195Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1986/1610/contents/made",
+    "type": "uksi",
+    "year": 1986,
+    "number": 1610,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1986,\"number\":1610,\"url\":\"http://www.legislation.gov.uk/uksi/1986/1610/contents/made\",\"dataUrl\":null}"
+}

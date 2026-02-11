@@ -1,0 +1,15 @@
+{
+  "id": "fb932197-b017-479f-8992-500039295aaf",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#2995",
+  "created_at": "2025-12-25T12:09:58.000Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Eliz2/4-5/16/contents/enacted",
+    "type": "ukpga",
+    "year": 1955,
+    "number": 16,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1955,\"number\":16,\"url\":\"http://www.legislation.gov.uk/ukpga/Eliz2/4-5/16/contents/enacted\",\"dataUrl\":null}"
+}

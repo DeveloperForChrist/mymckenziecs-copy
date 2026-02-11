@@ -1,0 +1,21 @@
+{
+  "id": "e94ea454-66d1-4669-acaa-4135b7cf49d2",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Lipton and another (Respondents) v BA Cityflyer Ltd (Appellant)",
+  "created_at": "2025-12-25T11:50:37.976Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2021-0098",
+    "score": 1,
+    "title": "Lipton and another (Respondents) v BA Cityflyer Ltd (Appellant)",
+    "summary": "Principle issue: Is a pilot unexpectedly falling ill while off-duty an \"extraordinary circumstance which could not have been avoided even if all reasonable measures had been taken\" within the meaning of EC Regulation 261/2004 (the \"Regulation\"), which provides for air carriers to pay compensation to passengers of cancelled flights?",
+    "category": "remedies",
+    "citation": "UKSC/2021/0098",
+    "extracts": [
+      "1. Mr and Mrs Lipton were booked onto a flight operated by the appellant (“Cityflyer”) scheduled to depart from Milan Linate Airport at about 5 pm on 30 January 2018. They were supposed to arrive at London City Airport just after 6 pm local time. The flight was cancelled because the pilot reported that he was unwell shortly before the flight and it was not possible to find a replacement in time. The Liptons were rebooked onto another flight and arrived at London City Airport at about 8:45 pm that evening, just over 2.5 hours later than they expected. The Liptons put in a claim for compensation for €250 (about £220) but Cityflyer has refused to pay.",
+      "2. From this all too familiar tale of frustration and annoyance arise two important legal issues which have made their way up through the several tiers of the court system to occupy a full day of argument before this court."
+    ],
+    "title_key": "lipton and another v ba cityflyer ltd"
+  },
+  "content": "{\"title\":\"Lipton and another (Respondents) v BA Cityflyer Ltd (Appellant)\",\"citation\":\"UKSC/2021/0098\",\"url\":\"https://supremecourt.uk/cases/uksc-2021-0098\",\"summary\":\"Principle issue: Is a pilot unexpectedly falling ill while off-duty an \\\\\"extraordinary circumstance which could not have been avoided even if all reasonable measures had been taken\\\\\" within the meaning of EC Regulation 261/2004 (the \\\\\"Regulation\\\\\"), which provides for air carriers to pay compensation to passengers of cancelled flights?\",\"extracts\":[\"1. Mr and Mrs Lipton were booked onto a flight operated by the appellant (“Cityflyer”) scheduled to depart from Milan Linate Airport at about 5 pm on 30 January 2018. They were supposed to arrive at London City Airport just after 6 pm local time. The flight was cancelled because the pilot reported that he was unwell shortly before the flight and it was not possible to find a replacement in time. The Liptons were rebooked onto another flight and arrived at London City Airport at about 8:45 pm that evening, just over 2.5 hours later than they expected. The Liptons put in a claim for compensation for €250 (about £220) but Cityflyer has refused to pay.\",\"2. From this all too familiar tale of frustration and annoyance arise two important legal issues which have made their way up through the several tiers of the court system to occupy a full day of argument before this court.\"],\"category\":\"remedies\",\"score\":1,\"title_key\":\"lipton and another v ba cityflyer ltd\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "b0e9fc08-543b-494e-968b-5991fa8d374f",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#21175",
+  "created_at": "2025-12-25T14:01:31.470Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2003/2379/contents/made",
+    "type": "uksi",
+    "year": 2003,
+    "number": 2379,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2003/2379/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2003,\"number\":2379,\"url\":\"http://www.legislation.gov.uk/uksi/2003/2379/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2003/2379/made/data.htm\"}"
+}

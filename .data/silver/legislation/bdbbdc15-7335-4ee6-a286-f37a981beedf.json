@@ -1,0 +1,15 @@
+{
+  "id": "bdbbdc15-7335-4ee6-a286-f37a981beedf",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#26070",
+  "created_at": "2025-12-25T14:36:10.968Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2018/787/2024-03-14/data.xht",
+    "type": "uksi",
+    "year": 2018,
+    "number": null,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2018/787/2024-03-14/data.akn"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2018,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2018/787/2024-03-14/data.xht\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2018/787/2024-03-14/data.akn\"}"
+}

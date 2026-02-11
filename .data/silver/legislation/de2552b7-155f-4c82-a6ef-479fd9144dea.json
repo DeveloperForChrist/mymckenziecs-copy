@@ -1,0 +1,15 @@
+{
+  "id": "de2552b7-155f-4c82-a6ef-479fd9144dea",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#24204",
+  "created_at": "2025-12-25T14:22:57.581Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2014/3544/contents/made",
+    "type": "uksi",
+    "year": 2014,
+    "number": 3544,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2014,\"number\":3544,\"url\":\"http://www.legislation.gov.uk/uksi/2014/3544/contents/made\",\"dataUrl\":null}"
+}

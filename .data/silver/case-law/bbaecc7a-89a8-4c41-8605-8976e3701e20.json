@@ -1,0 +1,21 @@
+{
+  "id": "bbaecc7a-89a8-4c41-8605-8976e3701e20",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "RTI Ltd (Respondent) v MUR Shipping BV (Appellant)",
+  "created_at": "2025-12-25T11:50:53.250Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2022-0172",
+    "score": 1,
+    "title": "RTI Ltd (Respondent) v MUR Shipping BV (Appellant)",
+    "summary": "Principle issue: Where a contractual force majeure clause contains a proviso requiring the party which is affected by force majeure to exercise reasonable endeavours to overcome it, can the proviso require the affected party to agree to accept a non-contractual performance?",
+    "category": "contract_consumer",
+    "citation": "UKSC/2022/0172",
+    "extracts": [
+      "1. Force majeure clauses relieve a party from its obligation to perform under a contract on the occurrence of a specified event or state of affairs. Such clauses commonly provide, expressly or impliedly, that the clause cannot be relied upon if the effects of what would otherwise be a force majeure event or state of affairs could be avoided by the exercise of reasonable endeavours by the party affected.",
+      "2. The central issue which arises on this appeal is whether the exercise of reasonable endeavours may require the party affected, if it is to be entitled to rely on the clause, to accept an offer of non-contractual performance from the other contracting party in order to overcome the effects of the event or state of affairs. The majority of the Court of Appeal (Males and Newey LJJ) [2022] EWCA Civ 1406, [2023] Bus LR 355,[2023] 1 Lloyd’s Rep 463, held that it may do so in certain circumstances and that it did so on the facts found by the arbitrators in this case. Jacobs J in the High Court [2022] EWHC 467 (Comm), [2022] Bus LR 473, [2022] 2 Lloyd’s Rep 297, and Arnold LJ, dissenting in the Court of Appeal, held that it could not do so, absent clear wording to that effect. So, according to the majority of the Court of Appeal (overturning Jacobs J, Arnold LJ dissenting), the force majeure clause could not be relied on by the affected party in this case. That party now appeals to the Supreme Court."
+    ],
+    "title_key": "rti ltd v mur shipping bv"
+  },
+  "content": "{\"title\":\"RTI Ltd (Respondent) v MUR Shipping BV (Appellant)\",\"citation\":\"UKSC/2022/0172\",\"url\":\"https://supremecourt.uk/cases/uksc-2022-0172\",\"summary\":\"Principle issue: Where a contractual force majeure clause contains a proviso requiring the party which is affected by force majeure to exercise reasonable endeavours to overcome it, can the proviso require the affected party to agree to accept a non-contractual performance?\",\"extracts\":[\"1. Force majeure clauses relieve a party from its obligation to perform under a contract on the occurrence of a specified event or state of affairs. Such clauses commonly provide, expressly or impliedly, that the clause cannot be relied upon if the effects of what would otherwise be a force majeure event or state of affairs could be avoided by the exercise of reasonable endeavours by the party affected.\",\"2. The central issue which arises on this appeal is whether the exercise of reasonable endeavours may require the party affected, if it is to be entitled to rely on the clause, to accept an offer of non-contractual performance from the other contracting party in order to overcome the effects of the event or state of affairs. The majority of the Court of Appeal (Males and Newey LJJ) [2022] EWCA Civ 1406, [2023] Bus LR 355,[2023] 1 Lloyd’s Rep 463, held that it may do so in certain circumstances and that it did so on the facts found by the arbitrators in this case. Jacobs J in the High Court [2022] EWHC 467 (Comm), [2022] Bus LR 473, [2022] 2 Lloyd’s Rep 297, and Arnold LJ, dissenting in the Court of Appeal, held that it could not do so, absent clear wording to that effect. So, according to the majority of the Court of Appeal (overturning Jacobs J, Arnold LJ dissenting), the force majeure clause could not be relied on by the affected party in this case. That party now appeals to the Supreme Court.\"],\"category\":\"contract_consumer\",\"score\":1,\"title_key\":\"rti ltd v mur shipping bv\"}"
+}

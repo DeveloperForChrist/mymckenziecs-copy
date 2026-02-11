@@ -1,0 +1,15 @@
+{
+  "id": "acec5b23-b609-4413-a488-26b6d939c994",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#28058",
+  "created_at": "2025-12-25T14:50:09.314Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2020/490/made/data.xht",
+    "type": "uksi",
+    "year": 2020,
+    "number": null,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2020/490/made/data.akn"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2020,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2020/490/made/data.xht\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2020/490/made/data.akn\"}"
+}

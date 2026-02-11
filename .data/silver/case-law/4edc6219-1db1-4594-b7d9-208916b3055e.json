@@ -1,0 +1,21 @@
+{
+  "id": "4edc6219-1db1-4594-b7d9-208916b3055e",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R v Hilton (Respondent) (Northern Ireland)",
+  "created_at": "2025-12-25T11:49:57.090Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0075",
+    "score": 0,
+    "title": "R v Hilton (Respondent) (Northern Ireland)",
+    "summary": "Principle issue: Where property is held by the defendant and another person, in what circumstances is the court making a confiscation order required by section 160A of the Proceeds of Crime Act 2002, in determining the available amount, to give that other person a reasonable opportunity to make representations to it at the time the order is made?\nIf section 160A does so require, does a failure to give that other such an opportunity render the confiscation order invalid?",
+    "category": "evidence_misc",
+    "citation": "UKSC/2018/0075",
+    "extracts": [
+      "1. On 22 September 2015, Bernadette Hilton was convicted at Belfast Magistrates’ court on her plea of guilty of three offences contrary to section 105A of the Social Security Administration (Northern Ireland) Act 1992. One of the offences related to her failure to notify the Social Security Agency of a change in her circumstance which would have affected her entitlement to claim Income Support. The other two offences involved the making of false statements in order to obtain Income Support.",
+      "2. Following her conviction, Ms Hilton was committed to the Crown Court and that court was asked to make a confiscation order under section 156 of the Proceeds of Crime Act 2002. This application was heard by His Honour Judge Miller QC on 20 October 2016. It had been calculated that Ms Hilton had wrongly obtained a total sum of £16,517.59 as a result of her crimes. The judge assessed the benefit that she had gained to be that sum."
+    ],
+    "title_key": "r v hilton"
+  },
+  "content": "{\"title\":\"R v Hilton (Respondent) (Northern Ireland)\",\"citation\":\"UKSC/2018/0075\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0075\",\"summary\":\"Principle issue: Where property is held by the defendant and another person, in what circumstances is the court making a confiscation order required by section 160A of the Proceeds of Crime Act 2002, in determining the available amount, to give that other person a reasonable opportunity to make representations to it at the time the order is made?\\\\nIf section 160A does so require, does a failure to give that other such an opportunity render the confiscation order invalid?\",\"extracts\":[\"1. On 22 September 2015, Bernadette Hilton was convicted at Belfast Magistrates’ court on her plea of guilty of three offences contrary to section 105A of the Social Security Administration (Northern Ireland) Act 1992. One of the offences related to her failure to notify the Social Security Agency of a change in her circumstance which would have affected her entitlement to claim Income Support. The other two offences involved the making of false statements in order to obtain Income Support.\",\"2. Following her conviction, Ms Hilton was committed to the Crown Court and that court was asked to make a confiscation order under section 156 of the Proceeds of Crime Act 2002. This application was heard by His Honour Judge Miller QC on 20 October 2016. It had been calculated that Ms Hilton had wrongly obtained a total sum of £16,517.59 as a result of her crimes. The judge assessed the benefit that she had gained to be that sum.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"r v hilton\"}"
+}

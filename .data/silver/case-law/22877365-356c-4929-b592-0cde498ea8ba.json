@@ -1,0 +1,21 @@
+{
+  "id": "22877365-356c-4929-b592-0cde498ea8ba",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Rahmatullah (Respondent) v Ministry of Defence and another (Appellants)",
+  "created_at": "2025-12-25T11:48:54.333Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0002",
+    "score": 1,
+    "title": "Rahmatullah (Respondent) v Ministry of Defence and another (Appellants)",
+    "summary": "1. This is another round in the series of important points of law which arise as preliminary issues in actions brought by people who claim to have been wrongfully detained or mistreated by British or American troops in the course of the conflicts in Iraq and Afghanistan.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2015/0002",
+    "extracts": [
+      "1. This is another round in the series of important points of law which arise as preliminary issues in actions brought by people who claim to have been wrongfully detained or mistreated by British or American troops in the course of the conflicts in Iraq and Afghanistan. The litigation is being expertly managed by Leggatt J, but so far there have been no trials and so the points of law are being decided mainly on the basis of assumed facts. To summarise the issues which have so far been heard in this court:",
+      "(2) A large number of Iraqi citizens have made claims similar to that of Mr Rahmatullah in respect of their detention and treatment by UK troops and transfer to the US authorities at various times during the UK’s military presence in Iraq. In relation to many of these claims, the UK Government raised the defence that they were statute-barred by the Iraqi law of limitation. Judgment on that issue was given on 12 May 2016: see Iraqi Civilians v Ministry of Defence [2016] UKSC 25; [2016] 1 WLR 2001. The UK Government has also raised the doctrine of Crown act of state. Three of the"
+    ],
+    "title_key": "rahmatullah v ministry of defence and another"
+  },
+  "content": "{\"title\":\"Rahmatullah (Respondent) v Ministry of Defence and another (Appellants)\",\"citation\":\"UKSC/2015/0002\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0002\",\"summary\":\"1. This is another round in the series of important points of law which arise as preliminary issues in actions brought by people who claim to have been wrongfully detained or mistreated by British or American troops in the course of the conflicts in Iraq and Afghanistan.\",\"extracts\":[\"1. This is another round in the series of important points of law which arise as preliminary issues in actions brought by people who claim to have been wrongfully detained or mistreated by British or American troops in the course of the conflicts in Iraq and Afghanistan. The litigation is being expertly managed by Leggatt J, but so far there have been no trials and so the points of law are being decided mainly on the basis of assumed facts. To summarise the issues which have so far been heard in this court:\",\"(2) A large number of Iraqi citizens have made claims similar to that of Mr Rahmatullah in respect of their detention and treatment by UK troops and transfer to the US authorities at various times during the UK’s military presence in Iraq. In relation to many of these claims, the UK Government raised the defence that they were statute-barred by the Iraqi law of limitation. Judgment on that issue was given on 12 May 2016: see Iraqi Civilians v Ministry of Defence [2016] UKSC 25; [2016] 1 WLR 2001. The UK Government has also raised the doctrine of Crown act of state. Three of the\"],\"category\":\"evidence_misc\",\"score\":1,\"title_key\":\"rahmatullah v ministry of defence and another\"}"
+}

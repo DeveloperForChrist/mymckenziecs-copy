@@ -1,0 +1,15 @@
+{
+  "id": "2ec05920-d093-454d-8feb-813ed840427a",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#163",
+  "created_at": "2025-12-25T11:52:06.618Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Edw7/4/33/contents/enacted",
+    "type": "ukpga",
+    "year": 1904,
+    "number": 33,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1904,\"number\":33,\"url\":\"http://www.legislation.gov.uk/ukpga/Edw7/4/33/contents/enacted\",\"dataUrl\":null}"
+}

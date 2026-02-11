@@ -1,0 +1,180 @@
+.settingsContainer {
+  display: flex;
+  min-height: calc(100vh - 120px);
+  background: transparent;
+  gap: 18px; /* space between sidebar and main content */
+  padding: 18px 0 36px;
+  align-items: flex-start;
+}
+.mainContent {
+  flex: 1;
+  padding: 28px 28px 34px 28px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border-radius: 24px;
+  margin: 0;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(18px);
+  display: flex;
+  flex-direction: column;
+}
+.topActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+.topActionBtn {
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+.heading {
+  font-size: 1.7rem;
+  font-weight: 750;
+  margin-bottom: 10px;
+  color: rgba(248, 250, 252, 0.98);
+  letter-spacing: -0.02em;
+}
+.tabs {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.tab, .tabActive {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  padding: 8px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: rgba(226, 232, 240, 0.92);
+  font-weight: 500;
+  transition: background 0.2s;
+}
+.tabActive {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.96);
+}
+.tab:hover, .tab:focus {
+  background: rgba(255, 255, 255, 0.1);
+}
+.profileSection {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.formRow {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.formRow label {
+  min-width: 120px;
+  font-weight: 500;
+  color: rgba(226, 232, 240, 0.9);
+}
+.formRow input, .formRow textarea {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: rgba(15, 23, 42, 0.35);
+  color: rgba(248, 250, 252, 0.96);
+}
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 16px;
+}
+.updateBtn {
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-left: 16px;
+}
+.updateBtn:hover {
+  background: #5b21b6;
+}
+
+/* New extended styles for sections */
+.sectionWrapper { display: flex; flex-direction: column; gap: 40px; }
+.settingsSection { background:linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.04) 100%); border:1px solid rgba(255, 255, 255, 0.12); border-radius:18px; padding:26px; box-shadow:0 18px 60px rgba(0,0,0,0.26); backdrop-filter:blur(18px); }
+.sectionHeading { font-size:1.1rem; font-weight:700; margin-bottom:18px; color:rgba(248, 250, 252, 0.98); letter-spacing:-0.01em; }
+.desc { margin-top:0; margin-bottom:20px; color:rgba(226, 232, 240, 0.88); font-size:0.95rem; }
+
+/* Grid and form layout */
+.formGrid { display:flex; flex-direction:column; gap:28px; }
+.gridRow2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:24px; }
+.caseProfileLayout { display:grid; grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr); gap:24px; }
+.caseProfileCard { border:1px solid rgba(255, 255, 255, 0.12); border-radius:18px; padding:24px; background:rgba(255, 255, 255, 0.05); box-shadow:0 18px 60px rgba(0,0,0,0.22); backdrop-filter:blur(18px); }
+.caseProfileRow { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:24px; }
+.caseProfileActions { display:flex; justify-content:flex-end; }
+.caseProfileHint { font-size:0.8rem; color:rgba(226, 232, 240, 0.72); margin:6px 0 0; }
+.caseProfileSidebar { display:flex; flex-direction:column; gap:18px; }
+.caseProfileSidebarCard { border:1px solid rgba(255, 255, 255, 0.12); border-radius:18px; padding:18px; background:rgba(15, 23, 42, 0.28); box-shadow:0 18px 60px rgba(0,0,0,0.2); backdrop-filter:blur(18px); }
+.caseProfileSidebarTitle { font-size:0.85rem; font-weight:800; color:rgba(248, 250, 252, 0.98); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 12px; }
+.caseProfilePillRow { display:flex; flex-wrap:wrap; gap:8px; }
+.caseProfilePill { background:rgba(167, 139, 250, 0.2); color:rgba(237, 233, 254, 0.98); border:1px solid rgba(255, 255, 255, 0.18); border-radius:999px; padding:6px 12px; font-size:0.72rem; font-weight:800; letter-spacing:0.04em; text-transform:uppercase; }
+.caseProfileList { margin:0; padding-left:18px; color:rgba(226, 232, 240, 0.85); font-size:0.85rem; display:flex; flex-direction:column; gap:8px; }
+.formGroup, .formGroupFull { display:flex; flex-direction:column; gap:8px; }
+.formLabel { font-weight:600; font-size:0.9rem; color:rgba(226, 232, 240, 0.9); }
+.textInput, .selectInput, .textArea { width:100%; padding:12px 14px; border:1px solid rgba(255, 255, 255, 0.14); border-radius:12px; font-size:0.95rem; background:rgba(15, 23, 42, 0.35); color:rgba(248, 250, 252, 0.96); }
+.textArea { resize:vertical; }
+.fileInput { padding:8px; }
+.helpText { font-size:0.75rem; color:rgba(226, 232, 240, 0.72); line-height:1.2; }
+
+/* Password */
+.passwordContainer { position:relative; display:flex; align-items:center; }
+.passwordContainer .textInput { padding-right:70px; }
+.togglePassword { position:absolute; right:8px; top:50%; transform:translateY(-50%); background:rgba(255, 255, 255, 0.08); border:1px solid rgba(255, 255, 255, 0.14); color:rgba(248, 250, 252, 0.92); padding:6px 12px; font-size:0.7rem; border-radius:10px; cursor:pointer; }
+.togglePassword:hover { background:rgba(255, 255, 255, 0.12); }
+
+/* Buttons */
+.primaryBtn { background:#7c3aed; color:#fff; border:none; padding:12px 20px; font-weight:600; font-size:0.9rem; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+.primaryBtn:hover { background:#6631d4; }
+.dangerBtn { background:#dc2626; color:#fff; border:none; padding:12px 20px; font-weight:600; font-size:0.9rem; border-radius:10px; cursor:pointer; }
+.dangerBtn:hover { background:#b91c1c; }
+.dangerOutlineBtn { background:transparent; color:#dc2626; border:1px solid #dc2626; padding:10px 18px; font-weight:600; font-size:0.85rem; border-radius:8px; cursor:pointer; }
+.dangerOutlineBtn:hover { background:#dc2626; color:#fff; }
+.actionsRow, .bottomActions { display:flex; gap:16px; flex-wrap:wrap; }
+.bottomActions { margin-top:8px; }
+
+/* Plan / billing */
+.planInfo { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:24px; }
+.planName { font-size:1.1rem; font-weight:600; margin:0 0 4px; }
+.badgeActive { background:rgba(167, 139, 250, 0.18); color:rgba(237, 233, 254, 0.98); padding:4px 10px; font-size:0.65rem; font-weight:700; border-radius:999px; margin-left:8px; vertical-align:middle; border:1px solid rgba(255, 255, 255, 0.14); }
+.planPrice { font-weight:600; color:rgba(248, 250, 252, 0.96); margin:4px 0; }
+.planRenewal { font-size:0.75rem; color:#6b7280; }
+.planActions { display:flex; align-items:center; }
+.planRenewal { font-size:0.75rem; color:rgba(226, 232, 240, 0.72); }
+.planCard { border:1px solid rgba(255, 255, 255, 0.12); border-radius:20px; padding:24px; background:rgba(255, 255, 255, 0.06); box-shadow:0 18px 60px rgba(0,0,0,0.26); display:flex; flex-direction:column; gap:18px; }
+.planCardTop { display:flex; justify-content:space-between; gap:24px; flex-wrap:wrap; }
+.planStatusBadge { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:999px; background:rgba(167, 139, 250, 0.18); color:rgba(237, 233, 254, 0.98); font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px; border:1px solid rgba(255, 255, 255, 0.14); }
+.planTitle { font-size:1.25rem; font-weight:750; margin:0; color:rgba(248, 250, 252, 0.98); }
+.planPriceLarge { font-size:1.65rem; font-weight:800; color:rgba(248, 250, 252, 0.98); margin:6px 0; }
+.planHint { font-size:0.85rem; color:rgba(226, 232, 240, 0.72); margin:0; }
+.planMeta { display:flex; gap:32px; flex-wrap:wrap; align-items:flex-start; }
+.planMetaLabel { text-transform:uppercase; font-size:0.68rem; letter-spacing:0.1em; color:rgba(226, 232, 240, 0.6); margin:0 0 4px; }
+.planMetaValue { font-size:1rem; font-weight:700; color:rgba(248, 250, 252, 0.96); margin:0; }
+.planCardActions { display:flex; flex-direction:column; gap:12px; }
+.planButtons { display:flex; gap:12px; flex-wrap:wrap; }
+.paymentCard { border:1px dashed rgba(255, 255, 255, 0.2); border-radius:16px; padding:20px; background:rgba(15, 23, 42, 0.25); margin-bottom:16px; }
+.cardInfo { display:flex; align-items:center; gap:16px; }
+
+@media (max-width: 640px) {
+  .caseProfileLayout { grid-template-columns: 1fr; }
+}
+
+/* Contact */
+.contactInfo { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); margin-top:8px; }
+.contactItem { background:rgba(15, 23, 42, 0.25); border:1px solid rgba(255, 255, 255, 0.12); border-radius:12px; padding:16px; color:rgba(248, 250, 252, 0.94); }
+
+/* Sidebar adjustments */
+.sidebarHeading { font-size:1.1rem; font-weight:700; color:#fff; margin:0 0 24px; }
+.menuItemActive { background:rgba(255,255,255,0.18); }

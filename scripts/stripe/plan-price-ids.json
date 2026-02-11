@@ -1,0 +1,17 @@
+[
+  {
+    "slug": "standard",
+    "productId": "prod_TxPLFKp6lRZDYO",
+    "priceId": "price_1SzUXCF1Ztd0SoyJWvgmgPMV"
+  },
+  {
+    "slug": "essential",
+    "productId": "prod_TxPLhqOI5iQRPT",
+    "priceId": "price_1SzUXDF1Ztd0SoyJlHd0r3XI"
+  },
+  {
+    "slug": "plus",
+    "productId": "prod_TxPLQqML22jB4z",
+    "priceId": "price_1SzUXFF1Ztd0SoyJAsugL3W5"
+  }
+]

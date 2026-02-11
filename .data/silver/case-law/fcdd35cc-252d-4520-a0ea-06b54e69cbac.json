@@ -1,0 +1,18 @@
+{
+  "id": "fcdd35cc-252d-4520-a0ea-06b54e69cbac",
+  "source": "case-law",
+  "path": "data/bronze/case-law/curated.json",
+  "title": "Wood (Respondent) v Capita Insurance Services Limited (Appellant)",
+  "created_at": "2025-12-25T11:46:11.864Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0212",
+    "title": "Wood (Respondent) v Capita Insurance Services Limited (Appellant)",
+    "summary": "1. This appeal raises a question of contractual interpretation.",
+    "citation": "UKSC/2015/0212",
+    "extracts": [
+      "1. This appeal raises a question of contractual interpretation. It concerns an indemnity clause in an agreement dated 13 April 2010 (“the SPA”) for the sale and purchase of the entire issued share capital of a company, Sureterm Direct Limited (“the Company”), which carries on business as a specialist insurance broker, primarily offering motor insurance for classic cars.",
+      "2. The sellers of the Company were the respondent, Mr Andrew Wood (“Mr Wood”), who owned 94% of its share capital, and Mr Christopher Kightley and Mr Howard Collinge, who owned 1% and 5% of its share capital respectively. Each was a director of the Company and Mr Wood was its managing director. The purchaser was Capita Insurance Services Ltd (“Capita”). Mr Wood remained as managing director of the Company until the end of 2010. He brought proceedings against Capita arising out of the termination of his employment and Capita brought a counterclaim against him under the indemnity provision in the SPA, which is the subject matter of this appeal. Mr Kightley and Mr Collinge were, but are no longer, parties to the proceedings."
+    ]
+  },
+  "content": "{\"title\":\"Wood (Respondent) v Capita Insurance Services Limited (Appellant)\",\"citation\":\"UKSC/2015/0212\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0212\",\"summary\":\"1. This appeal raises a question of contractual interpretation.\",\"extracts\":[\"1. This appeal raises a question of contractual interpretation. It concerns an indemnity clause in an agreement dated 13 April 2010 (“the SPA”) for the sale and purchase of the entire issued share capital of a company, Sureterm Direct Limited (“the Company”), which carries on business as a specialist insurance broker, primarily offering motor insurance for classic cars.\",\"2. The sellers of the Company were the respondent, Mr Andrew Wood (“Mr Wood”), who owned 94% of its share capital, and Mr Christopher Kightley and Mr Howard Collinge, who owned 1% and 5% of its share capital respectively. Each was a director of the Company and Mr Wood was its managing director. The purchaser was Capita Insurance Services Ltd (“Capita”). Mr Wood remained as managing director of the Company until the end of 2010. He brought proceedings against Capita arising out of the termination of his employment and Capita brought a counterclaim against him under the indemnity provision in the SPA, which is the subject matter of this appeal. Mr Kightley and Mr Collinge were, but are no longer, parties to the proceedings.\"]}"
+}

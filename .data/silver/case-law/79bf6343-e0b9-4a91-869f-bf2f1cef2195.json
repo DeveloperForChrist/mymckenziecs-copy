@@ -1,0 +1,21 @@
+{
+  "id": "79bf6343-e0b9-4a91-869f-bf2f1cef2195",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "I (A Child)",
+  "created_at": "2025-12-25T11:46:41.482Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0075",
+    "score": 1,
+    "title": "I (A Child)",
+    "summary": "1. The first and principal question before us is whether the parties’ right of “prorogation”, to “opt in” to the jurisdiction of an EU country which would not otherwise have jurisdiction to determine a child’s future, contained in article 12 of Council Regulation (EC) No 2201/2003 (“Brussels II R...",
+    "category": "procedure",
+    "citation": "UKSC/2009/0075",
+    "extracts": [
+      "1. The first and principal question before us is whether the parties’ right of “prorogation”, to “opt in” to the jurisdiction of an EU country which would not otherwise have jurisdiction to determine a child’s future, contained in article 12 of Council Regulation (EC) No 2201/2003 (“Brussels II Revised”), can apply to a child who is habitually resident outside the European Union. If the answer to that question is “yes”, then the second question is whether that is what has happened in this case. That depends both upon the interpretation of the criteria for opting in and upon an evaluation of what these parties did. The first question is a good deal easier to answer than the second.",
+      "2. The child in question was born on 27 July 2000 and is now aged nine. He was born in this country and is a British citizen. His mother originates from India but has lived in this country for many years. His father originates from Pakistan. Both are British citizens. They married in Pakistan on 28 October 1999 and later lived together in this country. They separated in September 2002 and divorced in 2003. As is common, no orders were made about the child in the course of the divorce proceedings."
+    ],
+    "title_key": "i"
+  },
+  "content": "{\"title\":\"I (A Child)\",\"citation\":\"UKSC/2009/0075\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0075\",\"summary\":\"1. The first and principal question before us is whether the parties’ right of “prorogation”, to “opt in” to the jurisdiction of an EU country which would not otherwise have jurisdiction to determine a child’s future, contained in article 12 of Council Regulation (EC) No 2201/2003 (“Brussels II R...\",\"extracts\":[\"1. The first and principal question before us is whether the parties’ right of “prorogation”, to “opt in” to the jurisdiction of an EU country which would not otherwise have jurisdiction to determine a child’s future, contained in article 12 of Council Regulation (EC) No 2201/2003 (“Brussels II Revised”), can apply to a child who is habitually resident outside the European Union. If the answer to that question is “yes”, then the second question is whether that is what has happened in this case. That depends both upon the interpretation of the criteria for opting in and upon an evaluation of what these parties did. The first question is a good deal easier to answer than the second.\",\"2. The child in question was born on 27 July 2000 and is now aged nine. He was born in this country and is a British citizen. His mother originates from India but has lived in this country for many years. His father originates from Pakistan. Both are British citizens. They married in Pakistan on 28 October 1999 and later lived together in this country. They separated in September 2002 and divorced in 2003. As is common, no orders were made about the child in the course of the divorce proceedings.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"i\"}"
+}

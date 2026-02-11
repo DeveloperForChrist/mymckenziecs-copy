@@ -1,0 +1,15 @@
+{
+  "id": "480c1240-6b1c-41f3-8184-12d68a7f51bc",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#24618",
+  "created_at": "2025-12-25T14:25:52.142Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2015/1663/made/data.xht",
+    "type": "uksi",
+    "year": 2015,
+    "number": null,
+    "dataUrl": "http://www.legislation.gov.uk/wsi/2015/1663/made/data.akn"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2015,\"number\":null,\"url\":\"http://www.legislation.gov.uk/wsi/2015/1663/made/data.xht\",\"dataUrl\":\"http://www.legislation.gov.uk/wsi/2015/1663/made/data.akn\"}"
+}

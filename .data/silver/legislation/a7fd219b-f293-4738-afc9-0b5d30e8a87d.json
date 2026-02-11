@@ -1,0 +1,15 @@
+{
+  "id": "a7fd219b-f293-4738-afc9-0b5d30e8a87d",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4419",
+  "created_at": "2025-12-25T12:18:30.755Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1976/40/contents",
+    "type": "ukpga",
+    "year": 1976,
+    "number": 40,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1976/40/2024-02-22/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1976,\"number\":40,\"url\":\"http://www.legislation.gov.uk/ukpga/1976/40/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1976/40/2024-02-22/data.htm\"}"
+}

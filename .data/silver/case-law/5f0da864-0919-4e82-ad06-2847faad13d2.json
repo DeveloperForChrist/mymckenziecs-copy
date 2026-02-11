@@ -1,0 +1,21 @@
+{
+  "id": "5f0da864-0919-4e82-ad06-2847faad13d2",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Commissioners for His Majesty's Revenue and Customs (Respondent) v Public and Commercial Services Union (Appellant)",
+  "created_at": "2025-12-25T11:50:58.902Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2023-0076",
+    "score": 2,
+    "title": "Commissioners for His Majesty's Revenue and Customs (Respondent) v Public and Commercial Services Union (Appellant)",
+    "summary": "Principle issue: Can the Public and Commercial Services Union (\"PCS\") enforce a contractual term offering the facility for \"check-off arrangements\", whereby employees' trade union subscriptions are deducted directly from their salaries through the payroll system and then paid to PCS, pursuant to section 1 of the Contracts (Rights of Third Parties) Act 1999?",
+    "category": "contract_consumer",
+    "citation": "UKSC/2023/0076",
+    "extracts": [
+      "1. The respondent employers are three Government departments. Some of their employees, including the individual claimants in these proceedings, are members of the Public and Commercial Services Union (“the Union”). The Union is recognised for collective bargaining purposes by those employers. The individual claimants chose in the past to have their union subscription deducted from their salary at source through the pay roll system. The sum deducted would then be paid over to the Union by the employer. This is referred to as a check-off arrangement.",
+      "2. In 2014 or 2015, the employers stopped the check-off arrangements leaving the employees to make their own arrangements for paying their union subscription. It is now accepted by the Government that the unilateral withdrawal of the check-off arrangements was a breach by the respondent departments of their employees’ contracts of employment. The withdrawal of the check-off arrangements led to a substantial reduction in the subscription income of the Union."
+    ],
+    "title_key": "commissioners for his majesty s revenue and customs v public and commercial services union"
+  },
+  "content": "{\"title\":\"Commissioners for His Majesty's Revenue and Customs (Respondent) v Public and Commercial Services Union (Appellant)\",\"citation\":\"UKSC/2023/0076\",\"url\":\"https://supremecourt.uk/cases/uksc-2023-0076\",\"summary\":\"Principle issue: Can the Public and Commercial Services Union (\\\\\"PCS\\\\\") enforce a contractual term offering the facility for \\\\\"check-off arrangements\\\\\", whereby employees' trade union subscriptions are deducted directly from their salaries through the payroll system and then paid to PCS, pursuant to section 1 of the Contracts (Rights of Third Parties) Act 1999?\",\"extracts\":[\"1. The respondent employers are three Government departments. Some of their employees, including the individual claimants in these proceedings, are members of the Public and Commercial Services Union (“the Union”). The Union is recognised for collective bargaining purposes by those employers. The individual claimants chose in the past to have their union subscription deducted from their salary at source through the pay roll system. The sum deducted would then be paid over to the Union by the employer. This is referred to as a check-off arrangement.\",\"2. In 2014 or 2015, the employers stopped the check-off arrangements leaving the employees to make their own arrangements for paying their union subscription. It is now accepted by the Government that the unilateral withdrawal of the check-off arrangements was a breach by the respondent departments of their employees’ contracts of employment. The withdrawal of the check-off arrangements led to a substantial reduction in the subscription income of the Union.\"],\"category\":\"contract_consumer\",\"score\":2,\"title_key\":\"commissioners for his majesty s revenue and customs v public and commercial services union\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "a330496e-2d4a-4ee3-ac08-79726927e096",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#29216",
+  "created_at": "2025-12-25T14:58:43.237Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2022/745/made",
+    "type": "uksi",
+    "year": 2022,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2022,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2022/745/made\",\"dataUrl\":null}"
+}

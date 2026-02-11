@@ -1,0 +1,13 @@
+{
+  "id": "11fe10fb-bef6-4639-b073-be51dd5e6efe",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#225",
+  "created_at": "2025-12-25T15:21:23.851Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part-87-applications-for-writ-of-habeas-corpus",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part_87_applications_for_w_36218b3524.html",
+    "fetchedAt": "2025-12-23T00:24:25.239Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part-87-applications-for-writ-of-habeas-corpus\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part_87_applications_for_w_36218b3524.html\",\"fetchedAt\":\"2025-12-23T00:24:25.239Z\"}"
+}

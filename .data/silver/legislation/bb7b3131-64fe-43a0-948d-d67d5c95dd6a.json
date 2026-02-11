@@ -1,0 +1,15 @@
+{
+  "id": "bb7b3131-64fe-43a0-948d-d67d5c95dd6a",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9036",
+  "created_at": "2025-12-25T12:46:05.037Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1972/2032/contents/made",
+    "type": "uksi",
+    "year": 1972,
+    "number": 2032,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1972,\"number\":2032,\"url\":\"http://www.legislation.gov.uk/uksi/1972/2032/contents/made\",\"dataUrl\":null}"
+}

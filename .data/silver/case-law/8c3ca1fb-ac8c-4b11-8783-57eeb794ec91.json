@@ -1,0 +1,21 @@
+{
+  "id": "8c3ca1fb-ac8c-4b11-8783-57eeb794ec91",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Shanks (Appellant) v Unilever Plc and others (Respondents)",
+  "created_at": "2025-12-25T11:49:39.950Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0032",
+    "score": 1,
+    "title": "Shanks (Appellant) v Unilever Plc and others (Respondents)",
+    "summary": "1. This appeal concerns an application made by the appellant, Professor Shanks OBE FRS FREng, for compensation under section 40 of the Patents Act 1977 (“the 1977 Act”) on the basis that the patents for an invention which he made in 1982 have been of outstanding benefit to his employer, the third...",
+    "category": "procedure",
+    "citation": "UKSC/2017/0032",
+    "extracts": [
+      "1. This appeal concerns an application made by the appellant, Professor Shanks OBE FRS FREng, for compensation under section 40 of the Patents Act 1977 (“the 1977 Act”) on the basis that the patents for an invention which he made in 1982 have been of outstanding benefit to his employer, the third respondent, Unilever UK Central Resources Ltd (“CRL”), and that he is entitled to a fair share of that benefit. The appeal raises important issues concerning the circumstances in which such compensation may be awarded and how the amount of that compensation is to be determined.",
+      "2. Professor Shanks was employed by CRL from May 1982 to October 1986 and was assigned to its Colworth research laboratories in Bedfordshire. He initially received a salary of £18,000 per annum and a Volvo car. His brief was to develop biosensors for use in process control and process engineering."
+    ],
+    "title_key": "shanks v unilever plc and others"
+  },
+  "content": "{\"title\":\"Shanks (Appellant) v Unilever Plc and others (Respondents)\",\"citation\":\"UKSC/2017/0032\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0032\",\"summary\":\"1. This appeal concerns an application made by the appellant, Professor Shanks OBE FRS FREng, for compensation under section 40 of the Patents Act 1977 (“the 1977 Act”) on the basis that the patents for an invention which he made in 1982 have been of outstanding benefit to his employer, the third...\",\"extracts\":[\"1. This appeal concerns an application made by the appellant, Professor Shanks OBE FRS FREng, for compensation under section 40 of the Patents Act 1977 (“the 1977 Act”) on the basis that the patents for an invention which he made in 1982 have been of outstanding benefit to his employer, the third respondent, Unilever UK Central Resources Ltd (“CRL”), and that he is entitled to a fair share of that benefit. The appeal raises important issues concerning the circumstances in which such compensation may be awarded and how the amount of that compensation is to be determined.\",\"2. Professor Shanks was employed by CRL from May 1982 to October 1986 and was assigned to its Colworth research laboratories in Bedfordshire. He initially received a salary of £18,000 per annum and a Volvo car. His brief was to develop biosensors for use in process control and process engineering.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"shanks v unilever plc and others\"}"
+}

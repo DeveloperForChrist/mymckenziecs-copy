@@ -1,0 +1,21 @@
+{
+  "id": "60049f76-90f0-4949-9c27-606c67332b3e",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Cobalt Data Centre 2 LLP and another) (Appellants) v Commissioners for His Majesty's Revenue and Customs (Respondent)",
+  "created_at": "2025-12-25T11:50:53.537Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2022-0174",
+    "score": 1,
+    "title": "R (on the application of Cobalt Data Centre 2 LLP and another) (Appellants) v Commissioners for His Majesty's Revenue and Customs (Respondent)",
+    "summary": "Principle issue: Does section 298(1)(b) of the Capital Allowances Act 2001 (“the 2001 Act”) entitle the appellants to initial 100% capital allowances for expenditure they incurred in the construction of data centres in an enterprise zone?",
+    "category": "procedure",
+    "citation": "UKSC/2022/0174",
+    "extracts": [
+      "1. This appeal concerns the conditions for the availability of the initial 100% capital allowances (“EZA”) regime arising from expenditure incurred in the construction of buildings in an enterprise zone under the Capital Allowances Act 2001 (“the 2001 Act”). Section 298 of the 2001 Act provides that:",
+      "2. In the present case the relevant expenditure was incurred more than 10 years but less than 20 years after the site was first included in the zone, so that the taxpayer was required to show that the expenditure was incurred “under a contract entered into within those 10 years” within the meaning of section 298(1)(b). We will refer to years 1 to 10 as the first period and to years 11 to 20 as the second period."
+    ],
+    "title_key": "r v commissioners for his majesty s revenue and customs"
+  },
+  "content": "{\"title\":\"R (on the application of Cobalt Data Centre 2 LLP and another) (Appellants) v Commissioners for His Majesty's Revenue and Customs (Respondent)\",\"citation\":\"UKSC/2022/0174\",\"url\":\"https://supremecourt.uk/cases/uksc-2022-0174\",\"summary\":\"Principle issue: Does section 298(1)(b) of the Capital Allowances Act 2001 (“the 2001 Act”) entitle the appellants to initial 100% capital allowances for expenditure they incurred in the construction of data centres in an enterprise zone?\",\"extracts\":[\"1. This appeal concerns the conditions for the availability of the initial 100% capital allowances (“EZA”) regime arising from expenditure incurred in the construction of buildings in an enterprise zone under the Capital Allowances Act 2001 (“the 2001 Act”). Section 298 of the 2001 Act provides that:\",\"2. In the present case the relevant expenditure was incurred more than 10 years but less than 20 years after the site was first included in the zone, so that the taxpayer was required to show that the expenditure was incurred “under a contract entered into within those 10 years” within the meaning of section 298(1)(b). We will refer to years 1 to 10 as the first period and to years 11 to 20 as the second period.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v commissioners for his majesty s revenue and customs\"}"
+}

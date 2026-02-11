@@ -1,0 +1,21 @@
+{
+  "id": "24860664-0707-4b3f-9bf9-ad69762537a4",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Miller and others (Appellants) v Ministry of Justice (Respondent)",
+  "created_at": "2025-12-25T11:49:15.409Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0246",
+    "score": 2,
+    "title": "Miller and others (Appellants) v Ministry of Justice (Respondent)",
+    "summary": "Principle issue: Whether, under regulation 8(2) of the Part-time Workers (Prevention of Less Favourable Treatment) Regulations 2000 (PTWR), time starts to run from the end of the relevant pensionable service or from the date when the judge retires and begins to receive his pension.",
+    "category": "procedure",
+    "citation": "UKSC/2015/0246",
+    "extracts": [
+      "1. The issue in this appeal is when time starts to run for a claim by a part-time judge to a pension under the Part-time Workers’ Directive (Directive 97/81) (“PTWD”), as applied by the Part­time Workers (Prevention of Less Favourable Treatment) Regulations 2000 (SI 2000/1551) (“PTWR”). The directive was required to be transposed into domestic law by 7 April 2000.",
+      "2. The appellants are four judges, each of whom has held one or more appointments as fee-paid part-time judges, in some cases moving between such part-time and full- time salaried appointments. They are illustrative of the different ways in which such part-time (PT) and full-time (FT) appointments may be combined in a single career, as Mr Allen QC (for the appellants) explains in his printed case:"
+    ],
+    "title_key": "miller and others v ministry of justice"
+  },
+  "content": "{\"title\":\"Miller and others (Appellants) v Ministry of Justice (Respondent)\",\"citation\":\"UKSC/2015/0246\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0246\",\"summary\":\"Principle issue: Whether, under regulation 8(2) of the Part-time Workers (Prevention of Less Favourable Treatment) Regulations 2000 (PTWR), time starts to run from the end of the relevant pensionable service or from the date when the judge retires and begins to receive his pension.\",\"extracts\":[\"1. The issue in this appeal is when time starts to run for a claim by a part-time judge to a pension under the Part-time Workers’ Directive (Directive 97/81) (“PTWD”), as applied by the Part­time Workers (Prevention of Less Favourable Treatment) Regulations 2000 (SI 2000/1551) (“PTWR”). The directive was required to be transposed into domestic law by 7 April 2000.\",\"2. The appellants are four judges, each of whom has held one or more appointments as fee-paid part-time judges, in some cases moving between such part-time and full- time salaried appointments. They are illustrative of the different ways in which such part-time (PT) and full-time (FT) appointments may be combined in a single career, as Mr Allen QC (for the appellants) explains in his printed case:\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"miller and others v ministry of justice\"}"
+}

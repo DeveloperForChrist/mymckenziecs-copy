@@ -1,0 +1,15 @@
+{
+  "id": "0dd24756-bfd1-4f04-9988-9cc424e03d9e",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#366",
+  "created_at": "2025-12-25T11:53:23.620Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Edw7/8/18/contents/enacted",
+    "type": "ukpga",
+    "year": 1908,
+    "number": 18,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1908,\"number\":18,\"url\":\"http://www.legislation.gov.uk/ukpga/Edw7/8/18/contents/enacted\",\"dataUrl\":null}"
+}

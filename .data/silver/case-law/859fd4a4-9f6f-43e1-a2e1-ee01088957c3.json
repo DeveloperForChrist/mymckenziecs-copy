@@ -1,0 +1,21 @@
+{
+  "id": "859fd4a4-9f6f-43e1-a2e1-ee01088957c3",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "For Women Scotland Ltd (Appellant) v The Scottish Ministers (Respondent)",
+  "created_at": "2025-12-25T11:51:06.772Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2024-0042",
+    "score": 1,
+    "title": "For Women Scotland Ltd (Appellant) v The Scottish Ministers (Respondent)",
+    "summary": "Principle issue: Is a person with a full gender recognition certificate (“GRC”) which recognises that their gender is female, a “woman” for the purposes of the Equality Act 2010 (“EA 2010”)?",
+    "category": "procedure",
+    "citation": "UKSC/2024/0042",
+    "extracts": [
+      "1. This appeal is concerned with establishing the correct interpretation of the Equality Act 2010 (“the EA 2010”) which seeks to give statutory protection to people who are at risk of suffering from unlawful discrimination. The questions raised by this appeal directly affect women and members of the trans community. On the one hand, women have historically suffered from discrimination in our society and since 1975 have been given statutory protection against discrimination on the ground of sex. On the other hand, the trans community is both historically and currently a vulnerable community which Parliament has more recently sought to protect by statutory provision.",
+      "2. It is not the role of the court to adjudicate on the arguments in the public domain on the meaning of gender or sex, nor is it to define the meaning of the word “woman” other than when it is used in the provisions of the EA 2010. It has a more limited role which does not involve making policy. The principal question which the court addresses on this appeal is the meaning of the words which Parliament has used in the EA 2010 in legislating to protect women and members of the trans community against discrimination. Our task is to see if those words can bear a coherent and predictable meaning within the EA 2010 consistently with the Gender Recognition Act 2004 (“the GRA 2004”)."
+    ],
+    "title_key": "for women scotland ltd v the scottish ministers"
+  },
+  "content": "{\"title\":\"For Women Scotland Ltd (Appellant) v The Scottish Ministers (Respondent)\",\"citation\":\"UKSC/2024/0042\",\"url\":\"https://supremecourt.uk/cases/uksc-2024-0042\",\"summary\":\"Principle issue: Is a person with a full gender recognition certificate (“GRC”) which recognises that their gender is female, a “woman” for the purposes of the Equality Act 2010 (“EA 2010”)?\",\"extracts\":[\"1. This appeal is concerned with establishing the correct interpretation of the Equality Act 2010 (“the EA 2010”) which seeks to give statutory protection to people who are at risk of suffering from unlawful discrimination. The questions raised by this appeal directly affect women and members of the trans community. On the one hand, women have historically suffered from discrimination in our society and since 1975 have been given statutory protection against discrimination on the ground of sex. On the other hand, the trans community is both historically and currently a vulnerable community which Parliament has more recently sought to protect by statutory provision.\",\"2. It is not the role of the court to adjudicate on the arguments in the public domain on the meaning of gender or sex, nor is it to define the meaning of the word “woman” other than when it is used in the provisions of the EA 2010. It has a more limited role which does not involve making policy. The principal question which the court addresses on this appeal is the meaning of the words which Parliament has used in the EA 2010 in legislating to protect women and members of the trans community against discrimination. Our task is to see if those words can bear a coherent and predictable meaning within the EA 2010 consistently with the Gender Recognition Act 2004 (“the GRA 2004”).\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"for women scotland ltd v the scottish ministers\"}"
+}

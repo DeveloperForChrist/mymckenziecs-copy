@@ -1,0 +1,15 @@
+{
+  "id": "d77320ae-5cfa-42a2-b0ec-c186a139bebe",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#12080",
+  "created_at": "2025-12-25T13:04:48.142Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1986/1952/contents/made",
+    "type": "uksi",
+    "year": 1986,
+    "number": 1952,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1986,\"number\":1952,\"url\":\"http://www.legislation.gov.uk/uksi/1986/1952/contents/made\",\"dataUrl\":null}"
+}

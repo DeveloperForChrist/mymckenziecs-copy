@@ -1,0 +1,15 @@
+{
+  "id": "2b166319-3221-408a-ba8e-3081a0b44b75",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8448",
+  "created_at": "2025-12-25T12:42:51.151Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1967/1933/contents/made",
+    "type": "uksi",
+    "year": 1967,
+    "number": 1933,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1967,\"number\":1933,\"url\":\"http://www.legislation.gov.uk/uksi/1967/1933/contents/made\",\"dataUrl\":null}"
+}

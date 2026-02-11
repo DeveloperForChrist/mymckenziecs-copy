@@ -1,0 +1,21 @@
+{
+  "id": "05c76e21-5bee-4e9a-9add-2e381f08fa3c",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Trustees of the Olympic Airlines SA Pension and Life Assurance Scheme (Appellant) v Olympic Airlines SA (Respondent)",
+  "created_at": "2025-12-25T11:48:19.346Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0158",
+    "score": 1,
+    "title": "Trustees of the Olympic Airlines SA Pension and Life Assurance Scheme (Appellant) v Olympic Airlines SA (Respondent)",
+    "summary": "1. The question at issue on this appeal is what connection must a foreign company have with the United Kingdom to entitle an English court to wind it up, if its centre of main interests (or “COMI”) is in another member state of the European Union.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0158",
+    "extracts": [
+      "1. The question at issue on this appeal is what connection must a foreign company have with the United Kingdom to entitle an English court to wind it up, if its centre of main interests (or “COMI”) is in another member state of the European Union. The answer depends on the meaning of two words, “economic activity”, in EU Regulation 1346/2000 on Insolvency Proceedings.",
+      "2. Under section 221 of the Insolvency Act 1986, the English court has jurisdiction under its domestic law to wind up a foreign company. However, in the case of companies whose COMI is in another member state of the EU, the exercise of this power is constrained by the Regulation. Article 3 of the Regulation provides as follows:"
+    ],
+    "title_key": "trustees of the olympic airlines sa pension and life assurance scheme v olympic airlines sa"
+  },
+  "content": "{\"title\":\"Trustees of the Olympic Airlines SA Pension and Life Assurance Scheme (Appellant) v Olympic Airlines SA (Respondent)\",\"citation\":\"UKSC/2013/0158\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0158\",\"summary\":\"1. The question at issue on this appeal is what connection must a foreign company have with the United Kingdom to entitle an English court to wind it up, if its centre of main interests (or “COMI”) is in another member state of the European Union.\",\"extracts\":[\"1. The question at issue on this appeal is what connection must a foreign company have with the United Kingdom to entitle an English court to wind it up, if its centre of main interests (or “COMI”) is in another member state of the European Union. The answer depends on the meaning of two words, “economic activity”, in EU Regulation 1346/2000 on Insolvency Proceedings.\",\"2. Under section 221 of the Insolvency Act 1986, the English court has jurisdiction under its domestic law to wind up a foreign company. However, in the case of companies whose COMI is in another member state of the EU, the exercise of this power is constrained by the Regulation. Article 3 of the Regulation provides as follows:\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"trustees of the olympic airlines sa pension and life assurance scheme v olympic airlines sa\"}"
+}

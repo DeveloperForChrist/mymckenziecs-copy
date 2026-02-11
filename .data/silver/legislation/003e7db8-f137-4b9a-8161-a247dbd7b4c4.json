@@ -1,0 +1,15 @@
+{
+  "id": "003e7db8-f137-4b9a-8161-a247dbd7b4c4",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#18249",
+  "created_at": "2025-12-25T13:43:11.778Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1997/784/contents",
+    "type": "uksi",
+    "year": 1997,
+    "number": 784,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1997/784/2021-04-06/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1997,\"number\":784,\"url\":\"http://www.legislation.gov.uk/uksi/1997/784/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1997/784/2021-04-06/data.htm\"}"
+}

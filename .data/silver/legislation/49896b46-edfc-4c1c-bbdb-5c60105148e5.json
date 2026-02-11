@@ -1,0 +1,15 @@
+{
+  "id": "49896b46-edfc-4c1c-bbdb-5c60105148e5",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#29420",
+  "created_at": "2025-12-25T15:00:20.916Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2022/539/made",
+    "type": "uksi",
+    "year": 2022,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2022,\"number\":null,\"url\":\"http://www.legislation.gov.uk/wsi/2022/539/made\",\"dataUrl\":null}"
+}

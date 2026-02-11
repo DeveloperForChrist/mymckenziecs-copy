@@ -1,0 +1,21 @@
+{
+  "id": "fdef324d-f172-4d00-b386-ffad98373f1b",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "McDonald (Deceased) (Represented by Mrs Edna McDonald) (Respondent) v\n                  National Grid Electricity Transmission Plc (Appellant)",
+  "created_at": "2025-12-25T11:48:29.333Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0263",
+    "score": 1,
+    "title": "McDonald (Deceased) (Represented by Mrs Edna McDonald) (Respondent) v\n                  National Grid Electricity Transmission Plc (Appellant)",
+    "summary": "1. Percy McDonald was diagnosed as suffering from mesothelioma in July 2012.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0263",
+    "extracts": [
+      "1. Percy McDonald was diagnosed as suffering from mesothelioma in July 2012. Sadly, at the beginning of February 2014, just before the appeal in his case was due to be heard by this court, Mr McDonald died. His widow, Edna McDonald, has been substituted as respondent in the appeal. The period between diagnosis and death in Mr McDonald’s case is entirely consistent with experience of this insidious disease. Survival for no more than a period of months after diagnosis is the almost invariable outcome.",
+      "2. Mesothelioma is a form of cancer that develops from cells of the mesothelium, the protective lining that covers many of the internal organs of the body. It usually affects the pleura, the outer lining of the lungs and the internal chest wall. It is most commonly caused by exposure to asbestos. Symptoms or signs of mesothelioma may not appear until 50 years (or more) after exposure."
+    ],
+    "title_key": "mcdonald v national grid electricity transmission plc"
+  },
+  "content": "{\"title\":\"McDonald (Deceased) (Represented by Mrs Edna McDonald) (Respondent) v\\\\n                  National Grid Electricity Transmission Plc (Appellant)\",\"citation\":\"UKSC/2013/0263\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0263\",\"summary\":\"1. Percy McDonald was diagnosed as suffering from mesothelioma in July 2012.\",\"extracts\":[\"1. Percy McDonald was diagnosed as suffering from mesothelioma in July 2012. Sadly, at the beginning of February 2014, just before the appeal in his case was due to be heard by this court, Mr McDonald died. His widow, Edna McDonald, has been substituted as respondent in the appeal. The period between diagnosis and death in Mr McDonald’s case is entirely consistent with experience of this insidious disease. Survival for no more than a period of months after diagnosis is the almost invariable outcome.\",\"2. Mesothelioma is a form of cancer that develops from cells of the mesothelium, the protective lining that covers many of the internal organs of the body. It usually affects the pleura, the outer lining of the lungs and the internal chest wall. It is most commonly caused by exposure to asbestos. Symptoms or signs of mesothelioma may not appear until 50 years (or more) after exposure.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"mcdonald v national grid electricity transmission plc\"}"
+}

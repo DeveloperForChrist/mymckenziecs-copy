@@ -1,0 +1,21 @@
+{
+  "id": "20eb7d81-9a4a-4c0e-9bc6-4999ae186014",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "McDonald (by her litigation friend Duncan J McDonald) (Appellant) v McDonald and others (Respondents)",
+  "created_at": "2025-12-25T11:48:51.344Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0234",
+    "score": 3,
+    "title": "McDonald (by her litigation friend Duncan J McDonald) (Appellant) v McDonald and others (Respondents)",
+    "summary": "1. This appeal raises three questions.",
+    "category": "public_law",
+    "citation": "UKSC/2014/0234",
+    "extracts": [
+      "1. This appeal raises three questions. The first is whether a court, when entertaining a claim for possession by a private sector owner against a residential occupier, should be required to consider the proportionality of evicting the occupier, in the light of section 6 of the Human Rights Act 1998 and article 8 of the European Convention on Human Rights (“the Convention”). The second question is whether, if the answer to the first question is yes, the relevant legislation, in particular section 21(4) of the Housing Act 1988, can be read so as to comply with that conclusion. The third question is whether, if the answer to the first and second questions is yes, the trial judge would have been entitled to dismiss the claim for possession in this case, as he said he would have done.",
+      "2. The appellant, Fiona McDonald, is aged 45 and, sadly, she has had psychiatric and behavioural problems since she was five. Dr Peter Sargent, an experienced psychiatrist, explained in his expert evidence that she had “an emotionally unstable personality disorder and at times when her mental state has deteriorated she has presented with frank psychotic symptoms”. She has been unable to hold down any employment, and has not worked since 1999; since that time she lost two public sector tenancies owing to her behaviour."
+    ],
+    "title_key": "mcdonald v mcdonald and others"
+  },
+  "content": "{\"title\":\"McDonald (by her litigation friend Duncan J McDonald) (Appellant) v McDonald and others (Respondents)\",\"citation\":\"UKSC/2014/0234\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0234\",\"summary\":\"1. This appeal raises three questions.\",\"extracts\":[\"1. This appeal raises three questions. The first is whether a court, when entertaining a claim for possession by a private sector owner against a residential occupier, should be required to consider the proportionality of evicting the occupier, in the light of section 6 of the Human Rights Act 1998 and article 8 of the European Convention on Human Rights (“the Convention”). The second question is whether, if the answer to the first question is yes, the relevant legislation, in particular section 21(4) of the Housing Act 1988, can be read so as to comply with that conclusion. The third question is whether, if the answer to the first and second questions is yes, the trial judge would have been entitled to dismiss the claim for possession in this case, as he said he would have done.\",\"2. The appellant, Fiona McDonald, is aged 45 and, sadly, she has had psychiatric and behavioural problems since she was five. Dr Peter Sargent, an experienced psychiatrist, explained in his expert evidence that she had “an emotionally unstable personality disorder and at times when her mental state has deteriorated she has presented with frank psychotic symptoms”. She has been unable to hold down any employment, and has not worked since 1999; since that time she lost two public sector tenancies owing to her behaviour.\"],\"category\":\"public_law\",\"score\":3,\"title_key\":\"mcdonald v mcdonald and others\"}"
+}

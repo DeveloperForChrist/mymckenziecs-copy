@@ -1,0 +1,15 @@
+{
+  "id": "e361151e-e8d3-4734-a677-196f08d387ec",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#25377",
+  "created_at": "2025-12-25T14:31:07.557Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2016/946/contents",
+    "type": "uksi",
+    "year": 2016,
+    "number": 946,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2016/946/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2016,\"number\":946,\"url\":\"http://www.legislation.gov.uk/uksi/2016/946/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2016/946/2020-12-31/data.htm\"}"
+}

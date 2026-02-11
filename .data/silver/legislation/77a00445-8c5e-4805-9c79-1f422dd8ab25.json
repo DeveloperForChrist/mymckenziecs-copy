@@ -1,0 +1,15 @@
+{
+  "id": "77a00445-8c5e-4805-9c79-1f422dd8ab25",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8011",
+  "created_at": "2025-12-25T12:40:15.877Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1961/2403/contents/made",
+    "type": "uksi",
+    "year": 1961,
+    "number": 2403,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1961,\"number\":2403,\"url\":\"http://www.legislation.gov.uk/uksi/1961/2403/contents/made\",\"dataUrl\":null}"
+}

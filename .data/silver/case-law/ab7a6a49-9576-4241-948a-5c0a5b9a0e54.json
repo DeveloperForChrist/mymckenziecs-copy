@@ -1,0 +1,21 @@
+{
+  "id": "ab7a6a49-9576-4241-948a-5c0a5b9a0e54",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Imam) (Respondent) v London Borough of Croydon (Appellant)",
+  "created_at": "2025-12-25T11:50:50.603Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2022-0102",
+    "score": 1,
+    "title": "R (on the application of Imam) (Respondent) v London Borough of Croydon (Appellant)",
+    "summary": "Principle issue: When should a court make a mandatory order against a local housing authority to enforce a duty owed to a homeless individual under s193(2) of the Housing Act 1996 (the \"1996 Act\")? In particular, should the court take account of either: (a) budgetary constraints imposed on the housing authority; or (b) the availability of housing under a non-secured tenancy under Part VII of the 1996 Act (as opposed to a secured tenancy under Part VI of the 1996 Act).",
+    "category": "contract_consumer",
+    "citation": "UKSC/2022/0102",
+    "extracts": [
+      "1. This case concerns the approach which a court should adopt to granting a mandatory order as a remedy against a local housing authority which is in breach of its statutory duty under section 193(2) of the Housing Act 1996 (“the Act”) to ensure that suitable housing is available to a person who is eligible for assistance. The appellant housing authority (“Croydon”) admits that at the material time it was in breach of this duty owed to the respondent (“Ms Imam”), but contends that by reason of severe budgetary constraints and limits to the stock of properties available for housing assistance it ought not to be ordered to provide a property to Ms Imam, suitable for her complex needs, with immediate effect. Croydon says that at the very least it should be given a period of grace to allow it to find a suitable property out of its limited resources.",
+      "2. The central issue on the appeal is whether, and if so in what way, limits on the resources of a local housing authority should affect the exercise of a court’s discretion as to the remedy to be granted when the authority is in breach of its duty under section 193(2) of the Act (“section 193(2)”)."
+    ],
+    "title_key": "r v london borough of croydon"
+  },
+  "content": "{\"title\":\"R (on the application of Imam) (Respondent) v London Borough of Croydon (Appellant)\",\"citation\":\"UKSC/2022/0102\",\"url\":\"https://supremecourt.uk/cases/uksc-2022-0102\",\"summary\":\"Principle issue: When should a court make a mandatory order against a local housing authority to enforce a duty owed to a homeless individual under s193(2) of the Housing Act 1996 (the \\\\\"1996 Act\\\\\")? In particular, should the court take account of either: (a) budgetary constraints imposed on the housing authority; or (b) the availability of housing under a non-secured tenancy under Part VII of the 1996 Act (as opposed to a secured tenancy under Part VI of the 1996 Act).\",\"extracts\":[\"1. This case concerns the approach which a court should adopt to granting a mandatory order as a remedy against a local housing authority which is in breach of its statutory duty under section 193(2) of the Housing Act 1996 (“the Act”) to ensure that suitable housing is available to a person who is eligible for assistance. The appellant housing authority (“Croydon”) admits that at the material time it was in breach of this duty owed to the respondent (“Ms Imam”), but contends that by reason of severe budgetary constraints and limits to the stock of properties available for housing assistance it ought not to be ordered to provide a property to Ms Imam, suitable for her complex needs, with immediate effect. Croydon says that at the very least it should be given a period of grace to allow it to find a suitable property out of its limited resources.\",\"2. The central issue on the appeal is whether, and if so in what way, limits on the resources of a local housing authority should affect the exercise of a court’s discretion as to the remedy to be granted when the authority is in breach of its duty under section 193(2) of the Act (“section 193(2)”).\"],\"category\":\"contract_consumer\",\"score\":1,\"title_key\":\"r v london borough of croydon\"}"
+}

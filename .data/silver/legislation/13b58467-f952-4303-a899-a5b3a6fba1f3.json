@@ -1,0 +1,15 @@
+{
+  "id": "13b58467-f952-4303-a899-a5b3a6fba1f3",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4775",
+  "created_at": "2025-12-25T12:20:48.797Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1982/53/contents",
+    "type": "ukpga",
+    "year": 1982,
+    "number": 53,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1982/53/2023-07-11/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1982,\"number\":53,\"url\":\"http://www.legislation.gov.uk/ukpga/1982/53/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1982/53/2023-07-11/data.htm\"}"
+}

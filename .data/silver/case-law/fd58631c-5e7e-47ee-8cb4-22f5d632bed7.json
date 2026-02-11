@@ -1,0 +1,21 @@
+{
+  "id": "fd58631c-5e7e-47ee-8cb4-22f5d632bed7",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "The Catholic Child Welfare Society and others (Appellants) v Various Claimants (FC) and The Institute of the Brothers of the Christian Schools and others (Respondents)",
+  "created_at": "2025-12-25T11:47:16.502Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0230",
+    "score": 0,
+    "title": "The Catholic Child Welfare Society and others (Appellants) v Various Claimants (FC) and The Institute of the Brothers of the Christian Schools and others (Respondents)",
+    "summary": "1. In 1680, in the city of Rheims, Jean-Baptiste De La Salle founded an Institute known as the Brothers of the Christian Schools (“the Institute”).",
+    "category": "evidence_misc",
+    "citation": "UKSC/2010/0230",
+    "extracts": [
+      "1. In 1680, in the city of Rheims, Jean-Baptiste De La Salle founded an Institute known as the Brothers of the Christian Schools (“the Institute”). The members of the Institute are lay brothers of the Catholic Church. They are now to be found in many countries, including the United Kingdom. Their Rules, approved by Papal Bull in 1724, provided that",
+      "That has remained the mission of the Institute and the mission and “apostolate” of each brother. This appeal is concerned with the legal implications of acts of physical and sexual abuse committed, or alleged to have been committed, by brothers who were, or should have been, pursuing that mission at a residential institution at Market Weighton for boys in need of care called St William’s (“the school”)"
+    ],
+    "title_key": "the catholic child welfare society and others v various claimants and the institute of the brothers of the christian schools and others"
+  },
+  "content": "{\"title\":\"The Catholic Child Welfare Society and others (Appellants) v Various Claimants (FC) and The Institute of the Brothers of the Christian Schools and others (Respondents)\",\"citation\":\"UKSC/2010/0230\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0230\",\"summary\":\"1. In 1680, in the city of Rheims, Jean-Baptiste De La Salle founded an Institute known as the Brothers of the Christian Schools (“the Institute”).\",\"extracts\":[\"1. In 1680, in the city of Rheims, Jean-Baptiste De La Salle founded an Institute known as the Brothers of the Christian Schools (“the Institute”). The members of the Institute are lay brothers of the Catholic Church. They are now to be found in many countries, including the United Kingdom. Their Rules, approved by Papal Bull in 1724, provided that\",\"That has remained the mission of the Institute and the mission and “apostolate” of each brother. This appeal is concerned with the legal implications of acts of physical and sexual abuse committed, or alleged to have been committed, by brothers who were, or should have been, pursuing that mission at a residential institution at Market Weighton for boys in need of care called St William’s (“the school”)\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"the catholic child welfare society and others v various claimants and the institute of the brothers of the christian schools and others\"}"
+}

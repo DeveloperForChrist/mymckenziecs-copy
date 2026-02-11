@@ -1,0 +1,21 @@
+{
+  "id": "9e797d5f-fd40-4aa5-ad36-72214e9baa7f",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Newcastle upon Tyne Hospitals NHS Foundation Trust (Appellant) v Haywood (Respondent)",
+  "created_at": "2025-12-25T11:49:42.434Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0074",
+    "score": 0,
+    "title": "Newcastle upon Tyne Hospitals NHS Foundation Trust (Appellant) v Haywood (Respondent)",
+    "summary": "1. If an employee is dismissed on written notice posted to his home address, when does the notice period begin to run?",
+    "category": "evidence_misc",
+    "citation": "UKSC/2017/0074",
+    "extracts": [
+      "1. If an employee is dismissed on written notice posted to his home address, when does the notice period begin to run? Is it when the letter would have been delivered in the ordinary course of post? Or when it was in fact delivered to that address? Or when the letter comes to the attention of the employee and he has either read it or had a reasonable opportunity of doing so?",
+      "2. Given the vast numbers of working people who might be affected by this issue, it is perhaps surprising that it has not previously come before the higher courts. This Court, in Gisda Cyf v Barratt [2010] UKSC 41; [2010] ICR 1475, held that the “effective date of termination” for the purpose of unfair dismissal claims under the Employment Rights Act 1996 was the date on which the employee opened and read the letter summarily dismissing her or had a reasonable opportunity of doing so. But the Court was careful to limit that decision to the interpretation of the statutory provisions in question. The common law contractual position might be quite different, as indeed the Court of Appeal had said that it was: [2009] EWCA Civ 648; [2009] ICR 1408."
+    ],
+    "title_key": "newcastle upon tyne hospitals nhs foundation trust v haywood"
+  },
+  "content": "{\"title\":\"Newcastle upon Tyne Hospitals NHS Foundation Trust (Appellant) v Haywood (Respondent)\",\"citation\":\"UKSC/2017/0074\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0074\",\"summary\":\"1. If an employee is dismissed on written notice posted to his home address, when does the notice period begin to run?\",\"extracts\":[\"1. If an employee is dismissed on written notice posted to his home address, when does the notice period begin to run? Is it when the letter would have been delivered in the ordinary course of post? Or when it was in fact delivered to that address? Or when the letter comes to the attention of the employee and he has either read it or had a reasonable opportunity of doing so?\",\"2. Given the vast numbers of working people who might be affected by this issue, it is perhaps surprising that it has not previously come before the higher courts. This Court, in Gisda Cyf v Barratt [2010] UKSC 41; [2010] ICR 1475, held that the “effective date of termination” for the purpose of unfair dismissal claims under the Employment Rights Act 1996 was the date on which the employee opened and read the letter summarily dismissing her or had a reasonable opportunity of doing so. But the Court was careful to limit that decision to the interpretation of the statutory provisions in question. The common law contractual position might be quite different, as indeed the Court of Appeal had said that it was: [2009] EWCA Civ 648; [2009] ICR 1408.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"newcastle upon tyne hospitals nhs foundation trust v haywood\"}"
+}

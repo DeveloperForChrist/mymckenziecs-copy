@@ -1,0 +1,21 @@
+{
+  "id": "475e4140-08c8-422a-a876-4d908857305c",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "DB Symmetry Ltd and another (Respondents) v Swindon Borough Council (Appellant)",
+  "created_at": "2025-12-25T11:50:32.312Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2020-0202",
+    "score": 1,
+    "title": "DB Symmetry Ltd and another (Respondents) v Swindon Borough Council (Appellant)",
+    "summary": "Principle issue: (1) Is it lawful for a planning authority in granting planning permission for a development to impose a planning condition that the developer will dedicate land within the development site to be a public highway?\n                (2) Properly interpreted, does the planning condition in issue have that effect?",
+    "category": "procedure",
+    "citation": "UKSC/2020/0202",
+    "extracts": [
+      "1. The principal issues on this appeal are whether it is lawful for a planning authority in granting planning permission for a development to impose a planning condition that the developer will dedicate land within the development site to be a public highway, and whether the planning condition in issue is properly construed as having that effect. The appellant, Swindon Borough Council (“Swindon BC”), submits that the Court of Appeal in Hall & Co Ltd v Shoreham-by-Sea Urban District Council [1964] 1 WLR 240 (“Hall v Shoreham”) erred in law if in that case they held that a local planning authority could not lawfully require a landowner by means of a planning condition to dedicate land as a public highway and thereby avoid the payment of compensation.",
+      "2. The development site (“the site”), which comprised agricultural fields immediately south of the A420 road, is part of the proposed New Eastern Villages (“the NEV”), which lie to the north-east of Swindon. The emerging Swindon Borough Local Plan 2026 identified the NEV as a strategic allocation of land to deliver sustainable economic and housing growth, which would provide about 8,000 homes, 40 hectares of employment land and associated retail, community, education and leisure uses."
+    ],
+    "title_key": "db symmetry ltd and another v swindon borough council"
+  },
+  "content": "{\"title\":\"DB Symmetry Ltd and another (Respondents) v Swindon Borough Council (Appellant)\",\"citation\":\"UKSC/2020/0202\",\"url\":\"https://supremecourt.uk/cases/uksc-2020-0202\",\"summary\":\"Principle issue: (1) Is it lawful for a planning authority in granting planning permission for a development to impose a planning condition that the developer will dedicate land within the development site to be a public highway?\\\\n                (2) Properly interpreted, does the planning condition in issue have that effect?\",\"extracts\":[\"1. The principal issues on this appeal are whether it is lawful for a planning authority in granting planning permission for a development to impose a planning condition that the developer will dedicate land within the development site to be a public highway, and whether the planning condition in issue is properly construed as having that effect. The appellant, Swindon Borough Council (“Swindon BC”), submits that the Court of Appeal in Hall & Co Ltd v Shoreham-by-Sea Urban District Council [1964] 1 WLR 240 (“Hall v Shoreham”) erred in law if in that case they held that a local planning authority could not lawfully require a landowner by means of a planning condition to dedicate land as a public highway and thereby avoid the payment of compensation.\",\"2. The development site (“the site”), which comprised agricultural fields immediately south of the A420 road, is part of the proposed New Eastern Villages (“the NEV”), which lie to the north-east of Swindon. The emerging Swindon Borough Local Plan 2026 identified the NEV as a strategic allocation of land to deliver sustainable economic and housing growth, which would provide about 8,000 homes, 40 hectares of employment land and associated retail, community, education and leisure uses.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"db symmetry ltd and another v swindon borough council\"}"
+}

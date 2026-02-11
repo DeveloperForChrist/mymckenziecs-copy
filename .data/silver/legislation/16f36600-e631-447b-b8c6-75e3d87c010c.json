@@ -1,0 +1,15 @@
+{
+  "id": "16f36600-e631-447b-b8c6-75e3d87c010c",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#18900",
+  "created_at": "2025-12-25T13:47:22.387Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1998/3164/contents",
+    "type": "uksi",
+    "year": 1998,
+    "number": 3164,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/1998/3164/2009-12-14/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1998,\"number\":3164,\"url\":\"http://www.legislation.gov.uk/nisi/1998/3164/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/1998/3164/2009-12-14/data.htm\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "d4d563c8-dff6-4a8e-ace1-2dfb729b1c5f",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Simkova (Appellant) v Secretary of State for Work and Pensions (Respondent)",
+  "created_at": "2025-12-25T11:51:09.676Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2024-0093",
+    "score": 2,
+    "title": "Simkova (Appellant) v Secretary of State for Work and Pensions (Respondent)",
+    "summary": "Principle issue: (i) Is the child element of universal credit (“UC”) a family benefit under article 3(1)(j) of the Regulation (EC) No 883/2004 of the European Parliament and of the Council of 29 April 2004 on the coordination of social security systems; and \n\n(ii) Is it necessary for the Supreme Court to refer the matter to the Court of Justice of the European Union (“CJEU”) under article 158 of the Withdrawal Agreement?",
+    "category": "public_law",
+    "citation": "UKSC/2024/0093",
+    "extracts": [
+      "1. This case concerns the characterisation of the child element of universal credit (“UC”) payable in the United Kingdom pursuant to the Welfare Reform Act 2012 (“the WRA 2012”) for the purposes of Regulation (EC) No 883/2004 of the European Parliament and of the Council of 29 April 2004 on the coordination of social security systems (“the Coordination Regulation”) as amended by Regulation (EC) No 988/2009 of the European Parliament and of the Council of 16 September 2009. This remains a current issue, notwithstanding the withdrawal of the United Kingdom from the European Union, by virtue of the Agreement on the withdrawal of the United Kingdom of Great Britain and Northern Ireland from the European Union and the European Atomic Energy Authority (2019/C 384I/01) (“the Withdrawal Agreement”) as given effect in domestic law by the European Union (Withdrawal) Act 2018 as amended (“the EU(W)A 2018”).",
+      "2. Ms Michaela Simkova, a Slovakian national resident in England with a permanent right to reside in the United Kingdom, seeks to establish entitlement to the child element of UC in respect of her son, Markus, who at the relevant times resided with his grandparents in Slovakia."
+    ],
+    "title_key": "simkova v secretary of state for work and pensions"
+  },
+  "content": "{\"title\":\"Simkova (Appellant) v Secretary of State for Work and Pensions (Respondent)\",\"citation\":\"UKSC/2024/0093\",\"url\":\"https://supremecourt.uk/cases/uksc-2024-0093\",\"summary\":\"Principle issue: (i) Is the child element of universal credit (“UC”) a family benefit under article 3(1)(j) of the Regulation (EC) No 883/2004 of the European Parliament and of the Council of 29 April 2004 on the coordination of social security systems; and \\\\n\\\\n(ii) Is it necessary for the Supreme Court to refer the matter to the Court of Justice of the European Union (“CJEU”) under article 158 of the Withdrawal Agreement?\",\"extracts\":[\"1. This case concerns the characterisation of the child element of universal credit (“UC”) payable in the United Kingdom pursuant to the Welfare Reform Act 2012 (“the WRA 2012”) for the purposes of Regulation (EC) No 883/2004 of the European Parliament and of the Council of 29 April 2004 on the coordination of social security systems (“the Coordination Regulation”) as amended by Regulation (EC) No 988/2009 of the European Parliament and of the Council of 16 September 2009. This remains a current issue, notwithstanding the withdrawal of the United Kingdom from the European Union, by virtue of the Agreement on the withdrawal of the United Kingdom of Great Britain and Northern Ireland from the European Union and the European Atomic Energy Authority (2019/C 384I/01) (“the Withdrawal Agreement”) as given effect in domestic law by the European Union (Withdrawal) Act 2018 as amended (“the EU(W)A 2018”).\",\"2. Ms Michaela Simkova, a Slovakian national resident in England with a permanent right to reside in the United Kingdom, seeks to establish entitlement to the child element of UC in respect of her son, Markus, who at the relevant times resided with his grandparents in Slovakia.\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"simkova v secretary of state for work and pensions\"}"
+}

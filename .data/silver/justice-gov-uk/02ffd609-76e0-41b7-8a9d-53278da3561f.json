@@ -1,0 +1,13 @@
+{
+  "id": "02ffd609-76e0-41b7-8a9d-53278da3561f",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#18",
+  "created_at": "2025-12-25T15:19:52.535Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part01/practice-direction-1a-participation-of-vulnerable-parties-or-witnesses",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part01_practice_direction__e665979ddd.html",
+    "fetchedAt": "2025-12-22T23:49:04.252Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part01/practice-direction-1a-participation-of-vulnerable-parties-or-witnesses\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part01_practice_direction__e665979ddd.html\",\"fetchedAt\":\"2025-12-22T23:49:04.252Z\"}"
+}

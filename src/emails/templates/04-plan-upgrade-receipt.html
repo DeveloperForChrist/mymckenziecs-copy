@@ -1,0 +1,18 @@
+<!-- Trigger: successful Stripe upgrade/payment
+     Purpose: Confirm plan upgrade + receipt with txn details
+     Key elements: txn table, amount, new limits, invoice PDF link -->
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"/><title>Plan upgrade & receipt</title></head>
+  <body>
+    <h1>Plan upgrade successful</h1>
+    <p>This message confirms your recent plan upgrade.</p>
+    <p>Thanks, {{name}} — your plan has been upgraded.</p>
+    <table>
+      <tr><td>Transaction ID</td><td>{{txn_id}}</td></tr>
+      <tr><td>Amount</td><td>{{amount}}</td></tr>
+      <tr><td>New limits</td><td>{{new_limits}}</td></tr>
+    </table>
+    <p><a href="{{invoice_pdf_url}}">Download invoice (PDF)</a></p>
+  </body>
+</html>

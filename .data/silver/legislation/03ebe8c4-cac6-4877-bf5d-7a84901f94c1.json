@@ -1,0 +1,15 @@
+{
+  "id": "03ebe8c4-cac6-4877-bf5d-7a84901f94c1",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#25049",
+  "created_at": "2025-12-25T14:28:48.241Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2015/1225/made",
+    "type": "uksi",
+    "year": 2015,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2015,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2015/1225/made\",\"dataUrl\":null}"
+}

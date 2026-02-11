@@ -1,0 +1,15 @@
+{
+  "id": "6877344d-de44-4847-8968-f47cf94e604e",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9720",
+  "created_at": "2025-12-25T12:50:11.081Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1977/2069/contents/made",
+    "type": "uksi",
+    "year": 1977,
+    "number": 2069,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1977,\"number\":2069,\"url\":\"http://www.legislation.gov.uk/uksi/1977/2069/contents/made\",\"dataUrl\":null}"
+}

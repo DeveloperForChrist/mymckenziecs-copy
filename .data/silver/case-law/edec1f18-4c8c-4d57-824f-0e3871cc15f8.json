@@ -1,0 +1,18 @@
+{
+  "id": "edec1f18-4c8c-4d57-824f-0e3871cc15f8",
+  "source": "case-law",
+  "path": "data/bronze/case-law/curated.json",
+  "title": "Aintree University Hospitals NHS Foundation Trust (Respondent) v James (AP) (Appellant)",
+  "created_at": "2025-12-25T11:46:28.929Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0134",
+    "title": "Aintree University Hospitals NHS Foundation Trust (Respondent) v James (AP) (Appellant)",
+    "summary": "1. This is the first case under the Mental Capacity Act 2005 to come before this Court.",
+    "citation": "UKSC/2013/0134",
+    "extracts": [
+      "1. This is the first case under the Mental Capacity Act 2005 to come before this Court. That Act provides for decisions to be made on behalf of people who are unable to make decisions for themselves. Everyone who makes a decision under the Act must do so in the best interests of the person concerned. The decision in this case could not be more important: the hospital where a gravely ill man was being treated asked for a declaration that it would be in his best interests to withhold certain life-sustaining treatments from him. When can it be in the best interests of a living patient to withhold from him treatment which will keep him alive? On the other hand, when can it be in his best interests to inflict severely invasive treatment upon him which will bring him next to no positive benefit?",
+      "3. The judge accepted the evidence of Dr Grant, a consultant in critical care medicine, on behalf of the ten consultants and senior nursing staff who had been responsible for Mr James’ care, as to the diagnosis and prognosis. The patient suffered from gross muscle wasting, owing to his prolonged period of near immobility, so could not sit or stand for himself. He also suffered from"
+    ]
+  },
+  "content": "{\"title\":\"Aintree University Hospitals NHS Foundation Trust (Respondent) v James (AP) (Appellant)\",\"citation\":\"UKSC/2013/0134\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0134\",\"summary\":\"1. This is the first case under the Mental Capacity Act 2005 to come before this Court.\",\"extracts\":[\"1. This is the first case under the Mental Capacity Act 2005 to come before this Court. That Act provides for decisions to be made on behalf of people who are unable to make decisions for themselves. Everyone who makes a decision under the Act must do so in the best interests of the person concerned. The decision in this case could not be more important: the hospital where a gravely ill man was being treated asked for a declaration that it would be in his best interests to withhold certain life-sustaining treatments from him. When can it be in the best interests of a living patient to withhold from him treatment which will keep him alive? On the other hand, when can it be in his best interests to inflict severely invasive treatment upon him which will bring him next to no positive benefit?\",\"3. The judge accepted the evidence of Dr Grant, a consultant in critical care medicine, on behalf of the ten consultants and senior nursing staff who had been responsible for Mr James’ care, as to the diagnosis and prognosis. The patient suffered from gross muscle wasting, owing to his prolonged period of near immobility, so could not sit or stand for himself. He also suffered from\"]}"
+}

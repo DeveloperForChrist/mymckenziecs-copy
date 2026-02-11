@@ -1,0 +1,18 @@
+{
+  "id": "c121bba7-256c-416f-9eb0-9f74fdee972b",
+  "source": "case-law",
+  "path": "data/bronze/case-law/curated.json",
+  "title": "In the matter of an application by Brigid McCaughey and another for Judicial Review (Northern Ireland)",
+  "created_at": "2025-12-25T11:46:21.693Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0101",
+    "title": "In the matter of an application by Brigid McCaughey and another for Judicial Review (Northern Ireland)",
+    "summary": "Principle issue: Whether there is an obligation to conduct an Article 2 ECHR-compliant inquest into deaths and subsequent investigations which occurred before the commencement of the Human Rights Act 1998; and whether the decision in Re McKerr should be overruled in the light of the Grand Chamber decision in Silih v Slovenia.",
+    "citation": "UKSC/2010/0101",
+    "extracts": [
+      "1. These appeals require the Court to consider once again the impact of article 2 of the European Convention on Human Rights (“the Convention”) on the scope of an inquest. They arise because of a change that the Grand Chamber of the Strasbourg Court has made as to the nature of the obligations imposed by article 2. I shall start by describing briefly the nature of that change.",
+      "2. The Convention is a living instrument and over time the Strasbourg Court has extended the ambit of application of Convention rights in many areas. Article 2 provides a good example of this tendency. Article 2 provides that"
+    ]
+  },
+  "content": "{\"title\":\"In the matter of an application by Brigid McCaughey and another for Judicial Review (Northern Ireland)\",\"citation\":\"UKSC/2010/0101\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0101\",\"summary\":\"Principle issue: Whether there is an obligation to conduct an Article 2 ECHR-compliant inquest into deaths and subsequent investigations which occurred before the commencement of the Human Rights Act 1998; and whether the decision in Re McKerr should be overruled in the light of the Grand Chamber decision in Silih v Slovenia.\",\"extracts\":[\"1. These appeals require the Court to consider once again the impact of article 2 of the European Convention on Human Rights (“the Convention”) on the scope of an inquest. They arise because of a change that the Grand Chamber of the Strasbourg Court has made as to the nature of the obligations imposed by article 2. I shall start by describing briefly the nature of that change.\",\"2. The Convention is a living instrument and over time the Strasbourg Court has extended the ambit of application of Convention rights in many areas. Article 2 provides a good example of this tendency. Article 2 provides that\"]}"
+}

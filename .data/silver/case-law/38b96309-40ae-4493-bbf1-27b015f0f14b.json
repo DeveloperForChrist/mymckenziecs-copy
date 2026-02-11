@@ -1,0 +1,21 @@
+{
+  "id": "38b96309-40ae-4493-bbf1-27b015f0f14b",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "The Rugby Football Union (Respondent) v Consolidated Information Services Limited (Formerly Viagogo Limited) (In Liquidation) (Appellant)",
+  "created_at": "2025-12-25T11:47:47.747Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0030",
+    "score": 1,
+    "title": "The Rugby Football Union (Respondent) v Consolidated Information Services Limited (Formerly Viagogo Limited) (In Liquidation) (Appellant)",
+    "summary": "1. The Rugby Football Union (the RFU) is the governing body for rugby union in England.",
+    "category": "procedure",
+    "citation": "UKSC/2012/0030",
+    "extracts": [
+      "1. The Rugby Football Union (the RFU) is the governing body for rugby union in England. It owns the famous Twickenham stadium, the home ground of the England rugby football team. The RFU alone is responsible for issuing tickets for international and other rugby matches played at the stadium.",
+      "3. The RFU's terms and conditions stipulate that any resale of a ticket or any advertisement of a ticket for sale at above face value will constitute a breach of contract rendering the ticket null and void, so that all rights evidenced by the ticket are extinguished. Applicants for tickets indicate agreement to these terms and conditions when submitting ticket application forms and the condition is printed on the tickets themselves. The terms on which tickets are supplied also include a condition that the ticket remains the property of the RFU at all times."
+    ],
+    "title_key": "the rugby football union v consolidated information services limited"
+  },
+  "content": "{\"title\":\"The Rugby Football Union (Respondent) v Consolidated Information Services Limited (Formerly Viagogo Limited) (In Liquidation) (Appellant)\",\"citation\":\"UKSC/2012/0030\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0030\",\"summary\":\"1. The Rugby Football Union (the RFU) is the governing body for rugby union in England.\",\"extracts\":[\"1. The Rugby Football Union (the RFU) is the governing body for rugby union in England. It owns the famous Twickenham stadium, the home ground of the England rugby football team. The RFU alone is responsible for issuing tickets for international and other rugby matches played at the stadium.\",\"3. The RFU's terms and conditions stipulate that any resale of a ticket or any advertisement of a ticket for sale at above face value will constitute a breach of contract rendering the ticket null and void, so that all rights evidenced by the ticket are extinguished. Applicants for tickets indicate agreement to these terms and conditions when submitting ticket application forms and the condition is printed on the tickets themselves. The terms on which tickets are supplied also include a condition that the ticket remains the property of the RFU at all times.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"the rugby football union v consolidated information services limited\"}"
+}

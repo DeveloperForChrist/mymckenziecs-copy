@@ -1,0 +1,21 @@
+{
+  "id": "16e91f8f-1604-4e34-bd9c-e2c33a2bd8d7",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Zurich Insurance PLC UK Branch (Appellant) v International Energy Group Limited (Respondent)",
+  "created_at": "2025-12-25T11:48:10.575Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0057",
+    "score": 1,
+    "title": "Zurich Insurance PLC UK Branch (Appellant) v International Energy Group Limited (Respondent)",
+    "summary": "2. The appeal, brought by Zurich Insurance plc (“Zurich”) as appellant against International Energy Group Ltd (“IEG”) as respondent, raises points under both (a) and (b).",
+    "category": "procedure",
+    "citation": "UKSC/2013/0057",
+    "extracts": [
+      "2. The appeal, brought by Zurich Insurance plc (“Zurich”) as appellant against International Energy Group Ltd (“IEG”) as respondent, raises points under both (a) and (b). The issues under (a) are subject to Guernsey law, and there is a difference between the English and Guernsey statute law. The parties are however agreed that Guernsey common law is to be treated as identical with English common law on this appeal.",
+      "3. According to the special rule recognised by the House of Lords, a person contracting mesothelioma, after being exposed to significant quantities of asbestos dust originating from different sources over the same or different periods, can sue"
+    ],
+    "title_key": "zurich insurance plc uk branch v international energy group limited"
+  },
+  "content": "{\"title\":\"Zurich Insurance PLC UK Branch (Appellant) v International Energy Group Limited (Respondent)\",\"citation\":\"UKSC/2013/0057\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0057\",\"summary\":\"2. The appeal, brought by Zurich Insurance plc (“Zurich”) as appellant against International Energy Group Ltd (“IEG”) as respondent, raises points under both (a) and (b).\",\"extracts\":[\"2. The appeal, brought by Zurich Insurance plc (“Zurich”) as appellant against International Energy Group Ltd (“IEG”) as respondent, raises points under both (a) and (b). The issues under (a) are subject to Guernsey law, and there is a difference between the English and Guernsey statute law. The parties are however agreed that Guernsey common law is to be treated as identical with English common law on this appeal.\",\"3. According to the special rule recognised by the House of Lords, a person contracting mesothelioma, after being exposed to significant quantities of asbestos dust originating from different sources over the same or different periods, can sue\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"zurich insurance plc uk branch v international energy group limited\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "9fd887f9-19d2-451a-baa0-7aa941c57a59",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#23121",
+  "created_at": "2025-12-25T14:15:02.574Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2008/1692/contents",
+    "type": "uksi",
+    "year": 2008,
+    "number": 1692,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2008/1692/2008-06-26/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2008,\"number\":1692,\"url\":\"http://www.legislation.gov.uk/uksi/2008/1692/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2008/1692/2008-06-26/data.htm\"}"
+}

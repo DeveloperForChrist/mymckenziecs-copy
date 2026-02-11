@@ -1,0 +1,15 @@
+{
+  "id": "62d286b5-e261-418a-8c16-dc6005303650",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#28367",
+  "created_at": "2025-12-25T14:52:16.081Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2020/167/made",
+    "type": "uksi",
+    "year": 2020,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2020,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2020/167/made\",\"dataUrl\":null}"
+}

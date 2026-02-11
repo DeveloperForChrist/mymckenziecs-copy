@@ -1,0 +1,21 @@
+{
+  "id": "49c09c02-8323-4e40-bc2d-cd154053aa2b",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Actavis Group PTC EHF and others (Respondents) v ICOS Corporation and another (Appellants)",
+  "created_at": "2025-12-25T11:49:50.955Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0214",
+    "score": 1,
+    "title": "Actavis Group PTC EHF and others (Respondents) v ICOS Corporation and another (Appellants)",
+    "summary": "1. This appeal concerns the application of the test of obviousness under section 3 of the Patents Act 1977 to a dosage patent.",
+    "category": "procedure",
+    "citation": "UKSC/2017/0214",
+    "extracts": [
+      "1. This appeal concerns the application of the test of obviousness under section 3 of the Patents Act 1977 to a dosage patent. In summary, a patent, whose validity is not challenged, identified a compound as an efficacious treatment but did not identify an optimal dosage regime. A pharmaceutical company, which had acquired the patent, conducted extensive research into ascertaining the optimal dosage of the compound. It discovered a dose which not only was safe and effective but also, unexpectedly, could be administered in a new and beneficial manner, because of both the half-life of the compound and its minimal side effects at that dose. A number of generic drug manufacturers challenge the validity of the dosage patent on the basis that it involves no inventive step.",
+      "2. The appeal raises two principal questions. The first relates to the application of the obviousness test to a dosage patent and the second is concerned with whether the Court of Appeal was entitled to reverse the judgment of the judge at first instance on that question in the circumstances of this case."
+    ],
+    "title_key": "actavis group ptc ehf and others v icos corporation and another"
+  },
+  "content": "{\"title\":\"Actavis Group PTC EHF and others (Respondents) v ICOS Corporation and another (Appellants)\",\"citation\":\"UKSC/2017/0214\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0214\",\"summary\":\"1. This appeal concerns the application of the test of obviousness under section 3 of the Patents Act 1977 to a dosage patent.\",\"extracts\":[\"1. This appeal concerns the application of the test of obviousness under section 3 of the Patents Act 1977 to a dosage patent. In summary, a patent, whose validity is not challenged, identified a compound as an efficacious treatment but did not identify an optimal dosage regime. A pharmaceutical company, which had acquired the patent, conducted extensive research into ascertaining the optimal dosage of the compound. It discovered a dose which not only was safe and effective but also, unexpectedly, could be administered in a new and beneficial manner, because of both the half-life of the compound and its minimal side effects at that dose. A number of generic drug manufacturers challenge the validity of the dosage patent on the basis that it involves no inventive step.\",\"2. The appeal raises two principal questions. The first relates to the application of the obviousness test to a dosage patent and the second is concerned with whether the Court of Appeal was entitled to reverse the judgment of the judge at first instance on that question in the circumstances of this case.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"actavis group ptc ehf and others v icos corporation and another\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "ec85da9c-5800-4194-aa9b-9b8b26699916",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4931",
+  "created_at": "2025-12-25T12:21:49.025Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1984/18/contents/enacted",
+    "type": "ukpga",
+    "year": 1984,
+    "number": 18,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1984,\"number\":18,\"url\":\"http://www.legislation.gov.uk/ukpga/1984/18/contents/enacted\",\"dataUrl\":null}"
+}

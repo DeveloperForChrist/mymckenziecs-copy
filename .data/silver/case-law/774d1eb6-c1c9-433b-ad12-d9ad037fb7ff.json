@@ -1,0 +1,16 @@
+{
+  "id": "774d1eb6-c1c9-433b-ad12-d9ad037fb7ff",
+  "source": "case-law",
+  "path": "data/bronze/case-law/category-balance.json",
+  "title": "category-balance.json",
+  "created_at": "2025-12-25T11:45:56.610Z",
+  "metadata": {
+    "total": 100,
+    "remedies": 15,
+    "procedure": 30,
+    "public_law": 20,
+    "evidence_misc": 10,
+    "contract_consumer": 25
+  },
+  "content": "{\"total\":100,\"procedure\":30,\"contract_consumer\":25,\"public_law\":20,\"remedies\":15,\"evidence_misc\":10}"
+}

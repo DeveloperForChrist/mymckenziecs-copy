@@ -1,0 +1,9 @@
+# Hooks Directory
+
+Custom React hooks will be placed here.
+
+Example hooks:
+- useAuth.ts - Authentication hooks
+- useChat.ts - Chat functionality hooks
+- useCase.ts - Case management hooks
+- useDebounce.ts - Debounce utility hook

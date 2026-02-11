@@ -1,0 +1,15 @@
+{
+  "id": "81ed2200-7c09-48d3-adf8-23514fe90379",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#28170",
+  "created_at": "2025-12-25T14:50:51.705Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2020/376/made",
+    "type": "uksi",
+    "year": 2020,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2020,\"number\":null,\"url\":\"http://www.legislation.gov.uk/wsi/2020/376/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "7d5fa0b8-c4f3-436f-b3fa-2135af298d4c",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Daiichi Chuo Kisen Kaisha (Appellant) v Gard Marine & Energy Limited and another (Respondents)",
+  "created_at": "2025-12-25T11:48:57.189Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0038",
+    "score": 0,
+    "title": "Daiichi Chuo Kisen Kaisha (Appellant) v Gard Marine & Energy Limited and another (Respondents)",
+    "summary": "Gard Marine and Energy Limited (Appellant) v China National Chartering Company Limited and another (Respondents) China National Chartering Company Limited (Appellant) v Gard Marine and Energy Limited and another (Respondents) Daiichi Chuo Kisen Kaisha (Appellant) v Gard Marine and Energy Limited...",
+    "category": "evidence_misc",
+    "citation": "UKSC/2015/0038",
+    "extracts": [
+      "Gard Marine and Energy Limited (Appellant) v China National Chartering Company Limited and another (Respondents) China National Chartering Company Limited (Appellant) v Gard Marine and Energy Limited and another (Respondents) Daiichi Chuo Kisen Kaisha (Appellant) v Gard Marine and Energy Limited and another (Respondents)",
+      "1. This appeal arises out of the grounding of the OCEAN VICTORY (“the vessel”) in the port of Kashima in Japan on 24 October 2006. She was a Capesize bulk carrier, built in China in 2005. By a demise charterparty dated 8 June 2005, the vessel’s owners, Ocean Victory Maritime Inc (“OVM” or “the owners”), chartered the vessel to Ocean Line Holdings Ltd (“OLH”), which is or was a related company, on the widely used Barecon 89 as amended. On 2 August 2006, OLH time chartered the vessel to China National Chartering Co Ltd (“Sinochart”) and on 13 September 2006, Sinochart in turn sub-chartered her to Daiichi Chuo Kisen Kaisha (“Daiichi” or “the charterers”) for a time charter trip."
+    ],
+    "title_key": "daiichi chuo kisen kaisha v gard marine energy limited and another"
+  },
+  "content": "{\"title\":\"Daiichi Chuo Kisen Kaisha (Appellant) v Gard Marine & Energy Limited and another (Respondents)\",\"citation\":\"UKSC/2015/0038\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0038\",\"summary\":\"Gard Marine and Energy Limited (Appellant) v China National Chartering Company Limited and another (Respondents) China National Chartering Company Limited (Appellant) v Gard Marine and Energy Limited and another (Respondents) Daiichi Chuo Kisen Kaisha (Appellant) v Gard Marine and Energy Limited...\",\"extracts\":[\"Gard Marine and Energy Limited (Appellant) v China National Chartering Company Limited and another (Respondents) China National Chartering Company Limited (Appellant) v Gard Marine and Energy Limited and another (Respondents) Daiichi Chuo Kisen Kaisha (Appellant) v Gard Marine and Energy Limited and another (Respondents)\",\"1. This appeal arises out of the grounding of the OCEAN VICTORY (“the vessel”) in the port of Kashima in Japan on 24 October 2006. She was a Capesize bulk carrier, built in China in 2005. By a demise charterparty dated 8 June 2005, the vessel’s owners, Ocean Victory Maritime Inc (“OVM” or “the owners”), chartered the vessel to Ocean Line Holdings Ltd (“OLH”), which is or was a related company, on the widely used Barecon 89 as amended. On 2 August 2006, OLH time chartered the vessel to China National Chartering Co Ltd (“Sinochart”) and on 13 September 2006, Sinochart in turn sub-chartered her to Daiichi Chuo Kisen Kaisha (“Daiichi” or “the charterers”) for a time charter trip.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"daiichi chuo kisen kaisha v gard marine energy limited and another\"}"
+}

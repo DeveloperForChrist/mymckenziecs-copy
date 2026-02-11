@@ -1,0 +1,13 @@
+{
+  "id": "27de29e7-ae58-4001-bf0c-b25cc13d158e",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#14",
+  "created_at": "2025-12-25T15:19:50.270Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/protocol/prot_neg",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_protocol_prot_neg_f4a6ed1258.html",
+    "fetchedAt": "2025-12-22T23:49:02.718Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/protocol/prot_neg\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_protocol_prot_neg_f4a6ed1258.html\",\"fetchedAt\":\"2025-12-22T23:49:02.718Z\"}"
+}

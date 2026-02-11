@@ -1,0 +1,15 @@
+{
+  "id": "1e513ee8-7cda-4480-b1ee-e72c88a26a2e",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7828",
+  "created_at": "2025-12-25T12:39:11.097Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1959/1947/contents/made",
+    "type": "uksi",
+    "year": 1959,
+    "number": 1947,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1959,\"number\":1947,\"url\":\"http://www.legislation.gov.uk/uksi/1959/1947/contents/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "787900d0-a052-4b3a-ba0c-49cbf4537fee",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Campbell (Appellant) v Gordon (Respondent) (Scotland)",
+  "created_at": "2025-12-25T11:48:59.308Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0061",
+    "score": 0,
+    "title": "Campbell (Appellant) v Gordon (Respondent) (Scotland)",
+    "summary": "1. The appellant, Mr Campbell, was employed by the company (the first respondent) as an apprentice joiner.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2015/0061",
+    "extracts": [
+      "1. The appellant, Mr Campbell, was employed by the company (the first respondent) as an apprentice joiner. The second respondent, Mr Gordon, was the sole director of the company and responsible for its day to day operation. On 28 June 2006 the appellant suffered an injury whilst working with an electric circular saw. Although the company had employers’ liability insurance policy, the policy (surprisingly for a business of this kind) excluded claims arising from the use of “woodworking machinery” powered by electricity. It therefore excluded any claim arising out of Mr Campbell’s accident. The company’s failure to have in place appropriate insurance was a breach of its obligations under section 1(1) of the Employers’ Liability (Compulsory Insurance) Act 1969.",
+      "2. The company itself went into liquidation in 2009. Mr Campbell now seeks to hold Mr Gordon, as director, liable in damages for the company’s failure to provide adequate insurance cover. Mr Gordon himself is recently bankrupt. We were told by Mr Smith QC, appearing for Mr Campbell, that there are discussions with him with a view to obtaining an assignation of any rights he may have against the broker who arranged the inadequate insurance. However, the sole issue for us is whether civil liability attaches to Mr Gordon for that failure."
+    ],
+    "title_key": "campbell v gordon"
+  },
+  "content": "{\"title\":\"Campbell (Appellant) v Gordon (Respondent) (Scotland)\",\"citation\":\"UKSC/2015/0061\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0061\",\"summary\":\"1. The appellant, Mr Campbell, was employed by the company (the first respondent) as an apprentice joiner.\",\"extracts\":[\"1. The appellant, Mr Campbell, was employed by the company (the first respondent) as an apprentice joiner. The second respondent, Mr Gordon, was the sole director of the company and responsible for its day to day operation. On 28 June 2006 the appellant suffered an injury whilst working with an electric circular saw. Although the company had employers’ liability insurance policy, the policy (surprisingly for a business of this kind) excluded claims arising from the use of “woodworking machinery” powered by electricity. It therefore excluded any claim arising out of Mr Campbell’s accident. The company’s failure to have in place appropriate insurance was a breach of its obligations under section 1(1) of the Employers’ Liability (Compulsory Insurance) Act 1969.\",\"2. The company itself went into liquidation in 2009. Mr Campbell now seeks to hold Mr Gordon, as director, liable in damages for the company’s failure to provide adequate insurance cover. Mr Gordon himself is recently bankrupt. We were told by Mr Smith QC, appearing for Mr Campbell, that there are discussions with him with a view to obtaining an assignation of any rights he may have against the broker who arranged the inadequate insurance. However, the sole issue for us is whether civil liability attaches to Mr Gordon for that failure.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"campbell v gordon\"}"
+}

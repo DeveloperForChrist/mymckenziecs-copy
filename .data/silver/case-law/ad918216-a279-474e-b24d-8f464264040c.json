@@ -1,0 +1,21 @@
+{
+  "id": "ad918216-a279-474e-b24d-8f464264040c",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "WM Morrison Supermarkets plc (Appellant) v Various Claimants (Respondent)",
+  "created_at": "2025-12-25T11:50:06.791Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0213",
+    "score": 1,
+    "title": "WM Morrison Supermarkets plc (Appellant) v Various Claimants (Respondent)",
+    "summary": "Principle issue: (1) Whether the Data Protection Act 1988 (‘the DPA’) excludes the application of vicarious liability to a breach of that Act, or for misuse of private information or breach of confidence\n\n(2)  Whether the Court of Appeal erred in concluding that the disclosure of data by the appellant’s employee occurred in the course of his employment, for which the appellant should be held vicariously liable",
+    "category": "procedure",
+    "citation": "UKSC/2018/0213",
+    "extracts": [
+      "1. This appeal is primarily concerned with the circumstances in which an employer is vicariously liable for the conduct of its employees, and provides the court with an opportunity to address the misunderstandings which have arisen since its decision in the case of Mohamud v WM Morrison Supermarkets plc [2016] UKSC 11; [2016] AC 677. It also raises an important question about the Data Protection Act 1998 (“the DPA”).",
+      "2. The appellant, Morrisons, is a company which operates a chain of supermarkets. The respondents are 9,263 of its employees or former employees. I shall refer to them as the claimants. Personal information about them was published on the Internet by another of Morrisons’ employees, Mr Andrew Skelton."
+    ],
+    "title_key": "wm morrison supermarkets plc v various claimants"
+  },
+  "content": "{\"title\":\"WM Morrison Supermarkets plc (Appellant) v Various Claimants (Respondent)\",\"citation\":\"UKSC/2018/0213\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0213\",\"summary\":\"Principle issue: (1) Whether the Data Protection Act 1988 (‘the DPA’) excludes the application of vicarious liability to a breach of that Act, or for misuse of private information or breach of confidence\\\\n\\\\n(2)  Whether the Court of Appeal erred in concluding that the disclosure of data by the appellant’s employee occurred in the course of his employment, for which the appellant should be held vicariously liable\",\"extracts\":[\"1. This appeal is primarily concerned with the circumstances in which an employer is vicariously liable for the conduct of its employees, and provides the court with an opportunity to address the misunderstandings which have arisen since its decision in the case of Mohamud v WM Morrison Supermarkets plc [2016] UKSC 11; [2016] AC 677. It also raises an important question about the Data Protection Act 1998 (“the DPA”).\",\"2. The appellant, Morrisons, is a company which operates a chain of supermarkets. The respondents are 9,263 of its employees or former employees. I shall refer to them as the claimants. Personal information about them was published on the Internet by another of Morrisons’ employees, Mr Andrew Skelton.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"wm morrison supermarkets plc v various claimants\"}"
+}

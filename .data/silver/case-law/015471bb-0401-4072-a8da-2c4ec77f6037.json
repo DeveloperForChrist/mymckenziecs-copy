@@ -1,0 +1,21 @@
+{
+  "id": "015471bb-0401-4072-a8da-2c4ec77f6037",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "MB (Appellant) v Secretary of State for Work and Pensions (Respondent)",
+  "created_at": "2025-12-25T11:48:50.145Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0220",
+    "score": 2,
+    "title": "MB (Appellant) v Secretary of State for Work and Pensions (Respondent)",
+    "summary": "1. Council Directive 79/7/EEC on the Progressive Implementation of the Principle of Equal Treatment for Men and Women in Matters of Social Security is concerned with state benefits, including old age and retirement pensions.",
+    "category": "public_law",
+    "citation": "UKSC/2014/0220",
+    "extracts": [
+      "1. Council Directive 79/7/EEC on the Progressive Implementation of the Principle of Equal Treatment for Men and Women in Matters of Social Security is concerned with state benefits, including old age and retirement pensions. It provides by article 4 that there shall be “no discrimination whatsoever on ground of sex either directly, or indirectly by reference in particular to marital or family status ...” The material provisions of the Directive have direct effect.",
+      "2. Article 7.1(a) of the Directive provided that it was to be without prejudice to the right of member states to exclude from its scope the determination of pensionable age for the purpose of granting old age and retirement pensions. The United Kingdom has exercised that right. The combined effect of (i) the Social Security Contributions and Benefits Act 1992, section 44, (ii) the definition of “pensionable age” in section 122 of the Act, and (iii) the Pensions Act 1995, Schedule 4, paragraph 1, is that a woman born before 6 April 1950 becomes eligible for the state retirement pension (referred to in the legislation as a “Category A retirement pension”) at the age of 60, and a man born before 6 December 1953 becomes eligible at the age of 65. The pensionable age of younger persons will converge over a period of time and will eventually be the same, but these changes do not affect the present appeal."
+    ],
+    "title_key": "mb v secretary of state for work and pensions"
+  },
+  "content": "{\"title\":\"MB (Appellant) v Secretary of State for Work and Pensions (Respondent)\",\"citation\":\"UKSC/2014/0220\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0220\",\"summary\":\"1. Council Directive 79/7/EEC on the Progressive Implementation of the Principle of Equal Treatment for Men and Women in Matters of Social Security is concerned with state benefits, including old age and retirement pensions.\",\"extracts\":[\"1. Council Directive 79/7/EEC on the Progressive Implementation of the Principle of Equal Treatment for Men and Women in Matters of Social Security is concerned with state benefits, including old age and retirement pensions. It provides by article 4 that there shall be “no discrimination whatsoever on ground of sex either directly, or indirectly by reference in particular to marital or family status ...” The material provisions of the Directive have direct effect.\",\"2. Article 7.1(a) of the Directive provided that it was to be without prejudice to the right of member states to exclude from its scope the determination of pensionable age for the purpose of granting old age and retirement pensions. The United Kingdom has exercised that right. The combined effect of (i) the Social Security Contributions and Benefits Act 1992, section 44, (ii) the definition of “pensionable age” in section 122 of the Act, and (iii) the Pensions Act 1995, Schedule 4, paragraph 1, is that a woman born before 6 April 1950 becomes eligible for the state retirement pension (referred to in the legislation as a “Category A retirement pension”) at the age of 60, and a man born before 6 December 1953 becomes eligible at the age of 65. The pensionable age of younger persons will converge over a period of time and will eventually be the same, but these changes do not affect the present appeal.\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"mb v secretary of state for work and pensions\"}"
+}

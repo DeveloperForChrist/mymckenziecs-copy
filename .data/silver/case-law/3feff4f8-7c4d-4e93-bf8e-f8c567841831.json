@@ -1,0 +1,21 @@
+{
+  "id": "3feff4f8-7c4d-4e93-bf8e-f8c567841831",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Agbaje (Respondent) v Akinnoye-Agbaje (FC) (Appellant)",
+  "created_at": "2025-12-25T11:46:37.600Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0034",
+    "score": 1,
+    "title": "Agbaje (Respondent) v Akinnoye-Agbaje (FC) (Appellant)",
+    "summary": "1. Part III of the Matrimonial and Family Proceedings Act 1984 was enacted to give the English court the power to grant financial relief after a marriage had been dissolved (or annulled) in a foreign country.",
+    "category": "procedure",
+    "citation": "UKSC/2009/0034",
+    "extracts": [
+      "1. Part III of the Matrimonial and Family Proceedings Act 1984 was enacted to give the English court the power to grant financial relief after a marriage had been dissolved (or annulled) in a foreign country. This appeal raises for the first time at this appellate level the proper approach to the operation of Part III of the 1984 Act.",
+      "2. Mr and Mrs Agbaje (“the husband” and “the wife”) were married for 38 years prior to their divorce in 2005 on the husband’s petition in Nigeria. They were born in Nigeria, but both have British and Nigerian citizenship. All five children of the family were born in England. The wife has been living in England continuously since 1999, when the marriage broke down. The assets are about £700,000, of which £530,000 represents two houses in London in the husband’s name, and the balance represents properties in Nigeria. The Nigerian court awarded the wife a life interest in a property in Lagos (which, as found by the Nigerian court, had a capital value of about £86,000) and a lump sum which was the equivalent of about £21,000."
+    ],
+    "title_key": "agbaje v akinnoye agbaje"
+  },
+  "content": "{\"title\":\"Agbaje (Respondent) v Akinnoye-Agbaje (FC) (Appellant)\",\"citation\":\"UKSC/2009/0034\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0034\",\"summary\":\"1. Part III of the Matrimonial and Family Proceedings Act 1984 was enacted to give the English court the power to grant financial relief after a marriage had been dissolved (or annulled) in a foreign country.\",\"extracts\":[\"1. Part III of the Matrimonial and Family Proceedings Act 1984 was enacted to give the English court the power to grant financial relief after a marriage had been dissolved (or annulled) in a foreign country. This appeal raises for the first time at this appellate level the proper approach to the operation of Part III of the 1984 Act.\",\"2. Mr and Mrs Agbaje (“the husband” and “the wife”) were married for 38 years prior to their divorce in 2005 on the husband’s petition in Nigeria. They were born in Nigeria, but both have British and Nigerian citizenship. All five children of the family were born in England. The wife has been living in England continuously since 1999, when the marriage broke down. The assets are about £700,000, of which £530,000 represents two houses in London in the husband’s name, and the balance represents properties in Nigeria. The Nigerian court awarded the wife a life interest in a property in Lagos (which, as found by the Nigerian court, had a capital value of about £86,000) and a lump sum which was the equivalent of about £21,000.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"agbaje v akinnoye agbaje\"}"
+}

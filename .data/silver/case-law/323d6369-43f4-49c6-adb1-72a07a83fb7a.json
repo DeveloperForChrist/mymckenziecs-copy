@@ -1,0 +1,21 @@
+{
+  "id": "323d6369-43f4-49c6-adb1-72a07a83fb7a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Alexander Devine Children's Cancer Trust (Respondent) v Housing Solutions Ltd (Appellant)",
+  "created_at": "2025-12-25T11:50:09.710Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2019-0006",
+    "score": 2,
+    "title": "Alexander Devine Children's Cancer Trust (Respondent) v Housing Solutions Ltd (Appellant)",
+    "summary": "Principle issue: The correct approach to the ‘public interest’ requirement on an application for the modification or discharge of restrictive covenants under section 84 of the Law of Property Act 1925.",
+    "category": "procedure",
+    "citation": "UKSC/2019/0006",
+    "extracts": [
+      "1. This is the first time the highest court (whether the House of Lords or Supreme Court) has been required to decide an appeal on section 84 of the Law of Property Act 1925. That section confers on the Upper Tribunal a power, in specified circumstances, to discharge or modify restrictive covenants affecting land.",
+      "2. In this case the party entitled to the benefit of a restrictive covenant, preventing development of an area of open land, is the Alexander Devine Children’s Cancer Trust (“the Trust”). The party seeking the discharge or modification of the restrictive covenant under section 84 of the 1925 Act is now Housing Solutions Ltd (“Housing Solutions”) which is a property company concerned with the provision of affordable housing. Housing Solutions acquired the land encumbered by the restrictive covenant (which I shall refer to as “the application land”) from a property developer, Millgate Developments Ltd (“Millgate”). It was Millgate which made the application to the Upper Tribunal under section 84. Housing Solutions was named as having an interest in the application land as prospective purchaser."
+    ],
+    "title_key": "alexander devine children s cancer trust v housing solutions ltd"
+  },
+  "content": "{\"title\":\"Alexander Devine Children's Cancer Trust (Respondent) v Housing Solutions Ltd (Appellant)\",\"citation\":\"UKSC/2019/0006\",\"url\":\"https://supremecourt.uk/cases/uksc-2019-0006\",\"summary\":\"Principle issue: The correct approach to the ‘public interest’ requirement on an application for the modification or discharge of restrictive covenants under section 84 of the Law of Property Act 1925.\",\"extracts\":[\"1. This is the first time the highest court (whether the House of Lords or Supreme Court) has been required to decide an appeal on section 84 of the Law of Property Act 1925. That section confers on the Upper Tribunal a power, in specified circumstances, to discharge or modify restrictive covenants affecting land.\",\"2. In this case the party entitled to the benefit of a restrictive covenant, preventing development of an area of open land, is the Alexander Devine Children’s Cancer Trust (“the Trust”). The party seeking the discharge or modification of the restrictive covenant under section 84 of the 1925 Act is now Housing Solutions Ltd (“Housing Solutions”) which is a property company concerned with the provision of affordable housing. Housing Solutions acquired the land encumbered by the restrictive covenant (which I shall refer to as “the application land”) from a property developer, Millgate Developments Ltd (“Millgate”). It was Millgate which made the application to the Upper Tribunal under section 84. Housing Solutions was named as having an interest in the application land as prospective purchaser.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"alexander devine children s cancer trust v housing solutions ltd\"}"
+}

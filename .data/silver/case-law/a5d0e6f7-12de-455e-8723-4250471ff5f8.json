@@ -1,0 +1,21 @@
+{
+  "id": "a5d0e6f7-12de-455e-8723-4250471ff5f8",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Durkin (Appellant) v DSG Retail Ltd and another (Respondents)",
+  "created_at": "2025-12-25T11:47:59.368Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0135",
+    "score": 4,
+    "title": "Durkin (Appellant) v DSG Retail Ltd and another (Respondents)",
+    "summary": "1. Mr Durkin has fought this battle for many years.",
+    "category": "contract_consumer",
+    "citation": "UKSC/2012/0135",
+    "extracts": [
+      "1. Mr Durkin has fought this battle for many years. He purchased a laptop computer from PC World in Aberdeen for £1,499 on 28 December 1998. He entered a debtor-creditor-supplier agreement with HFC Bank plc under section 12(b) of the Consumer Credit Act 1974 to fund the purchase, apart from a £50 deposit which he paid. On the next day he rejected the computer because it did not conform to his contract. PC World did not accept that he had validly rescinded the contract until the sheriff at Aberdeen in a judgment dated 26 March 2008 determined that he had. In the meantime, HFC treated him as being in default and intimated that default to credit reference agencies. Mr Durkin claimed damages for financial loss caused by the damage to his credit. The principal issue in this appeal is whether Mr Durkin was entitled to rescind the credit agreement on rescission of the sale agreement.",
+      "3. That remained PC World’s position in the action which Mr Durkin initiated in the sheriff court in Aberdeen in 2004 until the sheriff in his judgment of 26 March 2008 granted a declarator that Mr Durkin had validly rescinded the contract of sale. In the later proceedings before the Inner House PC World did not challenge the sheriff’s finding that the contract of sale had been rescinded."
+    ],
+    "title_key": "durkin v dsg retail ltd and another"
+  },
+  "content": "{\"title\":\"Durkin (Appellant) v DSG Retail Ltd and another (Respondents)\",\"citation\":\"UKSC/2012/0135\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0135\",\"summary\":\"1. Mr Durkin has fought this battle for many years.\",\"extracts\":[\"1. Mr Durkin has fought this battle for many years. He purchased a laptop computer from PC World in Aberdeen for £1,499 on 28 December 1998. He entered a debtor-creditor-supplier agreement with HFC Bank plc under section 12(b) of the Consumer Credit Act 1974 to fund the purchase, apart from a £50 deposit which he paid. On the next day he rejected the computer because it did not conform to his contract. PC World did not accept that he had validly rescinded the contract until the sheriff at Aberdeen in a judgment dated 26 March 2008 determined that he had. In the meantime, HFC treated him as being in default and intimated that default to credit reference agencies. Mr Durkin claimed damages for financial loss caused by the damage to his credit. The principal issue in this appeal is whether Mr Durkin was entitled to rescind the credit agreement on rescission of the sale agreement.\",\"3. That remained PC World’s position in the action which Mr Durkin initiated in the sheriff court in Aberdeen in 2004 until the sheriff in his judgment of 26 March 2008 granted a declarator that Mr Durkin had validly rescinded the contract of sale. In the later proceedings before the Inner House PC World did not challenge the sheriff’s finding that the contract of sale had been rescinded.\"],\"category\":\"contract_consumer\",\"score\":4,\"title_key\":\"durkin v dsg retail ltd and another\"}"
+}

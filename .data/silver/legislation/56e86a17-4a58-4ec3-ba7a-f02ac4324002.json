@@ -1,0 +1,15 @@
+{
+  "id": "56e86a17-4a58-4ec3-ba7a-f02ac4324002",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9426",
+  "created_at": "2025-12-25T12:48:26.801Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1976/2238/contents/made",
+    "type": "uksi",
+    "year": 1976,
+    "number": 2238,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1976,\"number\":2238,\"url\":\"http://www.legislation.gov.uk/uksi/1976/2238/contents/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "fda613f9-014c-415e-ac1c-c29510923c91",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#1079",
+  "created_at": "2025-12-25T11:57:45.925Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo5/10-11/10/contents/enacted",
+    "type": "ukpga",
+    "year": 1920,
+    "number": 10,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1920,\"number\":10,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo5/10-11/10/contents/enacted\",\"dataUrl\":null}"
+}

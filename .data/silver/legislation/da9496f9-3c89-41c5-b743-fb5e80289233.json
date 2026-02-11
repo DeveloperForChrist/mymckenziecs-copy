@@ -1,0 +1,15 @@
+{
+  "id": "da9496f9-3c89-41c5-b743-fb5e80289233",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#29130",
+  "created_at": "2025-12-25T14:58:00.205Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2022/834/made/data.xht",
+    "type": "uksi",
+    "year": 2022,
+    "number": null,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2022/834/made/data.akn"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2022,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2022/834/made/data.xht\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2022/834/made/data.akn\"}"
+}

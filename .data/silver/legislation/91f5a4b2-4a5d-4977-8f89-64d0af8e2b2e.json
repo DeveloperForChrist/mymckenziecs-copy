@@ -1,0 +1,15 @@
+{
+  "id": "91f5a4b2-4a5d-4977-8f89-64d0af8e2b2e",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4361",
+  "created_at": "2025-12-25T12:18:08.573Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1975/12/contents/enacted",
+    "type": "ukpga",
+    "year": 1975,
+    "number": 12,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1975,\"number\":12,\"url\":\"http://www.legislation.gov.uk/ukpga/1975/12/contents/enacted\",\"dataUrl\":null}"
+}

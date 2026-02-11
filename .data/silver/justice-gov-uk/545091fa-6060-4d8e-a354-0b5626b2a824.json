@@ -1,0 +1,13 @@
+{
+  "id": "545091fa-6060-4d8e-a354-0b5626b2a824",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#116",
+  "created_at": "2025-12-25T15:20:35.263Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part-47-procedure-for-detailed-assessment",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part_47_procedure_for_deta_88c3d5b2b7.html",
+    "fetchedAt": "2025-12-22T23:49:41.887Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part-47-procedure-for-detailed-assessment\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part_47_procedure_for_deta_88c3d5b2b7.html\",\"fetchedAt\":\"2025-12-22T23:49:41.887Z\"}"
+}

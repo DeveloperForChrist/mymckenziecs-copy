@@ -1,0 +1,15 @@
+{
+  "id": "f3ac93ab-b19c-4b64-9ec0-8c5899860da1",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#27720",
+  "created_at": "2025-12-25T14:47:58.755Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2020/837/made",
+    "type": "uksi",
+    "year": 2020,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2020,\"number\":null,\"url\":\"http://www.legislation.gov.uk/wsi/2020/837/made\",\"dataUrl\":null}"
+}

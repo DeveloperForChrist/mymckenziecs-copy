@@ -1,0 +1,15 @@
+{
+  "id": "934d654a-eff4-45eb-bfbc-609066c48fc0",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7696",
+  "created_at": "2025-12-25T12:38:27.570Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1958/1976/contents/made",
+    "type": "uksi",
+    "year": 1958,
+    "number": 1976,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1958,\"number\":1976,\"url\":\"http://www.legislation.gov.uk/uksi/1958/1976/contents/made\",\"dataUrl\":null}"
+}

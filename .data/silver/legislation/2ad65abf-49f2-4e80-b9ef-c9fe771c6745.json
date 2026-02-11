@@ -1,0 +1,15 @@
+{
+  "id": "2ad65abf-49f2-4e80-b9ef-c9fe771c6745",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#30129",
+  "created_at": "2025-12-25T15:06:05.749Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2024/1392/contents/made",
+    "type": "uksi",
+    "year": 2024,
+    "number": 1392,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2024,\"number\":1392,\"url\":\"http://www.legislation.gov.uk/wsi/2024/1392/contents/made\",\"dataUrl\":null}"
+}

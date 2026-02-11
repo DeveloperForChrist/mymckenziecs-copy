@@ -1,0 +1,15 @@
+{
+  "id": "d4ec1eb5-701c-4ca7-b1e0-d9a7312a1de5",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#28153",
+  "created_at": "2025-12-25T14:50:44.685Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2020/394/made",
+    "type": "uksi",
+    "year": 2020,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2020,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2020/394/made\",\"dataUrl\":null}"
+}

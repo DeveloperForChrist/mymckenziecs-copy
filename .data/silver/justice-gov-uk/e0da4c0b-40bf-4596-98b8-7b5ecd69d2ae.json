@@ -1,0 +1,13 @@
+{
+  "id": "e0da4c0b-40bf-4596-98b8-7b5ecd69d2ae",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#265",
+  "created_at": "2025-12-25T15:21:41.646Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/sched_rsc/rscorder79",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_sched_rsc_rscorder79_a310bb2e06.html",
+    "fetchedAt": "2025-12-23T00:24:40.921Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/sched_rsc/rscorder79\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_sched_rsc_rscorder79_a310bb2e06.html\",\"fetchedAt\":\"2025-12-23T00:24:40.921Z\"}"
+}

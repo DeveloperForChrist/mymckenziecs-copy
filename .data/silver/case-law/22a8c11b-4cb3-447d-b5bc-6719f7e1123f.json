@@ -1,0 +1,21 @@
+{
+  "id": "22a8c11b-4cb3-447d-b5bc-6719f7e1123f",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Zubaydah (Respondent) v Foreign, Commonwealth and Development Office and others (Appellants)",
+  "created_at": "2025-12-25T11:50:49.117Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2022-0083",
+    "score": 2,
+    "title": "Zubaydah (Respondent) v Foreign, Commonwealth and Development Office and others (Appellants)",
+    "summary": "Principle issue: Is the law applicable to the Respondent's claim the law of England and Wales or the law of the six countries in which he alleges he was unlawfully detained and tortured by the United States' authorities?",
+    "category": "procedure",
+    "citation": "UKSC/2022/0083",
+    "extracts": [
+      "1. The issue in this appeal is whether the law applicable under sections 11 and 12 of the Private International Law (Miscellaneous Provisions) Act 1995 (“PILA”) to torts alleged to have been committed by two of the United Kingdom’s security agencies, the Security Service and the Secret Intelligence Service (together “the UK Services”), is the law of England and Wales or the law of each of the six countries in which the claimant alleges he was unlawfully detained and tortured by the United States Central Intelligence Agency (“the CIA”).",
+      "3. The claimant brought these proceedings against the first defendant, the Foreign, Commonwealth and Development Office, and the second defendant, the Home Office, on the basis that the first defendant is vicariously liable for the acts and omissions of officials of the Secret Intelligence Service and the second defendant is vicariously liable for the acts and omissions of officials of the Security Service. The proceedings against the third defendant, the Attorney General, have been instituted on the basis that the claimant has a reasonable doubt as to which Government department is the appropriate defendant to these proceedings: see section 17(3) of the Crown Proceedings Act 1947."
+    ],
+    "title_key": "zubaydah v foreign commonwealth and development office and others"
+  },
+  "content": "{\"title\":\"Zubaydah (Respondent) v Foreign, Commonwealth and Development Office and others (Appellants)\",\"citation\":\"UKSC/2022/0083\",\"url\":\"https://supremecourt.uk/cases/uksc-2022-0083\",\"summary\":\"Principle issue: Is the law applicable to the Respondent's claim the law of England and Wales or the law of the six countries in which he alleges he was unlawfully detained and tortured by the United States' authorities?\",\"extracts\":[\"1. The issue in this appeal is whether the law applicable under sections 11 and 12 of the Private International Law (Miscellaneous Provisions) Act 1995 (“PILA”) to torts alleged to have been committed by two of the United Kingdom’s security agencies, the Security Service and the Secret Intelligence Service (together “the UK Services”), is the law of England and Wales or the law of each of the six countries in which the claimant alleges he was unlawfully detained and tortured by the United States Central Intelligence Agency (“the CIA”).\",\"3. The claimant brought these proceedings against the first defendant, the Foreign, Commonwealth and Development Office, and the second defendant, the Home Office, on the basis that the first defendant is vicariously liable for the acts and omissions of officials of the Secret Intelligence Service and the second defendant is vicariously liable for the acts and omissions of officials of the Security Service. The proceedings against the third defendant, the Attorney General, have been instituted on the basis that the claimant has a reasonable doubt as to which Government department is the appropriate defendant to these proceedings: see section 17(3) of the Crown Proceedings Act 1947.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"zubaydah v foreign commonwealth and development office and others\"}"
+}

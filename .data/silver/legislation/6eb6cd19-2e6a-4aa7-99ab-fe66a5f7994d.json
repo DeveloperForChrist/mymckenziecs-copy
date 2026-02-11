@@ -1,0 +1,15 @@
+{
+  "id": "6eb6cd19-2e6a-4aa7-99ab-fe66a5f7994d",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8415",
+  "created_at": "2025-12-25T12:42:39.542Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1966/1639/contents/made",
+    "type": "uksi",
+    "year": 1966,
+    "number": 1639,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1966,\"number\":1639,\"url\":\"http://www.legislation.gov.uk/uksi/1966/1639/contents/made\",\"dataUrl\":null}"
+}

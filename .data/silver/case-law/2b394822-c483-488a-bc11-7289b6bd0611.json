@@ -1,0 +1,21 @@
+{
+  "id": "2b394822-c483-488a-bc11-7289b6bd0611",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Palestine Solidarity Campaign Ltd and another) (Appellants) v Secretary of State for Communities and Local Government (Respondent)",
+  "created_at": "2025-12-25T11:50:02.241Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0133",
+    "score": 2,
+    "title": "R (on the application of Palestine Solidarity Campaign Ltd and another) (Appellants) v Secretary of State for Communities and Local Government (Respondent)",
+    "summary": "Principle issue: Whether parts of the Secretary of State’s guidance on the investment of Local Government Pensions Schemes relating to UK foreign and defence policy were for an unauthorised purpose.",
+    "category": "public_law",
+    "citation": "UKSC/2018/0133",
+    "extracts": [
+      "2. The claim for judicial review of the two passages in the guidance was launched by, and in this appeal continues to be pursued by, two claimants. The first is Palestine Solidarity Campaign Ltd. This company is dedicated to campaigning both in support of the rights of the Palestinian people, in particular by challenging Israel’s occupation of the disputed territories, and in opposition to racism in all its forms, including antisemitism as well as islamophobia. The second is Ms Jacqueline Lewis, who is not only a member of the company’s executive committee but also an employee of a local authority and a member of its pension scheme.",
+      "3. The claim raised issues in relation to the guidance other than the issue identified above; they were determined, adversely to the claimants, in the lower courts and can now be ignored. On 22 June 2017 Sir Ross Cranston, sitting as a judge of the"
+    ],
+    "title_key": "r v secretary of state for communities and local government"
+  },
+  "content": "{\"title\":\"R (on the application of Palestine Solidarity Campaign Ltd and another) (Appellants) v Secretary of State for Communities and Local Government (Respondent)\",\"citation\":\"UKSC/2018/0133\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0133\",\"summary\":\"Principle issue: Whether parts of the Secretary of State’s guidance on the investment of Local Government Pensions Schemes relating to UK foreign and defence policy were for an unauthorised purpose.\",\"extracts\":[\"2. The claim for judicial review of the two passages in the guidance was launched by, and in this appeal continues to be pursued by, two claimants. The first is Palestine Solidarity Campaign Ltd. This company is dedicated to campaigning both in support of the rights of the Palestinian people, in particular by challenging Israel’s occupation of the disputed territories, and in opposition to racism in all its forms, including antisemitism as well as islamophobia. The second is Ms Jacqueline Lewis, who is not only a member of the company’s executive committee but also an employee of a local authority and a member of its pension scheme.\",\"3. The claim raised issues in relation to the guidance other than the issue identified above; they were determined, adversely to the claimants, in the lower courts and can now be ignored. On 22 June 2017 Sir Ross Cranston, sitting as a judge of the\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"r v secretary of state for communities and local government\"}"
+}

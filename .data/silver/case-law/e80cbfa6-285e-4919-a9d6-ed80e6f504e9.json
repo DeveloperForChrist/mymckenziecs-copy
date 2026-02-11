@@ -1,0 +1,21 @@
+{
+  "id": "e80cbfa6-285e-4919-a9d6-ed80e6f504e9",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Keyu and others (Appellants) v Secretary of State for Foreign and Commonwealth Affairs and another (Respondents)",
+  "created_at": "2025-12-25T11:48:46.490Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0203",
+    "score": 1,
+    "title": "Keyu and others (Appellants) v Secretary of State for Foreign and Commonwealth Affairs and another (Respondents)",
+    "summary": "1. The issue raised by this appeal is whether the respondents to this appeal, the Secretary of State for Foreign and Commonwealth Affairs and the Secretary of State for Defence, are required to hold a public inquiry (or other similar investigation).",
+    "category": "procedure",
+    "citation": "UKSC/2014/0203",
+    "extracts": [
+      "1. The issue raised by this appeal is whether the respondents to this appeal, the Secretary of State for Foreign and Commonwealth Affairs and the Secretary of State for Defence, are required to hold a public inquiry (or other similar investigation). The inquiry which is sought would relate to a controversial series of events which began on 11 and 12 December 1948, when a Scots Guards patrol shot and killed 24 unarmed civilians in the village of Batang Kali, in Selangor. At that time, Selangor was a British Protected State in the Federation of Malaya, but it is now of course a state within the independent federal constitutional monarchy of Malaysia.",
+      "2. The decision not to hold a public inquiry was taken by the respondents pursuant to section 1(1) of the Inquiries Act 2005 (“the 2005 Act”). That section provides that “[a] minister may cause an inquiry to be held … in relation to a case where it appears to him that” certain conditions are satisfied including “(a) particular events have caused, or are capable of causing, public concern” and “(b) there is public concern that particular events may have occurred”."
+    ],
+    "title_key": "keyu and others v secretary of state for foreign and commonwealth affairs and another"
+  },
+  "content": "{\"title\":\"Keyu and others (Appellants) v Secretary of State for Foreign and Commonwealth Affairs and another (Respondents)\",\"citation\":\"UKSC/2014/0203\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0203\",\"summary\":\"1. The issue raised by this appeal is whether the respondents to this appeal, the Secretary of State for Foreign and Commonwealth Affairs and the Secretary of State for Defence, are required to hold a public inquiry (or other similar investigation).\",\"extracts\":[\"1. The issue raised by this appeal is whether the respondents to this appeal, the Secretary of State for Foreign and Commonwealth Affairs and the Secretary of State for Defence, are required to hold a public inquiry (or other similar investigation). The inquiry which is sought would relate to a controversial series of events which began on 11 and 12 December 1948, when a Scots Guards patrol shot and killed 24 unarmed civilians in the village of Batang Kali, in Selangor. At that time, Selangor was a British Protected State in the Federation of Malaya, but it is now of course a state within the independent federal constitutional monarchy of Malaysia.\",\"2. The decision not to hold a public inquiry was taken by the respondents pursuant to section 1(1) of the Inquiries Act 2005 (“the 2005 Act”). That section provides that “[a] minister may cause an inquiry to be held … in relation to a case where it appears to him that” certain conditions are satisfied including “(a) particular events have caused, or are capable of causing, public concern” and “(b) there is public concern that particular events may have occurred”.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"keyu and others v secretary of state for foreign and commonwealth affairs and another\"}"
+}

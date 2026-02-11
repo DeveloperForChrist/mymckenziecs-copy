@@ -1,0 +1,15 @@
+{
+  "id": "e27fc829-773c-43d5-9e99-315cc358e900",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#24372",
+  "created_at": "2025-12-25T14:24:02.531Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2015/1914/made",
+    "type": "uksi",
+    "year": 2015,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2015,\"number\":null,\"url\":\"http://www.legislation.gov.uk/wsi/2015/1914/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "8f078a97-1b02-4aa0-85fd-77501f429998",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Rotherham Metropolitan Borough Council and others) (Appellants) v Secretary of State for Business, Innovation and Skills (Respondent)",
+  "created_at": "2025-12-25T11:48:47.110Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0204",
+    "score": 1,
+    "title": "R (on the application of Rotherham Metropolitan Borough Council and others) (Appellants) v Secretary of State for Business, Innovation and Skills (Respondent)",
+    "summary": "1. This appeal is about the distribution of European Structural Funds among the regions of the United Kingdom.",
+    "category": "procedure",
+    "citation": "UKSC/2014/0204",
+    "extracts": [
+      "1. This appeal is about the distribution of European Structural Funds among the regions of the United Kingdom. It arises out of the complaint of a number of local authorities in Merseyside and South Yorkshire about the way in which it is proposed to distribute funds allocated to the United Kingdom for the years 2014 to 2020. The appellants say that they should receive more and other regions correspondingly less.",
+      "2. Article 174 of the Treaty on the Functioning of the European Union requires the European Union to “aim at reducing disparities between the levels of development of the various regions and the backwardness of the least favoured regions”. Article 175 requires Member States to conduct their economic policy in such a way as to further this objective and the Union to support it by distributions from the “European Structural and Investment Funds” (or “ESI Funds”). These funds are the European Regional Development Fund, the European Social Fund, the Cohesion Fund, the European Agricultural Fund for Rural Development and the European Maritime and Fisheries Fund. For present purposes the most significant of them are the Social Fund and the Regional Development Fund."
+    ],
+    "title_key": "r v secretary of state for business innovation and skills"
+  },
+  "content": "{\"title\":\"R (on the application of Rotherham Metropolitan Borough Council and others) (Appellants) v Secretary of State for Business, Innovation and Skills (Respondent)\",\"citation\":\"UKSC/2014/0204\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0204\",\"summary\":\"1. This appeal is about the distribution of European Structural Funds among the regions of the United Kingdom.\",\"extracts\":[\"1. This appeal is about the distribution of European Structural Funds among the regions of the United Kingdom. It arises out of the complaint of a number of local authorities in Merseyside and South Yorkshire about the way in which it is proposed to distribute funds allocated to the United Kingdom for the years 2014 to 2020. The appellants say that they should receive more and other regions correspondingly less.\",\"2. Article 174 of the Treaty on the Functioning of the European Union requires the European Union to “aim at reducing disparities between the levels of development of the various regions and the backwardness of the least favoured regions”. Article 175 requires Member States to conduct their economic policy in such a way as to further this objective and the Union to support it by distributions from the “European Structural and Investment Funds” (or “ESI Funds”). These funds are the European Regional Development Fund, the European Social Fund, the Cohesion Fund, the European Agricultural Fund for Rural Development and the European Maritime and Fisheries Fund. For present purposes the most significant of them are the Social Fund and the Regional Development Fund.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v secretary of state for business innovation and skills\"}"
+}

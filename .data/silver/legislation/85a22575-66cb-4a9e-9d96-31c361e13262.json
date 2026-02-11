@@ -1,0 +1,15 @@
+{
+  "id": "85a22575-66cb-4a9e-9d96-31c361e13262",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#30452",
+  "created_at": "2025-12-25T15:08:22.785Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2024/1060/made/data.xht",
+    "type": "uksi",
+    "year": 2024,
+    "number": null,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2024/1060/made/data.akn"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2024,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2024/1060/made/data.xht\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2024/1060/made/data.akn\"}"
+}

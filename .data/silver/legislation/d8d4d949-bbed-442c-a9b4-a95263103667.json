@@ -1,0 +1,15 @@
+{
+  "id": "d8d4d949-bbed-442c-a9b4-a95263103667",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9669",
+  "created_at": "2025-12-25T12:49:53.722Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1977/2138/contents/made",
+    "type": "uksi",
+    "year": 1977,
+    "number": 2138,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1977,\"number\":2138,\"url\":\"http://www.legislation.gov.uk/uksi/1977/2138/contents/made\",\"dataUrl\":null}"
+}

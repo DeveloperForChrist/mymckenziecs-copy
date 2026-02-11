@@ -1,0 +1,21 @@
+{
+  "id": "c55b24cc-36d3-48cd-830c-9290ce00c1dc",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Newbigin (Valuation Officer) (Respondent) v S J & J Monk (a firm) (Appellant)",
+  "created_at": "2025-12-25T11:49:00.454Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0069",
+    "score": 1,
+    "title": "Newbigin (Valuation Officer) (Respondent) v S J & J Monk (a firm) (Appellant)",
+    "summary": "1. Does a commercial building which is in the course of redevelopment have to be valued for the purposes of rating as if it were still a useable office?",
+    "category": "procedure",
+    "citation": "UKSC/2015/0069",
+    "extracts": [
+      "1. Does a commercial building which is in the course of redevelopment have to be valued for the purposes of rating as if it were still a useable office? That is the question raised in this appeal. An analogous question would arise if the building were a former hospital which was in the process of conversion into flats. Should it be valued as if it were still available for occupation as a hospital? The question is of general public importance to the law of rating and valuation.",
+      "2. The appellants (“SJJM”) own the freehold of the first floor (“the premises”) of a three-storey office building built in the 1990s, known as Avalon House, at St Catherine’s Court, Sunderland Enterprise Park, Sunderland. In the past the premises were occupied by tenants as a single office suite of 795.73 square metres. In 2006 the tenants vacated the premises and in December 2009 SJJM accepted the surrender of the lease of the premises. On 9 March 2010 SJJM entered into a contract with Jomast Developments Ltd for the renovation and improvement of the premises with a view to making them more adaptable for use as either three separate suites of offices or as a single suite, in order to attract replacement tenants."
+    ],
+    "title_key": "newbigin v s j j monk"
+  },
+  "content": "{\"title\":\"Newbigin (Valuation Officer) (Respondent) v S J & J Monk (a firm) (Appellant)\",\"citation\":\"UKSC/2015/0069\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0069\",\"summary\":\"1. Does a commercial building which is in the course of redevelopment have to be valued for the purposes of rating as if it were still a useable office?\",\"extracts\":[\"1. Does a commercial building which is in the course of redevelopment have to be valued for the purposes of rating as if it were still a useable office? That is the question raised in this appeal. An analogous question would arise if the building were a former hospital which was in the process of conversion into flats. Should it be valued as if it were still available for occupation as a hospital? The question is of general public importance to the law of rating and valuation.\",\"2. The appellants (“SJJM”) own the freehold of the first floor (“the premises”) of a three-storey office building built in the 1990s, known as Avalon House, at St Catherine’s Court, Sunderland Enterprise Park, Sunderland. In the past the premises were occupied by tenants as a single office suite of 795.73 square metres. In 2006 the tenants vacated the premises and in December 2009 SJJM accepted the surrender of the lease of the premises. On 9 March 2010 SJJM entered into a contract with Jomast Developments Ltd for the renovation and improvement of the premises with a view to making them more adaptable for use as either three separate suites of offices or as a single suite, in order to attract replacement tenants.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"newbigin v s j j monk\"}"
+}

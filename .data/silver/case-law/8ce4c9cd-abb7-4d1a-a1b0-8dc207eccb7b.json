@@ -1,0 +1,21 @@
+{
+  "id": "8ce4c9cd-abb7-4d1a-a1b0-8dc207eccb7b",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Societe Generale, London Branch (Respondent) v Geys (Appellant)",
+  "created_at": "2025-12-25T11:47:28.993Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0110",
+    "score": 1,
+    "title": "Societe Generale, London Branch (Respondent) v Geys (Appellant)",
+    "summary": "3. The Court of Appeal (Arden, Rimer and Pitchford LJJ) dismissed the Bank’s appeal on the first and fifth grounds, but allowed its appeal on the second, third and fourth grounds and found that the appellant was dismissed on 18",
+    "category": "procedure",
+    "citation": "UKSC/2011/0110",
+    "extracts": [
+      "3. The Court of Appeal (Arden, Rimer and Pitchford LJJ) dismissed the Bank’s appeal on the first and fifth grounds, but allowed its appeal on the second, third and fourth grounds and found that the appellant was dismissed on 18",
+      "Page 2 December 2007. It dismissed a cross-appeal by the appellant as to the date of his dismissal: [2011] EWCA Civ 307, [2011] IRLR 482. The appellant now appeals to this court on the issues raised by the second and third grounds. The Bank cross- appeals against the dismissal of its appeal on the first ground."
+    ],
+    "title_key": "societe generale london branch v geys"
+  },
+  "content": "{\"title\":\"Societe Generale, London Branch (Respondent) v Geys (Appellant)\",\"citation\":\"UKSC/2011/0110\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0110\",\"summary\":\"3. The Court of Appeal (Arden, Rimer and Pitchford LJJ) dismissed the Bank’s appeal on the first and fifth grounds, but allowed its appeal on the second, third and fourth grounds and found that the appellant was dismissed on 18\",\"extracts\":[\"3. The Court of Appeal (Arden, Rimer and Pitchford LJJ) dismissed the Bank’s appeal on the first and fifth grounds, but allowed its appeal on the second, third and fourth grounds and found that the appellant was dismissed on 18\",\"Page 2 December 2007. It dismissed a cross-appeal by the appellant as to the date of his dismissal: [2011] EWCA Civ 307, [2011] IRLR 482. The appellant now appeals to this court on the issues raised by the second and third grounds. The Bank cross- appeals against the dismissal of its appeal on the first ground.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"societe generale london branch v geys\"}"
+}

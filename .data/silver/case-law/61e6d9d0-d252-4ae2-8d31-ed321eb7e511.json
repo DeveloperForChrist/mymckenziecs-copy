@@ -1,0 +1,21 @@
+{
+  "id": "61e6d9d0-d252-4ae2-8d31-ed321eb7e511",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Edwards and another (Appellant)) v Environment Agency and others (Respondents)",
+  "created_at": "2025-12-25T11:46:59.590Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0030",
+    "score": 1,
+    "title": "R (on the application of Edwards and another (Appellant)) v Environment Agency and others (Respondents)",
+    "summary": "1. The “Aarhus Convention” (more fully, the “Convention on Access to Information, Public Participation in Decision-Making and Access to Justice in Environmental Matters”) requires that the procedures to which it refers should be “fair, equitable, timely and not prohibitively expensive” (article 9...",
+    "category": "procedure",
+    "citation": "UKSC/2010/0030",
+    "extracts": [
+      "1. The “Aarhus Convention” (more fully, the “Convention on Access to Information, Public Participation in Decision-Making and Access to Justice in Environmental Matters”) requires that the procedures to which it refers should be “fair, equitable, timely and not prohibitively expensive” (article 9.4). Although the United Kingdom is a party to the Convention, it is not directly applicable in domestic law. However, the same requirements have been incorporated by amendments made in 2003 into directives, relating in particular to environmental impact assessment (EIA Directive 85/337/EEC) and integrated pollution prevention and control (IPPC Directive 96/61/EC); compliance was required by 25 June 2005 (Council Directive 2003/35/EC article 6) (The EIA Directive is now consolidated at 2011/92/EC). It has not been disputed that the present proceedings, though begun before that date, are at least at this level subject to what I will call the “Aarhus tests” under directly applicable European law.",
+      "3. Before turning to those issues, it is necessary to recall briefly the subject- matter, and somewhat unusual course, of the substantive judicial review proceedings, including the circumstances in which Mrs Pallikaropoulos became a party."
+    ],
+    "title_key": "r v environment agency and others"
+  },
+  "content": "{\"title\":\"R (on the application of Edwards and another (Appellant)) v Environment Agency and others (Respondents)\",\"citation\":\"UKSC/2010/0030\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0030\",\"summary\":\"1. The “Aarhus Convention” (more fully, the “Convention on Access to Information, Public Participation in Decision-Making and Access to Justice in Environmental Matters”) requires that the procedures to which it refers should be “fair, equitable, timely and not prohibitively expensive” (article 9...\",\"extracts\":[\"1. The “Aarhus Convention” (more fully, the “Convention on Access to Information, Public Participation in Decision-Making and Access to Justice in Environmental Matters”) requires that the procedures to which it refers should be “fair, equitable, timely and not prohibitively expensive” (article 9.4). Although the United Kingdom is a party to the Convention, it is not directly applicable in domestic law. However, the same requirements have been incorporated by amendments made in 2003 into directives, relating in particular to environmental impact assessment (EIA Directive 85/337/EEC) and integrated pollution prevention and control (IPPC Directive 96/61/EC); compliance was required by 25 June 2005 (Council Directive 2003/35/EC article 6) (The EIA Directive is now consolidated at 2011/92/EC). It has not been disputed that the present proceedings, though begun before that date, are at least at this level subject to what I will call the “Aarhus tests” under directly applicable European law.\",\"3. Before turning to those issues, it is necessary to recall briefly the subject- matter, and somewhat unusual course, of the substantive judicial review proceedings, including the circumstances in which Mrs Pallikaropoulos became a party.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v environment agency and others\"}"
+}

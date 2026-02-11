@@ -1,0 +1,21 @@
+{
+  "id": "ba9d2442-1fe3-4b2b-9de5-aa0661c9b446",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Robertson (Appellant) v Swift (Respondent)",
+  "created_at": "2025-12-25T11:48:08.125Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0033",
+    "score": 1,
+    "title": "Robertson (Appellant) v Swift (Respondent)",
+    "summary": "1. Mr Swift owns a removal business.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0033",
+    "extracts": [
+      "1. Mr Swift owns a removal business. On 27 July 2011 he received a telephone call from Dr Toby Robertson, the appellant in this appeal. Dr Robertson asked for a quotation for moving his furniture and effects from Weybridge to his new home in Exmouth. The following day Mr Swift visited Dr Robertson’s home and inspected the items to be moved. He proposed a price of £6,000. This did not compare well with other quotations that Dr Robertson had received. These had ranged between £3,000 and £4,000 but the firms that had quoted these figures had been unable to move Dr Robertson’s furniture etc at a time that suited his plans. Dr Robertson explained the position to Mr Swift. The latter responded that the quotes Dr Robertson had been given were not typical and that his was a standard price. So, after some discussion, the two men agreed a price of £5,750 plus extended liability insurance cover and VAT, making a total of £7,595.40.",
+      "“7.1 If you postpone or cancel this agreement, we will charge you according to how much notice is given. ‘Working days’ refer to the normal working days of Monday to Friday and excludes weekends and public holidays."
+    ],
+    "title_key": "robertson v swift"
+  },
+  "content": "{\"title\":\"Robertson (Appellant) v Swift (Respondent)\",\"citation\":\"UKSC/2013/0033\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0033\",\"summary\":\"1. Mr Swift owns a removal business.\",\"extracts\":[\"1. Mr Swift owns a removal business. On 27 July 2011 he received a telephone call from Dr Toby Robertson, the appellant in this appeal. Dr Robertson asked for a quotation for moving his furniture and effects from Weybridge to his new home in Exmouth. The following day Mr Swift visited Dr Robertson’s home and inspected the items to be moved. He proposed a price of £6,000. This did not compare well with other quotations that Dr Robertson had received. These had ranged between £3,000 and £4,000 but the firms that had quoted these figures had been unable to move Dr Robertson’s furniture etc at a time that suited his plans. Dr Robertson explained the position to Mr Swift. The latter responded that the quotes Dr Robertson had been given were not typical and that his was a standard price. So, after some discussion, the two men agreed a price of £5,750 plus extended liability insurance cover and VAT, making a total of £7,595.40.\",\"“7.1 If you postpone or cancel this agreement, we will charge you according to how much notice is given. ‘Working days’ refer to the normal working days of Monday to Friday and excludes weekends and public holidays.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"robertson v swift\"}"
+}

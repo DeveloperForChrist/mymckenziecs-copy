@@ -1,0 +1,15 @@
+{
+  "id": "3ff6757f-5704-41d9-86a4-2cd866e606af",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8879",
+  "created_at": "2025-12-25T12:45:11.091Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1970/1993/contents/made",
+    "type": "uksi",
+    "year": 1970,
+    "number": 1993,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1970,\"number\":1993,\"url\":\"http://www.legislation.gov.uk/uksi/1970/1993/contents/made\",\"dataUrl\":null}"
+}

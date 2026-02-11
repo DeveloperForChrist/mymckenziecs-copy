@@ -1,0 +1,13 @@
+{
+  "id": "0fb9104a-c1d6-4e66-8e26-64c4eb81c609",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#259",
+  "created_at": "2025-12-25T15:21:39.287Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/protocol/pre-action-protocol-for-personal-injury-claims-below-the-small-claims-limit-in-road-traffic-accidents-the-rta-small-claims-protocol",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_protocol_pre_action_protocol_for_75bb35fce0.html",
+    "fetchedAt": "2025-12-23T00:24:38.605Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/protocol/pre-action-protocol-for-personal-injury-claims-below-the-small-claims-limit-in-road-traffic-accidents-the-rta-small-claims-protocol\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_protocol_pre_action_protocol_for_75bb35fce0.html\",\"fetchedAt\":\"2025-12-23T00:24:38.605Z\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "35eb7736-ef30-41b1-9d9e-7931cbcf99fc",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Maguire) (Appellant) v His Majesty’s Senior Coroner for Blackpool & Fylde and another (Respondents)",
+  "created_at": "2025-12-25T11:50:34.957Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2021-0038",
+    "score": 2,
+    "title": "R (on the application of Maguire) (Appellant) v His Majesty’s Senior Coroner for Blackpool & Fylde and another (Respondents)",
+    "summary": "Principle issue: Whether the death of a disabled woman who was deprived of her liberty engaged the state’s obligation to protect life under Article 2 of the European Convention on Human Rights, therefore requiring an inquest jury to make findings regarding the circumstances by which the death occurred.",
+    "category": "public_law",
+    "citation": "UKSC/2021/0038",
+    "extracts": [
+      "1. This case is concerned with the conduct of an inquest into the death of Ms Jacqueline Maguire, aged 52, in hospital on 22 February 2017 from pneumonia and a perforated gastric ulcer and peritonitis and the impact upon this of article 2 of the European Convention on Human Rights (“the Convention”). Article 2 is a convention right set out in the Human Rights Act 1998 (“the HRA”). I will refer to Jacqueline Maguire as “Jackie”, as her family has requested.",
+      "2. Article 2 provides, so far as is relevant, that “Everyone’s right to life shall be protected by law”. It is established law that this provision has a substantive aspect, governing the ways in which the state should act to protect life, and a procedural aspect, which imposes an obligation on the state to provide for investigation as to whether a death may have resulted from a breach of the substantive obligations imposed by article 2. The precise content of the substantive obligations and of the procedural obligation under article 2 varies depending on the circumstances of a particular case. In this appeal, both the substantive aspect and the procedural aspect of article 2 are in issue."
+    ],
+    "title_key": "r v his majesty s senior coroner for blackpool fylde and another"
+  },
+  "content": "{\"title\":\"R (on the application of Maguire) (Appellant) v His Majesty’s Senior Coroner for Blackpool & Fylde and another (Respondents)\",\"citation\":\"UKSC/2021/0038\",\"url\":\"https://supremecourt.uk/cases/uksc-2021-0038\",\"summary\":\"Principle issue: Whether the death of a disabled woman who was deprived of her liberty engaged the state’s obligation to protect life under Article 2 of the European Convention on Human Rights, therefore requiring an inquest jury to make findings regarding the circumstances by which the death occurred.\",\"extracts\":[\"1. This case is concerned with the conduct of an inquest into the death of Ms Jacqueline Maguire, aged 52, in hospital on 22 February 2017 from pneumonia and a perforated gastric ulcer and peritonitis and the impact upon this of article 2 of the European Convention on Human Rights (“the Convention”). Article 2 is a convention right set out in the Human Rights Act 1998 (“the HRA”). I will refer to Jacqueline Maguire as “Jackie”, as her family has requested.\",\"2. Article 2 provides, so far as is relevant, that “Everyone’s right to life shall be protected by law”. It is established law that this provision has a substantive aspect, governing the ways in which the state should act to protect life, and a procedural aspect, which imposes an obligation on the state to provide for investigation as to whether a death may have resulted from a breach of the substantive obligations imposed by article 2. The precise content of the substantive obligations and of the procedural obligation under article 2 varies depending on the circumstances of a particular case. In this appeal, both the substantive aspect and the procedural aspect of article 2 are in issue.\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"r v his majesty s senior coroner for blackpool fylde and another\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01546132-c01f-4865-b6a7-a6d8c818b8dc",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#13535",
+  "created_at": "2025-12-25T13:13:39.450Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1987/448/contents",
+    "type": "uksi",
+    "year": 1987,
+    "number": 448,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1987/448/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1987,\"number\":448,\"url\":\"http://www.legislation.gov.uk/uksi/1987/448/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1987/448/2020-12-31/data.htm\"}"
+}

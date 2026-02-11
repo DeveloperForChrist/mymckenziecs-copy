@@ -1,0 +1,15 @@
+{
+  "id": "0a29f7f6-bf6f-49e3-95d5-79c9028eaada",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#29519",
+  "created_at": "2025-12-25T15:01:11.587Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2022/438/made",
+    "type": "uksi",
+    "year": 2022,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2022,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2022/438/made\",\"dataUrl\":null}"
+}

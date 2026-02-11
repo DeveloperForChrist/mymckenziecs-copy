@@ -1,0 +1,21 @@
+{
+  "id": "8d724844-e4db-45bf-a077-99e14691932a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Hastings Borough Council (Appellant) v Manolete Partners Plc (Respondent)",
+  "created_at": "2025-12-25T11:48:41.917Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0159",
+    "score": 1,
+    "title": "Hastings Borough Council (Appellant) v Manolete Partners Plc (Respondent)",
+    "summary": "1. The council appeals against the decision that it is liable to pay compensation under section 106 of the Building Act 1984, for loss to a business on Hastings Pier arising from its closure during 2006 under the council’s emergency powers.",
+    "category": "procedure",
+    "citation": "UKSC/2014/0159",
+    "extracts": [
+      "1. The council appeals against the decision that it is liable to pay compensation under section 106 of the Building Act 1984, for loss to a business on Hastings Pier arising from its closure during 2006 under the council’s emergency powers. The respondent (“Manolete”) pursued the claim as assignee of Stylus Sports Ltd (“Stylus”), which owned and operated the business at the relevant time, but went into liquidation in late 2011. The only issue in the appeal is whether Stylus was itself “in default” within the meaning of that section, so precluding it from making a claim.",
+      "2. As explained more fully by Jackson LJ in the Court of Appeal ([2014] 1 WLR 4030, [2014] EWCA Civ 562, 46 paras 46ff), the 1984 Act is one of a sequence of public health statutes, going back to the 19th century, which among other matters have dealt with the regulation of new buildings and the control of dangerous structures. The 1984 Act draws together a number of such provisions, including building regulations (Part I), supervision of construction work other than by local authorities (Part II), and “Other provisions about buildings” (Part III). Within Part III, and relevant to this case, are section 77 (“Dangerous building”) and 78 (“Dangerous building - emergency measures”)."
+    ],
+    "title_key": "hastings borough council v manolete partners plc"
+  },
+  "content": "{\"title\":\"Hastings Borough Council (Appellant) v Manolete Partners Plc (Respondent)\",\"citation\":\"UKSC/2014/0159\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0159\",\"summary\":\"1. The council appeals against the decision that it is liable to pay compensation under section 106 of the Building Act 1984, for loss to a business on Hastings Pier arising from its closure during 2006 under the council’s emergency powers.\",\"extracts\":[\"1. The council appeals against the decision that it is liable to pay compensation under section 106 of the Building Act 1984, for loss to a business on Hastings Pier arising from its closure during 2006 under the council’s emergency powers. The respondent (“Manolete”) pursued the claim as assignee of Stylus Sports Ltd (“Stylus”), which owned and operated the business at the relevant time, but went into liquidation in late 2011. The only issue in the appeal is whether Stylus was itself “in default” within the meaning of that section, so precluding it from making a claim.\",\"2. As explained more fully by Jackson LJ in the Court of Appeal ([2014] 1 WLR 4030, [2014] EWCA Civ 562, 46 paras 46ff), the 1984 Act is one of a sequence of public health statutes, going back to the 19th century, which among other matters have dealt with the regulation of new buildings and the control of dangerous structures. The 1984 Act draws together a number of such provisions, including building regulations (Part I), supervision of construction work other than by local authorities (Part II), and “Other provisions about buildings” (Part III). Within Part III, and relevant to this case, are section 77 (“Dangerous building”) and 78 (“Dangerous building - emergency measures”).\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"hastings borough council v manolete partners plc\"}"
+}

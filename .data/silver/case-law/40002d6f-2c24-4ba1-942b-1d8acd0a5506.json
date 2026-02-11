@@ -1,0 +1,21 @@
+{
+  "id": "40002d6f-2c24-4ba1-942b-1d8acd0a5506",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Hillside Parks Ltd (Appellant) v Snowdonia National Park Authority (Respondent)",
+  "created_at": "2025-12-25T11:50:32.914Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2020-0211",
+    "score": 1,
+    "title": "Hillside Parks Ltd (Appellant) v Snowdonia National Park Authority (Respondent)",
+    "summary": "Principle issue: Where there are successive planning permissions relating to the same site, and the later permissions are for changes to one part of a wider development approved in the original planning permission, is the effect of implementing the later permission(s) that the original permission is completely unimplementable? Or can the original permission still be implemented in relation to areas unaffected by the later permission(s)?",
+    "category": "procedure",
+    "citation": "UKSC/2020/0211",
+    "extracts": [
+      "1. This appeal raises issues of importance in planning law about the relationship between successive grants of planning permission for development on the same land and, in particular, about the effect of implementing one planning permission on another planning permission relating to the same site.",
+      "2. The site to which the appeal relates is known as “Balkan Hill” and comprises around 29 acres of land near Aberdyfi in the Snowdonia National Park. In January 1967 the local planning authority granted full planning permission for the development of 401 dwellings on the Balkan Hill site in accordance with a detailed plan referred to as the “Master Plan”. The Master Plan showed the proposed location of each house and the layout of a road system for the estate. It is the current status of this planning permission (“the 1967 permission”) which is in dispute in this case."
+    ],
+    "title_key": "hillside parks ltd v snowdonia national park authority"
+  },
+  "content": "{\"title\":\"Hillside Parks Ltd (Appellant) v Snowdonia National Park Authority (Respondent)\",\"citation\":\"UKSC/2020/0211\",\"url\":\"https://supremecourt.uk/cases/uksc-2020-0211\",\"summary\":\"Principle issue: Where there are successive planning permissions relating to the same site, and the later permissions are for changes to one part of a wider development approved in the original planning permission, is the effect of implementing the later permission(s) that the original permission is completely unimplementable? Or can the original permission still be implemented in relation to areas unaffected by the later permission(s)?\",\"extracts\":[\"1. This appeal raises issues of importance in planning law about the relationship between successive grants of planning permission for development on the same land and, in particular, about the effect of implementing one planning permission on another planning permission relating to the same site.\",\"2. The site to which the appeal relates is known as “Balkan Hill” and comprises around 29 acres of land near Aberdyfi in the Snowdonia National Park. In January 1967 the local planning authority granted full planning permission for the development of 401 dwellings on the Balkan Hill site in accordance with a detailed plan referred to as the “Master Plan”. The Master Plan showed the proposed location of each house and the layout of a road system for the estate. It is the current status of this planning permission (“the 1967 permission”) which is in dispute in this case.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"hillside parks ltd v snowdonia national park authority\"}"
+}

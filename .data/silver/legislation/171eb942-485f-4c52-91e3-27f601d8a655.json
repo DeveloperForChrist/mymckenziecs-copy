@@ -1,0 +1,15 @@
+{
+  "id": "171eb942-485f-4c52-91e3-27f601d8a655",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#29490",
+  "created_at": "2025-12-25T15:00:57.575Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2022/468/made",
+    "type": "uksi",
+    "year": 2022,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2022,\"number\":null,\"url\":\"http://www.legislation.gov.uk/wsi/2022/468/made\",\"dataUrl\":null}"
+}

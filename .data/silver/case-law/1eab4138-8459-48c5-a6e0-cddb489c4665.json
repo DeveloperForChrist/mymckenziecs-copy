@@ -1,0 +1,21 @@
+{
+  "id": "1eab4138-8459-48c5-a6e0-cddb489c4665",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Lumsdon and others) (Appellants) v Legal Services Board (Respondent)",
+  "created_at": "2025-12-25T11:48:53.260Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0272",
+    "score": 1,
+    "title": "R (on the application of Lumsdon and others) (Appellants) v Legal Services Board (Respondent)",
+    "summary": "1. The Legal Services Board (“the Board”) was established by the Legal Services Act 2007 (“the 2007 Act”).",
+    "category": "procedure",
+    "citation": "UKSC/2014/0272",
+    "extracts": [
+      "1. The Legal Services Board (“the Board”) was established by the Legal Services Act 2007 (“the 2007 Act”). It exercises supervisory functions in relation to approved regulators of persons carrying on legal activities, including the Bar Standards Board (“BSB”), the Solicitors Regulation Authority (“SRA”) and the ILEX Professional Standards Board (“IPS”).",
+      "2. This appeal concerns the lawfulness of the Board’s decision on 26 July 2013 to grant a joint application by the BSB, SRA and IPS for approval of alterations to their regulatory arrangements, under Part 3 of Schedule 4 to the 2007 Act. The alterations gave effect to the Quality Assurance Scheme for Advocates (“the scheme”), which provides for the assessment of the performance of criminal advocates in England and Wales by judges."
+    ],
+    "title_key": "r v legal services board"
+  },
+  "content": "{\"title\":\"R (on the application of Lumsdon and others) (Appellants) v Legal Services Board (Respondent)\",\"citation\":\"UKSC/2014/0272\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0272\",\"summary\":\"1. The Legal Services Board (“the Board”) was established by the Legal Services Act 2007 (“the 2007 Act”).\",\"extracts\":[\"1. The Legal Services Board (“the Board”) was established by the Legal Services Act 2007 (“the 2007 Act”). It exercises supervisory functions in relation to approved regulators of persons carrying on legal activities, including the Bar Standards Board (“BSB”), the Solicitors Regulation Authority (“SRA”) and the ILEX Professional Standards Board (“IPS”).\",\"2. This appeal concerns the lawfulness of the Board’s decision on 26 July 2013 to grant a joint application by the BSB, SRA and IPS for approval of alterations to their regulatory arrangements, under Part 3 of Schedule 4 to the 2007 Act. The alterations gave effect to the Quality Assurance Scheme for Advocates (“the scheme”), which provides for the assessment of the performance of criminal advocates in England and Wales by judges.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v legal services board\"}"
+}

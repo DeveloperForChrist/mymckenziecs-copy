@@ -1,0 +1,21 @@
+{
+  "id": "94748339-c6f2-4434-8efc-e4ff4f4aa645",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "BH (AP) (Appellant) and another v The Lord Advocate and another (Respondents) (Scotland)",
+  "created_at": "2025-12-25T11:47:36.246Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0210",
+    "score": 2,
+    "title": "BH (AP) (Appellant) and another v The Lord Advocate and another (Respondents) (Scotland)",
+    "summary": "2. The case comes before this court as an appeal against the determination of a devolution issue by the High Court of Justiciary.",
+    "category": "public_law",
+    "citation": "UKSC/2011/0210",
+    "extracts": [
+      "2. The case comes before this court as an appeal against the determination of a devolution issue by the High Court of Justiciary. The appellants had argued both before Sheriff McColl in the Sheriff Court and in the High Court of Justiciary that it would be incompatible with their Convention rights within the meaning of the Human Rights Act 1998 for them to be extradited, as this would interfere with the exercise of their right to respect for their private and family life contrary to article 8 of the European Convention on Human Rights. Mrs H is the mother of six children, of whom the eldest is aged 14 years and the youngest is just one year old. Mr H is the father of the four younger children.",
+      "3. In a judgment delivered on 3 April 2008 after a hearing which began on 16 November 2007 the sheriff held that the appellants’ extradition would be compatible with their Convention rights. So she sent the case of each appellant to the Scottish Ministers in terms of sections 87(3) and 141(1) of the 2003 Act for their decision whether either of the appellants was to be extradited. On 29 May 2008 the Scottish Ministers ordered the appellants to be extradited to the requesting territory. The appellants appealed to the High Court of Justiciary under section 103 read with section 216(9) of the 2003 Act. On 29 July 2011, after proceedings in that court which the court itself acknowledged had been exceptionally protracted, the High Court of Justiciary (Lord Osborne, Lord Reed"
+    ],
+    "title_key": "bh and another v the lord advocate and another"
+  },
+  "content": "{\"title\":\"BH (AP) (Appellant) and another v The Lord Advocate and another (Respondents) (Scotland)\",\"citation\":\"UKSC/2011/0210\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0210\",\"summary\":\"2. The case comes before this court as an appeal against the determination of a devolution issue by the High Court of Justiciary.\",\"extracts\":[\"2. The case comes before this court as an appeal against the determination of a devolution issue by the High Court of Justiciary. The appellants had argued both before Sheriff McColl in the Sheriff Court and in the High Court of Justiciary that it would be incompatible with their Convention rights within the meaning of the Human Rights Act 1998 for them to be extradited, as this would interfere with the exercise of their right to respect for their private and family life contrary to article 8 of the European Convention on Human Rights. Mrs H is the mother of six children, of whom the eldest is aged 14 years and the youngest is just one year old. Mr H is the father of the four younger children.\",\"3. In a judgment delivered on 3 April 2008 after a hearing which began on 16 November 2007 the sheriff held that the appellants’ extradition would be compatible with their Convention rights. So she sent the case of each appellant to the Scottish Ministers in terms of sections 87(3) and 141(1) of the 2003 Act for their decision whether either of the appellants was to be extradited. On 29 May 2008 the Scottish Ministers ordered the appellants to be extradited to the requesting territory. The appellants appealed to the High Court of Justiciary under section 103 read with section 216(9) of the 2003 Act. On 29 July 2011, after proceedings in that court which the court itself acknowledged had been exceptionally protracted, the High Court of Justiciary (Lord Osborne, Lord Reed\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"bh and another v the lord advocate and another\"}"
+}

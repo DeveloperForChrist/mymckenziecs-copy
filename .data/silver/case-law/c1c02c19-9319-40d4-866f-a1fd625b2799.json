@@ -1,0 +1,21 @@
+{
+  "id": "c1c02c19-9319-40d4-866f-a1fd625b2799",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Moseley) (in substitution of Stirling (Deceased)) (AP) (Appellant) v London Borough of Haringey (Respondent)",
+  "created_at": "2025-12-25T11:48:14.382Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0116",
+    "score": 1,
+    "title": "R (on the application of Moseley) (in substitution of Stirling (Deceased)) (AP) (Appellant) v London Borough of Haringey (Respondent)",
+    "summary": "1. When Parliament requires a local authority to consult interested persons before making a decision which would potentially affect all of its inhabitants, what are the ingredients of the requisite consultation?",
+    "category": "public_law",
+    "citation": "UKSC/2013/0116",
+    "extracts": [
+      "1. When Parliament requires a local authority to consult interested persons before making a decision which would potentially affect all of its inhabitants, what are the ingredients of the requisite consultation?",
+      "2. Until 1 April 2013 there was a scheme in England for the payment of Council Tax Benefit (“CTB”) for the relief, in whole or in part, of certain persons from their annual obligation to pay council tax. The scheme was made by the Department for Work and Pensions and the duty of local authorities was only to operate it. From 1 April 2013, however, local authorities were required to operate a new scheme, entitled a Council Tax Reduction Scheme (“CTRS”), which they were required to have made for themselves. Before making a CTRS, local authorities were required to consult interested persons on a draft of it. Between August and November 2012 the London Borough of Haringey (“Haringey”) purported to consult interested persons on its draft CTRS, following which it made the scheme in substantial accordance with its draft."
+    ],
+    "title_key": "r v london borough of haringey"
+  },
+  "content": "{\"title\":\"R (on the application of Moseley) (in substitution of Stirling (Deceased)) (AP) (Appellant) v London Borough of Haringey (Respondent)\",\"citation\":\"UKSC/2013/0116\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0116\",\"summary\":\"1. When Parliament requires a local authority to consult interested persons before making a decision which would potentially affect all of its inhabitants, what are the ingredients of the requisite consultation?\",\"extracts\":[\"1. When Parliament requires a local authority to consult interested persons before making a decision which would potentially affect all of its inhabitants, what are the ingredients of the requisite consultation?\",\"2. Until 1 April 2013 there was a scheme in England for the payment of Council Tax Benefit (“CTB”) for the relief, in whole or in part, of certain persons from their annual obligation to pay council tax. The scheme was made by the Department for Work and Pensions and the duty of local authorities was only to operate it. From 1 April 2013, however, local authorities were required to operate a new scheme, entitled a Council Tax Reduction Scheme (“CTRS”), which they were required to have made for themselves. Before making a CTRS, local authorities were required to consult interested persons on a draft of it. Between August and November 2012 the London Borough of Haringey (“Haringey”) purported to consult interested persons on its draft CTRS, following which it made the scheme in substantial accordance with its draft.\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"r v london borough of haringey\"}"
+}

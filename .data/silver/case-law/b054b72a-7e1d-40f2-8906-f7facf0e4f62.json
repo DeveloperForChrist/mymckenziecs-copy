@@ -1,0 +1,21 @@
+{
+  "id": "b054b72a-7e1d-40f2-8906-f7facf0e4f62",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Dryden and others (Appellants) v Johnson Matthey Plc (Respondent)",
+  "created_at": "2025-12-25T11:49:25.436Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0140",
+    "score": 1,
+    "title": "Dryden and others (Appellants) v Johnson Matthey Plc (Respondent)",
+    "summary": "1. The central question in this appeal is whether the appellants have suffered actionable personal injury on which they can found claims for negligence/breach of statutory duty.",
+    "category": "procedure",
+    "citation": "UKSC/2016/0140",
+    "extracts": [
+      "1. The central question in this appeal is whether the appellants have suffered actionable personal injury on which they can found claims for negligence/breach of statutory duty. I will refer to the appellants hereafter as “the claimants” as they were at first instance.",
+      "2. The claimants worked for the respondent company, Johnson Matthey Plc (hereafter either “Johnson Matthey” or “the company”), in factories making catalytic converters. Platinum salts are used in the production process. In breach of its duty under the health and safety regulations and at common law, the company failed to ensure that the factories were properly cleaned and, as a result, the claimants were exposed to platinum salts, which led them to develop platinum salt sensitisation."
+    ],
+    "title_key": "dryden and others v johnson matthey plc"
+  },
+  "content": "{\"title\":\"Dryden and others (Appellants) v Johnson Matthey Plc (Respondent)\",\"citation\":\"UKSC/2016/0140\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0140\",\"summary\":\"1. The central question in this appeal is whether the appellants have suffered actionable personal injury on which they can found claims for negligence/breach of statutory duty.\",\"extracts\":[\"1. The central question in this appeal is whether the appellants have suffered actionable personal injury on which they can found claims for negligence/breach of statutory duty. I will refer to the appellants hereafter as “the claimants” as they were at first instance.\",\"2. The claimants worked for the respondent company, Johnson Matthey Plc (hereafter either “Johnson Matthey” or “the company”), in factories making catalytic converters. Platinum salts are used in the production process. In breach of its duty under the health and safety regulations and at common law, the company failed to ensure that the factories were properly cleaned and, as a result, the claimants were exposed to platinum salts, which led them to develop platinum salt sensitisation.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"dryden and others v johnson matthey plc\"}"
+}

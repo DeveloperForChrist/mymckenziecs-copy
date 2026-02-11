@@ -1,0 +1,21 @@
+{
+  "id": "53002e5e-b7ea-40a6-a6b9-6f8134e6cede",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Johnson (Appellant) v Solihull Metropolitan Borough Council (Respondent)",
+  "created_at": "2025-12-25T11:48:50.634Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0230",
+    "score": 1,
+    "title": "Johnson (Appellant) v Solihull Metropolitan Borough Council (Respondent)",
+    "summary": "1. These three appeals raise a number of issues concerning the duty of local housing authorities towards homeless people who claim to be “vulnerable”, and therefore to have “a priority need” for the provision of housing accommodation under Part VII of the Housing Act 1996.",
+    "category": "procedure",
+    "citation": "UKSC/2014/0230",
+    "extracts": [
+      "1. These three appeals raise a number of issues concerning the duty of local housing authorities towards homeless people who claim to be “vulnerable”, and therefore to have “a priority need” for the provision of housing accommodation under Part VII of the Housing Act 1996. Those issues turn on the interpretation of the 1996 Act, but some of them also involve consideration of the Equality Act 2010.",
+      "2. As its title indicates, Part VII of the 1996 Act is concerned with homelessness, and it imposes duties on local housing authorities to provide assistance and advice, or suitable accommodation, to those who are “homeless” or “threatened with homelessness”."
+    ],
+    "title_key": "johnson v solihull metropolitan borough council"
+  },
+  "content": "{\"title\":\"Johnson (Appellant) v Solihull Metropolitan Borough Council (Respondent)\",\"citation\":\"UKSC/2014/0230\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0230\",\"summary\":\"1. These three appeals raise a number of issues concerning the duty of local housing authorities towards homeless people who claim to be “vulnerable”, and therefore to have “a priority need” for the provision of housing accommodation under Part VII of the Housing Act 1996.\",\"extracts\":[\"1. These three appeals raise a number of issues concerning the duty of local housing authorities towards homeless people who claim to be “vulnerable”, and therefore to have “a priority need” for the provision of housing accommodation under Part VII of the Housing Act 1996. Those issues turn on the interpretation of the 1996 Act, but some of them also involve consideration of the Equality Act 2010.\",\"2. As its title indicates, Part VII of the 1996 Act is concerned with homelessness, and it imposes duties on local housing authorities to provide assistance and advice, or suitable accommodation, to those who are “homeless” or “threatened with homelessness”.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"johnson v solihull metropolitan borough council\"}"
+}

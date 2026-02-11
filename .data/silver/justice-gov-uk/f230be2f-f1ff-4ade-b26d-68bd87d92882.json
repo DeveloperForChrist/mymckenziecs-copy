@@ -1,0 +1,13 @@
+{
+  "id": "f230be2f-f1ff-4ade-b26d-68bd87d92882",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#104",
+  "created_at": "2025-12-25T15:20:29.863Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part40/practice-direction-40f-non-disclosure-injunctions-information-collection-scheme",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part40_practice_direction__af977c4e94.html",
+    "fetchedAt": "2025-12-22T23:49:37.191Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part40/practice-direction-40f-non-disclosure-injunctions-information-collection-scheme\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part40_practice_direction__af977c4e94.html\",\"fetchedAt\":\"2025-12-22T23:49:37.191Z\"}"
+}

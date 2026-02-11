@@ -1,0 +1,21 @@
+{
+  "id": "15296638-d196-42da-8bbb-4fb67134a0a9",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "QX (Respondent) v Secretary of State for the Home Department (Appellant)",
+  "created_at": "2025-12-25T11:50:54.099Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2022-0181",
+    "score": 2,
+    "title": "QX (Respondent) v Secretary of State for the Home Department (Appellant)",
+    "summary": "Principle issue: 1) Does Article 6(1) ECHR apply to QX's challenge to the Temporary Exclusion Order (\"TEO\") placed upon him by the SSHD? Did the first instance Judge err in law in holding that QX was not entitled to disclosure of the kind described in AF (No 3) v Secretary of State for the Home Department [2009] UKHL 28; [2012] 2 AC 269 (\"AF No. 3\") in relation to his challenge to the SSHD's determination of Conditions A and B when imposing the TEO?2) What is the role of the Court in determining a challenge to the SSHD's decision to impose a TEO? Does the Court of Appeal have the power to make the factual assessment of terrorist-related activity for itself, or is it limited to an administrative review of the decision made by the SSHD?",
+    "category": "public_law",
+    "citation": "UKSC/2022/0181",
+    "extracts": [
+      "An Order of the High Court is in force that nothing should be published that would or might tend to (i) identify the respondent as being subject to a temporary exclusion order; or (ii) identify the address at which the respondent is residing; or (iii) identify the respondent’s wife and/or children.",
+      "1. The principal question in this appeal is whether the right to a fair hearing, as guaranteed by article 6(1) of the European Convention on Human Rights (“the Convention”) and implemented in our domestic law by the Human Rights Act 1998 (“the Human Rights Act”), applies to an application under section 11 of the Counter-Terrorism and Security Act 2015 (“the 2015 Act”) for the review of the Secretary of State’s decisions relating to the imposition of a temporary exclusion order (“TEO”) on the claimant, QX."
+    ],
+    "title_key": "qx v secretary of state for the home department"
+  },
+  "content": "{\"title\":\"QX (Respondent) v Secretary of State for the Home Department (Appellant)\",\"citation\":\"UKSC/2022/0181\",\"url\":\"https://supremecourt.uk/cases/uksc-2022-0181\",\"summary\":\"Principle issue: 1) Does Article 6(1) ECHR apply to QX's challenge to the Temporary Exclusion Order (\\\\\"TEO\\\\\") placed upon him by the SSHD? Did the first instance Judge err in law in holding that QX was not entitled to disclosure of the kind described in AF (No 3) v Secretary of State for the Home Department [2009] UKHL 28; [2012] 2 AC 269 (\\\\\"AF No. 3\\\\\") in relation to his challenge to the SSHD's determination of Conditions A and B when imposing the TEO?2) What is the role of the Court in determining a challenge to the SSHD's decision to impose a TEO? Does the Court of Appeal have the power to make the factual assessment of terrorist-related activity for itself, or is it limited to an administrative review of the decision made by the SSHD?\",\"extracts\":[\"An Order of the High Court is in force that nothing should be published that would or might tend to (i) identify the respondent as being subject to a temporary exclusion order; or (ii) identify the address at which the respondent is residing; or (iii) identify the respondent’s wife and/or children.\",\"1. The principal question in this appeal is whether the right to a fair hearing, as guaranteed by article 6(1) of the European Convention on Human Rights (“the Convention”) and implemented in our domestic law by the Human Rights Act 1998 (“the Human Rights Act”), applies to an application under section 11 of the Counter-Terrorism and Security Act 2015 (“the 2015 Act”) for the review of the Secretary of State’s decisions relating to the imposition of a temporary exclusion order (“TEO”) on the claimant, QX.\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"qx v secretary of state for the home department\"}"
+}

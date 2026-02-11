@@ -1,0 +1,15 @@
+{
+  "id": "2f703d86-ae5a-4f3b-8197-7accb7735dbf",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4525",
+  "created_at": "2025-12-25T12:19:10.413Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1978/46/contents",
+    "type": "ukpga",
+    "year": 1978,
+    "number": 46,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1978/46/1992-10-16/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1978,\"number\":46,\"url\":\"http://www.legislation.gov.uk/ukpga/1978/46/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1978/46/1992-10-16/data.htm\"}"
+}

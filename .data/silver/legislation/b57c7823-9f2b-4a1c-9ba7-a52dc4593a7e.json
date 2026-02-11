@@ -1,0 +1,15 @@
+{
+  "id": "b57c7823-9f2b-4a1c-9ba7-a52dc4593a7e",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#26837",
+  "created_at": "2025-12-25T14:41:56.130Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2019/1517/contents",
+    "type": "uksi",
+    "year": 2019,
+    "number": 1517,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2019/1517/2025-02-27/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2019,\"number\":1517,\"url\":\"http://www.legislation.gov.uk/uksi/2019/1517/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2019/1517/2025-02-27/data.htm\"}"
+}

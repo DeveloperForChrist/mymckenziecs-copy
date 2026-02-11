@@ -1,0 +1,21 @@
+{
+  "id": "d373e52d-ccfb-4a9e-acef-69809612e8c5",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "A Local Authority (Respondent) v JB (by his Litigation Friend, the Official Solicitor) (AP) (Appellant)",
+  "created_at": "2025-12-25T11:50:28.098Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2020-0133",
+    "score": 0,
+    "title": "A Local Authority (Respondent) v JB (by his Litigation Friend, the Official Solicitor) (AP) (Appellant)",
+    "summary": "Principle issue: To have capacity to decide to have sexual relations with another person, does a person need to understand that the other person must have the capacity to consent to the sexual activity and must in fact consent before and throughout the sexual activity?",
+    "category": "evidence_misc",
+    "citation": "UKSC/2020/0133",
+    "extracts": [
+      "THE COURT ORDERED that no one shall publish or reveal the name or address of the Appellant who is the subject of these proceedings or publish or reveal any information which would be likely to lead to the identification of the Appellant or of any member of his family in connection with these proceedings.",
+      "1. This appeal raises issues of profound significance under the Mental Capacity Act 2005 (the “MCA”) for the appellant, JB, and others like him with an impairment of, or a disturbance in the functioning of, the mind or brain which potentially renders them unable to make a decision for themselves in relation to having sexual relations. The central issue is whether the information relevant to JB’s decision to have sexual relations includes the fact that the other person must be able to consent and gives and maintains consent throughout. If it does, then for JB to have capacity to make the decision for himself, he must be able to understand that information, retain that information and use and weigh that information. If JB is unable to do so, despite all practicable steps having been taken to help him, with the consequence that he lacks capacity to make a decision for himself to having sexual relations, then he will be deprived of all sexual relations, as no other person may consent on his behalf to him having such relations: section 27(1)(b) MCA."
+    ],
+    "title_key": "a local authority v jb"
+  },
+  "content": "{\"title\":\"A Local Authority (Respondent) v JB (by his Litigation Friend, the Official Solicitor) (AP) (Appellant)\",\"citation\":\"UKSC/2020/0133\",\"url\":\"https://supremecourt.uk/cases/uksc-2020-0133\",\"summary\":\"Principle issue: To have capacity to decide to have sexual relations with another person, does a person need to understand that the other person must have the capacity to consent to the sexual activity and must in fact consent before and throughout the sexual activity?\",\"extracts\":[\"THE COURT ORDERED that no one shall publish or reveal the name or address of the Appellant who is the subject of these proceedings or publish or reveal any information which would be likely to lead to the identification of the Appellant or of any member of his family in connection with these proceedings.\",\"1. This appeal raises issues of profound significance under the Mental Capacity Act 2005 (the “MCA”) for the appellant, JB, and others like him with an impairment of, or a disturbance in the functioning of, the mind or brain which potentially renders them unable to make a decision for themselves in relation to having sexual relations. The central issue is whether the information relevant to JB’s decision to have sexual relations includes the fact that the other person must be able to consent and gives and maintains consent throughout. If it does, then for JB to have capacity to make the decision for himself, he must be able to understand that information, retain that information and use and weigh that information. If JB is unable to do so, despite all practicable steps having been taken to help him, with the consequence that he lacks capacity to make a decision for himself to having sexual relations, then he will be deprived of all sexual relations, as no other person may consent on his behalf to him having such relations: section 27(1)(b) MCA.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"a local authority v jb\"}"
+}

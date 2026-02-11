@@ -1,0 +1,21 @@
+{
+  "id": "bf6c86b2-f335-40e2-8234-9b84fdd5ba18",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Lowick Rose LLP (in liquidation) (Appellant) v Swynson Limited and another (Respondents)",
+  "created_at": "2025-12-25T11:49:09.198Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0170",
+    "score": 0,
+    "title": "Lowick Rose LLP (in liquidation) (Appellant) v Swynson Limited and another (Respondents)",
+    "summary": "1. The distinct legal personality of companies has been a fundamental feature of English commercial law for a century and a half, but that has never stopped businessmen from treating their companies as indistinguishable from themselves.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2015/0170",
+    "extracts": [
+      "1. The distinct legal personality of companies has been a fundamental feature of English commercial law for a century and a half, but that has never stopped businessmen from treating their companies as indistinguishable from themselves. Mr Michael Hunt is not the first businessman to make that mistake, and doubtless he will not be the last.",
+      "2. Mr Hunt is a wealthy investor. The judge found that at the relevant time one of his “preferred methods of investment” was to lend money to companies whose business was too risky for them to be able to borrow on normal terms from banks. For this he would charge a substantial arrangement fee and interest at a relatively high rate. Swynson Ltd was a company controlled and beneficially owned by Mr Hunt which was used as a vehicle for such transactions, including the one which has given rise to these proceedings."
+    ],
+    "title_key": "lowick rose llp v swynson limited and another"
+  },
+  "content": "{\"title\":\"Lowick Rose LLP (in liquidation) (Appellant) v Swynson Limited and another (Respondents)\",\"citation\":\"UKSC/2015/0170\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0170\",\"summary\":\"1. The distinct legal personality of companies has been a fundamental feature of English commercial law for a century and a half, but that has never stopped businessmen from treating their companies as indistinguishable from themselves.\",\"extracts\":[\"1. The distinct legal personality of companies has been a fundamental feature of English commercial law for a century and a half, but that has never stopped businessmen from treating their companies as indistinguishable from themselves. Mr Michael Hunt is not the first businessman to make that mistake, and doubtless he will not be the last.\",\"2. Mr Hunt is a wealthy investor. The judge found that at the relevant time one of his “preferred methods of investment” was to lend money to companies whose business was too risky for them to be able to borrow on normal terms from banks. For this he would charge a substantial arrangement fee and interest at a relatively high rate. Swynson Ltd was a company controlled and beneficially owned by Mr Hunt which was used as a vehicle for such transactions, including the one which has given rise to these proceedings.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"lowick rose llp v swynson limited and another\"}"
+}

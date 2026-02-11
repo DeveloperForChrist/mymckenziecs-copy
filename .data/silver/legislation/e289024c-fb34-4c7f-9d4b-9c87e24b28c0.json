@@ -1,0 +1,15 @@
+{
+  "id": "e289024c-fb34-4c7f-9d4b-9c87e24b28c0",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#6875",
+  "created_at": "2025-12-25T12:33:25.174Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1950/2050/contents/made",
+    "type": "uksi",
+    "year": 1950,
+    "number": 2050,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1950,\"number\":2050,\"url\":\"http://www.legislation.gov.uk/uksi/1950/2050/contents/made\",\"dataUrl\":null}"
+}

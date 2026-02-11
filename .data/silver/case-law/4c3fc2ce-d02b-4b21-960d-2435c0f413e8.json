@@ -1,0 +1,21 @@
+{
+  "id": "4c3fc2ce-d02b-4b21-960d-2435c0f413e8",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "London Borough of Merton Council (Appellant) v Nuffield Health (Respondent)",
+  "created_at": "2025-12-25T11:50:39.568Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2021-0138",
+    "score": 0,
+    "title": "London Borough of Merton Council (Appellant) v Nuffield Health (Respondent)",
+    "summary": "Principle issue: Section 43(5) and (6)(a) of the Local Government Finance Act 1988 provides for a mandatory 80% relief from non-domestic rates on premises which are occupied by a charity and used wholly or mainly for charitable purposes. The Supreme Court is asked to decide whether Nuffield Health is entitled to this mandatory relief in respect of its occupation of its members-only gym at Merton Abbey.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2021/0138",
+    "extracts": [
+      "2. The respondent Nuffield Health is a registered charity, which operates some 31 hospitals, 112 fitness and wellbeing centres, five medical centres and over 200 further gyms and health assessment facilities in workplaces across the United Kingdom for the purposes described in its Memorandum of Association as follows:",
+      "3. One of those fitness and wellbeing centres is a members-only gym known as Merton Abbey, located in the London Borough of Merton, the council of which is the appellant (“Merton”). Merton took the view that, viewed on its own, the Merton Abbey gym failed to qualify as being used for charitable purposes because the fees being charged to its members were set at a level which excluded those of modest means from enjoying its facilities. Accordingly the public benefit requirement, which is an invariable condition of charitable status, was not satisfied."
+    ],
+    "title_key": "london borough of merton council v nuffield health"
+  },
+  "content": "{\"title\":\"London Borough of Merton Council (Appellant) v Nuffield Health (Respondent)\",\"citation\":\"UKSC/2021/0138\",\"url\":\"https://supremecourt.uk/cases/uksc-2021-0138\",\"summary\":\"Principle issue: Section 43(5) and (6)(a) of the Local Government Finance Act 1988 provides for a mandatory 80% relief from non-domestic rates on premises which are occupied by a charity and used wholly or mainly for charitable purposes. The Supreme Court is asked to decide whether Nuffield Health is entitled to this mandatory relief in respect of its occupation of its members-only gym at Merton Abbey.\",\"extracts\":[\"2. The respondent Nuffield Health is a registered charity, which operates some 31 hospitals, 112 fitness and wellbeing centres, five medical centres and over 200 further gyms and health assessment facilities in workplaces across the United Kingdom for the purposes described in its Memorandum of Association as follows:\",\"3. One of those fitness and wellbeing centres is a members-only gym known as Merton Abbey, located in the London Borough of Merton, the council of which is the appellant (“Merton”). Merton took the view that, viewed on its own, the Merton Abbey gym failed to qualify as being used for charitable purposes because the fees being charged to its members were set at a level which excluded those of modest means from enjoying its facilities. Accordingly the public benefit requirement, which is an invariable condition of charitable status, was not satisfied.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"london borough of merton council v nuffield health\"}"
+}

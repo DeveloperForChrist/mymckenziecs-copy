@@ -1,0 +1,15 @@
+{
+  "id": "387d9d88-7cb1-42c3-aec9-5e16757a1f19",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#24184",
+  "created_at": "2025-12-25T14:22:49.928Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2013/3298/contents/made",
+    "type": "uksi",
+    "year": 2013,
+    "number": 3298,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2013,\"number\":3298,\"url\":\"http://www.legislation.gov.uk/uksi/2013/3298/contents/made\",\"dataUrl\":null}"
+}

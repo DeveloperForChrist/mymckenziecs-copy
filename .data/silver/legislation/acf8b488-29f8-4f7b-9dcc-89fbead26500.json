@@ -1,0 +1,15 @@
+{
+  "id": "acf8b488-29f8-4f7b-9dcc-89fbead26500",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9951",
+  "created_at": "2025-12-25T12:51:44.013Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1979/1709/contents",
+    "type": "uksi",
+    "year": 1979,
+    "number": 1709,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/1979/1709/2015-04-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1979,\"number\":1709,\"url\":\"http://www.legislation.gov.uk/nisi/1979/1709/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/1979/1709/2015-04-01/data.htm\"}"
+}

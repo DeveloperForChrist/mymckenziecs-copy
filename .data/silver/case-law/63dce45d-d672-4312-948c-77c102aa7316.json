@@ -1,0 +1,21 @@
+{
+  "id": "63dce45d-d672-4312-948c-77c102aa7316",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "James-Bowen and others (Respondents) v Commissioner of Police of the Metropolis (Appellant)",
+  "created_at": "2025-12-25T11:49:38.525Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0003",
+    "score": 1,
+    "title": "James-Bowen and others (Respondents) v Commissioner of Police of the Metropolis (Appellant)",
+    "summary": "1. This appeal raises the question whether the Commissioner of Police of the Metropolis (“the Commissioner”) owes a duty to her officers, in the conduct of proceedings against her based on their alleged misconduct, to take reasonable care to protect them from economic and reputational harm.",
+    "category": "procedure",
+    "citation": "UKSC/2017/0003",
+    "extracts": [
+      "1. This appeal raises the question whether the Commissioner of Police of the Metropolis (“the Commissioner”) owes a duty to her officers, in the conduct of proceedings against her based on their alleged misconduct, to take reasonable care to protect them from economic and reputational harm.",
+      "2. The pleaded facts may be summarised as follows. On 2 December 2003 the respondents, four police officers serving in the Metropolitan Police Service, (“the officers”) took part in the arrest of a suspected terrorist, BA. BA subsequently made allegations that the officers had seriously assaulted and injured him during the arrest. The complaints were investigated by the Metropolitan Police Service’s Directorate of Professional Standards and the Crown Prosecution Service who concluded that there was no case to answer. However, the Independent Police Complaints Commission decided in October 2004 that one charge relating to the use of excessive force should be brought against the first respondent. That charge was dismissed by the disciplinary panel in April 2005. Between 14 January 2005 and 2 February 2005 the Independent Police Complaints Commission released the officers’ identities into the public domain. This led to threats of serious violence to the officers and their families on a website which supported BA."
+    ],
+    "title_key": "james bowen and others v commissioner of police of the metropolis"
+  },
+  "content": "{\"title\":\"James-Bowen and others (Respondents) v Commissioner of Police of the Metropolis (Appellant)\",\"citation\":\"UKSC/2017/0003\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0003\",\"summary\":\"1. This appeal raises the question whether the Commissioner of Police of the Metropolis (“the Commissioner”) owes a duty to her officers, in the conduct of proceedings against her based on their alleged misconduct, to take reasonable care to protect them from economic and reputational harm.\",\"extracts\":[\"1. This appeal raises the question whether the Commissioner of Police of the Metropolis (“the Commissioner”) owes a duty to her officers, in the conduct of proceedings against her based on their alleged misconduct, to take reasonable care to protect them from economic and reputational harm.\",\"2. The pleaded facts may be summarised as follows. On 2 December 2003 the respondents, four police officers serving in the Metropolitan Police Service, (“the officers”) took part in the arrest of a suspected terrorist, BA. BA subsequently made allegations that the officers had seriously assaulted and injured him during the arrest. The complaints were investigated by the Metropolitan Police Service’s Directorate of Professional Standards and the Crown Prosecution Service who concluded that there was no case to answer. However, the Independent Police Complaints Commission decided in October 2004 that one charge relating to the use of excessive force should be brought against the first respondent. That charge was dismissed by the disciplinary panel in April 2005. Between 14 January 2005 and 2 February 2005 the Independent Police Complaints Commission released the officers’ identities into the public domain. This led to threats of serious violence to the officers and their families on a website which supported BA.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"james bowen and others v commissioner of police of the metropolis\"}"
+}

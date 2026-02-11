@@ -1,0 +1,13 @@
+{
+  "id": "9eab400e-ce9c-494c-b540-26fbdad1e981",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#23",
+  "created_at": "2025-12-25T15:19:55.086Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part02/practice-direction-2e-jurisdiction-of-the-county-court-that-may-be-exercised-by-a-legal-adviser",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part02_practice_direction__5f6018fc61.html",
+    "fetchedAt": "2025-12-22T23:49:06.130Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part02/practice-direction-2e-jurisdiction-of-the-county-court-that-may-be-exercised-by-a-legal-adviser\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part02_practice_direction__5f6018fc61.html\",\"fetchedAt\":\"2025-12-22T23:49:06.130Z\"}"
+}

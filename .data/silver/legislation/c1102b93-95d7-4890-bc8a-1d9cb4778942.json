@@ -1,0 +1,15 @@
+{
+  "id": "c1102b93-95d7-4890-bc8a-1d9cb4778942",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#26126",
+  "created_at": "2025-12-25T14:36:36.713Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2018/731/contents",
+    "type": "uksi",
+    "year": 2018,
+    "number": 731,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2018/731/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2018,\"number\":731,\"url\":\"http://www.legislation.gov.uk/uksi/2018/731/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2018/731/2020-12-31/data.htm\"}"
+}

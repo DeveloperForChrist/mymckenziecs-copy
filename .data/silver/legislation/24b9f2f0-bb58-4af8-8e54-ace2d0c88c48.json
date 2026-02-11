@@ -1,0 +1,15 @@
+{
+  "id": "24b9f2f0-bb58-4af8-8e54-ace2d0c88c48",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8661",
+  "created_at": "2025-12-25T12:44:01.673Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1969/1887/contents/made",
+    "type": "uksi",
+    "year": 1969,
+    "number": 1887,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1969,\"number\":1887,\"url\":\"http://www.legislation.gov.uk/uksi/1969/1887/contents/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "fba3a156-98f7-446d-a4e2-6884352e9e5b",
+  "source": "case-law",
+  "path": "data/bronze/case-law/README.md",
+  "title": "README.md",
+  "created_at": "2025-12-25T11:45:56.167Z",
+  "metadata": {},
+  "content": "Scope: UKSC-only, 100 cases\nPurpose: LiP principle layer\nSources: Official UKSC judgments\nCuration method: Principle-first, weighted\nExpansion policy: Log-driven, +25 max\n"
+}

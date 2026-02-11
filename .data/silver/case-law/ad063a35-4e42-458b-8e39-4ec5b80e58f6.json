@@ -1,0 +1,21 @@
+{
+  "id": "ad063a35-4e42-458b-8e39-4ec5b80e58f6",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Navigators Insurance Company Limited and others (Respondents) v Atlasnavios-Navegacao LDA (formerly Bnavios-Navegacao LDA) (Appellant)",
+  "created_at": "2025-12-25T11:49:32.581Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0192",
+    "score": 0,
+    "title": "Navigators Insurance Company Limited and others (Respondents) v Atlasnavios-Navegacao LDA (formerly Bnavios-Navegacao LDA) (Appellant)",
+    "summary": "1. In August 2007, the vessel “B Atlantic”, owned by the appellant, was used by unknown third parties in an unsuccessful attempt to export drugs from Venezuela.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2016/0192",
+    "extracts": [
+      "1. In August 2007, the vessel “B Atlantic”, owned by the appellant, was used by unknown third parties in an unsuccessful attempt to export drugs from Venezuela. After her consequent detention by the Venezuelan authorities and the expiry of a period of more than six months, the owners treated the vessel as a constructive total loss. The issue is whether the vessel sustained a loss by an insured peril, entitling the owners to recover the vessel’s insured value from the respondents, her war risks insurers.",
+      "“including strikes, riots and civil commotions, malicious damage and vandalism, piracy and/or sabotage and/or terrorism and/or malicious mischief and/or malicious damage, including confiscation and expropriation.”"
+    ],
+    "title_key": "navigators insurance company limited and others v atlasnavios navegacao lda"
+  },
+  "content": "{\"title\":\"Navigators Insurance Company Limited and others (Respondents) v Atlasnavios-Navegacao LDA (formerly Bnavios-Navegacao LDA) (Appellant)\",\"citation\":\"UKSC/2016/0192\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0192\",\"summary\":\"1. In August 2007, the vessel “B Atlantic”, owned by the appellant, was used by unknown third parties in an unsuccessful attempt to export drugs from Venezuela.\",\"extracts\":[\"1. In August 2007, the vessel “B Atlantic”, owned by the appellant, was used by unknown third parties in an unsuccessful attempt to export drugs from Venezuela. After her consequent detention by the Venezuelan authorities and the expiry of a period of more than six months, the owners treated the vessel as a constructive total loss. The issue is whether the vessel sustained a loss by an insured peril, entitling the owners to recover the vessel’s insured value from the respondents, her war risks insurers.\",\"“including strikes, riots and civil commotions, malicious damage and vandalism, piracy and/or sabotage and/or terrorism and/or malicious mischief and/or malicious damage, including confiscation and expropriation.”\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"navigators insurance company limited and others v atlasnavios navegacao lda\"}"
+}

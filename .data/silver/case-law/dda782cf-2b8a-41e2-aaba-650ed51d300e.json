@@ -1,0 +1,21 @@
+{
+  "id": "dda782cf-2b8a-41e2-aaba-650ed51d300e",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Regeneron Pharmaceuticals Inc (Respondent) v Kymab Ltd (Appellant)",
+  "created_at": "2025-12-25T11:50:01.672Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0131",
+    "score": 1,
+    "title": "Regeneron Pharmaceuticals Inc (Respondent) v Kymab Ltd (Appellant)",
+    "summary": "Principle issue: Kymab Ltd (\"Kymab\") alleges that the relevant patents are invalid for insufficiency because they did not enable the ordinary skilled person to work the claimed invention across the breadth of the claims.",
+    "category": "procedure",
+    "citation": "UKSC/2018/0131",
+    "extracts": [
+      "1. This appeal challenges the validity of two patents, which seek to confer a monopoly over the creation of a range of types of transgenic mouse. The subject matter, genetic engineering for medical purposes, is of great technical complexity, but the legal question which falls for determination in this court may be quite shortly stated.",
+      "2. It is a general requirement of patent law both in this country and under the European Patent Convention (“EPC”) that, in order to patent an inventive product, the patentee must be able to demonstrate (if challenged) that a skilled person can make the product by the use of the teaching disclosed in the patent coupled with the common general knowledge which is already available at the time of the priority date, without having to undertake an undue experimental burden or apply any inventiveness of their own. This requirement is labelled sufficiency. It is said that the invention must be enabled by the teaching in the patent."
+    ],
+    "title_key": "regeneron pharmaceuticals inc v kymab ltd"
+  },
+  "content": "{\"title\":\"Regeneron Pharmaceuticals Inc (Respondent) v Kymab Ltd (Appellant)\",\"citation\":\"UKSC/2018/0131\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0131\",\"summary\":\"Principle issue: Kymab Ltd (\\\\\"Kymab\\\\\") alleges that the relevant patents are invalid for insufficiency because they did not enable the ordinary skilled person to work the claimed invention across the breadth of the claims.\",\"extracts\":[\"1. This appeal challenges the validity of two patents, which seek to confer a monopoly over the creation of a range of types of transgenic mouse. The subject matter, genetic engineering for medical purposes, is of great technical complexity, but the legal question which falls for determination in this court may be quite shortly stated.\",\"2. It is a general requirement of patent law both in this country and under the European Patent Convention (“EPC”) that, in order to patent an inventive product, the patentee must be able to demonstrate (if challenged) that a skilled person can make the product by the use of the teaching disclosed in the patent coupled with the common general knowledge which is already available at the time of the priority date, without having to undertake an undue experimental burden or apply any inventiveness of their own. This requirement is labelled sufficiency. It is said that the invention must be enabled by the teaching in the patent.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"regeneron pharmaceuticals inc v kymab ltd\"}"
+}

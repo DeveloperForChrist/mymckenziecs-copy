@@ -1,0 +1,21 @@
+{
+  "id": "a4db7260-c242-4420-a4d6-71bc9bd31c8a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Cusack (Respondent) v London Borough of Harrow (Appellant)",
+  "created_at": "2025-12-25T11:47:44.399Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0006",
+    "score": 0,
+    "title": "Cusack (Respondent) v London Borough of Harrow (Appellant)",
+    "summary": "1. Since 1969 Mr Cusack has practised as a solicitor at 66 Station Road, Harrow (“the property”).",
+    "category": "evidence_misc",
+    "citation": "UKSC/2012/0006",
+    "extracts": [
+      "1. Since 1969 Mr Cusack has practised as a solicitor at 66 Station Road, Harrow (“the property”). Station Road, part of the A409, is a single carriage road in each direction flanked by a pedestrian footway. At some unknown date the former front garden was turned into a forecourt open to the highway, which has since then been used for parking cars of staff and clients. This involves cars crossing the footway to gain access, and backing into the road when leaving.",
+      "2. The house had been built in around 1900 as a dwelling. In 1973 a personal permission was granted on appeal to Mr Cusack to use the ground floor as offices, subject to a condition requiring cessation by 31 August 1976. It was noted that the ground floor had been used for that purpose “for some time”, and permission was only sought for a temporary period to enable Mr Cusack to continue his work in the local court. One of the objections had related to traffic generation, but the inspector did not think that “use of these rather limited premises has added materially to traffic hazard over the last two years”. Following the expiry of that permission the use as an office has continued and has become “established” in planning terms."
+    ],
+    "title_key": "cusack v london borough of harrow"
+  },
+  "content": "{\"title\":\"Cusack (Respondent) v London Borough of Harrow (Appellant)\",\"citation\":\"UKSC/2012/0006\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0006\",\"summary\":\"1. Since 1969 Mr Cusack has practised as a solicitor at 66 Station Road, Harrow (“the property”).\",\"extracts\":[\"1. Since 1969 Mr Cusack has practised as a solicitor at 66 Station Road, Harrow (“the property”). Station Road, part of the A409, is a single carriage road in each direction flanked by a pedestrian footway. At some unknown date the former front garden was turned into a forecourt open to the highway, which has since then been used for parking cars of staff and clients. This involves cars crossing the footway to gain access, and backing into the road when leaving.\",\"2. The house had been built in around 1900 as a dwelling. In 1973 a personal permission was granted on appeal to Mr Cusack to use the ground floor as offices, subject to a condition requiring cessation by 31 August 1976. It was noted that the ground floor had been used for that purpose “for some time”, and permission was only sought for a temporary period to enable Mr Cusack to continue his work in the local court. One of the objections had related to traffic generation, but the inspector did not think that “use of these rather limited premises has added materially to traffic hazard over the last two years”. Following the expiry of that permission the use as an office has continued and has become “established” in planning terms.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"cusack v london borough of harrow\"}"
+}

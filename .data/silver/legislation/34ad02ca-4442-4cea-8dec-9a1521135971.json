@@ -1,0 +1,15 @@
+{
+  "id": "34ad02ca-4442-4cea-8dec-9a1521135971",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#14823",
+  "created_at": "2025-12-25T13:21:37.949Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1988/944/contents/made",
+    "type": "uksi",
+    "year": 1988,
+    "number": 944,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1988/944/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1988,\"number\":944,\"url\":\"http://www.legislation.gov.uk/uksi/1988/944/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1988/944/made/data.htm\"}"
+}

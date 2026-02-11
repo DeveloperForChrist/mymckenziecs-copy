@@ -1,0 +1,15 @@
+{
+  "id": "c3a7fc6a-6a79-45cf-bab0-3f3c930270ca",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7023",
+  "created_at": "2025-12-25T12:34:23.180Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1952/2186/contents/made",
+    "type": "uksi",
+    "year": 1952,
+    "number": 2186,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1952,\"number\":2186,\"url\":\"http://www.legislation.gov.uk/uksi/1952/2186/contents/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "be6becfa-591b-495e-b423-82b89b11e24a",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#10244",
+  "created_at": "2025-12-25T12:53:37.099Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1980/2002/contents/made",
+    "type": "uksi",
+    "year": 1980,
+    "number": 2002,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1980,\"number\":2002,\"url\":\"http://www.legislation.gov.uk/uksi/1980/2002/contents/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "c482d09a-b241-4d2d-8f86-7aabb758996e",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Sara & Hossein Asset Holdings Ltd (a company incorporated in the British Virgin Islands) (Respondent) v Blacks Outdoor Retail Ltd (Appellant)",
+  "created_at": "2025-12-25T11:50:34.170Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2021-0027",
+    "score": 2,
+    "title": "Sara & Hossein Asset Holdings Ltd (a company incorporated in the British Virgin Islands) (Respondent) v Blacks Outdoor Retail Ltd (Appellant)",
+    "summary": "Principle issue: Whether the Court of Appeal erred in its construction of a provision in a commercial lease concerning service charges.",
+    "category": "procedure",
+    "citation": "UKSC/2021/0027",
+    "extracts": [
+      "2. The relevant clause provided that the landlord should provide a certificate “as to the amount of the total cost and the sum payable by the tenant” and that this was to be “conclusive” in the absence of “manifest or mathematical error of fraud” (“the permitted defences”).",
+      "4. The tenant, the appellant Blacks Outdoor Retail Ltd (“Blacks”), contends that certification is conclusive as to the amount of costs incurred by the landlord but not as to the tenant’s service charge liability."
+    ],
+    "title_key": "sara hossein asset holdings ltd v blacks outdoor retail ltd"
+  },
+  "content": "{\"title\":\"Sara & Hossein Asset Holdings Ltd (a company incorporated in the British Virgin Islands) (Respondent) v Blacks Outdoor Retail Ltd (Appellant)\",\"citation\":\"UKSC/2021/0027\",\"url\":\"https://supremecourt.uk/cases/uksc-2021-0027\",\"summary\":\"Principle issue: Whether the Court of Appeal erred in its construction of a provision in a commercial lease concerning service charges.\",\"extracts\":[\"2. The relevant clause provided that the landlord should provide a certificate “as to the amount of the total cost and the sum payable by the tenant” and that this was to be “conclusive” in the absence of “manifest or mathematical error of fraud” (“the permitted defences”).\",\"4. The tenant, the appellant Blacks Outdoor Retail Ltd (“Blacks”), contends that certification is conclusive as to the amount of costs incurred by the landlord but not as to the tenant’s service charge liability.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"sara hossein asset holdings ltd v blacks outdoor retail ltd\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "f10f6dc1-516d-4906-af1a-97212a028438",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Naeem (Appellant) v Secretary of State for Justice (Respondent)",
+  "created_at": "2025-12-25T11:49:16.455Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0005",
+    "score": 1,
+    "title": "Naeem (Appellant) v Secretary of State for Justice (Respondent)",
+    "summary": "1. Ideally, discrimination ought to be an easy concept, although proving it may be harder.",
+    "category": "public_law",
+    "citation": "UKSC/2016/0005",
+    "extracts": [
+      "1. Ideally, discrimination ought to be an easy concept, although proving it may be harder. But we do not live in an ideal world and the concepts are not easy, as these two cases illustrate all too well. The law prohibits two main kinds of discrimination - direct and indirect. Direct discrimination is comparatively simple: it is treating one person less favourably than you would treat another person, because of a particular protected characteristic that the former has. Indirect discrimination, however, is not so simple. It is meant to avoid rules and practices which are not directed at or against people with a particular protected characteristic but have the effect of putting them at a disadvantage. It is one form of trying to “level the playing field”.",
+      "Section 5(1) and (2) makes provision equivalent to section 9(2) for people who belong to or share a particular age group, which may be defined either by reference to a particular age or an age range. Section 10(3) makes equivalent provision for people of, or who share, a particular religion or belief."
+    ],
+    "title_key": "naeem v secretary of state for justice"
+  },
+  "content": "{\"title\":\"Naeem (Appellant) v Secretary of State for Justice (Respondent)\",\"citation\":\"UKSC/2016/0005\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0005\",\"summary\":\"1. Ideally, discrimination ought to be an easy concept, although proving it may be harder.\",\"extracts\":[\"1. Ideally, discrimination ought to be an easy concept, although proving it may be harder. But we do not live in an ideal world and the concepts are not easy, as these two cases illustrate all too well. The law prohibits two main kinds of discrimination - direct and indirect. Direct discrimination is comparatively simple: it is treating one person less favourably than you would treat another person, because of a particular protected characteristic that the former has. Indirect discrimination, however, is not so simple. It is meant to avoid rules and practices which are not directed at or against people with a particular protected characteristic but have the effect of putting them at a disadvantage. It is one form of trying to “level the playing field”.\",\"Section 5(1) and (2) makes provision equivalent to section 9(2) for people who belong to or share a particular age group, which may be defined either by reference to a particular age or an age range. Section 10(3) makes equivalent provision for people of, or who share, a particular religion or belief.\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"naeem v secretary of state for justice\"}"
+}

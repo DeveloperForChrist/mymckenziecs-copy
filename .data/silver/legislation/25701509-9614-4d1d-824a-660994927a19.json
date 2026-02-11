@@ -1,0 +1,15 @@
+{
+  "id": "25701509-9614-4d1d-824a-660994927a19",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#10880",
+  "created_at": "2025-12-25T12:57:25.302Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1983/1946/contents/made",
+    "type": "uksi",
+    "year": 1983,
+    "number": 1946,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1983,\"number\":1946,\"url\":\"http://www.legislation.gov.uk/uksi/1983/1946/contents/made\",\"dataUrl\":null}"
+}

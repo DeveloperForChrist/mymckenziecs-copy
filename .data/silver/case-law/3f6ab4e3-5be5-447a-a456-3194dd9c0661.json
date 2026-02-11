@@ -1,0 +1,21 @@
+{
+  "id": "3f6ab4e3-5be5-447a-a456-3194dd9c0661",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Home Office (Appellant) v Tariq (Respondent)",
+  "created_at": "2025-12-25T11:47:05.583Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0106",
+    "score": 3,
+    "title": "Home Office (Appellant) v Tariq (Respondent)",
+    "summary": "1. This appeal concerns the permissibility and in particular compatibility with European Union law and Human Rights Convention rights, of a procedure (conveniently described as a “closed material procedure”) whereby an applicant and his representatives may be excluded from certain aspects of empl...",
+    "category": "procedure",
+    "citation": "UKSC/2010/0106",
+    "extracts": [
+      "1. This appeal concerns the permissibility and in particular compatibility with European Union law and Human Rights Convention rights, of a procedure (conveniently described as a “closed material procedure”) whereby an applicant and his representatives may be excluded from certain aspects of employment tribunal proceedings on grounds of national security, and a special advocate may represent his interests so far as possible in relation to the aspects closed to him and his representatives.",
+      "2. In the relevant employment tribunal proceedings, the appellant, Mr Kashif Tariq, complains that his security clearance as an immigration officer was withdrawn in circumstances involving direct or indirect discrimination on grounds of race and/or religion, and that this was contrary to the Race Relations Act 1976 and the Employment Equality (Religion or Belief) Regulations 2003 (SI 2003/1660). The Home Office’s case is that there was no such discrimination, that the decisions taken in relation to Mr Tariq were taken for the purposes of safeguarding national security, and that the order for a closed material procedure made by the Employment Tribunal (on the Home Office’s application) on 15 February 2008 was made justifiably and for the same protective purposes."
+    ],
+    "title_key": "home office v tariq"
+  },
+  "content": "{\"title\":\"Home Office (Appellant) v Tariq (Respondent)\",\"citation\":\"UKSC/2010/0106\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0106\",\"summary\":\"1. This appeal concerns the permissibility and in particular compatibility with European Union law and Human Rights Convention rights, of a procedure (conveniently described as a “closed material procedure”) whereby an applicant and his representatives may be excluded from certain aspects of empl...\",\"extracts\":[\"1. This appeal concerns the permissibility and in particular compatibility with European Union law and Human Rights Convention rights, of a procedure (conveniently described as a “closed material procedure”) whereby an applicant and his representatives may be excluded from certain aspects of employment tribunal proceedings on grounds of national security, and a special advocate may represent his interests so far as possible in relation to the aspects closed to him and his representatives.\",\"2. In the relevant employment tribunal proceedings, the appellant, Mr Kashif Tariq, complains that his security clearance as an immigration officer was withdrawn in circumstances involving direct or indirect discrimination on grounds of race and/or religion, and that this was contrary to the Race Relations Act 1976 and the Employment Equality (Religion or Belief) Regulations 2003 (SI 2003/1660). The Home Office’s case is that there was no such discrimination, that the decisions taken in relation to Mr Tariq were taken for the purposes of safeguarding national security, and that the order for a closed material procedure made by the Employment Tribunal (on the Home Office’s application) on 15 February 2008 was made justifiably and for the same protective purposes.\"],\"category\":\"procedure\",\"score\":3,\"title_key\":\"home office v tariq\"}"
+}

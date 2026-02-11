@@ -1,0 +1,15 @@
+{
+  "id": "1b84e5fe-c45a-498c-87f1-7caa5e841efe",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7395",
+  "created_at": "2025-12-25T12:36:41.943Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1954/1470/contents/made",
+    "type": "uksi",
+    "year": 1954,
+    "number": 1470,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1954,\"number\":1470,\"url\":\"http://www.legislation.gov.uk/uksi/1954/1470/contents/made\",\"dataUrl\":null}"
+}

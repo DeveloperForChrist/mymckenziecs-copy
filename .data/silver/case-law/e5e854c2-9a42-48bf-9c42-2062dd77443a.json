@@ -1,0 +1,21 @@
+{
+  "id": "e5e854c2-9a42-48bf-9c42-2062dd77443a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Rukhadze and others (Appellants) v Recovery Partners GP Ltd and another (Respondents)",
+  "created_at": "2025-12-25T11:50:58.078Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2023-0062",
+    "score": 1,
+    "title": "Rukhadze and others (Appellants) v Recovery Partners GP Ltd and another (Respondents)",
+    "summary": "Principle issue: Whether the current test for an account of profits (where a fiduciary has to pay back money earned due to a breach of a duty) should be changed to introduce a requirement that the fiduciary could not have made the same profit in a way that avoided a breach of duty, i.e. to introduce a test that asks: ‘Could the same profit have been made but for the breach of fiduciary duty’?",
+    "category": "procedure",
+    "citation": "UKSC/2023/0062",
+    "extracts": [
+      "1. This appeal requires the Supreme Court to consider whether the time has come to make an important change to the equitable principles about the duties and liabilities of fiduciaries. The appellants acknowledge that such a change would involve departing from the ratio of two well-known and longstanding decisions of the House of Lords. They are Regal (Hastings) Ltd v Gulliver [1967] 2 AC 134 and Boardman v Phipps [1967] 2 AC 46. For that reason the court has assembled a panel of seven justices to hear the appeal.",
+      "3. The profit rule originated as a duty owed by trustees to their beneficiaries, but it is equally applicable as between fiduciaries such as company directors and their companies. The directors are not trustees as such (because no trust property is vested in them) but they have powers and control over their principal’s property and affairs which they must exercise as fiduciaries. The present case is about fiduciaries rather than trustees, but there is no difference in principle about the underlying profit rule, which is common to both."
+    ],
+    "title_key": "rukhadze and others v recovery partners gp ltd and another"
+  },
+  "content": "{\"title\":\"Rukhadze and others (Appellants) v Recovery Partners GP Ltd and another (Respondents)\",\"citation\":\"UKSC/2023/0062\",\"url\":\"https://supremecourt.uk/cases/uksc-2023-0062\",\"summary\":\"Principle issue: Whether the current test for an account of profits (where a fiduciary has to pay back money earned due to a breach of a duty) should be changed to introduce a requirement that the fiduciary could not have made the same profit in a way that avoided a breach of duty, i.e. to introduce a test that asks: ‘Could the same profit have been made but for the breach of fiduciary duty’?\",\"extracts\":[\"1. This appeal requires the Supreme Court to consider whether the time has come to make an important change to the equitable principles about the duties and liabilities of fiduciaries. The appellants acknowledge that such a change would involve departing from the ratio of two well-known and longstanding decisions of the House of Lords. They are Regal (Hastings) Ltd v Gulliver [1967] 2 AC 134 and Boardman v Phipps [1967] 2 AC 46. For that reason the court has assembled a panel of seven justices to hear the appeal.\",\"3. The profit rule originated as a duty owed by trustees to their beneficiaries, but it is equally applicable as between fiduciaries such as company directors and their companies. The directors are not trustees as such (because no trust property is vested in them) but they have powers and control over their principal’s property and affairs which they must exercise as fiduciaries. The present case is about fiduciaries rather than trustees, but there is no difference in principle about the underlying profit rule, which is common to both.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"rukhadze and others v recovery partners gp ltd and another\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "dc75c673-a6ee-4e3e-9883-e7b931846a63",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#590",
+  "created_at": "2025-12-25T11:54:47.955Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo5/4-5/60/contents/enacted",
+    "type": "ukpga",
+    "year": 1914,
+    "number": 60,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1914,\"number\":60,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo5/4-5/60/contents/enacted\",\"dataUrl\":null}"
+}

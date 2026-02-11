@@ -1,0 +1,21 @@
+{
+  "id": "0957fede-1a96-4571-8909-7dd8f8e8f4dc",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Newhaven Port & Properties Limited) (Appellant) v East Sussex County Council and another (Respondents)",
+  "created_at": "2025-12-25T11:48:12.861Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0102",
+    "score": 1,
+    "title": "R (on the application of Newhaven Port & Properties Limited) (Appellant) v East Sussex County Council and another (Respondents)",
+    "summary": "1. The specific issue raised by this appeal is whether East Sussex County Council (“the County Council”) was wrong in law to decide to register an area of just over 6 hectares (or 15 acres) known as West Beach at Newhaven (“the Beach”) as a village green pursuant to the provisions of the Commons...",
+    "category": "procedure",
+    "citation": "UKSC/2013/0102",
+    "extracts": [
+      "1. The specific issue raised by this appeal is whether East Sussex County Council (“the County Council”) was wrong in law to decide to register an area of just over 6 hectares (or 15 acres) known as West Beach at Newhaven (“the Beach”) as a village green pursuant to the provisions of the Commons Act 2006. The points of principle raised by the appeal are, potentially at least, far more wide-ranging. Those points are (i) the nature of the public’s rights over coastal beaches, (ii) whether byelaws can give rise to an implied consent to the public to use land, and (iii) the interrelationship of the statutory law relating to village greens and other duties imposed by statute.",
+      "2. Newhaven is a port town on the mouth of the River Ouse in East Sussex, and its harbour (“the Harbour”) has existed since the mid-sixteenth century, after a storm blocked the original mouth of the River Ouse, some three miles to the east. Since at least 1731, the operation of the Harbour has been subject to legislation. The Newhaven Harbour and Ouse Lower Navigation Act 1847 (“the 1847 Newhaven Act”) repealed the earlier legislation, and established harbour trustees (“the trustees”), to whom it gave powers to maintain and support the harbour and associated works."
+    ],
+    "title_key": "r v east sussex county council and another"
+  },
+  "content": "{\"title\":\"R (on the application of Newhaven Port & Properties Limited) (Appellant) v East Sussex County Council and another (Respondents)\",\"citation\":\"UKSC/2013/0102\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0102\",\"summary\":\"1. The specific issue raised by this appeal is whether East Sussex County Council (“the County Council”) was wrong in law to decide to register an area of just over 6 hectares (or 15 acres) known as West Beach at Newhaven (“the Beach”) as a village green pursuant to the provisions of the Commons...\",\"extracts\":[\"1. The specific issue raised by this appeal is whether East Sussex County Council (“the County Council”) was wrong in law to decide to register an area of just over 6 hectares (or 15 acres) known as West Beach at Newhaven (“the Beach”) as a village green pursuant to the provisions of the Commons Act 2006. The points of principle raised by the appeal are, potentially at least, far more wide-ranging. Those points are (i) the nature of the public’s rights over coastal beaches, (ii) whether byelaws can give rise to an implied consent to the public to use land, and (iii) the interrelationship of the statutory law relating to village greens and other duties imposed by statute.\",\"2. Newhaven is a port town on the mouth of the River Ouse in East Sussex, and its harbour (“the Harbour”) has existed since the mid-sixteenth century, after a storm blocked the original mouth of the River Ouse, some three miles to the east. Since at least 1731, the operation of the Harbour has been subject to legislation. The Newhaven Harbour and Ouse Lower Navigation Act 1847 (“the 1847 Newhaven Act”) repealed the earlier legislation, and established harbour trustees (“the trustees”), to whom it gave powers to maintain and support the harbour and associated works.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v east sussex county council and another\"}"
+}

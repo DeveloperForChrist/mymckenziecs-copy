@@ -1,0 +1,13 @@
+{
+  "id": "42b8de02-0d15-4ef1-bba7-fce3fb7e27b4",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#122",
+  "created_at": "2025-12-25T15:20:37.604Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part49/practice-direction-49c-consumer-credit-act-2006-unfair-relationships",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part49_practice_direction__92046dc0ff.html",
+    "fetchedAt": "2025-12-22T23:49:44.290Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part49/practice-direction-49c-consumer-credit-act-2006-unfair-relationships\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part49_practice_direction__92046dc0ff.html\",\"fetchedAt\":\"2025-12-22T23:49:44.290Z\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "99d39b92-01c9-4d3b-8671-ff2a6d9365e7",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#17740",
+  "created_at": "2025-12-25T13:39:52.452Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1997/1639/contents",
+    "type": "uksi",
+    "year": 1997,
+    "number": 1639,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1997/1639/2020-09-24/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1997,\"number\":1639,\"url\":\"http://www.legislation.gov.uk/uksi/1997/1639/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1997/1639/2020-09-24/data.htm\"}"
+}

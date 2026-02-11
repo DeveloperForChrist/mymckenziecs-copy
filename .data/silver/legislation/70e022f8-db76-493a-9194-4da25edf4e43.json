@@ -1,0 +1,15 @@
+{
+  "id": "70e022f8-db76-493a-9194-4da25edf4e43",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#14561",
+  "created_at": "2025-12-25T13:20:04.198Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1988/1303/contents",
+    "type": "uksi",
+    "year": 1988,
+    "number": 1303,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/1988/1303/2006-01-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1988,\"number\":1303,\"url\":\"http://www.legislation.gov.uk/nisi/1988/1303/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/1988/1303/2006-01-01/data.htm\"}"
+}

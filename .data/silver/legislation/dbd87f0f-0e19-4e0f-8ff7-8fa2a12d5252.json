@@ -1,0 +1,15 @@
+{
+  "id": "dbd87f0f-0e19-4e0f-8ff7-8fa2a12d5252",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#2850",
+  "created_at": "2025-12-25T12:09:00.974Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo6and1Eliz2/15-16/19/contents/enacted",
+    "type": "ukpga",
+    "year": 1952,
+    "number": 19,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1952,\"number\":19,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo6and1Eliz2/15-16/19/contents/enacted\",\"dataUrl\":null}"
+}

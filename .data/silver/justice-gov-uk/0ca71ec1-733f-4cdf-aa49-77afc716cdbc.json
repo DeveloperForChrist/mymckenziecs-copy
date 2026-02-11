@@ -1,0 +1,13 @@
+{
+  "id": "0ca71ec1-733f-4cdf-aa49-77afc716cdbc",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#160",
+  "created_at": "2025-12-25T15:20:53.940Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/practice-direction-55c-coronavirus-temporary-provision-in-relation-to-possession-proceedings",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_practice_direction_55c_cor_b44d36f6b2.html",
+    "fetchedAt": "2025-12-22T23:49:59.014Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/practice-direction-55c-coronavirus-temporary-provision-in-relation-to-possession-proceedings\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_practice_direction_55c_cor_b44d36f6b2.html\",\"fetchedAt\":\"2025-12-22T23:49:59.014Z\"}"
+}

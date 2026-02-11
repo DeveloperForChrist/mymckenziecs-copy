@@ -1,0 +1,15 @@
+{
+  "id": "8abe084d-b3fb-44b9-92b2-19632bd2d1e2",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#27384",
+  "created_at": "2025-12-25T14:45:30.079Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2020/1186/made",
+    "type": "uksi",
+    "year": 2020,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2020,\"number\":null,\"url\":\"http://www.legislation.gov.uk/wsi/2020/1186/made\",\"dataUrl\":null}"
+}

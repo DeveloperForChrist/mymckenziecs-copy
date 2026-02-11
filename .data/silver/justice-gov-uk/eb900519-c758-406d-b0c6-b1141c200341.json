@@ -1,0 +1,13 @@
+{
+  "id": "eb900519-c758-406d-b0c6-b1141c200341",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#30",
+  "created_at": "2025-12-25T15:19:58.176Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part03/practice-direction-3f-costs-capping",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part03_practice_direction__1ed5754a1e.html",
+    "fetchedAt": "2025-12-22T23:49:08.802Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part03/practice-direction-3f-costs-capping\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part03_practice_direction__1ed5754a1e.html\",\"fetchedAt\":\"2025-12-22T23:49:08.802Z\"}"
+}

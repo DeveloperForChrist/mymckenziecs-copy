@@ -1,0 +1,15 @@
+{
+  "id": "ed17a6c5-0860-43ff-b6aa-f1946b8f2c93",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20202",
+  "created_at": "2025-12-25T13:55:10.008Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1998/766/contents",
+    "type": "uksi",
+    "year": 1998,
+    "number": 766,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1998/766/2006-03-06/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1998,\"number\":766,\"url\":\"http://www.legislation.gov.uk/uksi/1998/766/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1998/766/2006-03-06/data.htm\"}"
+}

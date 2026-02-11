@@ -1,0 +1,21 @@
+{
+  "id": "1987e902-7d3e-4c33-82a8-3eb36a54223b",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Tesco Stores Limited (Appellant) v Dundee City Council (Respondent) (Scotland)",
+  "created_at": "2025-12-25T11:47:26.196Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0079",
+    "score": 0,
+    "title": "Tesco Stores Limited (Appellant) v Dundee City Council (Respondent) (Scotland)",
+    "summary": "“In dealing with [an application for planning permission] the authority shall have regard to the provisions of the development plan, so far as material to the application, and to any other material considerations.”",
+    "category": "evidence_misc",
+    "citation": "UKSC/2011/0079",
+    "extracts": [
+      "“In dealing with [an application for planning permission] the authority shall have regard to the provisions of the development plan, so far as material to the application, and to any other material considerations.”",
+      "3. The development plan in the present case is an “old development plan” within the meaning of paragraph 1 of Schedule 1 to the 1997 Act. As such, it is defined by section 24 of the 1997 Act, as that section applied before the coming into force of section 2 of the Planning Etc. (Scotland) Act 2006, as including the approved structure plan and the adopted or approved local plan. The relevant structure plan in the present case is the Dundee and Angus Structure Plan, which became operative in 2002, at a time when the NCR plant remained in operation. As is explained in the introduction to the structure plan, its purpose is to provide a long term vision for the area and to set out the broad land use planning strategy guiding development and change. It includes a number of strategic planning policies. It sets the context for local plans, which translate the strategy into greater detail. Its preparation took account of national planning policy guidelines."
+    ],
+    "title_key": "tesco stores limited v dundee city council"
+  },
+  "content": "{\"title\":\"Tesco Stores Limited (Appellant) v Dundee City Council (Respondent) (Scotland)\",\"citation\":\"UKSC/2011/0079\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0079\",\"summary\":\"“In dealing with [an application for planning permission] the authority shall have regard to the provisions of the development plan, so far as material to the application, and to any other material considerations.”\",\"extracts\":[\"“In dealing with [an application for planning permission] the authority shall have regard to the provisions of the development plan, so far as material to the application, and to any other material considerations.”\",\"3. The development plan in the present case is an “old development plan” within the meaning of paragraph 1 of Schedule 1 to the 1997 Act. As such, it is defined by section 24 of the 1997 Act, as that section applied before the coming into force of section 2 of the Planning Etc. (Scotland) Act 2006, as including the approved structure plan and the adopted or approved local plan. The relevant structure plan in the present case is the Dundee and Angus Structure Plan, which became operative in 2002, at a time when the NCR plant remained in operation. As is explained in the introduction to the structure plan, its purpose is to provide a long term vision for the area and to set out the broad land use planning strategy guiding development and change. It includes a number of strategic planning policies. It sets the context for local plans, which translate the strategy into greater detail. Its preparation took account of national planning policy guidelines.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"tesco stores limited v dundee city council\"}"
+}

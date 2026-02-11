@@ -1,0 +1,21 @@
+{
+  "id": "5931f7ef-48eb-476e-a3c7-ad9a616f20db",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Hounga (Appellant) v Allen and another (Respondents)",
+  "created_at": "2025-12-25T11:48:01.346Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0188",
+    "score": 0,
+    "title": "Hounga (Appellant) v Allen and another (Respondents)",
+    "summary": "1. In what circumstances should the defence of illegality defeat a complaint by an employee that an employer has discriminated against him by dismissing him contrary to section 4(2)(c) of the Race Relations Act 1976?",
+    "category": "evidence_misc",
+    "citation": "UKSC/2012/0188",
+    "extracts": [
+      "1. In what circumstances should the defence of illegality defeat a complaint by an employee that an employer has discriminated against him by dismissing him contrary to section 4(2)(c) of the Race Relations Act 1976? The 1976 Act was repealed by section 211(2) of, and Schedule 27 to, the Equality Act 2010 and with effect from 1 October 2010 the provision in section 4(2)(c) has been subsumed in section 39(2)(c) of the 2010 Act.",
+      "2. The appellant, Miss Hounga, appears to have a current age of about 21. She is of Nigerian nationality and now resides in England. In January 2007, when she was aged about 14, she came from Nigeria to the UK under arrangements made by the family of the respondent, Mrs Allen, who is of joint Nigerian and British nationality and who resides in England with her children. Pursuant to these arrangements, in which Miss Hounga knowingly participated, her entry was achieved by her presentation to UK immigration authorities of a false identity and their grant to her of a visitor’s visa for six months. For the following 18 months Miss Hounga lived in the home of Mrs Allen and of her husband who, albeit formally a respondent to it, plays no part in this appeal. Although Miss Hounga had no right to work in the UK, and after July 2007 no right to remain in the UK, Mrs Allen employed her to look after her children in the home."
+    ],
+    "title_key": "hounga v allen and another"
+  },
+  "content": "{\"title\":\"Hounga (Appellant) v Allen and another (Respondents)\",\"citation\":\"UKSC/2012/0188\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0188\",\"summary\":\"1. In what circumstances should the defence of illegality defeat a complaint by an employee that an employer has discriminated against him by dismissing him contrary to section 4(2)(c) of the Race Relations Act 1976?\",\"extracts\":[\"1. In what circumstances should the defence of illegality defeat a complaint by an employee that an employer has discriminated against him by dismissing him contrary to section 4(2)(c) of the Race Relations Act 1976? The 1976 Act was repealed by section 211(2) of, and Schedule 27 to, the Equality Act 2010 and with effect from 1 October 2010 the provision in section 4(2)(c) has been subsumed in section 39(2)(c) of the 2010 Act.\",\"2. The appellant, Miss Hounga, appears to have a current age of about 21. She is of Nigerian nationality and now resides in England. In January 2007, when she was aged about 14, she came from Nigeria to the UK under arrangements made by the family of the respondent, Mrs Allen, who is of joint Nigerian and British nationality and who resides in England with her children. Pursuant to these arrangements, in which Miss Hounga knowingly participated, her entry was achieved by her presentation to UK immigration authorities of a false identity and their grant to her of a visitor’s visa for six months. For the following 18 months Miss Hounga lived in the home of Mrs Allen and of her husband who, albeit formally a respondent to it, plays no part in this appeal. Although Miss Hounga had no right to work in the UK, and after July 2007 no right to remain in the UK, Mrs Allen employed her to look after her children in the home.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"hounga v allen and another\"}"
+}

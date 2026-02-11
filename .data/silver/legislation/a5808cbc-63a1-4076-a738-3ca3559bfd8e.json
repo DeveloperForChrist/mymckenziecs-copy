@@ -1,0 +1,15 @@
+{
+  "id": "a5808cbc-63a1-4076-a738-3ca3559bfd8e",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#26503",
+  "created_at": "2025-12-25T14:39:26.747Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2018/340/made",
+    "type": "uksi",
+    "year": 2018,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2018,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2018/340/made\",\"dataUrl\":null}"
+}

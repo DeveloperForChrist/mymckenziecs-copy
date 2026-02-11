@@ -1,0 +1,21 @@
+{
+  "id": "27e18e7e-9a2a-49a8-a020-cbfbb785ac51",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Royal Bank of Scotland plc (Respondent) v John Patrick McCormack Wilson and another (Appellants) (Scotland)",
+  "created_at": "2025-12-25T11:46:55.347Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0227",
+    "score": 0,
+    "title": "Royal Bank of Scotland plc (Respondent) v John Patrick McCormack Wilson and another (Appellants) (Scotland)",
+    "summary": "1. The appellants, Mr Francis John Wilson and his wife, Mrs Annette Wilson, are the proprietors of a house at 100 Dalum Grove, Loanhead, which is also now their home.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2009/0227",
+    "extracts": [
+      "1. The appellants, Mr Francis John Wilson and his wife, Mrs Annette Wilson, are the proprietors of a house at 100 Dalum Grove, Loanhead, which is also now their home. On 12 July 1991 they granted a standard security over the house in favour of the respondent, the Royal Bank of Scotland (“the Bank”). The standard security was recorded in the Register of Sasines on 3 December of the same year.",
+      "2. The appellants, Mr John Patrick McCormack Wilson and Mrs Norma Wilson, are the proprietors of the neighbouring house at 98 Dalum Grove, Loanhead, which is also now their home. On 28 November 1991 they granted a standard security over the house in favour of the Bank. The standard security was recorded in the Register of Sasines on 4 December 1991. Since it is accepted that material circumstances in the two appeals are the same, for the sake of convenience, I shall concentrate on the appeal by Mr Francis John Wilson and Mrs Annette Wilson (“Mr and Mrs Wilson”), the result in which will be determinative of the appeal by Mr John McCormack Wilson and his wife."
+    ],
+    "title_key": "royal bank of scotland plc v john patrick mccormack wilson and another"
+  },
+  "content": "{\"title\":\"Royal Bank of Scotland plc (Respondent) v John Patrick McCormack Wilson and another (Appellants) (Scotland)\",\"citation\":\"UKSC/2009/0227\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0227\",\"summary\":\"1. The appellants, Mr Francis John Wilson and his wife, Mrs Annette Wilson, are the proprietors of a house at 100 Dalum Grove, Loanhead, which is also now their home.\",\"extracts\":[\"1. The appellants, Mr Francis John Wilson and his wife, Mrs Annette Wilson, are the proprietors of a house at 100 Dalum Grove, Loanhead, which is also now their home. On 12 July 1991 they granted a standard security over the house in favour of the respondent, the Royal Bank of Scotland (“the Bank”). The standard security was recorded in the Register of Sasines on 3 December of the same year.\",\"2. The appellants, Mr John Patrick McCormack Wilson and Mrs Norma Wilson, are the proprietors of the neighbouring house at 98 Dalum Grove, Loanhead, which is also now their home. On 28 November 1991 they granted a standard security over the house in favour of the Bank. The standard security was recorded in the Register of Sasines on 4 December 1991. Since it is accepted that material circumstances in the two appeals are the same, for the sake of convenience, I shall concentrate on the appeal by Mr Francis John Wilson and Mrs Annette Wilson (“Mr and Mrs Wilson”), the result in which will be determinative of the appeal by Mr John McCormack Wilson and his wife.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"royal bank of scotland plc v john patrick mccormack wilson and another\"}"
+}

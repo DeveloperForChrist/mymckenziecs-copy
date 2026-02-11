@@ -1,0 +1,15 @@
+{
+  "id": "1b3910db-ae37-46c3-8a48-e85b9f1da550",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#2555",
+  "created_at": "2025-12-25T12:07:10.567Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo6/11-12/62/contents/enacted",
+    "type": "ukpga",
+    "year": 1948,
+    "number": 62,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1948,\"number\":62,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo6/11-12/62/contents/enacted\",\"dataUrl\":null}"
+}

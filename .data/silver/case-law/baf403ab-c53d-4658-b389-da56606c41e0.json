@@ -1,0 +1,21 @@
+{
+  "id": "baf403ab-c53d-4658-b389-da56606c41e0",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "AIB Group (UK) Plc (Appellant) v Mark Redler & Co Solicitors (Respondent)",
+  "created_at": "2025-12-25T11:48:09.919Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0052",
+    "score": 1,
+    "title": "AIB Group (UK) Plc (Appellant) v Mark Redler & Co Solicitors (Respondent)",
+    "summary": "1. 140 years after the Judicature Act 1873, the stitching together of equity and the common law continues to cause problems at the seams.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0052",
+    "extracts": [
+      "1. 140 years after the Judicature Act 1873, the stitching together of equity and the common law continues to cause problems at the seams. The present appeal concerns the remedy available to the appellant bank against the respondent, a firm of solicitors, for breach of the solicitors’ custodial duties in respect of money entrusted to them for the purpose of completing a loan which was to be secured by a first charge over the borrowers’ property. As is customary in such transactions, the solicitors acted for both the bank and the borrowers.",
+      "2. In June 2006 Mr and Mrs Sondhi applied to borrow £3.3m from the appellant (“the bank”). The loan was to be secured by a first legal charge over the borrowers’ home, which had been valued at £4.25m. The property was at that time the subject of a first legal charge in favour of Barclays Bank plc (“Barclays”). The Barclays charge secured borrowings on two accounts amounting to about £1.5m."
+    ],
+    "title_key": "aib group plc v mark redler co solicitors"
+  },
+  "content": "{\"title\":\"AIB Group (UK) Plc (Appellant) v Mark Redler & Co Solicitors (Respondent)\",\"citation\":\"UKSC/2013/0052\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0052\",\"summary\":\"1. 140 years after the Judicature Act 1873, the stitching together of equity and the common law continues to cause problems at the seams.\",\"extracts\":[\"1. 140 years after the Judicature Act 1873, the stitching together of equity and the common law continues to cause problems at the seams. The present appeal concerns the remedy available to the appellant bank against the respondent, a firm of solicitors, for breach of the solicitors’ custodial duties in respect of money entrusted to them for the purpose of completing a loan which was to be secured by a first charge over the borrowers’ property. As is customary in such transactions, the solicitors acted for both the bank and the borrowers.\",\"2. In June 2006 Mr and Mrs Sondhi applied to borrow £3.3m from the appellant (“the bank”). The loan was to be secured by a first legal charge over the borrowers’ home, which had been valued at £4.25m. The property was at that time the subject of a first legal charge in favour of Barclays Bank plc (“Barclays”). The Barclays charge secured borrowings on two accounts amounting to about £1.5m.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"aib group plc v mark redler co solicitors\"}"
+}

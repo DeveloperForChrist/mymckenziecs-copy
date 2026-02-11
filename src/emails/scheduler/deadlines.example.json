@@ -1,0 +1,15 @@
+[
+  {
+    "id": "case-123",
+    "recipient": "anyanwujordan@gmail.com",
+    "name": "Anyanwu Jordan",
+    "case_title": "State v. Example",
+    "title": "Opposition Brief Due",
+    "notes": "Finalize exhibits and file before close of business.",
+    "time": "16:00",
+    "priority": "high",
+    "category": "deadline",
+    "deadline_date": "2026-03-01",
+    "action_url": "https://www.mymckenziecs.com/cases/123"
+  }
+]

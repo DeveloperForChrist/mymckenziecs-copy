@@ -1,0 +1,21 @@
+{
+  "id": "35e82b66-1eed-4bbf-9370-6de508883b15",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Virgin Atlantic Airways Limited (Respondent) v Zodiac Seats UK Limited (formerly known as Contour Aerospace Limited) (Appellant)",
+  "created_at": "2025-12-25T11:46:57.742Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0013",
+    "score": 1,
+    "title": "Virgin Atlantic Airways Limited (Respondent) v Zodiac Seats UK Limited (formerly known as Contour Aerospace Limited) (Appellant)",
+    "summary": "1. In this case, Virgin Atlantic Airways Ltd wishes to recover damages exceeding £49,000,000 for the infringement of a European Patent which does not exist in the form said to have been infringed.",
+    "category": "procedure",
+    "citation": "UKSC/2010/0013",
+    "extracts": [
+      "1. In this case, Virgin Atlantic Airways Ltd wishes to recover damages exceeding £49,000,000 for the infringement of a European Patent which does not exist in the form said to have been infringed. The Technical Board of Appeal (“TBA”) of the European Patent Office (“EPO”) has retrospectively amended it so as to remove with effect from the date of grant all the claims said to have been infringed.",
+      "2. The TBA found that in the form in which the patent was originally granted the relevant claims were invalid because they had been anticipated by prior art. Virgin says that it is nevertheless entitled to recover damages for infringement because before the TBA had issued its decision, the English courts had held the patent to be valid and specifically rejected the objection based on prior art. Their case is that this conclusion and the finding of validity on which it is based are res judicata notwithstanding the later but retrospective decision of the TBA. A similar argument had succeeded before the Court of Appeal in very similar circumstances in Coflexip SA v Stolt Offshore MS Ltd (No 2) [2004] FSR 708 and Unilin Beheer BV v Berry Floor NV [2007] FSR 635. The Court of Appeal, conceiving itself to be bound by these decisions and regarding them as correct in principle, arrived at the same conclusion."
+    ],
+    "title_key": "virgin atlantic airways limited v zodiac seats uk limited"
+  },
+  "content": "{\"title\":\"Virgin Atlantic Airways Limited (Respondent) v Zodiac Seats UK Limited (formerly known as Contour Aerospace Limited) (Appellant)\",\"citation\":\"UKSC/2010/0013\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0013\",\"summary\":\"1. In this case, Virgin Atlantic Airways Ltd wishes to recover damages exceeding £49,000,000 for the infringement of a European Patent which does not exist in the form said to have been infringed.\",\"extracts\":[\"1. In this case, Virgin Atlantic Airways Ltd wishes to recover damages exceeding £49,000,000 for the infringement of a European Patent which does not exist in the form said to have been infringed. The Technical Board of Appeal (“TBA”) of the European Patent Office (“EPO”) has retrospectively amended it so as to remove with effect from the date of grant all the claims said to have been infringed.\",\"2. The TBA found that in the form in which the patent was originally granted the relevant claims were invalid because they had been anticipated by prior art. Virgin says that it is nevertheless entitled to recover damages for infringement because before the TBA had issued its decision, the English courts had held the patent to be valid and specifically rejected the objection based on prior art. Their case is that this conclusion and the finding of validity on which it is based are res judicata notwithstanding the later but retrospective decision of the TBA. A similar argument had succeeded before the Court of Appeal in very similar circumstances in Coflexip SA v Stolt Offshore MS Ltd (No 2) [2004] FSR 708 and Unilin Beheer BV v Berry Floor NV [2007] FSR 635. The Court of Appeal, conceiving itself to be bound by these decisions and regarding them as correct in principle, arrived at the same conclusion.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"virgin atlantic airways limited v zodiac seats uk limited\"}"
+}

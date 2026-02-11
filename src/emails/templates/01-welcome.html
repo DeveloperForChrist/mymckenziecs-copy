@@ -1,0 +1,26 @@
+<!-- Trigger: after email verification + first dashboard login
+     Purpose: Confirm account, highlight limits, CTA to dashboard
+     Key elements: greeting, summary of limits, CTA button, support footer -->
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Welcome to MymckenzieCS</title>
+    <style>/* minimal styles */ a.button{display:inline-block;padding:10px 16px;background:#2563eb;color:#fff;border-radius:6px;text-decoration:none}</style>
+  </head>
+  <body>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h1 style="margin:0 0 8px;">Welcome, {{name}}!</h1>
+    <p>This note confirms your registration with MymckenzieCS.</p>
+    <p>Thanks for verifying your email. Your free account includes:</p>
+    <ul>
+      <li>20 messages per day with our AI assistant</li>
+      <li>Upload and storage for up to 5 documents</li>
+      <li>Personal Notes page</li>
+    </ul>
+    <p><a class="button" href="{{cta_url}}">Open your dashboard</a></p>
+    <hr />
+    <p>If you have any questions or need assistance, our support team is available at support@mymckenziecs.com.</p>
+    </div>
+  </body>
+</html>

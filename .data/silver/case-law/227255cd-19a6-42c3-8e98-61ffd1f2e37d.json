@@ -1,0 +1,21 @@
+{
+  "id": "227255cd-19a6-42c3-8e98-61ffd1f2e37d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Plevin (Respondent) v Paragon Personal Finance Limited (Appellant)",
+  "created_at": "2025-12-25T11:48:33.984Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0037",
+    "score": 2,
+    "title": "Plevin (Respondent) v Paragon Personal Finance Limited (Appellant)",
+    "summary": "2. Sections 140A to 140D of the Consumer Credit Act 1974 confer wide powers on the court to reopen unfair credit transactions.",
+    "category": "contract_consumer",
+    "citation": "UKSC/2014/0037",
+    "extracts": [
+      "2. Sections 140A to 140D of the Consumer Credit Act 1974 confer wide powers on the court to reopen unfair credit transactions. This appeal is about the application of those provisions to a PPI policy issued in 2006 to Mrs Susan Plevin.",
+      "3. Mrs Plevin was then a widowed college lecturer of fifty-nine living in her own house, with a mortgage and various unsecured personal debts. She responded to an unsolicited leaflet put through her letter box by an independent credit broker called LLP Processing (UK) Ltd, which has since gone into liquidation. They offered to arrange the refinancing of her existing liabilities at a competitive rate of interest over a long term, secured on her home. She telephoned LLP and told them that she was interested in borrowing money to pay off her existing debts and fund some home improvements. During the call, LLP completed an internal form called a “Demands and Needs Statement” on the basis of information provided by"
+    ],
+    "title_key": "plevin v paragon personal finance limited"
+  },
+  "content": "{\"title\":\"Plevin (Respondent) v Paragon Personal Finance Limited (Appellant)\",\"citation\":\"UKSC/2014/0037\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0037\",\"summary\":\"2. Sections 140A to 140D of the Consumer Credit Act 1974 confer wide powers on the court to reopen unfair credit transactions.\",\"extracts\":[\"2. Sections 140A to 140D of the Consumer Credit Act 1974 confer wide powers on the court to reopen unfair credit transactions. This appeal is about the application of those provisions to a PPI policy issued in 2006 to Mrs Susan Plevin.\",\"3. Mrs Plevin was then a widowed college lecturer of fifty-nine living in her own house, with a mortgage and various unsecured personal debts. She responded to an unsolicited leaflet put through her letter box by an independent credit broker called LLP Processing (UK) Ltd, which has since gone into liquidation. They offered to arrange the refinancing of her existing liabilities at a competitive rate of interest over a long term, secured on her home. She telephoned LLP and told them that she was interested in borrowing money to pay off her existing debts and fund some home improvements. During the call, LLP completed an internal form called a “Demands and Needs Statement” on the basis of information provided by\"],\"category\":\"contract_consumer\",\"score\":2,\"title_key\":\"plevin v paragon personal finance limited\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "fe134033-a82c-4b23-9742-357c4a9506ef",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Manchester City Council (Respondent) v Pinnock (Appellant)",
+  "created_at": "2025-12-25T11:46:51.619Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0180",
+    "score": 2,
+    "title": "Manchester City Council (Respondent) v Pinnock (Appellant)",
+    "summary": "2. The principal questions in this appeal are (a) whether article 8 of the European Convention on Human Rights (“the Convention”) requires a court, which is being asked to make an order for possession under section 143D(2) of the Housing Act 1996 (“the 1996 Act”) against a person occupying premis...",
+    "category": "public_law",
+    "citation": "UKSC/2009/0180",
+    "extracts": [
+      "2. The principal questions in this appeal are (a) whether article 8 of the European Convention on Human Rights (“the Convention”) requires a court, which is being asked to make an order for possession under section 143D(2) of the Housing Act 1996 (“the 1996 Act”) against a person occupying premises under a demoted tenancy, to have the power to consider whether the order would be “necessary in a democratic society” and (b) if so, whether section 143D(2) is compatible with article 8 of the Convention (“article 8”). In the result, the Court answers both questions in the affirmative, the first at paras 22-54, the second at paras 65-107 below.",
+      "3. The appeal concerns a tenancy granted by a local authority, but observations relating to local authority landlords in this judgment apply equally to other social landlords to the extent that they are public authorities under the Human Rights Act 1998 (“HRA”)."
+    ],
+    "title_key": "manchester city council v pinnock"
+  },
+  "content": "{\"title\":\"Manchester City Council (Respondent) v Pinnock (Appellant)\",\"citation\":\"UKSC/2009/0180\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0180\",\"summary\":\"2. The principal questions in this appeal are (a) whether article 8 of the European Convention on Human Rights (“the Convention”) requires a court, which is being asked to make an order for possession under section 143D(2) of the Housing Act 1996 (“the 1996 Act”) against a person occupying premis...\",\"extracts\":[\"2. The principal questions in this appeal are (a) whether article 8 of the European Convention on Human Rights (“the Convention”) requires a court, which is being asked to make an order for possession under section 143D(2) of the Housing Act 1996 (“the 1996 Act”) against a person occupying premises under a demoted tenancy, to have the power to consider whether the order would be “necessary in a democratic society” and (b) if so, whether section 143D(2) is compatible with article 8 of the Convention (“article 8”). In the result, the Court answers both questions in the affirmative, the first at paras 22-54, the second at paras 65-107 below.\",\"3. The appeal concerns a tenancy granted by a local authority, but observations relating to local authority landlords in this judgment apply equally to other social landlords to the extent that they are public authorities under the Human Rights Act 1998 (“HRA”).\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"manchester city council v pinnock\"}"
+}

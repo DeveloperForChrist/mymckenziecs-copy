@@ -1,0 +1,21 @@
+{
+  "id": "46924745-6bdb-439c-8937-ef47ecce5aff",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "UKI (Kingsway) Limited (Respondent) v Westminster City Council (Appellant)",
+  "created_at": "2025-12-25T11:49:45.664Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0132",
+    "score": 2,
+    "title": "UKI (Kingsway) Limited (Respondent) v Westminster City Council (Appellant)",
+    "summary": "2. Liability for non-domestic rates depends on a property being entered as a hereditament in the rating list.",
+    "category": "procedure",
+    "citation": "UKSC/2017/0132",
+    "extracts": [
+      "2. Liability for non-domestic rates depends on a property being entered as a hereditament in the rating list. The completion notice procedure, under section 46A of and Schedule 4A to the Local Government Finance Act 1988, as inserted, (“the Act”) provides a mechanism whereby a new building, which has not yet been occupied, may be brought into the rating list. Subject to any appeal, a validly served completion notice has the effect that the building to which it relates is deemed to have been completed on the date specified in the notice. It is then shown in the rating list as a separate hereditament (or hereditaments), and is valued as if it were complete (section 46A(2)). Once the building is so shown in the rating list, its owner (or its occupier if it becomes occupied) becomes liable to an assessment for non- domestic rates.",
+      "3. The procedure is set out in Schedule 4A. Paragraph 1(1) of Schedule 4A provides that, if it comes to the notice of a billing authority that the work remaining to be done on a new building in its area can reasonably be expected to be completed within three months, it shall (unless the valuation officer directs otherwise) “serve … on the owner of the building” a notice, known as a “completion notice”. Paragraph 1(2) contains a similar provision in respect of a new building that has been completed."
+    ],
+    "title_key": "uki limited v westminster city council"
+  },
+  "content": "{\"title\":\"UKI (Kingsway) Limited (Respondent) v Westminster City Council (Appellant)\",\"citation\":\"UKSC/2017/0132\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0132\",\"summary\":\"2. Liability for non-domestic rates depends on a property being entered as a hereditament in the rating list.\",\"extracts\":[\"2. Liability for non-domestic rates depends on a property being entered as a hereditament in the rating list. The completion notice procedure, under section 46A of and Schedule 4A to the Local Government Finance Act 1988, as inserted, (“the Act”) provides a mechanism whereby a new building, which has not yet been occupied, may be brought into the rating list. Subject to any appeal, a validly served completion notice has the effect that the building to which it relates is deemed to have been completed on the date specified in the notice. It is then shown in the rating list as a separate hereditament (or hereditaments), and is valued as if it were complete (section 46A(2)). Once the building is so shown in the rating list, its owner (or its occupier if it becomes occupied) becomes liable to an assessment for non- domestic rates.\",\"3. The procedure is set out in Schedule 4A. Paragraph 1(1) of Schedule 4A provides that, if it comes to the notice of a billing authority that the work remaining to be done on a new building in its area can reasonably be expected to be completed within three months, it shall (unless the valuation officer directs otherwise) “serve … on the owner of the building” a notice, known as a “completion notice”. Paragraph 1(2) contains a similar provision in respect of a new building that has been completed.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"uki limited v westminster city council\"}"
+}

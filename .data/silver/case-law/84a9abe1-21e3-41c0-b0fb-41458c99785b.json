@@ -1,0 +1,21 @@
+{
+  "id": "84a9abe1-21e3-41c0-b0fb-41458c99785b",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of an application by Dennis Hutchings for Judicial Review (Northern Ireland)",
+  "created_at": "2025-12-25T11:49:55.232Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0040",
+    "score": 1,
+    "title": "In the matter of an application by Dennis Hutchings for Judicial Review (Northern Ireland)",
+    "summary": "1. On Saturday 15 June 1974, in the late morning, an army patrol consisting of two military vehicles was travelling towards Benburb, County Tyrone.",
+    "category": "public_law",
+    "citation": "UKSC/2018/0040",
+    "extracts": [
+      "1. On Saturday 15 June 1974, in the late morning, an army patrol consisting of two military vehicles was travelling towards Benburb, County Tyrone. The vehicles contained members of the Life Guards regiment. The lead vehicle had six men on board. The commander of the patrol, who was travelling in that vehicle, was Dennis Hutchings, the appellant in this case.",
+      "2. As the patrol rounded a left-hand bend near a village called Eglish on what was a winding road, a young man came into view, standing on the left-hand side of the road. He appeared to be looking into the hedge at the side of the road. His name was John Paul Cunningham. Mr Cunningham appeared startled and confused. He ran across the road in front of the lead vehicle and climbed a gate into a neighbouring field. He then ran towards a metal fence which bordered the field."
+    ],
+    "title_key": "in the matter of an application by dennis hutchings for judicial review"
+  },
+  "content": "{\"title\":\"In the matter of an application by Dennis Hutchings for Judicial Review (Northern Ireland)\",\"citation\":\"UKSC/2018/0040\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0040\",\"summary\":\"1. On Saturday 15 June 1974, in the late morning, an army patrol consisting of two military vehicles was travelling towards Benburb, County Tyrone.\",\"extracts\":[\"1. On Saturday 15 June 1974, in the late morning, an army patrol consisting of two military vehicles was travelling towards Benburb, County Tyrone. The vehicles contained members of the Life Guards regiment. The lead vehicle had six men on board. The commander of the patrol, who was travelling in that vehicle, was Dennis Hutchings, the appellant in this case.\",\"2. As the patrol rounded a left-hand bend near a village called Eglish on what was a winding road, a young man came into view, standing on the left-hand side of the road. He appeared to be looking into the hedge at the side of the road. His name was John Paul Cunningham. Mr Cunningham appeared startled and confused. He ran across the road in front of the lead vehicle and climbed a gate into a neighbouring field. He then ran towards a metal fence which bordered the field.\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"in the matter of an application by dennis hutchings for judicial review\"}"
+}

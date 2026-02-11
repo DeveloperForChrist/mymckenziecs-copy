@@ -1,0 +1,15 @@
+{
+  "id": "c0797d55-ddd5-4e75-8238-0e47ff4d6519",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#14192",
+  "created_at": "2025-12-25T13:17:49.242Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1988/1852/contents",
+    "type": "uksi",
+    "year": 1988,
+    "number": 1852,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/1988/1852/2009-11-23/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1988,\"number\":1852,\"url\":\"http://www.legislation.gov.uk/nisi/1988/1852/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/1988/1852/2009-11-23/data.htm\"}"
+}

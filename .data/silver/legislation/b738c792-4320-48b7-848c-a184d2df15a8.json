@@ -1,0 +1,15 @@
+{
+  "id": "b738c792-4320-48b7-848c-a184d2df15a8",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#24163",
+  "created_at": "2025-12-25T14:22:41.391Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2012/3172/2020-11-23/data.rdf",
+    "type": "uksi",
+    "year": 2012,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2012,\"number\":null,\"url\":\"http://www.legislation.gov.uk/wsi/2012/3172/2020-11-23/data.rdf\",\"dataUrl\":null}"
+}

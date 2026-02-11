@@ -1,0 +1,21 @@
+{
+  "id": "b3e194fe-fcc2-4ddf-a18d-86c29fe99a27",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Scott (FC) (Appellant) v Southern Pacific Mortgages Limited and another (Respondents)",
+  "created_at": "2025-12-25T11:47:55.850Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0102",
+    "score": 0,
+    "title": "Scott (FC) (Appellant) v Southern Pacific Mortgages Limited and another (Respondents)",
+    "summary": "Rosemary Scott (Appellant/Second Defendant) and Southern Pacific Mortgages Limited (Claimant/First Respondent) and Mortgage Express (Second Respondent) and Amee Lydia Wilkinson (First Defendant) and The Mortgage Business Plc (Intervener)",
+    "category": "evidence_misc",
+    "citation": "UKSC/2012/0102",
+    "extracts": [
+      "Rosemary Scott (Appellant/Second Defendant) and Southern Pacific Mortgages Limited (Claimant/First Respondent) and Mortgage Express (Second Respondent) and Amee Lydia Wilkinson (First Defendant) and The Mortgage Business Plc (Intervener)",
+      "2. In 2009 the Financial Services Authority recommended that consumer detriment occurring in this market warranted a fast regulatory response, and in the same year sale and rent back transactions became a regulated activity under section 19 of the Financial Services and Markets Act 2000. As a result, in February 2012 the FSA reported that most sale and rent back transactions were unaffordable or unsuitable and should never have been sold, but that in practice the entire market had shut down. They are now very rare."
+    ],
+    "title_key": "scott v southern pacific mortgages limited and another"
+  },
+  "content": "{\"title\":\"Scott (FC) (Appellant) v Southern Pacific Mortgages Limited and another (Respondents)\",\"citation\":\"UKSC/2012/0102\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0102\",\"summary\":\"Rosemary Scott (Appellant/Second Defendant) and Southern Pacific Mortgages Limited (Claimant/First Respondent) and Mortgage Express (Second Respondent) and Amee Lydia Wilkinson (First Defendant) and The Mortgage Business Plc (Intervener)\",\"extracts\":[\"Rosemary Scott (Appellant/Second Defendant) and Southern Pacific Mortgages Limited (Claimant/First Respondent) and Mortgage Express (Second Respondent) and Amee Lydia Wilkinson (First Defendant) and The Mortgage Business Plc (Intervener)\",\"2. In 2009 the Financial Services Authority recommended that consumer detriment occurring in this market warranted a fast regulatory response, and in the same year sale and rent back transactions became a regulated activity under section 19 of the Financial Services and Markets Act 2000. As a result, in February 2012 the FSA reported that most sale and rent back transactions were unaffordable or unsuitable and should never have been sold, but that in practice the entire market had shut down. They are now very rare.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"scott v southern pacific mortgages limited and another\"}"
+}

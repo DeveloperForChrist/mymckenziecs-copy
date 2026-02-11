@@ -1,0 +1,21 @@
+{
+  "id": "fad39496-8e7c-4f39-b615-85f302633ad2",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Lehman Brothers Holdings Inc (Appellant) v The Joint Administrators of Lehman Brothers International (Europe) and others (Respondents)",
+  "created_at": "2025-12-25T11:49:05.008Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0137",
+    "score": 0,
+    "title": "Lehman Brothers Holdings Inc (Appellant) v The Joint Administrators of Lehman Brothers International (Europe) and others (Respondents)",
+    "summary": "The Joint Administrators of LB Holdings Intermediate 2 Limited (Appellant) v The Joint Administrators of Lehman Brothers International (Europe) and others (Respondents) The Joint Administrators of Lehman Brothers Limited (Appellant) v Lehman Brothers International (Europe) (In Administration) and...",
+    "category": "evidence_misc",
+    "citation": "UKSC/2015/0137",
+    "extracts": [
+      "The Joint Administrators of LB Holdings Intermediate 2 Limited (Appellant) v The Joint Administrators of Lehman Brothers International (Europe) and others (Respondents) The Joint Administrators of Lehman Brothers Limited (Appellant) v Lehman Brothers International (Europe) (In Administration) and others (Respondents) Lehman Brothers Holdings Inc (Appellant) v The Joint Administrators of Lehman Brothers International (Europe) and others (Respondents)",
+      "2. The Group’s main trading company in Europe was Lehman Brothers International (Europe) (“LBIE”), which is an unlimited company. Its share capital consists of a number of ordinary shares as well as a number of redeemable shares. All these shares, except for one ordinary share, are held by LB Holdings Intermediate 2 Ltd (“LBHI2”), whose sole function was to act as LBIE’s immediate holding company. The remaining ordinary share is held by Lehman Brothers Ltd (“LBL”), which was the service company for the Group’s operations in the UK, Europe and Middle East."
+    ],
+    "title_key": "lehman brothers holdings inc v the joint administrators of lehman brothers international and others"
+  },
+  "content": "{\"title\":\"Lehman Brothers Holdings Inc (Appellant) v The Joint Administrators of Lehman Brothers International (Europe) and others (Respondents)\",\"citation\":\"UKSC/2015/0137\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0137\",\"summary\":\"The Joint Administrators of LB Holdings Intermediate 2 Limited (Appellant) v The Joint Administrators of Lehman Brothers International (Europe) and others (Respondents) The Joint Administrators of Lehman Brothers Limited (Appellant) v Lehman Brothers International (Europe) (In Administration) and...\",\"extracts\":[\"The Joint Administrators of LB Holdings Intermediate 2 Limited (Appellant) v The Joint Administrators of Lehman Brothers International (Europe) and others (Respondents) The Joint Administrators of Lehman Brothers Limited (Appellant) v Lehman Brothers International (Europe) (In Administration) and others (Respondents) Lehman Brothers Holdings Inc (Appellant) v The Joint Administrators of Lehman Brothers International (Europe) and others (Respondents)\",\"2. The Group’s main trading company in Europe was Lehman Brothers International (Europe) (“LBIE”), which is an unlimited company. Its share capital consists of a number of ordinary shares as well as a number of redeemable shares. All these shares, except for one ordinary share, are held by LB Holdings Intermediate 2 Ltd (“LBHI2”), whose sole function was to act as LBIE’s immediate holding company. The remaining ordinary share is held by Lehman Brothers Ltd (“LBL”), which was the service company for the Group’s operations in the UK, Europe and Middle East.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"lehman brothers holdings inc v the joint administrators of lehman brothers international and others\"}"
+}

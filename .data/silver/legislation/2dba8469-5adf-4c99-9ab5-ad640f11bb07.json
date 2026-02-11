@@ -1,0 +1,15 @@
+{
+  "id": "2dba8469-5adf-4c99-9ab5-ad640f11bb07",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#10897",
+  "created_at": "2025-12-25T12:57:30.967Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1983/1920/contents/made",
+    "type": "uksi",
+    "year": 1983,
+    "number": 1920,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1983,\"number\":1920,\"url\":\"http://www.legislation.gov.uk/uksi/1983/1920/contents/made\",\"dataUrl\":null}"
+}

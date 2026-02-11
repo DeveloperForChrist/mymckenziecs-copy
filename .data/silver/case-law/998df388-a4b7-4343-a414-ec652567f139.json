@@ -1,0 +1,18 @@
+{
+  "id": "998df388-a4b7-4343-a414-ec652567f139",
+  "source": "case-law",
+  "path": "data/bronze/case-law/curated.json",
+  "title": "Farstad Supply AS (Appellant) v Enviroco Limited and another (Respondents) (Scotland)",
+  "created_at": "2025-12-25T11:46:16.155Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0118",
+    "title": "Farstad Supply AS (Appellant) v Enviroco Limited and another (Respondents) (Scotland)",
+    "summary": "1. On 7 July 2002 the oil rig supply vessel Far Service (‘the vessel’) was damaged by fire while berthed in Peterhead harbour.",
+    "citation": "UKSC/2009/0118",
+    "extracts": [
+      "1. On 7 July 2002 the oil rig supply vessel Far Service (‘the vessel’) was damaged by fire while berthed in Peterhead harbour. She was owned by the pursuer, Farstad Supply AS (‘the owner’), and was under charter to the third party, Asco UK Limited (‘Asco’). Asco had engaged the defender Enviroco Limited (‘Enviroco’) to clean out some of the tanks on board the vessel. Enviroco was carrying out the work. On Asco’s instructions the master of the vessel started up the engines, preparatory to moving to another berth. At the same time an employee of Enviroco inadvertently opened a valve which released oil into the engine room near hot machinery. The oil ignited and caused the fire.",
+      "2. The owner sued Enviroco for damages in negligence. Enviroco denies liability but for the purposes of the appeal it is to be assumed that it is liable. Enviroco says that the fire was materially contributed to by the contributory negligence of both the owner and Asco. Those allegations are denied but for the purposes of the appeal it is to be assumed that Asco would be liable in negligence to the owner for the consequences of the fire but for any defence Asco might have under the terms of the charterparty."
+    ]
+  },
+  "content": "{\"title\":\"Farstad Supply AS (Appellant) v Enviroco Limited and another (Respondents) (Scotland)\",\"citation\":\"UKSC/2009/0118\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0118\",\"summary\":\"1. On 7 July 2002 the oil rig supply vessel Far Service (‘the vessel’) was damaged by fire while berthed in Peterhead harbour.\",\"extracts\":[\"1. On 7 July 2002 the oil rig supply vessel Far Service (‘the vessel’) was damaged by fire while berthed in Peterhead harbour. She was owned by the pursuer, Farstad Supply AS (‘the owner’), and was under charter to the third party, Asco UK Limited (‘Asco’). Asco had engaged the defender Enviroco Limited (‘Enviroco’) to clean out some of the tanks on board the vessel. Enviroco was carrying out the work. On Asco’s instructions the master of the vessel started up the engines, preparatory to moving to another berth. At the same time an employee of Enviroco inadvertently opened a valve which released oil into the engine room near hot machinery. The oil ignited and caused the fire.\",\"2. The owner sued Enviroco for damages in negligence. Enviroco denies liability but for the purposes of the appeal it is to be assumed that it is liable. Enviroco says that the fire was materially contributed to by the contributory negligence of both the owner and Asco. Those allegations are denied but for the purposes of the appeal it is to be assumed that Asco would be liable in negligence to the owner for the consequences of the fire but for any defence Asco might have under the terms of the charterparty.\"]}"
+}

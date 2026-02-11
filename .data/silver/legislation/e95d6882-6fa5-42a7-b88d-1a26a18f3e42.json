@@ -1,0 +1,15 @@
+{
+  "id": "e95d6882-6fa5-42a7-b88d-1a26a18f3e42",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#21372",
+  "created_at": "2025-12-25T14:02:53.925Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2004/2913/contents",
+    "type": "uksi",
+    "year": 2004,
+    "number": 2913,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2004/2913/2009-06-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2004,\"number\":2913,\"url\":\"http://www.legislation.gov.uk/uksi/2004/2913/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2004/2913/2009-06-01/data.htm\"}"
+}

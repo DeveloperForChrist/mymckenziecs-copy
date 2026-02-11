@@ -1,0 +1,15 @@
+{
+  "id": "377f5a90-588d-47f6-b7a0-496208475278",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#26092",
+  "created_at": "2025-12-25T14:36:21.416Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2018/765/made",
+    "type": "uksi",
+    "year": 2018,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2018,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2018/765/made\",\"dataUrl\":null}"
+}

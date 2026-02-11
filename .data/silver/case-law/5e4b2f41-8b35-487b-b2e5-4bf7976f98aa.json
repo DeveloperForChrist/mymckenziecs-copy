@@ -1,0 +1,21 @@
+{
+  "id": "5e4b2f41-8b35-487b-b2e5-4bf7976f98aa",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Hunt (Appellant) v North Somerset Council (Respondent)",
+  "created_at": "2025-12-25T11:48:33.133Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0023",
+    "score": 1,
+    "title": "Hunt (Appellant) v North Somerset Council (Respondent)",
+    "summary": "1. The appellant brought a claim for judicial review of a decision of the respondent, on 21 February 2012, to approve a Revenue Budget for 2012/13 in relation to the provision of youth services.",
+    "category": "procedure",
+    "citation": "UKSC/2014/0023",
+    "extracts": [
+      "1. The appellant brought a claim for judicial review of a decision of the respondent, on 21 February 2012, to approve a Revenue Budget for 2012/13 in relation to the provision of youth services. In his claim form he applied for declarations that the respondent had failed to comply with section 149 of the Equality Act 2010 and section 507B of the Education Act 1996 and for an order quashing the decision to approve the budget.",
+      "2. The claim was dismissed at first instance (Wyn Williams J) and the appellant was ordered to pay the respondent’s costs, subject to a proviso against enforcement of the order without further permission of the court. He obtained limited permission to appeal on two grounds. The Court of Appeal (Moore-Bick, Rimer and Underhill LJJ) decided the two substantive issues in his favour but did not grant him any relief, dismissed his appeal and ordered him to pay half of the respondent’s costs of the appeal. This appeal is about the form of the Court of Appeal’s disposal of the matter. The appellant submits that since the court held that the respondent had failed in its statutory obligations, it should have made a declaration to that effect and should have made an order for costs in his favour."
+    ],
+    "title_key": "hunt v north somerset council"
+  },
+  "content": "{\"title\":\"Hunt (Appellant) v North Somerset Council (Respondent)\",\"citation\":\"UKSC/2014/0023\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0023\",\"summary\":\"1. The appellant brought a claim for judicial review of a decision of the respondent, on 21 February 2012, to approve a Revenue Budget for 2012/13 in relation to the provision of youth services.\",\"extracts\":[\"1. The appellant brought a claim for judicial review of a decision of the respondent, on 21 February 2012, to approve a Revenue Budget for 2012/13 in relation to the provision of youth services. In his claim form he applied for declarations that the respondent had failed to comply with section 149 of the Equality Act 2010 and section 507B of the Education Act 1996 and for an order quashing the decision to approve the budget.\",\"2. The claim was dismissed at first instance (Wyn Williams J) and the appellant was ordered to pay the respondent’s costs, subject to a proviso against enforcement of the order without further permission of the court. He obtained limited permission to appeal on two grounds. The Court of Appeal (Moore-Bick, Rimer and Underhill LJJ) decided the two substantive issues in his favour but did not grant him any relief, dismissed his appeal and ordered him to pay half of the respondent’s costs of the appeal. This appeal is about the form of the Court of Appeal’s disposal of the matter. The appellant submits that since the court held that the respondent had failed in its statutory obligations, it should have made a declaration to that effect and should have made an order for costs in his favour.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"hunt v north somerset council\"}"
+}

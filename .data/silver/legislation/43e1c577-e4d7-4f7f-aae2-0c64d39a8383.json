@@ -1,0 +1,15 @@
+{
+  "id": "43e1c577-e4d7-4f7f-aae2-0c64d39a8383",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#21964",
+  "created_at": "2025-12-25T14:07:07.540Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/2005/1454/contents",
+    "type": "uksi",
+    "year": 2005,
+    "number": 1454,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/2005/1454/2006-01-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2005,\"number\":1454,\"url\":\"http://www.legislation.gov.uk/nisi/2005/1454/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/2005/1454/2006-01-01/data.htm\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "67ccd096-d6c0-4cbe-bfa8-30bf906835fe",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Commissioners for Her Majesty's Revenue and Customs (Respondent) v The Rank Group PLC (Appellant)",
+  "created_at": "2025-12-25T11:48:27.800Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0257",
+    "score": 1,
+    "title": "Commissioners for Her Majesty's Revenue and Customs (Respondent) v The Rank Group PLC (Appellant)",
+    "summary": "1. The narrow question raised by this appeal is whether, during the period 1 October 2002 to 5 December 2005, the takings on a particular category of machines (“the disputed machines”) operated by the appellants (“Rank”) were subject to VAT.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0257",
+    "extracts": [
+      "1. The narrow question raised by this appeal is whether, during the period 1 October 2002 to 5 December 2005, the takings on a particular category of machines (“the disputed machines”) operated by the appellants (“Rank”) were subject to VAT. The answer depends on whether the takings resulted from the provision of a “gaming machine” as defined in Note (3), more particularly whether for the purposes of that definition the element of chance in the game was “provided by means of the machine”. If not, the takings were exempt.",
+      "2. The question comes to this court by a somewhat oblique route. On 21 December 2005 Rank made a substantial claim for repayment of tax (a net figure of more than £25m) for that period. That was on the basis of differences between the treatment between takings from the disputed machines, assuming they were exempt, and those from other similar machines which were taxable, thereby infringing the EU law principle of fiscal neutrality. The long and complex procedural history by which that claim has been litigated in the domestic and European tribunals and courts was sufficiently summarised by Rimer LJ in the Court of Appeal (paras 5-8, 50-52), and need not be repeated. The Court of Appeal answered the present question in favour of HMRC. Rank appeals with permission of this court."
+    ],
+    "title_key": "commissioners for her majesty s revenue and customs v the rank group plc"
+  },
+  "content": "{\"title\":\"Commissioners for Her Majesty's Revenue and Customs (Respondent) v The Rank Group PLC (Appellant)\",\"citation\":\"UKSC/2013/0257\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0257\",\"summary\":\"1. The narrow question raised by this appeal is whether, during the period 1 October 2002 to 5 December 2005, the takings on a particular category of machines (“the disputed machines”) operated by the appellants (“Rank”) were subject to VAT.\",\"extracts\":[\"1. The narrow question raised by this appeal is whether, during the period 1 October 2002 to 5 December 2005, the takings on a particular category of machines (“the disputed machines”) operated by the appellants (“Rank”) were subject to VAT. The answer depends on whether the takings resulted from the provision of a “gaming machine” as defined in Note (3), more particularly whether for the purposes of that definition the element of chance in the game was “provided by means of the machine”. If not, the takings were exempt.\",\"2. The question comes to this court by a somewhat oblique route. On 21 December 2005 Rank made a substantial claim for repayment of tax (a net figure of more than £25m) for that period. That was on the basis of differences between the treatment between takings from the disputed machines, assuming they were exempt, and those from other similar machines which were taxable, thereby infringing the EU law principle of fiscal neutrality. The long and complex procedural history by which that claim has been litigated in the domestic and European tribunals and courts was sufficiently summarised by Rimer LJ in the Court of Appeal (paras 5-8, 50-52), and need not be repeated. The Court of Appeal answered the present question in favour of HMRC. Rank appeals with permission of this court.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"commissioners for her majesty s revenue and customs v the rank group plc\"}"
+}

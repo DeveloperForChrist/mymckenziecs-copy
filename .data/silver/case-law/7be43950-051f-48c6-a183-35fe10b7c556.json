@@ -1,0 +1,18 @@
+{
+  "id": "7be43950-051f-48c6-a183-35fe10b7c556",
+  "source": "case-law",
+  "path": "data/bronze/case-law/curated.json",
+  "title": "Al Rawi and others (Respondents) v The Security Service and others (Appellants)",
+  "created_at": "2025-12-25T11:45:58.182Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0107",
+    "title": "Al Rawi and others (Respondents) v The Security Service and others (Appellants)",
+    "summary": "1. The issue that arises on this appeal is whether the court has the power to order a “closed material procedure” as described in the preliminary issue that was tried by Silber J for the whole or part of the trial of a civil claim for damages and, if so, in what circumstances it is appropriate to...",
+    "citation": "UKSC/2010/0107",
+    "extracts": [
+      "1. The issue that arises on this appeal is whether the court has the power to order a “closed material procedure” as described in the preliminary issue that was tried by Silber J for the whole or part of the trial of a civil claim for damages and, if so, in what circumstances it is appropriate to exercise the power. The preliminary issue was in these terms:",
+      "2. Silber J answered the question raised by the preliminary issue in the affirmative: [2009] EWHC 2959 (QB). The Court of Appeal (Lord Neuberger of Page 2 Abbotsbury MR, Maurice Kay and Sullivan LJJ) [2010] EWCA Civ 482, [2010] 3 WLR 1069 allowed the claimants’ appeal and held that the court has no such power in an ordinary civil claim for damages. The defendants appeal with the permission of the Supreme Court."
+    ]
+  },
+  "content": "{\"title\":\"Al Rawi and others (Respondents) v The Security Service and others (Appellants)\",\"citation\":\"UKSC/2010/0107\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0107\",\"summary\":\"1. The issue that arises on this appeal is whether the court has the power to order a “closed material procedure” as described in the preliminary issue that was tried by Silber J for the whole or part of the trial of a civil claim for damages and, if so, in what circumstances it is appropriate to...\",\"extracts\":[\"1. The issue that arises on this appeal is whether the court has the power to order a “closed material procedure” as described in the preliminary issue that was tried by Silber J for the whole or part of the trial of a civil claim for damages and, if so, in what circumstances it is appropriate to exercise the power. The preliminary issue was in these terms:\",\"2. Silber J answered the question raised by the preliminary issue in the affirmative: [2009] EWHC 2959 (QB). The Court of Appeal (Lord Neuberger of Page 2 Abbotsbury MR, Maurice Kay and Sullivan LJJ) [2010] EWCA Civ 482, [2010] 3 WLR 1069 allowed the claimants’ appeal and held that the court has no such power in an ordinary civil claim for damages. The defendants appeal with the permission of the Supreme Court.\"]}"
+}

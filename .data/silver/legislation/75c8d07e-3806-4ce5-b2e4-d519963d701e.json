@@ -1,0 +1,15 @@
+{
+  "id": "75c8d07e-3806-4ce5-b2e4-d519963d701e",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9950",
+  "created_at": "2025-12-25T12:51:43.643Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1979/1710/contents/made",
+    "type": "uksi",
+    "year": 1979,
+    "number": 1710,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1979,\"number\":1710,\"url\":\"http://www.legislation.gov.uk/nisi/1979/1710/contents/made\",\"dataUrl\":null}"
+}

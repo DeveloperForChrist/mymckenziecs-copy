@@ -1,0 +1,21 @@
+{
+  "id": "e4baa329-b0b3-4ee9-a8e4-07416e587f5d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Tinkler (Respondent) v Commissioners for Her Majesty's Revenue and Customs (Appellant)",
+  "created_at": "2025-12-25T11:50:18.335Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2019-0183",
+    "score": 1,
+    "title": "Tinkler (Respondent) v Commissioners for Her Majesty's Revenue and Customs (Appellant)",
+    "summary": "Principle issue: Whether the Respondent is estopped by convention from denying that HMRC had opened a valid enquiry when HMRC had sent the notice to the wrong address and the Respondent’s accountants had interacted with HMRC on the basis an enquiry had been opened.",
+    "category": "contract_consumer",
+    "citation": "UKSC/2019/0183",
+    "extracts": [
+      "1. Estoppel by convention is notoriously difficult to pin down. It can arise in various contexts. Most commonly, it arises in relation to a contract between the parties. In that context, estoppel by convention may, for example, affect the obligations of the parties or be relevant to the interpretation of the contract. However, this case is concerned with estoppel by convention in relation to non- contractual dealings.",
+      "2. As in the highly influential case of Revenue and Customs Comrs v Benchdollar Ltd [2009] EWHC 1310 (Ch); [2010] 1 All ER 174 (“Benchdollar”), the non-contractual context with which we are concerned is dealings between HMRC and a taxpayer. In Benchdollar Briggs J held that estoppel by convention had been established by HMRC so as to prevent the employer taxpayers from relying on the expiry of a statutory limitation period, in relation to some, although not all, of HMRC’s claims. In this case the focus is on estoppel by convention in relation to an enquiry under section 9A of the Taxes Management Act 1970 (“TMA”) by HMRC, who are the appellants, into a tax return of Mr Tinkler, who is the respondent. There are also elements of the law of agency to consider, in relation to the estoppel by convention, because Mr Tinkler engaged tax accountants and advisers, BDO Stoy Hayward (“BDO”), to deal with his tax affairs."
+    ],
+    "title_key": "tinkler v commissioners for her majesty s revenue and customs"
+  },
+  "content": "{\"title\":\"Tinkler (Respondent) v Commissioners for Her Majesty's Revenue and Customs (Appellant)\",\"citation\":\"UKSC/2019/0183\",\"url\":\"https://supremecourt.uk/cases/uksc-2019-0183\",\"summary\":\"Principle issue: Whether the Respondent is estopped by convention from denying that HMRC had opened a valid enquiry when HMRC had sent the notice to the wrong address and the Respondent’s accountants had interacted with HMRC on the basis an enquiry had been opened.\",\"extracts\":[\"1. Estoppel by convention is notoriously difficult to pin down. It can arise in various contexts. Most commonly, it arises in relation to a contract between the parties. In that context, estoppel by convention may, for example, affect the obligations of the parties or be relevant to the interpretation of the contract. However, this case is concerned with estoppel by convention in relation to non- contractual dealings.\",\"2. As in the highly influential case of Revenue and Customs Comrs v Benchdollar Ltd [2009] EWHC 1310 (Ch); [2010] 1 All ER 174 (“Benchdollar”), the non-contractual context with which we are concerned is dealings between HMRC and a taxpayer. In Benchdollar Briggs J held that estoppel by convention had been established by HMRC so as to prevent the employer taxpayers from relying on the expiry of a statutory limitation period, in relation to some, although not all, of HMRC’s claims. In this case the focus is on estoppel by convention in relation to an enquiry under section 9A of the Taxes Management Act 1970 (“TMA”) by HMRC, who are the appellants, into a tax return of Mr Tinkler, who is the respondent. There are also elements of the law of agency to consider, in relation to the estoppel by convention, because Mr Tinkler engaged tax accountants and advisers, BDO Stoy Hayward (“BDO”), to deal with his tax affairs.\"],\"category\":\"contract_consumer\",\"score\":1,\"title_key\":\"tinkler v commissioners for her majesty s revenue and customs\"}"
+}

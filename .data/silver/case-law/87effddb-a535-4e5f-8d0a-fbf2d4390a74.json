@@ -1,0 +1,21 @@
+{
+  "id": "87effddb-a535-4e5f-8d0a-fbf2d4390a74",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Nzolameso (Appellant) v City of Westminster (Respondent)",
+  "created_at": "2025-12-25T11:48:53.561Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0275",
+    "score": 0,
+    "title": "Nzolameso (Appellant) v City of Westminster (Respondent)",
+    "summary": "2. The appellant is a 51 year old single mother of five children, aged between eight and 14.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2014/0275",
+    "extracts": [
+      "2. The appellant is a 51 year old single mother of five children, aged between eight and 14. She has many long-standing health problems: she is HIV positive, and suffers from Type II diabetes, hypertension, diabetic retinopathy and perhaps depression. She has lived in London since at least January 2000. From December 2008 to November 2012, the family lived in a privately rented four bedroomed house in Westminster. Her rent of £1,150 per week was covered by housing benefit. In 2012, however, a cap (known as the local housing allowance) was placed on the amount of housing benefit payable for privately rented properties according to their size and locality (known as the local housing allowance). Her maximum housing benefit was dramatically reduced. This meant that she was no longer able to afford the rent. The landlord was not prepared to reduce it and so she was evicted from her home in November 2012.",
+      "3. She applied to Westminster City Council under the homelessness provisions in Part 7 of the 1996 Act and the family were temporarily housed in two rooms in a hotel in the Royal Borough of Kensington and Chelsea on a bed and breakfast basis. This was near enough for the children to continue in their schools. On 17 January 2013, she was notified that Westminster had decided that she was homeless, eligible"
+    ],
+    "title_key": "nzolameso v city of westminster"
+  },
+  "content": "{\"title\":\"Nzolameso (Appellant) v City of Westminster (Respondent)\",\"citation\":\"UKSC/2014/0275\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0275\",\"summary\":\"2. The appellant is a 51 year old single mother of five children, aged between eight and 14.\",\"extracts\":[\"2. The appellant is a 51 year old single mother of five children, aged between eight and 14. She has many long-standing health problems: she is HIV positive, and suffers from Type II diabetes, hypertension, diabetic retinopathy and perhaps depression. She has lived in London since at least January 2000. From December 2008 to November 2012, the family lived in a privately rented four bedroomed house in Westminster. Her rent of £1,150 per week was covered by housing benefit. In 2012, however, a cap (known as the local housing allowance) was placed on the amount of housing benefit payable for privately rented properties according to their size and locality (known as the local housing allowance). Her maximum housing benefit was dramatically reduced. This meant that she was no longer able to afford the rent. The landlord was not prepared to reduce it and so she was evicted from her home in November 2012.\",\"3. She applied to Westminster City Council under the homelessness provisions in Part 7 of the 1996 Act and the family were temporarily housed in two rooms in a hotel in the Royal Borough of Kensington and Chelsea on a bed and breakfast basis. This was near enough for the children to continue in their schools. On 17 January 2013, she was notified that Westminster had decided that she was homeless, eligible\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"nzolameso v city of westminster\"}"
+}

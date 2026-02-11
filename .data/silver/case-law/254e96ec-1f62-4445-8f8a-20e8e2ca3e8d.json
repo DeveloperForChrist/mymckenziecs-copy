@@ -1,0 +1,21 @@
+{
+  "id": "254e96ec-1f62-4445-8f8a-20e8e2ca3e8d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "AB (Appellant) v Her Majesty’s Advocate (Respondent) (Scotland)",
+  "created_at": "2025-12-25T11:49:22.129Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0083",
+    "score": 1,
+    "title": "AB (Appellant) v Her Majesty’s Advocate (Respondent) (Scotland)",
+    "summary": "1. This appeal is concerned with a challenge to the legality of legislation of the Scottish Parliament which deprives a person, A, who is accused of sexual activity with an under-aged person, B, of the defence that he or she reasonably believed that B was over the age of 16, if the police had pre...",
+    "category": "procedure",
+    "citation": "UKSC/2016/0083",
+    "extracts": [
+      "1. This appeal is concerned with a challenge to the legality of legislation of the Scottish Parliament which deprives a person, A, who is accused of sexual activity with an under-aged person, B, of the defence that he or she reasonably believed that B was over the age of 16, if the police had previously charged A with a “relevant sexual offence”.",
+      "2. The appellant raises a compatibility issue, which is a question, arising in criminal proceedings, as to “whether an Act of the Scottish Parliament or any provision of an Act of the Scottish Parliament is incompatible with any of the Convention rights”: section 288ZA(2)(b) of the Criminal Procedure (Scotland) Act 1995 (“the CPSA 1995”). Convention rights are the rights set out in the articles of the European Convention on Human Rights (“ECHR”) which are listed in section 1(1) of the Human Rights Act 1998, and include the rights in articles 6, 8 and 14 of the ECHR which are the subject of this appeal. The compatibility issue raises a question of legality because section 29 of the Scotland Act 1998 provides:"
+    ],
+    "title_key": "ab v her majesty s advocate"
+  },
+  "content": "{\"title\":\"AB (Appellant) v Her Majesty’s Advocate (Respondent) (Scotland)\",\"citation\":\"UKSC/2016/0083\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0083\",\"summary\":\"1. This appeal is concerned with a challenge to the legality of legislation of the Scottish Parliament which deprives a person, A, who is accused of sexual activity with an under-aged person, B, of the defence that he or she reasonably believed that B was over the age of 16, if the police had pre...\",\"extracts\":[\"1. This appeal is concerned with a challenge to the legality of legislation of the Scottish Parliament which deprives a person, A, who is accused of sexual activity with an under-aged person, B, of the defence that he or she reasonably believed that B was over the age of 16, if the police had previously charged A with a “relevant sexual offence”.\",\"2. The appellant raises a compatibility issue, which is a question, arising in criminal proceedings, as to “whether an Act of the Scottish Parliament or any provision of an Act of the Scottish Parliament is incompatible with any of the Convention rights”: section 288ZA(2)(b) of the Criminal Procedure (Scotland) Act 1995 (“the CPSA 1995”). Convention rights are the rights set out in the articles of the European Convention on Human Rights (“ECHR”) which are listed in section 1(1) of the Human Rights Act 1998, and include the rights in articles 6, 8 and 14 of the ECHR which are the subject of this appeal. The compatibility issue raises a question of legality because section 29 of the Scotland Act 1998 provides:\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"ab v her majesty s advocate\"}"
+}

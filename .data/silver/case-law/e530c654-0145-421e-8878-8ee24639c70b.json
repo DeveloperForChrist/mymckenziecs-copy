@@ -1,0 +1,21 @@
+{
+  "id": "e530c654-0145-421e-8878-8ee24639c70b",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Barratt Homes Limited (Respondents) v Dwr Cymru Cyfyngedig (Welsh Water) (Appellants)",
+  "created_at": "2025-12-25T11:46:38.579Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0038",
+    "score": 1,
+    "title": "Barratt Homes Limited (Respondents) v Dwr Cymru Cyfyngedig (Welsh Water) (Appellants)",
+    "summary": "1. This appeal is about the right conferred by the Water Industry Act 1991 (“the Act”) on a property owner to connect his private drain or sewer to a public sewer for the purpose of discharging his sewage into the public sewer.",
+    "category": "procedure",
+    "citation": "UKSC/2009/0038",
+    "extracts": [
+      "1. This appeal is about the right conferred by the Water Industry Act 1991 (“the Act”) on a property owner to connect his private drain or sewer to a public sewer for the purpose of discharging his sewage into the public sewer. The principal issue raised is whether it is the property owner or the sewerage undertaker who is entitled to determine the point at which the property owner’s drain or sewer is to connect to the public sewer. This narrow issue of statutory construction conceals, however, wider and more fundamental issues that are less easily resolved. I propose first to resolve the narrow issue, before commenting on these wider issues.",
+      "2. Llanfoist is a village near Abergavenny in Monmouthshire. Its surface water and foul water drainage requirements are met by a public sewerage system that terminates in a waste water treatment works (“the Treament Works”) about 1/3 mile to the East of the village and below it. This system is about 60 years old."
+    ],
+    "title_key": "barratt homes limited v dwr cymru cyfyngedig"
+  },
+  "content": "{\"title\":\"Barratt Homes Limited (Respondents) v Dwr Cymru Cyfyngedig (Welsh Water) (Appellants)\",\"citation\":\"UKSC/2009/0038\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0038\",\"summary\":\"1. This appeal is about the right conferred by the Water Industry Act 1991 (“the Act”) on a property owner to connect his private drain or sewer to a public sewer for the purpose of discharging his sewage into the public sewer.\",\"extracts\":[\"1. This appeal is about the right conferred by the Water Industry Act 1991 (“the Act”) on a property owner to connect his private drain or sewer to a public sewer for the purpose of discharging his sewage into the public sewer. The principal issue raised is whether it is the property owner or the sewerage undertaker who is entitled to determine the point at which the property owner’s drain or sewer is to connect to the public sewer. This narrow issue of statutory construction conceals, however, wider and more fundamental issues that are less easily resolved. I propose first to resolve the narrow issue, before commenting on these wider issues.\",\"2. Llanfoist is a village near Abergavenny in Monmouthshire. Its surface water and foul water drainage requirements are met by a public sewerage system that terminates in a waste water treatment works (“the Treament Works”) about 1/3 mile to the East of the village and below it. This system is about 60 years old.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"barratt homes limited v dwr cymru cyfyngedig\"}"
+}

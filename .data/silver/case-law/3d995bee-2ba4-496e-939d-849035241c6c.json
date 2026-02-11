@@ -1,0 +1,21 @@
+{
+  "id": "3d995bee-2ba4-496e-939d-849035241c6c",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "PMS International Group Plc (Respondent) v Magmatic Limited (Appellant)",
+  "created_at": "2025-12-25T11:48:40.345Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0147",
+    "score": 1,
+    "title": "PMS International Group Plc (Respondent) v Magmatic Limited (Appellant)",
+    "summary": "1. This appeal concerns an alleged infringement of Community Registered Design No 43427-0001 (the CRD), which is owned by the appellant, Magmatic Ltd.",
+    "category": "procedure",
+    "citation": "UKSC/2014/0147",
+    "extracts": [
+      "1. This appeal concerns an alleged infringement of Community Registered Design No 43427-0001 (the CRD), which is owned by the appellant, Magmatic Ltd. The CRD consists of six images prepared by a 3D Computer Assisted Design (CAD) program, in monochrome, with grey-scale shading and distinct tonal contrasts. These are two of those images:",
+      "Although it might appear from these images that the horns, and possibly the front and rear clasps, are differently shaded from the body, it is clear from the six images, viewed collectively, that they are the same light grey shade as the rest of the body, whereas the wheels and spokes, the strap on the top and the strips in the front and the rear are shaded black."
+    ],
+    "title_key": "pms international group plc v magmatic limited"
+  },
+  "content": "{\"title\":\"PMS International Group Plc (Respondent) v Magmatic Limited (Appellant)\",\"citation\":\"UKSC/2014/0147\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0147\",\"summary\":\"1. This appeal concerns an alleged infringement of Community Registered Design No 43427-0001 (the CRD), which is owned by the appellant, Magmatic Ltd.\",\"extracts\":[\"1. This appeal concerns an alleged infringement of Community Registered Design No 43427-0001 (the CRD), which is owned by the appellant, Magmatic Ltd. The CRD consists of six images prepared by a 3D Computer Assisted Design (CAD) program, in monochrome, with grey-scale shading and distinct tonal contrasts. These are two of those images:\",\"Although it might appear from these images that the horns, and possibly the front and rear clasps, are differently shaded from the body, it is clear from the six images, viewed collectively, that they are the same light grey shade as the rest of the body, whereas the wheels and spokes, the strap on the top and the strips in the front and the rear are shaded black.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"pms international group plc v magmatic limited\"}"
+}

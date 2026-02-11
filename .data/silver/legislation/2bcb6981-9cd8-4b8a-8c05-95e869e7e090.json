@@ -1,0 +1,15 @@
+{
+  "id": "2bcb6981-9cd8-4b8a-8c05-95e869e7e090",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#24103",
+  "created_at": "2025-12-25T14:22:15.013Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2012/3287/contents/made",
+    "type": "uksi",
+    "year": 2012,
+    "number": 3287,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2012,\"number\":3287,\"url\":\"http://www.legislation.gov.uk/uksi/2012/3287/contents/made\",\"dataUrl\":null}"
+}

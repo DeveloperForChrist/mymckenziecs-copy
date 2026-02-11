@@ -1,0 +1,15 @@
+{
+  "id": "293f5edb-bd78-4145-b52e-cf027ea970ce",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#11716",
+  "created_at": "2025-12-25T13:02:27.959Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1984/2006/contents/made",
+    "type": "uksi",
+    "year": 1984,
+    "number": 2006,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1984,\"number\":2006,\"url\":\"http://www.legislation.gov.uk/uksi/1984/2006/contents/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "f4c2cd41-2b9b-44ae-a512-3dca0cd1f126",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Oracle America Inc (Formerly Sun Microsystems Inc) (Appellant) v M-Tech Data Limited (Respondent)",
+  "created_at": "2025-12-25T11:47:14.905Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0203",
+    "score": 2,
+    "title": "Oracle America Inc (Formerly Sun Microsystems Inc) (Appellant) v M-Tech Data Limited (Respondent)",
+    "summary": "1. This is another case arising out of the economically controversial but legally well-established policy of the EU relating to parallel imports of genuine goods bearing registered trade marks.",
+    "category": "contract_consumer",
+    "citation": "UKSC/2010/0203",
+    "extracts": [
+      "1. This is another case arising out of the economically controversial but legally well-established policy of the EU relating to parallel imports of genuine goods bearing registered trade marks. Broadly stated, the question at issue is whether a person who has imported goods bearing the mark into the EEA and offered them for sale there without the consent of the trade mark proprietor, is entitled to defend an action for infringement on the ground that the proprietor of the mark is engaged in conduct calculated to obstruct the free movement of such goods between member states or to distort competition in the EEA market for them.",
+      "2. Ever since the Trade Marks Act 1994 gave effect in the United Kingdom to directive 89/104/EC, the rights of proprietors of registered trade marks have been governed by a uniform scheme of EU law. That directive has now been replaced by the current directive 2008/95/EC, but the two directives are in the same terms in every respect relevant to the present dispute. I shall refer to them indifferently as “the Trade Mark Directive” or “the directive”."
+    ],
+    "title_key": "oracle america inc v m tech data limited"
+  },
+  "content": "{\"title\":\"Oracle America Inc (Formerly Sun Microsystems Inc) (Appellant) v M-Tech Data Limited (Respondent)\",\"citation\":\"UKSC/2010/0203\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0203\",\"summary\":\"1. This is another case arising out of the economically controversial but legally well-established policy of the EU relating to parallel imports of genuine goods bearing registered trade marks.\",\"extracts\":[\"1. This is another case arising out of the economically controversial but legally well-established policy of the EU relating to parallel imports of genuine goods bearing registered trade marks. Broadly stated, the question at issue is whether a person who has imported goods bearing the mark into the EEA and offered them for sale there without the consent of the trade mark proprietor, is entitled to defend an action for infringement on the ground that the proprietor of the mark is engaged in conduct calculated to obstruct the free movement of such goods between member states or to distort competition in the EEA market for them.\",\"2. Ever since the Trade Marks Act 1994 gave effect in the United Kingdom to directive 89/104/EC, the rights of proprietors of registered trade marks have been governed by a uniform scheme of EU law. That directive has now been replaced by the current directive 2008/95/EC, but the two directives are in the same terms in every respect relevant to the present dispute. I shall refer to them indifferently as “the Trade Mark Directive” or “the directive”.\"],\"category\":\"contract_consumer\",\"score\":2,\"title_key\":\"oracle america inc v m tech data limited\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "3d3341ea-8cb3-49c3-a1e2-3a3cfaa41203",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#26014",
+  "created_at": "2025-12-25T14:35:43.795Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2018/846/contents/made",
+    "type": "uksi",
+    "year": 2018,
+    "number": 846,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2018,\"number\":846,\"url\":\"http://www.legislation.gov.uk/uksi/2018/846/contents/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "70993a01-92a7-441c-934f-3d593277a827",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#25071",
+  "created_at": "2025-12-25T14:28:58.418Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2016/1265/contents",
+    "type": "uksi",
+    "year": 2016,
+    "number": 1265,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2016/1265/2021-04-29/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2016,\"number\":1265,\"url\":\"http://www.legislation.gov.uk/uksi/2016/1265/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2016/1265/2021-04-29/data.htm\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "dc4f075f-9ef5-41e5-a2bb-8fed238884a6",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "The President of the Methodist Conference (Appellant) v Preston (Respondent)",
+  "created_at": "2025-12-25T11:47:45.940Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0015",
+    "score": 3,
+    "title": "The President of the Methodist Conference (Appellant) v Preston (Respondent)",
+    "summary": "1. The Respondent, Haley Anne Preston (formerly Moore), a Minister in the Redruth Circuit of the Methodist Church until 2009, wishes to prosecute a claim against the Church in an employment tribunal for unfair dismissal.",
+    "category": "procedure",
+    "citation": "UKSC/2012/0015",
+    "extracts": [
+      "1. The Respondent, Haley Anne Preston (formerly Moore), a Minister in the Redruth Circuit of the Methodist Church until 2009, wishes to prosecute a claim against the Church in an employment tribunal for unfair dismissal. Under section 94 of the Employment Rights Act 1996, only an employee has the right not to be unfairly dismissed. Section 230 uncontroversially defines an employee as someone who has entered into or works under a contract of service or apprenticeship. The question at issue on this appeal is whether Ms Preston was an employee. The tribunal held that she was not. That decision was, however, reversed by the Employment Appeal Tribunal in a decision subsequently upheld by the Court of Appeal.",
+      "2. Disputes about the employment status of ministers of religion have been coming before the courts ever since the introduction of national insurance in 1911 made it necessary to classify them for the first time. There is now a substantial body of authority on the point, much of it influenced by relatively inflexible tests borne of social instincts which came more readily to judges of an earlier generation than they do in the more secular and regulated context of today. Until recently, ministers of religion were generally held not to be employees."
+    ],
+    "title_key": "the president of the methodist conference v preston"
+  },
+  "content": "{\"title\":\"The President of the Methodist Conference (Appellant) v Preston (Respondent)\",\"citation\":\"UKSC/2012/0015\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0015\",\"summary\":\"1. The Respondent, Haley Anne Preston (formerly Moore), a Minister in the Redruth Circuit of the Methodist Church until 2009, wishes to prosecute a claim against the Church in an employment tribunal for unfair dismissal.\",\"extracts\":[\"1. The Respondent, Haley Anne Preston (formerly Moore), a Minister in the Redruth Circuit of the Methodist Church until 2009, wishes to prosecute a claim against the Church in an employment tribunal for unfair dismissal. Under section 94 of the Employment Rights Act 1996, only an employee has the right not to be unfairly dismissed. Section 230 uncontroversially defines an employee as someone who has entered into or works under a contract of service or apprenticeship. The question at issue on this appeal is whether Ms Preston was an employee. The tribunal held that she was not. That decision was, however, reversed by the Employment Appeal Tribunal in a decision subsequently upheld by the Court of Appeal.\",\"2. Disputes about the employment status of ministers of religion have been coming before the courts ever since the introduction of national insurance in 1911 made it necessary to classify them for the first time. There is now a substantial body of authority on the point, much of it influenced by relatively inflexible tests borne of social instincts which came more readily to judges of an earlier generation than they do in the more secular and regulated context of today. Until recently, ministers of religion were generally held not to be employees.\"],\"category\":\"procedure\",\"score\":3,\"title_key\":\"the president of the methodist conference v preston\"}"
+}

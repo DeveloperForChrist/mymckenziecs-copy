@@ -1,0 +1,21 @@
+{
+  "id": "07f6eacb-f225-492e-940a-44a80821b1a2",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Jackson (Appellant) v Murray and another (Respondents) (Scotland)",
+  "created_at": "2025-12-25T11:48:35.468Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0070",
+    "score": 0,
+    "title": "Jackson (Appellant) v Murray and another (Respondents) (Scotland)",
+    "summary": "1. A school minibus draws up on a country road on a winter’s evening.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2014/0070",
+    "extracts": [
+      "1. A school minibus draws up on a country road on a winter’s evening. Two children get off. One of the children tries to cross the road. She steps out from behind the minibus, into the path of an oncoming car. The driver is driving too fast: he has seen the bus, but has made no allowance for the possibility that a child might attempt to cross in front of him. He is not keeping a proper look-out, and does not see her, but he is going too fast to have stopped in time even if he had seen her. His car hits the child, causing her to sustain severe injuries. If he had been driving at a reasonable speed, and had been keeping a proper look-out, he would not have hit her.",
+      "2. The trial judge finds that the accident was caused by the driver’s negligence, but that the child was also contributorily negligent. He assesses her contributory negligence at 90%, and reduces the award of damages accordingly. On appeal, the court reduces that assessment to 70%. On a further appeal, this court is invited to reduce the assessment further."
+    ],
+    "title_key": "jackson v murray and another"
+  },
+  "content": "{\"title\":\"Jackson (Appellant) v Murray and another (Respondents) (Scotland)\",\"citation\":\"UKSC/2014/0070\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0070\",\"summary\":\"1. A school minibus draws up on a country road on a winter’s evening.\",\"extracts\":[\"1. A school minibus draws up on a country road on a winter’s evening. Two children get off. One of the children tries to cross the road. She steps out from behind the minibus, into the path of an oncoming car. The driver is driving too fast: he has seen the bus, but has made no allowance for the possibility that a child might attempt to cross in front of him. He is not keeping a proper look-out, and does not see her, but he is going too fast to have stopped in time even if he had seen her. His car hits the child, causing her to sustain severe injuries. If he had been driving at a reasonable speed, and had been keeping a proper look-out, he would not have hit her.\",\"2. The trial judge finds that the accident was caused by the driver’s negligence, but that the child was also contributorily negligent. He assesses her contributory negligence at 90%, and reduces the award of damages accordingly. On appeal, the court reduces that assessment to 70%. On a further appeal, this court is invited to reduce the assessment further.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"jackson v murray and another\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "23dc19de-dd9a-4bc0-bb22-b499ee665674",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#19649",
+  "created_at": "2025-12-25T13:51:45.212Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1998/1763/contents",
+    "type": "uksi",
+    "year": 1998,
+    "number": 1763,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/1998/1763/2006-01-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1998,\"number\":1763,\"url\":\"http://www.legislation.gov.uk/nisi/1998/1763/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/1998/1763/2006-01-01/data.htm\"}"
+}

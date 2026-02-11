@@ -1,0 +1,15 @@
+{
+  "id": "0e8a7da8-e4a6-409b-91eb-2963fb77364b",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8861",
+  "created_at": "2025-12-25T12:45:05.361Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1970/2025/contents/made",
+    "type": "uksi",
+    "year": 1970,
+    "number": 2025,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1970,\"number\":2025,\"url\":\"http://www.legislation.gov.uk/uksi/1970/2025/contents/made\",\"dataUrl\":null}"
+}

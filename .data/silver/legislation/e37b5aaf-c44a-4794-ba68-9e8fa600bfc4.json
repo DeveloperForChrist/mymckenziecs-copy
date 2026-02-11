@@ -1,0 +1,15 @@
+{
+  "id": "e37b5aaf-c44a-4794-ba68-9e8fa600bfc4",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#22049",
+  "created_at": "2025-12-25T14:07:41.546Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2005/1093/contents",
+    "type": "uksi",
+    "year": 2005,
+    "number": 1093,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2005/1093/2015-10-16/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2005,\"number\":1093,\"url\":\"http://www.legislation.gov.uk/uksi/2005/1093/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2005/1093/2015-10-16/data.htm\"}"
+}

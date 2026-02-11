@@ -1,0 +1,21 @@
+{
+  "id": "0233074b-dde0-4319-984a-099bf8875074",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "London Borough of Lambeth (Appellant) v Secretary of State for Housing, Communities and Local Government and others (Respondents)",
+  "created_at": "2025-12-25T11:49:59.441Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0099",
+    "score": 2,
+    "title": "London Borough of Lambeth (Appellant) v Secretary of State for Housing, Communities and Local Government and others (Respondents)",
+    "summary": "1. This appeal concerns the permitted uses of a retail store in Streatham in the area of the London Borough of Lambeth (“the Council”).",
+    "category": "contract_consumer",
+    "citation": "UKSC/2018/0099",
+    "extracts": [
+      "1. This appeal concerns the permitted uses of a retail store in Streatham in the area of the London Borough of Lambeth (“the Council”). Planning permission was originally granted by the Secretary of State in 1985, but the use was limited by condition to sale of DIY goods and other specified categories, not including food sales. Following implementation, the permitted categories were extended by later consents (under section 73 of the Town and Country Planning Act 1990), the most recent being in 2014 (“the 2014 permission”), which is in issue in this case. The second respondent sought a certificate from the Council determining that the lawful use of the store extended to sales of unlimited categories of goods including food. A certificate to that effect was refused by the Council, but granted by a planning inspector on appeal, and upheld by the lower courts. The Council, as local planning authority, appeals to this court.",
+      "“6. The retail unit hereby permitted shall be used for the retailing of goods for DIY home and garden improvements and car maintenance, building materials and builders’ merchants goods and for no other purpose (including any other purpose in Class I of the Schedule to the Town and Country Planning (Use Classes) Order 1972 or in any provision equivalent to that Class in any statutory instrument revoking and re-enacting that Order).”"
+    ],
+    "title_key": "london borough of lambeth v secretary of state for housing communities and local government and others"
+  },
+  "content": "{\"title\":\"London Borough of Lambeth (Appellant) v Secretary of State for Housing, Communities and Local Government and others (Respondents)\",\"citation\":\"UKSC/2018/0099\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0099\",\"summary\":\"1. This appeal concerns the permitted uses of a retail store in Streatham in the area of the London Borough of Lambeth (“the Council”).\",\"extracts\":[\"1. This appeal concerns the permitted uses of a retail store in Streatham in the area of the London Borough of Lambeth (“the Council”). Planning permission was originally granted by the Secretary of State in 1985, but the use was limited by condition to sale of DIY goods and other specified categories, not including food sales. Following implementation, the permitted categories were extended by later consents (under section 73 of the Town and Country Planning Act 1990), the most recent being in 2014 (“the 2014 permission”), which is in issue in this case. The second respondent sought a certificate from the Council determining that the lawful use of the store extended to sales of unlimited categories of goods including food. A certificate to that effect was refused by the Council, but granted by a planning inspector on appeal, and upheld by the lower courts. The Council, as local planning authority, appeals to this court.\",\"“6. The retail unit hereby permitted shall be used for the retailing of goods for DIY home and garden improvements and car maintenance, building materials and builders’ merchants goods and for no other purpose (including any other purpose in Class I of the Schedule to the Town and Country Planning (Use Classes) Order 1972 or in any provision equivalent to that Class in any statutory instrument revoking and re-enacting that Order).”\"],\"category\":\"contract_consumer\",\"score\":2,\"title_key\":\"london borough of lambeth v secretary of state for housing communities and local government and others\"}"
+}

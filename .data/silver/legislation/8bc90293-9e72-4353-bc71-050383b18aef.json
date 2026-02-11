@@ -1,0 +1,15 @@
+{
+  "id": "8bc90293-9e72-4353-bc71-050383b18aef",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#29598",
+  "created_at": "2025-12-25T15:01:51.108Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2022/359/made",
+    "type": "uksi",
+    "year": 2022,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2022,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2022/359/made\",\"dataUrl\":null}"
+}

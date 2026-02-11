@@ -1,0 +1,13 @@
+{
+  "id": "46cb1c76-215a-468e-8a23-64f26ad82e68",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#31",
+  "created_at": "2025-12-25T15:19:58.526Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/practice-direction-3g-requests-for-the-appointment-of-an-advocate-to-the-court",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_practice_direction_3g_requ_76ff8e219c.html",
+    "fetchedAt": "2025-12-22T23:49:09.175Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/practice-direction-3g-requests-for-the-appointment-of-an-advocate-to-the-court\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_practice_direction_3g_requ_76ff8e219c.html\",\"fetchedAt\":\"2025-12-22T23:49:09.175Z\"}"
+}

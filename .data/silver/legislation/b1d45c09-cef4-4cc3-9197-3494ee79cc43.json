@@ -1,0 +1,15 @@
+{
+  "id": "b1d45c09-cef4-4cc3-9197-3494ee79cc43",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7269",
+  "created_at": "2025-12-25T12:35:55.125Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1953/1509/contents/made",
+    "type": "uksi",
+    "year": 1953,
+    "number": 1509,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1953,\"number\":1509,\"url\":\"http://www.legislation.gov.uk/uksi/1953/1509/contents/made\",\"dataUrl\":null}"
+}

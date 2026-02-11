@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+.page {
+  --faq-ink: #1b2b2f;
+  --faq-cream: #f5efe7;
+  --faq-slate: #e6d8c7;
+  --faq-coral: #f06a5c;
+  --faq-olive: #1f3d3a;
+  min-height: 100vh;
+  background: linear-gradient(140deg, #faf4ec 0%, #f1e0cd 60%, #e6d1bd 100%);
+  color: var(--faq-ink);
+  font-family: inherit;
+  padding: 40px 20px 80px;
+}
+
+.shell {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.hero {
+  display: grid;
+  gap: 16px;
+  padding: 36px;
+  border-radius: 28px;
+  background: #fffaf4;
+  border: 1px solid rgba(27, 43, 47, 0.08);
+  box-shadow: 0 22px 40px rgba(27, 43, 47, 0.15);
+}
+
+.title {
+  font-family: inherit;
+  font-size: clamp(2.2rem, 3vw, 3.1rem);
+  margin: 0;
+}
+
+.subtitle {
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.pillRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pill {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--faq-slate);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.grid {
+  margin-top: 28px;
+  display: grid;
+  gap: 16px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 22px 24px;
+  border: 1px solid rgba(27, 43, 47, 0.08);
+  box-shadow: 0 12px 28px rgba(27, 43, 47, 0.08);
+}
+
+.card h3 {
+  margin: 0 0 8px;
+  font-size: 1.2rem;
+}
+
+.card p {
+  margin: 0;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.cta {
+  margin-top: 30px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cta a {
+  text-decoration: none;
+  padding: 12px 18px;
+  border-radius: 16px;
+  font-weight: 600;
+}
+
+.primary {
+  background: var(--faq-coral);
+  color: white;
+}
+
+.ghost {
+  border: 1px solid rgba(27, 43, 47, 0.2);
+  color: var(--faq-olive);
+  background: transparent;
+}

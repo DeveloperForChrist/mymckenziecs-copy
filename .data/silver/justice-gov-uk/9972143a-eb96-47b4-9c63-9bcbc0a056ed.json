@@ -1,0 +1,13 @@
+{
+  "id": "9972143a-eb96-47b4-9c63-9bcbc0a056ed",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#229",
+  "created_at": "2025-12-25T15:21:25.380Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/competitionlaw_pd",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_competitionlaw_pd_3ad8832af2.html",
+    "fetchedAt": "2025-12-23T00:24:26.766Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/competitionlaw_pd\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_competitionlaw_pd_3ad8832af2.html\",\"fetchedAt\":\"2025-12-23T00:24:26.766Z\"}"
+}

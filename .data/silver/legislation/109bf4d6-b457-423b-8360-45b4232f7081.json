@@ -1,0 +1,15 @@
+{
+  "id": "109bf4d6-b457-423b-8360-45b4232f7081",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#3131",
+  "created_at": "2025-12-25T12:10:51.359Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Eliz2/6-7/71/contents",
+    "type": "ukpga",
+    "year": 1958,
+    "number": 71,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/Eliz2/6-7/71/2025-06-16/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1958,\"number\":71,\"url\":\"http://www.legislation.gov.uk/ukpga/Eliz2/6-7/71/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/Eliz2/6-7/71/2025-06-16/data.htm\"}"
+}

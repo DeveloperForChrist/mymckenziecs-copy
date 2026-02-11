@@ -1,0 +1,18 @@
+{
+  "id": "ca0fa628-ddca-476a-a23b-309c74e05c9e",
+  "source": "case-law",
+  "path": "data/bronze/case-law/curated.json",
+  "title": "Clyde & Co LLP and another (Respondents) v Winkelhof (Appellant)",
+  "created_at": "2025-12-25T11:46:29.966Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0229",
+    "title": "Clyde & Co LLP and another (Respondents) v Winkelhof (Appellant)",
+    "summary": "1. Can a member of a Limited Liability Partnership (LLP) be a “worker” within the meaning of section 230(3) of the Employment Rights Act 1996 (“the 1996 Act”)?",
+    "citation": "UKSC/2012/0229",
+    "extracts": [
+      "1. Can a member of a Limited Liability Partnership (LLP) be a “worker” within the meaning of section 230(3) of the Employment Rights Act 1996 (“the 1996 Act”)? If she is, she may claim the benefit of the protection given to “whistle- blowers” in sections 43A to 43L of that Act, inserted by the Public Interest Disclosure Act 1998. There are also potentially other rights involved if the member is a “worker”.",
+      "2. Section 230(3) of the 1996 Act defines two sorts of worker for the purpose of that Act. Limb (a) covers an individual who has entered into, works under or has worked under “a contract of employment”. No-one has suggested that the contract between the member and the LLP in this case was a contract of employment. The question is whether the member falls within limb (b) of section 230(3), which covers an individual who has entered into or works under or worked under"
+    ]
+  },
+  "content": "{\"title\":\"Clyde & Co LLP and another (Respondents) v Winkelhof (Appellant)\",\"citation\":\"UKSC/2012/0229\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0229\",\"summary\":\"1. Can a member of a Limited Liability Partnership (LLP) be a “worker” within the meaning of section 230(3) of the Employment Rights Act 1996 (“the 1996 Act”)?\",\"extracts\":[\"1. Can a member of a Limited Liability Partnership (LLP) be a “worker” within the meaning of section 230(3) of the Employment Rights Act 1996 (“the 1996 Act”)? If she is, she may claim the benefit of the protection given to “whistle- blowers” in sections 43A to 43L of that Act, inserted by the Public Interest Disclosure Act 1998. There are also potentially other rights involved if the member is a “worker”.\",\"2. Section 230(3) of the 1996 Act defines two sorts of worker for the purpose of that Act. Limb (a) covers an individual who has entered into, works under or has worked under “a contract of employment”. No-one has suggested that the contract between the member and the LLP in this case was a contract of employment. The question is whether the member falls within limb (b) of section 230(3), which covers an individual who has entered into or works under or worked under\"]}"
+}

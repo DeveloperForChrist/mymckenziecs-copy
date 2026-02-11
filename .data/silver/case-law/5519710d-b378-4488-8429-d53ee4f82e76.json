@@ -1,0 +1,21 @@
+{
+  "id": "5519710d-b378-4488-8429-d53ee4f82e76",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Warner (Respondent) v Scapa Flow Charters (Appellant) (Scotland)",
+  "created_at": "2025-12-25T11:49:44.089Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0103",
+    "score": 1,
+    "title": "Warner (Respondent) v Scapa Flow Charters (Appellant) (Scotland)",
+    "summary": "1. This appeal raises a question about the interpretation of article 16 of the Athens Convention relating to the Carriage of Passengers and their Luggage by Sea 1974 (“the Athens Convention”) and its application to the Scots law of limitation of actions.",
+    "category": "procedure",
+    "citation": "UKSC/2017/0103",
+    "extracts": [
+      "1. This appeal raises a question about the interpretation of article 16 of the Athens Convention relating to the Carriage of Passengers and their Luggage by Sea 1974 (“the Athens Convention”) and its application to the Scots law of limitation of actions.",
+      "2. Mr Lex Warner chartered the m/v Jean Elaine, a motor vessel operated by Scapa Flow Charters (“SFC”) for the week 11-18 August 2012. On 14 August 2012 when dressed in diving gear while preparing to dive on a wreck north west of Cape Wrath, Mr Warner fell onto the deck of the vessel. He was helped to his feet and went ahead with the dive to the depth of 88 metres. He got into trouble during the dive and, despite the assistance of other divers who brought him back to the surface of the water and on to the motor vessel, could not be revived and was pronounced dead."
+    ],
+    "title_key": "warner v scapa flow charters"
+  },
+  "content": "{\"title\":\"Warner (Respondent) v Scapa Flow Charters (Appellant) (Scotland)\",\"citation\":\"UKSC/2017/0103\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0103\",\"summary\":\"1. This appeal raises a question about the interpretation of article 16 of the Athens Convention relating to the Carriage of Passengers and their Luggage by Sea 1974 (“the Athens Convention”) and its application to the Scots law of limitation of actions.\",\"extracts\":[\"1. This appeal raises a question about the interpretation of article 16 of the Athens Convention relating to the Carriage of Passengers and their Luggage by Sea 1974 (“the Athens Convention”) and its application to the Scots law of limitation of actions.\",\"2. Mr Lex Warner chartered the m/v Jean Elaine, a motor vessel operated by Scapa Flow Charters (“SFC”) for the week 11-18 August 2012. On 14 August 2012 when dressed in diving gear while preparing to dive on a wreck north west of Cape Wrath, Mr Warner fell onto the deck of the vessel. He was helped to his feet and went ahead with the dive to the depth of 88 metres. He got into trouble during the dive and, despite the assistance of other divers who brought him back to the surface of the water and on to the motor vessel, could not be revived and was pronounced dead.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"warner v scapa flow charters\"}"
+}

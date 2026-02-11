@@ -1,0 +1,21 @@
+{
+  "id": "e3792b1d-a3d7-4433-a7b4-c0d299cd89ff",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Les Laboratoires Servier and another (Appellants) v Apotex Inc and others (Respondents)",
+  "created_at": "2025-12-25T11:47:59.908Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0158",
+    "score": 1,
+    "title": "Les Laboratoires Servier and another (Appellants) v Apotex Inc and others (Respondents)",
+    "summary": "2. The first claimant Les Laboratoires Servier is a French pharmaceutical company which originated the perindopril erbumine compound, an ACE inhibitor used for treating hypertension and cardiac insufficiency.",
+    "category": "procedure",
+    "citation": "UKSC/2012/0158",
+    "extracts": [
+      "2. The first claimant Les Laboratoires Servier is a French pharmaceutical company which originated the perindopril erbumine compound, an ACE inhibitor used for treating hypertension and cardiac insufficiency. The respondents are companies of the Apotex Group, a Canadian pharmaceuticals group specialising in the manufacture and marketing of generic pharmaceutical products. The parties have agreed that for the purpose of resolving the issues on this appeal, both groups can be treated as one entity without regard to the distinct corporate personality of the companies comprising them.",
+      "3. A number of patents for the perindopril erbumine compound have been granted to Servier and its associated companies. In Europe, patent protection for the compound itself expired in June 2003. However, the corresponding Canadian patent for the compound will not expire until 2018. The present dispute relates to a United Kingdom patent not for the compound but for a specific crystalline form of the compound, which was granted to Servier. Its UK subsidiary Servier Laboratories Ltd was the exclusive licensee."
+    ],
+    "title_key": "les laboratoires servier and another v apotex inc and others"
+  },
+  "content": "{\"title\":\"Les Laboratoires Servier and another (Appellants) v Apotex Inc and others (Respondents)\",\"citation\":\"UKSC/2012/0158\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0158\",\"summary\":\"2. The first claimant Les Laboratoires Servier is a French pharmaceutical company which originated the perindopril erbumine compound, an ACE inhibitor used for treating hypertension and cardiac insufficiency.\",\"extracts\":[\"2. The first claimant Les Laboratoires Servier is a French pharmaceutical company which originated the perindopril erbumine compound, an ACE inhibitor used for treating hypertension and cardiac insufficiency. The respondents are companies of the Apotex Group, a Canadian pharmaceuticals group specialising in the manufacture and marketing of generic pharmaceutical products. The parties have agreed that for the purpose of resolving the issues on this appeal, both groups can be treated as one entity without regard to the distinct corporate personality of the companies comprising them.\",\"3. A number of patents for the perindopril erbumine compound have been granted to Servier and its associated companies. In Europe, patent protection for the compound itself expired in June 2003. However, the corresponding Canadian patent for the compound will not expire until 2018. The present dispute relates to a United Kingdom patent not for the compound but for a specific crystalline form of the compound, which was granted to Servier. Its UK subsidiary Servier Laboratories Ltd was the exclusive licensee.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"les laboratoires servier and another v apotex inc and others\"}"
+}

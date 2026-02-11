@@ -1,0 +1,21 @@
+{
+  "id": "1ea69741-5c40-42d7-91c4-cecc26d7953d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "PP (Algeria) (FC) (Appellant) v Secretary of State for the Home Department (Respondent) (formerly VV (Jordan) (FC) and PP (Algeria) (FC) (Appellants) v Secretary of State for the Home Department (Respondent))",
+  "created_at": "2025-12-25T11:47:17.501Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0237",
+    "score": 1,
+    "title": "PP (Algeria) (FC) (Appellant) v Secretary of State for the Home Department (Respondent) (formerly VV (Jordan) (FC) and PP (Algeria) (FC) (Appellants) v Secretary of State for the Home Department (Respondent))",
+    "summary": "PP (Algeria) (FC) (Appellant) v Secretary of State for the Home Department (Respondent) (formerly VV (Jordan) (FC) and PP (Algeria) (FC) (Appellants) v Secretary of State for the Home Department (Respondent))",
+    "category": "public_law",
+    "citation": "UKSC/2010/0237",
+    "extracts": [
+      "PP (Algeria) (FC) (Appellant) v Secretary of State for the Home Department (Respondent) (formerly VV (Jordan) (FC) and PP (Algeria) (FC) (Appellants) v Secretary of State for the Home Department (Respondent))",
+      "1. From time to time over many years the Secretary of State for the Home Department has been concerned to deport a foreign national on the grounds of national security. Sometimes, indeed with increasing frequency, those facing such deportation decisions have wished to contest them, either by challenging that they present a national security risk, or by invoking the European Convention on Human Rights and contending that they would be at risk of article 3 ill-treatment if returned to their home country."
+    ],
+    "title_key": "pp v secretary of state for the home department and pp v secretary of state for the home department"
+  },
+  "content": "{\"title\":\"PP (Algeria) (FC) (Appellant) v Secretary of State for the Home Department (Respondent) (formerly VV (Jordan) (FC) and PP (Algeria) (FC) (Appellants) v Secretary of State for the Home Department (Respondent))\",\"citation\":\"UKSC/2010/0237\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0237\",\"summary\":\"PP (Algeria) (FC) (Appellant) v Secretary of State for the Home Department (Respondent) (formerly VV (Jordan) (FC) and PP (Algeria) (FC) (Appellants) v Secretary of State for the Home Department (Respondent))\",\"extracts\":[\"PP (Algeria) (FC) (Appellant) v Secretary of State for the Home Department (Respondent) (formerly VV (Jordan) (FC) and PP (Algeria) (FC) (Appellants) v Secretary of State for the Home Department (Respondent))\",\"1. From time to time over many years the Secretary of State for the Home Department has been concerned to deport a foreign national on the grounds of national security. Sometimes, indeed with increasing frequency, those facing such deportation decisions have wished to contest them, either by challenging that they present a national security risk, or by invoking the European Convention on Human Rights and contending that they would be at risk of article 3 ill-treatment if returned to their home country.\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"pp v secretary of state for the home department and pp v secretary of state for the home department\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "d2c1b6f8-aef6-425f-b9b1-0bf97ecd1d29",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#24141",
+  "created_at": "2025-12-25T14:22:31.720Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2012/3249/made",
+    "type": "uksi",
+    "year": 2012,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2012,\"number\":null,\"url\":\"http://www.legislation.gov.uk/wsi/2012/3249/made\",\"dataUrl\":null}"
+}

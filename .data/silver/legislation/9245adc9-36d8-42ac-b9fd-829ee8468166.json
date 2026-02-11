@@ -1,0 +1,15 @@
+{
+  "id": "9245adc9-36d8-42ac-b9fd-829ee8468166",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#25340",
+  "created_at": "2025-12-25T14:30:49.020Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2016/985/contents",
+    "type": "uksi",
+    "year": 2016,
+    "number": 985,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2016/985/2020-03-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2016,\"number\":985,\"url\":\"http://www.legislation.gov.uk/uksi/2016/985/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2016/985/2020-03-31/data.htm\"}"
+}

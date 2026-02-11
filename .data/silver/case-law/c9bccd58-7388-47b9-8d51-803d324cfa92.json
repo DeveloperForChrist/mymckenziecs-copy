@@ -1,0 +1,21 @@
+{
+  "id": "c9bccd58-7388-47b9-8d51-803d324cfa92",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Stott (Appellant) v Thomas Cook Tour Operators Limited (Respondent)",
+  "created_at": "2025-12-25T11:47:56.612Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0109",
+    "score": 1,
+    "title": "Stott (Appellant) v Thomas Cook Tour Operators Limited (Respondent)",
+    "summary": "1. This appeal arises from a sorry case of a serious failure by an air tour operator to see that proper provision was made for the needs of a disabled passenger, contrary to the requirements of the Civil Aviation (Access to Air Travel for Disabled Persons and Persons with Reduced Mobility) Regula...",
+    "category": "procedure",
+    "citation": "UKSC/2012/0109",
+    "extracts": [
+      "1. This appeal arises from a sorry case of a serious failure by an air tour operator to see that proper provision was made for the needs of a disabled passenger, contrary to the requirements of the Civil Aviation (Access to Air Travel for Disabled Persons and Persons with Reduced Mobility) Regulations 2007 (SI 2007/1895) (“the UK Disability Regulations”).",
+      "2. The UK Disability Regulations implement Regulation (EC) No 1107/2006 of the European Parliament and the Council concerning the rights of disabled persons and persons with reduced mobility when travelling by air (“the EC Disability Regulation”)."
+    ],
+    "title_key": "stott v thomas cook tour operators limited"
+  },
+  "content": "{\"title\":\"Stott (Appellant) v Thomas Cook Tour Operators Limited (Respondent)\",\"citation\":\"UKSC/2012/0109\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0109\",\"summary\":\"1. This appeal arises from a sorry case of a serious failure by an air tour operator to see that proper provision was made for the needs of a disabled passenger, contrary to the requirements of the Civil Aviation (Access to Air Travel for Disabled Persons and Persons with Reduced Mobility) Regula...\",\"extracts\":[\"1. This appeal arises from a sorry case of a serious failure by an air tour operator to see that proper provision was made for the needs of a disabled passenger, contrary to the requirements of the Civil Aviation (Access to Air Travel for Disabled Persons and Persons with Reduced Mobility) Regulations 2007 (SI 2007/1895) (“the UK Disability Regulations”).\",\"2. The UK Disability Regulations implement Regulation (EC) No 1107/2006 of the European Parliament and the Council concerning the rights of disabled persons and persons with reduced mobility when travelling by air (“the EC Disability Regulation”).\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"stott v thomas cook tour operators limited\"}"
+}

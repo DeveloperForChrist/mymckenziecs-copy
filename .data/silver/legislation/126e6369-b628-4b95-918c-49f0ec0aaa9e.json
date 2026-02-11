@@ -1,0 +1,15 @@
+{
+  "id": "126e6369-b628-4b95-918c-49f0ec0aaa9e",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#11778",
+  "created_at": "2025-12-25T13:02:52.983Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1985/2055/contents/made",
+    "type": "uksi",
+    "year": 1985,
+    "number": 2055,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1985,\"number\":2055,\"url\":\"http://www.legislation.gov.uk/uksi/1985/2055/contents/made\",\"dataUrl\":null}"
+}

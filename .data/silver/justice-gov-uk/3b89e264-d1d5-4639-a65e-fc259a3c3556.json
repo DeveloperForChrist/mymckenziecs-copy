@@ -1,0 +1,13 @@
+{
+  "id": "3b89e264-d1d5-4639-a65e-fc259a3c3556",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#73",
+  "created_at": "2025-12-25T15:20:16.570Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part27/practice-direction-27b-claims-under-the-pre-action-protocol-for-personal-injury-claims-below-the-small-claims-limit-in-road-traffic-accidents-court-procedure",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part27_practice_direction__d934f87e6a.html",
+    "fetchedAt": "2025-12-22T23:49:25.250Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part27/practice-direction-27b-claims-under-the-pre-action-protocol-for-personal-injury-claims-below-the-small-claims-limit-in-road-traffic-accidents-court-procedure\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part27_practice_direction__d934f87e6a.html\",\"fetchedAt\":\"2025-12-22T23:49:25.250Z\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "8b2db278-8b42-472d-a422-f08088f4bf3e",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Compton Beauchamp Estates Ltd (Respondent)",
+  "created_at": "2025-12-25T11:50:21.091Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2019-0225",
+    "score": 3,
+    "title": "Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Compton Beauchamp Estates Ltd (Respondent)",
+    "summary": "Principle issue: Does the Upper Tribunal have jurisdiction to confer rights, under the Electronic Communications Code (\"the Code\"), in relation to a particular site, on the Claimant in circumstances where a third party, namely Vodaphone, is currently in occupation of the site?",
+    "category": "procedure",
+    "citation": "UKSC/2019/0225",
+    "extracts": [
+      "Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Compton Beauchamp Estates Ltd (Respondent) Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Ashloch Ltd and AP Wireless II (UK) Ltd (Respondents) On Tower UK Ltd (formerly known as Arqiva Services Ltd) (Appellant) v AP Wireless II (UK) Ltd (Respondent)",
+      "1. When the revised Electronic Communications Code with which these appeals are concerned was published in May 2016, the Minister of State for Culture and the Digital Economy described the roll out of digital communications infrastructure as vitally important to citizens across the UK, as digital communications become an ever more essential part of the economic and social fabric of this country. The new Code was, the Minister said, intended to “provide a robust platform to enable long-term investment and development of digital communications infrastructure in the 21st Century”: see the Foreword to the Government’s consultation response “A New Electronic Communications Code”."
+    ],
+    "title_key": "cornerstone telecommunications infrastructure ltd v compton beauchamp estates ltd"
+  },
+  "content": "{\"title\":\"Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Compton Beauchamp Estates Ltd (Respondent)\",\"citation\":\"UKSC/2019/0225\",\"url\":\"https://supremecourt.uk/cases/uksc-2019-0225\",\"summary\":\"Principle issue: Does the Upper Tribunal have jurisdiction to confer rights, under the Electronic Communications Code (\\\\\"the Code\\\\\"), in relation to a particular site, on the Claimant in circumstances where a third party, namely Vodaphone, is currently in occupation of the site?\",\"extracts\":[\"Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Compton Beauchamp Estates Ltd (Respondent) Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Ashloch Ltd and AP Wireless II (UK) Ltd (Respondents) On Tower UK Ltd (formerly known as Arqiva Services Ltd) (Appellant) v AP Wireless II (UK) Ltd (Respondent)\",\"1. When the revised Electronic Communications Code with which these appeals are concerned was published in May 2016, the Minister of State for Culture and the Digital Economy described the roll out of digital communications infrastructure as vitally important to citizens across the UK, as digital communications become an ever more essential part of the economic and social fabric of this country. The new Code was, the Minister said, intended to “provide a robust platform to enable long-term investment and development of digital communications infrastructure in the 21st Century”: see the Foreword to the Government’s consultation response “A New Electronic Communications Code”.\"],\"category\":\"procedure\",\"score\":3,\"title_key\":\"cornerstone telecommunications infrastructure ltd v compton beauchamp estates ltd\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "f81d18e6-2c55-4cb4-b5b0-bbb266a791ba",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#26023",
+  "created_at": "2025-12-25T14:35:47.003Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2018/837/contents",
+    "type": "uksi",
+    "year": 2018,
+    "number": 837,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2018/837/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2018,\"number\":837,\"url\":\"http://www.legislation.gov.uk/uksi/2018/837/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2018/837/2020-12-31/data.htm\"}"
+}

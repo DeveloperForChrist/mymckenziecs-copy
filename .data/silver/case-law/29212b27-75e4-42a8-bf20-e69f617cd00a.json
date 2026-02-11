@@ -1,0 +1,21 @@
+{
+  "id": "29212b27-75e4-42a8-bf20-e69f617cd00a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Michalak (Respondent) v General Medical Council and others (Appellants)",
+  "created_at": "2025-12-25T11:49:22.406Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0084",
+    "score": 1,
+    "title": "Michalak (Respondent) v General Medical Council and others (Appellants)",
+    "summary": "1. Ewa Michalak began employment as a doctor with the Mid-Yorkshire Hospitals NHS Trust in April 2002.",
+    "category": "procedure",
+    "citation": "UKSC/2016/0084",
+    "extracts": [
+      "1. Ewa Michalak began employment as a doctor with the Mid-Yorkshire Hospitals NHS Trust in April 2002. She remained in that employment until she was dismissed in July 2008. Following her dismissal, Dr Michalak brought an unfair dismissal claim against the Trust in the Employment Tribunal. The tribunal found that her dismissal had been unfair and contaminated by sex and race discrimination and victimisation. Dr Michalak received a compensation award and a public apology from the Trust.",
+      "2. Before the tribunal had issued its determination, and, on foot of Dr Michalak’s dismissal, the Trust had reported her to the General Medical Council (the GMC) in relation to her conduct, so that the question of whether she should continue to be registered as a medical practitioner could be considered. The Trust later accepted that there had not been proper grounds on which to refer her to the GMC. She remains registered as a medical practitioner, therefore."
+    ],
+    "title_key": "michalak v general medical council and others"
+  },
+  "content": "{\"title\":\"Michalak (Respondent) v General Medical Council and others (Appellants)\",\"citation\":\"UKSC/2016/0084\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0084\",\"summary\":\"1. Ewa Michalak began employment as a doctor with the Mid-Yorkshire Hospitals NHS Trust in April 2002.\",\"extracts\":[\"1. Ewa Michalak began employment as a doctor with the Mid-Yorkshire Hospitals NHS Trust in April 2002. She remained in that employment until she was dismissed in July 2008. Following her dismissal, Dr Michalak brought an unfair dismissal claim against the Trust in the Employment Tribunal. The tribunal found that her dismissal had been unfair and contaminated by sex and race discrimination and victimisation. Dr Michalak received a compensation award and a public apology from the Trust.\",\"2. Before the tribunal had issued its determination, and, on foot of Dr Michalak’s dismissal, the Trust had reported her to the General Medical Council (the GMC) in relation to her conduct, so that the question of whether she should continue to be registered as a medical practitioner could be considered. The Trust later accepted that there had not been proper grounds on which to refer her to the GMC. She remains registered as a medical practitioner, therefore.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"michalak v general medical council and others\"}"
+}

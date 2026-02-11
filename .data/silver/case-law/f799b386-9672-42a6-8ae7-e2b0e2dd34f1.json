@@ -1,0 +1,21 @@
+{
+  "id": "f799b386-9672-42a6-8ae7-e2b0e2dd34f1",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Global Process Systems Inc and another (Respondents) v Syarikat Takaful Malaysia Berhad (Appellant)",
+  "created_at": "2025-12-25T11:46:56.619Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0006",
+    "score": 0,
+    "title": "Global Process Systems Inc and another (Respondents) v Syarikat Takaful Malaysia Berhad (Appellant)",
+    "summary": "1. This case is concerned with a marine insurance policy on cargo dated 5 July 2005, which incorporated the Institute Cargo Clauses (A) of 1 January 1982.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2010/0006",
+    "extracts": [
+      "1. This case is concerned with a marine insurance policy on cargo dated 5 July 2005, which incorporated the Institute Cargo Clauses (A) of 1 January 1982. The policy covered “all risks of loss or damage to the subject-matter insured except as provided in Clauses 4, 5, 6 and 7…” Clause 4.4 excluded “loss, damage or expense caused by inherent vice or nature of the subject matter insured” from the cover provided by the policy.",
+      "2. The subject matter of the insurance was the oil rig “Cendor MOPU.” This oil rig had been laid up in Galveston, Texas. In May 2005 it was purchased by the respondents (the assured under the policy) for conversion into a mobile offshore production unit (“MOPU”) for use in the Cendor Field off the coast of East Malaysia. The insurance covered the loading, carriage and discharge of the oil rig on the towed barge “Boabarge 8” from Galveston in the United States to Lumut in Malaysia. The total sum covered was Malaysian Ringgits 38m (US$10m) with a deductible of US$1m. The premium was US$378,000."
+    ],
+    "title_key": "global process systems inc and another v syarikat takaful malaysia berhad"
+  },
+  "content": "{\"title\":\"Global Process Systems Inc and another (Respondents) v Syarikat Takaful Malaysia Berhad (Appellant)\",\"citation\":\"UKSC/2010/0006\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0006\",\"summary\":\"1. This case is concerned with a marine insurance policy on cargo dated 5 July 2005, which incorporated the Institute Cargo Clauses (A) of 1 January 1982.\",\"extracts\":[\"1. This case is concerned with a marine insurance policy on cargo dated 5 July 2005, which incorporated the Institute Cargo Clauses (A) of 1 January 1982. The policy covered “all risks of loss or damage to the subject-matter insured except as provided in Clauses 4, 5, 6 and 7…” Clause 4.4 excluded “loss, damage or expense caused by inherent vice or nature of the subject matter insured” from the cover provided by the policy.\",\"2. The subject matter of the insurance was the oil rig “Cendor MOPU.” This oil rig had been laid up in Galveston, Texas. In May 2005 it was purchased by the respondents (the assured under the policy) for conversion into a mobile offshore production unit (“MOPU”) for use in the Cendor Field off the coast of East Malaysia. The insurance covered the loading, carriage and discharge of the oil rig on the towed barge “Boabarge 8” from Galveston in the United States to Lumut in Malaysia. The total sum covered was Malaysian Ringgits 38m (US$10m) with a deductible of US$1m. The premium was US$378,000.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"global process systems inc and another v syarikat takaful malaysia berhad\"}"
+}

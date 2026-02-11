@@ -1,0 +1,15 @@
+{
+  "id": "43322187-a962-45da-b42b-7e6c512ff5df",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#23630",
+  "created_at": "2025-12-25T14:18:31.164Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2008/611/made/data.xht",
+    "type": "uksi",
+    "year": 2008,
+    "number": null,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2008/611/made/data.akn"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2008,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2008/611/made/data.xht\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2008/611/made/data.akn\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "9e3c6ea5-8e02-409e-838f-77f335a6c012",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Steel and another (Appellants) v NRAM Limited (formerly NRAM Plc) (Respondent) (Scotland)",
+  "created_at": "2025-12-25T11:49:24.401Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0111",
+    "score": 2,
+    "title": "Steel and another (Appellants) v NRAM Limited (formerly NRAM Plc) (Respondent) (Scotland)",
+    "summary": "1. A makes a careless misrepresentation which causes economic loss to B.",
+    "category": "contract_consumer",
+    "citation": "UKSC/2016/0111",
+    "extracts": [
+      "1. A makes a careless misrepresentation which causes economic loss to B. There was no contract between them. But did A owe a duty of care to B? No, said the trial judge. Yes, said the appellate court. So it is A who brings this further appeal.",
+      "2. Ms Steel, who was the first defender and is now the first appellant, is a solicitor. At the material time she was a partner in Bell & Scott LLP, a firm of solicitors in Glasgow, who were the second defenders and are now the second appellants; I will refer to them as “the firm”. NRAM Ltd, until recently named NRAM Plc and, prior to that, named Northern Rock (Asset Management) Plc, was the pursuer and is now the respondent; I will refer to it as “Northern Rock”."
+    ],
+    "title_key": "steel and another v nram limited"
+  },
+  "content": "{\"title\":\"Steel and another (Appellants) v NRAM Limited (formerly NRAM Plc) (Respondent) (Scotland)\",\"citation\":\"UKSC/2016/0111\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0111\",\"summary\":\"1. A makes a careless misrepresentation which causes economic loss to B.\",\"extracts\":[\"1. A makes a careless misrepresentation which causes economic loss to B. There was no contract between them. But did A owe a duty of care to B? No, said the trial judge. Yes, said the appellate court. So it is A who brings this further appeal.\",\"2. Ms Steel, who was the first defender and is now the first appellant, is a solicitor. At the material time she was a partner in Bell & Scott LLP, a firm of solicitors in Glasgow, who were the second defenders and are now the second appellants; I will refer to them as “the firm”. NRAM Ltd, until recently named NRAM Plc and, prior to that, named Northern Rock (Asset Management) Plc, was the pursuer and is now the respondent; I will refer to it as “Northern Rock”.\"],\"category\":\"contract_consumer\",\"score\":2,\"title_key\":\"steel and another v nram limited\"}"
+}

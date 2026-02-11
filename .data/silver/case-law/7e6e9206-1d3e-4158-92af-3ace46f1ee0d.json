@@ -1,0 +1,21 @@
+{
+  "id": "7e6e9206-1d3e-4158-92af-3ace46f1ee0d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Impact Funding Solutions Limited (Respondent) v AIG Europe Insurance Ltd (formerly known as Chartis Insurance (UK) Ltd (Appellant)",
+  "created_at": "2025-12-25T11:48:58.720Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0050",
+    "score": 1,
+    "title": "Impact Funding Solutions Limited (Respondent) v AIG Europe Insurance Ltd (formerly known as Chartis Insurance (UK) Ltd (Appellant)",
+    "summary": "1. This appeal is concerned with the interpretation of a solicitors’ professional indemnity insurance policy (“the Policy”) written by AIG Europe Ltd (“AIG”).",
+    "category": "procedure",
+    "citation": "UKSC/2015/0050",
+    "extracts": [
+      "1. This appeal is concerned with the interpretation of a solicitors’ professional indemnity insurance policy (“the Policy”) written by AIG Europe Ltd (“AIG”). It raises a legal question of general public importance both because it concerns a term of an insurance policy, which is, or is similar to, terms in all professional indemnity insurance policies for solicitors in England and Wales, and also because it is important to the business model by which many solicitors have funded litigation since state-funded legal aid for civil cases was significantly reduced.",
+      "3. In another impressive judgment dated 13 December 2013 His Honour Judge Waksman QC analysed the nature of the arrangements between Impact and Barrington and, construing the words of the Policy, held that Impact’s claim against AIG for an indemnity failed. Impact appealed to the Court of Appeal. In a judgment dated 3 February 2015 the Court of Appeal, [2015] 4 All ER 319; [2016] Bus LR 91 allowed the appeal. The Court of Appeal, by standing back from the detail and asking itself what was the essential purpose of the exclusion clause in question, concluded that the loans which Impact gave to cover disbursements in intended litigation were inherently part of the solicitors’ professional practice and that the liabilities which Barrington incurred under its warranties to Impact were liabilities"
+    ],
+    "title_key": "impact funding solutions limited v aig europe insurance ltd ltd"
+  },
+  "content": "{\"title\":\"Impact Funding Solutions Limited (Respondent) v AIG Europe Insurance Ltd (formerly known as Chartis Insurance (UK) Ltd (Appellant)\",\"citation\":\"UKSC/2015/0050\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0050\",\"summary\":\"1. This appeal is concerned with the interpretation of a solicitors’ professional indemnity insurance policy (“the Policy”) written by AIG Europe Ltd (“AIG”).\",\"extracts\":[\"1. This appeal is concerned with the interpretation of a solicitors’ professional indemnity insurance policy (“the Policy”) written by AIG Europe Ltd (“AIG”). It raises a legal question of general public importance both because it concerns a term of an insurance policy, which is, or is similar to, terms in all professional indemnity insurance policies for solicitors in England and Wales, and also because it is important to the business model by which many solicitors have funded litigation since state-funded legal aid for civil cases was significantly reduced.\",\"3. In another impressive judgment dated 13 December 2013 His Honour Judge Waksman QC analysed the nature of the arrangements between Impact and Barrington and, construing the words of the Policy, held that Impact’s claim against AIG for an indemnity failed. Impact appealed to the Court of Appeal. In a judgment dated 3 February 2015 the Court of Appeal, [2015] 4 All ER 319; [2016] Bus LR 91 allowed the appeal. The Court of Appeal, by standing back from the detail and asking itself what was the essential purpose of the exclusion clause in question, concluded that the loans which Impact gave to cover disbursements in intended litigation were inherently part of the solicitors’ professional practice and that the liabilities which Barrington incurred under its warranties to Impact were liabilities\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"impact funding solutions limited v aig europe insurance ltd ltd\"}"
+}

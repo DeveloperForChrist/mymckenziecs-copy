@@ -1,0 +1,21 @@
+{
+  "id": "5985c144-cf2e-4fe6-a151-94882f81f878",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Rubin and another (Respondents) v Eurofinance SA and others (Appellants)",
+  "created_at": "2025-12-25T11:47:12.656Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0184",
+    "score": 0,
+    "title": "Rubin and another (Respondents) v Eurofinance SA and others (Appellants)",
+    "summary": "New Cap Reinsurance Corporation (In Liquidation) and another (Respondents/Cross Appellants) v A E Grant and others as Members of Lloyd's Syndicate 991 for the 1997 Year of Account and another (Appellants/Cross Respondents)",
+    "category": "evidence_misc",
+    "citation": "UKSC/2010/0184",
+    "extracts": [
+      "New Cap Reinsurance Corporation (In Liquidation) and another (Respondents/Cross Appellants) v A E Grant and others as Members of Lloyd's Syndicate 991 for the 1997 Year of Account and another (Appellants/Cross Respondents)",
+      "1. There are two appeals before the court: Rubin v Eurofinance SA (“Rubin”) and New Cap Reinsurance Corpn Ltd v Grant (“New Cap”). These appeals raise an important and novel issue in international insolvency law. The issue is whether, and if so, in what circumstances, an order or judgment of a foreign court (on these appeals the United States Bankruptcy Court for the Southern District of New York, and the New South Wales Supreme Court) in proceedings to adjust or set aside prior transactions, eg preferences or transactions at an undervalue (“avoidance proceedings”), will be recognised and enforced in England. The appeals also raise the question whether enforcement may be effected through the international assistance provisions of the UNCITRAL Model Law (implemented by the Cross- Border Insolvency Regulations 2006 (SI 2006/1030) (“CBIR”)), which applies generally, or the assistance provisions of section 426 of the Insolvency Act 1986, which applies to a limited number of countries, including Australia."
+    ],
+    "title_key": "rubin and another v eurofinance sa and others"
+  },
+  "content": "{\"title\":\"Rubin and another (Respondents) v Eurofinance SA and others (Appellants)\",\"citation\":\"UKSC/2010/0184\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0184\",\"summary\":\"New Cap Reinsurance Corporation (In Liquidation) and another (Respondents/Cross Appellants) v A E Grant and others as Members of Lloyd's Syndicate 991 for the 1997 Year of Account and another (Appellants/Cross Respondents)\",\"extracts\":[\"New Cap Reinsurance Corporation (In Liquidation) and another (Respondents/Cross Appellants) v A E Grant and others as Members of Lloyd's Syndicate 991 for the 1997 Year of Account and another (Appellants/Cross Respondents)\",\"1. There are two appeals before the court: Rubin v Eurofinance SA (“Rubin”) and New Cap Reinsurance Corpn Ltd v Grant (“New Cap”). These appeals raise an important and novel issue in international insolvency law. The issue is whether, and if so, in what circumstances, an order or judgment of a foreign court (on these appeals the United States Bankruptcy Court for the Southern District of New York, and the New South Wales Supreme Court) in proceedings to adjust or set aside prior transactions, eg preferences or transactions at an undervalue (“avoidance proceedings”), will be recognised and enforced in England. The appeals also raise the question whether enforcement may be effected through the international assistance provisions of the UNCITRAL Model Law (implemented by the Cross- Border Insolvency Regulations 2006 (SI 2006/1030) (“CBIR”)), which applies generally, or the assistance provisions of section 426 of the Insolvency Act 1986, which applies to a limited number of countries, including Australia.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"rubin and another v eurofinance sa and others\"}"
+}

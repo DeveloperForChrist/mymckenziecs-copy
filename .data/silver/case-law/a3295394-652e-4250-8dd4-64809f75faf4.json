@@ -1,0 +1,21 @@
+{
+  "id": "a3295394-652e-4250-8dd4-64809f75faf4",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Financial Conduct Authority (Appellant) v Macris (Respondent)",
+  "created_at": "2025-12-25T11:49:06.388Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0143",
+    "score": 1,
+    "title": "Financial Conduct Authority (Appellant) v Macris (Respondent)",
+    "summary": "1. Mr Achilles Macris’s complaint is that without giving him a chance to make representations in his own defence, the Financial Conduct Authority has published a notice imposing a penalty on his former employer for various irregularities in the conduct of its business, in terms which identify him...",
+    "category": "procedure",
+    "citation": "UKSC/2015/0143",
+    "extracts": [
+      "1. Mr Achilles Macris’s complaint is that without giving him a chance to make representations in his own defence, the Financial Conduct Authority has published a notice imposing a penalty on his former employer for various irregularities in the conduct of its business, in terms which identify him as the person responsible. The question at issue on this appeal is whether the notices in question did in fact identify him. This may look like a small point but, for reasons which I shall explain, it has significant implications for the conduct of the Authority’s investigatory and disciplinary functions.",
+      "2. The Financial Conduct Authority is responsible for the statutory regulation of the United Kingdom’s financial markets. This includes protecting and enhancing the integrity of the United Kingdom financial system and ensuring the stability and orderly functioning of financial markets. The Authority’s powers are derived from the Financial Services and Markets Act 2000 (“the Act”), as amended by the Financial Services Act 2012."
+    ],
+    "title_key": "financial conduct authority v macris"
+  },
+  "content": "{\"title\":\"Financial Conduct Authority (Appellant) v Macris (Respondent)\",\"citation\":\"UKSC/2015/0143\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0143\",\"summary\":\"1. Mr Achilles Macris’s complaint is that without giving him a chance to make representations in his own defence, the Financial Conduct Authority has published a notice imposing a penalty on his former employer for various irregularities in the conduct of its business, in terms which identify him...\",\"extracts\":[\"1. Mr Achilles Macris’s complaint is that without giving him a chance to make representations in his own defence, the Financial Conduct Authority has published a notice imposing a penalty on his former employer for various irregularities in the conduct of its business, in terms which identify him as the person responsible. The question at issue on this appeal is whether the notices in question did in fact identify him. This may look like a small point but, for reasons which I shall explain, it has significant implications for the conduct of the Authority’s investigatory and disciplinary functions.\",\"2. The Financial Conduct Authority is responsible for the statutory regulation of the United Kingdom’s financial markets. This includes protecting and enhancing the integrity of the United Kingdom financial system and ensuring the stability and orderly functioning of financial markets. The Authority’s powers are derived from the Financial Services and Markets Act 2000 (“the Act”), as amended by the Financial Services Act 2012.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"financial conduct authority v macris\"}"
+}

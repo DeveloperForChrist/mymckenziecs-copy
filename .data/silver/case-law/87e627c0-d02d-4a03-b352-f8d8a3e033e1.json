@@ -1,0 +1,21 @@
+{
+  "id": "87e627c0-d02d-4a03-b352-f8d8a3e033e1",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of J (Children)",
+  "created_at": "2025-12-25T11:47:58.796Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0128",
+    "score": 2,
+    "title": "In the matter of J (Children)",
+    "summary": "1. In a free society, it is a serious thing indeed for the state compulsorily to remove a child from his family of birth.",
+    "category": "public_law",
+    "citation": "UKSC/2012/0128",
+    "extracts": [
+      "1. In a free society, it is a serious thing indeed for the state compulsorily to remove a child from his family of birth. Interference with the right to respect for family life, protected by article 8 of the European Convention on Human Rights, can only be justified by a pressing social need. Yet it is also a serious thing for the state to fail to safeguard its children from the neglect and ill-treatment which they may suffer in their own homes. This may even amount to a violation of their right not to be subjected to inhuman or degrading treatment, protected by article 3 of the Convention. How then is the law to protect the family from unwarranted intrusion while at the same time protecting children from harm?",
+      "2. In England and Wales, the Children Act 1989 tries to balance these two objectives by setting a threshold which must be crossed before a court can consider what order, if any, should be made to enable the authorities to protect a child. The threshold is designed to restrict compulsory intervention to cases which genuinely warrant it, while enabling the court to make the order which will best promote the child’s welfare once the threshold has been crossed. That threshold is defined by section 31(2) of the Act as follows:"
+    ],
+    "title_key": "in the matter of j"
+  },
+  "content": "{\"title\":\"In the matter of J (Children)\",\"citation\":\"UKSC/2012/0128\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0128\",\"summary\":\"1. In a free society, it is a serious thing indeed for the state compulsorily to remove a child from his family of birth.\",\"extracts\":[\"1. In a free society, it is a serious thing indeed for the state compulsorily to remove a child from his family of birth. Interference with the right to respect for family life, protected by article 8 of the European Convention on Human Rights, can only be justified by a pressing social need. Yet it is also a serious thing for the state to fail to safeguard its children from the neglect and ill-treatment which they may suffer in their own homes. This may even amount to a violation of their right not to be subjected to inhuman or degrading treatment, protected by article 3 of the Convention. How then is the law to protect the family from unwarranted intrusion while at the same time protecting children from harm?\",\"2. In England and Wales, the Children Act 1989 tries to balance these two objectives by setting a threshold which must be crossed before a court can consider what order, if any, should be made to enable the authorities to protect a child. The threshold is designed to restrict compulsory intervention to cases which genuinely warrant it, while enabling the court to make the order which will best promote the child’s welfare once the threshold has been crossed. That threshold is defined by section 31(2) of the Act as follows:\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"in the matter of j\"}"
+}

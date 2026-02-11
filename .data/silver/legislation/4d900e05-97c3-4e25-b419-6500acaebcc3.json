@@ -1,0 +1,15 @@
+{
+  "id": "4d900e05-97c3-4e25-b419-6500acaebcc3",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#10299",
+  "created_at": "2025-12-25T12:53:58.453Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1980/1942/contents/made",
+    "type": "uksi",
+    "year": 1980,
+    "number": 1942,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1980,\"number\":1942,\"url\":\"http://www.legislation.gov.uk/uksi/1980/1942/contents/made\",\"dataUrl\":null}"
+}

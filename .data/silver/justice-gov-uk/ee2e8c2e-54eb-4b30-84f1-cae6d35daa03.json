@@ -1,0 +1,13 @@
+{
+  "id": "ee2e8c2e-54eb-4b30-84f1-cae6d35daa03",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#163",
+  "created_at": "2025-12-25T15:20:55.416Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part56/practice-direction-56a-renting-homes-wales-claims",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part56_practice_direction__6ee0d85d88.html",
+    "fetchedAt": "2025-12-22T23:50:00.722Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part56/practice-direction-56a-renting-homes-wales-claims\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part56_practice_direction__6ee0d85d88.html\",\"fetchedAt\":\"2025-12-22T23:50:00.722Z\"}"
+}

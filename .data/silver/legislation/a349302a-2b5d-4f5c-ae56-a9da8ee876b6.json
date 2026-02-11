@@ -1,0 +1,15 @@
+{
+  "id": "a349302a-2b5d-4f5c-ae56-a9da8ee876b6",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#22251",
+  "created_at": "2025-12-25T14:09:08.289Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2007/3580/contents/made",
+    "type": "uksi",
+    "year": 2007,
+    "number": 3580,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2007/3580/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2007,\"number\":3580,\"url\":\"http://www.legislation.gov.uk/uksi/2007/3580/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2007/3580/made/data.htm\"}"
+}

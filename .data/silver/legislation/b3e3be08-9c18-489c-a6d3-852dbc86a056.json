@@ -1,0 +1,15 @@
+{
+  "id": "b3e3be08-9c18-489c-a6d3-852dbc86a056",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8225",
+  "created_at": "2025-12-25T12:41:32.527Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1962/2804/contents/made",
+    "type": "uksi",
+    "year": 1962,
+    "number": 2804,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1962,\"number\":2804,\"url\":\"http://www.legislation.gov.uk/uksi/1962/2804/contents/made\",\"dataUrl\":null}"
+}

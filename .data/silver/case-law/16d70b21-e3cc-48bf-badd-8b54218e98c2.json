@@ -1,0 +1,21 @@
+{
+  "id": "16d70b21-e3cc-48bf-badd-8b54218e98c2",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Anderson (Appellant) v Shetland Islands Council and another (Respondents)",
+  "created_at": "2025-12-25T11:47:28.327Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0094",
+    "score": 2,
+    "title": "Anderson (Appellant) v Shetland Islands Council and another (Respondents)",
+    "summary": "1. This is an appeal from an interlocutor of an Extra Division of the Court of Session of 16 February 2010.",
+    "category": "procedure",
+    "citation": "UKSC/2011/0094",
+    "extracts": [
+      "1. This is an appeal from an interlocutor of an Extra Division of the Court of Session of 16 February 2010. The respondents seek an order under Rule 36 (1) of the Supreme Court Rules 2009 that the appellant should be required to give security for their costs of the appeal. The first respondents, Shetland Islands Council, suggest that security should be given for their costs in the sum of £50,000. The second respondents, Scottish Water, suggest £40,000 as the amount that should be given as security in their case. In response to these applications the appellant, Mrs Patricia Anderson, seeks an order that each of the respondents lodge security for her costs in the sum of £5,000.",
+      "2. With the agreement of the parties, we have considered these applications by way of written submissions. This was to minimise costs and because of the difficulties that would face Mrs Anderson, who is aged 93 and is a litigant in person, were she to be required to travel from Shetland to London for an oral hearing."
+    ],
+    "title_key": "anderson v shetland islands council and another"
+  },
+  "content": "{\"title\":\"Anderson (Appellant) v Shetland Islands Council and another (Respondents)\",\"citation\":\"UKSC/2011/0094\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0094\",\"summary\":\"1. This is an appeal from an interlocutor of an Extra Division of the Court of Session of 16 February 2010.\",\"extracts\":[\"1. This is an appeal from an interlocutor of an Extra Division of the Court of Session of 16 February 2010. The respondents seek an order under Rule 36 (1) of the Supreme Court Rules 2009 that the appellant should be required to give security for their costs of the appeal. The first respondents, Shetland Islands Council, suggest that security should be given for their costs in the sum of £50,000. The second respondents, Scottish Water, suggest £40,000 as the amount that should be given as security in their case. In response to these applications the appellant, Mrs Patricia Anderson, seeks an order that each of the respondents lodge security for her costs in the sum of £5,000.\",\"2. With the agreement of the parties, we have considered these applications by way of written submissions. This was to minimise costs and because of the difficulties that would face Mrs Anderson, who is aged 93 and is a litigant in person, were she to be required to travel from Shetland to London for an oral hearing.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"anderson v shetland islands council and another\"}"
+}

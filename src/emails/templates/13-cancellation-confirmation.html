@@ -1,0 +1,14 @@
+<!-- Trigger: user cancels subscription
+     Purpose: Confirm cancellation, state data retention policy, provide reactivation link
+     Key elements: effective date, retention window, reactivation CTA, GDPR info -->
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"/><title>Cancellation Confirmation</title></head>
+  <body>
+    <h1>Subscription cancelled</h1>
+    <p>Your subscription ended on {{cancel_date}}. We will retain your account data for {{retention_days}} days as per our policy.</p>
+    <p>This confirms the cancellation you made in Billing settings.</p>
+    <p>To restore your account: <a href="{{reactivate_url}}">Reactivate</a></p>
+    <p>Learn more about data retention: <a href="{{policy_url}}">Privacy & Data Retention</a></p>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "id": "53558330-3f61-4dc0-9a97-517ebc997545",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9602",
+  "created_at": "2025-12-25T12:49:29.459Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1976/2013/contents/made",
+    "type": "uksi",
+    "year": 1976,
+    "number": 2013,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1976,\"number\":2013,\"url\":\"http://www.legislation.gov.uk/uksi/1976/2013/contents/made\",\"dataUrl\":null}"
+}

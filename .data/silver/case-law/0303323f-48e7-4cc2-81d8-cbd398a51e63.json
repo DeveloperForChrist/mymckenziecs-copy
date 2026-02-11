@@ -1,0 +1,21 @@
+{
+  "id": "0303323f-48e7-4cc2-81d8-cbd398a51e63",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "MT Højgaard A/S (Respondent) v E.On Climate & Renewables UK Robin Rigg East Limited and another (Appellants)",
+  "created_at": "2025-12-25T11:49:03.616Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0115",
+    "score": 0,
+    "title": "MT Højgaard A/S (Respondent) v E.On Climate & Renewables UK Robin Rigg East Limited and another (Appellants)",
+    "summary": "1. These proceedings arise from the fact that the foundation structures of two offshore wind farms at Robin Rigg in the Solway Firth, which were designed and installed by MT Højgaard A/S (“MTH”), failed shortly after completion of the project.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2015/0115",
+    "extracts": [
+      "1. These proceedings arise from the fact that the foundation structures of two offshore wind farms at Robin Rigg in the Solway Firth, which were designed and installed by MT Højgaard A/S (“MTH”), failed shortly after completion of the project. The specific issue to be determined is whether MTH are liable for this failure.",
+      "2. As Jackson LJ said in the Court of Appeal, the resolution of that issue turns on “how the court should construe the somewhat diffuse documents which constituted, or were incorporated into, the ‘design and build’ contract in this case”. Accordingly, I turn first to consider the relevant provisions of the contractual documentation."
+    ],
+    "title_key": "mt h jgaard a s v e on climate renewables uk robin rigg east limited and another"
+  },
+  "content": "{\"title\":\"MT Højgaard A/S (Respondent) v E.On Climate & Renewables UK Robin Rigg East Limited and another (Appellants)\",\"citation\":\"UKSC/2015/0115\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0115\",\"summary\":\"1. These proceedings arise from the fact that the foundation structures of two offshore wind farms at Robin Rigg in the Solway Firth, which were designed and installed by MT Højgaard A/S (“MTH”), failed shortly after completion of the project.\",\"extracts\":[\"1. These proceedings arise from the fact that the foundation structures of two offshore wind farms at Robin Rigg in the Solway Firth, which were designed and installed by MT Højgaard A/S (“MTH”), failed shortly after completion of the project. The specific issue to be determined is whether MTH are liable for this failure.\",\"2. As Jackson LJ said in the Court of Appeal, the resolution of that issue turns on “how the court should construe the somewhat diffuse documents which constituted, or were incorporated into, the ‘design and build’ contract in this case”. Accordingly, I turn first to consider the relevant provisions of the contractual documentation.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"mt h jgaard a s v e on climate renewables uk robin rigg east limited and another\"}"
+}

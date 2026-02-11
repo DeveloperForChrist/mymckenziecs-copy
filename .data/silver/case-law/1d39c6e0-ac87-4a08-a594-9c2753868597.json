@@ -1,0 +1,21 @@
+{
+  "id": "1d39c6e0-ac87-4a08-a594-9c2753868597",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Volkswagen Financial Services (UK) Ltd (Respondent) v Commissioners for Her Majesty's Revenue and Customs (Appellant)",
+  "created_at": "2025-12-25T11:49:13.097Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0224",
+    "score": 3,
+    "title": "Volkswagen Financial Services (UK) Ltd (Respondent) v Commissioners for Her Majesty's Revenue and Customs (Appellant)",
+    "summary": "1. The respondent (“VWFS”) is a member of the Volkswagen Group, and is used (through its “retail” sector) to provide hire purchase (“HP”) finance for the sale of vehicles manufactured by the group.",
+    "category": "contract_consumer",
+    "citation": "UKSC/2015/0224",
+    "extracts": [
+      "1. The respondent (“VWFS”) is a member of the Volkswagen Group, and is used (through its “retail” sector) to provide hire purchase (“HP”) finance for the sale of vehicles manufactured by the group. When a customer of a VW dealership wishes to purchase a vehicle using finance from VWFS, the vehicle is acquired by VWFS as part of the finance arrangements from the dealer and then supplied by it to the customer on deferred payment terms under an HP contract. The vehicles are sold on to the customer at the same price as they are purchased from the dealer.",
+      "3. That remains the main issue in the appeal, but is one on which the court has decided that a reference to the CJEU is necessary to reach a conclusion. The present judgment is concerned with a secondary issue. Mr Thomas argues that HMRC had a fall-back position on the amount of the apportionment, which the FTT had failed to consider. As Patten LJ explained:"
+    ],
+    "title_key": "volkswagen financial services ltd v commissioners for her majesty s revenue and customs"
+  },
+  "content": "{\"title\":\"Volkswagen Financial Services (UK) Ltd (Respondent) v Commissioners for Her Majesty's Revenue and Customs (Appellant)\",\"citation\":\"UKSC/2015/0224\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0224\",\"summary\":\"1. The respondent (“VWFS”) is a member of the Volkswagen Group, and is used (through its “retail” sector) to provide hire purchase (“HP”) finance for the sale of vehicles manufactured by the group.\",\"extracts\":[\"1. The respondent (“VWFS”) is a member of the Volkswagen Group, and is used (through its “retail” sector) to provide hire purchase (“HP”) finance for the sale of vehicles manufactured by the group. When a customer of a VW dealership wishes to purchase a vehicle using finance from VWFS, the vehicle is acquired by VWFS as part of the finance arrangements from the dealer and then supplied by it to the customer on deferred payment terms under an HP contract. The vehicles are sold on to the customer at the same price as they are purchased from the dealer.\",\"3. That remains the main issue in the appeal, but is one on which the court has decided that a reference to the CJEU is necessary to reach a conclusion. The present judgment is concerned with a secondary issue. Mr Thomas argues that HMRC had a fall-back position on the amount of the apportionment, which the FTT had failed to consider. As Patten LJ explained:\"],\"category\":\"contract_consumer\",\"score\":3,\"title_key\":\"volkswagen financial services ltd v commissioners for her majesty s revenue and customs\"}"
+}

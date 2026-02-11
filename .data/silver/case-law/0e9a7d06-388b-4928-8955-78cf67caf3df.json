@@ -1,0 +1,21 @@
+{
+  "id": "0e9a7d06-388b-4928-8955-78cf67caf3df",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "SS (Congo) (Appellant) v Entry Clearance Officer, Nairobi (Respondent)",
+  "created_at": "2025-12-25T11:49:08.642Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0168",
+    "score": 1,
+    "title": "SS (Congo) (Appellant) v Entry Clearance Officer, Nairobi (Respondent)",
+    "summary": "2. Estimates differ as to the proportion of the adult population who can meet these requirements but it is clear that a substantial number cannot do so, especially if they have children.",
+    "category": "procedure",
+    "citation": "UKSC/2015/0168",
+    "extracts": [
+      "2. Estimates differ as to the proportion of the adult population who can meet these requirements but it is clear that a substantial number cannot do so, especially if they have children. Median full-time gross earnings in the UK in 2012 were £26,500 but for men they were £28,700 and for women £23,100. There were also substantial regional differences, with people in London and the south-east earning above the national median and people in Northern Ireland, Wales, and the north east earning considerably below (Office for National Statistics, Statistical Bulletin: Annual Survey of Hours and Earnings: 2012 Provisional Results, November 2012); the 2015 Provisional Results were published in November 2016. 301 out of the 422 occupations listed had average annual earnings below £18,600. Among those earning below that figure were many providing essential public services.",
+      "3. Four of the cases before us, MM, AF, AM and SJ (for convenience we shall refer to all the parties by initials), are claims for judicial review of the MIR launched around the time that Appendix FM was first introduced. The MIR is challenged on the ground that it is incompatible with the rights of the claimants and their partners (and a child living with one of them) under articles 8, 12 and/or 14 of the European Convention on Human Rights and also that it is unreasonable and ultra vires on"
+    ],
+    "title_key": "ss v entry clearance officer nairobi"
+  },
+  "content": "{\"title\":\"SS (Congo) (Appellant) v Entry Clearance Officer, Nairobi (Respondent)\",\"citation\":\"UKSC/2015/0168\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0168\",\"summary\":\"2. Estimates differ as to the proportion of the adult population who can meet these requirements but it is clear that a substantial number cannot do so, especially if they have children.\",\"extracts\":[\"2. Estimates differ as to the proportion of the adult population who can meet these requirements but it is clear that a substantial number cannot do so, especially if they have children. Median full-time gross earnings in the UK in 2012 were £26,500 but for men they were £28,700 and for women £23,100. There were also substantial regional differences, with people in London and the south-east earning above the national median and people in Northern Ireland, Wales, and the north east earning considerably below (Office for National Statistics, Statistical Bulletin: Annual Survey of Hours and Earnings: 2012 Provisional Results, November 2012); the 2015 Provisional Results were published in November 2016. 301 out of the 422 occupations listed had average annual earnings below £18,600. Among those earning below that figure were many providing essential public services.\",\"3. Four of the cases before us, MM, AF, AM and SJ (for convenience we shall refer to all the parties by initials), are claims for judicial review of the MIR launched around the time that Appendix FM was first introduced. The MIR is challenged on the ground that it is incompatible with the rights of the claimants and their partners (and a child living with one of them) under articles 8, 12 and/or 14 of the European Convention on Human Rights and also that it is unreasonable and ultra vires on\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"ss v entry clearance officer nairobi\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "31dca3e6-74f0-4ad1-aa90-4e07e6da5d39",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8567",
+  "created_at": "2025-12-25T12:43:30.145Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1968/1801/contents/made",
+    "type": "uksi",
+    "year": 1968,
+    "number": 1801,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1968,\"number\":1801,\"url\":\"http://www.legislation.gov.uk/uksi/1968/1801/contents/made\",\"dataUrl\":null}"
+}

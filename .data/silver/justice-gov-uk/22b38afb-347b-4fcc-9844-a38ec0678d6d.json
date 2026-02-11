@@ -1,0 +1,13 @@
+{
+  "id": "22b38afb-347b-4fcc-9844-a38ec0678d6d",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#243",
+  "created_at": "2025-12-25T15:21:31.680Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/standard-directions/list-of-cases-of-common-occurrence",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_standard_directions_list_of_case_1eac188cf6.html",
+    "fetchedAt": "2025-12-23T00:24:32.241Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/standard-directions/list-of-cases-of-common-occurrence\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_standard_directions_list_of_case_1eac188cf6.html\",\"fetchedAt\":\"2025-12-23T00:24:32.241Z\"}"
+}

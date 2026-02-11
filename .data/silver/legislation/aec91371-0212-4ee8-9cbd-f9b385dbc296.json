@@ -1,0 +1,15 @@
+{
+  "id": "aec91371-0212-4ee8-9cbd-f9b385dbc296",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#1908",
+  "created_at": "2025-12-25T12:02:56.671Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Edw8and1Geo6/1/6/contents",
+    "type": "ukpga",
+    "year": 1936,
+    "number": 6,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/Edw8and1Geo6/1/6/2018-01-25/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1936,\"number\":6,\"url\":\"http://www.legislation.gov.uk/ukpga/Edw8and1Geo6/1/6/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/Edw8and1Geo6/1/6/2018-01-25/data.htm\"}"
+}

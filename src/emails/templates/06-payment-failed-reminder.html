@@ -1,0 +1,18 @@
+<!-- Trigger: payment retry reminder during grace period
+     Purpose: remind user of upcoming retry + grace period end
+     Key elements: next retry date, grace end date, CTA to update payment -->
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"/><title>Payment reminder</title></head>
+  <body>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <h1>Payment reminder</h1>
+    <p>Hi {{name}},</p>
+    <p>We still haven’t been able to complete your payment.</p>
+    <p>We’ll retry your payment on {{next_retry_date}}.</p>
+    <p>If payment isn’t completed by {{grace_end_date}}, your account moves to the Free plan.</p>
+    <p><a href="{{manage_url}}">Update payment method</a></p>
+    <p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MymckenzieCS</p>
+    </div>
+  </body>
+</html>

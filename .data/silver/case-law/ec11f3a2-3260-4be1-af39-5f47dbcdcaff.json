@@ -1,0 +1,21 @@
+{
+  "id": "ec11f3a2-3260-4be1-af39-5f47dbcdcaff",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Kennedy (Appellant) v The Charity Commission (Respondent)",
+  "created_at": "2025-12-25T11:47:57.948Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0122",
+    "score": 1,
+    "title": "Kennedy (Appellant) v The Charity Commission (Respondent)",
+    "summary": "1. Information is the key to sound decision-making, to accountability and development; it underpins democracy and assists in combatting poverty, oppression, corruption, prejudice and inefficiency.",
+    "category": "remedies",
+    "citation": "UKSC/2012/0122",
+    "extracts": [
+      "1. Information is the key to sound decision-making, to accountability and development; it underpins democracy and assists in combatting poverty, oppression, corruption, prejudice and inefficiency. Administrators, judges, arbitrators, and persons conducting inquiries and investigations depend upon it; likewise the press, NGOs and individuals concerned to report on issues of public interest. Unwillingness to disclose information may arise through habits of secrecy or reasons of self-protection. But information can be genuinely private, confidential or sensitive, and these interests merit respect in their own right and, in the case of those who depend on information to fulfil their functions, because this may not otherwise",
+      "2. This appeal concerns the relationship between the Charity Commission, a public authority responsible for inquiries in relation to which it requires information from third parties, and the press, concerned to understand and report on the Charity Commission’s performance of its role. It also concerns the relationship between the Freedom of Information Act 2000 (“the FOIA”) and the statutory and common law position regarding the disclosure of information outside the scope of the FOIA."
+    ],
+    "title_key": "kennedy v the charity commission"
+  },
+  "content": "{\"title\":\"Kennedy (Appellant) v The Charity Commission (Respondent)\",\"citation\":\"UKSC/2012/0122\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0122\",\"summary\":\"1. Information is the key to sound decision-making, to accountability and development; it underpins democracy and assists in combatting poverty, oppression, corruption, prejudice and inefficiency.\",\"extracts\":[\"1. Information is the key to sound decision-making, to accountability and development; it underpins democracy and assists in combatting poverty, oppression, corruption, prejudice and inefficiency. Administrators, judges, arbitrators, and persons conducting inquiries and investigations depend upon it; likewise the press, NGOs and individuals concerned to report on issues of public interest. Unwillingness to disclose information may arise through habits of secrecy or reasons of self-protection. But information can be genuinely private, confidential or sensitive, and these interests merit respect in their own right and, in the case of those who depend on information to fulfil their functions, because this may not otherwise\",\"2. This appeal concerns the relationship between the Charity Commission, a public authority responsible for inquiries in relation to which it requires information from third parties, and the press, concerned to understand and report on the Charity Commission’s performance of its role. It also concerns the relationship between the Freedom of Information Act 2000 (“the FOIA”) and the statutory and common law position regarding the disclosure of information outside the scope of the FOIA.\"],\"category\":\"remedies\",\"score\":1,\"title_key\":\"kennedy v the charity commission\"}"
+}

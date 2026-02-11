@@ -1,0 +1,27 @@
+name: Deadline Reminders Cron
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # daily at 08:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  call-deadline-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call deadline reminders endpoint
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$SITE_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "ERROR: SITE_URL and CRON_SECRET must be set in repository secrets.";
+            exit 1;
+          fi
+          echo "Calling $SITE_URL/api/cron/deadline-reminders";
+          HTTP_STATUS=$(curl -s -o /dev/stderr -w "%{http_code}" -H "Authorization: Bearer $CRON_SECRET" "$SITE_URL/api/cron/deadline-reminders?days=7") || true
+          echo "HTTP status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "Non-200 response from cron endpoint";
+            exit 1;
+          fi

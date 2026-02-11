@@ -1,0 +1,15 @@
+{
+  "id": "ae4255e4-a334-47f8-be9a-7cadf194c2c4",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9336",
+  "created_at": "2025-12-25T12:47:53.245Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1974/1947/contents/made",
+    "type": "uksi",
+    "year": 1974,
+    "number": 1947,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1974,\"number\":1947,\"url\":\"http://www.legislation.gov.uk/uksi/1974/1947/contents/made\",\"dataUrl\":null}"
+}

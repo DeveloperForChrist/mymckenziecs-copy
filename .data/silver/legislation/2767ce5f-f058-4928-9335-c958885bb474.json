@@ -1,0 +1,15 @@
+{
+  "id": "2767ce5f-f058-4928-9335-c958885bb474",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#13353",
+  "created_at": "2025-12-25T13:12:39.803Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1987/786/contents/made",
+    "type": "uksi",
+    "year": 1987,
+    "number": 786,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1987/786/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1987,\"number\":786,\"url\":\"http://www.legislation.gov.uk/uksi/1987/786/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1987/786/made/data.htm\"}"
+}

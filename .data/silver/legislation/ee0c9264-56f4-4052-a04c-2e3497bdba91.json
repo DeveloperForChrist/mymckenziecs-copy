@@ -1,0 +1,15 @@
+{
+  "id": "ee0c9264-56f4-4052-a04c-2e3497bdba91",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#6926",
+  "created_at": "2025-12-25T12:33:46.762Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1950/1942/contents/made",
+    "type": "uksi",
+    "year": 1950,
+    "number": 1942,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1950,\"number\":1942,\"url\":\"http://www.legislation.gov.uk/uksi/1950/1942/contents/made\",\"dataUrl\":null}"
+}

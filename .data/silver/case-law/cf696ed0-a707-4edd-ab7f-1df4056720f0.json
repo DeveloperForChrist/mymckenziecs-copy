@@ -1,0 +1,21 @@
+{
+  "id": "cf696ed0-a707-4edd-ab7f-1df4056720f0",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Richborough Estates Partnership LLP and another (Respondents) v Cheshire East Borough Council (Appellant)",
+  "created_at": "2025-12-25T11:49:21.299Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0078",
+    "score": 1,
+    "title": "Richborough Estates Partnership LLP and another (Respondents) v Cheshire East Borough Council (Appellant)",
+    "summary": "“Housing applications should be considered in the context of the presumption in favour of sustainable development. Relevant policies for the supply of housing should not be considered up-to-date if the local planning authority cannot demonstrate a five-year supply of deliverable housing sites.”",
+    "category": "contract_consumer",
+    "citation": "UKSC/2016/0078",
+    "extracts": [
+      "“Housing applications should be considered in the context of the presumption in favour of sustainable development. Relevant policies for the supply of housing should not be considered up-to-date if the local planning authority cannot demonstrate a five-year supply of deliverable housing sites.”",
+      "2. The Court of Appeal observed that the interpretation of this paragraph had been considered by the Administrative Court on seven separate occasions between October 2013 and April 2015 with varying results. The court had been urged by all counsel “to bring much needed clarity to the meaning of the policy”. Notwithstanding the clarification provided by the impressive judgment of the court (given by Lindblom LJ), controversy remains. The appeals provide the opportunity for this court not only to consider the narrow issues of interpretation of para 49, but to look more broadly at issues concerning the legal status of the NPPF and its relationship with the statutory development plan."
+    ],
+    "title_key": "richborough estates partnership llp and another v cheshire east borough council"
+  },
+  "content": "{\"title\":\"Richborough Estates Partnership LLP and another (Respondents) v Cheshire East Borough Council (Appellant)\",\"citation\":\"UKSC/2016/0078\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0078\",\"summary\":\"“Housing applications should be considered in the context of the presumption in favour of sustainable development. Relevant policies for the supply of housing should not be considered up-to-date if the local planning authority cannot demonstrate a five-year supply of deliverable housing sites.”\",\"extracts\":[\"“Housing applications should be considered in the context of the presumption in favour of sustainable development. Relevant policies for the supply of housing should not be considered up-to-date if the local planning authority cannot demonstrate a five-year supply of deliverable housing sites.”\",\"2. The Court of Appeal observed that the interpretation of this paragraph had been considered by the Administrative Court on seven separate occasions between October 2013 and April 2015 with varying results. The court had been urged by all counsel “to bring much needed clarity to the meaning of the policy”. Notwithstanding the clarification provided by the impressive judgment of the court (given by Lindblom LJ), controversy remains. The appeals provide the opportunity for this court not only to consider the narrow issues of interpretation of para 49, but to look more broadly at issues concerning the legal status of the NPPF and its relationship with the statutory development plan.\"],\"category\":\"contract_consumer\",\"score\":1,\"title_key\":\"richborough estates partnership llp and another v cheshire east borough council\"}"
+}

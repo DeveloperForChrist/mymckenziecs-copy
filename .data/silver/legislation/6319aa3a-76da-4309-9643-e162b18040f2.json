@@ -1,0 +1,15 @@
+{
+  "id": "6319aa3a-76da-4309-9643-e162b18040f2",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8951",
+  "created_at": "2025-12-25T12:45:33.771Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1970/1904/contents/made",
+    "type": "uksi",
+    "year": 1970,
+    "number": 1904,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1970/1904/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1970,\"number\":1904,\"url\":\"http://www.legislation.gov.uk/uksi/1970/1904/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1970/1904/made/data.htm\"}"
+}

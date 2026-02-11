@@ -1,0 +1,15 @@
+{
+  "id": "ce60e145-0752-4098-bef2-8a8080be3357",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#5710",
+  "created_at": "2025-12-25T12:26:25.590Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1998/43/contents",
+    "type": "ukpga",
+    "year": 1998,
+    "number": 43,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1998/43/2015-05-26/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1998,\"number\":43,\"url\":\"http://www.legislation.gov.uk/ukpga/1998/43/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1998/43/2015-05-26/data.htm\"}"
+}

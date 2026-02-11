@@ -1,0 +1,15 @@
+{
+  "id": "b7adae20-fcd6-4bdb-a3ed-e5aa5a7588e0",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#28908",
+  "created_at": "2025-12-25T14:56:11.578Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2022/1065/made",
+    "type": "uksi",
+    "year": 2022,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2022,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2022/1065/made\",\"dataUrl\":null}"
+}

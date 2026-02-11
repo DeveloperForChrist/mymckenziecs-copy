@@ -1,0 +1,15 @@
+{
+  "id": "46db834a-0569-41ea-be98-c560f7c7a716",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7433",
+  "created_at": "2025-12-25T12:36:55.758Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1955/1923/contents/made",
+    "type": "uksi",
+    "year": 1955,
+    "number": 1923,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1955,\"number\":1923,\"url\":\"http://www.legislation.gov.uk/uksi/1955/1923/contents/made\",\"dataUrl\":null}"
+}

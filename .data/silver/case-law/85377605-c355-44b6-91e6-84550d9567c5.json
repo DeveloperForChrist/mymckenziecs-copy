@@ -1,0 +1,21 @@
+{
+  "id": "85377605-c355-44b6-91e6-84550d9567c5",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "BNY Corporate Trustee Services Limited and others (Respondents) v Neuberger Berman Europe Ltd(on behalf of Sealink Funding Ltd) and others (Appellants)",
+  "created_at": "2025-12-25T11:47:27.012Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0086",
+    "score": 1,
+    "title": "BNY Corporate Trustee Services Limited and others (Respondents) v Neuberger Berman Europe Ltd(on behalf of Sealink Funding Ltd) and others (Appellants)",
+    "summary": "(2) A company is also deemed unable to pay its debts if it is proved to the satisfaction of the court that the value of the company’s assets is less than the amount of its liabilities, taking into account its contingent and prospective liabilities.”",
+    "category": "procedure",
+    "citation": "UKSC/2011/0086",
+    "extracts": [
+      "(2) A company is also deemed unable to pay its debts if it is proved to the satisfaction of the court that the value of the company’s assets is less than the amount of its liabilities, taking into account its contingent and prospective liabilities.”",
+      "A company in the situation described in subsection (1)(e) is often said to be “cash-flow” insolvent. A company in the situation described in subsection (2) is often said to be “balance-sheet” insolvent, but that expression is not to be taken literally. It is a convenient shorthand expression, but a company’s statutory balance sheet, properly prepared in accordance with the requirements of company law, may omit some contingent assets or some contingent liabilities. There is no statutory provision which links section 123(2) of the 1986 Act to the detailed provisions of the Companies Act 2006 as to the form and contents of a company’s financial statements. This appeal is concerned with the construction and effect of section 123(1)(e) and (2) as incorporated into the documentation of an issue of loan notes."
+    ],
+    "title_key": "bny corporate trustee services limited and others v neuberger berman europe ltd and others"
+  },
+  "content": "{\"title\":\"BNY Corporate Trustee Services Limited and others (Respondents) v Neuberger Berman Europe Ltd(on behalf of Sealink Funding Ltd) and others (Appellants)\",\"citation\":\"UKSC/2011/0086\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0086\",\"summary\":\"(2) A company is also deemed unable to pay its debts if it is proved to the satisfaction of the court that the value of the company’s assets is less than the amount of its liabilities, taking into account its contingent and prospective liabilities.”\",\"extracts\":[\"(2) A company is also deemed unable to pay its debts if it is proved to the satisfaction of the court that the value of the company’s assets is less than the amount of its liabilities, taking into account its contingent and prospective liabilities.”\",\"A company in the situation described in subsection (1)(e) is often said to be “cash-flow” insolvent. A company in the situation described in subsection (2) is often said to be “balance-sheet” insolvent, but that expression is not to be taken literally. It is a convenient shorthand expression, but a company’s statutory balance sheet, properly prepared in accordance with the requirements of company law, may omit some contingent assets or some contingent liabilities. There is no statutory provision which links section 123(2) of the 1986 Act to the detailed provisions of the Companies Act 2006 as to the form and contents of a company’s financial statements. This appeal is concerned with the construction and effect of section 123(1)(e) and (2) as incorporated into the documentation of an issue of loan notes.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"bny corporate trustee services limited and others v neuberger berman europe ltd and others\"}"
+}

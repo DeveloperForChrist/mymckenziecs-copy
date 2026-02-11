@@ -1,0 +1,21 @@
+{
+  "id": "4590312b-0449-4a3d-a8fd-8a7a0dc718f8",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Worcestershire County Council) (Appellant) v Secretary of State for Health and Social Care (Respondent)",
+  "created_at": "2025-12-25T11:50:45.599Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2022-0022",
+    "score": 2,
+    "title": "R (on the application of Worcestershire County Council) (Appellant) v Secretary of State for Health and Social Care (Respondent)",
+    "summary": "Principle issue: Which local authority was responsible for the after-care of a service-user who had been detained in hospital under the Mental Health Act 1983 (the \"1983 Act\")? The case turns on the issue of where the service-user had been \"ordinarily resident…immediately before being detained\" for the purposes of s.117(3)(a) of the 1983 Act.",
+    "category": "procedure",
+    "citation": "UKSC/2022/0022",
+    "extracts": [
+      "1. The issue in this appeal is which of two local authorities is responsible for providing and paying for “after-care services” under section 117 of the Mental Health Act 1983 (the “1983 Act”) for a particular individual.",
+      "3. At first instance the judge, Linden J, decided that the second authority, Swindon, is responsible: [2021] EWHC 682 (Admin). The Court of Appeal reached the opposite conclusion and held that it is the first authority, Worcestershire: [2021] EWCA Civ 1957, [2022] PTSR 833. Worcestershire appeals against that decision. Swindon has not taken part in the appeal, but the appeal is opposed by the Secretary of State for Health and Social Care. The Secretary of State has also cross-appealed seeking to uphold the decision of the Court of Appeal that Worcestershire is responsible for providing after-care services under section 117 on a ground rejected by both courts below."
+    ],
+    "title_key": "r v secretary of state for health and social care"
+  },
+  "content": "{\"title\":\"R (on the application of Worcestershire County Council) (Appellant) v Secretary of State for Health and Social Care (Respondent)\",\"citation\":\"UKSC/2022/0022\",\"url\":\"https://supremecourt.uk/cases/uksc-2022-0022\",\"summary\":\"Principle issue: Which local authority was responsible for the after-care of a service-user who had been detained in hospital under the Mental Health Act 1983 (the \\\\\"1983 Act\\\\\")? The case turns on the issue of where the service-user had been \\\\\"ordinarily resident…immediately before being detained\\\\\" for the purposes of s.117(3)(a) of the 1983 Act.\",\"extracts\":[\"1. The issue in this appeal is which of two local authorities is responsible for providing and paying for “after-care services” under section 117 of the Mental Health Act 1983 (the “1983 Act”) for a particular individual.\",\"3. At first instance the judge, Linden J, decided that the second authority, Swindon, is responsible: [2021] EWHC 682 (Admin). The Court of Appeal reached the opposite conclusion and held that it is the first authority, Worcestershire: [2021] EWCA Civ 1957, [2022] PTSR 833. Worcestershire appeals against that decision. Swindon has not taken part in the appeal, but the appeal is opposed by the Secretary of State for Health and Social Care. The Secretary of State has also cross-appealed seeking to uphold the decision of the Court of Appeal that Worcestershire is responsible for providing after-care services under section 117 on a ground rejected by both courts below.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"r v secretary of state for health and social care\"}"
+}

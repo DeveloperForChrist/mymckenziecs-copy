@@ -1,0 +1,21 @@
+{
+  "id": "8b270706-9566-4c89-b076-0d3bc56b0b11",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Hemming (t/a Simply Pleasure Ltd) and others) (Respondents) v Westminster City Council (Appellant)",
+  "created_at": "2025-12-25T11:48:17.785Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0146",
+    "score": 2,
+    "title": "R (on the application of Hemming (t/a Simply Pleasure Ltd) and others) (Respondents) v Westminster City Council (Appellant)",
+    "summary": "1. This is a sequel to the Supreme Court’s previous judgment dated 29 April [2015] UKSC 25; [2015] AC 1600.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0146",
+    "extracts": [
+      "1. This is a sequel to the Supreme Court’s previous judgment dated 29 April [2015] UKSC 25; [2015] AC 1600. It is written with the benefit of the Court of Justice’s answer dated 16 November 2016 ((Case C-316/15) [2017] PTSR 325) to the question which that judgment referred to the Court of Justice. The appeal concerns fees which were charged to the respondents on applying to Westminster City Council for sex shop licences for the three years ended 31 January 2011, 2012 and 2013 and which included the council’s costs of enforcing the licensing scheme against unlicensed third parties running sex shops (“enforcement costs”). The respondents’ applications all in the event succeeded, and I can call them “the licence holders”.",
+      "2. Under domestic law the basis for charging such fees was and is found in paragraph 19 of Schedule 3 to the Local Government (Miscellaneous Provisions) Act 1982 as amended by the Policing and Crime Act 2009, section 27(7), reading:"
+    ],
+    "title_key": "r and others v westminster city council"
+  },
+  "content": "{\"title\":\"R (on the application of Hemming (t/a Simply Pleasure Ltd) and others) (Respondents) v Westminster City Council (Appellant)\",\"citation\":\"UKSC/2013/0146\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0146\",\"summary\":\"1. This is a sequel to the Supreme Court’s previous judgment dated 29 April [2015] UKSC 25; [2015] AC 1600.\",\"extracts\":[\"1. This is a sequel to the Supreme Court’s previous judgment dated 29 April [2015] UKSC 25; [2015] AC 1600. It is written with the benefit of the Court of Justice’s answer dated 16 November 2016 ((Case C-316/15) [2017] PTSR 325) to the question which that judgment referred to the Court of Justice. The appeal concerns fees which were charged to the respondents on applying to Westminster City Council for sex shop licences for the three years ended 31 January 2011, 2012 and 2013 and which included the council’s costs of enforcing the licensing scheme against unlicensed third parties running sex shops (“enforcement costs”). The respondents’ applications all in the event succeeded, and I can call them “the licence holders”.\",\"2. Under domestic law the basis for charging such fees was and is found in paragraph 19 of Schedule 3 to the Local Government (Miscellaneous Provisions) Act 1982 as amended by the Policing and Crime Act 2009, section 27(7), reading:\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"r and others v westminster city council\"}"
+}

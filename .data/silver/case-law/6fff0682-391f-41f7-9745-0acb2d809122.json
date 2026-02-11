@@ -1,0 +1,21 @@
+{
+  "id": "6fff0682-391f-41f7-9745-0acb2d809122",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "W (Children)",
+  "created_at": "2025-12-25T11:47:00.030Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0031",
+    "score": 1,
+    "title": "W (Children)",
+    "summary": "1. At issue in this case are the principles which should guide the exercise of the court’s discretion in deciding whether to order a child to attend to give evidence in family proceedings.",
+    "category": "procedure",
+    "citation": "UKSC/2010/0031",
+    "extracts": [
+      "1. At issue in this case are the principles which should guide the exercise of the court’s discretion in deciding whether to order a child to attend to give evidence in family proceedings. The current approach was stated by Smith LJ in LM v Medway Council, RM and YM [2007] EWCA Civ 9, [2007] 1 FLR 1698, at para 44:",
+      "“The correct starting point . . . is that it is undesirable that a child should have to give evidence in care proceedings and that particular justification will be required before that course is taken. There will be some cases in which it will be right to make an order. In my view they will be rare.”"
+    ],
+    "title_key": "w"
+  },
+  "content": "{\"title\":\"W (Children)\",\"citation\":\"UKSC/2010/0031\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0031\",\"summary\":\"1. At issue in this case are the principles which should guide the exercise of the court’s discretion in deciding whether to order a child to attend to give evidence in family proceedings.\",\"extracts\":[\"1. At issue in this case are the principles which should guide the exercise of the court’s discretion in deciding whether to order a child to attend to give evidence in family proceedings. The current approach was stated by Smith LJ in LM v Medway Council, RM and YM [2007] EWCA Civ 9, [2007] 1 FLR 1698, at para 44:\",\"“The correct starting point . . . is that it is undesirable that a child should have to give evidence in care proceedings and that particular justification will be required before that course is taken. There will be some cases in which it will be right to make an order. In my view they will be rare.”\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"w\"}"
+}

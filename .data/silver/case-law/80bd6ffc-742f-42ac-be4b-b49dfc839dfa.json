@@ -1,0 +1,21 @@
+{
+  "id": "80bd6ffc-742f-42ac-be4b-b49dfc839dfa",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "A1 Properties (Sunderland) Ltd (Appellant) v Tudor Studios RTM Company Ltd (Respondent)",
+  "created_at": "2025-12-25T11:50:56.713Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2023-0047",
+    "score": 1,
+    "title": "A1 Properties (Sunderland) Ltd (Appellant) v Tudor Studios RTM Company Ltd (Respondent)",
+    "summary": "Principle issue: Does a failure to serve a claim notice on an intermediate landlord with no management responsibilities invalidate a right to manage claim under the Commonhold and Leasehold Reform Act 2002?",
+    "category": "procedure",
+    "citation": "UKSC/2023/0047",
+    "extracts": [
+      "1. This appeal is concerned with the operation of the regime in the Commonhold and Leasehold Reform Act 2002 (“the CLRA”) under which qualifying tenants may acquire the right to take over the management of their block of flats through the formation and interposition of a right to manage (“RTM”) company.",
+      "2. The acquisition process requires the RTM company to serve a notice of claim (which we will call a “claim notice”) to acquire the right to manage their block on, among others, each person who is a landlord under a lease of the whole or any part of the premises: section 79(6)(a). The period of such a lease may be short or long. There is no register of all leases covered by this provision nor any simple and conclusive way of checking who every such landlord might be."
+    ],
+    "title_key": "a1 properties ltd v tudor studios rtm company ltd"
+  },
+  "content": "{\"title\":\"A1 Properties (Sunderland) Ltd (Appellant) v Tudor Studios RTM Company Ltd (Respondent)\",\"citation\":\"UKSC/2023/0047\",\"url\":\"https://supremecourt.uk/cases/uksc-2023-0047\",\"summary\":\"Principle issue: Does a failure to serve a claim notice on an intermediate landlord with no management responsibilities invalidate a right to manage claim under the Commonhold and Leasehold Reform Act 2002?\",\"extracts\":[\"1. This appeal is concerned with the operation of the regime in the Commonhold and Leasehold Reform Act 2002 (“the CLRA”) under which qualifying tenants may acquire the right to take over the management of their block of flats through the formation and interposition of a right to manage (“RTM”) company.\",\"2. The acquisition process requires the RTM company to serve a notice of claim (which we will call a “claim notice”) to acquire the right to manage their block on, among others, each person who is a landlord under a lease of the whole or any part of the premises: section 79(6)(a). The period of such a lease may be short or long. There is no register of all leases covered by this provision nor any simple and conclusive way of checking who every such landlord might be.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"a1 properties ltd v tudor studios rtm company ltd\"}"
+}

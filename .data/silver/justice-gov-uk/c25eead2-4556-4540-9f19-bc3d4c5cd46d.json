@@ -1,0 +1,13 @@
+{
+  "id": "c25eead2-4556-4540-9f19-bc3d4c5cd46d",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#220",
+  "created_at": "2025-12-25T15:21:22.332Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part-83-writs-and-warrants-general-provisions/37-practice-direction-83-writs-and-warrants-general-provisions",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part_83_writs_and_warrants_9c2d4b0347.html",
+    "fetchedAt": "2025-12-23T00:24:23.216Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part-83-writs-and-warrants-general-provisions/37-practice-direction-83-writs-and-warrants-general-provisions\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part_83_writs_and_warrants_9c2d4b0347.html\",\"fetchedAt\":\"2025-12-23T00:24:23.216Z\"}"
+}

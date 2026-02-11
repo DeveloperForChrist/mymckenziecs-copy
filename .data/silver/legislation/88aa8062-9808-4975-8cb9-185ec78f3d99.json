@@ -1,0 +1,15 @@
+{
+  "id": "88aa8062-9808-4975-8cb9-185ec78f3d99",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#11553",
+  "created_at": "2025-12-25T13:01:32.215Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1983/836/contents/made",
+    "type": "uksi",
+    "year": 1983,
+    "number": 836,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1983,\"number\":836,\"url\":\"http://www.legislation.gov.uk/uksi/1983/836/contents/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "ba4417b1-5e09-42d9-8021-80b42a3666b5",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Veale and others (Respondents) v Scottish Power UK Plc (Appellant)",
+  "created_at": "2025-12-25T11:51:12.241Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2025-0002",
+    "score": 1,
+    "title": "Veale and others (Respondents) v Scottish Power UK Plc (Appellant)",
+    "summary": "Principle issue: Does the Damages (Scotland) Act 2011 entitle the relatives of a deceased person to claim damages following his death from asbestos-related mesothelioma, notwithstanding the prior settlement of a separate claim brought by the deceased for other asbestos-related injuries?",
+    "category": "procedure",
+    "citation": "UKSC/2025/0002",
+    "extracts": [
+      "1. This appeal raises a question of statutory interpretation. The statute in question is the Damages (Scotland) Act 2011 (“the 2011 Act”), which is concerned with rights to damages in Scotland in respect of personal injuries and death.",
+      "(a) such sum as will compensate for any loss of support which as a result of the act or omission is sustained, or is likely to be sustained, by the relative after the date of A’s death together with any reasonable expenses incurred by the relative in connection with A’s funeral, and"
+    ],
+    "title_key": "veale and others v scottish power uk plc"
+  },
+  "content": "{\"title\":\"Veale and others (Respondents) v Scottish Power UK Plc (Appellant)\",\"citation\":\"UKSC/2025/0002\",\"url\":\"https://supremecourt.uk/cases/uksc-2025-0002\",\"summary\":\"Principle issue: Does the Damages (Scotland) Act 2011 entitle the relatives of a deceased person to claim damages following his death from asbestos-related mesothelioma, notwithstanding the prior settlement of a separate claim brought by the deceased for other asbestos-related injuries?\",\"extracts\":[\"1. This appeal raises a question of statutory interpretation. The statute in question is the Damages (Scotland) Act 2011 (“the 2011 Act”), which is concerned with rights to damages in Scotland in respect of personal injuries and death.\",\"(a) such sum as will compensate for any loss of support which as a result of the act or omission is sustained, or is likely to be sustained, by the relative after the date of A’s death together with any reasonable expenses incurred by the relative in connection with A’s funeral, and\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"veale and others v scottish power uk plc\"}"
+}

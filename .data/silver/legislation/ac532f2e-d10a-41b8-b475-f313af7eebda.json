@@ -1,0 +1,15 @@
+{
+  "id": "ac532f2e-d10a-41b8-b475-f313af7eebda",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#22089",
+  "created_at": "2025-12-25T14:07:56.490Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2005/975/contents",
+    "type": "uksi",
+    "year": 2005,
+    "number": 975,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2005/975/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2005,\"number\":975,\"url\":\"http://www.legislation.gov.uk/uksi/2005/975/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2005/975/2020-12-31/data.htm\"}"
+}

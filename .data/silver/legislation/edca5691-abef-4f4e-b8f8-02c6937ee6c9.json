@@ -1,0 +1,15 @@
+{
+  "id": "edca5691-abef-4f4e-b8f8-02c6937ee6c9",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#3739",
+  "created_at": "2025-12-25T12:14:21.433Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1967/86/contents",
+    "type": "ukpga",
+    "year": 1967,
+    "number": 86,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1967/86/2019-04-01/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1967,\"number\":86,\"url\":\"http://www.legislation.gov.uk/ukpga/1967/86/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1967/86/2019-04-01/data.htm\"}"
+}

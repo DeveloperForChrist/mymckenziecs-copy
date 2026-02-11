@@ -1,0 +1,15 @@
+{
+  "id": "ae560c46-4fcc-45ac-a1fb-c8723c39e19b",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#17294",
+  "created_at": "2025-12-25T13:37:09.052Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1997/2576/contents",
+    "type": "uksi",
+    "year": 1997,
+    "number": 2576,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1997/2576/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1997,\"number\":2576,\"url\":\"http://www.legislation.gov.uk/uksi/1997/2576/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1997/2576/2020-12-31/data.htm\"}"
+}

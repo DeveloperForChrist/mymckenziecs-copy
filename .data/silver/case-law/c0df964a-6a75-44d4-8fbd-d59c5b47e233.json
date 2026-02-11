@@ -1,0 +1,21 @@
+{
+  "id": "c0df964a-6a75-44d4-8fbd-d59c5b47e233",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the Matter of KL (A Child)",
+  "created_at": "2025-12-25T11:48:24.692Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0212",
+    "score": 2,
+    "title": "In the Matter of KL (A Child)",
+    "summary": "1. How should the courts of this country react when a child is brought here pursuant to an order made abroad in proceedings under the Hague Convention on the Civil Aspects of International Child Abduction (“the Convention”) which is later over-turned on appeal?",
+    "category": "procedure",
+    "citation": "UKSC/2013/0212",
+    "extracts": [
+      "1. How should the courts of this country react when a child is brought here pursuant to an order made abroad in proceedings under the Hague Convention on the Civil Aspects of International Child Abduction (“the Convention”) which is later over-turned on appeal? It might be thought that this is a somewhat rare and esoteric problem, but it could arise whenever the enforcement of the foreign order is not stayed pending an appeal. We have no means of knowing how common this combination of events is among the States party to the Convention, but it would appear from the facts of this case that it is not at all uncommon in the United States of America, the country which handles the greatest number of cases under the Convention (England and Wales being next on the list).",
+      "2. We are concerned with a little boy called K. He was born on 7 August 2006, so is now aged seven. He was born in Texas and is a citizen of the United States of America. His parents are both of Ghanaian heritage. His father is a US citizen and holds the rank of Lieutenant Colonel in the United States’ Air Force. His mother came to this country from Ghana with her parents when she was aged four and has indefinite leave to remain here."
+    ],
+    "title_key": "in the matter of kl"
+  },
+  "content": "{\"title\":\"In the Matter of KL (A Child)\",\"citation\":\"UKSC/2013/0212\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0212\",\"summary\":\"1. How should the courts of this country react when a child is brought here pursuant to an order made abroad in proceedings under the Hague Convention on the Civil Aspects of International Child Abduction (“the Convention”) which is later over-turned on appeal?\",\"extracts\":[\"1. How should the courts of this country react when a child is brought here pursuant to an order made abroad in proceedings under the Hague Convention on the Civil Aspects of International Child Abduction (“the Convention”) which is later over-turned on appeal? It might be thought that this is a somewhat rare and esoteric problem, but it could arise whenever the enforcement of the foreign order is not stayed pending an appeal. We have no means of knowing how common this combination of events is among the States party to the Convention, but it would appear from the facts of this case that it is not at all uncommon in the United States of America, the country which handles the greatest number of cases under the Convention (England and Wales being next on the list).\",\"2. We are concerned with a little boy called K. He was born on 7 August 2006, so is now aged seven. He was born in Texas and is a citizen of the United States of America. His parents are both of Ghanaian heritage. His father is a US citizen and holds the rank of Lieutenant Colonel in the United States’ Air Force. His mother came to this country from Ghana with her parents when she was aged four and has indefinite leave to remain here.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"in the matter of kl\"}"
+}

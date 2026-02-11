@@ -1,0 +1,21 @@
+{
+  "id": "7a9b8516-a1dd-462d-b447-c350e56aad7a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Homes and Communities Agency (Respondent) v J S Bloor (Wilmslow) Ltd (Appellant)",
+  "created_at": "2025-12-25T11:49:07.262Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0153",
+    "score": 1,
+    "title": "Homes and Communities Agency (Respondent) v J S Bloor (Wilmslow) Ltd (Appellant)",
+    "summary": "1. This appeal concerns the assessment of compensation for compulsory acquisition of two parcels of grazing land, amounting in all to 26.85 acres (10.86 ha) (“the reference land”), formerly owned by the present appellant (“the claimants”).",
+    "category": "procedure",
+    "citation": "UKSC/2015/0153",
+    "extracts": [
+      "1. This appeal concerns the assessment of compensation for compulsory acquisition of two parcels of grazing land, amounting in all to 26.85 acres (10.86 ha) (“the reference land”), formerly owned by the present appellant (“the claimants”). They were part of a much larger area of some 420 acres (170ha) acquired under the North West Development Agency (Kingsway Business Park, Rochdale) Compulsory Purchase Order 2002 (“the CPO”), for the development of the so-called Kingsway Business Park (“KBP”). Responsibility for payment of compensation now rests with the Homes and Communities Agency, the respondent to this appeal (“the authority”).",
+      "2. An initial claim was made for £2,593,000 compensation, on the basis that the land had significant hope value for residential development, independently of the scheme of acquisition. The authority contended that the claim should be limited to the existing use value, giving a figure (rounded) of £50,000. The Upper Tribunal agreed with the claimants in part, awarding compensation of £746,000. On the authority’s appeal, the Court of Appeal declined to accept the argument of either party, and remitted the matter to the tribunal to re-determine compensation on what it considered to be the correct basis. The valuation date was 4 January 2006, being the date when the reference land vested in the acquiring authority under a general vesting declaration."
+    ],
+    "title_key": "homes and communities agency v j s bloor ltd"
+  },
+  "content": "{\"title\":\"Homes and Communities Agency (Respondent) v J S Bloor (Wilmslow) Ltd (Appellant)\",\"citation\":\"UKSC/2015/0153\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0153\",\"summary\":\"1. This appeal concerns the assessment of compensation for compulsory acquisition of two parcels of grazing land, amounting in all to 26.85 acres (10.86 ha) (“the reference land”), formerly owned by the present appellant (“the claimants”).\",\"extracts\":[\"1. This appeal concerns the assessment of compensation for compulsory acquisition of two parcels of grazing land, amounting in all to 26.85 acres (10.86 ha) (“the reference land”), formerly owned by the present appellant (“the claimants”). They were part of a much larger area of some 420 acres (170ha) acquired under the North West Development Agency (Kingsway Business Park, Rochdale) Compulsory Purchase Order 2002 (“the CPO”), for the development of the so-called Kingsway Business Park (“KBP”). Responsibility for payment of compensation now rests with the Homes and Communities Agency, the respondent to this appeal (“the authority”).\",\"2. An initial claim was made for £2,593,000 compensation, on the basis that the land had significant hope value for residential development, independently of the scheme of acquisition. The authority contended that the claim should be limited to the existing use value, giving a figure (rounded) of £50,000. The Upper Tribunal agreed with the claimants in part, awarding compensation of £746,000. On the authority’s appeal, the Court of Appeal declined to accept the argument of either party, and remitted the matter to the tribunal to re-determine compensation on what it considered to be the correct basis. The valuation date was 4 January 2006, being the date when the reference land vested in the acquiring authority under a general vesting declaration.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"homes and communities agency v j s bloor ltd\"}"
+}

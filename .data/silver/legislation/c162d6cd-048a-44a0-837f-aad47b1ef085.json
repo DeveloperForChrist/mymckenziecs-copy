@@ -1,0 +1,15 @@
+{
+  "id": "c162d6cd-048a-44a0-837f-aad47b1ef085",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#3567",
+  "created_at": "2025-12-25T12:13:24.018Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1964/55/contents",
+    "type": "ukpga",
+    "year": 1964,
+    "number": 55,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1964/55/2010-04-06/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1964,\"number\":55,\"url\":\"http://www.legislation.gov.uk/ukpga/1964/55/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1964/55/2010-04-06/data.htm\"}"
+}

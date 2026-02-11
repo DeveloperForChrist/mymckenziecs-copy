@@ -1,0 +1,21 @@
+{
+  "id": "0591dcc8-559d-4195-ba8d-30e8f73e024a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of the Lehman Companies No 2",
+  "created_at": "2025-12-25T11:47:41.125Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0261",
+    "score": 1,
+    "title": "In the matter of the Lehman Companies No 2",
+    "summary": "3. This judgment starts by explaining the relevant statutory provisions relating to pensions, which are mostly in the Pensions Act 2004 (“the 2004 Act”), in a Page 2 description largely based on the exposition in the judgment of Briggs J, [2010] EWHC 3010 (Ch), [2011] Bus LR 766, paras 7-41.",
+    "category": "procedure",
+    "citation": "UKSC/2011/0261",
+    "extracts": [
+      "3. This judgment starts by explaining the relevant statutory provisions relating to pensions, which are mostly in the Pensions Act 2004 (“the 2004 Act”), in a Page 2 description largely based on the exposition in the judgment of Briggs J, [2010] EWHC 3010 (Ch), [2011] Bus LR 766, paras 7-41. It then deals with the statutory provisions and rules relating to insolvency, in the Insolvency Act 1986 (“the 1986 Act”) and the Insolvency Rules 1986 (SI 1986/1925) (“the Insolvency Rules”), largely drawing on what Lloyd LJ said in the Court of Appeal, [2011] EWCA Civ 1124, [2012] Bus LR 818, paras 20-23 and 39. Next, it will explain the facts, in a summary reflecting what Briggs J said at paras 47-54 of his judgment.",
+      "4. After a short discussion, the judgment will then turn to consider whether the liabilities in the present cases would rank pari passu with the unsecured creditors of the Target companies. It will then consider whether those liabilities rank as expenses of the administration. Finally, it will address the power of the court under the 1986 Act and the Insolvency Rules to vary the priority of the liabilities."
+    ],
+    "title_key": "in the matter of the lehman companies no 2"
+  },
+  "content": "{\"title\":\"In the matter of the Lehman Companies No 2\",\"citation\":\"UKSC/2011/0261\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0261\",\"summary\":\"3. This judgment starts by explaining the relevant statutory provisions relating to pensions, which are mostly in the Pensions Act 2004 (“the 2004 Act”), in a Page 2 description largely based on the exposition in the judgment of Briggs J, [2010] EWHC 3010 (Ch), [2011] Bus LR 766, paras 7-41.\",\"extracts\":[\"3. This judgment starts by explaining the relevant statutory provisions relating to pensions, which are mostly in the Pensions Act 2004 (“the 2004 Act”), in a Page 2 description largely based on the exposition in the judgment of Briggs J, [2010] EWHC 3010 (Ch), [2011] Bus LR 766, paras 7-41. It then deals with the statutory provisions and rules relating to insolvency, in the Insolvency Act 1986 (“the 1986 Act”) and the Insolvency Rules 1986 (SI 1986/1925) (“the Insolvency Rules”), largely drawing on what Lloyd LJ said in the Court of Appeal, [2011] EWCA Civ 1124, [2012] Bus LR 818, paras 20-23 and 39. Next, it will explain the facts, in a summary reflecting what Briggs J said at paras 47-54 of his judgment.\",\"4. After a short discussion, the judgment will then turn to consider whether the liabilities in the present cases would rank pari passu with the unsecured creditors of the Target companies. It will then consider whether those liabilities rank as expenses of the administration. Finally, it will address the power of the court under the 1986 Act and the Insolvency Rules to vary the priority of the liabilities.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"in the matter of the lehman companies no 2\"}"
+}

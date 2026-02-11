@@ -1,0 +1,21 @@
+{
+  "id": "9e881138-7f77-420b-b118-621fffca14d0",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Secretary of State for the Home Department (Appellant) v Al-Jedda (AP) (Respondent)",
+  "created_at": "2025-12-25T11:47:59.075Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0129",
+    "score": 1,
+    "title": "Secretary of State for the Home Department (Appellant) v Al-Jedda (AP) (Respondent)",
+    "summary": "1. The Secretary of State for the Home Department cannot make an order which deprives a person of his British citizenship on the ground that it is conducive to the public good if she is satisfied that the order would make him stateless.",
+    "category": "procedure",
+    "citation": "UKSC/2012/0129",
+    "extracts": [
+      "1. The Secretary of State for the Home Department cannot make an order which deprives a person of his British citizenship on the ground that it is conducive to the public good if she is satisfied that the order would make him stateless. This appeal seeks to raise the question: if at the date of the Secretary of State’s order it were open to the person to apply for citizenship of another state and if that application would necessarily be granted, is it her order which would make him stateless or is it his failure to make the application which would do so?",
+      "2. The Secretary of State appeals against an order of the Court of Appeal (Richards, Stanley Burnton and Gross LJJ) dated 29 March 2012, by which it quashed her order dated 14 December 2007 which purported to deprive Mr Al- Jedda (“the respondent”) of his British citizenship."
+    ],
+    "title_key": "secretary of state for the home department v al jedda"
+  },
+  "content": "{\"title\":\"Secretary of State for the Home Department (Appellant) v Al-Jedda (AP) (Respondent)\",\"citation\":\"UKSC/2012/0129\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0129\",\"summary\":\"1. The Secretary of State for the Home Department cannot make an order which deprives a person of his British citizenship on the ground that it is conducive to the public good if she is satisfied that the order would make him stateless.\",\"extracts\":[\"1. The Secretary of State for the Home Department cannot make an order which deprives a person of his British citizenship on the ground that it is conducive to the public good if she is satisfied that the order would make him stateless. This appeal seeks to raise the question: if at the date of the Secretary of State’s order it were open to the person to apply for citizenship of another state and if that application would necessarily be granted, is it her order which would make him stateless or is it his failure to make the application which would do so?\",\"2. The Secretary of State appeals against an order of the Court of Appeal (Richards, Stanley Burnton and Gross LJJ) dated 29 March 2012, by which it quashed her order dated 14 December 2007 which purported to deprive Mr Al- Jedda (“the respondent”) of his British citizenship.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"secretary of state for the home department v al jedda\"}"
+}

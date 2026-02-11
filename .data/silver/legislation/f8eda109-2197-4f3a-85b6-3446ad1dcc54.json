@@ -1,0 +1,15 @@
+{
+  "id": "f8eda109-2197-4f3a-85b6-3446ad1dcc54",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#1986",
+  "created_at": "2025-12-25T12:03:30.024Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo6/1-2/61/contents/enacted",
+    "type": "ukpga",
+    "year": 1938,
+    "number": 61,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1938,\"number\":61,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo6/1-2/61/contents/enacted\",\"dataUrl\":null}"
+}

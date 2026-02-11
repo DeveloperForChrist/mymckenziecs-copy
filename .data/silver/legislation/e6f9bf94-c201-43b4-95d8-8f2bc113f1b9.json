@@ -1,0 +1,15 @@
+{
+  "id": "e6f9bf94-c201-43b4-95d8-8f2bc113f1b9",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#12123",
+  "created_at": "2025-12-25T13:05:04.163Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1986/1888/contents",
+    "type": "uksi",
+    "year": 1986,
+    "number": 1888,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/1986/1888/2015-04-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1986,\"number\":1888,\"url\":\"http://www.legislation.gov.uk/nisi/1986/1888/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/1986/1888/2015-04-01/data.htm\"}"
+}

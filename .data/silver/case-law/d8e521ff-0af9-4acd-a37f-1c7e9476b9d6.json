@@ -1,0 +1,21 @@
+{
+  "id": "d8e521ff-0af9-4acd-a37f-1c7e9476b9d6",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Gordon and others, as the Trustees of the Inter Vivos Trust of the late William Strathdee Gordon (Appellants) v Campbell Riddell Breeze Paterson LLP (Respondent) (Scotland)",
+  "created_at": "2025-12-25T11:49:25.777Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0142",
+    "score": 1,
+    "title": "Gordon and others, as the Trustees of the Inter Vivos Trust of the late William Strathdee Gordon (Appellants) v Campbell Riddell Breeze Paterson LLP (Respondent) (Scotland)",
+    "summary": "1. When the law extinguishes obligations as a result of the effluxion of time it is important that there is certainty as to when the clock is started.",
+    "category": "procedure",
+    "citation": "UKSC/2016/0142",
+    "extracts": [
+      "1. When the law extinguishes obligations as a result of the effluxion of time it is important that there is certainty as to when the clock is started. Yet many within the legal profession in Scotland have been unsure about this important matter. This is another appeal about the meaning of the provisions of the Prescription and Limitation (Scotland) Act 1973 (“the 1973 Act”) concerning the short negative prescription. Counsel for the appellants informed the court that several cases have been sisted in the Court of Session to await the outcome of this appeal.",
+      "2. This appeal proceeds on facts which the parties have agreed solely for the purpose of determining the question of prescription and which may be summarised briefly. The appellants (“the trustees”) are the trustees of the inter vivos trust of the late William Strathdee Gordon (“the trust”). The trust owns farmland, comprising three fields near the village of Killearn, which the trustees acquired because of its long-term potential for residential development. The three fields are a grazing field, a field of about 40 acres and a field of about 50 acres."
+    ],
+    "title_key": "gordon and others as the trustees of the inter vivos trust of the late william strathdee gordon v campbell riddell breeze paterson llp"
+  },
+  "content": "{\"title\":\"Gordon and others, as the Trustees of the Inter Vivos Trust of the late William Strathdee Gordon (Appellants) v Campbell Riddell Breeze Paterson LLP (Respondent) (Scotland)\",\"citation\":\"UKSC/2016/0142\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0142\",\"summary\":\"1. When the law extinguishes obligations as a result of the effluxion of time it is important that there is certainty as to when the clock is started.\",\"extracts\":[\"1. When the law extinguishes obligations as a result of the effluxion of time it is important that there is certainty as to when the clock is started. Yet many within the legal profession in Scotland have been unsure about this important matter. This is another appeal about the meaning of the provisions of the Prescription and Limitation (Scotland) Act 1973 (“the 1973 Act”) concerning the short negative prescription. Counsel for the appellants informed the court that several cases have been sisted in the Court of Session to await the outcome of this appeal.\",\"2. This appeal proceeds on facts which the parties have agreed solely for the purpose of determining the question of prescription and which may be summarised briefly. The appellants (“the trustees”) are the trustees of the inter vivos trust of the late William Strathdee Gordon (“the trust”). The trust owns farmland, comprising three fields near the village of Killearn, which the trustees acquired because of its long-term potential for residential development. The three fields are a grazing field, a field of about 40 acres and a field of about 50 acres.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"gordon and others as the trustees of the inter vivos trust of the late william strathdee gordon v campbell riddell breeze paterson llp\"}"
+}

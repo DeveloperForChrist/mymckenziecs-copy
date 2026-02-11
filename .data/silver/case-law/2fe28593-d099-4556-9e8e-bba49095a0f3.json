@@ -1,0 +1,21 @@
+{
+  "id": "2fe28593-d099-4556-9e8e-bba49095a0f3",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Mirga (Appellant) v Secretary of State for Work and Pensions (Respondent)",
+  "created_at": "2025-12-25T11:48:20.048Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0161",
+    "score": 1,
+    "title": "Mirga (Appellant) v Secretary of State for Work and Pensions (Respondent)",
+    "summary": "1. These appeals are brought by a Polish national, Roksana Mirga, and an Austrian national, Wadi Samin, against decisions of the Court of Appeal upholding determinations that they were not entitled to certain benefits, namely income support and housing assistance respectively, pursuant to the pro...",
+    "category": "procedure",
+    "citation": "UKSC/2013/0161",
+    "extracts": [
+      "1. These appeals are brought by a Polish national, Roksana Mirga, and an Austrian national, Wadi Samin, against decisions of the Court of Appeal upholding determinations that they were not entitled to certain benefits, namely income support and housing assistance respectively, pursuant to the provisions of United Kingdom domestic law. The arguments have changed somewhat over the course of the two sets of proceedings, but the essential issue raised now is whether the provisions and the current implementation of the domestic law in question infringe the rights of residence in the UK of citizens of European Union member states.",
+      "2. Shortly before this judgment was to be delivered, counsel for the appellants informed us of an Opinion which had been delivered by Advocate General Wathelet in Jobcenter Berlin Neukölln v Alimanovic (Case C-67/14) [2016] 2 WLR 208, which they contended assisted their arguments. We decided to await the judgment of the Court of Justice in that case. Judgment was given on 15 September 2015, and the parties have had the opportunity to make written submissions as to its effect on these appeals."
+    ],
+    "title_key": "mirga v secretary of state for work and pensions"
+  },
+  "content": "{\"title\":\"Mirga (Appellant) v Secretary of State for Work and Pensions (Respondent)\",\"citation\":\"UKSC/2013/0161\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0161\",\"summary\":\"1. These appeals are brought by a Polish national, Roksana Mirga, and an Austrian national, Wadi Samin, against decisions of the Court of Appeal upholding determinations that they were not entitled to certain benefits, namely income support and housing assistance respectively, pursuant to the pro...\",\"extracts\":[\"1. These appeals are brought by a Polish national, Roksana Mirga, and an Austrian national, Wadi Samin, against decisions of the Court of Appeal upholding determinations that they were not entitled to certain benefits, namely income support and housing assistance respectively, pursuant to the provisions of United Kingdom domestic law. The arguments have changed somewhat over the course of the two sets of proceedings, but the essential issue raised now is whether the provisions and the current implementation of the domestic law in question infringe the rights of residence in the UK of citizens of European Union member states.\",\"2. Shortly before this judgment was to be delivered, counsel for the appellants informed us of an Opinion which had been delivered by Advocate General Wathelet in Jobcenter Berlin Neukölln v Alimanovic (Case C-67/14) [2016] 2 WLR 208, which they contended assisted their arguments. We decided to await the judgment of the Court of Justice in that case. Judgment was given on 15 September 2015, and the parties have had the opportunity to make written submissions as to its effect on these appeals.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"mirga v secretary of state for work and pensions\"}"
+}

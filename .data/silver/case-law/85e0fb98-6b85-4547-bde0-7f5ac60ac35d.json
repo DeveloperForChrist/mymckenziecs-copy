@@ -1,0 +1,21 @@
+{
+  "id": "85e0fb98-6b85-4547-bde0-7f5ac60ac35d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Morris (Appellant) v Rae (Respondent) (Scotland)",
+  "created_at": "2025-12-25T11:47:30.244Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0118",
+    "score": 0,
+    "title": "Morris (Appellant) v Rae (Respondent) (Scotland)",
+    "summary": "Page 2 be taken as suggesting that the granter cannot succeed as the essential requirements for a successful claim are not satisfied. But the limits of what it is necessary to prove to establish an eviction for this purpose have never been precisely identified.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2011/0118",
+    "extracts": [
+      "Page 2 be taken as suggesting that the granter cannot succeed as the essential requirements for a successful claim are not satisfied. But the limits of what it is necessary to prove to establish an eviction for this purpose have never been precisely identified. So I think that it is open to us to address the issue as one of principle. But first it is necessary to set out the facts.",
+      "4. The pursuer, Mr Morris, seeks an award of damages against the defender, Mrs Rae. He is the assignee of rights formerly vested in Ransom Developments Ltd (“RDL”), which is now in liquidation. On 3 August 2004 RDL concluded missives with the defender for the purchase of a plot or area of ground at 152 Dalmellington Road, Ayr. The transaction was settled on 23 August 2004. RDL received a disposition of the subjects in exchange for the purchase price of £140,000. The disposition contained the words “and I grant warrandice”. RDL took entry and commenced building operations on the subjects which it had purchased."
+    ],
+    "title_key": "morris v rae"
+  },
+  "content": "{\"title\":\"Morris (Appellant) v Rae (Respondent) (Scotland)\",\"citation\":\"UKSC/2011/0118\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0118\",\"summary\":\"Page 2 be taken as suggesting that the granter cannot succeed as the essential requirements for a successful claim are not satisfied. But the limits of what it is necessary to prove to establish an eviction for this purpose have never been precisely identified.\",\"extracts\":[\"Page 2 be taken as suggesting that the granter cannot succeed as the essential requirements for a successful claim are not satisfied. But the limits of what it is necessary to prove to establish an eviction for this purpose have never been precisely identified. So I think that it is open to us to address the issue as one of principle. But first it is necessary to set out the facts.\",\"4. The pursuer, Mr Morris, seeks an award of damages against the defender, Mrs Rae. He is the assignee of rights formerly vested in Ransom Developments Ltd (“RDL”), which is now in liquidation. On 3 August 2004 RDL concluded missives with the defender for the purchase of a plot or area of ground at 152 Dalmellington Road, Ayr. The transaction was settled on 23 August 2004. RDL received a disposition of the subjects in exchange for the purchase price of £140,000. The disposition contained the words “and I grant warrandice”. RDL took entry and commenced building operations on the subjects which it had purchased.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"morris v rae\"}"
+}

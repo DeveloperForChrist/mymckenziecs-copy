@@ -1,0 +1,15 @@
+{
+  "id": "7da10603-f6a4-4b31-9fda-6fa5965211e9",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#18175",
+  "created_at": "2025-12-25T13:42:43.107Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1997/863/contents",
+    "type": "uksi",
+    "year": 1997,
+    "number": 863,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1997/863/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1997,\"number\":863,\"url\":\"http://www.legislation.gov.uk/uksi/1997/863/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1997/863/2020-12-31/data.htm\"}"
+}

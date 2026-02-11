@@ -1,0 +1,15 @@
+{
+  "id": "6708457f-d82c-452b-ad7c-798df3a971a6",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#23468",
+  "created_at": "2025-12-25T14:17:24.891Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2008/794/contents",
+    "type": "uksi",
+    "year": 2008,
+    "number": null,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2008/794/2025-07-22/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2008,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2008/794/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2008/794/2025-07-22/data.htm\"}"
+}

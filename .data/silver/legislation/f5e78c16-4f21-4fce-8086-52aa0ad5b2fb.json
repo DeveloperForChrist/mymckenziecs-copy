@@ -1,0 +1,15 @@
+{
+  "id": "f5e78c16-4f21-4fce-8086-52aa0ad5b2fb",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#26836",
+  "created_at": "2025-12-25T14:41:55.623Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2019/1518/contents/made",
+    "type": "uksi",
+    "year": 2019,
+    "number": 1518,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2019,\"number\":1518,\"url\":\"http://www.legislation.gov.uk/wsi/2019/1518/contents/made\",\"dataUrl\":null}"
+}

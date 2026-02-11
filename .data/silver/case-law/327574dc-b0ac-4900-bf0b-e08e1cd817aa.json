@@ -1,0 +1,18 @@
+{
+  "id": "327574dc-b0ac-4900-bf0b-e08e1cd817aa",
+  "source": "case-law",
+  "path": "data/bronze/case-law/curated.json",
+  "title": "Knowsley Metropolitan Borough Council (Appellant) v Willmore (Respondent)",
+  "created_at": "2025-12-25T11:46:17.482Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0232",
+    "title": "Knowsley Metropolitan Borough Council (Appellant) v Willmore (Respondent)",
+    "summary": "1. Mesothelioma is a hideous disease that is inevitably fatal.",
+    "citation": "UKSC/2009/0232",
+    "extracts": [
+      "1. Mesothelioma is a hideous disease that is inevitably fatal. In most cases, indeed possibly in all cases, it is caused by the inhalation of asbestos fibres. Unusual features of the disease led the House of Lords to create a special rule governing the attribution of causation to those responsible for exposing victims to asbestos dust. This was advanced for the first time in Fairchild v Glenhaven Funeral Services Ltd [2002] UKHL 22; [2003] 1 AC 32 and developed in Barker v Corus UK Ltd [2006] UKHL 20; [2006] 2 AC 572. Parliament then intervened by section 3 of the Compensation Act 2006 further to vary this rule. The rule in its current form can be stated as follows: when a victim contracts mesothelioma each person who has, in breach of duty, been responsible for exposing the victim to a significant quantity of asbestos dust and thus creating a “material increase in risk” of the victim contracting the disease will be held to be jointly and severally liable for causing the disease.",
+      "2. These two appeals involve cases where the defendant was the sole known source of occupational exposure to asbestos dust. In each case the extent of the exposure found was very small. In each case, the Court of Appeal, applying the special rule, held the defendant liable for causing the disease."
+    ]
+  },
+  "content": "{\"title\":\"Knowsley Metropolitan Borough Council (Appellant) v Willmore (Respondent)\",\"citation\":\"UKSC/2009/0232\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0232\",\"summary\":\"1. Mesothelioma is a hideous disease that is inevitably fatal.\",\"extracts\":[\"1. Mesothelioma is a hideous disease that is inevitably fatal. In most cases, indeed possibly in all cases, it is caused by the inhalation of asbestos fibres. Unusual features of the disease led the House of Lords to create a special rule governing the attribution of causation to those responsible for exposing victims to asbestos dust. This was advanced for the first time in Fairchild v Glenhaven Funeral Services Ltd [2002] UKHL 22; [2003] 1 AC 32 and developed in Barker v Corus UK Ltd [2006] UKHL 20; [2006] 2 AC 572. Parliament then intervened by section 3 of the Compensation Act 2006 further to vary this rule. The rule in its current form can be stated as follows: when a victim contracts mesothelioma each person who has, in breach of duty, been responsible for exposing the victim to a significant quantity of asbestos dust and thus creating a “material increase in risk” of the victim contracting the disease will be held to be jointly and severally liable for causing the disease.\",\"2. These two appeals involve cases where the defendant was the sole known source of occupational exposure to asbestos dust. In each case the extent of the exposure found was very small. In each case, the Court of Appeal, applying the special rule, held the defendant liable for causing the disease.\"]}"
+}

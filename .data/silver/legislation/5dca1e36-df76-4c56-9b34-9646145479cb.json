@@ -1,0 +1,15 @@
+{
+  "id": "5dca1e36-df76-4c56-9b34-9646145479cb",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20268",
+  "created_at": "2025-12-25T13:55:34.989Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1998/660/contents/made",
+    "type": "uksi",
+    "year": 1998,
+    "number": 660,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1998/660/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1998,\"number\":660,\"url\":\"http://www.legislation.gov.uk/uksi/1998/660/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1998/660/made/data.htm\"}"
+}

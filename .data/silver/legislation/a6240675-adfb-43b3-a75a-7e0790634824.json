@@ -1,0 +1,15 @@
+{
+  "id": "a6240675-adfb-43b3-a75a-7e0790634824",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9292",
+  "created_at": "2025-12-25T12:47:36.910Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1974/2002/contents/made",
+    "type": "uksi",
+    "year": 1974,
+    "number": 2002,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1974,\"number\":2002,\"url\":\"http://www.legislation.gov.uk/uksi/1974/2002/contents/made\",\"dataUrl\":null}"
+}

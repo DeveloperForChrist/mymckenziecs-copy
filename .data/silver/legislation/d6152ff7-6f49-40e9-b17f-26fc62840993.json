@@ -1,0 +1,15 @@
+{
+  "id": "d6152ff7-6f49-40e9-b17f-26fc62840993",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4149",
+  "created_at": "2025-12-25T12:16:55.464Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1972/14/contents",
+    "type": "ukpga",
+    "year": 1972,
+    "number": 14,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1972/14/1998-08-01/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1972,\"number\":14,\"url\":\"http://www.legislation.gov.uk/ukpga/1972/14/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1972/14/1998-08-01/data.htm\"}"
+}

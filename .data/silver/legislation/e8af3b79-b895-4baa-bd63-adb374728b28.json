@@ -1,0 +1,15 @@
+{
+  "id": "e8af3b79-b895-4baa-bd63-adb374728b28",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#2354",
+  "created_at": "2025-12-25T12:05:58.193Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo6/7-8/40/contents/enacted",
+    "type": "ukpga",
+    "year": 1944,
+    "number": 40,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1944,\"number\":40,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo6/7-8/40/contents/enacted\",\"dataUrl\":null}"
+}

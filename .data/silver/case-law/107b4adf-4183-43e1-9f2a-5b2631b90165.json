@@ -1,0 +1,21 @@
+{
+  "id": "107b4adf-4183-43e1-9f2a-5b2631b90165",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Actavis UK Limited and others (Appellants) v Eli Lilly and Company (Respondent)",
+  "created_at": "2025-12-25T11:49:10.241Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0181",
+    "score": 0,
+    "title": "Actavis UK Limited and others (Appellants) v Eli Lilly and Company (Respondent)",
+    "summary": "Actavis UK Limited and others (Appellants) v Eli Lilly and Company (Respondent) Eli Lilly and Company (Appellant) v Actavis UK Limited and others (Respondents) Eli Lilly and Company (Appellant) v Actavis UK Limited and others (Respondents)",
+    "category": "evidence_misc",
+    "citation": "UKSC/2015/0181",
+    "extracts": [
+      "Actavis UK Limited and others (Appellants) v Eli Lilly and Company (Respondent) Eli Lilly and Company (Appellant) v Actavis UK Limited and others (Respondents) Eli Lilly and Company (Appellant) v Actavis UK Limited and others (Respondents)",
+      "1. The issue raised on this appeal and cross-appeal is whether three products manufactured by the Actavis group of companies (“Actavis”) would infringe a patent whose proprietor is Eli Lilly & Company (“Lilly”), namely European Patent (UK) No 1 313 508 (“the Patent”), and its corresponding designations in France, Italy and Spain."
+    ],
+    "title_key": "actavis uk limited and others v eli lilly and company"
+  },
+  "content": "{\"title\":\"Actavis UK Limited and others (Appellants) v Eli Lilly and Company (Respondent)\",\"citation\":\"UKSC/2015/0181\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0181\",\"summary\":\"Actavis UK Limited and others (Appellants) v Eli Lilly and Company (Respondent) Eli Lilly and Company (Appellant) v Actavis UK Limited and others (Respondents) Eli Lilly and Company (Appellant) v Actavis UK Limited and others (Respondents)\",\"extracts\":[\"Actavis UK Limited and others (Appellants) v Eli Lilly and Company (Respondent) Eli Lilly and Company (Appellant) v Actavis UK Limited and others (Respondents) Eli Lilly and Company (Appellant) v Actavis UK Limited and others (Respondents)\",\"1. The issue raised on this appeal and cross-appeal is whether three products manufactured by the Actavis group of companies (“Actavis”) would infringe a patent whose proprietor is Eli Lilly & Company (“Lilly”), namely European Patent (UK) No 1 313 508 (“the Patent”), and its corresponding designations in France, Italy and Spain.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"actavis uk limited and others v eli lilly and company\"}"
+}

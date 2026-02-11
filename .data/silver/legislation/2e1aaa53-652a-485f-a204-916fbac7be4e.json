@@ -1,0 +1,15 @@
+{
+  "id": "2e1aaa53-652a-485f-a204-916fbac7be4e",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4227",
+  "created_at": "2025-12-25T12:17:22.029Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1973/5/contents/enacted",
+    "type": "ukpga",
+    "year": 1973,
+    "number": 5,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1973,\"number\":5,\"url\":\"http://www.legislation.gov.uk/ukpga/1973/5/contents/enacted\",\"dataUrl\":null}"
+}

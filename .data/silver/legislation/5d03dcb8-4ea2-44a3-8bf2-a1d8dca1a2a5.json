@@ -1,0 +1,15 @@
+{
+  "id": "5d03dcb8-4ea2-44a3-8bf2-a1d8dca1a2a5",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#28556",
+  "created_at": "2025-12-25T14:53:39.913Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2021/1470/contents",
+    "type": "uksi",
+    "year": 2021,
+    "number": 1470,
+    "dataUrl": "http://www.legislation.gov.uk/wsi/2021/1470/2023-04-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2021,\"number\":1470,\"url\":\"http://www.legislation.gov.uk/wsi/2021/1470/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/wsi/2021/1470/2023-04-01/data.htm\"}"
+}

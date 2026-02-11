@@ -1,0 +1,21 @@
+{
+  "id": "d728707b-b4ab-46ea-992b-703658ef234a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Deutsche Bahn AG and others (Respondents) v Morgan Advanced Materials Plc (Appellant)",
+  "created_at": "2025-12-25T11:48:02.710Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0209",
+    "score": 1,
+    "title": "Deutsche Bahn AG and others (Respondents) v Morgan Advanced Materials Plc (Appellant)",
+    "summary": "1. The issue on this appeal is whether claims against Morgan Advanced Materials plc (formerly Morgan Crucible Co plc) (the appellant) for loss allegedly suffered by reason of a cartel infringing article 81(1) TEC (now article 101 TFEU) are time-barred.",
+    "category": "procedure",
+    "citation": "UKSC/2012/0209",
+    "extracts": [
+      "1. The issue on this appeal is whether claims against Morgan Advanced Materials plc (formerly Morgan Crucible Co plc) (the appellant) for loss allegedly suffered by reason of a cartel infringing article 81(1) TEC (now article 101 TFEU) are time-barred. The issue links with important substantive questions about the nature of the decisions of the European Commission (or European Court of Justice) which bind domestic courts as to the existence of such a cartel. It has been very well argued by counsel on both sides.",
+      "2. Article 81(1) prohibited “all agreements between undertakings …. and concerted practices which may affect trade between member states and which have as their object or effect the prevention, restriction or distortion of competition within the internal market”. The appellant and others operated an illegal cartel in the sector of electrical and mechanical carbon and graphite products. The appellant as whistle- blower disclosed the existence of the cartel to the Commission and a Commission Decision finding that article 81(1) had been infringed by the members of the cartel was issued on 3 December 2003. The appellant escaped any fine. The other cartel members received heavy fines."
+    ],
+    "title_key": "deutsche bahn ag and others v morgan advanced materials plc"
+  },
+  "content": "{\"title\":\"Deutsche Bahn AG and others (Respondents) v Morgan Advanced Materials Plc (Appellant)\",\"citation\":\"UKSC/2012/0209\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0209\",\"summary\":\"1. The issue on this appeal is whether claims against Morgan Advanced Materials plc (formerly Morgan Crucible Co plc) (the appellant) for loss allegedly suffered by reason of a cartel infringing article 81(1) TEC (now article 101 TFEU) are time-barred.\",\"extracts\":[\"1. The issue on this appeal is whether claims against Morgan Advanced Materials plc (formerly Morgan Crucible Co plc) (the appellant) for loss allegedly suffered by reason of a cartel infringing article 81(1) TEC (now article 101 TFEU) are time-barred. The issue links with important substantive questions about the nature of the decisions of the European Commission (or European Court of Justice) which bind domestic courts as to the existence of such a cartel. It has been very well argued by counsel on both sides.\",\"2. Article 81(1) prohibited “all agreements between undertakings …. and concerted practices which may affect trade between member states and which have as their object or effect the prevention, restriction or distortion of competition within the internal market”. The appellant and others operated an illegal cartel in the sector of electrical and mechanical carbon and graphite products. The appellant as whistle- blower disclosed the existence of the cartel to the Commission and a Commission Decision finding that article 81(1) had been infringed by the members of the cartel was issued on 3 December 2003. The appellant escaped any fine. The other cartel members received heavy fines.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"deutsche bahn ag and others v morgan advanced materials plc\"}"
+}

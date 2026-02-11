@@ -1,0 +1,21 @@
+{
+  "id": "42652bd9-4a1b-4c6a-81b7-48357d85bc19",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "George (Respondent) v Cannell and another (Appellants)",
+  "created_at": "2025-12-25T11:50:52.365Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2022-0147",
+    "score": 1,
+    "title": "George (Respondent) v Cannell and another (Appellants)",
+    "summary": "Principle issue: What does a claimant need to demonstrate to rely on s3(1) of the Defamation Act 1952 in a claim for malicious falsehood?",
+    "category": "procedure",
+    "citation": "UKSC/2022/0147",
+    "extracts": [
+      "1. We are concerned on this appeal with a tort with many names. It embraces actions which have variously been called slander of title, slander of goods, disparagement of goods and trade libel. By the turn of the twentieth century these actions were coming to be seen as examples of a more general wrong, for which Sir John Salmond coined the name “injurious falsehood”: see Salmond, The Law of Torts: A Treatise on the English Law of Liability for Civil Injuries, 1st ed (1907), p 417. That name is still used by many legal writers; but courts in England and Wales have generally preferred the term “malicious falsehood”, which I will use. Whatever name is used, the nature of the wrong is not in doubt. As stated by the Court of Appeal in the leading case of Ratcliffe v Evans [1892] 2 QB 524, 527:",
+      "“an action will lie for written or oral falsehoods … where they are maliciously published, where they are calculated in the ordinary course of things to produce, and where they do produce, actual damage …”"
+    ],
+    "title_key": "george v cannell and another"
+  },
+  "content": "{\"title\":\"George (Respondent) v Cannell and another (Appellants)\",\"citation\":\"UKSC/2022/0147\",\"url\":\"https://supremecourt.uk/cases/uksc-2022-0147\",\"summary\":\"Principle issue: What does a claimant need to demonstrate to rely on s3(1) of the Defamation Act 1952 in a claim for malicious falsehood?\",\"extracts\":[\"1. We are concerned on this appeal with a tort with many names. It embraces actions which have variously been called slander of title, slander of goods, disparagement of goods and trade libel. By the turn of the twentieth century these actions were coming to be seen as examples of a more general wrong, for which Sir John Salmond coined the name “injurious falsehood”: see Salmond, The Law of Torts: A Treatise on the English Law of Liability for Civil Injuries, 1st ed (1907), p 417. That name is still used by many legal writers; but courts in England and Wales have generally preferred the term “malicious falsehood”, which I will use. Whatever name is used, the nature of the wrong is not in doubt. As stated by the Court of Appeal in the leading case of Ratcliffe v Evans [1892] 2 QB 524, 527:\",\"“an action will lie for written or oral falsehoods … where they are maliciously published, where they are calculated in the ordinary course of things to produce, and where they do produce, actual damage …”\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"george v cannell and another\"}"
+}

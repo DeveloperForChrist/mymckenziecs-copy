@@ -1,0 +1,21 @@
+{
+  "id": "fde69121-0cb8-4355-b857-0a13b1ec2496",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Takhar (Appellant) v Gracefield Developments Limited and others (Respondents)",
+  "created_at": "2025-12-25T11:49:41.880Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0072",
+    "score": 0,
+    "title": "Takhar (Appellant) v Gracefield Developments Limited and others (Respondents)",
+    "summary": "1. Balber Kaur Takhar, the appellant, is the cousin of the third respondent, Parkash Kaur Krishan.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2017/0072",
+    "extracts": [
+      "1. Balber Kaur Takhar, the appellant, is the cousin of the third respondent, Parkash Kaur Krishan. For many years before 2004, they had not seen each other. In that year they became reacquainted. At the time, Mrs Takhar was suffering personal and financial problems. She had separated from her husband some five years previously. As part of the arrangements made between Mrs Takhar and her husband, she had acquired a number of properties in Coventry.",
+      "2. When Mrs Takhar and Mrs Krishan met again, according to Mrs Takhar, she confided in her cousin and grew increasingly to depend upon her. Mrs Takhar claims that Mrs Krishan exerted considerable influence over her."
+    ],
+    "title_key": "takhar v gracefield developments limited and others"
+  },
+  "content": "{\"title\":\"Takhar (Appellant) v Gracefield Developments Limited and others (Respondents)\",\"citation\":\"UKSC/2017/0072\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0072\",\"summary\":\"1. Balber Kaur Takhar, the appellant, is the cousin of the third respondent, Parkash Kaur Krishan.\",\"extracts\":[\"1. Balber Kaur Takhar, the appellant, is the cousin of the third respondent, Parkash Kaur Krishan. For many years before 2004, they had not seen each other. In that year they became reacquainted. At the time, Mrs Takhar was suffering personal and financial problems. She had separated from her husband some five years previously. As part of the arrangements made between Mrs Takhar and her husband, she had acquired a number of properties in Coventry.\",\"2. When Mrs Takhar and Mrs Krishan met again, according to Mrs Takhar, she confided in her cousin and grew increasingly to depend upon her. Mrs Takhar claims that Mrs Krishan exerted considerable influence over her.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"takhar v gracefield developments limited and others\"}"
+}

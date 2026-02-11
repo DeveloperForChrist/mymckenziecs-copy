@@ -1,0 +1,21 @@
+{
+  "id": "ad4c0cdb-7292-4497-867b-33e995247a7a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Newby Foods Ltd) (Appellant) v Food Standards Agency (Respondent)",
+  "created_at": "2025-12-25T11:49:44.353Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0110",
+    "score": 1,
+    "title": "R (on the application of Newby Foods Ltd) (Appellant) v Food Standards Agency (Respondent)",
+    "summary": "(1) The National Farmers’ Union (written submissions only) (2) The Association of Independent Meat Suppliers (written submissions only) (3) The British Meat Processors Association (written submissions only) (4) The British Poultry Council (written submissions only) LORD SALES: (with whom Lord Ree...",
+    "category": "contract_consumer",
+    "citation": "UKSC/2017/0110",
+    "extracts": [
+      "(1) The National Farmers’ Union (written submissions only) (2) The Association of Independent Meat Suppliers (written submissions only) (3) The British Meat Processors Association (written submissions only) (4) The British Poultry Council (written submissions only) LORD SALES: (with whom Lord Reed, Lord Carnwath, Lord Hodge and Lord Kitchin agree)",
+      "1. This is a case concerning the application of EU rules regarding food hygiene in relation to meat and poultry to certain chicken and pork products manufactured by the appellant, Newby Foods Ltd (“Newby”). Newby contends that these products should not be classified as mechanically separated meat (“MSM”) within point 1.14 of Annex I to EU regulation no (EC) 853/2004 of the European Parliament and of the Council laying down specific hygiene rules for food of animal origin (“the Regulation”)."
+    ],
+    "title_key": "r v food standards agency"
+  },
+  "content": "{\"title\":\"R (on the application of Newby Foods Ltd) (Appellant) v Food Standards Agency (Respondent)\",\"citation\":\"UKSC/2017/0110\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0110\",\"summary\":\"(1) The National Farmers’ Union (written submissions only) (2) The Association of Independent Meat Suppliers (written submissions only) (3) The British Meat Processors Association (written submissions only) (4) The British Poultry Council (written submissions only) LORD SALES: (with whom Lord Ree...\",\"extracts\":[\"(1) The National Farmers’ Union (written submissions only) (2) The Association of Independent Meat Suppliers (written submissions only) (3) The British Meat Processors Association (written submissions only) (4) The British Poultry Council (written submissions only) LORD SALES: (with whom Lord Reed, Lord Carnwath, Lord Hodge and Lord Kitchin agree)\",\"1. This is a case concerning the application of EU rules regarding food hygiene in relation to meat and poultry to certain chicken and pork products manufactured by the appellant, Newby Foods Ltd (“Newby”). Newby contends that these products should not be classified as mechanically separated meat (“MSM”) within point 1.14 of Annex I to EU regulation no (EC) 853/2004 of the European Parliament and of the Council laying down specific hygiene rules for food of animal origin (“the Regulation”).\"],\"category\":\"contract_consumer\",\"score\":1,\"title_key\":\"r v food standards agency\"}"
+}

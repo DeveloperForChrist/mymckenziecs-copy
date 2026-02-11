@@ -1,0 +1,15 @@
+{
+  "id": "a74db34e-1bb8-40ac-9ea3-b486f3738824",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4971",
+  "created_at": "2025-12-25T12:22:04.972Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1985/52/contents",
+    "type": "ukpga",
+    "year": 1985,
+    "number": 52,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1985/52/1997-05-27/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1985,\"number\":52,\"url\":\"http://www.legislation.gov.uk/ukpga/1985/52/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1985/52/1997-05-27/data.htm\"}"
+}

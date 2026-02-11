@@ -1,0 +1,21 @@
+{
+  "id": "697378ae-e30a-424f-b19c-424d99a9a2d4",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R&S Pilling t/a Phoenix Engineering (Respondent) v UK Insurance Ltd (Appellant)",
+  "created_at": "2025-12-25T11:49:43.735Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0096",
+    "score": 1,
+    "title": "R&S Pilling t/a Phoenix Engineering (Respondent) v UK Insurance Ltd (Appellant)",
+    "summary": "1. This appeal is concerned with the interpretation of a policy of motor insurance.",
+    "category": "procedure",
+    "citation": "UKSC/2017/0096",
+    "extracts": [
+      "1. This appeal is concerned with the interpretation of a policy of motor insurance. The question is whether the policy confers on the insured owner of a vehicle an indemnity against liability for damage caused to the property of a third party which was caused by his acts when he was carrying out substantial repairs to his car in the commercial premises of his employer. The appeal also raises questions about the meaning of the phrase, “damage … caused by, or arising out of, the use of the vehicle on a road or other public place” in section 145 of the Road Traffic Act 1988, which defines the compulsory insurance requirements for the use of vehicles on such places.",
+      "2. The facts behind this appeal can be stated briefly. In 2010 Mr Thomas Holden was a mechanical fitter employed by the appellants, R & S Pilling, who traded as Phoenix Engineering (“Phoenix”). He was the owner of a car and held a motor insurance policy (“the Policy”) with the respondents (“UKI”). On 11 June 2010 Mr Holden’s car failed its MOT because of corrosion to its underside. On the following day, he asked his employer, Phoenix, if he could use the loading bay in its premises to carry out work on his car in the hope that he could enable it to pass its MOT. He intended to weld some plates onto the underside of the car to deal with the corrosion. His employer agreed."
+    ],
+    "title_key": "r s pilling t a phoenix engineering v uk insurance ltd"
+  },
+  "content": "{\"title\":\"R&S Pilling t/a Phoenix Engineering (Respondent) v UK Insurance Ltd (Appellant)\",\"citation\":\"UKSC/2017/0096\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0096\",\"summary\":\"1. This appeal is concerned with the interpretation of a policy of motor insurance.\",\"extracts\":[\"1. This appeal is concerned with the interpretation of a policy of motor insurance. The question is whether the policy confers on the insured owner of a vehicle an indemnity against liability for damage caused to the property of a third party which was caused by his acts when he was carrying out substantial repairs to his car in the commercial premises of his employer. The appeal also raises questions about the meaning of the phrase, “damage … caused by, or arising out of, the use of the vehicle on a road or other public place” in section 145 of the Road Traffic Act 1988, which defines the compulsory insurance requirements for the use of vehicles on such places.\",\"2. The facts behind this appeal can be stated briefly. In 2010 Mr Thomas Holden was a mechanical fitter employed by the appellants, R & S Pilling, who traded as Phoenix Engineering (“Phoenix”). He was the owner of a car and held a motor insurance policy (“the Policy”) with the respondents (“UKI”). On 11 June 2010 Mr Holden’s car failed its MOT because of corrosion to its underside. On the following day, he asked his employer, Phoenix, if he could use the loading bay in its premises to carry out work on his car in the hope that he could enable it to pass its MOT. He intended to weld some plates onto the underside of the car to deal with the corrosion. His employer agreed.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r s pilling t a phoenix engineering v uk insurance ltd\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "3d75716c-2256-4553-85fc-1145c16f50ff",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Sharif (FC) (Respondent) v The London Borough of Camden (Appellant)",
+  "created_at": "2025-12-25T11:47:29.874Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0117",
+    "score": 1,
+    "title": "Sharif (FC) (Respondent) v The London Borough of Camden (Appellant)",
+    "summary": "1. This appeal raises a short point under Part VII of the Housing Act 1996.",
+    "category": "procedure",
+    "citation": "UKSC/2011/0117",
+    "extracts": [
+      "1. This appeal raises a short point under Part VII of the Housing Act 1996. The 1996 Act contains a set of provisions dealing with the obligations for housing authorities to those found to be homeless or threatened with homelessness. They were originally enacted in the Housing (Homeless Persons) Act 1977. Although there have been significant amendments, the general structure of the provisions has remained largely unaltered, as has the underlying principle that a home is somewhere which can accommodate a family together.",
+      "“One of the main purposes of that Act was to secure that, when accommodation is provided for homeless persons by the housing authority, it should be made available for all the members of his family together and to end the practice which had previously been common under which adult members of a homeless family were accommodated in a hostels while children were taken into care and the family thus split up . . . ” (p 668 D-G)"
+    ],
+    "title_key": "sharif v the london borough of camden"
+  },
+  "content": "{\"title\":\"Sharif (FC) (Respondent) v The London Borough of Camden (Appellant)\",\"citation\":\"UKSC/2011/0117\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0117\",\"summary\":\"1. This appeal raises a short point under Part VII of the Housing Act 1996.\",\"extracts\":[\"1. This appeal raises a short point under Part VII of the Housing Act 1996. The 1996 Act contains a set of provisions dealing with the obligations for housing authorities to those found to be homeless or threatened with homelessness. They were originally enacted in the Housing (Homeless Persons) Act 1977. Although there have been significant amendments, the general structure of the provisions has remained largely unaltered, as has the underlying principle that a home is somewhere which can accommodate a family together.\",\"“One of the main purposes of that Act was to secure that, when accommodation is provided for homeless persons by the housing authority, it should be made available for all the members of his family together and to end the practice which had previously been common under which adult members of a homeless family were accommodated in a hostels while children were taken into care and the family thus split up . . . ” (p 668 D-G)\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"sharif v the london borough of camden\"}"
+}

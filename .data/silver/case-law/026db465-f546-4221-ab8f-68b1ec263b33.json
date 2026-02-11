@@ -1,0 +1,21 @@
+{
+  "id": "026db465-f546-4221-ab8f-68b1ec263b33",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "A (Respondent) v British Broadcasting Corporation (Appellant) (Scotland)",
+  "created_at": "2025-12-25T11:48:19.694Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0159",
+    "score": 2,
+    "title": "A (Respondent) v British Broadcasting Corporation (Appellant) (Scotland)",
+    "summary": "1. This appeal raises important issues concerning the principle of open justice: in particular, issues concerning the legal basis of the principle, the circumstances in which it can be departed from and the procedure which should be followed.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0159",
+    "extracts": [
+      "1. This appeal raises important issues concerning the principle of open justice: in particular, issues concerning the legal basis of the principle, the circumstances in which it can be departed from and the procedure which should be followed.",
+      "2. The appeal is brought by the BBC in order to challenge an order made by the Court of Session in proceedings for judicial review of a decision of the Upper Tribunal. In its order, the court permitted the applicant for judicial review to amend his application by deleting his name and address and substituting letters of the alphabet, in the exercise (or, as the BBC argues, purported exercise) of a common law power. The court also gave directions under section 11 of the Contempt of Court Act 1981 (“the 1981 Act”) prohibiting the publication of his name or other identifying details and directing that no picture of him should be published or broadcast."
+    ],
+    "title_key": "a v british broadcasting corporation"
+  },
+  "content": "{\"title\":\"A (Respondent) v British Broadcasting Corporation (Appellant) (Scotland)\",\"citation\":\"UKSC/2013/0159\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0159\",\"summary\":\"1. This appeal raises important issues concerning the principle of open justice: in particular, issues concerning the legal basis of the principle, the circumstances in which it can be departed from and the procedure which should be followed.\",\"extracts\":[\"1. This appeal raises important issues concerning the principle of open justice: in particular, issues concerning the legal basis of the principle, the circumstances in which it can be departed from and the procedure which should be followed.\",\"2. The appeal is brought by the BBC in order to challenge an order made by the Court of Session in proceedings for judicial review of a decision of the Upper Tribunal. In its order, the court permitted the applicant for judicial review to amend his application by deleting his name and address and substituting letters of the alphabet, in the exercise (or, as the BBC argues, purported exercise) of a common law power. The court also gave directions under section 11 of the Contempt of Court Act 1981 (“the 1981 Act”) prohibiting the publication of his name or other identifying details and directing that no picture of him should be published or broadcast.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"a v british broadcasting corporation\"}"
+}

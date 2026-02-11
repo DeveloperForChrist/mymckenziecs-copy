@@ -1,0 +1,15 @@
+{
+  "id": "8bb82825-4c17-4b93-bd72-5d67456b7981",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#16465",
+  "created_at": "2025-12-25T13:31:51.802Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1989/732/contents",
+    "type": "uksi",
+    "year": 1989,
+    "number": 732,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1989/732/1992-03-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1989,\"number\":732,\"url\":\"http://www.legislation.gov.uk/uksi/1989/732/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1989/732/1992-03-01/data.htm\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "8d7ecc6a-fc05-4b3b-83b9-0f8bf8cd2ec3",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#11670",
+  "created_at": "2025-12-25T13:02:11.883Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1983/603/contents",
+    "type": "uksi",
+    "year": 1983,
+    "number": 603,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1983/603/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1983,\"number\":603,\"url\":\"http://www.legislation.gov.uk/uksi/1983/603/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1983/603/2020-12-31/data.htm\"}"
+}

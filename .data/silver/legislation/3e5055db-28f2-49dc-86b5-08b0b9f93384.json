@@ -1,0 +1,15 @@
+{
+  "id": "3e5055db-28f2-49dc-86b5-08b0b9f93384",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#30748",
+  "created_at": "2025-12-25T15:10:43.112Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2024/750/made",
+    "type": "uksi",
+    "year": 2024,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2024,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2024/750/made\",\"dataUrl\":null}"
+}

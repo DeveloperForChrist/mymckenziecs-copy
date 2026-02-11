@@ -1,0 +1,15 @@
+{
+  "id": "54d33ed1-197f-449f-a99d-1080a9339b88",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#24024",
+  "created_at": "2025-12-25T14:21:39.996Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2011/3128/contents/made",
+    "type": "uksi",
+    "year": 2011,
+    "number": 3128,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2011,\"number\":3128,\"url\":\"http://www.legislation.gov.uk/uksi/2011/3128/contents/made\",\"dataUrl\":null}"
+}

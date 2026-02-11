@@ -1,0 +1,15 @@
+{
+  "id": "a22de267-fb38-406b-b927-e8515269995f",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#5227",
+  "created_at": "2025-12-25T12:23:34.275Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1989/22/contents",
+    "type": "ukpga",
+    "year": 1989,
+    "number": 22,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1989/22/2017-12-28/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1989,\"number\":22,\"url\":\"http://www.legislation.gov.uk/ukpga/1989/22/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1989/22/2017-12-28/data.htm\"}"
+}

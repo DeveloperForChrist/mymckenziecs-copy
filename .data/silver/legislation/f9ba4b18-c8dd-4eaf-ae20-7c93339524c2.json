@@ -1,0 +1,15 @@
+{
+  "id": "f9ba4b18-c8dd-4eaf-ae20-7c93339524c2",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9992",
+  "created_at": "2025-12-25T12:52:00.390Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1979/1662/contents/made",
+    "type": "uksi",
+    "year": 1979,
+    "number": 1662,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1979,\"number\":1662,\"url\":\"http://www.legislation.gov.uk/uksi/1979/1662/contents/made\",\"dataUrl\":null}"
+}

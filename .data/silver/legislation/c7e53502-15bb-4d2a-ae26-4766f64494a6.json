@@ -1,0 +1,15 @@
+{
+  "id": "c7e53502-15bb-4d2a-ae26-4766f64494a6",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#26215",
+  "created_at": "2025-12-25T14:37:22.362Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2018/642/made",
+    "type": "uksi",
+    "year": 2018,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2018,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2018/642/made\",\"dataUrl\":null}"
+}

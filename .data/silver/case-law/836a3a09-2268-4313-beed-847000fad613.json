@@ -1,0 +1,21 @@
+{
+  "id": "836a3a09-2268-4313-beed-847000fad613",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of an application by Noeleen McAleenon for Judicial Review (AP) (Appellant) (Northern Ireland)",
+  "created_at": "2025-12-25T11:51:00.234Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2023-0092",
+    "score": 2,
+    "title": "In the matter of an application by Noeleen McAleenon for Judicial Review (AP) (Appellant) (Northern Ireland)",
+    "summary": "Principle issue: In respect of an established nuisance, was there an available and effective alternative remedy in private law such as to oust an application for judicial review against the public authorities?",
+    "category": "procedure",
+    "citation": "UKSC/2023/0092",
+    "extracts": [
+      "1. This appeal is about the exercise of discretion by a court which is invited by a claimant to conduct a judicial review of decision-making by a regulator in relation to a regulated activity, where the regulator alleges that the claimant has an adequate alternative remedy such that judicial review should be refused. In this case, the regulated activity is the maintenance of a waste disposal site.",
+      "2. The appellant (Ms McAleenon) seeks to bring judicial review proceedings against public bodies which have regulatory functions in relation to that activity, claiming that they have not taken appropriate action to prevent harmful chemical gases and noxious smells escaping from the site. But the public bodies maintain that judicial review should be refused because Ms McAleenon has adequate alternative remedies, in that she could herself launch a private prosecution against the owner of the site or could bring a nuisance claim against them in private law. That defence was rejected by the High Court ([2022] NIQB 39), but on the regulators’ appeal was accepted by the Court of Appeal ([2023] NICA 15). The Court of Appeal also referred to the fact that Ms McAleenon was able to complain to the Northern Ireland Public Services Ombudsman (“the Ombudsman”). Ms McAleenon appeals to this court."
+    ],
+    "title_key": "in the matter of an application by noeleen mcaleenon for judicial review"
+  },
+  "content": "{\"title\":\"In the matter of an application by Noeleen McAleenon for Judicial Review (AP) (Appellant) (Northern Ireland)\",\"citation\":\"UKSC/2023/0092\",\"url\":\"https://supremecourt.uk/cases/uksc-2023-0092\",\"summary\":\"Principle issue: In respect of an established nuisance, was there an available and effective alternative remedy in private law such as to oust an application for judicial review against the public authorities?\",\"extracts\":[\"1. This appeal is about the exercise of discretion by a court which is invited by a claimant to conduct a judicial review of decision-making by a regulator in relation to a regulated activity, where the regulator alleges that the claimant has an adequate alternative remedy such that judicial review should be refused. In this case, the regulated activity is the maintenance of a waste disposal site.\",\"2. The appellant (Ms McAleenon) seeks to bring judicial review proceedings against public bodies which have regulatory functions in relation to that activity, claiming that they have not taken appropriate action to prevent harmful chemical gases and noxious smells escaping from the site. But the public bodies maintain that judicial review should be refused because Ms McAleenon has adequate alternative remedies, in that she could herself launch a private prosecution against the owner of the site or could bring a nuisance claim against them in private law. That defence was rejected by the High Court ([2022] NIQB 39), but on the regulators’ appeal was accepted by the Court of Appeal ([2023] NICA 15). The Court of Appeal also referred to the fact that Ms McAleenon was able to complain to the Northern Ireland Public Services Ombudsman (“the Ombudsman”). Ms McAleenon appeals to this court.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"in the matter of an application by noeleen mcaleenon for judicial review\"}"
+}

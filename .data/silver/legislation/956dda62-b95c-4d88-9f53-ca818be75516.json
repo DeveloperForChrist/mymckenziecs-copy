@@ -1,0 +1,15 @@
+{
+  "id": "956dda62-b95c-4d88-9f53-ca818be75516",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#21876",
+  "created_at": "2025-12-25T14:06:32.776Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2005/1984/contents",
+    "type": "uksi",
+    "year": 2005,
+    "number": 1984,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2005/1984/2018-01-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2005,\"number\":1984,\"url\":\"http://www.legislation.gov.uk/uksi/2005/1984/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2005/1984/2018-01-01/data.htm\"}"
+}

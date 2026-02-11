@@ -1,0 +1,21 @@
+{
+  "id": "367419d2-f8ed-49c3-9088-c041af1d929b",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Friends of the Earth Ltd and others) (Respondents) v Heathrow Airport Ltd (Appellant)",
+  "created_at": "2025-12-25T11:50:24.356Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2020-0042",
+    "score": 1,
+    "title": "R (on the application of Friends of the Earth Ltd and others) (Respondents) v Heathrow Airport Ltd (Appellant)",
+    "summary": "Principle issue: Did the Secretary of State's failure to take account of the UK’s climate change commitments under the Paris Agreement render the designation of the Airports National Policy Statement favouring the development of a third runway at Heathrow Airport unlawful?",
+    "category": "public_law",
+    "citation": "UKSC/2020/0042",
+    "extracts": [
+      "1. This case concerns the framework which will govern an application for the grant of development consent for the construction of a third runway at Heathrow Airport. This is a development scheme promoted by the appellant, Heathrow Airport Ltd (“HAL”), the owner of the airport.",
+      "2. As a result of consideration over a long period, successive governments have come to the conclusion that there is a need for increased airport capacity in the South East of England to foster the development of the national economy."
+    ],
+    "title_key": "r v heathrow airport ltd"
+  },
+  "content": "{\"title\":\"R (on the application of Friends of the Earth Ltd and others) (Respondents) v Heathrow Airport Ltd (Appellant)\",\"citation\":\"UKSC/2020/0042\",\"url\":\"https://supremecourt.uk/cases/uksc-2020-0042\",\"summary\":\"Principle issue: Did the Secretary of State's failure to take account of the UK’s climate change commitments under the Paris Agreement render the designation of the Airports National Policy Statement favouring the development of a third runway at Heathrow Airport unlawful?\",\"extracts\":[\"1. This case concerns the framework which will govern an application for the grant of development consent for the construction of a third runway at Heathrow Airport. This is a development scheme promoted by the appellant, Heathrow Airport Ltd (“HAL”), the owner of the airport.\",\"2. As a result of consideration over a long period, successive governments have come to the conclusion that there is a need for increased airport capacity in the South East of England to foster the development of the national economy.\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"r v heathrow airport ltd\"}"
+}

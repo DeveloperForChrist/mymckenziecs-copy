@@ -1,0 +1,21 @@
+{
+  "id": "12c68bc3-d769-4faf-9a36-3a8d564cbdd4",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Tael One Partners Limited (Appellant) v\n                  Morgan Stanley & Co International PLC (Respondent)",
+  "created_at": "2025-12-25T11:48:15.079Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0127",
+    "score": 1,
+    "title": "Tael One Partners Limited (Appellant) v\n                  Morgan Stanley & Co International PLC (Respondent)",
+    "summary": "1. This appeal raises a question of contractual interpretation.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0127",
+    "extracts": [
+      "1. This appeal raises a question of contractual interpretation. Its significance lies in the fact that the contractual condition in question forms part of the Loan Market Association standard terms and conditions for par trade transactions (“the LMA terms”), which are a recommended set of terms published by the LMA and commonly used in the secondary loan market. There is no dispute as to the relevant legal principles.",
+      "2. Loan agreements normally entitle the lender to charge interest on the principal sum. They may also entitle the lender to the payment of a further lump sum at the time when the principal is repaid. This is sometimes known as a payment premium. If the lender assigns his rights to an assignee for value, provision will normally be made as to whether the assignee should account to the assignor for any interest which may have accrued but be unpaid at the date of the assignment. If a payment premium is due on the repayment of the loan, a question may also arise as to whether the assignee should account to the assignor for any part of the premium which can be said to be attributable to the period prior to the assignment. That depends on the terms of the assignment."
+    ],
+    "title_key": "tael one partners limited v morgan stanley co international plc"
+  },
+  "content": "{\"title\":\"Tael One Partners Limited (Appellant) v\\\\n                  Morgan Stanley & Co International PLC (Respondent)\",\"citation\":\"UKSC/2013/0127\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0127\",\"summary\":\"1. This appeal raises a question of contractual interpretation.\",\"extracts\":[\"1. This appeal raises a question of contractual interpretation. Its significance lies in the fact that the contractual condition in question forms part of the Loan Market Association standard terms and conditions for par trade transactions (“the LMA terms”), which are a recommended set of terms published by the LMA and commonly used in the secondary loan market. There is no dispute as to the relevant legal principles.\",\"2. Loan agreements normally entitle the lender to charge interest on the principal sum. They may also entitle the lender to the payment of a further lump sum at the time when the principal is repaid. This is sometimes known as a payment premium. If the lender assigns his rights to an assignee for value, provision will normally be made as to whether the assignee should account to the assignor for any interest which may have accrued but be unpaid at the date of the assignment. If a payment premium is due on the repayment of the loan, a question may also arise as to whether the assignee should account to the assignor for any part of the premium which can be said to be attributable to the period prior to the assignment. That depends on the terms of the assignment.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"tael one partners limited v morgan stanley co international plc\"}"
+}

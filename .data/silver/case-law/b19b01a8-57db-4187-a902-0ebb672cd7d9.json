@@ -1,0 +1,21 @@
+{
+  "id": "b19b01a8-57db-4187-a902-0ebb672cd7d9",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Sainsbury's Supermarkets Ltd) (Appellant) v Wolverhampton City Council and another (Respondents)",
+  "created_at": "2025-12-25T11:46:41.754Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0077",
+    "score": 1,
+    "title": "R (on the application of Sainsbury's Supermarkets Ltd) (Appellant) v Wolverhampton City Council and another (Respondents)",
+    "summary": "1. This appeal is about compulsory acquisition of private property by local authorities under the Town and Country Planning Act 1990 (“the 1990 Act”) in connection with the development or re-development of land.",
+    "category": "procedure",
+    "citation": "UKSC/2009/0077",
+    "extracts": [
+      "1. This appeal is about compulsory acquisition of private property by local authorities under the Town and Country Planning Act 1990 (“the 1990 Act”) in connection with the development or re-development of land. It raises for the first time, in the context of compulsory acquisition, a number of controversial issues which have arisen in the context of planning permission, including these: how far a local authority may go in finding a solution to problems caused by the deterioration of listed buildings; to what extent a local authority may take into account off-site benefits offered by a developer; and what offers (if any) made by a developer infringe the principle or policy that planning permissions may not be bought or sold.",
+      "2. The Raglan Street site is a semi-derelict site situated immediately to the west of, and just outside, the Wolverhampton Ring Road, which encircles the Wolverhampton City Centre retail, business and leisure core. Sainsbury’s Supermarkets Ltd (“Sainsbury’s”) owns or controls 86% of the site and Tesco Stores Ltd (“Tesco”) controls most of the remainder. Sainsbury’s and Tesco each wish to develop the Raglan Street site. Outline planning permission has been granted to Tesco, and the local authority has resolved to grant outline planning permission to Sainsbury’s."
+    ],
+    "title_key": "r v wolverhampton city council and another"
+  },
+  "content": "{\"title\":\"R (on the application of Sainsbury's Supermarkets Ltd) (Appellant) v Wolverhampton City Council and another (Respondents)\",\"citation\":\"UKSC/2009/0077\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0077\",\"summary\":\"1. This appeal is about compulsory acquisition of private property by local authorities under the Town and Country Planning Act 1990 (“the 1990 Act”) in connection with the development or re-development of land.\",\"extracts\":[\"1. This appeal is about compulsory acquisition of private property by local authorities under the Town and Country Planning Act 1990 (“the 1990 Act”) in connection with the development or re-development of land. It raises for the first time, in the context of compulsory acquisition, a number of controversial issues which have arisen in the context of planning permission, including these: how far a local authority may go in finding a solution to problems caused by the deterioration of listed buildings; to what extent a local authority may take into account off-site benefits offered by a developer; and what offers (if any) made by a developer infringe the principle or policy that planning permissions may not be bought or sold.\",\"2. The Raglan Street site is a semi-derelict site situated immediately to the west of, and just outside, the Wolverhampton Ring Road, which encircles the Wolverhampton City Centre retail, business and leisure core. Sainsbury’s Supermarkets Ltd (“Sainsbury’s”) owns or controls 86% of the site and Tesco Stores Ltd (“Tesco”) controls most of the remainder. Sainsbury’s and Tesco each wish to develop the Raglan Street site. Outline planning permission has been granted to Tesco, and the local authority has resolved to grant outline planning permission to Sainsbury’s.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v wolverhampton city council and another\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "af384a16-fa98-468c-b169-1268efe1afb5",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of A (A Child) (FC)",
+  "created_at": "2025-12-25T11:48:01.703Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0193",
+    "score": 1,
+    "title": "In the matter of A (A Child) (FC)",
+    "summary": "1. We are asked in this case to reconcile the irreconcilable.",
+    "category": "remedies",
+    "citation": "UKSC/2012/0193",
+    "extracts": [
+      "1. We are asked in this case to reconcile the irreconcilable. On the one hand, there is the interest of a vulnerable young woman (X) who made an allegation in confidence to the authorities that while she was a child she had been seriously sexually abused by the father of a little girl (A) who is now aged 10. On the other hand we have the interests of that little girl, her mother (M) and her father (F), in having that allegation properly investigated and tested. These interests are not only private to the people involved. There are also public interests, on the one hand, in maintaining the confidentiality of this kind of communication, and, on the other, in the fair and open conduct of legal disputes. On both sides there is a public interest in protecting both children and vulnerable young adults from the risk of harm.",
+      "2. M, who is British, and F, who is Australian, married in 2000 and lived in England. A was born in June 2002. M and F separated in December 2002. A remained living with M and F returned to live in Australia in 2003. He applied for contact with A and there have since been six court hearings and six contact orders designed to ensure that A could see her father when he came to England. The most recent of these, made in February 2009, provided for A to stay with her father during his expected visits to England in February and summer 2010 and in later years."
+    ],
+    "title_key": "in the matter of a"
+  },
+  "content": "{\"title\":\"In the matter of A (A Child) (FC)\",\"citation\":\"UKSC/2012/0193\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0193\",\"summary\":\"1. We are asked in this case to reconcile the irreconcilable.\",\"extracts\":[\"1. We are asked in this case to reconcile the irreconcilable. On the one hand, there is the interest of a vulnerable young woman (X) who made an allegation in confidence to the authorities that while she was a child she had been seriously sexually abused by the father of a little girl (A) who is now aged 10. On the other hand we have the interests of that little girl, her mother (M) and her father (F), in having that allegation properly investigated and tested. These interests are not only private to the people involved. There are also public interests, on the one hand, in maintaining the confidentiality of this kind of communication, and, on the other, in the fair and open conduct of legal disputes. On both sides there is a public interest in protecting both children and vulnerable young adults from the risk of harm.\",\"2. M, who is British, and F, who is Australian, married in 2000 and lived in England. A was born in June 2002. M and F separated in December 2002. A remained living with M and F returned to live in Australia in 2003. He applied for contact with A and there have since been six court hearings and six contact orders designed to ensure that A could see her father when he came to England. The most recent of these, made in February 2009, provided for A to stay with her father during his expected visits to England in February and summer 2010 and in later years.\"],\"category\":\"remedies\",\"score\":1,\"title_key\":\"in the matter of a\"}"
+}

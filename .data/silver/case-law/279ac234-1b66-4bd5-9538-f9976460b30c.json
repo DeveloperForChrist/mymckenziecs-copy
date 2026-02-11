@@ -1,0 +1,21 @@
+{
+  "id": "279ac234-1b66-4bd5-9538-f9976460b30c",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Haile (Appellant) v London Borough of Waltham Forest (Respondent)",
+  "created_at": "2025-12-25T11:48:44.797Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0185",
+    "score": 0,
+    "title": "Haile (Appellant) v London Borough of Waltham Forest (Respondent)",
+    "summary": "1. The question in this case is whether the appellant falls within the scope of section 193 of the Housing Act 1996 as amended, which applies, by virtue of subsection (1), where the local housing authority are satisfied that “an applicant is homeless, eligible for assistance and has a priority ne...",
+    "category": "evidence_misc",
+    "citation": "UKSC/2014/0185",
+    "extracts": [
+      "1. The question in this case is whether the appellant falls within the scope of section 193 of the Housing Act 1996 as amended, which applies, by virtue of subsection (1), where the local housing authority are satisfied that “an applicant is homeless, eligible for assistance and has a priority need, and are not satisfied that he became homeless intentionally”. In such a case, section 193(2) requires the authority to secure that accommodation is available for occupation by the applicant. In the present case, there is no doubt that the appellant is homeless, eligible for assistance and has a priority need. The question is whether the authority were entitled to be satisfied that she became homeless intentionally.",
+      "3. The issue raised in the appeal is, in substance, whether the review officer was entitled to be satisfied that the appellant became homeless intentionally, on the basis that she deliberately gave up the accommodation in the hostel, given that she would have been homeless in any event by the time her application was considered. In that"
+    ],
+    "title_key": "haile v london borough of waltham forest"
+  },
+  "content": "{\"title\":\"Haile (Appellant) v London Borough of Waltham Forest (Respondent)\",\"citation\":\"UKSC/2014/0185\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0185\",\"summary\":\"1. The question in this case is whether the appellant falls within the scope of section 193 of the Housing Act 1996 as amended, which applies, by virtue of subsection (1), where the local housing authority are satisfied that “an applicant is homeless, eligible for assistance and has a priority ne...\",\"extracts\":[\"1. The question in this case is whether the appellant falls within the scope of section 193 of the Housing Act 1996 as amended, which applies, by virtue of subsection (1), where the local housing authority are satisfied that “an applicant is homeless, eligible for assistance and has a priority need, and are not satisfied that he became homeless intentionally”. In such a case, section 193(2) requires the authority to secure that accommodation is available for occupation by the applicant. In the present case, there is no doubt that the appellant is homeless, eligible for assistance and has a priority need. The question is whether the authority were entitled to be satisfied that she became homeless intentionally.\",\"3. The issue raised in the appeal is, in substance, whether the review officer was entitled to be satisfied that the appellant became homeless intentionally, on the basis that she deliberately gave up the accommodation in the hostel, given that she would have been homeless in any event by the time her application was considered. In that\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"haile v london borough of waltham forest\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "f13f5192-7014-490f-a1ed-c521d1db9191",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of L and B (Children)",
+  "created_at": "2025-12-25T11:48:05.394Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0263",
+    "score": 0,
+    "title": "In the matter of L and B (Children)",
+    "summary": "1. The issue in this case is whether and in what circumstances a judge who has announced her decision is entitled to change her mind.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2012/0263",
+    "extracts": [
+      "1. The issue in this case is whether and in what circumstances a judge who has announced her decision is entitled to change her mind. The issue arises in the context of fact-finding hearings in care proceedings in a family court, but it could obviously arise in any civil or family proceedings. So a subsidiary question is whether the principles are any different in that context.",
+      "2. One difference is that section 1(2) of the Children Act 1989 requires that any court hearing a case in which a question about the upbringing of a child arises is to have regard to the general principle that delay in determining it is likely to prejudice the welfare of the child. This court heard the appeal on 21 January 2013. The final hearing to determine the future of the child in question was fixed to take place the following week. Accordingly, we announced our decision to allow the appeal at the end of the hearing, with judgment to follow."
+    ],
+    "title_key": "in the matter of l and b"
+  },
+  "content": "{\"title\":\"In the matter of L and B (Children)\",\"citation\":\"UKSC/2012/0263\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0263\",\"summary\":\"1. The issue in this case is whether and in what circumstances a judge who has announced her decision is entitled to change her mind.\",\"extracts\":[\"1. The issue in this case is whether and in what circumstances a judge who has announced her decision is entitled to change her mind. The issue arises in the context of fact-finding hearings in care proceedings in a family court, but it could obviously arise in any civil or family proceedings. So a subsidiary question is whether the principles are any different in that context.\",\"2. One difference is that section 1(2) of the Children Act 1989 requires that any court hearing a case in which a question about the upbringing of a child arises is to have regard to the general principle that delay in determining it is likely to prejudice the welfare of the child. This court heard the appeal on 21 January 2013. The final hearing to determine the future of the child in question was fixed to take place the following week. Accordingly, we announced our decision to allow the appeal at the end of the hearing, with judgment to follow.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"in the matter of l and b\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "4584f200-ce03-4fe1-973e-04b1c4220276",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#21169",
+  "created_at": "2025-12-25T14:01:27.561Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2003/2399/contents",
+    "type": "uksi",
+    "year": 2003,
+    "number": 2399,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2003/2399/2006-03-06/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2003,\"number\":2399,\"url\":\"http://www.legislation.gov.uk/uksi/2003/2399/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2003/2399/2006-03-06/data.htm\"}"
+}

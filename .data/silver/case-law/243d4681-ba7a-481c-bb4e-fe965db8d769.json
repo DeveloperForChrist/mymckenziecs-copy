@@ -1,0 +1,21 @@
+{
+  "id": "243d4681-ba7a-481c-bb4e-fe965db8d769",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Uprichard (Appellant) v Scottish Ministers and another (Respondents) (Scotland)",
+  "created_at": "2025-12-25T11:47:48.582Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0034",
+    "score": 1,
+    "title": "Uprichard (Appellant) v Scottish Ministers and another (Respondents) (Scotland)",
+    "summary": "1. St Andrews is renowned throughout the world as the home of golf.",
+    "category": "public_law",
+    "citation": "UKSC/2012/0034",
+    "extracts": [
+      "1. St Andrews is renowned throughout the world as the home of golf. It is also famous for its university, the third oldest in the English-speaking world. It is an attractive town, set between the sea and the rural hinterland of Fife, with many historic buildings and a skyline familiar to millions from television coverage of the Open Championship and from the opening of the film, Chariots of Fire.",
+      "2. This appeal has been prompted by concern on the part of the appellant, a resident of St Andrews, about Fife Council’s policies for the future development of the town as set out in the Fife Structure Plan 2006-2026. She considers that the policies, if implemented, will cause irreversible damage to the landscape setting of the town. She has objected to these policies at every opportunity during the procedure leading to the finalisation of the structure plan by the Council, and during the subsequent procedure leading to its approval, subject to certain modifications, by the Scottish Ministers."
+    ],
+    "title_key": "uprichard v scottish ministers and another"
+  },
+  "content": "{\"title\":\"Uprichard (Appellant) v Scottish Ministers and another (Respondents) (Scotland)\",\"citation\":\"UKSC/2012/0034\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0034\",\"summary\":\"1. St Andrews is renowned throughout the world as the home of golf.\",\"extracts\":[\"1. St Andrews is renowned throughout the world as the home of golf. It is also famous for its university, the third oldest in the English-speaking world. It is an attractive town, set between the sea and the rural hinterland of Fife, with many historic buildings and a skyline familiar to millions from television coverage of the Open Championship and from the opening of the film, Chariots of Fire.\",\"2. This appeal has been prompted by concern on the part of the appellant, a resident of St Andrews, about Fife Council’s policies for the future development of the town as set out in the Fife Structure Plan 2006-2026. She considers that the policies, if implemented, will cause irreversible damage to the landscape setting of the town. She has objected to these policies at every opportunity during the procedure leading to the finalisation of the structure plan by the Council, and during the subsequent procedure leading to its approval, subject to certain modifications, by the Scottish Ministers.\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"uprichard v scottish ministers and another\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "d5f9e772-77aa-4bc1-a6aa-b6e61ee27a43",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Birmingham City Council (Respondent) v Frisby (Appellant)",
+  "created_at": "2025-12-25T11:47:06.210Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0111",
+    "score": 2,
+    "title": "Birmingham City Council (Respondent) v Frisby (Appellant)",
+    "summary": "1. These are three of five conjoined appeals which were heard by the Court of Appeal in Salford City Council v Mullen [2010] EWCA Civ 336, [2010] LGR 559.",
+    "category": "procedure",
+    "citation": "UKSC/2010/0111",
+    "extracts": [
+      "1. These are three of five conjoined appeals which were heard by the Court of Appeal in Salford City Council v Mullen [2010] EWCA Civ 336, [2010] LGR 559. They are concerned with possession proceedings brought by a local authority in circumstances where the occupier is not a secure tenant under Part IV of the Housing Act 1985. Two of them, Leeds City Council v Hall (“Hall”) and Birmingham City Council v Frisby (“Frisby”), are cases where the claims for possession were made against tenants occupying under introductory tenancies entered into under Chapter 1 of Part V of the Housing Act 1996. In the third, London Borough of Hounslow v Powell (“Powell”), the claim for possession was made against a person who was granted a licence of property under the homelessness regime in Part VII of the 1996 Act. Permission to appeal was given in a fourth case, Salford City Council v Mullen. But the proceedings in that case were stayed to await the outcome of these appeals.",
+      "2. Common to all three cases is the claim by each of the appellants that the property which is the subject of the proceedings for possession against them is their “home” for the purposes of article 8(1) of the European Convention for the Protection of Human Rights and Fundamental Freedoms, which provides:"
+    ],
+    "title_key": "birmingham city council v frisby"
+  },
+  "content": "{\"title\":\"Birmingham City Council (Respondent) v Frisby (Appellant)\",\"citation\":\"UKSC/2010/0111\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0111\",\"summary\":\"1. These are three of five conjoined appeals which were heard by the Court of Appeal in Salford City Council v Mullen [2010] EWCA Civ 336, [2010] LGR 559.\",\"extracts\":[\"1. These are three of five conjoined appeals which were heard by the Court of Appeal in Salford City Council v Mullen [2010] EWCA Civ 336, [2010] LGR 559. They are concerned with possession proceedings brought by a local authority in circumstances where the occupier is not a secure tenant under Part IV of the Housing Act 1985. Two of them, Leeds City Council v Hall (“Hall”) and Birmingham City Council v Frisby (“Frisby”), are cases where the claims for possession were made against tenants occupying under introductory tenancies entered into under Chapter 1 of Part V of the Housing Act 1996. In the third, London Borough of Hounslow v Powell (“Powell”), the claim for possession was made against a person who was granted a licence of property under the homelessness regime in Part VII of the 1996 Act. Permission to appeal was given in a fourth case, Salford City Council v Mullen. But the proceedings in that case were stayed to await the outcome of these appeals.\",\"2. Common to all three cases is the claim by each of the appellants that the property which is the subject of the proceedings for possession against them is their “home” for the purposes of article 8(1) of the European Convention for the Protection of Human Rights and Fundamental Freedoms, which provides:\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"birmingham city council v frisby\"}"
+}

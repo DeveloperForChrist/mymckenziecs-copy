@@ -1,0 +1,21 @@
+{
+  "id": "0b10a9a6-9b6d-40e8-83e1-715d43812522",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Hastings (Appellant) v Finsbury Orthopaedics Ltd and another (Respondents) (Scotland)",
+  "created_at": "2025-12-25T11:50:37.595Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2021-0088",
+    "score": 1,
+    "title": "Hastings (Appellant) v Finsbury Orthopaedics Ltd and another (Respondents) (Scotland)",
+    "summary": "Principle issue: Did the lower courts err in law by not holding that the hip replacement product used for the Appellant’s hip replacement was defective within the terms of the Consumer Protection Act 1987?",
+    "category": "contract_consumer",
+    "citation": "UKSC/2021/0088",
+    "extracts": [
+      "1. In 2009 the appellant, Mr John Hastings, underwent a metal-on-metal (“MoM”) total hip replacement (“THR”). The prosthetic hip used (“the MITCH–Accolade product”) was manufactured by the respondents, each making separate parts. In 2012 the appellant underwent revision of the hip implant in his left hip.",
+      "2. The appellant claims that the replacement hip used in 2009 was defective and seeks damages under section 2 of the Consumer Protection Act 1987 (“the CPA”). The issues in the present case were limited at first instance to the question of whether certain propensities and risks inherent in MoM prosthetic hips rendered the particular combination of components used in the appellant’s operation defective within the meaning of section 3 of the CPA."
+    ],
+    "title_key": "hastings v finsbury orthopaedics ltd and another"
+  },
+  "content": "{\"title\":\"Hastings (Appellant) v Finsbury Orthopaedics Ltd and another (Respondents) (Scotland)\",\"citation\":\"UKSC/2021/0088\",\"url\":\"https://supremecourt.uk/cases/uksc-2021-0088\",\"summary\":\"Principle issue: Did the lower courts err in law by not holding that the hip replacement product used for the Appellant’s hip replacement was defective within the terms of the Consumer Protection Act 1987?\",\"extracts\":[\"1. In 2009 the appellant, Mr John Hastings, underwent a metal-on-metal (“MoM”) total hip replacement (“THR”). The prosthetic hip used (“the MITCH–Accolade product”) was manufactured by the respondents, each making separate parts. In 2012 the appellant underwent revision of the hip implant in his left hip.\",\"2. The appellant claims that the replacement hip used in 2009 was defective and seeks damages under section 2 of the Consumer Protection Act 1987 (“the CPA”). The issues in the present case were limited at first instance to the question of whether certain propensities and risks inherent in MoM prosthetic hips rendered the particular combination of components used in the appellant’s operation defective within the meaning of section 3 of the CPA.\"],\"category\":\"contract_consumer\",\"score\":1,\"title_key\":\"hastings v finsbury orthopaedics ltd and another\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "7b49bfd2-e901-43b2-a29d-399d1a2da3cc",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8515",
+  "created_at": "2025-12-25T12:43:13.548Z",
+  "metadata": {
+    "url": "1968",
+    "type": "uksi",
+    "year": 1968,
+    "number": null,
+    "dataUrl": "1968-12-06T00:00:00Z"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1968,\"number\":null,\"url\":\"1968\",\"dataUrl\":\"1968-12-06T00:00:00Z\"}"
+}

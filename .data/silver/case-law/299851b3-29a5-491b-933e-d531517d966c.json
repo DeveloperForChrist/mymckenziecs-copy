@@ -1,0 +1,21 @@
+{
+  "id": "299851b3-29a5-491b-933e-d531517d966c",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Cape Intermediate Holdings Ltd (Appellant/Cross Respondent) v Dring (for and on behalf of Asbestos Victims Support Groups Forum UK) (Respondent/Cross Appellant)",
+  "created_at": "2025-12-25T11:50:05.281Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0184",
+    "score": 1,
+    "title": "Cape Intermediate Holdings Ltd (Appellant/Cross Respondent) v Dring (for and on behalf of Asbestos Victims Support Groups Forum UK) (Respondent/Cross Appellant)",
+    "summary": "2. This case is about how much of the written material placed before the court in a civil action should be accessible to people who are not parties to the proceedings and how it should be made accessible to them.",
+    "category": "public_law",
+    "citation": "UKSC/2018/0184",
+    "extracts": [
+      "2. This case is about how much of the written material placed before the court in a civil action should be accessible to people who are not parties to the proceedings and how it should be made accessible to them. It is, in short, about the extent and operation of the principle of open justice. As Toulson LJ said, in R (Guardian News and Media Ltd) v City of Westminster Magistrates’ Court (Article 19 intervening) [2012] EWCA Civ 420; [2013] QB 618 (“Guardian News and Media”), at para 1:",
+      "“Open justice. The words express a principle at the heart of our system of justice and vital to the rule of law. The rule of law is a fine concept but fine words butter no parsnips. How is the rule of law itself to be policed? It is an age old question. Quis custodiet ipsos custodes - who will guard the guards themselves? In a democracy, where power depends on the consent of the people governed, the answer must lie in the transparency of the legal process. Open justice lets in the light and allows the public to scrutinise the workings of the law, for better or for worse.”"
+    ],
+    "title_key": "cape intermediate holdings ltd v dring"
+  },
+  "content": "{\"title\":\"Cape Intermediate Holdings Ltd (Appellant/Cross Respondent) v Dring (for and on behalf of Asbestos Victims Support Groups Forum UK) (Respondent/Cross Appellant)\",\"citation\":\"UKSC/2018/0184\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0184\",\"summary\":\"2. This case is about how much of the written material placed before the court in a civil action should be accessible to people who are not parties to the proceedings and how it should be made accessible to them.\",\"extracts\":[\"2. This case is about how much of the written material placed before the court in a civil action should be accessible to people who are not parties to the proceedings and how it should be made accessible to them. It is, in short, about the extent and operation of the principle of open justice. As Toulson LJ said, in R (Guardian News and Media Ltd) v City of Westminster Magistrates’ Court (Article 19 intervening) [2012] EWCA Civ 420; [2013] QB 618 (“Guardian News and Media”), at para 1:\",\"“Open justice. The words express a principle at the heart of our system of justice and vital to the rule of law. The rule of law is a fine concept but fine words butter no parsnips. How is the rule of law itself to be policed? It is an age old question. Quis custodiet ipsos custodes - who will guard the guards themselves? In a democracy, where power depends on the consent of the people governed, the answer must lie in the transparency of the legal process. Open justice lets in the light and allows the public to scrutinise the workings of the law, for better or for worse.”\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"cape intermediate holdings ltd v dring\"}"
+}

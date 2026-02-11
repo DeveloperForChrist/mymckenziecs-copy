@@ -1,0 +1,21 @@
+{
+  "id": "8684502c-05b8-4df5-a463-b5f6ff4a1429",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Houldsworth and another (Respondents) v Bridge Trustees Limited and another (Respondents) and Secretary of State for Work and Pensions (Appellant)",
+  "created_at": "2025-12-25T11:47:03.260Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0074",
+    "score": 1,
+    "title": "Houldsworth and another (Respondents) v Bridge Trustees Limited and another (Respondents) and Secretary of State for Work and Pensions (Appellant)",
+    "summary": "1. This appeal raises a question of some importance on the law relating to occupational pension schemes.",
+    "category": "procedure",
+    "citation": "UKSC/2010/0074",
+    "extracts": [
+      "1. This appeal raises a question of some importance on the law relating to occupational pension schemes. The agreed statement of facts and issues (“SFI”) sets out three issues, but they are all variations on the same general theme, that is the dividing line, for regulatory purposes, between defined benefit (normally earnings-related) schemes and defined contribution (or money purchase) schemes.",
+      "3. Under a defined contribution scheme, by contrast, the member’s benefit is calculated by reference to the contributions that the member makes, and those that the employer makes in respect of that particular member (for instance the member may pay 4% of his or her current pensionable salary, with the employer matching that with an equal contribution). These contributions, and the investment return on them, are the measure of the member’s benefits, and for that reason these schemes are also called money purchase schemes. The member, and not the employer, takes the risk of the investment return disappointing expectations. That is one of the main reasons why large numbers of employers have, since the last years of the 20th century, closed their final salary schemes (either completely or to new entrants) and introduced money purchase schemes."
+    ],
+    "title_key": "houldsworth and another v bridge trustees limited and another and secretary of state for work and pensions"
+  },
+  "content": "{\"title\":\"Houldsworth and another (Respondents) v Bridge Trustees Limited and another (Respondents) and Secretary of State for Work and Pensions (Appellant)\",\"citation\":\"UKSC/2010/0074\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0074\",\"summary\":\"1. This appeal raises a question of some importance on the law relating to occupational pension schemes.\",\"extracts\":[\"1. This appeal raises a question of some importance on the law relating to occupational pension schemes. The agreed statement of facts and issues (“SFI”) sets out three issues, but they are all variations on the same general theme, that is the dividing line, for regulatory purposes, between defined benefit (normally earnings-related) schemes and defined contribution (or money purchase) schemes.\",\"3. Under a defined contribution scheme, by contrast, the member’s benefit is calculated by reference to the contributions that the member makes, and those that the employer makes in respect of that particular member (for instance the member may pay 4% of his or her current pensionable salary, with the employer matching that with an equal contribution). These contributions, and the investment return on them, are the measure of the member’s benefits, and for that reason these schemes are also called money purchase schemes. The member, and not the employer, takes the risk of the investment return disappointing expectations. That is one of the main reasons why large numbers of employers have, since the last years of the 20th century, closed their final salary schemes (either completely or to new entrants) and introduced money purchase schemes.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"houldsworth and another v bridge trustees limited and another and secretary of state for work and pensions\"}"
+}

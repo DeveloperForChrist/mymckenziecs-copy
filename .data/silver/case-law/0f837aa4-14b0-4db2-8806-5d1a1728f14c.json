@@ -1,0 +1,21 @@
+{
+  "id": "0f837aa4-14b0-4db2-8806-5d1a1728f14c",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In re B (A Child) (2009) (FC)",
+  "created_at": "2025-12-25T11:46:36.110Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0019",
+    "score": 1,
+    "title": "In re B (A Child) (2009) (FC)",
+    "summary": "2. This appeal requires a revisiting of a vexed but highly important topic.",
+    "category": "procedure",
+    "citation": "UKSC/2009/0019",
+    "extracts": [
+      "2. This appeal requires a revisiting of a vexed but highly important topic. The significance of parenthood in private law disputes about residence and contact has exercised many courts over many years but one might have thought that the final word on the subject had been uttered in the comprehensive and authoritative opinion of Baroness Hale of Richmond in In re G (Children) (Residence: Same-sex Partner) [2006] UKHL 43, [2006] 1 WLR 2305. As this case illustrates, however, misunderstandings about the true import of that decision and the applicable principles persist.",
+      "3. The case concerns a young boy whom we will call Harry, although that is not his real name. Harry will be four years old in December of this year. Until recently, apart from at weekends, he has lived continuously with the appellant, GB, who is his maternal grandmother. On 6 March 2009 Lowestoft Family Proceedings Court made a residence order in favour of GB. A contact order allowing staying contact with both parents was also made. The orders of the Family Proceedings Court were appealed by Harry’s father RJB to the Family Division. His Honour Judge Richards, sitting as a High Court Judge, heard the appeal on 3 April 2009 and he made an order which, among other things, directed that there should be a transfer of residence to the father on 25 April."
+    ],
+    "title_key": "in re b"
+  },
+  "content": "{\"title\":\"In re B (A Child) (2009) (FC)\",\"citation\":\"UKSC/2009/0019\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0019\",\"summary\":\"2. This appeal requires a revisiting of a vexed but highly important topic.\",\"extracts\":[\"2. This appeal requires a revisiting of a vexed but highly important topic. The significance of parenthood in private law disputes about residence and contact has exercised many courts over many years but one might have thought that the final word on the subject had been uttered in the comprehensive and authoritative opinion of Baroness Hale of Richmond in In re G (Children) (Residence: Same-sex Partner) [2006] UKHL 43, [2006] 1 WLR 2305. As this case illustrates, however, misunderstandings about the true import of that decision and the applicable principles persist.\",\"3. The case concerns a young boy whom we will call Harry, although that is not his real name. Harry will be four years old in December of this year. Until recently, apart from at weekends, he has lived continuously with the appellant, GB, who is his maternal grandmother. On 6 March 2009 Lowestoft Family Proceedings Court made a residence order in favour of GB. A contact order allowing staying contact with both parents was also made. The orders of the Family Proceedings Court were appealed by Harry’s father RJB to the Family Division. His Honour Judge Richards, sitting as a High Court Judge, heard the appeal on 3 April 2009 and he made an order which, among other things, directed that there should be a transfer of residence to the father on 25 April.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"in re b\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "3d533636-fd82-4a25-85ba-654cdc0ece07",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#5049",
+  "created_at": "2025-12-25T12:22:31.910Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1986/42/contents/enacted",
+    "type": "ukpga",
+    "year": 1986,
+    "number": 42,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1986,\"number\":42,\"url\":\"http://www.legislation.gov.uk/ukpga/1986/42/contents/enacted\",\"dataUrl\":null}"
+}

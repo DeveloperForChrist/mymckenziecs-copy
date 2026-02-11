@@ -1,0 +1,15 @@
+{
+  "id": "03c3e51a-920e-45bf-8747-480b380509c8",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7515",
+  "created_at": "2025-12-25T12:37:27.846Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1956/1984/contents/made",
+    "type": "uksi",
+    "year": 1956,
+    "number": 1984,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1956,\"number\":1984,\"url\":\"http://www.legislation.gov.uk/uksi/1956/1984/contents/made\",\"dataUrl\":null}"
+}

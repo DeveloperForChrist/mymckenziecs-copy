@@ -1,0 +1,21 @@
+{
+  "id": "66399bc3-539f-41ae-abf8-b8871e95faf7",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Kireeva (Appellant) v Bedzhamov (Respondent)",
+  "created_at": "2025-12-25T11:50:45.884Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2022-0037",
+    "score": 1,
+    "title": "Kireeva (Appellant) v Bedzhamov (Respondent)",
+    "summary": "Principle issue: Whether the Court has the jurisdiction/power to recognise a foreign bankruptcy at common law. This depends on the nature and effect of the choice of law rule of private international law known as the \"immovables rule\" that, as a matter of English law, a foreign Court has no jurisdiction to make orders in respect of land situated in England and that rights relating to such land are governed exclusively by English law (\"Immovables Rule\").",
+    "category": "procedure",
+    "citation": "UKSC/2022/0037",
+    "extracts": [
+      "1. It is an established principle in many national legal systems, including the common law of England and Wales, that questions as regards rights to and interests in land and other immovable property are governed by the law of the country in which the property is situated (the lex situs) and that jurisdiction to decide those questions belongs to the courts of that country. Where immovable property is situated in country A, neither the law nor the courts of country A will recognise or give effect to any laws or judicial decisions of other countries which purport to govern or decide issues of rights to and interests in that immovable property, save to the extent of any exceptions under the law of country A. In this judgment, we refer to this principle of private international law, as applied to immovable property in England and Wales, as “the immovables rule”.",
+      "2. The issue on this appeal is the effect, if any, under English common law of the immovables rule on the claim of a trustee in bankruptcy or similar representative appointed in foreign bankruptcy proceedings to immovable property situated in England and owned by the debtor."
+    ],
+    "title_key": "kireeva v bedzhamov"
+  },
+  "content": "{\"title\":\"Kireeva (Appellant) v Bedzhamov (Respondent)\",\"citation\":\"UKSC/2022/0037\",\"url\":\"https://supremecourt.uk/cases/uksc-2022-0037\",\"summary\":\"Principle issue: Whether the Court has the jurisdiction/power to recognise a foreign bankruptcy at common law. This depends on the nature and effect of the choice of law rule of private international law known as the \\\\\"immovables rule\\\\\" that, as a matter of English law, a foreign Court has no jurisdiction to make orders in respect of land situated in England and that rights relating to such land are governed exclusively by English law (\\\\\"Immovables Rule\\\\\").\",\"extracts\":[\"1. It is an established principle in many national legal systems, including the common law of England and Wales, that questions as regards rights to and interests in land and other immovable property are governed by the law of the country in which the property is situated (the lex situs) and that jurisdiction to decide those questions belongs to the courts of that country. Where immovable property is situated in country A, neither the law nor the courts of country A will recognise or give effect to any laws or judicial decisions of other countries which purport to govern or decide issues of rights to and interests in that immovable property, save to the extent of any exceptions under the law of country A. In this judgment, we refer to this principle of private international law, as applied to immovable property in England and Wales, as “the immovables rule”.\",\"2. The issue on this appeal is the effect, if any, under English common law of the immovables rule on the claim of a trustee in bankruptcy or similar representative appointed in foreign bankruptcy proceedings to immovable property situated in England and owned by the debtor.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"kireeva v bedzhamov\"}"
+}

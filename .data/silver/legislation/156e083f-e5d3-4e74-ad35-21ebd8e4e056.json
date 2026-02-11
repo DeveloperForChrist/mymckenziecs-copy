@@ -1,0 +1,15 @@
+{
+  "id": "156e083f-e5d3-4e74-ad35-21ebd8e4e056",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9057",
+  "created_at": "2025-12-25T12:46:11.840Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1972/1999/contents",
+    "type": "uksi",
+    "year": 1972,
+    "number": 1999,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/1972/1999/2016-05-08/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1972,\"number\":1999,\"url\":\"http://www.legislation.gov.uk/nisi/1972/1999/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/1972/1999/2016-05-08/data.htm\"}"
+}

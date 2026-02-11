@@ -1,0 +1,21 @@
+{
+  "id": "c27c06cd-1b0b-4d9b-84c0-e2d96615d278",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Farstad Supply A/S (Respondent) v Enviroco Limited (Appellant)",
+  "created_at": "2025-12-25T11:46:56.972Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0008",
+    "score": 1,
+    "title": "Farstad Supply A/S (Respondent) v Enviroco Limited (Appellant)",
+    "summary": "1. It is not often that, as in this case, the question of the construction of a charterparty arises in the Chancery Division.",
+    "category": "contract_consumer",
+    "citation": "UKSC/2010/0008",
+    "extracts": [
+      "1. It is not often that, as in this case, the question of the construction of a charterparty arises in the Chancery Division. The issue between the parties is whether one of them is an “Affiliate” of the charterer for the purposes of provisions in a charterparty by which both the owner and the charterer agreed to indemnify and hold each other harmless (including in the case of the charterer its “Affiliates”) in relation to certain liabilities.",
+      "a) ‘Affiliate’ means any subsidiary of the Charterer … or a company of which the Charterer … [is] a Subsidiary or a company which is another Subsidiary of a company of which the Charterer … is a Subsidiary. For the purposes of this definition ‘Subsidiary’ shall have the meaning assigned to it in Section 736 of the Companies Act 1985.”"
+    ],
+    "title_key": "farstad supply a s v enviroco limited"
+  },
+  "content": "{\"title\":\"Farstad Supply A/S (Respondent) v Enviroco Limited (Appellant)\",\"citation\":\"UKSC/2010/0008\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0008\",\"summary\":\"1. It is not often that, as in this case, the question of the construction of a charterparty arises in the Chancery Division.\",\"extracts\":[\"1. It is not often that, as in this case, the question of the construction of a charterparty arises in the Chancery Division. The issue between the parties is whether one of them is an “Affiliate” of the charterer for the purposes of provisions in a charterparty by which both the owner and the charterer agreed to indemnify and hold each other harmless (including in the case of the charterer its “Affiliates”) in relation to certain liabilities.\",\"a) ‘Affiliate’ means any subsidiary of the Charterer … or a company of which the Charterer … [is] a Subsidiary or a company which is another Subsidiary of a company of which the Charterer … is a Subsidiary. For the purposes of this definition ‘Subsidiary’ shall have the meaning assigned to it in Section 736 of the Companies Act 1985.”\"],\"category\":\"contract_consumer\",\"score\":1,\"title_key\":\"farstad supply a s v enviroco limited\"}"
+}

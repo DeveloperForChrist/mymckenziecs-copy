@@ -1,0 +1,15 @@
+{
+  "id": "47ffeeb2-161e-49ef-bf06-bd2efc115497",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4505",
+  "created_at": "2025-12-25T12:19:02.770Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1977/7/contents",
+    "type": "ukpga",
+    "year": 1977,
+    "number": 7,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1977/7/2015-05-26/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1977,\"number\":7,\"url\":\"http://www.legislation.gov.uk/ukpga/1977/7/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1977/7/2015-05-26/data.htm\"}"
+}

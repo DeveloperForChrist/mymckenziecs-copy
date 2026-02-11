@@ -1,0 +1,13 @@
+{
+  "id": "db93a2cb-d6b3-4a50-8f09-5ba25e1c28b0",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#222",
+  "created_at": "2025-12-25T15:21:23.065Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part-84enforcement-by-taking-control-of-goods/practice-direction-84-enforcement-by-taking-control-of-goods",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part_84enforcement_by_taki_74f6bf9fde.html",
+    "fetchedAt": "2025-12-23T00:24:24.086Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part-84enforcement-by-taking-control-of-goods/practice-direction-84-enforcement-by-taking-control-of-goods\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part_84enforcement_by_taki_74f6bf9fde.html\",\"fetchedAt\":\"2025-12-23T00:24:24.086Z\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "4ac8bb1d-4ada-44e4-a69a-54e480ed959a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Vedanta Resources PLC and another (Appellants) v Lungowe and others (Respondents)",
+  "created_at": "2025-12-25T11:49:48.935Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0185",
+    "score": 0,
+    "title": "Vedanta Resources PLC and another (Appellants) v Lungowe and others (Respondents)",
+    "summary": "(1) The International Commission of Jurists (written submissions only) (2) The Corporate Responsibility (CORE) Coalition Ltd (written submissions only) (3) Attorney General of Zambia (written submissions only) LORD BRIGGS: (with whom Lady Hale, Lord Wilson, Lord Hodge and Lady Black agree)",
+    "category": "evidence_misc",
+    "citation": "UKSC/2017/0185",
+    "extracts": [
+      "(1) The International Commission of Jurists (written submissions only) (2) The Corporate Responsibility (CORE) Coalition Ltd (written submissions only) (3) Attorney General of Zambia (written submissions only) LORD BRIGGS: (with whom Lady Hale, Lord Wilson, Lord Hodge and Lady Black agree)",
+      "1. This litigation arises from alleged toxic emissions from the Nchanga Copper Mine in the Chingola District of Zambia. The claimants, who are the respondents to this appeal, are a group currently consisting of some 1,826 Zambian citizens who live in four communities within the Chingola District. They are, by any standards, very poor members of rural farming communities served by watercourses which provide their only source of water for drinking (by themselves and their livestock) and irrigation for their crops. They say that both their health and their farming activities have been damaged by repeated discharges of toxic matter from the Nchanga Copper Mine into those watercourses, from 2005 to date."
+    ],
+    "title_key": "vedanta resources plc and another v lungowe and others"
+  },
+  "content": "{\"title\":\"Vedanta Resources PLC and another (Appellants) v Lungowe and others (Respondents)\",\"citation\":\"UKSC/2017/0185\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0185\",\"summary\":\"(1) The International Commission of Jurists (written submissions only) (2) The Corporate Responsibility (CORE) Coalition Ltd (written submissions only) (3) Attorney General of Zambia (written submissions only) LORD BRIGGS: (with whom Lady Hale, Lord Wilson, Lord Hodge and Lady Black agree)\",\"extracts\":[\"(1) The International Commission of Jurists (written submissions only) (2) The Corporate Responsibility (CORE) Coalition Ltd (written submissions only) (3) Attorney General of Zambia (written submissions only) LORD BRIGGS: (with whom Lady Hale, Lord Wilson, Lord Hodge and Lady Black agree)\",\"1. This litigation arises from alleged toxic emissions from the Nchanga Copper Mine in the Chingola District of Zambia. The claimants, who are the respondents to this appeal, are a group currently consisting of some 1,826 Zambian citizens who live in four communities within the Chingola District. They are, by any standards, very poor members of rural farming communities served by watercourses which provide their only source of water for drinking (by themselves and their livestock) and irrigation for their crops. They say that both their health and their farming activities have been damaged by repeated discharges of toxic matter from the Nchanga Copper Mine into those watercourses, from 2005 to date.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"vedanta resources plc and another v lungowe and others\"}"
+}

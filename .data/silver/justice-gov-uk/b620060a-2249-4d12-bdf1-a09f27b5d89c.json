@@ -1,0 +1,13 @@
+{
+  "id": "b620060a-2249-4d12-bdf1-a09f27b5d89c",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#277",
+  "created_at": "2025-12-25T15:21:47.034Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/sched_ccr/ccrorder1",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_sched_ccr_ccrorder1_7660d6db74.html",
+    "fetchedAt": "2025-12-23T00:24:45.477Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/sched_ccr/ccrorder1\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_sched_ccr_ccrorder1_7660d6db74.html\",\"fetchedAt\":\"2025-12-23T00:24:45.477Z\"}"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "a5b4c7a2-f84c-4e03-906a-9f10f207d5b6",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#154",
+  "created_at": "2025-12-25T15:20:51.577Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part54/practice-direction-54e-planning-court-claims",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part54_practice_direction__8e34dfb2dc.html",
+    "fetchedAt": "2025-12-22T23:49:56.639Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part54/practice-direction-54e-planning-court-claims\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part54_practice_direction__8e34dfb2dc.html\",\"fetchedAt\":\"2025-12-22T23:49:56.639Z\"}"
+}

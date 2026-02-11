@@ -1,0 +1,18 @@
+<!-- Trigger: 7 days before subscription renewal
+     Purpose: Remind user to update payment or downgrade
+     Key elements: plan recap, renewal date, update link -->
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"/><title>Subscription renewal reminder</title></head>
+  <body>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <h1>Subscription Renewal Reminder</h1>
+    <p>Just a friendly reminder that your plan is coming up for renewal.</p>
+    <p>Your plan renews in {{days_left}} days.</p>
+    <p>Your {{plan_name}} plan will renew on {{renewal_date}}.</p>
+    <p>Current plan features: {{plan_recap}}</p>
+    <p><a href="{{manage_url}}">Manage or downgrade your plan</a></p>
+    <p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MymckenzieCS</p>
+    </div>
+  </body>
+</html>

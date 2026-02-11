@@ -1,0 +1,15 @@
+{
+  "id": "82886c74-520b-4e3b-9add-7f648c81c64a",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#11757",
+  "created_at": "2025-12-25T13:02:44.254Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1984/1929/contents/made",
+    "type": "uksi",
+    "year": 1984,
+    "number": 1929,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1984,\"number\":1929,\"url\":\"http://www.legislation.gov.uk/uksi/1984/1929/contents/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "f671485a-72a2-4df9-9191-d6e5556f5299",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Hodkin and another) (Appellants) v Registrar-General of Births, Deaths and Marriages (Respondent)",
+  "created_at": "2025-12-25T11:48:07.575Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0030",
+    "score": 1,
+    "title": "R (on the application of Hodkin and another) (Appellants) v Registrar-General of Births, Deaths and Marriages (Respondent)",
+    "summary": "1. Louisa Hodkin (the first appellant) and her fiancé, Alessandro Calcioli, would like to be married in the church which they regularly attend at 146 Queen Victoria Street, London.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0030",
+    "extracts": [
+      "1. Louisa Hodkin (the first appellant) and her fiancé, Alessandro Calcioli, would like to be married in the church which they regularly attend at 146 Queen Victoria Street, London. The minister would be pleased to perform the ceremony, but there is a legal obstacle. The church to which they belong is part of the Church of Scientology. In R v Registrar General, Ex p Segerdal [1970] 2 QB 697 the Court of Appeal held in a similar case that a different church within the Church of Scientology was not a “place of meeting for religious worship” within the meaning of section 2 of the Places of Worship Registration Act 1855 (18 & 19 Vict c 81) (“PWRA”), with the result that a valid ceremony of marriage could not be conducted there. The central question on this appeal is whether the decision in Segerdal should be upheld.",
+      "2. Miss Hodkin was born and brought up in a family of Scientologists. Her brother, David, was married at the Church of Scientology in Edinburgh. This was a valid marriage under Scots law because the Registrar General for Scotland authorises ministers of Scientology to perform marriages in Scotland, but the law in England is different from that in Scotland."
+    ],
+    "title_key": "r v registrar general of births deaths and marriages"
+  },
+  "content": "{\"title\":\"R (on the application of Hodkin and another) (Appellants) v Registrar-General of Births, Deaths and Marriages (Respondent)\",\"citation\":\"UKSC/2013/0030\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0030\",\"summary\":\"1. Louisa Hodkin (the first appellant) and her fiancé, Alessandro Calcioli, would like to be married in the church which they regularly attend at 146 Queen Victoria Street, London.\",\"extracts\":[\"1. Louisa Hodkin (the first appellant) and her fiancé, Alessandro Calcioli, would like to be married in the church which they regularly attend at 146 Queen Victoria Street, London. The minister would be pleased to perform the ceremony, but there is a legal obstacle. The church to which they belong is part of the Church of Scientology. In R v Registrar General, Ex p Segerdal [1970] 2 QB 697 the Court of Appeal held in a similar case that a different church within the Church of Scientology was not a “place of meeting for religious worship” within the meaning of section 2 of the Places of Worship Registration Act 1855 (18 & 19 Vict c 81) (“PWRA”), with the result that a valid ceremony of marriage could not be conducted there. The central question on this appeal is whether the decision in Segerdal should be upheld.\",\"2. Miss Hodkin was born and brought up in a family of Scientologists. Her brother, David, was married at the Church of Scientology in Edinburgh. This was a valid marriage under Scots law because the Registrar General for Scotland authorises ministers of Scientology to perform marriages in Scotland, but the law in England is different from that in Scotland.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v registrar general of births deaths and marriages\"}"
+}

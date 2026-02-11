@@ -1,0 +1,15 @@
+{
+  "id": "efa7cb8f-6908-4179-95f2-57dd26e1694f",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#1534",
+  "created_at": "2025-12-25T12:00:41.206Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo5/19-20/27/contents/enacted",
+    "type": "ukpga",
+    "year": 1929,
+    "number": 27,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1929,\"number\":27,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo5/19-20/27/contents/enacted\",\"dataUrl\":null}"
+}

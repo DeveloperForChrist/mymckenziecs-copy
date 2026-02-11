@@ -1,0 +1,15 @@
+{
+  "id": "d0972ae8-5bd4-4b36-af10-3fc6ea19a4fc",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8855",
+  "created_at": "2025-12-25T12:45:03.526Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1969/1453/contents/made",
+    "type": "uksi",
+    "year": 1969,
+    "number": 1453,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1969,\"number\":1453,\"url\":\"http://www.legislation.gov.uk/uksi/1969/1453/contents/made\",\"dataUrl\":null}"
+}

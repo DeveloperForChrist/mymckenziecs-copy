@@ -1,0 +1,21 @@
+{
+  "id": "1e46ba37-b936-4331-8b41-c94d93a0de36",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of an application by Rosaleen Dalton for Judicial Review                  (Northern Ireland)",
+  "created_at": "2025-12-25T11:50:33.196Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2020-0212",
+    "score": 3,
+    "title": "In the matter of an application by Rosaleen Dalton for Judicial Review                  (Northern Ireland)",
+    "summary": "Principle issue: Whether the procedural obligation to investigate pursuant to Article 2 of the European Convention on Human Rights applies to the State in respect of Mr Dalton’s death.",
+    "category": "public_law",
+    "citation": "UKSC/2020/0212",
+    "extracts": [
+      "In the matter of an application by Rosaleen Dalton for Judicial Review (Northern Ireland) before Lord Reed, President Lord Hodge, Deputy President Lord Sales Lord Leggatt Lord Burrows Lady Rose Dame Siobhan Keegan",
+      "1. In these proceedings, Ms Dalton challenges the decision of the Attorney General for Northern Ireland, not to order a further inquest into the death of her father, who died on 31 August 1988 when he unknowingly detonated a bomb which had been placed in his neighbour’s house by the IRA with the intention of killing members of the security forces. The Attorney General’s decision is challenged on the basis that it is incompatible with the state’s procedural obligation to investigate deaths that have occurred in circumstances which potentially engage the state’s responsibility, under article 2 of the European Convention on Human Rights (“the Convention”), as implemented in our domestic law by the Human Rights Act 1998. In response, the Attorney General argues in the first place that the Act does not impose any procedural obligation to investigate deaths which occurred more than 12 years before it came into force on 2 October 2000 (“the commencement date”), absent exceptional circumstances which are not present in this case."
+    ],
+    "title_key": "in the matter of an application by rosaleen dalton for judicial review"
+  },
+  "content": "{\"title\":\"In the matter of an application by Rosaleen Dalton for Judicial Review                  (Northern Ireland)\",\"citation\":\"UKSC/2020/0212\",\"url\":\"https://supremecourt.uk/cases/uksc-2020-0212\",\"summary\":\"Principle issue: Whether the procedural obligation to investigate pursuant to Article 2 of the European Convention on Human Rights applies to the State in respect of Mr Dalton’s death.\",\"extracts\":[\"In the matter of an application by Rosaleen Dalton for Judicial Review (Northern Ireland) before Lord Reed, President Lord Hodge, Deputy President Lord Sales Lord Leggatt Lord Burrows Lady Rose Dame Siobhan Keegan\",\"1. In these proceedings, Ms Dalton challenges the decision of the Attorney General for Northern Ireland, not to order a further inquest into the death of her father, who died on 31 August 1988 when he unknowingly detonated a bomb which had been placed in his neighbour’s house by the IRA with the intention of killing members of the security forces. The Attorney General’s decision is challenged on the basis that it is incompatible with the state’s procedural obligation to investigate deaths that have occurred in circumstances which potentially engage the state’s responsibility, under article 2 of the European Convention on Human Rights (“the Convention”), as implemented in our domestic law by the Human Rights Act 1998. In response, the Attorney General argues in the first place that the Act does not impose any procedural obligation to investigate deaths which occurred more than 12 years before it came into force on 2 October 2000 (“the commencement date”), absent exceptional circumstances which are not present in this case.\"],\"category\":\"public_law\",\"score\":3,\"title_key\":\"in the matter of an application by rosaleen dalton for judicial review\"}"
+}

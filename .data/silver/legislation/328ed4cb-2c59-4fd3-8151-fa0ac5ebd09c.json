@@ -1,0 +1,15 @@
+{
+  "id": "328ed4cb-2c59-4fd3-8151-fa0ac5ebd09c",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#15048",
+  "created_at": "2025-12-25T13:22:52.971Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1988/590/contents",
+    "type": "uksi",
+    "year": 1988,
+    "number": 590,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1988/590/2016-04-06/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1988,\"number\":590,\"url\":\"http://www.legislation.gov.uk/uksi/1988/590/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1988/590/2016-04-06/data.htm\"}"
+}

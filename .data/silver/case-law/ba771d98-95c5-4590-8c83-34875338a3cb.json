@@ -1,0 +1,21 @@
+{
+  "id": "ba771d98-95c5-4590-8c83-34875338a3cb",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of McDonald) (Appellant) v Royal Borough of Kensington and Chelsea (Respondent)",
+  "created_at": "2025-12-25T11:47:19.512Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0005",
+    "score": 1,
+    "title": "R (on the application of McDonald) (Appellant) v Royal Borough of Kensington and Chelsea (Respondent)",
+    "summary": "2. The respondents’ decision to reduce the sum allocated to the appellant’s weekly care was communicated by letter dated 21 November 2008 and was sought to be challenged by the appellant’s judicial review application made on 22 December 2008.",
+    "category": "public_law",
+    "citation": "UKSC/2011/0005",
+    "extracts": [
+      "2. The respondents’ decision to reduce the sum allocated to the appellant’s weekly care was communicated by letter dated 21 November 2008 and was sought to be challenged by the appellant’s judicial review application made on 22 December 2008. The application came before Frances Patterson QC sitting as a Deputy High Court Judge in the Administrative Court on 5 March 2009 at a “rolled up hearing” (the application for permission and substantive inter-partes hearing being dealt with together), at the end of which permission was refused. A Needs Assessment dated 2 July 2008, completed on 28 October 2008, on which the impugned decision had been based, had described the appellant’s needs as “assistance to use the commode at night” and the deputy Judge resolved in the respondent’s favour what she described as the “very narrow” issue arising, namely whether that need fell to be read literally or whether, as the respondents contended, it was permissible to examine its underlying rationale and treat it as a need for safe",
+      "Page 2 urination at night. Given that it was the latter, the deputy judge held that it was open to the respondents to meet that need in the more economical manner, ie by the provision of pads. Article 8 of the European Convention on Human Rights had also been invoked, but not as a freestanding ground of challenge."
+    ],
+    "title_key": "r v royal borough of kensington and chelsea"
+  },
+  "content": "{\"title\":\"R (on the application of McDonald) (Appellant) v Royal Borough of Kensington and Chelsea (Respondent)\",\"citation\":\"UKSC/2011/0005\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0005\",\"summary\":\"2. The respondents’ decision to reduce the sum allocated to the appellant’s weekly care was communicated by letter dated 21 November 2008 and was sought to be challenged by the appellant’s judicial review application made on 22 December 2008.\",\"extracts\":[\"2. The respondents’ decision to reduce the sum allocated to the appellant’s weekly care was communicated by letter dated 21 November 2008 and was sought to be challenged by the appellant’s judicial review application made on 22 December 2008. The application came before Frances Patterson QC sitting as a Deputy High Court Judge in the Administrative Court on 5 March 2009 at a “rolled up hearing” (the application for permission and substantive inter-partes hearing being dealt with together), at the end of which permission was refused. A Needs Assessment dated 2 July 2008, completed on 28 October 2008, on which the impugned decision had been based, had described the appellant’s needs as “assistance to use the commode at night” and the deputy Judge resolved in the respondent’s favour what she described as the “very narrow” issue arising, namely whether that need fell to be read literally or whether, as the respondents contended, it was permissible to examine its underlying rationale and treat it as a need for safe\",\"Page 2 urination at night. Given that it was the latter, the deputy judge held that it was open to the respondents to meet that need in the more economical manner, ie by the provision of pads. Article 8 of the European Convention on Human Rights had also been invoked, but not as a freestanding ground of challenge.\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"r v royal borough of kensington and chelsea\"}"
+}

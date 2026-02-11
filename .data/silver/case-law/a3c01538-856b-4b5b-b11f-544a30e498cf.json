@@ -1,0 +1,21 @@
+{
+  "id": "a3c01538-856b-4b5b-b11f-544a30e498cf",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of B (A Child) (FC)",
+  "created_at": "2025-12-25T11:48:06.376Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0022",
+    "score": 3,
+    "title": "In the matter of B (A Child) (FC)",
+    "summary": "(b) the application to the decision whether to make a care order of the requirement under article 8 of the European Convention on Human Rights 1950, “the Convention”, that the nature of any interference with the exercise of the right to respect for family life should be proportionate to its legit...",
+    "category": "public_law",
+    "citation": "UKSC/2013/0022",
+    "extracts": [
+      "(b) the application to the decision whether to make a care order of the requirement under article 8 of the European Convention on Human Rights 1950, “the Convention”, that the nature of any interference with the exercise of the right to respect for family life should be proportionate to its legitimate aim, “the proportionality requirement”; and, perhaps in particular,",
+      "2. The mother, “M”, supported by the father, “F”, with whom she lives, appeals against an order of the Court of Appeal (Rix, Black and Lewison LJJ) dated 14 November 2012. By its order, the Court of Appeal dismissed M’s appeal against an order made by HHJ Cryan in the Principal Registry of the Family Division dated 14 June 2012. By his order, the judge made a care order in relation to the daughter of M and F upon the basis of a care plan that she should be placed for adoption. Amelia (being the name which Lady Hale proposes that we should attribute to the daughter) was born in April 2010 so is now aged three. At birth she was placed with a foster mother on what was intended to be a short- term basis; she remains living with her pending the determination of this appeal."
+    ],
+    "title_key": "in the matter of b"
+  },
+  "content": "{\"title\":\"In the matter of B (A Child) (FC)\",\"citation\":\"UKSC/2013/0022\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0022\",\"summary\":\"(b) the application to the decision whether to make a care order of the requirement under article 8 of the European Convention on Human Rights 1950, “the Convention”, that the nature of any interference with the exercise of the right to respect for family life should be proportionate to its legit...\",\"extracts\":[\"(b) the application to the decision whether to make a care order of the requirement under article 8 of the European Convention on Human Rights 1950, “the Convention”, that the nature of any interference with the exercise of the right to respect for family life should be proportionate to its legitimate aim, “the proportionality requirement”; and, perhaps in particular,\",\"2. The mother, “M”, supported by the father, “F”, with whom she lives, appeals against an order of the Court of Appeal (Rix, Black and Lewison LJJ) dated 14 November 2012. By its order, the Court of Appeal dismissed M’s appeal against an order made by HHJ Cryan in the Principal Registry of the Family Division dated 14 June 2012. By his order, the judge made a care order in relation to the daughter of M and F upon the basis of a care plan that she should be placed for adoption. Amelia (being the name which Lady Hale proposes that we should attribute to the daughter) was born in April 2010 so is now aged three. At birth she was placed with a foster mother on what was intended to be a short- term basis; she remains living with her pending the determination of this appeal.\"],\"category\":\"public_law\",\"score\":3,\"title_key\":\"in the matter of b\"}"
+}

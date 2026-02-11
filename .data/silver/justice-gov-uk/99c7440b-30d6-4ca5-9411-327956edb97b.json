@@ -1,0 +1,13 @@
+{
+  "id": "99c7440b-30d6-4ca5-9411-327956edb97b",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#233",
+  "created_at": "2025-12-25T15:21:26.896Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/welshpd",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_welshpd_cd17513c06.html",
+    "fetchedAt": "2025-12-23T00:24:28.322Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/welshpd\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_welshpd_cd17513c06.html\",\"fetchedAt\":\"2025-12-23T00:24:28.322Z\"}"
+}

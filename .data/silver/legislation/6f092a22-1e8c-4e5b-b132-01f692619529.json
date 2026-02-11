@@ -1,0 +1,15 @@
+{
+  "id": "6f092a22-1e8c-4e5b-b132-01f692619529",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#1016",
+  "created_at": "2025-12-25T11:57:21.380Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo5/10-11/73/contents/enacted",
+    "type": "ukpga",
+    "year": 1920,
+    "number": 73,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1920,\"number\":73,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo5/10-11/73/contents/enacted\",\"dataUrl\":null}"
+}

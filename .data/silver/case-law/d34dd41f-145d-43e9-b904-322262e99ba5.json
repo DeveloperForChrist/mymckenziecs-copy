@@ -1,0 +1,21 @@
+{
+  "id": "d34dd41f-145d-43e9-b904-322262e99ba5",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "AMT Futures Limited (Appellant) v Marzillier, Dr Meier & Dr Guntner Rechtsanwaltsgesellschaft mbH (Respondent)",
+  "created_at": "2025-12-25T11:49:01.764Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0091",
+    "score": 2,
+    "title": "AMT Futures Limited (Appellant) v Marzillier, Dr Meier & Dr Guntner Rechtsanwaltsgesellschaft mbH (Respondent)",
+    "summary": "1. This appeal concerns the interpretation of Council Regulation (EC) No 44/2001 of 22 December 2000 on jurisdiction and the recognition and enforcement of judgments in civil and commercial matters (“the Judgments Regulation”).",
+    "category": "procedure",
+    "citation": "UKSC/2015/0091",
+    "extracts": [
+      "1. This appeal concerns the interpretation of Council Regulation (EC) No 44/2001 of 22 December 2000 on jurisdiction and the recognition and enforcement of judgments in civil and commercial matters (“the Judgments Regulation”). The question is whether the English courts have jurisdiction to hear the claim by the appellant (“AMTF”) against the respondent (“MMGR”) for damages for the tort of inducing breach of contract.",
+      "2. AMTF is incorporated in the United Kingdom and is based in London. It provides services as a non-advisory, “execution only”, derivatives broker for clients who wish to trade in derivatives and who are referred to it by introducing brokers. Among AMTF’s clients were people who were domiciled in Germany, Austria, Switzerland or Belgium (“the former clients”) and who were introduced to AMTF by independent brokers based in Germany (“the introducing brokers”). AMTF charged its clients commission for its service and paid commission to the introducing brokers."
+    ],
+    "title_key": "amt futures limited v marzillier dr meier dr guntner rechtsanwaltsgesellschaft mbh"
+  },
+  "content": "{\"title\":\"AMT Futures Limited (Appellant) v Marzillier, Dr Meier & Dr Guntner Rechtsanwaltsgesellschaft mbH (Respondent)\",\"citation\":\"UKSC/2015/0091\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0091\",\"summary\":\"1. This appeal concerns the interpretation of Council Regulation (EC) No 44/2001 of 22 December 2000 on jurisdiction and the recognition and enforcement of judgments in civil and commercial matters (“the Judgments Regulation”).\",\"extracts\":[\"1. This appeal concerns the interpretation of Council Regulation (EC) No 44/2001 of 22 December 2000 on jurisdiction and the recognition and enforcement of judgments in civil and commercial matters (“the Judgments Regulation”). The question is whether the English courts have jurisdiction to hear the claim by the appellant (“AMTF”) against the respondent (“MMGR”) for damages for the tort of inducing breach of contract.\",\"2. AMTF is incorporated in the United Kingdom and is based in London. It provides services as a non-advisory, “execution only”, derivatives broker for clients who wish to trade in derivatives and who are referred to it by introducing brokers. Among AMTF’s clients were people who were domiciled in Germany, Austria, Switzerland or Belgium (“the former clients”) and who were introduced to AMTF by independent brokers based in Germany (“the introducing brokers”). AMTF charged its clients commission for its service and paid commission to the introducing brokers.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"amt futures limited v marzillier dr meier dr guntner rechtsanwaltsgesellschaft mbh\"}"
+}

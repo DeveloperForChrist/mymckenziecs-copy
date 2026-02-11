@@ -1,0 +1,21 @@
+{
+  "id": "980f8c6d-758e-4d29-8194-8a30b6521868",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Williams (Appellant) v The Trustees of Swansea University Pension and Assurance Scheme and another (Respondents)",
+  "created_at": "2025-12-25T11:49:46.209Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0141",
+    "score": 1,
+    "title": "Williams (Appellant) v The Trustees of Swansea University Pension and Assurance Scheme and another (Respondents)",
+    "summary": "2. The facts can be shortly stated by reference to the agreed statement.",
+    "category": "procedure",
+    "citation": "UKSC/2017/0141",
+    "extracts": [
+      "2. The facts can be shortly stated by reference to the agreed statement. Mr Williams was employed by the second respondent (“the University”) from 12 June 2000 until he retired for ill-health reasons with effect from 30 June 2013, at the age of 38. He suffers from Tourette’s syndrome and other conditions which satisfy the definition of “disability” under section 6 of the 2010 Act. He had been an active member of the second respondent’s pension scheme (“the Scheme”) throughout his employment, and had over 13 years’ pensionable service at the date of termination.",
+      "3. For the first ten years of his employment, he had worked full time (35 hours per week). Thereafter, he worked anything from 17.5-26 hours per week when he was fit to work. By June 2013 his agreed working hours were half of his full-time hours (17.5 hours per week) and had been so for nearly two years, even though he was not at work for approximately 11 months. It is agreed that each reduction in hours of working arose from his disabilities. The variations in his working hours were made at his request as a “reasonable adjustment”, with the University’s agreement."
+    ],
+    "title_key": "williams v the trustees of swansea university pension and assurance scheme and another"
+  },
+  "content": "{\"title\":\"Williams (Appellant) v The Trustees of Swansea University Pension and Assurance Scheme and another (Respondents)\",\"citation\":\"UKSC/2017/0141\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0141\",\"summary\":\"2. The facts can be shortly stated by reference to the agreed statement.\",\"extracts\":[\"2. The facts can be shortly stated by reference to the agreed statement. Mr Williams was employed by the second respondent (“the University”) from 12 June 2000 until he retired for ill-health reasons with effect from 30 June 2013, at the age of 38. He suffers from Tourette’s syndrome and other conditions which satisfy the definition of “disability” under section 6 of the 2010 Act. He had been an active member of the second respondent’s pension scheme (“the Scheme”) throughout his employment, and had over 13 years’ pensionable service at the date of termination.\",\"3. For the first ten years of his employment, he had worked full time (35 hours per week). Thereafter, he worked anything from 17.5-26 hours per week when he was fit to work. By June 2013 his agreed working hours were half of his full-time hours (17.5 hours per week) and had been so for nearly two years, even though he was not at work for approximately 11 months. It is agreed that each reduction in hours of working arose from his disabilities. The variations in his working hours were made at his request as a “reasonable adjustment”, with the University’s agreement.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"williams v the trustees of swansea university pension and assurance scheme and another\"}"
+}

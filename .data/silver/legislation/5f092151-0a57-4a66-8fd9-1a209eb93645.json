@@ -1,0 +1,15 @@
+{
+  "id": "5f092151-0a57-4a66-8fd9-1a209eb93645",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#5841",
+  "created_at": "2025-12-25T12:27:14.215Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/2001/17/contents",
+    "type": "ukpga",
+    "year": 2001,
+    "number": 17,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/2001/17/2024-01-04/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":2001,\"number\":17,\"url\":\"http://www.legislation.gov.uk/ukpga/2001/17/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/2001/17/2024-01-04/data.htm\"}"
+}

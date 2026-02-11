@@ -1,0 +1,21 @@
+{
+  "id": "ddbe2bb2-1723-4e0e-9944-f4868f103ebd",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "McGowan (Procurator Fiscal, Edinburgh) (Appellant) v B (Respondent) (Scotland)",
+  "created_at": "2025-12-25T11:47:35.209Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0201",
+    "score": 0,
+    "title": "McGowan (Procurator Fiscal, Edinburgh) (Appellant) v B (Respondent) (Scotland)",
+    "summary": "1. This is a reference of a devolution issue which has arisen in proceedings in the Sheriff Court of Lothian and Borders at Edinburgh.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2011/0201",
+    "extracts": [
+      "1. This is a reference of a devolution issue which has arisen in proceedings in the Sheriff Court of Lothian and Borders at Edinburgh. It was required by the Lord Advocate under paragraph 33 of Schedule 6 to the Scotland Act 1998. The respondent, to whom I shall refer as “B” as his case has not yet gone to trial, has been charged on summary complaint with housebreaking with intent to steal and having in his possession a controlled drug contrary to section 5(2) of the Misuse of Drugs Act 1971. He pled not guilty and was admitted to bail. A trial diet was fixed for 10 October 2011.",
+      "2. By letter dated 1 August 2011 his solicitor gave notice of his intention to raise a devolution issue in terms of paragraph 1 of Schedule 6 to the Scotland Act 1998. The issue was described in his Devolution Minute in these terms:"
+    ],
+    "title_key": "mcgowan v b"
+  },
+  "content": "{\"title\":\"McGowan (Procurator Fiscal, Edinburgh) (Appellant) v B (Respondent) (Scotland)\",\"citation\":\"UKSC/2011/0201\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0201\",\"summary\":\"1. This is a reference of a devolution issue which has arisen in proceedings in the Sheriff Court of Lothian and Borders at Edinburgh.\",\"extracts\":[\"1. This is a reference of a devolution issue which has arisen in proceedings in the Sheriff Court of Lothian and Borders at Edinburgh. It was required by the Lord Advocate under paragraph 33 of Schedule 6 to the Scotland Act 1998. The respondent, to whom I shall refer as “B” as his case has not yet gone to trial, has been charged on summary complaint with housebreaking with intent to steal and having in his possession a controlled drug contrary to section 5(2) of the Misuse of Drugs Act 1971. He pled not guilty and was admitted to bail. A trial diet was fixed for 10 October 2011.\",\"2. By letter dated 1 August 2011 his solicitor gave notice of his intention to raise a devolution issue in terms of paragraph 1 of Schedule 6 to the Scotland Act 1998. The issue was described in his Devolution Minute in these terms:\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"mcgowan v b\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "7f2d153f-9fec-4afb-ad37-552921c764d9",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#30651",
+  "created_at": "2025-12-25T15:09:57.282Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2024/855/made",
+    "type": "uksi",
+    "year": 2024,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2024,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2024/855/made\",\"dataUrl\":null}"
+}

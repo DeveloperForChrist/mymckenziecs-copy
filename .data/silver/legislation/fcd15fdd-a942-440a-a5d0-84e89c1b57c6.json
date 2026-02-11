@@ -1,0 +1,15 @@
+{
+  "id": "fcd15fdd-a942-440a-a5d0-84e89c1b57c6",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#30705",
+  "created_at": "2025-12-25T15:10:22.342Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2024/794/made",
+    "type": "uksi",
+    "year": 2024,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2024,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2024/794/made\",\"dataUrl\":null}"
+}

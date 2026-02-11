@@ -1,0 +1,15 @@
+{
+  "id": "ff34a851-a99d-4224-852e-52fed7f6c250",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9111",
+  "created_at": "2025-12-25T12:46:31.222Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1973/2219/contents/made",
+    "type": "uksi",
+    "year": 1973,
+    "number": 2219,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1973,\"number\":2219,\"url\":\"http://www.legislation.gov.uk/uksi/1973/2219/contents/made\",\"dataUrl\":null}"
+}

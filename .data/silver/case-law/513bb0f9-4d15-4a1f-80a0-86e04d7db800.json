@@ -1,0 +1,21 @@
+{
+  "id": "513bb0f9-4d15-4a1f-80a0-86e04d7db800",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Brown and another, the Joint Administrators of Questway Limited (Respondents) v Pelosi (Appellant) (Scotland)",
+  "created_at": "2025-12-25T11:49:01.407Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0077",
+    "score": 1,
+    "title": "Brown and another, the Joint Administrators of Questway Limited (Respondents) v Pelosi (Appellant) (Scotland)",
+    "summary": "1. These three conjoined appeals concern section 242 of the Insolvency Act 1986, as amended.",
+    "category": "procedure",
+    "citation": "UKSC/2015/0077",
+    "extracts": [
+      "1. These three conjoined appeals concern section 242 of the Insolvency Act 1986, as amended. Where section 242(1) applies, and a company enters administration, an alienation by the company is challengeable by the administrator. In terms of section 242(2), section 242(1) applies where by the alienation, any part of the company’s property is transferred or any claim or right of the company is discharged or renounced, and the alienation takes place on a relevant day as defined by section 242(3) (that is to say, within a specified time before the date when the company enters into administration). In terms of section 242(4), on a challenge being brought under subsection (1), the court shall grant decree of reduction or for such restoration of property to the company’s assets or other redress as may be appropriate, but the court shall not grant such a decree if the person seeking to uphold the alienation establishes that it was made for adequate consideration.",
+      "2. These proceedings were brought under section 242(1) by the joint administrators of Oceancrown Ltd, Loanwell Ltd and Questway Ltd, in respect of alienations made by each of those companies of four properties in Glasgow during November 2010, nine months before the companies went into administration. The alienations took place on relevant days as defined. The administrators are the respondents to the present appeals."
+    ],
+    "title_key": "brown and another the joint administrators of questway limited v pelosi"
+  },
+  "content": "{\"title\":\"Brown and another, the Joint Administrators of Questway Limited (Respondents) v Pelosi (Appellant) (Scotland)\",\"citation\":\"UKSC/2015/0077\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0077\",\"summary\":\"1. These three conjoined appeals concern section 242 of the Insolvency Act 1986, as amended.\",\"extracts\":[\"1. These three conjoined appeals concern section 242 of the Insolvency Act 1986, as amended. Where section 242(1) applies, and a company enters administration, an alienation by the company is challengeable by the administrator. In terms of section 242(2), section 242(1) applies where by the alienation, any part of the company’s property is transferred or any claim or right of the company is discharged or renounced, and the alienation takes place on a relevant day as defined by section 242(3) (that is to say, within a specified time before the date when the company enters into administration). In terms of section 242(4), on a challenge being brought under subsection (1), the court shall grant decree of reduction or for such restoration of property to the company’s assets or other redress as may be appropriate, but the court shall not grant such a decree if the person seeking to uphold the alienation establishes that it was made for adequate consideration.\",\"2. These proceedings were brought under section 242(1) by the joint administrators of Oceancrown Ltd, Loanwell Ltd and Questway Ltd, in respect of alienations made by each of those companies of four properties in Glasgow during November 2010, nine months before the companies went into administration. The alienations took place on relevant days as defined. The administrators are the respondents to the present appeals.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"brown and another the joint administrators of questway limited v pelosi\"}"
+}

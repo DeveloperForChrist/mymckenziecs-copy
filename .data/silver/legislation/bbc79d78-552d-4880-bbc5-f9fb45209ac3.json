@@ -1,0 +1,15 @@
+{
+  "id": "bbc79d78-552d-4880-bbc5-f9fb45209ac3",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8825",
+  "created_at": "2025-12-25T12:44:53.465Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1969/1510/contents/made",
+    "type": "uksi",
+    "year": 1969,
+    "number": 1510,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1969/1510/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1969,\"number\":1510,\"url\":\"http://www.legislation.gov.uk/uksi/1969/1510/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1969/1510/made/data.htm\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "70ac2f4e-ffcd-4187-a023-b016a4bd6a95",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20313",
+  "created_at": "2025-12-25T13:55:51.209Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1998/602/contents/made",
+    "type": "uksi",
+    "year": 1998,
+    "number": 602,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1998/602/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1998,\"number\":602,\"url\":\"http://www.legislation.gov.uk/uksi/1998/602/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1998/602/made/data.htm\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "aed63e88-c326-4530-aa88-0d680a3adde0",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Radmacher (formerly Granatino) (Respondent) v Granatino (Appellant)",
+  "created_at": "2025-12-25T11:46:36.893Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0031",
+    "score": 0,
+    "title": "Radmacher (formerly Granatino) (Respondent) v Granatino (Appellant)",
+    "summary": "1. When a court grants a decree of divorce, nullity of marriage or judicial separation it has the power to order ancillary relief.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2009/0031",
+    "extracts": [
+      "1. When a court grants a decree of divorce, nullity of marriage or judicial separation it has the power to order ancillary relief. Ancillary relief governs the financial arrangements between the husband and the wife on the breakdown of their marriage. Sometimes the husband and wife have already made an agreement governing these matters. The agreement may have been made before the marriage (“an ante-nuptial agreement”) or after the marriage (“a post-nuptial agreement”). Post-nuptial agreements may be made when the husband and wife are still together and intend to remain together, or when they are on the point of separating or have already separated. The latter type of post-nuptial agreement can be described as “a separation agreement”. We shall use the generic description “nuptial agreements” to embrace both ante-nuptial and post-nuptial agreements.",
+      "2. A court when considering the grant of ancillary relief is not obliged to give effect to nuptial agreements – whether they are ante-nuptial or post-nuptial. The parties cannot, by agreement, oust the jurisdiction of the court. The court must, however, give appropriate weight to such an agreement. This appeal raises the question of the principles to be applied by the court when considering the weight that should be attached to an ante-nuptial agreement. The Privy Council recently considered this question in relation to a post-nuptial agreement in MacLeod v MacLeod [2008] UKPC 64, [2010] 1 AC 298 and it will be necessary to consider the implications of that decision."
+    ],
+    "title_key": "radmacher v granatino"
+  },
+  "content": "{\"title\":\"Radmacher (formerly Granatino) (Respondent) v Granatino (Appellant)\",\"citation\":\"UKSC/2009/0031\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0031\",\"summary\":\"1. When a court grants a decree of divorce, nullity of marriage or judicial separation it has the power to order ancillary relief.\",\"extracts\":[\"1. When a court grants a decree of divorce, nullity of marriage or judicial separation it has the power to order ancillary relief. Ancillary relief governs the financial arrangements between the husband and the wife on the breakdown of their marriage. Sometimes the husband and wife have already made an agreement governing these matters. The agreement may have been made before the marriage (“an ante-nuptial agreement”) or after the marriage (“a post-nuptial agreement”). Post-nuptial agreements may be made when the husband and wife are still together and intend to remain together, or when they are on the point of separating or have already separated. The latter type of post-nuptial agreement can be described as “a separation agreement”. We shall use the generic description “nuptial agreements” to embrace both ante-nuptial and post-nuptial agreements.\",\"2. A court when considering the grant of ancillary relief is not obliged to give effect to nuptial agreements – whether they are ante-nuptial or post-nuptial. The parties cannot, by agreement, oust the jurisdiction of the court. The court must, however, give appropriate weight to such an agreement. This appeal raises the question of the principles to be applied by the court when considering the weight that should be attached to an ante-nuptial agreement. The Privy Council recently considered this question in relation to a post-nuptial agreement in MacLeod v MacLeod [2008] UKPC 64, [2010] 1 AC 298 and it will be necessary to consider the implications of that decision.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"radmacher v granatino\"}"
+}

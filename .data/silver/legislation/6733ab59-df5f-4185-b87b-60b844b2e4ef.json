@@ -1,0 +1,15 @@
+{
+  "id": "6733ab59-df5f-4185-b87b-60b844b2e4ef",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#23496",
+  "created_at": "2025-12-25T14:17:36.199Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2008/746/made",
+    "type": "uksi",
+    "year": 2008,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2008,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2008/746/made\",\"dataUrl\":null}"
+}

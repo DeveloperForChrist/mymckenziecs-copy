@@ -1,0 +1,15 @@
+{
+  "id": "3ee1ed1b-ec3d-4e4b-9467-899802c80a9c",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#2486",
+  "created_at": "2025-12-25T12:06:46.493Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo6/9-10/33/contents/enacted",
+    "type": "ukpga",
+    "year": 1946,
+    "number": 33,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1946,\"number\":33,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo6/9-10/33/contents/enacted\",\"dataUrl\":null}"
+}

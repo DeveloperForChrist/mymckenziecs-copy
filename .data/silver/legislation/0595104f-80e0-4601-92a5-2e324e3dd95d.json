@@ -1,0 +1,15 @@
+{
+  "id": "0595104f-80e0-4601-92a5-2e324e3dd95d",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#21979",
+  "created_at": "2025-12-25T14:07:13.342Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2005/1437/contents",
+    "type": "uksi",
+    "year": 2005,
+    "number": 1437,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2005/1437/2024-06-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2005,\"number\":1437,\"url\":\"http://www.legislation.gov.uk/uksi/2005/1437/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2005/1437/2024-06-01/data.htm\"}"
+}

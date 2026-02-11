@@ -1,0 +1,15 @@
+{
+  "id": "3f039c10-8336-4072-ad9a-8d8557884c26",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#12661",
+  "created_at": "2025-12-25T13:08:18.700Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1987/1971/contents",
+    "type": "uksi",
+    "year": 1987,
+    "number": 1971,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1987,\"number\":1971,\"url\":\"http://www.legislation.gov.uk/uksi/1987/1971/contents\",\"dataUrl\":null}"
+}

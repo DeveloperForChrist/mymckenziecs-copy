@@ -1,0 +1,21 @@
+{
+  "id": "49a753dd-ace3-4d7d-a019-97f1a40c677a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of T and another) (FC) (Respondents) v Secretary of State for the Home Department and another (Appellants)",
+  "created_at": "2025-12-25T11:48:09.235Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0048",
+    "score": 1,
+    "title": "R (on the application of T and another) (FC) (Respondents) v Secretary of State for the Home Department and another (Appellants)",
+    "summary": "Page 3 Constable of Humberside Police v Information Comr (Secretary of State for the Home Department intervening) [2009] EWCA Civ 1079, [2010] 1 WLR 1136, at para 3. In the event, therefore, the ECRC issued in relation to T again disclosed the warnings.",
+    "category": "public_law",
+    "citation": "UKSC/2013/0048",
+    "extracts": [
+      "Page 3 Constable of Humberside Police v Information Comr (Secretary of State for the Home Department intervening) [2009] EWCA Civ 1079, [2010] 1 WLR 1136, at para 3. In the event, therefore, the ECRC issued in relation to T again disclosed the warnings. The college responded that T’s place on the course was at risk. It was only as a result of representations by his solicitor that it accepted T for enrolment on the course notwithstanding the warnings.",
+      "5. In 2001 the police issued a caution to JB, then aged 41, in respect of the theft from a shop of a packet of false fingernails. She has no other criminal record. In 2009 she completed a training course arranged by the Job Centre for employment in the care sector. The provider of the course asked her to obtain an ECRC, which disclosed the caution. It thereupon told her that it felt unable to put her forward for employment in the care sector."
+    ],
+    "title_key": "r v secretary of state for the home department and another"
+  },
+  "content": "{\"title\":\"R (on the application of T and another) (FC) (Respondents) v Secretary of State for the Home Department and another (Appellants)\",\"citation\":\"UKSC/2013/0048\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0048\",\"summary\":\"Page 3 Constable of Humberside Police v Information Comr (Secretary of State for the Home Department intervening) [2009] EWCA Civ 1079, [2010] 1 WLR 1136, at para 3. In the event, therefore, the ECRC issued in relation to T again disclosed the warnings.\",\"extracts\":[\"Page 3 Constable of Humberside Police v Information Comr (Secretary of State for the Home Department intervening) [2009] EWCA Civ 1079, [2010] 1 WLR 1136, at para 3. In the event, therefore, the ECRC issued in relation to T again disclosed the warnings. The college responded that T’s place on the course was at risk. It was only as a result of representations by his solicitor that it accepted T for enrolment on the course notwithstanding the warnings.\",\"5. In 2001 the police issued a caution to JB, then aged 41, in respect of the theft from a shop of a packet of false fingernails. She has no other criminal record. In 2009 she completed a training course arranged by the Job Centre for employment in the care sector. The provider of the course asked her to obtain an ECRC, which disclosed the caution. It thereupon told her that it felt unable to put her forward for employment in the care sector.\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"r v secretary of state for the home department and another\"}"
+}

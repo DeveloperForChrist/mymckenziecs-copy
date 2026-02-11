@@ -1,0 +1,15 @@
+{
+  "id": "fb2adea4-9048-4b7f-8c46-d0a3d5cc48b2",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9929",
+  "created_at": "2025-12-25T12:51:35.584Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1979/1736/contents/made",
+    "type": "uksi",
+    "year": 1979,
+    "number": 1736,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1979,\"number\":1736,\"url\":\"http://www.legislation.gov.uk/uksi/1979/1736/contents/made\",\"dataUrl\":null}"
+}

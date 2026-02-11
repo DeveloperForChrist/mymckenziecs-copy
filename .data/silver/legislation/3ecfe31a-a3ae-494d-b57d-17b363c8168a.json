@@ -1,0 +1,15 @@
+{
+  "id": "3ecfe31a-a3ae-494d-b57d-17b363c8168a",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4106",
+  "created_at": "2025-12-25T12:16:38.286Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1972/57/contents/enacted",
+    "type": "ukpga",
+    "year": 1972,
+    "number": 57,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1972,\"number\":57,\"url\":\"http://www.legislation.gov.uk/ukpga/1972/57/contents/enacted\",\"dataUrl\":null}"
+}

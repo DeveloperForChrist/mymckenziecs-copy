@@ -1,0 +1,15 @@
+{
+  "id": "4c121caf-9234-433b-ad97-5541e7eef040",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#17955",
+  "created_at": "2025-12-25T13:41:15.408Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1997/1174/contents",
+    "type": "uksi",
+    "year": 1997,
+    "number": 1174,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1997/1174/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1997,\"number\":1174,\"url\":\"http://www.legislation.gov.uk/uksi/1997/1174/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1997/1174/2020-12-31/data.htm\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "9eabd637-484d-43fa-bce3-8f98d2d74248",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Palmer) (Appellant) v Northern Derbyshire Magistrates Court and another (Respondents)",
+  "created_at": "2025-12-25T11:50:43.807Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2021-0233",
+    "score": 1,
+    "title": "R (on the application of Palmer) (Appellant) v Northern Derbyshire Magistrates Court and another (Respondents)",
+    "summary": "Principle issue: Whether an administrator appointed under Part II of the Insolvency Act 1986 is an \"officer\" of the company within the meaning of the phrase \"director, manager, secretary or other similar officer of the body corporate\" so as to fall within s194(3) of the Trade Union and Labour Relations (Consolidation) Act 1992",
+    "category": "procedure",
+    "citation": "UKSC/2021/0233",
+    "extracts": [
+      "1. The issue on this appeal is whether an administrator of a company appointed under the Insolvency Act 1986 (“the IA 1986”) is an “officer” of the company within the meaning of the phrase “any director, manager, secretary or similar officer of the body corporate”, as used in section 194 of the Trade Union and Labour Relations (Consolidation) Act 1992 (“TULRCA”).",
+      "3. There is a duty to consult appropriate representatives of the affected employees where the proposal is to make 20 or more employees redundant within a period of 90 days or less: section 188(1). The consultation must commence at least 45 days before the first dismissal takes effect, where 100 or more employees are to be made redundant, and at least 30 days in other cases: section 188(1A). Where there are “special circumstances which render it not reasonably practicable to comply with” these requirements, “the employer shall take all such steps towards compliance with that requirement as are reasonably practicable in those circumstances”: section 188(7). Employment tribunals may make protective awards of remuneration in the event of a failure to comply with these requirements: section 189."
+    ],
+    "title_key": "r v northern derbyshire magistrates court and another"
+  },
+  "content": "{\"title\":\"R (on the application of Palmer) (Appellant) v Northern Derbyshire Magistrates Court and another (Respondents)\",\"citation\":\"UKSC/2021/0233\",\"url\":\"https://supremecourt.uk/cases/uksc-2021-0233\",\"summary\":\"Principle issue: Whether an administrator appointed under Part II of the Insolvency Act 1986 is an \\\\\"officer\\\\\" of the company within the meaning of the phrase \\\\\"director, manager, secretary or other similar officer of the body corporate\\\\\" so as to fall within s194(3) of the Trade Union and Labour Relations (Consolidation) Act 1992\",\"extracts\":[\"1. The issue on this appeal is whether an administrator of a company appointed under the Insolvency Act 1986 (“the IA 1986”) is an “officer” of the company within the meaning of the phrase “any director, manager, secretary or similar officer of the body corporate”, as used in section 194 of the Trade Union and Labour Relations (Consolidation) Act 1992 (“TULRCA”).\",\"3. There is a duty to consult appropriate representatives of the affected employees where the proposal is to make 20 or more employees redundant within a period of 90 days or less: section 188(1). The consultation must commence at least 45 days before the first dismissal takes effect, where 100 or more employees are to be made redundant, and at least 30 days in other cases: section 188(1A). Where there are “special circumstances which render it not reasonably practicable to comply with” these requirements, “the employer shall take all such steps towards compliance with that requirement as are reasonably practicable in those circumstances”: section 188(7). Employment tribunals may make protective awards of remuneration in the event of a failure to comply with these requirements: section 189.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v northern derbyshire magistrates court and another\"}"
+}

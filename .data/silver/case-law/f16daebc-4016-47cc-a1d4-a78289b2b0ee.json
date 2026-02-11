@@ -1,0 +1,21 @@
+{
+  "id": "f16daebc-4016-47cc-a1d4-a78289b2b0ee",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "AR (Appellant) v RN (Respondent) (Scotland)",
+  "created_at": "2025-12-25T11:48:58.325Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0048",
+    "score": 1,
+    "title": "AR (Appellant) v RN (Respondent) (Scotland)",
+    "summary": "1. The issue in this case is whether the court should order the return to France of two little girls who have been living with their mother in Scotland since July 2013.",
+    "category": "public_law",
+    "citation": "UKSC/2015/0048",
+    "extracts": [
+      "1. The issue in this case is whether the court should order the return to France of two little girls who have been living with their mother in Scotland since July 2013. The issue arises under article 3 of the 1980 Hague Convention on the Civil Aspects of International Child Abduction, as incorporated into the law of the United Kingdom by the Child Abduction and Custody Act 1985.",
+      "2. The children were born in France in August 2010 and June 2013. Their father is a French citizen who has lived in France all his life. He has a small business in France. Their mother is a British and Canadian citizen, who was born in Canada of a Scottish mother. She works from home for a Canadian employer. She and the father have never been married."
+    ],
+    "title_key": "ar v rn"
+  },
+  "content": "{\"title\":\"AR (Appellant) v RN (Respondent) (Scotland)\",\"citation\":\"UKSC/2015/0048\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0048\",\"summary\":\"1. The issue in this case is whether the court should order the return to France of two little girls who have been living with their mother in Scotland since July 2013.\",\"extracts\":[\"1. The issue in this case is whether the court should order the return to France of two little girls who have been living with their mother in Scotland since July 2013. The issue arises under article 3 of the 1980 Hague Convention on the Civil Aspects of International Child Abduction, as incorporated into the law of the United Kingdom by the Child Abduction and Custody Act 1985.\",\"2. The children were born in France in August 2010 and June 2013. Their father is a French citizen who has lived in France all his life. He has a small business in France. Their mother is a British and Canadian citizen, who was born in Canada of a Scottish mother. She works from home for a Canadian employer. She and the father have never been married.\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"ar v rn\"}"
+}

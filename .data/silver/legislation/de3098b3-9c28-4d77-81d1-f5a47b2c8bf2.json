@@ -1,0 +1,15 @@
+{
+  "id": "de3098b3-9c28-4d77-81d1-f5a47b2c8bf2",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20219",
+  "created_at": "2025-12-25T13:55:18.212Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1998/749/contents",
+    "type": "uksi",
+    "year": 1998,
+    "number": 749,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/1998/749/2006-01-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1998,\"number\":749,\"url\":\"http://www.legislation.gov.uk/nisi/1998/749/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/1998/749/2006-01-01/data.htm\"}"
+}

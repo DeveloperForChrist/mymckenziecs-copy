@@ -1,0 +1,13 @@
+{
+  "id": "5209b96b-fa3e-4e30-9996-817c2bf54e02",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#245",
+  "created_at": "2025-12-25T15:21:32.511Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/standard-directions/list-of-cases-of-common-occurrence/menu-of-sd-paragraphs",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_standard_directions_list_of_case_882775bb6c.html",
+    "fetchedAt": "2025-12-23T00:24:32.978Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/standard-directions/list-of-cases-of-common-occurrence/menu-of-sd-paragraphs\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_standard_directions_list_of_case_882775bb6c.html\",\"fetchedAt\":\"2025-12-23T00:24:32.978Z\"}"
+}

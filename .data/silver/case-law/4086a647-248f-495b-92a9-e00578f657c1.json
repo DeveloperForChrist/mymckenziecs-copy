@@ -1,0 +1,21 @@
+{
+  "id": "4086a647-248f-495b-92a9-e00578f657c1",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Spiller and another (Appellants) v Joseph and others (Respondents)",
+  "created_at": "2025-12-25T11:46:53.680Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0210",
+    "score": 0,
+    "title": "Spiller and another (Appellants) v Joseph and others (Respondents)",
+    "summary": "1. Mr David Price, the Solicitor-Advocate acting for the defendants, who are the appellants, at one point described the claim as a storm in a teacup.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2009/0210",
+    "extracts": [
+      "1. Mr David Price, the Solicitor-Advocate acting for the defendants, who are the appellants, at one point described the claim as a storm in a teacup. He was correct, but the storm is considerable. It involves consideration of one of the most difficult areas of the law of defamation, the defence of fair comment.",
+      "2. Over 40 years ago Diplock LJ in Slim v Daily Telegraph Ltd [1968] 2 QB 157, 171 referred to “the artificial and archaic character of the tort of libel”. Some 20 years on Parker LJ in Brent Walker Group plc v Time Out Ltd [1991] 2 QB 33, 46 commented on the absurdity of the “tangled web of the law of defamation”. Little has occurred in the last twenty years to unravel the tangle, and this is particularly true of the defence of fair comment. Statutory reform has been proposed in the form of Lord Lester of Herne Hill’s private member’s Defamation Bill and the Ministry of Justice has undertaken to publish a draft Defamation Bill early next year. Both Mr Price, and Mr Caldecott QC, who has intervened on behalf of and with the support of important newspaper and broadcasting interests, have invited the court to use this appeal as a vehicle for developing the common law defence of fair comment in a manner which goes well beyond what is necessary to resolve the issues raised by this appeal. What are currently the elements of the defence of fair comment?"
+    ],
+    "title_key": "spiller and another v joseph and others"
+  },
+  "content": "{\"title\":\"Spiller and another (Appellants) v Joseph and others (Respondents)\",\"citation\":\"UKSC/2009/0210\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0210\",\"summary\":\"1. Mr David Price, the Solicitor-Advocate acting for the defendants, who are the appellants, at one point described the claim as a storm in a teacup.\",\"extracts\":[\"1. Mr David Price, the Solicitor-Advocate acting for the defendants, who are the appellants, at one point described the claim as a storm in a teacup. He was correct, but the storm is considerable. It involves consideration of one of the most difficult areas of the law of defamation, the defence of fair comment.\",\"2. Over 40 years ago Diplock LJ in Slim v Daily Telegraph Ltd [1968] 2 QB 157, 171 referred to “the artificial and archaic character of the tort of libel”. Some 20 years on Parker LJ in Brent Walker Group plc v Time Out Ltd [1991] 2 QB 33, 46 commented on the absurdity of the “tangled web of the law of defamation”. Little has occurred in the last twenty years to unravel the tangle, and this is particularly true of the defence of fair comment. Statutory reform has been proposed in the form of Lord Lester of Herne Hill’s private member’s Defamation Bill and the Ministry of Justice has undertaken to publish a draft Defamation Bill early next year. Both Mr Price, and Mr Caldecott QC, who has intervened on behalf of and with the support of important newspaper and broadcasting interests, have invited the court to use this appeal as a vehicle for developing the common law defence of fair comment in a manner which goes well beyond what is necessary to resolve the issues raised by this appeal. What are currently the elements of the defence of fair comment?\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"spiller and another v joseph and others\"}"
+}

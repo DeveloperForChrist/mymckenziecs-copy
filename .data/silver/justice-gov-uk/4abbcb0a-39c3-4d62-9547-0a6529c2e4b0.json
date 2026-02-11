@@ -1,0 +1,13 @@
+{
+  "id": "4abbcb0a-39c3-4d62-9547-0a6529c2e4b0",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#298",
+  "created_at": "2025-12-25T15:21:55.638Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/standard-directions/general/evidence",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_standard_directions_general_evid_2646629016.html",
+    "fetchedAt": "2025-12-23T00:24:59.819Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/standard-directions/general/evidence\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_standard_directions_general_evid_2646629016.html\",\"fetchedAt\":\"2025-12-23T00:24:59.819Z\"}"
+}

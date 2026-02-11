@@ -1,0 +1,15 @@
+{
+  "id": "e288f6f0-627d-48b2-9992-d57f53f6ce29",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#26184",
+  "created_at": "2025-12-25T14:37:08.598Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2018/673/contents",
+    "type": "uksi",
+    "year": 2018,
+    "number": 673,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2018/673/2020-03-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2018,\"number\":673,\"url\":\"http://www.legislation.gov.uk/uksi/2018/673/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2018/673/2020-03-31/data.htm\"}"
+}

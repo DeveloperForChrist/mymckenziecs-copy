@@ -1,0 +1,21 @@
+{
+  "id": "6f11698c-ed41-4a50-89b1-f87e496bb2bc",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Baker (Respondent) v Quantum Clothing Group Limited (Appellants) and others",
+  "created_at": "2025-12-25T11:46:44.166Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0107",
+    "score": 1,
+    "title": "Baker (Respondent) v Quantum Clothing Group Limited (Appellants) and others",
+    "summary": "1. This appeal concerns the liability of employers in the knitting industry of Derbyshire and Nottingham for hearing loss shown by employees to have been suffered during the years prior to 1 January 1990, the date when the Noise at Work Regulations 1989 (SI 1989/1790) came into force.",
+    "category": "procedure",
+    "citation": "UKSC/2009/0107",
+    "extracts": [
+      "1. This appeal concerns the liability of employers in the knitting industry of Derbyshire and Nottingham for hearing loss shown by employees to have been suffered during the years prior to 1 January 1990, the date when the Noise at Work Regulations 1989 (SI 1989/1790) came into force. The central issue is whether liability exists at common law and/or under section 29(1) of the Factories Act 1961, towards an employee who can establish noise-induced hearing loss resulting from exposure to noise levels between 85 and 90dB(A)lepd.",
+      "3. Sound is perceived by the hearer as a result of the conversion by the ear drum of the sound pressure variations in the air into mechanical vibrations. These are conveyed by the middle ear to the cochlea, which, by a process of analysis and amplification, translates these vibrations into nerve impulses which are then transmitted to the brain’s auditory nerve. Hair cells in the cochlea play a vital part in the process, and noise-induced hearing loss (described as sensorineural) is the result of damage to such hair cells resulting from exposure to noise over time. Other causes of hearing loss include decline in the conductive function of the outer and/or inner ear, due for example to disease, infection, excess wax or very loud traumatic noise, as well as loss due to simple ageing (presbyacusis). Hearing loss"
+    ],
+    "title_key": "baker v quantum clothing group limited and others"
+  },
+  "content": "{\"title\":\"Baker (Respondent) v Quantum Clothing Group Limited (Appellants) and others\",\"citation\":\"UKSC/2009/0107\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0107\",\"summary\":\"1. This appeal concerns the liability of employers in the knitting industry of Derbyshire and Nottingham for hearing loss shown by employees to have been suffered during the years prior to 1 January 1990, the date when the Noise at Work Regulations 1989 (SI 1989/1790) came into force.\",\"extracts\":[\"1. This appeal concerns the liability of employers in the knitting industry of Derbyshire and Nottingham for hearing loss shown by employees to have been suffered during the years prior to 1 January 1990, the date when the Noise at Work Regulations 1989 (SI 1989/1790) came into force. The central issue is whether liability exists at common law and/or under section 29(1) of the Factories Act 1961, towards an employee who can establish noise-induced hearing loss resulting from exposure to noise levels between 85 and 90dB(A)lepd.\",\"3. Sound is perceived by the hearer as a result of the conversion by the ear drum of the sound pressure variations in the air into mechanical vibrations. These are conveyed by the middle ear to the cochlea, which, by a process of analysis and amplification, translates these vibrations into nerve impulses which are then transmitted to the brain’s auditory nerve. Hair cells in the cochlea play a vital part in the process, and noise-induced hearing loss (described as sensorineural) is the result of damage to such hair cells resulting from exposure to noise over time. Other causes of hearing loss include decline in the conductive function of the outer and/or inner ear, due for example to disease, infection, excess wax or very loud traumatic noise, as well as loss due to simple ageing (presbyacusis). Hearing loss\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"baker v quantum clothing group limited and others\"}"
+}

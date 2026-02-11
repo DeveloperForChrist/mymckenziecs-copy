@@ -1,0 +1,15 @@
+{
+  "id": "2258b927-6843-470b-99b1-e463cc096703",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#17036",
+  "created_at": "2025-12-25T13:35:23.620Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1997/2984/contents",
+    "type": "uksi",
+    "year": 1997,
+    "number": 2984,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/1997/2984/2009-10-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1997,\"number\":2984,\"url\":\"http://www.legislation.gov.uk/nisi/1997/2984/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/1997/2984/2009-10-01/data.htm\"}"
+}

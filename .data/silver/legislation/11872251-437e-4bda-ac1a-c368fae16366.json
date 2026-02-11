@@ -1,0 +1,15 @@
+{
+  "id": "11872251-437e-4bda-ac1a-c368fae16366",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7588",
+  "created_at": "2025-12-25T12:37:52.854Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1957/2077/contents/made",
+    "type": "uksi",
+    "year": 1957,
+    "number": 2077,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1957,\"number\":2077,\"url\":\"http://www.legislation.gov.uk/uksi/1957/2077/contents/made\",\"dataUrl\":null}"
+}

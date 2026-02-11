@@ -1,0 +1,66 @@
+%%{init: { 'theme': 'base', 'themeVariables': { 'primaryColor': '#0b5cff' }}}%%
+erDiagram
+    USERS {
+        UUID id PK
+        TEXT email
+        TEXT name
+    }
+    CASES {
+        UUID id PK
+        UUID user_id FK
+        TEXT title
+        TEXT description
+    }
+    MESSAGES {
+        UUID id PK
+        UUID case_id FK
+        TEXT content
+    }
+    DOCUMENTS {
+        UUID id PK
+        UUID case_id FK
+        TEXT name
+    }
+    SUBSCRIPTIONS {
+        UUID id PK
+        UUID user_id FK
+        TEXT plan_type
+    }
+    USER_PASSES {
+        UUID id PK
+        UUID user_id FK
+        UUID case_id FK
+    }
+    MESSAGE_USAGE {
+        UUID case_id PK
+    }
+    AUDIT_LOG {
+        UUID id PK
+        UUID user_id FK
+    }
+    USER_PREFERENCES {
+        UUID user_id PK
+    }
+    API_USAGE {
+        UUID id PK
+        UUID user_id FK
+    }
+    CALENDAR_EVENTS {
+        UUID id PK
+        UUID user_id FK
+        TEXT title
+        TIMESTAMPTZ date
+    }
+
+    USERS ||--o{ CASES : "owns"
+    CASES ||--o{ MESSAGES : "has"
+    CASES ||--o{ DOCUMENTS : "contains"
+    USERS ||--o{ DOCUMENTS : "uploads"
+    USERS ||--o{ SUBSCRIPTIONS : "has"
+    USERS ||--o{ USER_PASSES : "owns"
+    CASES ||--o{ USER_PASSES : "applies_to"
+    CASES ||--o{ MESSAGE_USAGE : "usage"
+    USERS ||--o{ AUDIT_LOG : "actions"
+    USERS ||--o{ USER_PREFERENCES : "prefers"
+    USERS ||--o{ API_USAGE : "makes"
+    USERS ||--o{ CALENDAR_EVENTS : "schedules"

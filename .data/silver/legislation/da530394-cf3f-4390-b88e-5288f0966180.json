@@ -1,0 +1,15 @@
+{
+  "id": "da530394-cf3f-4390-b88e-5288f0966180",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#11164",
+  "created_at": "2025-12-25T12:59:15.485Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1983/1545/contents/made",
+    "type": "uksi",
+    "year": 1983,
+    "number": 1545,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1983,\"number\":1545,\"url\":\"http://www.legislation.gov.uk/uksi/1983/1545/contents/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "e2e04791-5db2-4481-891e-b4680b5f7b4a",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#25329",
+  "created_at": "2025-12-25T14:30:43.523Z",
+  "metadata": {
+    "url": "996",
+    "type": "uksi",
+    "year": 2016,
+    "number": null,
+    "dataUrl": "2023-04-24T10:14:36Z"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2016,\"number\":null,\"url\":\"996\",\"dataUrl\":\"2023-04-24T10:14:36Z\"}"
+}

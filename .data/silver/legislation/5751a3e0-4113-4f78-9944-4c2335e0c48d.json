@@ -1,0 +1,15 @@
+{
+  "id": "5751a3e0-4113-4f78-9944-4c2335e0c48d",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20284",
+  "created_at": "2025-12-25T13:55:41.445Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1998/643/contents/made",
+    "type": "uksi",
+    "year": 1998,
+    "number": 643,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1998/643/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1998,\"number\":643,\"url\":\"http://www.legislation.gov.uk/uksi/1998/643/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1998/643/made/data.htm\"}"
+}

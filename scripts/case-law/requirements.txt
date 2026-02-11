@@ -1,0 +1,4 @@
+fastapi>=0.95
+uvicorn>=0.22
+pymilvus>=2.2
+openai>=1.0

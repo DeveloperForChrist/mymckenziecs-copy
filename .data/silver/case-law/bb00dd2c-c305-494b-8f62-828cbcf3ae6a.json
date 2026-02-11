@@ -1,0 +1,21 @@
+{
+  "id": "bb00dd2c-c305-494b-8f62-828cbcf3ae6a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of A) (Appellant) v B (Respondent)",
+  "created_at": "2025-12-25T11:46:36.474Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0020",
+    "score": 3,
+    "title": "R (on the application of A) (Appellant) v B (Respondent)",
+    "summary": "Principle issue: Whether a challenge to a refusal to allow a former member of the intelligence services to publish a book describing his service must be brought before the Investigatory Powers Tribunal, pursuant to s 65(2)(a) Regulation of Investigatory Powers Act 2000",
+    "category": "procedure",
+    "citation": "UKSC/2009/0020",
+    "extracts": [
+      "“(2) The jurisdiction of the Tribunal shall be – (a) to be the only appropriate tribunal for the purposes of section 7 of the Human Rights Act 1998 in relation to any proceedings under subsection (1)(a) of that section (proceedings for actions incompatible with Convention rights) which fall within subsection (3) of this section;”",
+      "2. Collins J decided that the Administrative Court had jurisdiction to hear A’s challenge: [2008] 4 All ER 511 (4 July 2008). The Court of Appeal (Laws and Dyson LJJ, Rix LJ dissenting) reversed that decision, holding that exclusive jurisdiction lies with the IPT: [2009] 3 WLR 717 (18 February 2009)."
+    ],
+    "title_key": "r v b"
+  },
+  "content": "{\"title\":\"R (on the application of A) (Appellant) v B (Respondent)\",\"citation\":\"UKSC/2009/0020\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0020\",\"summary\":\"Principle issue: Whether a challenge to a refusal to allow a former member of the intelligence services to publish a book describing his service must be brought before the Investigatory Powers Tribunal, pursuant to s 65(2)(a) Regulation of Investigatory Powers Act 2000\",\"extracts\":[\"“(2) The jurisdiction of the Tribunal shall be – (a) to be the only appropriate tribunal for the purposes of section 7 of the Human Rights Act 1998 in relation to any proceedings under subsection (1)(a) of that section (proceedings for actions incompatible with Convention rights) which fall within subsection (3) of this section;”\",\"2. Collins J decided that the Administrative Court had jurisdiction to hear A’s challenge: [2008] 4 All ER 511 (4 July 2008). The Court of Appeal (Laws and Dyson LJJ, Rix LJ dissenting) reversed that decision, holding that exclusive jurisdiction lies with the IPT: [2009] 3 WLR 717 (18 February 2009).\"],\"category\":\"procedure\",\"score\":3,\"title_key\":\"r v b\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "e4a83e8a-cc11-412f-a83f-7d64c0e37bcc",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#15528",
+  "created_at": "2025-12-25T13:25:53.253Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1989/2387/contents/made",
+    "type": "uksi",
+    "year": 1989,
+    "number": 2387,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1989/2387/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1989,\"number\":2387,\"url\":\"http://www.legislation.gov.uk/uksi/1989/2387/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1989/2387/made/data.htm\"}"
+}

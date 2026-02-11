@@ -1,0 +1,15 @@
+{
+  "id": "10300ae7-f86f-45e9-9c82-46225520dc83",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#21333",
+  "created_at": "2025-12-25T14:02:36.329Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2004/3192/contents",
+    "type": "uksi",
+    "year": 2004,
+    "number": 3192,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2004/3192/2004-12-03/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2004,\"number\":3192,\"url\":\"http://www.legislation.gov.uk/uksi/2004/3192/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2004/3192/2004-12-03/data.htm\"}"
+}

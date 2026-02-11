@@ -1,0 +1,21 @@
+{
+  "id": "eae7a6f0-7ff3-489b-a02a-286190761089",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of PACCAR Inc and others) (Appellants) v Competition Appeal Tribunal and others (Respondents)",
+  "created_at": "2025-12-25T11:50:36.690Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2021-0078",
+    "score": 2,
+    "title": "R (on the application of PACCAR Inc and others) (Appellants) v Competition Appeal Tribunal and others (Respondents)",
+    "summary": "Principle issue: Are litigation funding agreements (\"LFAs\") pursuant to which the funder is entitled to recover a percentage of any damages recovered \"damages-based agreements\" (\"DBAs\") within the meaning of the legislation which regulates such agreements?",
+    "category": "procedure",
+    "citation": "UKSC/2021/0078",
+    "extracts": [
+      "1. The question which arises on this appeal is whether a form of arrangement for the financing of litigation by third party funders is lawful and effective. This depends on the interpretation of an express definition of a term as set out in a statute. The case concerns the proper interpretation of a definition first used in one statutory context and then adopted and used in another context.",
+      "2. It is necessary to consider the meaning of the definition in the first context. Lord Neuberger of Abbotsbury explained the proper approach in Williams v Central Bank of Nigeria [2014] AC 1189, at para 50:"
+    ],
+    "title_key": "r v competition appeal tribunal and others"
+  },
+  "content": "{\"title\":\"R (on the application of PACCAR Inc and others) (Appellants) v Competition Appeal Tribunal and others (Respondents)\",\"citation\":\"UKSC/2021/0078\",\"url\":\"https://supremecourt.uk/cases/uksc-2021-0078\",\"summary\":\"Principle issue: Are litigation funding agreements (\\\\\"LFAs\\\\\") pursuant to which the funder is entitled to recover a percentage of any damages recovered \\\\\"damages-based agreements\\\\\" (\\\\\"DBAs\\\\\") within the meaning of the legislation which regulates such agreements?\",\"extracts\":[\"1. The question which arises on this appeal is whether a form of arrangement for the financing of litigation by third party funders is lawful and effective. This depends on the interpretation of an express definition of a term as set out in a statute. The case concerns the proper interpretation of a definition first used in one statutory context and then adopted and used in another context.\",\"2. It is necessary to consider the meaning of the definition in the first context. Lord Neuberger of Abbotsbury explained the proper approach in Williams v Central Bank of Nigeria [2014] AC 1189, at para 50:\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"r v competition appeal tribunal and others\"}"
+}

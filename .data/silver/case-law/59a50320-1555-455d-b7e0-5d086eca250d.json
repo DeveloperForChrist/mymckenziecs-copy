@@ -1,0 +1,21 @@
+{
+  "id": "59a50320-1555-455d-b7e0-5d086eca250d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "E (Children) (FC)",
+  "created_at": "2025-12-25T11:47:26.527Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0084",
+    "score": 2,
+    "title": "E (Children) (FC)",
+    "summary": "1. The decision of the European Court of Human Rights in Neulinger and Shuruk v Switzerland [2011] 1 FLR 122 was greeted with concern, nay even consternation in some quarters, because of its possible impact upon the application of the Hague Convention on the Civil Aspects of International Child A...",
+    "category": "public_law",
+    "citation": "UKSC/2011/0084",
+    "extracts": [
+      "1. The decision of the European Court of Human Rights in Neulinger and Shuruk v Switzerland [2011] 1 FLR 122 was greeted with concern, nay even consternation in some quarters, because of its possible impact upon the application of the Hague Convention on the Civil Aspects of International Child Abduction 1980 (“the Hague Convention”). The Swiss Federal Court had rejected a mother’s claim, under article 13b of the Hague Convention, that there was a grave risk that returning the child to Israel would lead to physical or psychological harm or otherwise place him in an intolerable situation. Nevertheless, the Grand Chamber of the European Court held that to enforce the order would be an unjustifiable interference with the right to respect for the private and family lives of mother and child, protected by article 8 of the European Convention on Human Rights (“the ECHR”).",
+      "Page 2 does to any other decision concerning a child. The current approach to article 13b, at least in the courts of England and Wales, does not properly respect the requirement that the best interests of the child be a primary consideration."
+    ],
+    "title_key": "e"
+  },
+  "content": "{\"title\":\"E (Children) (FC)\",\"citation\":\"UKSC/2011/0084\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0084\",\"summary\":\"1. The decision of the European Court of Human Rights in Neulinger and Shuruk v Switzerland [2011] 1 FLR 122 was greeted with concern, nay even consternation in some quarters, because of its possible impact upon the application of the Hague Convention on the Civil Aspects of International Child A...\",\"extracts\":[\"1. The decision of the European Court of Human Rights in Neulinger and Shuruk v Switzerland [2011] 1 FLR 122 was greeted with concern, nay even consternation in some quarters, because of its possible impact upon the application of the Hague Convention on the Civil Aspects of International Child Abduction 1980 (“the Hague Convention”). The Swiss Federal Court had rejected a mother’s claim, under article 13b of the Hague Convention, that there was a grave risk that returning the child to Israel would lead to physical or psychological harm or otherwise place him in an intolerable situation. Nevertheless, the Grand Chamber of the European Court held that to enforce the order would be an unjustifiable interference with the right to respect for the private and family lives of mother and child, protected by article 8 of the European Convention on Human Rights (“the ECHR”).\",\"Page 2 does to any other decision concerning a child. The current approach to article 13b, at least in the courts of England and Wales, does not properly respect the requirement that the best interests of the child be a primary consideration.\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"e\"}"
+}

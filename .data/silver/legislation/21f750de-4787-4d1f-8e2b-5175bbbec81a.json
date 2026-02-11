@@ -1,0 +1,15 @@
+{
+  "id": "21f750de-4787-4d1f-8e2b-5175bbbec81a",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#18609",
+  "created_at": "2025-12-25T13:45:24.480Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1997/306/contents/made",
+    "type": "uksi",
+    "year": 1997,
+    "number": 306,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1997/306/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1997,\"number\":306,\"url\":\"http://www.legislation.gov.uk/uksi/1997/306/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1997/306/made/data.htm\"}"
+}

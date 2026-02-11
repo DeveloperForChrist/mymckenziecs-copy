@@ -1,0 +1,21 @@
+{
+  "id": "48dca584-9ad3-40c6-858e-4a58e0776201",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Petroleo Brasileiro SA (Respondent) v E.N.E. Kos 1 Limited (Appellant)",
+  "created_at": "2025-12-25T11:47:10.825Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0157",
+    "score": 1,
+    "title": "Petroleo Brasileiro SA (Respondent) v E.N.E. Kos 1 Limited (Appellant)",
+    "summary": "1. This appeal is about the rights of the owner of a time-chartered ship after the ship has been lawfully withdrawn for non-payment of hire.",
+    "category": "procedure",
+    "citation": "UKSC/2010/0157",
+    "extracts": [
+      "1. This appeal is about the rights of the owner of a time-chartered ship after the ship has been lawfully withdrawn for non-payment of hire. The question must often have arisen in practice but, oddly enough, there is no direct authority upon it.",
+      "2. The MT Kos is a 301,000 mt VLCC. She was time chartered by her owners to Petroleo Brasileiro SA on 2 June 2006 for 36 months plus or minus 15 days at charterers’ option. The charterparty, which was on the Shelltime 3 Form, contained a standard form of withdrawal clause providing that if hire was not paid when due, the owners should have the right to withdraw the vessel “without prejudice to any claim owners may otherwise have on charterers under this charter.” It is increasingly common for such contracts to include anti-technicality clauses requiring notice to be given before this right is exercised. But for whatever reason no anti-technicality clause was included in this case. So when, on 31 May 2008, charterers failed to make the advance payment required for the month of June, the owners were entitled to withdraw the MT Kos, and did so at 14.41 GMT on 2 June 2008. It is agreed between the parties to the appeal that the charterers’ failure to pay hire was not a repudiatory breach of contract."
+    ],
+    "title_key": "petroleo brasileiro sa v e n e kos 1 limited"
+  },
+  "content": "{\"title\":\"Petroleo Brasileiro SA (Respondent) v E.N.E. Kos 1 Limited (Appellant)\",\"citation\":\"UKSC/2010/0157\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0157\",\"summary\":\"1. This appeal is about the rights of the owner of a time-chartered ship after the ship has been lawfully withdrawn for non-payment of hire.\",\"extracts\":[\"1. This appeal is about the rights of the owner of a time-chartered ship after the ship has been lawfully withdrawn for non-payment of hire. The question must often have arisen in practice but, oddly enough, there is no direct authority upon it.\",\"2. The MT Kos is a 301,000 mt VLCC. She was time chartered by her owners to Petroleo Brasileiro SA on 2 June 2006 for 36 months plus or minus 15 days at charterers’ option. The charterparty, which was on the Shelltime 3 Form, contained a standard form of withdrawal clause providing that if hire was not paid when due, the owners should have the right to withdraw the vessel “without prejudice to any claim owners may otherwise have on charterers under this charter.” It is increasingly common for such contracts to include anti-technicality clauses requiring notice to be given before this right is exercised. But for whatever reason no anti-technicality clause was included in this case. So when, on 31 May 2008, charterers failed to make the advance payment required for the month of June, the owners were entitled to withdraw the MT Kos, and did so at 14.41 GMT on 2 June 2008. It is agreed between the parties to the appeal that the charterers’ failure to pay hire was not a repudiatory breach of contract.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"petroleo brasileiro sa v e n e kos 1 limited\"}"
+}

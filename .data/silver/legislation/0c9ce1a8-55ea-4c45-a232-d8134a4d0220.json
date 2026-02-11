@@ -1,0 +1,15 @@
+{
+  "id": "0c9ce1a8-55ea-4c45-a232-d8134a4d0220",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#21390",
+  "created_at": "2025-12-25T14:03:02.033Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2004/2883/contents",
+    "type": "uksi",
+    "year": 2004,
+    "number": 2883,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2004/2883/2022-12-19/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2004,\"number\":2883,\"url\":\"http://www.legislation.gov.uk/uksi/2004/2883/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2004/2883/2022-12-19/data.htm\"}"
+}

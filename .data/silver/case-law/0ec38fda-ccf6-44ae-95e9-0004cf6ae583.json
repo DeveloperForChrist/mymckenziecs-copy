@@ -1,0 +1,21 @@
+{
+  "id": "0ec38fda-ccf6-44ae-95e9-0004cf6ae583",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Berrisford (FC) (Appellant) v Mexfield Housing Co-operative Limited (Respondent)",
+  "created_at": "2025-12-25T11:47:11.565Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0167",
+    "score": 0,
+    "title": "Berrisford (FC) (Appellant) v Mexfield Housing Co-operative Limited (Respondent)",
+    "summary": "1. Mexfield Housing Co-Operative Ltd (“Mexfield”) is a fully mutual housing co-operative association, which was founded by a bank as part of a mortgage rescue scheme, ie with a view to buying mortgaged properties from individual borrowers who are in difficulty, and then letting the properties bac...",
+    "category": "evidence_misc",
+    "citation": "UKSC/2010/0167",
+    "extracts": [
+      "1. Mexfield Housing Co-Operative Ltd (“Mexfield”) is a fully mutual housing co-operative association, which was founded by a bank as part of a mortgage rescue scheme, ie with a view to buying mortgaged properties from individual borrowers who are in difficulty, and then letting the properties back to them. In that capacity, it acquired a number of residential properties, which it then let out to the former owner-mortgagors, who, in the normal way for tenants of a fully mutual housing co-operative, were required by its rules to be members of Mexfield.",
+      "2. One of those properties is 17 Elton Avenue, Barnet (“the premises”), which, during 1993, Mexfield purchased from Ms Ruza Berrisford, and, by a written agreement made on 13 December 1993, agreed to let it back to her. The agreement was described as an “Occupancy Agreement” (“the Agreement”), and it started by reciting that, in anticipation of her occupation of the premises, Ms Berrisford had become a member of Mexfield. Clause 1 then provided as follows:"
+    ],
+    "title_key": "berrisford v mexfield housing co operative limited"
+  },
+  "content": "{\"title\":\"Berrisford (FC) (Appellant) v Mexfield Housing Co-operative Limited (Respondent)\",\"citation\":\"UKSC/2010/0167\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0167\",\"summary\":\"1. Mexfield Housing Co-Operative Ltd (“Mexfield”) is a fully mutual housing co-operative association, which was founded by a bank as part of a mortgage rescue scheme, ie with a view to buying mortgaged properties from individual borrowers who are in difficulty, and then letting the properties bac...\",\"extracts\":[\"1. Mexfield Housing Co-Operative Ltd (“Mexfield”) is a fully mutual housing co-operative association, which was founded by a bank as part of a mortgage rescue scheme, ie with a view to buying mortgaged properties from individual borrowers who are in difficulty, and then letting the properties back to them. In that capacity, it acquired a number of residential properties, which it then let out to the former owner-mortgagors, who, in the normal way for tenants of a fully mutual housing co-operative, were required by its rules to be members of Mexfield.\",\"2. One of those properties is 17 Elton Avenue, Barnet (“the premises”), which, during 1993, Mexfield purchased from Ms Ruza Berrisford, and, by a written agreement made on 13 December 1993, agreed to let it back to her. The agreement was described as an “Occupancy Agreement” (“the Agreement”), and it started by reciting that, in anticipation of her occupation of the premises, Ms Berrisford had become a member of Mexfield. Clause 1 then provided as follows:\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"berrisford v mexfield housing co operative limited\"}"
+}

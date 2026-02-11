@@ -1,0 +1,15 @@
+{
+  "id": "1b75fb0d-2b52-42ee-98e1-595b22011a2c",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#26177",
+  "created_at": "2025-12-25T14:37:04.955Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2018/680/contents/made",
+    "type": "uksi",
+    "year": 2018,
+    "number": 680,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2018,\"number\":680,\"url\":\"http://www.legislation.gov.uk/uksi/2018/680/contents/made\",\"dataUrl\":null}"
+}

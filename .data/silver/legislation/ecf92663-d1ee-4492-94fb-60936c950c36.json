@@ -1,0 +1,15 @@
+{
+  "id": "ecf92663-d1ee-4492-94fb-60936c950c36",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7358",
+  "created_at": "2025-12-25T12:36:29.385Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1954/1611/contents/made",
+    "type": "uksi",
+    "year": 1954,
+    "number": 1611,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1954,\"number\":1611,\"url\":\"http://www.legislation.gov.uk/uksi/1954/1611/contents/made\",\"dataUrl\":null}"
+}

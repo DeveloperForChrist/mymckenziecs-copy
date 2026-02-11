@@ -1,0 +1,21 @@
+{
+  "id": "72e0d26b-bda1-44e7-ac12-67efc4e2cc9a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Herculito Maritime Ltd and others (Respondents) v Gunvor International BV and others (Appellants)",
+  "created_at": "2025-12-25T11:50:44.717Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2022-0009",
+    "score": 1,
+    "title": "Herculito Maritime Ltd and others (Respondents) v Gunvor International BV and others (Appellants)",
+    "summary": "Principle issue: What is the proper interpretation of a charter agreement and bills of lading for a vessel, in respect of losses arising out the seizure of the vessel by pirates.",
+    "category": "procedure",
+    "citation": "UKSC/2022/0009",
+    "extracts": [
+      "1. On 30 October 2010 MT POLAR (“the vessel”) was seized by Somali pirates while she was transiting the designated ‘High Risk Area’ in the Gulf of Aden off the East Coast of Africa during a voyage from St Petersburg to Singapore laden with a cargo of fuel oil. The vessel was held captive for ten months before being released on 26 August 2011 following the payment of a ransom of US$7,700,000 by or on behalf of the vessel owner (“the shipowner”) – the respondent to this appeal.",
+      "2. General average was declared by the shipowner and in due course a general average adjustment was issued of which the ransom payment formed a major component. The adjustment concluded that US$5,914,560.75 was due to the shipowner from the respective cargo interests (“the cargo interests”) – the appellants on this appeal."
+    ],
+    "title_key": "herculito maritime ltd and others v gunvor international bv and others"
+  },
+  "content": "{\"title\":\"Herculito Maritime Ltd and others (Respondents) v Gunvor International BV and others (Appellants)\",\"citation\":\"UKSC/2022/0009\",\"url\":\"https://supremecourt.uk/cases/uksc-2022-0009\",\"summary\":\"Principle issue: What is the proper interpretation of a charter agreement and bills of lading for a vessel, in respect of losses arising out the seizure of the vessel by pirates.\",\"extracts\":[\"1. On 30 October 2010 MT POLAR (“the vessel”) was seized by Somali pirates while she was transiting the designated ‘High Risk Area’ in the Gulf of Aden off the East Coast of Africa during a voyage from St Petersburg to Singapore laden with a cargo of fuel oil. The vessel was held captive for ten months before being released on 26 August 2011 following the payment of a ransom of US$7,700,000 by or on behalf of the vessel owner (“the shipowner”) – the respondent to this appeal.\",\"2. General average was declared by the shipowner and in due course a general average adjustment was issued of which the ransom payment formed a major component. The adjustment concluded that US$5,914,560.75 was due to the shipowner from the respective cargo interests (“the cargo interests”) – the appellants on this appeal.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"herculito maritime ltd and others v gunvor international bv and others\"}"
+}

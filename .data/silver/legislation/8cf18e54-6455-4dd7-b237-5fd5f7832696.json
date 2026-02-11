@@ -1,0 +1,15 @@
+{
+  "id": "8cf18e54-6455-4dd7-b237-5fd5f7832696",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20036",
+  "created_at": "2025-12-25T13:54:13.790Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1998/1047/contents",
+    "type": "uksi",
+    "year": 1998,
+    "number": 1047,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1998/1047/1999-08-02/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1998,\"number\":1047,\"url\":\"http://www.legislation.gov.uk/uksi/1998/1047/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1998/1047/1999-08-02/data.htm\"}"
+}

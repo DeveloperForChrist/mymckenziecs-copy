@@ -1,0 +1,15 @@
+{
+  "id": "2abd450c-83cf-4eeb-bdaf-0ee7702b3161",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#6666",
+  "created_at": "2025-12-25T12:32:06.711Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1948/2852/contents/made",
+    "type": "uksi",
+    "year": 1948,
+    "number": 2852,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1948,\"number\":2852,\"url\":\"http://www.legislation.gov.uk/uksi/1948/2852/contents/made\",\"dataUrl\":null}"
+}

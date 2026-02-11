@@ -1,0 +1,21 @@
+{
+  "id": "fd0c1758-20a6-4642-b8f7-e4be440fe5fb",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Jones (Appellant) v Kernott (Respondent)",
+  "created_at": "2025-12-25T11:47:07.969Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0130",
+    "score": 1,
+    "title": "Jones (Appellant) v Kernott (Respondent)",
+    "summary": "1. This appeal gives the Supreme Court the opportunity to revisit the decision of the House of Lords in Stack v Dowden [2007] UKHL 17, [2007] 2 AC 432.",
+    "category": "procedure",
+    "citation": "UKSC/2010/0130",
+    "extracts": [
+      "1. This appeal gives the Supreme Court the opportunity to revisit the decision of the House of Lords in Stack v Dowden [2007] UKHL 17, [2007] 2 AC 432. That case, like this, was concerned with the determination of the beneficial interests in a house acquired in joint names by an unmarried couple who intended it to be their family home. Its reasoning was closely examined, in particular by Rimer LJ, in the present appeal: [2010] EWCA Civ 578, [2010] 1 WLR 2401. The fact that the Court of Appeal itself gave permission to appeal is a mark of the difficulties felt by the majority, not only with the reasoning but also with the outcome to which it led.",
+      "2. The decision in Stack v Dowden has also attracted a good deal of comment from legal scholars, which we have read although it was not referred to by counsel (who took a sensibly economical approach to the presentation of the appeal). This ranges from qualified enthusiasm (K Gray & S Gray, Land Law, 6th ed (2009) para 7-072) to almost unqualified disapprobation (Swadling, “The Common Intention Trust in the House of Lords: An Opportunity Missed” (2007) 123 LQR 511; Dixon, “The Never-Ending Story – Co-Ownership After Stack v Dowden” [2007] Conv 456). But counsel have not argued that Stack v Dowden was wrongly decided or that this court should now depart from the principles which it laid down. This appeal provides an opportunity for some clarification."
+    ],
+    "title_key": "jones v kernott"
+  },
+  "content": "{\"title\":\"Jones (Appellant) v Kernott (Respondent)\",\"citation\":\"UKSC/2010/0130\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0130\",\"summary\":\"1. This appeal gives the Supreme Court the opportunity to revisit the decision of the House of Lords in Stack v Dowden [2007] UKHL 17, [2007] 2 AC 432.\",\"extracts\":[\"1. This appeal gives the Supreme Court the opportunity to revisit the decision of the House of Lords in Stack v Dowden [2007] UKHL 17, [2007] 2 AC 432. That case, like this, was concerned with the determination of the beneficial interests in a house acquired in joint names by an unmarried couple who intended it to be their family home. Its reasoning was closely examined, in particular by Rimer LJ, in the present appeal: [2010] EWCA Civ 578, [2010] 1 WLR 2401. The fact that the Court of Appeal itself gave permission to appeal is a mark of the difficulties felt by the majority, not only with the reasoning but also with the outcome to which it led.\",\"2. The decision in Stack v Dowden has also attracted a good deal of comment from legal scholars, which we have read although it was not referred to by counsel (who took a sensibly economical approach to the presentation of the appeal). This ranges from qualified enthusiasm (K Gray & S Gray, Land Law, 6th ed (2009) para 7-072) to almost unqualified disapprobation (Swadling, “The Common Intention Trust in the House of Lords: An Opportunity Missed” (2007) 123 LQR 511; Dixon, “The Never-Ending Story – Co-Ownership After Stack v Dowden” [2007] Conv 456). But counsel have not argued that Stack v Dowden was wrongly decided or that this court should now depart from the principles which it laid down. This appeal provides an opportunity for some clarification.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"jones v kernott\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "0870bad4-c827-4be7-ba87-9538b19da920",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Royal Mencap Society (Respondent) v Tomlinson-Blake (Appellant)",
+  "created_at": "2025-12-25T11:50:03.765Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0160",
+    "score": 1,
+    "title": "Royal Mencap Society (Respondent) v Tomlinson-Blake (Appellant)",
+    "summary": "Principle issue: Whether home workers who are required to remain at home in their shift and/or residential care workers who ‘sleep in’ are entitled to the national minimum wage for time that is not spent actually performing some specific activity.",
+    "category": "procedure",
+    "citation": "UKSC/2018/0160",
+    "extracts": [
+      "2. No one would doubt the importance in society today of carers and wardens who help to look after those who through age or infirmity cannot look after themselves. Parliament has in some cases imposed statutory duties on public authorities to provide carers. Carers are among those who may have to work sleep- in shifts, ie shifts when they have to be at or near their place of work but during which they may, with the permission of their employer, sleep for some or all of that time. Such workers who may sleep during their shift hours (whom I will call “sleep- in workers”) may be among the low paid, and hence the key question with which these appeals are concerned: how is the number of hours in their case to be calculated for the purposes of the National Minimum Wage (or “NMW”)?",
+      "3. In my judgment for the detailed reasons given below, the answer to this question turns in the case of Mrs Claire Tomlinson-Blake on the meaning of regulation 32 of the National Minimum Wage Regulations 2015 (“the 2015 regulations”), which came into force on 6 April 2015 and apply to the whole of the United Kingdom. In her case, on the facts as found by the employment tribunal, the effect of the relevant regulations, in particular regulation 32 applying to “time work”, is that the number of hours she worked excluded the hours when she was permitted to sleep unless she was awake for the purpose of working."
+    ],
+    "title_key": "royal mencap society v tomlinson blake"
+  },
+  "content": "{\"title\":\"Royal Mencap Society (Respondent) v Tomlinson-Blake (Appellant)\",\"citation\":\"UKSC/2018/0160\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0160\",\"summary\":\"Principle issue: Whether home workers who are required to remain at home in their shift and/or residential care workers who ‘sleep in’ are entitled to the national minimum wage for time that is not spent actually performing some specific activity.\",\"extracts\":[\"2. No one would doubt the importance in society today of carers and wardens who help to look after those who through age or infirmity cannot look after themselves. Parliament has in some cases imposed statutory duties on public authorities to provide carers. Carers are among those who may have to work sleep- in shifts, ie shifts when they have to be at or near their place of work but during which they may, with the permission of their employer, sleep for some or all of that time. Such workers who may sleep during their shift hours (whom I will call “sleep- in workers”) may be among the low paid, and hence the key question with which these appeals are concerned: how is the number of hours in their case to be calculated for the purposes of the National Minimum Wage (or “NMW”)?\",\"3. In my judgment for the detailed reasons given below, the answer to this question turns in the case of Mrs Claire Tomlinson-Blake on the meaning of regulation 32 of the National Minimum Wage Regulations 2015 (“the 2015 regulations”), which came into force on 6 April 2015 and apply to the whole of the United Kingdom. In her case, on the facts as found by the employment tribunal, the effect of the relevant regulations, in particular regulation 32 applying to “time work”, is that the number of hours she worked excluded the hours when she was permitted to sleep unless she was awake for the purpose of working.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"royal mencap society v tomlinson blake\"}"
+}

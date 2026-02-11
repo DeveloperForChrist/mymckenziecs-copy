@@ -1,0 +1,21 @@
+{
+  "id": "74041cce-d2ed-4ec3-92f6-fdd26e9705c7",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "British American Tobacco Denmark A/S and others (Respondents) v Kazemier Transport BV (Appellant)",
+  "created_at": "2025-12-25T11:48:28.418Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0258",
+    "score": 1,
+    "title": "British American Tobacco Denmark A/S and others (Respondents) v Kazemier Transport BV (Appellant)",
+    "summary": "1. Cigarettes attract smokers, smugglers and thieves.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0258",
+    "extracts": [
+      "1. Cigarettes attract smokers, smugglers and thieves. In the two appeals now before the court, one container load was allegedly hi-jacked in Belgium en route between Switzerland and The Netherlands in September 2011, while another allegedly lost 756 of its original 1386 cartons while parked overnight contrary to express instructions near Copenhagen en route between Hungary and Vallensbaek, Denmark.",
+      "2. The consignors are claiming against English main contractors who undertook responsibility for the carriage and against sub-contractors in whose hands the cigarettes were when the alleged losses occurred. The carriage was subject to the Convention on the Contract for the International Carriage of Goods by Road 1956 (“CMR”), given the force of law in the United Kingdom by the Carriage of Goods by Road Act 1965."
+    ],
+    "title_key": "british american tobacco denmark a s and others v kazemier transport bv"
+  },
+  "content": "{\"title\":\"British American Tobacco Denmark A/S and others (Respondents) v Kazemier Transport BV (Appellant)\",\"citation\":\"UKSC/2013/0258\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0258\",\"summary\":\"1. Cigarettes attract smokers, smugglers and thieves.\",\"extracts\":[\"1. Cigarettes attract smokers, smugglers and thieves. In the two appeals now before the court, one container load was allegedly hi-jacked in Belgium en route between Switzerland and The Netherlands in September 2011, while another allegedly lost 756 of its original 1386 cartons while parked overnight contrary to express instructions near Copenhagen en route between Hungary and Vallensbaek, Denmark.\",\"2. The consignors are claiming against English main contractors who undertook responsibility for the carriage and against sub-contractors in whose hands the cigarettes were when the alleged losses occurred. The carriage was subject to the Convention on the Contract for the International Carriage of Goods by Road 1956 (“CMR”), given the force of law in the United Kingdom by the Carriage of Goods by Road Act 1965.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"british american tobacco denmark a s and others v kazemier transport bv\"}"
+}

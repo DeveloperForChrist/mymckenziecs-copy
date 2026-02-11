@@ -1,0 +1,15 @@
+{
+  "id": "b40c678a-b6ee-489e-afc7-24187fed5dc0",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#5742",
+  "created_at": "2025-12-25T12:26:38.674Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1998/11/contents",
+    "type": "ukpga",
+    "year": 1998,
+    "number": 11,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1998/11/2025-11-30/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1998,\"number\":11,\"url\":\"http://www.legislation.gov.uk/ukpga/1998/11/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1998/11/2025-11-30/data.htm\"}"
+}

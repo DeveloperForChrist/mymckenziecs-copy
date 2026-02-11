@@ -1,0 +1,13 @@
+{
+  "id": "78638c9e-fe7a-498d-9d10-d375a2a047db",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#113",
+  "created_at": "2025-12-25T15:20:34.140Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part45-fixed-costs/practice-direction-45-fixed-costs",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part45_fixed_costs_practic_b0e31f17e2.html",
+    "fetchedAt": "2025-12-22T23:49:40.689Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part45-fixed-costs/practice-direction-45-fixed-costs\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part45_fixed_costs_practic_b0e31f17e2.html\",\"fetchedAt\":\"2025-12-22T23:49:40.689Z\"}"
+}

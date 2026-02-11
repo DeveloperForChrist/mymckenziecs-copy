@@ -1,0 +1,15 @@
+{
+  "id": "ccc80fc7-c897-4983-87d4-fe8c6072ed50",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#27783",
+  "created_at": "2025-12-25T14:48:24.709Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2020/774/2024-10-03/data.xht",
+    "type": "uksi",
+    "year": 2020,
+    "number": null,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2020/774/2024-10-03/data.akn"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2020,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2020/774/2024-10-03/data.xht\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2020/774/2024-10-03/data.akn\"}"
+}

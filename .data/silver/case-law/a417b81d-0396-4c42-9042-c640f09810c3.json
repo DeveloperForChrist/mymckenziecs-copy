@@ -1,0 +1,21 @@
+{
+  "id": "a417b81d-0396-4c42-9042-c640f09810c3",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Royal Mail Group Ltd (Respondent) v Jhuti (Appellant)",
+  "created_at": "2025-12-25T11:49:50.159Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0207",
+    "score": 1,
+    "title": "Royal Mail Group Ltd (Respondent) v Jhuti (Appellant)",
+    "summary": "Principle issue: The correct test to be applied when an employee (A) alleges that they have been unfairly dismissed by reason of having made a public interest disclosure. In particular, if, and in what circumstances, the actions of an employee (B) are treated as those of B, or attributed to, the employer of A and B.",
+    "category": "contract_consumer",
+    "citation": "UKSC/2017/0207",
+    "extracts": [
+      "“An employee who is dismissed shall be regarded for the purposes of this Part as unfairly dismissed if the reason (or, if more than one, the principal reason) for the dismissal is that the employee made a protected disclosure.”",
+      "In this appeal the dispute surrounds the reason for the dismissal of Ms Jhuti, the appellant, from her employment by Royal Mail Group Ltd (“the company”). As I will explain, the facts found by the employment tribunal (“the tribunal”) show that"
+    ],
+    "title_key": "royal mail group ltd v jhuti"
+  },
+  "content": "{\"title\":\"Royal Mail Group Ltd (Respondent) v Jhuti (Appellant)\",\"citation\":\"UKSC/2017/0207\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0207\",\"summary\":\"Principle issue: The correct test to be applied when an employee (A) alleges that they have been unfairly dismissed by reason of having made a public interest disclosure. In particular, if, and in what circumstances, the actions of an employee (B) are treated as those of B, or attributed to, the employer of A and B.\",\"extracts\":[\"“An employee who is dismissed shall be regarded for the purposes of this Part as unfairly dismissed if the reason (or, if more than one, the principal reason) for the dismissal is that the employee made a protected disclosure.”\",\"In this appeal the dispute surrounds the reason for the dismissal of Ms Jhuti, the appellant, from her employment by Royal Mail Group Ltd (“the company”). As I will explain, the facts found by the employment tribunal (“the tribunal”) show that\"],\"category\":\"contract_consumer\",\"score\":1,\"title_key\":\"royal mail group ltd v jhuti\"}"
+}

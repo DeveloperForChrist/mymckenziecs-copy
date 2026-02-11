@@ -1,0 +1,15 @@
+{
+  "id": "87b8a264-212e-4113-863c-2ca6dd91b6a5",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4730",
+  "created_at": "2025-12-25T12:20:32.544Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1981/41/contents/enacted",
+    "type": "ukpga",
+    "year": 1981,
+    "number": 41,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1981,\"number\":41,\"url\":\"http://www.legislation.gov.uk/ukpga/1981/41/contents/enacted\",\"dataUrl\":null}"
+}

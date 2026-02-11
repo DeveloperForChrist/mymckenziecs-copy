@@ -1,0 +1,15 @@
+{
+  "id": "c841511a-637d-498b-86f3-e43d3d35eb5d",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#6237",
+  "created_at": "2025-12-25T12:29:25.118Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/2012/7/contents",
+    "type": "ukpga",
+    "year": 2012,
+    "number": 7,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/2012/7/2025-07-07/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":2012,\"number\":7,\"url\":\"http://www.legislation.gov.uk/ukpga/2012/7/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/2012/7/2025-07-07/data.htm\"}"
+}

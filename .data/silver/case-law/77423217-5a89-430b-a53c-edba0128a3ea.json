@@ -1,0 +1,21 @@
+{
+  "id": "77423217-5a89-430b-a53c-edba0128a3ea",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Lukaszewski (Appellant) v The District Court in Torun, Poland (Respondent)",
+  "created_at": "2025-12-25T11:47:33.293Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0177",
+    "score": 1,
+    "title": "Lukaszewski (Appellant) v The District Court in Torun, Poland (Respondent)",
+    "summary": "Lukaszewski (Appellant) v The District Court in Torun, Poland (Respondent) Pomiechowski (Appellant) v District Court of Legunica 59-220 Poland (Respondent) Rozanski (Appellant) v Regional Court 3 Penal Department Poland (Respondent) R (on the application of Halligen) (Appellant) v Secretary of St...",
+    "category": "public_law",
+    "citation": "UKSC/2011/0177",
+    "extracts": [
+      "Lukaszewski (Appellant) v The District Court in Torun, Poland (Respondent) Pomiechowski (Appellant) v District Court of Legunica 59-220 Poland (Respondent) Rozanski (Appellant) v Regional Court 3 Penal Department Poland (Respondent) R (on the application of Halligen) (Appellant) v Secretary of State for the Home Department (Respondent)",
+      "1. These appeals raise a number of points, some technical, others fundamental, relating to the requirements of and consequences of non-compliance with the short and inflexible time limits introduced by the Extradition Act 2003. Parts 1 and 2 of that Act deal with extradition to respectively category 1 territories - in practice other member states of the European Union party to the Council Framework Decision of 13 June 2002 (2002/584/JHA) introducing the European Arrest Warrant, to which Part 1 gives effect - and category 2 territories in relation to which a different and more traditional scheme applies."
+    ],
+    "title_key": "lukaszewski v the district court in torun poland"
+  },
+  "content": "{\"title\":\"Lukaszewski (Appellant) v The District Court in Torun, Poland (Respondent)\",\"citation\":\"UKSC/2011/0177\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0177\",\"summary\":\"Lukaszewski (Appellant) v The District Court in Torun, Poland (Respondent) Pomiechowski (Appellant) v District Court of Legunica 59-220 Poland (Respondent) Rozanski (Appellant) v Regional Court 3 Penal Department Poland (Respondent) R (on the application of Halligen) (Appellant) v Secretary of St...\",\"extracts\":[\"Lukaszewski (Appellant) v The District Court in Torun, Poland (Respondent) Pomiechowski (Appellant) v District Court of Legunica 59-220 Poland (Respondent) Rozanski (Appellant) v Regional Court 3 Penal Department Poland (Respondent) R (on the application of Halligen) (Appellant) v Secretary of State for the Home Department (Respondent)\",\"1. These appeals raise a number of points, some technical, others fundamental, relating to the requirements of and consequences of non-compliance with the short and inflexible time limits introduced by the Extradition Act 2003. Parts 1 and 2 of that Act deal with extradition to respectively category 1 territories - in practice other member states of the European Union party to the Council Framework Decision of 13 June 2002 (2002/584/JHA) introducing the European Arrest Warrant, to which Part 1 gives effect - and category 2 territories in relation to which a different and more traditional scheme applies.\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"lukaszewski v the district court in torun poland\"}"
+}

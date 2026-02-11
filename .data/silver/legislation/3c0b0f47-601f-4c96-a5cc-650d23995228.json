@@ -1,0 +1,15 @@
+{
+  "id": "3c0b0f47-601f-4c96-a5cc-650d23995228",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20763",
+  "created_at": "2025-12-25T13:58:32.747Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2001/4003/made/data.xht",
+    "type": "uksi",
+    "year": 2001,
+    "number": null,
+    "dataUrl": "http://www.legislation.gov.uk/wsi/2001/4003/made/data.akn"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2001,\"number\":null,\"url\":\"http://www.legislation.gov.uk/wsi/2001/4003/made/data.xht\",\"dataUrl\":\"http://www.legislation.gov.uk/wsi/2001/4003/made/data.akn\"}"
+}

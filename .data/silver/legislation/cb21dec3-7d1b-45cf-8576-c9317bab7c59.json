@@ -1,0 +1,15 @@
+{
+  "id": "cb21dec3-7d1b-45cf-8576-c9317bab7c59",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9206",
+  "created_at": "2025-12-25T12:47:05.958Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1974/2132/contents/made",
+    "type": "uksi",
+    "year": 1974,
+    "number": 2132,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1974,\"number\":2132,\"url\":\"http://www.legislation.gov.uk/uksi/1974/2132/contents/made\",\"dataUrl\":null}"
+}

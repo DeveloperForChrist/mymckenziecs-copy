@@ -1,0 +1,21 @@
+{
+  "id": "3210a73e-1413-4575-8abe-7d8a5e97b36c",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Kennedy (Appellant) v Cordia (Services) LLP (Respondent) (Scotland)",
+  "created_at": "2025-12-25T11:48:51.787Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0247",
+    "score": 2,
+    "title": "Kennedy (Appellant) v Cordia (Services) LLP (Respondent) (Scotland)",
+    "summary": "1. This appeal from the Court of Session arises from an accident of an everyday kind, but raises a number of issues of practical importance relating to the Personal Protective Equipment at Work Regulations 1992 (“the PPE Regulations”) (SI 1992/2966) and the Management of Health and Safety at Work...",
+    "category": "procedure",
+    "citation": "UKSC/2014/0247",
+    "extracts": [
+      "1. This appeal from the Court of Session arises from an accident of an everyday kind, but raises a number of issues of practical importance relating to the Personal Protective Equipment at Work Regulations 1992 (“the PPE Regulations”) (SI 1992/2966) and the Management of Health and Safety at Work Regulations 1999 (“the Management Regulations”) (SI 1999/3242), to employers’ liability at common law, and to expert evidence in this field.",
+      "2. The appellant, Miss Kennedy, was employed by the respondents, Cordia (Services) LLP (“Cordia”), as a home carer in Glasgow. Cordia are wholly owned by Glasgow City Council, and provide home care services on its behalf. Those services were previously provided by the Council itself. Miss Kennedy’s principal duty was to visit individuals in their homes and to provide them with personal care."
+    ],
+    "title_key": "kennedy v cordia llp"
+  },
+  "content": "{\"title\":\"Kennedy (Appellant) v Cordia (Services) LLP (Respondent) (Scotland)\",\"citation\":\"UKSC/2014/0247\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0247\",\"summary\":\"1. This appeal from the Court of Session arises from an accident of an everyday kind, but raises a number of issues of practical importance relating to the Personal Protective Equipment at Work Regulations 1992 (“the PPE Regulations”) (SI 1992/2966) and the Management of Health and Safety at Work...\",\"extracts\":[\"1. This appeal from the Court of Session arises from an accident of an everyday kind, but raises a number of issues of practical importance relating to the Personal Protective Equipment at Work Regulations 1992 (“the PPE Regulations”) (SI 1992/2966) and the Management of Health and Safety at Work Regulations 1999 (“the Management Regulations”) (SI 1999/3242), to employers’ liability at common law, and to expert evidence in this field.\",\"2. The appellant, Miss Kennedy, was employed by the respondents, Cordia (Services) LLP (“Cordia”), as a home carer in Glasgow. Cordia are wholly owned by Glasgow City Council, and provide home care services on its behalf. Those services were previously provided by the Council itself. Miss Kennedy’s principal duty was to visit individuals in their homes and to provide them with personal care.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"kennedy v cordia llp\"}"
+}

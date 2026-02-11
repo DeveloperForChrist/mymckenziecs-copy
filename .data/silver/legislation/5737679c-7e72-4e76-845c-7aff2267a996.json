@@ -1,0 +1,15 @@
+{
+  "id": "5737679c-7e72-4e76-845c-7aff2267a996",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#25247",
+  "created_at": "2025-12-25T14:30:08.741Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2016/1084/contents",
+    "type": "uksi",
+    "year": 2016,
+    "number": 1084,
+    "dataUrl": "http://www.legislation.gov.uk/wsi/2016/1084/2020-03-27/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2016,\"number\":1084,\"url\":\"http://www.legislation.gov.uk/wsi/2016/1084/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/wsi/2016/1084/2020-03-27/data.htm\"}"
+}

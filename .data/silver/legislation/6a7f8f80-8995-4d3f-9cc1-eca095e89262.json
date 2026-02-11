@@ -1,0 +1,15 @@
+{
+  "id": "6a7f8f80-8995-4d3f-9cc1-eca095e89262",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#29594",
+  "created_at": "2025-12-25T15:01:49.583Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2022/363/made",
+    "type": "uksi",
+    "year": 2022,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2022,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2022/363/made\",\"dataUrl\":null}"
+}

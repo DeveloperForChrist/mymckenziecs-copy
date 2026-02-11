@@ -1,0 +1,15 @@
+{
+  "id": "403bcb08-f76f-4bda-9cb6-34bae4080922",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#6825",
+  "created_at": "2025-12-25T12:33:06.350Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1950/2144/contents/made",
+    "type": "uksi",
+    "year": 1950,
+    "number": 2144,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1950,\"number\":2144,\"url\":\"http://www.legislation.gov.uk/uksi/1950/2144/contents/made\",\"dataUrl\":null}"
+}

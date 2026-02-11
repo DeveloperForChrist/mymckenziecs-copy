@@ -1,0 +1,21 @@
+{
+  "id": "268ee3d5-2d42-4423-87c3-646ca20a1473",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Khaira and others (Respondents) v Shergill and others (Appellants)",
+  "created_at": "2025-12-25T11:48:04.454Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0234",
+    "score": 2,
+    "title": "Khaira and others (Respondents) v Shergill and others (Appellants)",
+    "summary": "1. This appeal arises out of divisions which have arisen within a Sikh sect associated with three Gurdwaras (Sikh temples) in Bradford, Birmingham and High Wycombe.",
+    "category": "procedure",
+    "citation": "UKSC/2012/0234",
+    "extracts": [
+      "1. This appeal arises out of divisions which have arisen within a Sikh sect associated with three Gurdwaras (Sikh temples) in Bradford, Birmingham and High Wycombe. It raises two questions arising out of the trusts on which the Gurdwaras are held. The questions are (i) the extent to which it is open to trustees to alter, or restrict, the terms of the trusts upon which they hold property, and (ii) the extent to which the court can and should refuse to determine issues of religion or religious belief in legal proceedings. The Court of Appeal confined itself to issue (ii). They decided that the whole dispute was non-justiciable and ordered a permanent stay of the entire proceedings, thus making it unnecessary to deal with issue (i).",
+      "2. On 22 April 1987, fourteen men, all Sikhs living in or near Birmingham, attended a meeting at which certain “decisions were passed unanimously” according to a memorandum (“the April 1987 memorandum”). An unchallenged translation of the April 1987 memorandum records that it was decided that:"
+    ],
+    "title_key": "khaira and others v shergill and others"
+  },
+  "content": "{\"title\":\"Khaira and others (Respondents) v Shergill and others (Appellants)\",\"citation\":\"UKSC/2012/0234\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0234\",\"summary\":\"1. This appeal arises out of divisions which have arisen within a Sikh sect associated with three Gurdwaras (Sikh temples) in Bradford, Birmingham and High Wycombe.\",\"extracts\":[\"1. This appeal arises out of divisions which have arisen within a Sikh sect associated with three Gurdwaras (Sikh temples) in Bradford, Birmingham and High Wycombe. It raises two questions arising out of the trusts on which the Gurdwaras are held. The questions are (i) the extent to which it is open to trustees to alter, or restrict, the terms of the trusts upon which they hold property, and (ii) the extent to which the court can and should refuse to determine issues of religion or religious belief in legal proceedings. The Court of Appeal confined itself to issue (ii). They decided that the whole dispute was non-justiciable and ordered a permanent stay of the entire proceedings, thus making it unnecessary to deal with issue (i).\",\"2. On 22 April 1987, fourteen men, all Sikhs living in or near Birmingham, attended a meeting at which certain “decisions were passed unanimously” according to a memorandum (“the April 1987 memorandum”). An unchallenged translation of the April 1987 memorandum records that it was decided that:\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"khaira and others v shergill and others\"}"
+}

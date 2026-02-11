@@ -1,0 +1,21 @@
+{
+  "id": "e22e0d00-f38c-458d-803b-959ef7bf93c8",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "S Franses Limited (Appellant) v The Cavendish Hotel (London) Ltd (Respondent)",
+  "created_at": "2025-12-25T11:49:46.561Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0151",
+    "score": 2,
+    "title": "S Franses Limited (Appellant) v The Cavendish Hotel (London) Ltd (Respondent)",
+    "summary": "1. Part II of the Landlord and Tenant Act 1954 confers a qualified security of tenure on business tenants.",
+    "category": "procedure",
+    "citation": "UKSC/2017/0151",
+    "extracts": [
+      "1. Part II of the Landlord and Tenant Act 1954 confers a qualified security of tenure on business tenants. A tenant in occupation of the premises under a tenancy for a term of years certain may stay over and request a new tenancy beginning upon its expiry, unless before the tenancy was granted the landlord had served a notice informing the tenant of his rights and the parties had then agreed to exclude the relevant provisions of the Act. The tenant may apply to the court under section 24(1) of the Act for an order granting one. The court is required to make that order unless the landlord makes out one of seven grounds of opposition specified in section 30(1), in which case it is required to refuse one. One of those grounds is that the landlord intends to demolish or reconstruct the premises. The question which arises on this appeal is whether it is open to the landlord to oppose the grant of a new tenancy if the works which he says that he intends to carry out have no purpose other than to get rid of the tenant and would not be undertaken if the tenant were to leave voluntarily.",
+      "“that on the termination of the current tenancy the landlord intends to demolish or reconstruct the premises comprised in the holding or a substantial part of those premises or to carry out substantial work of construction on the holding or part thereof and that he could not reasonably do so without obtaining possession of the holding ...”"
+    ],
+    "title_key": "s franses limited v the cavendish hotel ltd"
+  },
+  "content": "{\"title\":\"S Franses Limited (Appellant) v The Cavendish Hotel (London) Ltd (Respondent)\",\"citation\":\"UKSC/2017/0151\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0151\",\"summary\":\"1. Part II of the Landlord and Tenant Act 1954 confers a qualified security of tenure on business tenants.\",\"extracts\":[\"1. Part II of the Landlord and Tenant Act 1954 confers a qualified security of tenure on business tenants. A tenant in occupation of the premises under a tenancy for a term of years certain may stay over and request a new tenancy beginning upon its expiry, unless before the tenancy was granted the landlord had served a notice informing the tenant of his rights and the parties had then agreed to exclude the relevant provisions of the Act. The tenant may apply to the court under section 24(1) of the Act for an order granting one. The court is required to make that order unless the landlord makes out one of seven grounds of opposition specified in section 30(1), in which case it is required to refuse one. One of those grounds is that the landlord intends to demolish or reconstruct the premises. The question which arises on this appeal is whether it is open to the landlord to oppose the grant of a new tenancy if the works which he says that he intends to carry out have no purpose other than to get rid of the tenant and would not be undertaken if the tenant were to leave voluntarily.\",\"“that on the termination of the current tenancy the landlord intends to demolish or reconstruct the premises comprised in the holding or a substantial part of those premises or to carry out substantial work of construction on the holding or part thereof and that he could not reasonably do so without obtaining possession of the holding ...”\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"s franses limited v the cavendish hotel ltd\"}"
+}

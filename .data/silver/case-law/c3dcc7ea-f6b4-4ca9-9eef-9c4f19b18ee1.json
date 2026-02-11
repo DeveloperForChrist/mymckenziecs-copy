@@ -1,0 +1,21 @@
+{
+  "id": "c3dcc7ea-f6b4-4ca9-9eef-9c4f19b18ee1",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Yemshaw (Appellant) v London Borough of Hounslow (Respondent)",
+  "created_at": "2025-12-25T11:47:02.168Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0060",
+    "score": 1,
+    "title": "Yemshaw (Appellant) v London Borough of Hounslow (Respondent)",
+    "summary": "1. The issue in this case is what is meant by the word “violence” in section 177(1) of the Housing Act 1996.",
+    "category": "procedure",
+    "citation": "UKSC/2010/0060",
+    "extracts": [
+      "1. The issue in this case is what is meant by the word “violence” in section 177(1) of the Housing Act 1996. Is it limited to physical contact or does it include other forms of violent conduct? The Court of Appeal, as it was bound to do by the earlier case of Danesh v Kensington and Chelsea Royal London Borough Council [2006] EWCA Civ 1404, [2007] 1 WLR 69, held that it was limited to physical contact: [2009] EWCA Civ 1543. The appellant contends that it is not. As the appellant is a woman, and the majority of victims of all forms of domestic violence are women, I shall refer to the victim as “she” throughout. But of course I realise that men can be victims too.",
+      "2. The modern scheme of local housing authorities’ powers and duties towards homeless people dates back to the Housing (Homeless Persons) Act 1977. That Act provided that a person was homeless if there was no accommodation which she (together with other members of her family) was entitled to occupy. Even if there was such accommodation, a person was also homeless if “it is probable that occupation of it will lead to violence from some other person residing in it or to threats of violence from some other person residing in it and likely to carry out the threats”: 1977 Act, section 1(2)(b). That provision was repeated when the 1977 Act was consolidated with other housing legislation in the Housing Act 1985: see section 58(3)(b)."
+    ],
+    "title_key": "yemshaw v london borough of hounslow"
+  },
+  "content": "{\"title\":\"Yemshaw (Appellant) v London Borough of Hounslow (Respondent)\",\"citation\":\"UKSC/2010/0060\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0060\",\"summary\":\"1. The issue in this case is what is meant by the word “violence” in section 177(1) of the Housing Act 1996.\",\"extracts\":[\"1. The issue in this case is what is meant by the word “violence” in section 177(1) of the Housing Act 1996. Is it limited to physical contact or does it include other forms of violent conduct? The Court of Appeal, as it was bound to do by the earlier case of Danesh v Kensington and Chelsea Royal London Borough Council [2006] EWCA Civ 1404, [2007] 1 WLR 69, held that it was limited to physical contact: [2009] EWCA Civ 1543. The appellant contends that it is not. As the appellant is a woman, and the majority of victims of all forms of domestic violence are women, I shall refer to the victim as “she” throughout. But of course I realise that men can be victims too.\",\"2. The modern scheme of local housing authorities’ powers and duties towards homeless people dates back to the Housing (Homeless Persons) Act 1977. That Act provided that a person was homeless if there was no accommodation which she (together with other members of her family) was entitled to occupy. Even if there was such accommodation, a person was also homeless if “it is probable that occupation of it will lead to violence from some other person residing in it or to threats of violence from some other person residing in it and likely to carry out the threats”: 1977 Act, section 1(2)(b). That provision was repeated when the 1977 Act was consolidated with other housing legislation in the Housing Act 1985: see section 58(3)(b).\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"yemshaw v london borough of hounslow\"}"
+}

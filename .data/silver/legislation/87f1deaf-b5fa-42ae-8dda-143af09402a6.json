@@ -1,0 +1,15 @@
+{
+  "id": "87f1deaf-b5fa-42ae-8dda-143af09402a6",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9919",
+  "created_at": "2025-12-25T12:51:31.850Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1979/1746/contents",
+    "type": "uksi",
+    "year": 1979,
+    "number": 1746,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1979/1746/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1979,\"number\":1746,\"url\":\"http://www.legislation.gov.uk/uksi/1979/1746/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1979/1746/2020-12-31/data.htm\"}"
+}

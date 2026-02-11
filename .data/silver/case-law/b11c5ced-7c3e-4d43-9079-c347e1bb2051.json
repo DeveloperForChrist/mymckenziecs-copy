@@ -1,0 +1,21 @@
+{
+  "id": "b11c5ced-7c3e-4d43-9079-c347e1bb2051",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Henderson (Respondent) v Foxworth Investments Limited and another (Appellant) (Scotland)",
+  "created_at": "2025-12-25T11:48:12.211Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0083",
+    "score": 0,
+    "title": "Henderson (Respondent) v Foxworth Investments Limited and another (Appellant) (Scotland)",
+    "summary": "1. Letham Grange is a neoclassical mansion built in the 1820s, with extensive landscaped grounds.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2013/0083",
+    "extracts": [
+      "1. Letham Grange is a neoclassical mansion built in the 1820s, with extensive landscaped grounds. In modern times the house was converted into a hotel, and the grounds were laid out as two golf courses. The hotel became popular with golfers, and was also used by judges sitting on circuit in the nearby town of Forfar. The hotel closed in 2011, but remains known to Scottish judges as the subject-matter of a long- running legal dispute. That dispute has now made its second appearance in the United Kingdom’s highest court.",
+      "3. The liquidator then began these proceedings, in which he seeks the reduction of Foxworth’s standard security. His action is brought on the basis that the disposition to NSL was a gratuitous alienation susceptible to reduction under section 242 of the Insolvency Act 1986 (“the 1986 Act”). That section, so far as material, provides that an alienation made by a company within two years of the commencement of its winding up is challengeable by the liquidator, and that on such a challenge being brought, the court shall grant decree of reduction unless, in particular, “the alienation was made for adequate consideration”: section 242(4)(b). Although a proviso to section 242(4) preserves “any right or interest acquired in good faith and for value from or through the transferee in the alienation”, the"
+    ],
+    "title_key": "henderson v foxworth investments limited and another"
+  },
+  "content": "{\"title\":\"Henderson (Respondent) v Foxworth Investments Limited and another (Appellant) (Scotland)\",\"citation\":\"UKSC/2013/0083\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0083\",\"summary\":\"1. Letham Grange is a neoclassical mansion built in the 1820s, with extensive landscaped grounds.\",\"extracts\":[\"1. Letham Grange is a neoclassical mansion built in the 1820s, with extensive landscaped grounds. In modern times the house was converted into a hotel, and the grounds were laid out as two golf courses. The hotel became popular with golfers, and was also used by judges sitting on circuit in the nearby town of Forfar. The hotel closed in 2011, but remains known to Scottish judges as the subject-matter of a long- running legal dispute. That dispute has now made its second appearance in the United Kingdom’s highest court.\",\"3. The liquidator then began these proceedings, in which he seeks the reduction of Foxworth’s standard security. His action is brought on the basis that the disposition to NSL was a gratuitous alienation susceptible to reduction under section 242 of the Insolvency Act 1986 (“the 1986 Act”). That section, so far as material, provides that an alienation made by a company within two years of the commencement of its winding up is challengeable by the liquidator, and that on such a challenge being brought, the court shall grant decree of reduction unless, in particular, “the alienation was made for adequate consideration”: section 242(4)(b). Although a proviso to section 242(4) preserves “any right or interest acquired in good faith and for value from or through the transferee in the alienation”, the\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"henderson v foxworth investments limited and another\"}"
+}

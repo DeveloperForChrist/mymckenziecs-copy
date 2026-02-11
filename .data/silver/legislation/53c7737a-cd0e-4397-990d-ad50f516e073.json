@@ -1,0 +1,15 @@
+{
+  "id": "53c7737a-cd0e-4397-990d-ad50f516e073",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#14827",
+  "created_at": "2025-12-25T13:21:39.154Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1988/930/contents",
+    "type": "uksi",
+    "year": 1988,
+    "number": 930,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/1988/930/2006-01-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1988,\"number\":930,\"url\":\"http://www.legislation.gov.uk/nisi/1988/930/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/1988/930/2006-01-01/data.htm\"}"
+}

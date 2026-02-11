@@ -1,0 +1,21 @@
+{
+  "id": "c5b40dbf-24a4-4aee-ad83-118f379daf5d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Akers and others (Respondents) v Samba Financial Group (Appellant)",
+  "created_at": "2025-12-25T11:48:54.716Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0009",
+    "score": 2,
+    "title": "Akers and others (Respondents) v Samba Financial Group (Appellant)",
+    "summary": "1. This is an appeal from an order of the Court of Appeal (Longmore, Kitchin and Vos LJJ) dated 4 December 2014, which set aside an order of the Chancellor dated 28 February 2014 staying the present proceedings.",
+    "category": "procedure",
+    "citation": "UKSC/2015/0009",
+    "extracts": [
+      "1. This is an appeal from an order of the Court of Appeal (Longmore, Kitchin and Vos LJJ) dated 4 December 2014, which set aside an order of the Chancellor dated 28 February 2014 staying the present proceedings. The points raised are novel and difficult, and the focus of submissions has shifted at each instance.",
+      "2. The proceedings are brought by a Cayman Islands company, Saad Investments Co Ltd, in liquidation, (“SICL”) and its Joint Official Liquidators (“the Liquidators”), appointed as such in winding up proceedings commenced in the Cayman Islands on 30 July 2009. The English Companies Court has recognised the Cayman Islands winding up proceedings as a foreign main insolvency proceeding by orders under the Cross-Border Insolvency Regulations 2006 (SI 2006/1030). The proceedings are against Samba Financial Group (“Samba”), which was served as of right within the jurisdiction on 19 August 2013, but which then applied for the proceedings to be stayed. The ground then given was that “there exists another forum which is clearly and distinctly more appropriate” than England. In the course of the appeals leading to the Supreme Court, the ground has effectively transmuted into a case that SICL’s claim has no prospect of success, for a reason or reasons which will appear. The parties have argued the appeal, and the Supreme Court will address it, on that basis."
+    ],
+    "title_key": "akers and others v samba financial group"
+  },
+  "content": "{\"title\":\"Akers and others (Respondents) v Samba Financial Group (Appellant)\",\"citation\":\"UKSC/2015/0009\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0009\",\"summary\":\"1. This is an appeal from an order of the Court of Appeal (Longmore, Kitchin and Vos LJJ) dated 4 December 2014, which set aside an order of the Chancellor dated 28 February 2014 staying the present proceedings.\",\"extracts\":[\"1. This is an appeal from an order of the Court of Appeal (Longmore, Kitchin and Vos LJJ) dated 4 December 2014, which set aside an order of the Chancellor dated 28 February 2014 staying the present proceedings. The points raised are novel and difficult, and the focus of submissions has shifted at each instance.\",\"2. The proceedings are brought by a Cayman Islands company, Saad Investments Co Ltd, in liquidation, (“SICL”) and its Joint Official Liquidators (“the Liquidators”), appointed as such in winding up proceedings commenced in the Cayman Islands on 30 July 2009. The English Companies Court has recognised the Cayman Islands winding up proceedings as a foreign main insolvency proceeding by orders under the Cross-Border Insolvency Regulations 2006 (SI 2006/1030). The proceedings are against Samba Financial Group (“Samba”), which was served as of right within the jurisdiction on 19 August 2013, but which then applied for the proceedings to be stayed. The ground then given was that “there exists another forum which is clearly and distinctly more appropriate” than England. In the course of the appeals leading to the Supreme Court, the ground has effectively transmuted into a case that SICL’s claim has no prospect of success, for a reason or reasons which will appear. The parties have argued the appeal, and the Supreme Court will address it, on that basis.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"akers and others v samba financial group\"}"
+}

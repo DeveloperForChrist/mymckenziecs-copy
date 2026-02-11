@@ -1,0 +1,15 @@
+{
+  "id": "b95f2e81-9719-438b-9e01-ee9ee476ba35",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#6421",
+  "created_at": "2025-12-25T12:30:28.933Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/2018/17/contents",
+    "type": "ukpga",
+    "year": 2018,
+    "number": 17,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/2018/17/2021-03-15/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":2018,\"number\":17,\"url\":\"http://www.legislation.gov.uk/ukpga/2018/17/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/2018/17/2021-03-15/data.htm\"}"
+}

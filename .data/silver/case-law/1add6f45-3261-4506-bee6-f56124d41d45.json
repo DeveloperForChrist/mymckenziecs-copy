@@ -1,0 +1,21 @@
+{
+  "id": "1add6f45-3261-4506-bee6-f56124d41d45",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Secretary of State for the Home Department (Respondent) v AP (Appellant)",
+  "created_at": "2025-12-25T11:46:54.987Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0225",
+    "score": 1,
+    "title": "Secretary of State for the Home Department (Respondent) v AP (Appellant)",
+    "summary": "2. The Committee in both cases recognised that Guzzardi v Italy (1980) 3 EHRR 333 was still the leading Strasbourg authority on the question and so it remains to this day; no subsequent decision of the ECtHR casts the least doubt upon the correctness of the majority view in JJ.",
+    "category": "public_law",
+    "citation": "UKSC/2009/0225",
+    "extracts": [
+      "2. The Committee in both cases recognised that Guzzardi v Italy (1980) 3 EHRR 333 was still the leading Strasbourg authority on the question and so it remains to this day; no subsequent decision of the ECtHR casts the least doubt upon the correctness of the majority view in JJ. In the context of control orders, it therefore follows that within what has been described as the grey area between 14- hour and 18-hour curfew cases, other restrictions than mere confinement can tip the balance in deciding, as in every case the judge has to decide as a matter of judgment, whether the restrictions overall deprive the controlee of, rather than merely restrict, his liberty.",
+      "3. It is true that some passages in my own opinion in JJ – notably those stating (para 105) that, “[p]ermanent home confinement beyond 16 hours a day on a long- term basis necessarily to my mind involves the deprivation of physical liberty”, and (para 108) that “provided the ‘core element of confinement’ does not exceed 16 hours a day, it is ‘insufficiently stringent’ as a matter of law to effect a deprivation of liberty” - suggest that (subject to any future Strasbourg ruling on the"
+    ],
+    "title_key": "secretary of state for the home department v ap"
+  },
+  "content": "{\"title\":\"Secretary of State for the Home Department (Respondent) v AP (Appellant)\",\"citation\":\"UKSC/2009/0225\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0225\",\"summary\":\"2. The Committee in both cases recognised that Guzzardi v Italy (1980) 3 EHRR 333 was still the leading Strasbourg authority on the question and so it remains to this day; no subsequent decision of the ECtHR casts the least doubt upon the correctness of the majority view in JJ.\",\"extracts\":[\"2. The Committee in both cases recognised that Guzzardi v Italy (1980) 3 EHRR 333 was still the leading Strasbourg authority on the question and so it remains to this day; no subsequent decision of the ECtHR casts the least doubt upon the correctness of the majority view in JJ. In the context of control orders, it therefore follows that within what has been described as the grey area between 14- hour and 18-hour curfew cases, other restrictions than mere confinement can tip the balance in deciding, as in every case the judge has to decide as a matter of judgment, whether the restrictions overall deprive the controlee of, rather than merely restrict, his liberty.\",\"3. It is true that some passages in my own opinion in JJ – notably those stating (para 105) that, “[p]ermanent home confinement beyond 16 hours a day on a long- term basis necessarily to my mind involves the deprivation of physical liberty”, and (para 108) that “provided the ‘core element of confinement’ does not exceed 16 hours a day, it is ‘insufficiently stringent’ as a matter of law to effect a deprivation of liberty” - suggest that (subject to any future Strasbourg ruling on the\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"secretary of state for the home department v ap\"}"
+}

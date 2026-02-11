@@ -1,0 +1,15 @@
+{
+  "id": "02f5a9a1-32fc-4820-a1db-3e5c4a7a0be8",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#13509",
+  "created_at": "2025-12-25T13:13:31.526Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1987/481/contents",
+    "type": "uksi",
+    "year": 1987,
+    "number": 481,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1987/481/2005-12-05/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1987,\"number\":481,\"url\":\"http://www.legislation.gov.uk/uksi/1987/481/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1987/481/2005-12-05/data.htm\"}"
+}

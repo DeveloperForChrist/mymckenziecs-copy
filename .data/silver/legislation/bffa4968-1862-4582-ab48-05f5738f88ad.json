@@ -1,0 +1,15 @@
+{
+  "id": "bffa4968-1862-4582-ab48-05f5738f88ad",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9088",
+  "created_at": "2025-12-25T12:46:23.344Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1972/1955/contents/made",
+    "type": "uksi",
+    "year": 1972,
+    "number": 1955,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1972,\"number\":1955,\"url\":\"http://www.legislation.gov.uk/uksi/1972/1955/contents/made\",\"dataUrl\":null}"
+}

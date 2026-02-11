@@ -1,0 +1,21 @@
+{
+  "id": "898a7713-aa96-4cf7-8983-d9b34e89f592",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Morrison Sports Limited and others (Respondents) v Scottish Power (Appellant) (Scotland)",
+  "created_at": "2025-12-25T11:46:57.354Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0009",
+    "score": 1,
+    "title": "Morrison Sports Limited and others (Respondents) v Scottish Power (Appellant) (Scotland)",
+    "summary": "1. In March 1998 Mr Brian Pitchers owned two buildings, at 23 and 25 Moss Street, Paisley.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2010/0009",
+    "extracts": [
+      "1. In March 1998 Mr Brian Pitchers owned two buildings, at 23 and 25 Moss Street, Paisley. The tenants of the ground floor shop at number 23 were Morrison Sports Ltd (“Morrison Sports”). On 6 March 1998 the building at number 23 was destroyed by fire. The neighbouring building at number 25 was also damaged and had to be demolished. This left the gable wall between numbers 25 and 27 exposed. As a result, the owners of flats at 27 Moss Street had to carry out weatherproofing work to the gable wall.",
+      "2. Investigations identified the seat of the fire as an electricity meter cupboard in number 23. Mr Pitchers, Morrison Sports Ltd and the flat owners at 27 Moss Street (“the pursuers”) raised three separate actions for damages against Scottish Power UK plc (“Scottish Power”) in Glasgow Sheriff Court. The actions were remitted to the Court of Session."
+    ],
+    "title_key": "morrison sports limited and others v scottish power"
+  },
+  "content": "{\"title\":\"Morrison Sports Limited and others (Respondents) v Scottish Power (Appellant) (Scotland)\",\"citation\":\"UKSC/2010/0009\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0009\",\"summary\":\"1. In March 1998 Mr Brian Pitchers owned two buildings, at 23 and 25 Moss Street, Paisley.\",\"extracts\":[\"1. In March 1998 Mr Brian Pitchers owned two buildings, at 23 and 25 Moss Street, Paisley. The tenants of the ground floor shop at number 23 were Morrison Sports Ltd (“Morrison Sports”). On 6 March 1998 the building at number 23 was destroyed by fire. The neighbouring building at number 25 was also damaged and had to be demolished. This left the gable wall between numbers 25 and 27 exposed. As a result, the owners of flats at 27 Moss Street had to carry out weatherproofing work to the gable wall.\",\"2. Investigations identified the seat of the fire as an electricity meter cupboard in number 23. Mr Pitchers, Morrison Sports Ltd and the flat owners at 27 Moss Street (“the pursuers”) raised three separate actions for damages against Scottish Power UK plc (“Scottish Power”) in Glasgow Sheriff Court. The actions were remitted to the Court of Session.\"],\"category\":\"evidence_misc\",\"score\":1,\"title_key\":\"morrison sports limited and others v scottish power\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "4a782ac4-1c1c-4e16-98e6-077f913ced0b",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Owens (Appellant) v Owens (Respondent)",
+  "created_at": "2025-12-25T11:49:42.903Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0077",
+    "score": 1,
+    "title": "Owens (Appellant) v Owens (Respondent)",
+    "summary": "1. Mrs Owens appeals against an order of the Court of Appeal dated 24 March 2017 (Sir James Munby, the President of the Family Division, and Hallett and Macur LJJ), [2017] EWCA Civ 182, [2017] 4 WLR 74, by which it dismissed her appeal against the dismissal of her petition for divorce by Judge To...",
+    "category": "procedure",
+    "citation": "UKSC/2017/0077",
+    "extracts": [
+      "1. Mrs Owens appeals against an order of the Court of Appeal dated 24 March 2017 (Sir James Munby, the President of the Family Division, and Hallett and Macur LJJ), [2017] EWCA Civ 182, [2017] 4 WLR 74, by which it dismissed her appeal against the dismissal of her petition for divorce by Judge Tolson QC (“the judge”) on 25 January 2016 in the Central Family Court in London.",
+      "2. The petition of Mrs Owens was based upon section 1(2)(b) (“the subsection”) of the Matrimonial Causes Act 1973 (“the 1973 Act”), which extends only to England and Wales: she alleged that her marriage to Mr Owens had broken down irretrievably and that he “has behaved in such a way that [she] cannot reasonably be expected to live with [him]”."
+    ],
+    "title_key": "owens v owens"
+  },
+  "content": "{\"title\":\"Owens (Appellant) v Owens (Respondent)\",\"citation\":\"UKSC/2017/0077\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0077\",\"summary\":\"1. Mrs Owens appeals against an order of the Court of Appeal dated 24 March 2017 (Sir James Munby, the President of the Family Division, and Hallett and Macur LJJ), [2017] EWCA Civ 182, [2017] 4 WLR 74, by which it dismissed her appeal against the dismissal of her petition for divorce by Judge To...\",\"extracts\":[\"1. Mrs Owens appeals against an order of the Court of Appeal dated 24 March 2017 (Sir James Munby, the President of the Family Division, and Hallett and Macur LJJ), [2017] EWCA Civ 182, [2017] 4 WLR 74, by which it dismissed her appeal against the dismissal of her petition for divorce by Judge Tolson QC (“the judge”) on 25 January 2016 in the Central Family Court in London.\",\"2. The petition of Mrs Owens was based upon section 1(2)(b) (“the subsection”) of the Matrimonial Causes Act 1973 (“the 1973 Act”), which extends only to England and Wales: she alleged that her marriage to Mr Owens had broken down irretrievably and that he “has behaved in such a way that [she] cannot reasonably be expected to live with [him]”.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"owens v owens\"}"
+}

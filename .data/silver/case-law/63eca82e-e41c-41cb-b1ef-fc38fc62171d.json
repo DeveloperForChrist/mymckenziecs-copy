@@ -1,0 +1,21 @@
+{
+  "id": "63eca82e-e41c-41cb-b1ef-fc38fc62171d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "The Financial Services Authority (a company limited by guarantee) (Respondent) v Sinaloa Gold plc and others (Respondents) and Barclays Bank plc (Appellant)",
+  "created_at": "2025-12-25T11:47:38.588Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0244",
+    "score": 2,
+    "title": "The Financial Services Authority (a company limited by guarantee) (Respondent) v Sinaloa Gold plc and others (Respondents) and Barclays Bank plc (Appellant)",
+    "summary": "1. The issue on this appeal is whether and if so in what circumstances the Financial Services Authority (“FSA”) should, as a condition of obtaining a freezing injunction under section 380(3) of the Financial Services and Markets Act 2000 (“FSMA”) and/or section 37(1) of the Senior Courts Act 1981...",
+    "category": "procedure",
+    "citation": "UKSC/2011/0244",
+    "extracts": [
+      "1. The issue on this appeal is whether and if so in what circumstances the Financial Services Authority (“FSA”) should, as a condition of obtaining a freezing injunction under section 380(3) of the Financial Services and Markets Act 2000 (“FSMA”) and/or section 37(1) of the Senior Courts Act 1981 (“SCA”), be required to give to the court a cross-undertaking in damages in favour of third parties affected by the injunction. The answer I would give is that there is no general rule that an authority like the FSA acting pursuant to a public duty should be required to give such an undertaking, and that there are no particular circumstances why it should be required to do so in the present case.",
+      "2. The issue has been argued as a matter of principle between the FSA and Barclays Bank plc (“Barclays”), a potentially affected third party. However, a brief statement of the background is appropriate."
+    ],
+    "title_key": "the financial services authority v sinaloa gold plc and others and barclays bank plc"
+  },
+  "content": "{\"title\":\"The Financial Services Authority (a company limited by guarantee) (Respondent) v Sinaloa Gold plc and others (Respondents) and Barclays Bank plc (Appellant)\",\"citation\":\"UKSC/2011/0244\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0244\",\"summary\":\"1. The issue on this appeal is whether and if so in what circumstances the Financial Services Authority (“FSA”) should, as a condition of obtaining a freezing injunction under section 380(3) of the Financial Services and Markets Act 2000 (“FSMA”) and/or section 37(1) of the Senior Courts Act 1981...\",\"extracts\":[\"1. The issue on this appeal is whether and if so in what circumstances the Financial Services Authority (“FSA”) should, as a condition of obtaining a freezing injunction under section 380(3) of the Financial Services and Markets Act 2000 (“FSMA”) and/or section 37(1) of the Senior Courts Act 1981 (“SCA”), be required to give to the court a cross-undertaking in damages in favour of third parties affected by the injunction. The answer I would give is that there is no general rule that an authority like the FSA acting pursuant to a public duty should be required to give such an undertaking, and that there are no particular circumstances why it should be required to do so in the present case.\",\"2. The issue has been argued as a matter of principle between the FSA and Barclays Bank plc (“Barclays”), a potentially affected third party. However, a brief statement of the background is appropriate.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"the financial services authority v sinaloa gold plc and others and barclays bank plc\"}"
+}

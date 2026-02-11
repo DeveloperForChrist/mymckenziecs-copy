@@ -1,0 +1,15 @@
+{
+  "id": "a57230d9-f6f1-4246-89a1-2bfd47a64899",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#22091",
+  "created_at": "2025-12-25T14:07:57.339Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2005/966/contents/made",
+    "type": "uksi",
+    "year": 2005,
+    "number": 966,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2005/966/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2005,\"number\":966,\"url\":\"http://www.legislation.gov.uk/uksi/2005/966/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2005/966/made/data.htm\"}"
+}

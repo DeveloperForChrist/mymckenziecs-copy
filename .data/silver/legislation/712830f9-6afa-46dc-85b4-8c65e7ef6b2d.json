@@ -1,0 +1,15 @@
+{
+  "id": "712830f9-6afa-46dc-85b4-8c65e7ef6b2d",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7627",
+  "created_at": "2025-12-25T12:38:04.566Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1958/2167/contents/made",
+    "type": "uksi",
+    "year": 1958,
+    "number": 2167,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1958,\"number\":2167,\"url\":\"http://www.legislation.gov.uk/uksi/1958/2167/contents/made\",\"dataUrl\":null}"
+}

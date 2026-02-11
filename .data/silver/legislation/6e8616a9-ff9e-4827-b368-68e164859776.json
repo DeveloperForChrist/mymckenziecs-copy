@@ -1,0 +1,15 @@
+{
+  "id": "6e8616a9-ff9e-4827-b368-68e164859776",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#14909",
+  "created_at": "2025-12-25T13:22:06.079Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1988/802/contents/made",
+    "type": "uksi",
+    "year": 1988,
+    "number": 802,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1988/802/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1988,\"number\":802,\"url\":\"http://www.legislation.gov.uk/uksi/1988/802/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1988/802/made/data.htm\"}"
+}

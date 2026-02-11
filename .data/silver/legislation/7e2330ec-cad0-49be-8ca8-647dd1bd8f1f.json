@@ -1,0 +1,15 @@
+{
+  "id": "7e2330ec-cad0-49be-8ca8-647dd1bd8f1f",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#5431",
+  "created_at": "2025-12-25T12:24:39.953Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1993/46/contents",
+    "type": "ukpga",
+    "year": 1993,
+    "number": 46,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1993/46/2023-12-20/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1993,\"number\":46,\"url\":\"http://www.legislation.gov.uk/ukpga/1993/46/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1993/46/2023-12-20/data.htm\"}"
+}

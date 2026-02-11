@@ -1,0 +1,21 @@
+{
+  "id": "7d864c76-9ffe-461b-869d-41bcc6660bdc",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Prest (Appellant) v Petrodel Resources Limited and others (Respondents)",
+  "created_at": "2025-12-25T11:48:06.101Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0004",
+    "score": 1,
+    "title": "Prest (Appellant) v Petrodel Resources Limited and others (Respondents)",
+    "summary": "1. This appeal arises out of proceedings for ancillary relief following a divorce.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0004",
+    "extracts": [
+      "1. This appeal arises out of proceedings for ancillary relief following a divorce. The principal parties before the judge, Moylan J, were Michael and Yasmin Prest. He was born in Nigeria and she in England. Both have dual Nigerian and British nationality. They were married in 1993, and during the marriage the matrimonial home was in England, although the husband was found by the judge to have been resident in Monaco from about 2001 to date. There was also a second home in Nevis. The wife petitioned for divorce in March 2008. A decree nisi was pronounced in December 2008, and a decree absolute in November 2011.",
+      "3. Part II of the Matrimonial Causes Act 1973 confers wide powers on the court to order ancillary relief in matrimonial proceedings. Section 23 provides for periodical and lump sum payments to a spouse or for the benefit of children of the marriage. Under section 24(1)(a), the court may order that “a party to the marriage shall transfer to the other party... such property as may be so specified, being property to which the first-mentioned party is entitled, either in possession or"
+    ],
+    "title_key": "prest v petrodel resources limited and others"
+  },
+  "content": "{\"title\":\"Prest (Appellant) v Petrodel Resources Limited and others (Respondents)\",\"citation\":\"UKSC/2013/0004\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0004\",\"summary\":\"1. This appeal arises out of proceedings for ancillary relief following a divorce.\",\"extracts\":[\"1. This appeal arises out of proceedings for ancillary relief following a divorce. The principal parties before the judge, Moylan J, were Michael and Yasmin Prest. He was born in Nigeria and she in England. Both have dual Nigerian and British nationality. They were married in 1993, and during the marriage the matrimonial home was in England, although the husband was found by the judge to have been resident in Monaco from about 2001 to date. There was also a second home in Nevis. The wife petitioned for divorce in March 2008. A decree nisi was pronounced in December 2008, and a decree absolute in November 2011.\",\"3. Part II of the Matrimonial Causes Act 1973 confers wide powers on the court to order ancillary relief in matrimonial proceedings. Section 23 provides for periodical and lump sum payments to a spouse or for the benefit of children of the marriage. Under section 24(1)(a), the court may order that “a party to the marriage shall transfer to the other party... such property as may be so specified, being property to which the first-mentioned party is entitled, either in possession or\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"prest v petrodel resources limited and others\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "71ae78f5-07b5-4b1c-a705-0f055d406379",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7234",
+  "created_at": "2025-12-25T12:35:42.420Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1953/1588/contents/made",
+    "type": "uksi",
+    "year": 1953,
+    "number": 1588,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1953,\"number\":1588,\"url\":\"http://www.legislation.gov.uk/uksi/1953/1588/contents/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "dd7f60c1-3894-4c31-9212-72b6975e907c",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Mott) (Respondent) v Environment Agency (Appellant)",
+  "created_at": "2025-12-25T11:49:26.505Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0148",
+    "score": 1,
+    "title": "R (on the application of Mott) (Respondent) v Environment Agency (Appellant)",
+    "summary": "1. This appeal concerns the legality under the European Convention on Human Rights of licensing conditions imposed by the Environment Agency (“the Agency”) restricting certain forms of salmon-fishing in the Severn Estuary.",
+    "category": "procedure",
+    "citation": "UKSC/2016/0148",
+    "extracts": [
+      "1. This appeal concerns the legality under the European Convention on Human Rights of licensing conditions imposed by the Environment Agency (“the Agency”) restricting certain forms of salmon-fishing in the Severn Estuary.",
+      "2. The respondent, Mr Mott, has a leasehold interest in a so-called “putcher rank” fishery at Lydney on the north bank of the Severn Estuary. A putcher rank is an old fishing technique, involving the use of conical baskets or “putchers” to trap adult salmon as they attempt to return from the open sea to their river of origin to spawn. Mr Mott has operated the putcher rank under successive leases since 1975. Since 1979, according to his evidence, it has been his full-time occupation. He claims that, before the limits introduced by the Agency in 2011, his average catch using the rank was some 600 salmon per year, at a value of about £100 each, giving him a gross annual income in the order of £60,000."
+    ],
+    "title_key": "r v environment agency"
+  },
+  "content": "{\"title\":\"R (on the application of Mott) (Respondent) v Environment Agency (Appellant)\",\"citation\":\"UKSC/2016/0148\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0148\",\"summary\":\"1. This appeal concerns the legality under the European Convention on Human Rights of licensing conditions imposed by the Environment Agency (“the Agency”) restricting certain forms of salmon-fishing in the Severn Estuary.\",\"extracts\":[\"1. This appeal concerns the legality under the European Convention on Human Rights of licensing conditions imposed by the Environment Agency (“the Agency”) restricting certain forms of salmon-fishing in the Severn Estuary.\",\"2. The respondent, Mr Mott, has a leasehold interest in a so-called “putcher rank” fishery at Lydney on the north bank of the Severn Estuary. A putcher rank is an old fishing technique, involving the use of conical baskets or “putchers” to trap adult salmon as they attempt to return from the open sea to their river of origin to spawn. Mr Mott has operated the putcher rank under successive leases since 1975. Since 1979, according to his evidence, it has been his full-time occupation. He claims that, before the limits introduced by the Agency in 2011, his average catch using the rank was some 600 salmon per year, at a value of about £100 each, giving him a gross annual income in the order of £60,000.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v environment agency\"}"
+}

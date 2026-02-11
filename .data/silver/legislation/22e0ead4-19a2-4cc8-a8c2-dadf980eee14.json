@@ -1,0 +1,15 @@
+{
+  "id": "22e0ead4-19a2-4cc8-a8c2-dadf980eee14",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#3338",
+  "created_at": "2025-12-25T12:12:08.674Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Eliz2/9-10/3/contents/enacted",
+    "type": "ukpga",
+    "year": 1960,
+    "number": 3,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1960,\"number\":3,\"url\":\"http://www.legislation.gov.uk/ukpga/Eliz2/9-10/3/contents/enacted\",\"dataUrl\":null}"
+}

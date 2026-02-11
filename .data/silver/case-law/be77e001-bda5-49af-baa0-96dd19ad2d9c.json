@@ -1,0 +1,21 @@
+{
+  "id": "be77e001-bda5-49af-baa0-96dd19ad2d9c",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Forge Care Homes Ltd and others) (Appellants) v Cardiff and Vale University Health Board and others (Respondents)",
+  "created_at": "2025-12-25T11:49:19.921Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0054",
+    "score": 1,
+    "title": "R (on the application of Forge Care Homes Ltd and others) (Appellants) v Cardiff and Vale University Health Board and others (Respondents)",
+    "summary": "1. The interface between health and social care is a difficult and controversial policy area.",
+    "category": "procedure",
+    "citation": "UKSC/2016/0054",
+    "extracts": [
+      "1. The interface between health and social care is a difficult and controversial policy area. In general, health care is provided or arranged by the National Health Service, and is free for all patients irrespective of means, while social care is provided or arranged by local authorities with means-tested contributions from those clients who are deemed able to pay for some or all of it themselves. This case is not about the rights or wrongs of that general policy. This case is about who is legally responsible for paying for the work done by registered nurses in social rather than health care settings. Is the National Health Service responsible for all the work they do or are the social care funders responsible for at least some of it? The issue happens to arise in relation to Wales, where the legislation has since changed, as has the legislation in England, but very similar issues arise under the legislation now in force.",
+      "3. The social care funders contend that this means that the NHS, in the shape of the Local Health Boards, is required to fund the full cost of a registered nurse’s presence in a care home. This is in the context of regulation 18(3) of the Care Homes (Wales) Regulations 2002 (SI 2002/324), which requires that:"
+    ],
+    "title_key": "r v cardiff and vale university health board and others"
+  },
+  "content": "{\"title\":\"R (on the application of Forge Care Homes Ltd and others) (Appellants) v Cardiff and Vale University Health Board and others (Respondents)\",\"citation\":\"UKSC/2016/0054\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0054\",\"summary\":\"1. The interface between health and social care is a difficult and controversial policy area.\",\"extracts\":[\"1. The interface between health and social care is a difficult and controversial policy area. In general, health care is provided or arranged by the National Health Service, and is free for all patients irrespective of means, while social care is provided or arranged by local authorities with means-tested contributions from those clients who are deemed able to pay for some or all of it themselves. This case is not about the rights or wrongs of that general policy. This case is about who is legally responsible for paying for the work done by registered nurses in social rather than health care settings. Is the National Health Service responsible for all the work they do or are the social care funders responsible for at least some of it? The issue happens to arise in relation to Wales, where the legislation has since changed, as has the legislation in England, but very similar issues arise under the legislation now in force.\",\"3. The social care funders contend that this means that the NHS, in the shape of the Local Health Boards, is required to fund the full cost of a registered nurse’s presence in a care home. This is in the context of regulation 18(3) of the Care Homes (Wales) Regulations 2002 (SI 2002/324), which requires that:\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v cardiff and vale university health board and others\"}"
+}

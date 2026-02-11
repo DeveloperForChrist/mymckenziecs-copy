@@ -1,0 +1,21 @@
+{
+  "id": "1e0d5380-166a-40fb-8afc-e6facfd745ce",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Scottish Widows plc (Appellant) v Commissioners for Her Majesty's Revenue and Customs (Respondent) (Scotland)",
+  "created_at": "2025-12-25T11:47:08.364Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0131",
+    "score": 1,
+    "title": "Scottish Widows plc (Appellant) v Commissioners for Her Majesty's Revenue and Customs (Respondent) (Scotland)",
+    "summary": "1. This is an appeal from an interlocutor of the First Division of the Inner House of the Court of Session (the Lord President (Hamilton), Lord Reed and Lord Emslie) in a joint referral to the Special Commissioners by Scottish Widows Plc (“the Company”) and Her Majesty’s Revenue and Customs (“HMR...",
+    "category": "procedure",
+    "citation": "UKSC/2010/0131",
+    "extracts": [
+      "1. This is an appeal from an interlocutor of the First Division of the Inner House of the Court of Session (the Lord President (Hamilton), Lord Reed and Lord Emslie) in a joint referral to the Special Commissioners by Scottish Widows Plc (“the Company”) and Her Majesty’s Revenue and Customs (“HMRC”) under para 31 of Schedule 18 to the Finance Act 1998: [2010] CSIH 47, 2010 SLT 885, 2010 STC 2133. The question that was referred to the Special Commissioners for their determination was in these terms:",
+      "“Whether in computing the Case 1 profit or loss of Scottish Widows plc for the accounting periods ending in 2000, 2001 and 2002, amounts described by the company as ‘transfers from Capital Reserve’ and included as part of the entries at line 15 of Form 40 for each period fall to be taken into account [as receipts] in computing the profit or loss as the case may be.”"
+    ],
+    "title_key": "scottish widows plc v commissioners for her majesty s revenue and customs"
+  },
+  "content": "{\"title\":\"Scottish Widows plc (Appellant) v Commissioners for Her Majesty's Revenue and Customs (Respondent) (Scotland)\",\"citation\":\"UKSC/2010/0131\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0131\",\"summary\":\"1. This is an appeal from an interlocutor of the First Division of the Inner House of the Court of Session (the Lord President (Hamilton), Lord Reed and Lord Emslie) in a joint referral to the Special Commissioners by Scottish Widows Plc (“the Company”) and Her Majesty’s Revenue and Customs (“HMR...\",\"extracts\":[\"1. This is an appeal from an interlocutor of the First Division of the Inner House of the Court of Session (the Lord President (Hamilton), Lord Reed and Lord Emslie) in a joint referral to the Special Commissioners by Scottish Widows Plc (“the Company”) and Her Majesty’s Revenue and Customs (“HMRC”) under para 31 of Schedule 18 to the Finance Act 1998: [2010] CSIH 47, 2010 SLT 885, 2010 STC 2133. The question that was referred to the Special Commissioners for their determination was in these terms:\",\"“Whether in computing the Case 1 profit or loss of Scottish Widows plc for the accounting periods ending in 2000, 2001 and 2002, amounts described by the company as ‘transfers from Capital Reserve’ and included as part of the entries at line 15 of Form 40 for each period fall to be taken into account [as receipts] in computing the profit or loss as the case may be.”\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"scottish widows plc v commissioners for her majesty s revenue and customs\"}"
+}

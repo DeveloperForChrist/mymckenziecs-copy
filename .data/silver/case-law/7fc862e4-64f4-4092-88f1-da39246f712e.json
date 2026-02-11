@@ -1,0 +1,21 @@
+{
+  "id": "7fc862e4-64f4-4092-88f1-da39246f712e",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of JS) (Sri Lanka) (Respondent) v Secretary of State for the Home Department (Appellant)",
+  "created_at": "2025-12-25T11:46:45.478Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0121",
+    "score": 2,
+    "title": "R (on the application of JS) (Sri Lanka) (Respondent) v Secretary of State for the Home Department (Appellant)",
+    "summary": "2. It is common ground between the parties (i) that there can only be one true interpretation of article 1F(a), an autonomous meaning to be found in international rather than domestic law; (ii) that the international instruments referred to in the article are those existing when disqualification...",
+    "category": "public_law",
+    "citation": "UKSC/2009/0121",
+    "extracts": [
+      "2. It is common ground between the parties (i) that there can only be one true interpretation of article 1F(a), an autonomous meaning to be found in international rather than domestic law; (ii) that the international instruments referred to in the article are those existing when disqualification is being considered, not merely those extant at the date of the Convention; (iii) that because of the serious consequences of exclusion for the person concerned the article must be interpreted restrictively and used cautiously; and (iv) that more than mere membership of an organisation is necessary to bring an individual within the article’s disqualifying provisions. The question is, I repeat, what more?",
+      "3. As need hardly be stated, only if the decision-maker in respect of a particular application for asylum correctly identifies and answers this question will he be in a position to decide, in all but the clearest cases, whether “there are serious reasons for considering” the asylum-seeker to be disqualified as a war criminal under article 1F(a)."
+    ],
+    "title_key": "r v secretary of state for the home department"
+  },
+  "content": "{\"title\":\"R (on the application of JS) (Sri Lanka) (Respondent) v Secretary of State for the Home Department (Appellant)\",\"citation\":\"UKSC/2009/0121\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0121\",\"summary\":\"2. It is common ground between the parties (i) that there can only be one true interpretation of article 1F(a), an autonomous meaning to be found in international rather than domestic law; (ii) that the international instruments referred to in the article are those existing when disqualification...\",\"extracts\":[\"2. It is common ground between the parties (i) that there can only be one true interpretation of article 1F(a), an autonomous meaning to be found in international rather than domestic law; (ii) that the international instruments referred to in the article are those existing when disqualification is being considered, not merely those extant at the date of the Convention; (iii) that because of the serious consequences of exclusion for the person concerned the article must be interpreted restrictively and used cautiously; and (iv) that more than mere membership of an organisation is necessary to bring an individual within the article’s disqualifying provisions. The question is, I repeat, what more?\",\"3. As need hardly be stated, only if the decision-maker in respect of a particular application for asylum correctly identifies and answers this question will he be in a position to decide, in all but the clearest cases, whether “there are serious reasons for considering” the asylum-seeker to be disqualified as a war criminal under article 1F(a).\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"r v secretary of state for the home department\"}"
+}

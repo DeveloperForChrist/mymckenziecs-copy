@@ -1,0 +1,15 @@
+{
+  "id": "387aaa84-08a3-4b36-a38d-5bf4eed58cdf",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#29476",
+  "created_at": "2025-12-25T15:00:49.638Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2022/483/made",
+    "type": "uksi",
+    "year": 2022,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2022,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2022/483/made\",\"dataUrl\":null}"
+}

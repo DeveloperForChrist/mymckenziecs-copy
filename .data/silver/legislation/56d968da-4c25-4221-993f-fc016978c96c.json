@@ -1,0 +1,15 @@
+{
+  "id": "56d968da-4c25-4221-993f-fc016978c96c",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4257",
+  "created_at": "2025-12-25T12:17:32.741Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1974/33/contents/enacted",
+    "type": "ukpga",
+    "year": 1974,
+    "number": 33,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1974,\"number\":33,\"url\":\"http://www.legislation.gov.uk/ukpga/1974/33/contents/enacted\",\"dataUrl\":null}"
+}

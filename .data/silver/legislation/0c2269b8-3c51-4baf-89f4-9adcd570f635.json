@@ -1,0 +1,15 @@
+{
+  "id": "0c2269b8-3c51-4baf-89f4-9adcd570f635",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#794",
+  "created_at": "2025-12-25T11:56:00.120Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo5/6-7/6/contents/enacted",
+    "type": "ukpga",
+    "year": 1916,
+    "number": 6,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1916,\"number\":6,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo5/6-7/6/contents/enacted\",\"dataUrl\":null}"
+}

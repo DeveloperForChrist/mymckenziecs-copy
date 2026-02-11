@@ -1,0 +1,15 @@
+{
+  "id": "c278e730-ca94-4e7c-b61c-0194f368ce9f",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9385",
+  "created_at": "2025-12-25T12:48:11.707Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1975/2194/contents/made",
+    "type": "uksi",
+    "year": 1975,
+    "number": 2194,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1975,\"number\":2194,\"url\":\"http://www.legislation.gov.uk/uksi/1975/2194/contents/made\",\"dataUrl\":null}"
+}

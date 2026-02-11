@@ -1,0 +1,13 @@
+{
+  "id": "32a5baf5-c11d-425b-8feb-831fa0bd2f5a",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#136",
+  "created_at": "2025-12-25T15:20:43.377Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/practice-direction-51zf-part-3-of-the-domestic-abuse-act-2021-provision-during-piloted-commencement",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_practice_direction_51zf_pa_3342f6612c.html",
+    "fetchedAt": "2025-12-22T23:49:49.658Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/practice-direction-51zf-part-3-of-the-domestic-abuse-act-2021-provision-during-piloted-commencement\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_practice_direction_51zf_pa_3342f6612c.html\",\"fetchedAt\":\"2025-12-22T23:49:49.658Z\"}"
+}

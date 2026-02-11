@@ -1,0 +1,15 @@
+{
+  "id": "aa73956c-d231-4a65-80cd-138b7fc27eee",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#12201",
+  "created_at": "2025-12-25T13:05:33.545Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1986/1743/contents/made",
+    "type": "uksi",
+    "year": 1986,
+    "number": 1743,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1986,\"number\":1743,\"url\":\"http://www.legislation.gov.uk/uksi/1986/1743/contents/made\",\"dataUrl\":null}"
+}

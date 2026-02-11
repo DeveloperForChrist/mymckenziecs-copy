@@ -1,0 +1,15 @@
+{
+  "id": "ba1367e2-6b52-4f7b-b834-f3f15f3800a7",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#463",
+  "created_at": "2025-12-25T11:53:59.662Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo5/1-2/48/contents/enacted",
+    "type": "ukpga",
+    "year": 1911,
+    "number": 48,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1911,\"number\":48,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo5/1-2/48/contents/enacted\",\"dataUrl\":null}"
+}

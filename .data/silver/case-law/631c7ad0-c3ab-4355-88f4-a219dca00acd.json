@@ -1,0 +1,21 @@
+{
+  "id": "631c7ad0-c3ab-4355-88f4-a219dca00acd",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Burnden Holdings (UK) Limited (Respondent) v Fielding and another (Appellants)",
+  "created_at": "2025-12-25T11:49:26.778Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0150",
+    "score": 1,
+    "title": "Burnden Holdings (UK) Limited (Respondent) v Fielding and another (Appellants)",
+    "summary": "1. This appeal raises a well-formulated issue as to the construction of section 21 of the Limitation Act 1980, and a rather more diffuse question as to the meaning and application of section 32 of the Act, in both cases in relation to what is assumed to have been (although this is hotly contested...",
+    "category": "procedure",
+    "citation": "UKSC/2016/0150",
+    "extracts": [
+      "1. This appeal raises a well-formulated issue as to the construction of section 21 of the Limitation Act 1980, and a rather more diffuse question as to the meaning and application of section 32 of the Act, in both cases in relation to what is assumed to have been (although this is hotly contested in the proceedings) an unlawful distribution in specie by the Claimant company of its shareholding in a trading subsidiary by the directors of the Claimant (including the two defendants), six years and three days before the issue of the claim form in these proceedings.",
+      "2. The Defendants sought summary judgment dismissing the claim on the ground that it was statute-barred, and succeeded at first instance, before HHJ Hodge QC, sitting as a judge of the High Court. The Court of Appeal (Arden, Tomlinson and David Richards LJJ) held, first, that time did not run against the Claimant company because of section 21(1)(b) of the Act and that, in any event, there was a triable issue as to whether, within the meaning of section 32 of the Act, there had been deliberate concealment of the facts involved in the breach of duty constituted by the unlawful distribution."
+    ],
+    "title_key": "burnden holdings limited v fielding and another"
+  },
+  "content": "{\"title\":\"Burnden Holdings (UK) Limited (Respondent) v Fielding and another (Appellants)\",\"citation\":\"UKSC/2016/0150\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0150\",\"summary\":\"1. This appeal raises a well-formulated issue as to the construction of section 21 of the Limitation Act 1980, and a rather more diffuse question as to the meaning and application of section 32 of the Act, in both cases in relation to what is assumed to have been (although this is hotly contested...\",\"extracts\":[\"1. This appeal raises a well-formulated issue as to the construction of section 21 of the Limitation Act 1980, and a rather more diffuse question as to the meaning and application of section 32 of the Act, in both cases in relation to what is assumed to have been (although this is hotly contested in the proceedings) an unlawful distribution in specie by the Claimant company of its shareholding in a trading subsidiary by the directors of the Claimant (including the two defendants), six years and three days before the issue of the claim form in these proceedings.\",\"2. The Defendants sought summary judgment dismissing the claim on the ground that it was statute-barred, and succeeded at first instance, before HHJ Hodge QC, sitting as a judge of the High Court. The Court of Appeal (Arden, Tomlinson and David Richards LJJ) held, first, that time did not run against the Claimant company because of section 21(1)(b) of the Act and that, in any event, there was a triable issue as to whether, within the meaning of section 32 of the Act, there had been deliberate concealment of the facts involved in the breach of duty constituted by the unlawful distribution.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"burnden holdings limited v fielding and another\"}"
+}

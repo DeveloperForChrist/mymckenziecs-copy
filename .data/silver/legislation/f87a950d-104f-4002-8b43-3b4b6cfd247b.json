@@ -1,0 +1,15 @@
+{
+  "id": "f87a950d-104f-4002-8b43-3b4b6cfd247b",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#14409",
+  "created_at": "2025-12-25T13:19:07.666Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1988/1503/contents/made",
+    "type": "uksi",
+    "year": 1988,
+    "number": 1503,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1988/1503/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1988,\"number\":1503,\"url\":\"http://www.legislation.gov.uk/uksi/1988/1503/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1988/1503/made/data.htm\"}"
+}

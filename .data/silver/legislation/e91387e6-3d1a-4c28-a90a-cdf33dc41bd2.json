@@ -1,0 +1,15 @@
+{
+  "id": "e91387e6-3d1a-4c28-a90a-cdf33dc41bd2",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9137",
+  "created_at": "2025-12-25T12:46:40.502Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1973/2187/contents/made",
+    "type": "uksi",
+    "year": 1973,
+    "number": 2187,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1973,\"number\":2187,\"url\":\"http://www.legislation.gov.uk/uksi/1973/2187/contents/made\",\"dataUrl\":null}"
+}

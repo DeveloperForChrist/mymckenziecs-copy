@@ -1,0 +1,21 @@
+{
+  "id": "9794f10e-c5f7-4aa1-a282-65223b66fab5",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Montgomery (Appellant) v Lanarkshire Health Board (Respondent) (Scotland)",
+  "created_at": "2025-12-25T11:48:17.373Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0136",
+    "score": 1,
+    "title": "Montgomery (Appellant) v Lanarkshire Health Board (Respondent) (Scotland)",
+    "summary": "1. Nadine Montgomery gave birth to a baby boy on 1 October 1999 at Bellshill Maternity Hospital, Lanarkshire.",
+    "category": "remedies",
+    "citation": "UKSC/2013/0136",
+    "extracts": [
+      "1. Nadine Montgomery gave birth to a baby boy on 1 October 1999 at Bellshill Maternity Hospital, Lanarkshire. As a result of complications during the delivery, the baby was born with severe disabilities. In these proceedings Mrs Montgomery seeks damages on behalf of her son for the injuries which he sustained. She attributes those injuries to negligence on the part of Dr Dina McLellan, a consultant obstetrician and gynaecologist employed by Lanarkshire Health Board, who was responsible for Mrs Montgomery’s care during her pregnancy and labour. She also delivered the baby.",
+      "2. Before the Court of Session, two distinct grounds of negligence were advanced on behalf of Mrs Montgomery. The first concerned her ante-natal care. It was contended that she ought to have been given advice about the risk of shoulder dystocia (the inability of the baby’s shoulders to pass through the pelvis) which would be involved in vaginal birth, and of the alternative possibility of delivery by elective caesarean section. The second branch of the case concerned the management of labour. It was contended that Dr McLellan had negligently failed to perform a caesarean section in response to abnormalities indicated by cardiotocograph (“CTG”) traces."
+    ],
+    "title_key": "montgomery v lanarkshire health board"
+  },
+  "content": "{\"title\":\"Montgomery (Appellant) v Lanarkshire Health Board (Respondent) (Scotland)\",\"citation\":\"UKSC/2013/0136\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0136\",\"summary\":\"1. Nadine Montgomery gave birth to a baby boy on 1 October 1999 at Bellshill Maternity Hospital, Lanarkshire.\",\"extracts\":[\"1. Nadine Montgomery gave birth to a baby boy on 1 October 1999 at Bellshill Maternity Hospital, Lanarkshire. As a result of complications during the delivery, the baby was born with severe disabilities. In these proceedings Mrs Montgomery seeks damages on behalf of her son for the injuries which he sustained. She attributes those injuries to negligence on the part of Dr Dina McLellan, a consultant obstetrician and gynaecologist employed by Lanarkshire Health Board, who was responsible for Mrs Montgomery’s care during her pregnancy and labour. She also delivered the baby.\",\"2. Before the Court of Session, two distinct grounds of negligence were advanced on behalf of Mrs Montgomery. The first concerned her ante-natal care. It was contended that she ought to have been given advice about the risk of shoulder dystocia (the inability of the baby’s shoulders to pass through the pelvis) which would be involved in vaginal birth, and of the alternative possibility of delivery by elective caesarean section. The second branch of the case concerned the management of labour. It was contended that Dr McLellan had negligently failed to perform a caesarean section in response to abnormalities indicated by cardiotocograph (“CTG”) traces.\"],\"category\":\"remedies\",\"score\":1,\"title_key\":\"montgomery v lanarkshire health board\"}"
+}

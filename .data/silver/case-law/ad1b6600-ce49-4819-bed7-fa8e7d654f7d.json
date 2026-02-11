@@ -1,0 +1,21 @@
+{
+  "id": "ad1b6600-ce49-4819-bed7-fa8e7d654f7d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Nasir (Appellant) v Zavarco Plc (Respondent)",
+  "created_at": "2025-12-25T11:50:42.151Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2021-0184",
+    "score": 1,
+    "title": "Nasir (Appellant) v Zavarco Plc (Respondent)",
+    "summary": "Principle issue: Was the Court of Appeal wrong: (i) when it determined that the doctrine of merger did not extinguish Zavarco's cause of action in the 2016 Claim and thereby prevent pursuit of the identical cause of action in the 2018 Claim; (ii) to find that the doctrine of merger does not depend on the cause of action asserted, but instead upon the relief obtained; (iii) to find that the doctrine of merger does not apply to any judgment granting a declaration.",
+    "category": "procedure",
+    "citation": "UKSC/2021/0184",
+    "extracts": [
+      "1. The appeal concerns the scope of the longstanding English law doctrine of merger. In short, the question is whether the doctrine, by which a cause of action merges with a judgment in the action, applies to a declaratory judgment.",
+      "2. This appeal is the latest stage of a long-running dispute between Tan Sri Nasir, a Malaysian citizen (“the appellant”) and the respondent, Zavarco plc (“Zavarco”), as to whether the appellant was obliged to pay €36 million for shares which he acquired in Zavarco."
+    ],
+    "title_key": "nasir v zavarco plc"
+  },
+  "content": "{\"title\":\"Nasir (Appellant) v Zavarco Plc (Respondent)\",\"citation\":\"UKSC/2021/0184\",\"url\":\"https://supremecourt.uk/cases/uksc-2021-0184\",\"summary\":\"Principle issue: Was the Court of Appeal wrong: (i) when it determined that the doctrine of merger did not extinguish Zavarco's cause of action in the 2016 Claim and thereby prevent pursuit of the identical cause of action in the 2018 Claim; (ii) to find that the doctrine of merger does not depend on the cause of action asserted, but instead upon the relief obtained; (iii) to find that the doctrine of merger does not apply to any judgment granting a declaration.\",\"extracts\":[\"1. The appeal concerns the scope of the longstanding English law doctrine of merger. In short, the question is whether the doctrine, by which a cause of action merges with a judgment in the action, applies to a declaratory judgment.\",\"2. This appeal is the latest stage of a long-running dispute between Tan Sri Nasir, a Malaysian citizen (“the appellant”) and the respondent, Zavarco plc (“Zavarco”), as to whether the appellant was obliged to pay €36 million for shares which he acquired in Zavarco.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"nasir v zavarco plc\"}"
+}

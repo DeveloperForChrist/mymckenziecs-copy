@@ -1,0 +1,21 @@
+{
+  "id": "f6fcd8b6-51cb-4296-83a6-d6de6f143df4",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Secretary of State for the Home Department (Appellant) v Franco Vomero (Italy) (Respondent)",
+  "created_at": "2025-12-25T11:48:03.679Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0226",
+    "score": 1,
+    "title": "Secretary of State for the Home Department (Appellant) v Franco Vomero (Italy) (Respondent)",
+    "summary": "1. On 27 July 2016, following a hearing of this appeal, this court referred a number of questions of EU law to the Court of Justice for a preliminary ruling: Secretary of State for the Home Department v Vomero [2016] UKSC 49; [2017] 1 All ER 999.",
+    "category": "procedure",
+    "citation": "UKSC/2012/0226",
+    "extracts": [
+      "1. On 27 July 2016, following a hearing of this appeal, this court referred a number of questions of EU law to the Court of Justice for a preliminary ruling: Secretary of State for the Home Department v Vomero [2016] UKSC 49; [2017] 1 All ER 999. On 17 April 2018 the Court of Justice delivered its judgment: FV (Italy) v Secretary of State for the Home Department (Joined Cases C-424/16 and C- 316/16) [2019] QB 126. In the light of that judgment, and the opinion of Advocate General Szpunar, this court held a further hearing of the appeal on 7 February 2019. It is now in a position to give its decision on the appeal.",
+      "2. The respondent, Franco Vomero, is an Italian national born on 18 December 1957. On 3 March 1985 he moved to the United Kingdom with his future wife, a UK national. They were married in the UK on 3 August 1985 and had five children here, for whom Mr Vomero cared, in addition to working occasionally, while his wife worked full-time."
+    ],
+    "title_key": "secretary of state for the home department v franco vomero"
+  },
+  "content": "{\"title\":\"Secretary of State for the Home Department (Appellant) v Franco Vomero (Italy) (Respondent)\",\"citation\":\"UKSC/2012/0226\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0226\",\"summary\":\"1. On 27 July 2016, following a hearing of this appeal, this court referred a number of questions of EU law to the Court of Justice for a preliminary ruling: Secretary of State for the Home Department v Vomero [2016] UKSC 49; [2017] 1 All ER 999.\",\"extracts\":[\"1. On 27 July 2016, following a hearing of this appeal, this court referred a number of questions of EU law to the Court of Justice for a preliminary ruling: Secretary of State for the Home Department v Vomero [2016] UKSC 49; [2017] 1 All ER 999. On 17 April 2018 the Court of Justice delivered its judgment: FV (Italy) v Secretary of State for the Home Department (Joined Cases C-424/16 and C- 316/16) [2019] QB 126. In the light of that judgment, and the opinion of Advocate General Szpunar, this court held a further hearing of the appeal on 7 February 2019. It is now in a position to give its decision on the appeal.\",\"2. The respondent, Franco Vomero, is an Italian national born on 18 December 1957. On 3 March 1985 he moved to the United Kingdom with his future wife, a UK national. They were married in the UK on 3 August 1985 and had five children here, for whom Mr Vomero cared, in addition to working occasionally, while his wife worked full-time.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"secretary of state for the home department v franco vomero\"}"
+}

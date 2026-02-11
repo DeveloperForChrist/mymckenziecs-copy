@@ -1,0 +1,15 @@
+{
+  "id": "94ec7e63-1574-4d16-b273-a87a7f8591f4",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7819",
+  "created_at": "2025-12-25T12:39:08.429Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1959/1973/contents/made",
+    "type": "uksi",
+    "year": 1959,
+    "number": 1973,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1959,\"number\":1973,\"url\":\"http://www.legislation.gov.uk/uksi/1959/1973/contents/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "d607330d-068d-4aa7-b0e8-4b5b4bc12b90",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#18398",
+  "created_at": "2025-12-25T13:44:03.048Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1997/623/contents",
+    "type": "uksi",
+    "year": 1997,
+    "number": 623,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1997/623/1999-06-03/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1997,\"number\":623,\"url\":\"http://www.legislation.gov.uk/uksi/1997/623/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1997/623/1999-06-03/data.htm\"}"
+}

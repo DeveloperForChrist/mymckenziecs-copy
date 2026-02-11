@@ -1,0 +1,15 @@
+{
+  "id": "2fdeecee-ced1-457d-b078-a0d65a15f60c",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#27782",
+  "created_at": "2025-12-25T14:48:24.395Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2020/775/made",
+    "type": "uksi",
+    "year": 2020,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2020,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2020/775/made\",\"dataUrl\":null}"
+}

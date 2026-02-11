@@ -1,0 +1,15 @@
+{
+  "id": "63f87050-1ca0-4d59-b6e1-f6e3c13d11ea",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#14784",
+  "created_at": "2025-12-25T13:21:25.172Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1988/997/contents",
+    "type": "uksi",
+    "year": 1988,
+    "number": 997,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1988/997/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1988,\"number\":997,\"url\":\"http://www.legislation.gov.uk/uksi/1988/997/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1988/997/2020-12-31/data.htm\"}"
+}

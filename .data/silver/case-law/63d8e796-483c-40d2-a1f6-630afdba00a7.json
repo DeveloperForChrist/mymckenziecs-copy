@@ -1,0 +1,21 @@
+{
+  "id": "63d8e796-483c-40d2-a1f6-630afdba00a7",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "MacDonald and another (Respondents) v Carnbroe Estates Ltd (Appellant) (Scotland)",
+  "created_at": "2025-12-25T11:49:58.802Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0092",
+    "score": 2,
+    "title": "MacDonald and another (Respondents) v Carnbroe Estates Ltd (Appellant) (Scotland)",
+    "summary": "1. This appeal concerns the Scots law of gratuitous alienations on insolvency.",
+    "category": "procedure",
+    "citation": "UKSC/2018/0092",
+    "extracts": [
+      "1. This appeal concerns the Scots law of gratuitous alienations on insolvency. It raises three principal questions. First, there is a question as to the interpretation of the term “adequate consideration” in section 242(4)(b) of the Insolvency Act 1986 (“the 1986 Act”). Secondly, there is the question whether the Inner House was entitled to interfere with the Lord Ordinary’s evaluation that the consideration given by Carnbroe Estates Ltd (“Carnbroe”) amounted to adequate consideration under that statutory provision. Thirdly, a question arose during the hearing as to the interpretation of the words in section 242(4) that empower the court to grant a remedy. The court invited and received written submissions from counsel for both parties. The question is whether the court has any discretion as to the remedy it may give.",
+      "2. Grampian MacLennan’s Distribution Services Ltd (“Grampian”) was, as its name suggests, a distribution services company. It carried on business from a site at 9 Stroud Road, Kelvin Industrial Estate, East Kilbride (“the Property”). The Property, which was Grampian’s principal asset and centre of operations, consisted of a warehouse, a vehicle workshop and a yard with a gatehouse. Grampian purchased the Property in August 2005 for £630,000. The buildings on the Property had been constructed in the 1970s and by 2014 were in need of further maintenance, repair and upgrading. Grampian’s shareholders until June 2014 were Derek and Hazel Hunter, and Derek Hunter (“Mr Hunter”) was the sole director."
+    ],
+    "title_key": "macdonald and another v carnbroe estates ltd"
+  },
+  "content": "{\"title\":\"MacDonald and another (Respondents) v Carnbroe Estates Ltd (Appellant) (Scotland)\",\"citation\":\"UKSC/2018/0092\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0092\",\"summary\":\"1. This appeal concerns the Scots law of gratuitous alienations on insolvency.\",\"extracts\":[\"1. This appeal concerns the Scots law of gratuitous alienations on insolvency. It raises three principal questions. First, there is a question as to the interpretation of the term “adequate consideration” in section 242(4)(b) of the Insolvency Act 1986 (“the 1986 Act”). Secondly, there is the question whether the Inner House was entitled to interfere with the Lord Ordinary’s evaluation that the consideration given by Carnbroe Estates Ltd (“Carnbroe”) amounted to adequate consideration under that statutory provision. Thirdly, a question arose during the hearing as to the interpretation of the words in section 242(4) that empower the court to grant a remedy. The court invited and received written submissions from counsel for both parties. The question is whether the court has any discretion as to the remedy it may give.\",\"2. Grampian MacLennan’s Distribution Services Ltd (“Grampian”) was, as its name suggests, a distribution services company. It carried on business from a site at 9 Stroud Road, Kelvin Industrial Estate, East Kilbride (“the Property”). The Property, which was Grampian’s principal asset and centre of operations, consisted of a warehouse, a vehicle workshop and a yard with a gatehouse. Grampian purchased the Property in August 2005 for £630,000. The buildings on the Property had been constructed in the 1970s and by 2014 were in need of further maintenance, repair and upgrading. Grampian’s shareholders until June 2014 were Derek and Hazel Hunter, and Derek Hunter (“Mr Hunter”) was the sole director.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"macdonald and another v carnbroe estates ltd\"}"
+}

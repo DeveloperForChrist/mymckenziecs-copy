@@ -1,0 +1,21 @@
+{
+  "id": "a4b90d99-b0b6-4adf-acea-ce7f6fd5c376",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "The Manchester Ship Canal Company Ltd (Appellant) v Vauxhall Motors Ltd (Formerly General Motors UK Ltd) (Respondent)",
+  "created_at": "2025-12-25T11:50:01.056Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0116",
+    "score": 2,
+    "title": "The Manchester Ship Canal Company Ltd (Appellant) v Vauxhall Motors Ltd (Formerly General Motors UK Ltd) (Respondent)",
+    "summary": "Principle issue: (1) Whether the court can grant relief from forfeiture in respect of a contractual licence relating to the use of land, and if so, in what circumstances.\n\n(2) What the nature and extent are of a riparian landowner’s rights to drain his or her land into the water flowing through it.",
+    "category": "procedure",
+    "citation": "UKSC/2018/0116",
+    "extracts": [
+      "1. This appeal is about equitable relief from forfeiture. Specifically, the question is whether the court has jurisdiction to grant such relief from the loss (to use a neutral word) of rights to make specified use of neighbouring land granted in a perpetual licence, where that loss of use is occasioned by the exercise of a right of termination for breach of an obligation to pay a sum due under the licence. In the present case the sum due was £50, whereas the annual value of the rights which would be lost upon termination is agreed to be in excess of £300,000.",
+      "2. Relief from forfeiture is one of those equitable remedies which plays a valuable role in preventing the unconscionable abuse of strict legal rights for purposes other than those for which they were conferred. But it needs to be constrained with principled boundaries, so that the admirable certainty of English law in the fields of business and property is not undermined by an uncontrolled intervention of equity in any situation regarded by a judge as unconscionable."
+    ],
+    "title_key": "the manchester ship canal company ltd v vauxhall motors ltd"
+  },
+  "content": "{\"title\":\"The Manchester Ship Canal Company Ltd (Appellant) v Vauxhall Motors Ltd (Formerly General Motors UK Ltd) (Respondent)\",\"citation\":\"UKSC/2018/0116\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0116\",\"summary\":\"Principle issue: (1) Whether the court can grant relief from forfeiture in respect of a contractual licence relating to the use of land, and if so, in what circumstances.\\\\n\\\\n(2) What the nature and extent are of a riparian landowner’s rights to drain his or her land into the water flowing through it.\",\"extracts\":[\"1. This appeal is about equitable relief from forfeiture. Specifically, the question is whether the court has jurisdiction to grant such relief from the loss (to use a neutral word) of rights to make specified use of neighbouring land granted in a perpetual licence, where that loss of use is occasioned by the exercise of a right of termination for breach of an obligation to pay a sum due under the licence. In the present case the sum due was £50, whereas the annual value of the rights which would be lost upon termination is agreed to be in excess of £300,000.\",\"2. Relief from forfeiture is one of those equitable remedies which plays a valuable role in preventing the unconscionable abuse of strict legal rights for purposes other than those for which they were conferred. But it needs to be constrained with principled boundaries, so that the admirable certainty of English law in the fields of business and property is not undermined by an uncontrolled intervention of equity in any situation regarded by a judge as unconscionable.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"the manchester ship canal company ltd v vauxhall motors ltd\"}"
+}

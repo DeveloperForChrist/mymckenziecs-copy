@@ -1,0 +1,21 @@
+{
+  "id": "222cba39-4a4a-435b-a68c-2b842312350f",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of an application by Lorraine Gallagher for Judicial Review (Northern Ireland)",
+  "created_at": "2025-12-25T11:49:32.933Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0195",
+    "score": 2,
+    "title": "In the matter of an application by Lorraine Gallagher for Judicial Review (Northern Ireland)",
+    "summary": "In the matter of an application by Lorraine Gallagher for Judicial Review (Northern Ireland) R (on the application of P, G and W) (Respondents) v Secretary of State for the Home Department and another (Appellants) R (on the application of P) (Appellant) v Secretary of State for the Home Departmen...",
+    "category": "public_law",
+    "citation": "UKSC/2016/0195",
+    "extracts": [
+      "In the matter of an application by Lorraine Gallagher for Judicial Review (Northern Ireland) R (on the application of P, G and W) (Respondents) v Secretary of State for the Home Department and another (Appellants) R (on the application of P) (Appellant) v Secretary of State for the Home Department and others (Respondents)",
+      "1. The four respondents to these appeals have all been convicted or received cautions or reprimands in respect of comparatively minor offending. The disclosure of their criminal records to potential employers has made it more difficult for them to obtain jobs, or may make it more difficult in future. In each case, the relevant convictions and cautions were “spent” under the legislation designed to enable ex- offenders to put their past behind them. They had to be disclosed only if the respondents applied for employment involving contact with children or vulnerable adults. In all four of these appeals, the respondents challenge the statutory rules under which disclosure of their records was required as being incompatible with the European Human Rights Convention."
+    ],
+    "title_key": "in the matter of an application by lorraine gallagher for judicial review"
+  },
+  "content": "{\"title\":\"In the matter of an application by Lorraine Gallagher for Judicial Review (Northern Ireland)\",\"citation\":\"UKSC/2016/0195\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0195\",\"summary\":\"In the matter of an application by Lorraine Gallagher for Judicial Review (Northern Ireland) R (on the application of P, G and W) (Respondents) v Secretary of State for the Home Department and another (Appellants) R (on the application of P) (Appellant) v Secretary of State for the Home Departmen...\",\"extracts\":[\"In the matter of an application by Lorraine Gallagher for Judicial Review (Northern Ireland) R (on the application of P, G and W) (Respondents) v Secretary of State for the Home Department and another (Appellants) R (on the application of P) (Appellant) v Secretary of State for the Home Department and others (Respondents)\",\"1. The four respondents to these appeals have all been convicted or received cautions or reprimands in respect of comparatively minor offending. The disclosure of their criminal records to potential employers has made it more difficult for them to obtain jobs, or may make it more difficult in future. In each case, the relevant convictions and cautions were “spent” under the legislation designed to enable ex- offenders to put their past behind them. They had to be disclosed only if the respondents applied for employment involving contact with children or vulnerable adults. In all four of these appeals, the respondents challenge the statutory rules under which disclosure of their records was required as being incompatible with the European Human Rights Convention.\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"in the matter of an application by lorraine gallagher for judicial review\"}"
+}

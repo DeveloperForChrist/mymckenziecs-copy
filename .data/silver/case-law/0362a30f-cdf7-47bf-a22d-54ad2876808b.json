@@ -1,0 +1,21 @@
+{
+  "id": "0362a30f-cdf7-47bf-a22d-54ad2876808b",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Guest and another (Appellants) v Guest (Respondent)",
+  "created_at": "2025-12-25T11:50:26.713Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2020-0107",
+    "score": 1,
+    "title": "Guest and another (Appellants) v Guest (Respondent)",
+    "summary": "Principle issue: The appeal raises questions about the proper approach to granting relief under the doctrine of proprietary estoppel. The Supreme Court is asked to decide: \n\n                (1) Whether a successful claimant’s expectation, in this case of inheritance of a family farm, was an appropriate starting point when considering a remedy; and\n                (2) Whether the remedy granted, namely payment of a lump sum which would in effect result in the sale of the farm, went beyond what was necessary in the circumstances.",
+    "category": "procedure",
+    "citation": "UKSC/2020/0107",
+    "extracts": [
+      "1. “One day my son, all this will be yours”. Spoken by a farmer to his son when in his teens, and repeated for many years thereafter. Relying on that promise of inheritance from his father, the son spends the best part of his working life on the farm, working at very low wages, accommodated in a farm cottage, in the expectation that he will succeed his father as owner of the farm, to be able to continue farming there, and in due course to pass on the farm to his own children.",
+      "2. Many years later, father and son fall out. It does not matter who is to blame for the falling out, but they can no longer work together or even live in close proximity. The son has no alternative but to leave, to find alternative work and rented accommodation for himself and his family elsewhere. Meanwhile the father cuts him out of his will. The facts of this case differ from the above common example only because the father David Guest has two sons, Andrew and Ross as well as a daughter Jan. Andrew was not promised the whole of the farm (“Tump Farm”) as an inheritance, but only a sufficient (but undefined) part of it to enable him to operate a viable farming business on it after the death of his parents."
+    ],
+    "title_key": "guest and another v guest"
+  },
+  "content": "{\"title\":\"Guest and another (Appellants) v Guest (Respondent)\",\"citation\":\"UKSC/2020/0107\",\"url\":\"https://supremecourt.uk/cases/uksc-2020-0107\",\"summary\":\"Principle issue: The appeal raises questions about the proper approach to granting relief under the doctrine of proprietary estoppel. The Supreme Court is asked to decide: \\\\n\\\\n                (1) Whether a successful claimant’s expectation, in this case of inheritance of a family farm, was an appropriate starting point when considering a remedy; and\\\\n                (2) Whether the remedy granted, namely payment of a lump sum which would in effect result in the sale of the farm, went beyond what was necessary in the circumstances.\",\"extracts\":[\"1. “One day my son, all this will be yours”. Spoken by a farmer to his son when in his teens, and repeated for many years thereafter. Relying on that promise of inheritance from his father, the son spends the best part of his working life on the farm, working at very low wages, accommodated in a farm cottage, in the expectation that he will succeed his father as owner of the farm, to be able to continue farming there, and in due course to pass on the farm to his own children.\",\"2. Many years later, father and son fall out. It does not matter who is to blame for the falling out, but they can no longer work together or even live in close proximity. The son has no alternative but to leave, to find alternative work and rented accommodation for himself and his family elsewhere. Meanwhile the father cuts him out of his will. The facts of this case differ from the above common example only because the father David Guest has two sons, Andrew and Ross as well as a daughter Jan. Andrew was not promised the whole of the farm (“Tump Farm”) as an inheritance, but only a sufficient (but undefined) part of it to enable him to operate a viable farming business on it after the death of his parents.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"guest and another v guest\"}"
+}

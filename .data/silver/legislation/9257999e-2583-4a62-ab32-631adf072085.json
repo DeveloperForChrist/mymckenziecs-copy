@@ -1,0 +1,15 @@
+{
+  "id": "9257999e-2583-4a62-ab32-631adf072085",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#12658",
+  "created_at": "2025-12-25T13:08:17.825Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1987/1974/contents",
+    "type": "uksi",
+    "year": 1987,
+    "number": 1974,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1987/1974/2014-01-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1987,\"number\":1974,\"url\":\"http://www.legislation.gov.uk/uksi/1987/1974/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1987/1974/2014-01-01/data.htm\"}"
+}

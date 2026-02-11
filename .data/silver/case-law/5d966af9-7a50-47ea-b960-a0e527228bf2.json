@@ -1,0 +1,21 @@
+{
+  "id": "5d966af9-7a50-47ea-b960-a0e527228bf2",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Reilly and another) (Respondents) v Secretary of State for Work and Pensions (Appellant)",
+  "created_at": "2025-12-25T11:48:10.941Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0064",
+    "score": 1,
+    "title": "R (on the application of Reilly and another) (Respondents) v Secretary of State for Work and Pensions (Appellant)",
+    "summary": "1. This is a judgment on (i) an appeal brought by the Secretary of State for Work and Pensions, against the Court of Appeal’s decision in favour of Ms Caitlin Reilly and Mr Jamieson Wilson, that the Jobseeker’s Allowance (Employment, Skills and Enterprise Scheme) Regulations (SI 2011/917) (“the 2...",
+    "category": "procedure",
+    "citation": "UKSC/2013/0064",
+    "extracts": [
+      "1. This is a judgment on (i) an appeal brought by the Secretary of State for Work and Pensions, against the Court of Appeal’s decision in favour of Ms Caitlin Reilly and Mr Jamieson Wilson, that the Jobseeker’s Allowance (Employment, Skills and Enterprise Scheme) Regulations (SI 2011/917) (“the 2011 Regulations”), purportedly made under section 17A of the Jobseeker’s Act 1995 (“the 1995 Act”), do not comply with the requirements of that section, and (ii) a cross-appeal brought by Miss Reilly and Mr Wilson against the Court of Appeal’s rejection of two other attacks they made on the way in which the Secretary of State had caused the Employment, Skills and Enterprise Scheme (“the Scheme”) to be operated.",
+      "2. The Secretary of State’s appeal is complicated by the fact that, since the Court of Appeal’s judgment was handed down, (i) the 2011 Regulations have been repealed and replaced by the Jobseeker’s Allowance (Schemes for Assisting Persons to Obtain Employment) Regulations 2013 (SI 2013/276) (“the 2013 Regulations”), and (ii) the Jobseekers (Back to Work Schemes) Act 2013 (“the 2013 Act”) has come into force, and its effect is agreed to be to validate the 2011 Regulations retrospectively. We deal with this aspect in paras 33-41 below."
+    ],
+    "title_key": "r v secretary of state for work and pensions"
+  },
+  "content": "{\"title\":\"R (on the application of Reilly and another) (Respondents) v Secretary of State for Work and Pensions (Appellant)\",\"citation\":\"UKSC/2013/0064\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0064\",\"summary\":\"1. This is a judgment on (i) an appeal brought by the Secretary of State for Work and Pensions, against the Court of Appeal’s decision in favour of Ms Caitlin Reilly and Mr Jamieson Wilson, that the Jobseeker’s Allowance (Employment, Skills and Enterprise Scheme) Regulations (SI 2011/917) (“the 2...\",\"extracts\":[\"1. This is a judgment on (i) an appeal brought by the Secretary of State for Work and Pensions, against the Court of Appeal’s decision in favour of Ms Caitlin Reilly and Mr Jamieson Wilson, that the Jobseeker’s Allowance (Employment, Skills and Enterprise Scheme) Regulations (SI 2011/917) (“the 2011 Regulations”), purportedly made under section 17A of the Jobseeker’s Act 1995 (“the 1995 Act”), do not comply with the requirements of that section, and (ii) a cross-appeal brought by Miss Reilly and Mr Wilson against the Court of Appeal’s rejection of two other attacks they made on the way in which the Secretary of State had caused the Employment, Skills and Enterprise Scheme (“the Scheme”) to be operated.\",\"2. The Secretary of State’s appeal is complicated by the fact that, since the Court of Appeal’s judgment was handed down, (i) the 2011 Regulations have been repealed and replaced by the Jobseeker’s Allowance (Schemes for Assisting Persons to Obtain Employment) Regulations 2013 (SI 2013/276) (“the 2013 Regulations”), and (ii) the Jobseekers (Back to Work Schemes) Act 2013 (“the 2013 Act”) has come into force, and its effect is agreed to be to validate the 2011 Regulations retrospectively. We deal with this aspect in paras 33-41 below.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v secretary of state for work and pensions\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "89e4e395-d419-483f-9778-48d5fca43432",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Darwall and another (Appellants) v Dartmoor National Park Authority (Respondent)",
+  "created_at": "2025-12-25T11:51:01.862Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2023-0126",
+    "score": 0,
+    "title": "Darwall and another (Appellants) v Dartmoor National Park Authority (Respondent)",
+    "summary": "Principle issue: Does section 10(1) of the Dartmoor Commons Act 1985 (the “1985 Act”) confer on the public a right to pitch tents or otherwise make camp overnight on the Dartmoor Commons (“the Commons”)?",
+    "category": "evidence_misc",
+    "citation": "UKSC/2023/0126",
+    "extracts": [
+      "1. This case is about the extent of the public’s right of access to Dartmoor under section 10(1) of the Dartmoor Commons Act 1985 (“the 1985 Act”). The question the court has to decide is whether section 10(1) confers on the public a right to pitch tents or otherwise make camp overnight on the Dartmoor Commons (“the Commons”).",
+      "“10. —(1) Subject to the provisions of this Act and compliance with all rules, regulations or byelaws relating to the commons and for the time being in force, the public shall have a right of access to the commons on foot and on horseback for the purpose of open-air recreation; and a person who enters on the commons for that purpose without breaking or damaging any wall, fence, hedge, gate or other thing, or who is on the commons for that purpose having so entered, shall not be treated as a trespasser on the commons or incur any other liability by reason only of so entering or being on the commons.”"
+    ],
+    "title_key": "darwall and another v dartmoor national park authority"
+  },
+  "content": "{\"title\":\"Darwall and another (Appellants) v Dartmoor National Park Authority (Respondent)\",\"citation\":\"UKSC/2023/0126\",\"url\":\"https://supremecourt.uk/cases/uksc-2023-0126\",\"summary\":\"Principle issue: Does section 10(1) of the Dartmoor Commons Act 1985 (the “1985 Act”) confer on the public a right to pitch tents or otherwise make camp overnight on the Dartmoor Commons (“the Commons”)?\",\"extracts\":[\"1. This case is about the extent of the public’s right of access to Dartmoor under section 10(1) of the Dartmoor Commons Act 1985 (“the 1985 Act”). The question the court has to decide is whether section 10(1) confers on the public a right to pitch tents or otherwise make camp overnight on the Dartmoor Commons (“the Commons”).\",\"“10. —(1) Subject to the provisions of this Act and compliance with all rules, regulations or byelaws relating to the commons and for the time being in force, the public shall have a right of access to the commons on foot and on horseback for the purpose of open-air recreation; and a person who enters on the commons for that purpose without breaking or damaging any wall, fence, hedge, gate or other thing, or who is on the commons for that purpose having so entered, shall not be treated as a trespasser on the commons or incur any other liability by reason only of so entering or being on the commons.”\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"darwall and another v dartmoor national park authority\"}"
+}

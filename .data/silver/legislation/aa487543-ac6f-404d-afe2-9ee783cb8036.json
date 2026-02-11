@@ -1,0 +1,15 @@
+{
+  "id": "aa487543-ac6f-404d-afe2-9ee783cb8036",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20943",
+  "created_at": "2025-12-25T13:59:51.200Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/2002/3153/contents",
+    "type": "uksi",
+    "year": 2002,
+    "number": 3153,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/2002/3153/2024-01-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2002,\"number\":3153,\"url\":\"http://www.legislation.gov.uk/nisi/2002/3153/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/2002/3153/2024-01-01/data.htm\"}"
+}

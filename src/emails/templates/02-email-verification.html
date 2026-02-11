@@ -1,0 +1,20 @@
+<!-- Trigger: Supabase auth verification (magic link / OTP)
+     Purpose: Verify ownership of email for compliance
+     Key elements: short copy, magic link or OTP, contact -->
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"/><title>MymckenzieCS verify your email</title></head>
+  <body>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h1 style="color:#4c1d95; margin: 0 0 8px;">Verify your email</h1>
+      <p>Hi {{name}},</p>
+      <p>Thanks for signing up — please confirm this email to finish setup.</p>
+      <p style="margin: 18px 0;">
+        <a href="{{verify_url}}" style="background:#4c1d95; color:#fff; padding:10px 16px; border-radius:8px; text-decoration:none;">Verify Email</a>
+      </p>
+      <p>If the button doesn’t work, copy and paste this link:</p>
+      <p style="word-break: break-all;">{{verify_url}}</p>
+      <p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MymckenzieCS</p>
+    </div>
+  </body>
+</html>

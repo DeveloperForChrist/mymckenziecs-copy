@@ -1,0 +1,21 @@
+{
+  "id": "55b6837b-376d-4eec-90de-6bdc5c0a068e",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "N (Appellant) v ACCG and others (Respondents)",
+  "created_at": "2025-12-25T11:49:14.462Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0238",
+    "score": 1,
+    "title": "N (Appellant) v ACCG and others (Respondents)",
+    "summary": "1. The Mental Capacity Act 2005 established a comprehensive scheme for decision-making on behalf of people who are unable to make the decision for themselves.",
+    "category": "procedure",
+    "citation": "UKSC/2015/0238",
+    "extracts": [
+      "1. The Mental Capacity Act 2005 established a comprehensive scheme for decision-making on behalf of people who are unable to make the decision for themselves. The decision-maker - whether a carer, donee of a power of attorney, court-appointed deputy or the court - stands in the shoes of the person who is unable to make the decision - known as P - and makes the decision for him. The decision has to be that which is in the best interests of P. But it is axiomatic that the decision- maker can only make a decision which P himself could have made. The decision- maker is in no better position than P. So what is the decision-maker to do if he has reached the conclusion that a particular course of action is in the best interests of P but the body who will be required to provide or fund that course of action refuses to do so? Specifically, what is the role of the Court of Protection where there is a dispute between the providers or funders of health or social care services for a person who lacks the capacity to make the decision for himself and members of his family about what should be provided for him?",
+      "2. MN is a profoundly disabled young man, born in November 1993, so now in his early twenties. In the words of the trial judge, Eleanor King J, at [2013] EWHC 3859 (COP), [2014] COPLR 11, para 6, he has"
+    ],
+    "title_key": "n v accg and others"
+  },
+  "content": "{\"title\":\"N (Appellant) v ACCG and others (Respondents)\",\"citation\":\"UKSC/2015/0238\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0238\",\"summary\":\"1. The Mental Capacity Act 2005 established a comprehensive scheme for decision-making on behalf of people who are unable to make the decision for themselves.\",\"extracts\":[\"1. The Mental Capacity Act 2005 established a comprehensive scheme for decision-making on behalf of people who are unable to make the decision for themselves. The decision-maker - whether a carer, donee of a power of attorney, court-appointed deputy or the court - stands in the shoes of the person who is unable to make the decision - known as P - and makes the decision for him. The decision has to be that which is in the best interests of P. But it is axiomatic that the decision- maker can only make a decision which P himself could have made. The decision- maker is in no better position than P. So what is the decision-maker to do if he has reached the conclusion that a particular course of action is in the best interests of P but the body who will be required to provide or fund that course of action refuses to do so? Specifically, what is the role of the Court of Protection where there is a dispute between the providers or funders of health or social care services for a person who lacks the capacity to make the decision for himself and members of his family about what should be provided for him?\",\"2. MN is a profoundly disabled young man, born in November 1993, so now in his early twenties. In the words of the trial judge, Eleanor King J, at [2013] EWHC 3859 (COP), [2014] COPLR 11, para 6, he has\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"n v accg and others\"}"
+}

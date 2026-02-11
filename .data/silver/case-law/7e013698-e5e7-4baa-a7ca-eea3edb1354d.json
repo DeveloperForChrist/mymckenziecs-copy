@@ -1,0 +1,21 @@
+{
+  "id": "7e013698-e5e7-4baa-a7ca-eea3edb1354d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Barnardo's (Appellant) v Buckinghamshire and others (Respondents)",
+  "created_at": "2025-12-25T11:49:35.082Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0210",
+    "score": 1,
+    "title": "Barnardo's (Appellant) v Buckinghamshire and others (Respondents)",
+    "summary": "1. This appeal raises a question of interpretation of a clause in a pension scheme trust deed which defines the phrase “Retail Prices Index” and which allows the trustees of the pension scheme to adopt a “replacement” of the officially published Retail Prices Index (“the RPI”).",
+    "category": "procedure",
+    "citation": "UKSC/2016/0210",
+    "extracts": [
+      "1. This appeal raises a question of interpretation of a clause in a pension scheme trust deed which defines the phrase “Retail Prices Index” and which allows the trustees of the pension scheme to adopt a “replacement” of the officially published Retail Prices Index (“the RPI”).",
+      "2. The background is the recognised need for private pension schemes to provide some form of indexation of pensions to protect the value of members’ pensions against price inflation. As discussed below, the question is whether the clause allows the pension scheme trustees to adopt an index of price inflation, such as the Consumer Prices Index (“the CPI”), when the official body responsible for compiling the RPI (now the Office of National Statistics) has not discontinued the RPI, thereby requiring its replacement."
+    ],
+    "title_key": "barnardo s v buckinghamshire and others"
+  },
+  "content": "{\"title\":\"Barnardo's (Appellant) v Buckinghamshire and others (Respondents)\",\"citation\":\"UKSC/2016/0210\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0210\",\"summary\":\"1. This appeal raises a question of interpretation of a clause in a pension scheme trust deed which defines the phrase “Retail Prices Index” and which allows the trustees of the pension scheme to adopt a “replacement” of the officially published Retail Prices Index (“the RPI”).\",\"extracts\":[\"1. This appeal raises a question of interpretation of a clause in a pension scheme trust deed which defines the phrase “Retail Prices Index” and which allows the trustees of the pension scheme to adopt a “replacement” of the officially published Retail Prices Index (“the RPI”).\",\"2. The background is the recognised need for private pension schemes to provide some form of indexation of pensions to protect the value of members’ pensions against price inflation. As discussed below, the question is whether the clause allows the pension scheme trustees to adopt an index of price inflation, such as the Consumer Prices Index (“the CPI”), when the official body responsible for compiling the RPI (now the Office of National Statistics) has not discontinued the RPI, thereby requiring its replacement.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"barnardo s v buckinghamshire and others\"}"
+}

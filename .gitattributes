@@ -1,0 +1,13 @@
+# Improve GitHub language stats to reflect Next.js/TypeScript
+*.ts linguist-language=TypeScript
+*.tsx linguist-language=TypeScript
+*.js linguist-language=JavaScript
+*.jsx linguist-language=JavaScript
+
+# De-emphasize generated or content-heavy assets
+public/** linguist-documentation
+.docs/** linguist-documentation
+docs/** linguist-documentation
+.data/** linguist-vendored
+.next/** linguist-vendored
+node_modules/** linguist-vendored

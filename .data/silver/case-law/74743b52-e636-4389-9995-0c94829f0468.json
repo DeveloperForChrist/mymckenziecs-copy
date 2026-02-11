@@ -1,0 +1,21 @@
+{
+  "id": "74743b52-e636-4389-9995-0c94829f0468",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Secretary of State for Work and Pensions (Appellant) v Payne and Another (FC) (Respondents)",
+  "created_at": "2025-12-25T11:47:19.896Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0007",
+    "score": 1,
+    "title": "Secretary of State for Work and Pensions (Appellant) v Payne and Another (FC) (Respondents)",
+    "summary": "2. The Secretary of State would like to introduce coherence into the scheme in two ways: firstly by assimilating the position during the moratorium after a DRO with the position after a bankruptcy order; and secondly by reversing Balding, so that the debt can continue to be recouped after a bankr...",
+    "category": "public_law",
+    "citation": "UKSC/2011/0007",
+    "extracts": [
+      "2. The Secretary of State would like to introduce coherence into the scheme in two ways: firstly by assimilating the position during the moratorium after a DRO with the position after a bankruptcy order; and secondly by reversing Balding, so that the debt can continue to be recouped after a bankrupt’s discharge. Ideally, the same would apply at the end of the DRO moratorium period. The claimants, on the other hand, would ideally introduce coherence by holding that the Secretary of State’s deduction power does not survive the making either of a DRO or of a bankruptcy order. Balding was correctly decided and the same principle applies at the end of the moratorium period.",
+      "3. The facts of the two test cases before us are typical of many. Mrs Payne was made a Social Fund loan of £843 in September 2007 in order to replace her washing machine and cooker. The Secretary of State did not start to recover this by deduction from her benefits at that stage. But in August 2009, she obtained a DRO listing the loan among her qualifying debts. When she informed the Secretary of State of this, he began deducting £23.59 per week from her income support, although this was reduced in December to £11.64 per week. These proceedings for judicial review of the legality of the deductions were begun in March 2010. In"
+    ],
+    "title_key": "secretary of state for work and pensions v payne and another"
+  },
+  "content": "{\"title\":\"Secretary of State for Work and Pensions (Appellant) v Payne and Another (FC) (Respondents)\",\"citation\":\"UKSC/2011/0007\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0007\",\"summary\":\"2. The Secretary of State would like to introduce coherence into the scheme in two ways: firstly by assimilating the position during the moratorium after a DRO with the position after a bankruptcy order; and secondly by reversing Balding, so that the debt can continue to be recouped after a bankr...\",\"extracts\":[\"2. The Secretary of State would like to introduce coherence into the scheme in two ways: firstly by assimilating the position during the moratorium after a DRO with the position after a bankruptcy order; and secondly by reversing Balding, so that the debt can continue to be recouped after a bankrupt’s discharge. Ideally, the same would apply at the end of the DRO moratorium period. The claimants, on the other hand, would ideally introduce coherence by holding that the Secretary of State’s deduction power does not survive the making either of a DRO or of a bankruptcy order. Balding was correctly decided and the same principle applies at the end of the moratorium period.\",\"3. The facts of the two test cases before us are typical of many. Mrs Payne was made a Social Fund loan of £843 in September 2007 in order to replace her washing machine and cooker. The Secretary of State did not start to recover this by deduction from her benefits at that stage. But in August 2009, she obtained a DRO listing the loan among her qualifying debts. When she informed the Secretary of State of this, he began deducting £23.59 per week from her income support, although this was reduced in December to £11.64 per week. These proceedings for judicial review of the legality of the deductions were begun in March 2010. In\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"secretary of state for work and pensions v payne and another\"}"
+}

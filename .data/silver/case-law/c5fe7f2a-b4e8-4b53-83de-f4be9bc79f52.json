@@ -1,0 +1,21 @@
+{
+  "id": "c5fe7f2a-b4e8-4b53-83de-f4be9bc79f52",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of N (Children)",
+  "created_at": "2025-12-25T11:49:17.730Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0013",
+    "score": 1,
+    "title": "In the matter of N (Children)",
+    "summary": "4. It goes without saying that the provisions of the Regulation are based upon mutual respect and trust between the member states.",
+    "category": "procedure",
+    "citation": "UKSC/2016/0013",
+    "extracts": [
+      "4. It goes without saying that the provisions of the Regulation are based upon mutual respect and trust between the member states. It is not for the courts of this or any other country to question the “competence, diligence, resources or efficacy of either the child protection services or the courts” of another state (see In re M (Brussels II Revised: Article 15) [2014] EWCA Civ 152; [2014] 2 FLR 1372, para 54(v), per Munby P). As the Practice Guide for the application of the Brussels IIa Regulation puts it, the assessment of whether a transfer would be in the best interests of the child “should be based on the principle of mutual trust and on the assumption that the courts of all member states are in principle competent to deal with a case” (p 35, para 3.3.3). This principle goes both ways. Just as we must respect and trust the competence of other member states, so must they respect and trust ours.",
+      "Page 3 consider that a court of another member state, with which the child has a particular connection, would be better placed to hear the case, or a specific part thereof, and where this is in the best interests of the child:"
+    ],
+    "title_key": "in the matter of n"
+  },
+  "content": "{\"title\":\"In the matter of N (Children)\",\"citation\":\"UKSC/2016/0013\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0013\",\"summary\":\"4. It goes without saying that the provisions of the Regulation are based upon mutual respect and trust between the member states.\",\"extracts\":[\"4. It goes without saying that the provisions of the Regulation are based upon mutual respect and trust between the member states. It is not for the courts of this or any other country to question the “competence, diligence, resources or efficacy of either the child protection services or the courts” of another state (see In re M (Brussels II Revised: Article 15) [2014] EWCA Civ 152; [2014] 2 FLR 1372, para 54(v), per Munby P). As the Practice Guide for the application of the Brussels IIa Regulation puts it, the assessment of whether a transfer would be in the best interests of the child “should be based on the principle of mutual trust and on the assumption that the courts of all member states are in principle competent to deal with a case” (p 35, para 3.3.3). This principle goes both ways. Just as we must respect and trust the competence of other member states, so must they respect and trust ours.\",\"Page 3 consider that a court of another member state, with which the child has a particular connection, would be better placed to hear the case, or a specific part thereof, and where this is in the best interests of the child:\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"in the matter of n\"}"
+}

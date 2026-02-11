@@ -1,0 +1,21 @@
+{
+  "id": "a85addfc-795a-4453-ac81-8120eda23ed6",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Ministry of Defence (Respondent) v Iraqi Civilians (Appellant)",
+  "created_at": "2025-12-25T11:49:15.792Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0003",
+    "score": 2,
+    "title": "Ministry of Defence (Respondent) v Iraqi Civilians (Appellant)",
+    "summary": "1. English private international law distinguishes between matters of substance which are governed by the proper law of the relevant issue (lex causae), and matters of procedure which are for the law of the forum.",
+    "category": "procedure",
+    "citation": "UKSC/2016/0003",
+    "extracts": [
+      "1. English private international law distinguishes between matters of substance which are governed by the proper law of the relevant issue (lex causae), and matters of procedure which are for the law of the forum. The distinction was preserved when the English principles relating to the choice of law were amended and partly codified by the Private International Law (Miscellaneous Provisions) Act 1995: see section 14(3)(b). Limitation, which deprives the litigant of a forensic remedy but does not extinguish his right, is for that reason classified by the English courts as procedural. The result was that until the position was altered by statute in 1984, the English courts disregarded foreign limitation law and applied the English statutes of limitation irrespective of the lex causae. This was widely regarded as unsatisfactory, mainly because of the rather technical character of the distinction on which it was based between barring the remedy and extinguishing the right.",
+      "(1) Subject to the following provisions of this Act, where in any action or proceedings in a court in England and Wales the law of any other country falls (in accordance with rules of private international law applicable by any such court) to be taken into account in the determination of any matter -"
+    ],
+    "title_key": "ministry of defence v iraqi civilians"
+  },
+  "content": "{\"title\":\"Ministry of Defence (Respondent) v Iraqi Civilians (Appellant)\",\"citation\":\"UKSC/2016/0003\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0003\",\"summary\":\"1. English private international law distinguishes between matters of substance which are governed by the proper law of the relevant issue (lex causae), and matters of procedure which are for the law of the forum.\",\"extracts\":[\"1. English private international law distinguishes between matters of substance which are governed by the proper law of the relevant issue (lex causae), and matters of procedure which are for the law of the forum. The distinction was preserved when the English principles relating to the choice of law were amended and partly codified by the Private International Law (Miscellaneous Provisions) Act 1995: see section 14(3)(b). Limitation, which deprives the litigant of a forensic remedy but does not extinguish his right, is for that reason classified by the English courts as procedural. The result was that until the position was altered by statute in 1984, the English courts disregarded foreign limitation law and applied the English statutes of limitation irrespective of the lex causae. This was widely regarded as unsatisfactory, mainly because of the rather technical character of the distinction on which it was based between barring the remedy and extinguishing the right.\",\"(1) Subject to the following provisions of this Act, where in any action or proceedings in a court in England and Wales the law of any other country falls (in accordance with rules of private international law applicable by any such court) to be taken into account in the determination of any matter -\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"ministry of defence v iraqi civilians\"}"
+}

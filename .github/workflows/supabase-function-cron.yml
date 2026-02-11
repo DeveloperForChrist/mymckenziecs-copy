@@ -1,0 +1,26 @@
+name: Supabase Function Cron
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # daily at 08:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  call-supabase-function:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Supabase Edge Function
+        env:
+          FUNCTION_URL: ${{ secrets.SUPABASE_FUNCTION_URL }}
+        run: |
+          if [ -z "$FUNCTION_URL" ]; then
+            echo "Set SUPABASE_FUNCTION_URL repository secret to your function URL.";
+            exit 1;
+          fi
+          echo "Calling $FUNCTION_URL";
+          HTTP_STATUS=$(curl -s -o /dev/stderr -w "%{http_code}" -X POST "$FUNCTION_URL?days=7") || true
+          echo "HTTP status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "Non-200 response from function";
+            exit 1;
+          fi

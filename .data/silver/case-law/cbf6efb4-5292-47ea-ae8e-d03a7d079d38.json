@@ -1,0 +1,21 @@
+{
+  "id": "cbf6efb4-5292-47ea-ae8e-d03a7d079d38",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Lee-Hirons (Appellant) v Secretary of State for Justice (Respondent)",
+  "created_at": "2025-12-25T11:48:52.316Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0248",
+    "score": 2,
+    "title": "Lee-Hirons (Appellant) v Secretary of State for Justice (Respondent)",
+    "summary": "1. A man is convicted of an offence.",
+    "category": "procedure",
+    "citation": "UKSC/2014/0248",
+    "extracts": [
+      "1. A man is convicted of an offence. Satisfied that he is suffering from mental disorder, the court makes an order for his detention in hospital. Satisfied that it is necessary for the protection of the public, the court also makes a restriction order, which removes from the hospital the power to discharge him. In due course a tribunal directs his discharge from hospital on conditions. Afterwards, however, the Secretary of State for Justice (“the Minister”) exercises his power to recall the man to hospital, where he is subject to renewed detention. This appeal is about the explanation for the recall which the law requires the Minister to provide to the man both at the time of his recall and soon afterwards.",
+      "2. In this case the explanation provided on behalf of the Minister, the respondent, to Mr Lee-Hirons, the appellant, at the time of his recall was simply that his mental health had deteriorated. This generates three questions:"
+    ],
+    "title_key": "lee hirons v secretary of state for justice"
+  },
+  "content": "{\"title\":\"Lee-Hirons (Appellant) v Secretary of State for Justice (Respondent)\",\"citation\":\"UKSC/2014/0248\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0248\",\"summary\":\"1. A man is convicted of an offence.\",\"extracts\":[\"1. A man is convicted of an offence. Satisfied that he is suffering from mental disorder, the court makes an order for his detention in hospital. Satisfied that it is necessary for the protection of the public, the court also makes a restriction order, which removes from the hospital the power to discharge him. In due course a tribunal directs his discharge from hospital on conditions. Afterwards, however, the Secretary of State for Justice (“the Minister”) exercises his power to recall the man to hospital, where he is subject to renewed detention. This appeal is about the explanation for the recall which the law requires the Minister to provide to the man both at the time of his recall and soon afterwards.\",\"2. In this case the explanation provided on behalf of the Minister, the respondent, to Mr Lee-Hirons, the appellant, at the time of his recall was simply that his mental health had deteriorated. This generates three questions:\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"lee hirons v secretary of state for justice\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "c60763a5-cb6c-4750-a3cc-e661a784d7cb",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Secretary of State for Transport (Appellant) v Curzon Park Ltd and others (Respondents)",
+  "created_at": "2025-12-25T11:50:38.899Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2021-0120",
+    "score": 1,
+    "title": "Secretary of State for Transport (Appellant) v Curzon Park Ltd and others (Respondents)",
+    "summary": "Principle issue: Did the Court of Appeal err in finding that when determining the development for which planning permission could reasonably have been expected to be granted in relation land, the decision maker is not entitled to take into account applications or decisions relating to other land arising from the compulsory acquisition of land for the same underlying scheme.",
+    "category": "procedure",
+    "citation": "UKSC/2021/0120",
+    "extracts": [
+      "1. When land is compulsorily purchased the landowner is entitled to compensation. The basic measure of compensation is the open market value of land if sold by a willing seller – see rule (2) of section 5 of the Land Compensation Act 1961 (“the LCA”).",
+      "2. The landowner is also entitled to be compensated for enhancement of the value of the land (which we will call “the land in issue”) resulting from actual or prospective planning permission for its development. This is addressed in section 14 of the LCA."
+    ],
+    "title_key": "secretary of state for transport v curzon park ltd and others"
+  },
+  "content": "{\"title\":\"Secretary of State for Transport (Appellant) v Curzon Park Ltd and others (Respondents)\",\"citation\":\"UKSC/2021/0120\",\"url\":\"https://supremecourt.uk/cases/uksc-2021-0120\",\"summary\":\"Principle issue: Did the Court of Appeal err in finding that when determining the development for which planning permission could reasonably have been expected to be granted in relation land, the decision maker is not entitled to take into account applications or decisions relating to other land arising from the compulsory acquisition of land for the same underlying scheme.\",\"extracts\":[\"1. When land is compulsorily purchased the landowner is entitled to compensation. The basic measure of compensation is the open market value of land if sold by a willing seller – see rule (2) of section 5 of the Land Compensation Act 1961 (“the LCA”).\",\"2. The landowner is also entitled to be compensated for enhancement of the value of the land (which we will call “the land in issue”) resulting from actual or prospective planning permission for its development. This is addressed in section 14 of the LCA.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"secretary of state for transport v curzon park ltd and others\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "0e6885c8-f1bf-4b4b-94e2-7e405fc45838",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7888",
+  "created_at": "2025-12-25T12:39:33.389Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1959/1585/contents/made",
+    "type": "uksi",
+    "year": 1959,
+    "number": 1585,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1959,\"number\":1585,\"url\":\"http://www.legislation.gov.uk/uksi/1959/1585/contents/made\",\"dataUrl\":null}"
+}

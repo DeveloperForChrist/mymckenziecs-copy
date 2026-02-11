@@ -1,0 +1,21 @@
+{
+  "id": "cb24e0c6-13b4-403d-84e1-1083f9803e33",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Arnold (Respondent) v Britton and others (Appellants)",
+  "created_at": "2025-12-25T11:48:22.970Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0193",
+    "score": 1,
+    "title": "Arnold (Respondent) v Britton and others (Appellants)",
+    "summary": "3. Oxwich Leisure Park is on the Gower Peninsular, and contains 91 chalets, each of which is let on very similar terms.",
+    "category": "contract_consumer",
+    "citation": "UKSC/2013/0193",
+    "extracts": [
+      "3. Oxwich Leisure Park is on the Gower Peninsular, and contains 91 chalets, each of which is let on very similar terms. The five leases which we have seen were granted between 1978 and 1991, either for a premium (of less than £20,000) or in return for the lessee constructing the chalet. Each of the 91 chalets was let on a lease which was for a term of 99 years from 25 December 1974 and reserved a rent of £10 per annum increasing by £5 for each subsequent period of 21 years. Para (2) of the recital of each lease contains the statement that the chalets on the Leisure Park were intended to be subject to leases “upon terms similar in all respects to the present demise”.",
+      "“The lessee hereby covenants with the lessor and with and for the benefit of the owners and lessees from time to time during the currency of the term hereby granted of the other plots on the estate so far as the obligations hereinafter mentioned are capable of benefitting them …”"
+    ],
+    "title_key": "arnold v britton and others"
+  },
+  "content": "{\"title\":\"Arnold (Respondent) v Britton and others (Appellants)\",\"citation\":\"UKSC/2013/0193\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0193\",\"summary\":\"3. Oxwich Leisure Park is on the Gower Peninsular, and contains 91 chalets, each of which is let on very similar terms.\",\"extracts\":[\"3. Oxwich Leisure Park is on the Gower Peninsular, and contains 91 chalets, each of which is let on very similar terms. The five leases which we have seen were granted between 1978 and 1991, either for a premium (of less than £20,000) or in return for the lessee constructing the chalet. Each of the 91 chalets was let on a lease which was for a term of 99 years from 25 December 1974 and reserved a rent of £10 per annum increasing by £5 for each subsequent period of 21 years. Para (2) of the recital of each lease contains the statement that the chalets on the Leisure Park were intended to be subject to leases “upon terms similar in all respects to the present demise”.\",\"“The lessee hereby covenants with the lessor and with and for the benefit of the owners and lessees from time to time during the currency of the term hereby granted of the other plots on the estate so far as the obligations hereinafter mentioned are capable of benefitting them …”\"],\"category\":\"contract_consumer\",\"score\":1,\"title_key\":\"arnold v britton and others\"}"
+}

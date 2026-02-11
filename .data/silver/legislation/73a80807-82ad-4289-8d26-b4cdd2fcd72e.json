@@ -1,0 +1,15 @@
+{
+  "id": "73a80807-82ad-4289-8d26-b4cdd2fcd72e",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#16081",
+  "created_at": "2025-12-25T13:29:18.051Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1989/1341/contents",
+    "type": "uksi",
+    "year": 1989,
+    "number": 1341,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/1989/1341/2023-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1989,\"number\":1341,\"url\":\"http://www.legislation.gov.uk/nisi/1989/1341/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/1989/1341/2023-12-31/data.htm\"}"
+}

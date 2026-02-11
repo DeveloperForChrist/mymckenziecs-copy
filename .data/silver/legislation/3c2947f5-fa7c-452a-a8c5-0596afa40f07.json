@@ -1,0 +1,15 @@
+{
+  "id": "3c2947f5-fa7c-452a-a8c5-0596afa40f07",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#10769",
+  "created_at": "2025-12-25T12:56:40.116Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1982/1728/contents/made",
+    "type": "uksi",
+    "year": 1982,
+    "number": 1728,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1982/1728/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1982,\"number\":1728,\"url\":\"http://www.legislation.gov.uk/uksi/1982/1728/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1982/1728/made/data.htm\"}"
+}

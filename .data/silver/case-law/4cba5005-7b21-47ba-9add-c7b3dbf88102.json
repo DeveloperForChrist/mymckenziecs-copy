@@ -1,0 +1,21 @@
+{
+  "id": "4cba5005-7b21-47ba-9add-c7b3dbf88102",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "TUI UK Ltd (Respondent) v Griffiths (Appellant)",
+  "created_at": "2025-12-25T11:50:43.201Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2021-0208",
+    "score": 2,
+    "title": "TUI UK Ltd (Respondent) v Griffiths (Appellant)",
+    "summary": "Principle issue: Whether, and (if so), in what circumstances, can the court evaluate and reject what is described as an \"uncontroverted\" expert’s report?",
+    "category": "evidence_misc",
+    "citation": "UKSC/2021/0208",
+    "extracts": [
+      "1. Mr and Mrs Griffiths and their youngest son went on a package holiday to a resort in Turkey. While staying at a hotel, which offered an inclusive package of meals and facilities, Mr Griffiths suffered a serious stomach upset which has left him with long term problems. He sued the travel company. At trial Mr and Mrs Griffiths gave uncontested evidence as to fact. Mr Griffiths also led the evidence of an expert who opined that, on the balance of probabilities, the food or drink served at the hotel was the cause of Mr Griffiths’ stomach upset. The travel company defendant did not require the expert to attend for cross-examination and did not lead any evidence of its own. In his closing submissions, the travel company’s counsel argued, and persuaded the judge, that deficiencies in the expert’s report meant that the claimant had failed to prove his case on the balance of probabilities.",
+      "2. The appeal raises a question of the fairness of the trial. The question is whether the trial judge was entitled to find that the claimant had not proved his case when the claimant’s expert had given uncontroverted evidence as to the cause of the illness, which was not illogical, incoherent or inconsistent, based on any misunderstanding of the facts, or based on unrealistic assumptions, but was criticised as being incomplete in its explanations and for its failure expressly to discount on the balance of probabilities other possible causes of Mr Griffiths’ illness."
+    ],
+    "title_key": "tui uk ltd v griffiths"
+  },
+  "content": "{\"title\":\"TUI UK Ltd (Respondent) v Griffiths (Appellant)\",\"citation\":\"UKSC/2021/0208\",\"url\":\"https://supremecourt.uk/cases/uksc-2021-0208\",\"summary\":\"Principle issue: Whether, and (if so), in what circumstances, can the court evaluate and reject what is described as an \\\\\"uncontroverted\\\\\" expert’s report?\",\"extracts\":[\"1. Mr and Mrs Griffiths and their youngest son went on a package holiday to a resort in Turkey. While staying at a hotel, which offered an inclusive package of meals and facilities, Mr Griffiths suffered a serious stomach upset which has left him with long term problems. He sued the travel company. At trial Mr and Mrs Griffiths gave uncontested evidence as to fact. Mr Griffiths also led the evidence of an expert who opined that, on the balance of probabilities, the food or drink served at the hotel was the cause of Mr Griffiths’ stomach upset. The travel company defendant did not require the expert to attend for cross-examination and did not lead any evidence of its own. In his closing submissions, the travel company’s counsel argued, and persuaded the judge, that deficiencies in the expert’s report meant that the claimant had failed to prove his case on the balance of probabilities.\",\"2. The appeal raises a question of the fairness of the trial. The question is whether the trial judge was entitled to find that the claimant had not proved his case when the claimant’s expert had given uncontroverted evidence as to the cause of the illness, which was not illogical, incoherent or inconsistent, based on any misunderstanding of the facts, or based on unrealistic assumptions, but was criticised as being incomplete in its explanations and for its failure expressly to discount on the balance of probabilities other possible causes of Mr Griffiths’ illness.\"],\"category\":\"evidence_misc\",\"score\":2,\"title_key\":\"tui uk ltd v griffiths\"}"
+}

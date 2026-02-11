@@ -1,0 +1,15 @@
+{
+  "id": "53fcd5f7-2059-4a12-bf87-57a4528578d8",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#3967",
+  "created_at": "2025-12-25T12:15:45.753Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1970/36/contents",
+    "type": "ukpga",
+    "year": 1970,
+    "number": 36,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1970/36/1996-01-01/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1970,\"number\":36,\"url\":\"http://www.legislation.gov.uk/ukpga/1970/36/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1970/36/1996-01-01/data.htm\"}"
+}

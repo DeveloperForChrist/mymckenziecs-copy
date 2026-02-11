@@ -1,0 +1,21 @@
+{
+  "id": "928ba2c4-0d1b-467d-a53f-94c8f0f405d1",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Edwards (Respondent) v Kumarasamy (Appellant)",
+  "created_at": "2025-12-25T11:49:02.496Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0095",
+    "score": 1,
+    "title": "Edwards (Respondent) v Kumarasamy (Appellant)",
+    "summary": "1. This appeal concerns a repairing covenant implied into a subtenancy of a residential flat by section 11 of the Landlord and Tenant Act 1985.",
+    "category": "procedure",
+    "citation": "UKSC/2015/0095",
+    "extracts": [
+      "1. This appeal concerns a repairing covenant implied into a subtenancy of a residential flat by section 11 of the Landlord and Tenant Act 1985. It raises two issues of interpretation relating to that section, and an issue of more general application as to the need for notice before a landlord can be liable under a repairing covenant.",
+      "2. By a lease (“the Headlease”) dated 28 April 2006, the freeholder of a small block of flats known as Oakleigh Court, Boston Avenue, Runcorn (“the Building”) let Flat 10 in the Building (“the Flat”) for a term of 199 years from 1 January 2006 at a rent of £195 per annum, for a premium of £130,000. The extent of the Flat demised by the Headlease was defined by “the plastered coverings and plaster work” of the external and internal “walls and partitions” and ceilings, and “the floorboards and surfaces of the floors”. Congruently, the demise expressly excluded any of main timbers and joists, and the “framework”, of the Building, and it also excluded “the walls or partitions therein”, except “the plastered surfaces thereof”. The demise of the Flat also included certain rights “for all purposes incidental to the occupation and enjoyment of the Flat”, and those rights included the right to use “the entrance hall lift staircases and landings … giving access to the Flat”, the right to use an “access road” and a specific space in a parking area in the curtilage of the Building, and the right to use the communal dust bins."
+    ],
+    "title_key": "edwards v kumarasamy"
+  },
+  "content": "{\"title\":\"Edwards (Respondent) v Kumarasamy (Appellant)\",\"citation\":\"UKSC/2015/0095\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0095\",\"summary\":\"1. This appeal concerns a repairing covenant implied into a subtenancy of a residential flat by section 11 of the Landlord and Tenant Act 1985.\",\"extracts\":[\"1. This appeal concerns a repairing covenant implied into a subtenancy of a residential flat by section 11 of the Landlord and Tenant Act 1985. It raises two issues of interpretation relating to that section, and an issue of more general application as to the need for notice before a landlord can be liable under a repairing covenant.\",\"2. By a lease (“the Headlease”) dated 28 April 2006, the freeholder of a small block of flats known as Oakleigh Court, Boston Avenue, Runcorn (“the Building”) let Flat 10 in the Building (“the Flat”) for a term of 199 years from 1 January 2006 at a rent of £195 per annum, for a premium of £130,000. The extent of the Flat demised by the Headlease was defined by “the plastered coverings and plaster work” of the external and internal “walls and partitions” and ceilings, and “the floorboards and surfaces of the floors”. Congruently, the demise expressly excluded any of main timbers and joists, and the “framework”, of the Building, and it also excluded “the walls or partitions therein”, except “the plastered surfaces thereof”. The demise of the Flat also included certain rights “for all purposes incidental to the occupation and enjoyment of the Flat”, and those rights included the right to use “the entrance hall lift staircases and landings … giving access to the Flat”, the right to use an “access road” and a specific space in a parking area in the curtilage of the Building, and the right to use the communal dust bins.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"edwards v kumarasamy\"}"
+}

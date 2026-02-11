@@ -1,0 +1,21 @@
+{
+  "id": "1b954ffa-618e-4bca-8f95-705220fe10bd",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Bull and another (Appellants) v Hall and another (Respondents)",
+  "created_at": "2025-12-25T11:47:51.784Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0065",
+    "score": 0,
+    "title": "Bull and another (Appellants) v Hall and another (Respondents)",
+    "summary": "1. Is it lawful for a Christian hotel keeper, who sincerely believes that sexual relations outside marriage are sinful, to refuse a double-bedded room to a same sex couple?",
+    "category": "evidence_misc",
+    "citation": "UKSC/2012/0065",
+    "extracts": [
+      "1. Is it lawful for a Christian hotel keeper, who sincerely believes that sexual relations outside marriage are sinful, to refuse a double-bedded room to a same sex couple? Does it make any difference that the couple have entered into a civil partnership? These are questions which would have been unthinkable less than two decades ago. That they can now be asked is a measure of how far we have come in the recognition of same sex relationships since the repeal of section 28 of the Local Government Act 1988, in Scotland in 2000 and in England and Wales in 2003.",
+      "3. That was as far as EU law required, and still requires, it to go. But Parliament then passed the Equality Act 2006. This established the Equality and Human Rights Commission (EHRC) and extended the prohibition of discrimination on grounds of religion or belief into, among other things, the provision of goods, facilities and services. It also permitted the Secretary of State to make regulations similarly extending the scope of the prohibition of discrimination on grounds of sexual orientation. The Equality Act (Sexual Orientation) Regulations 2007, with which this case is concerned, were the result. All of this legislation has since been replaced (for a case such as this) by the Equality Act 2010, but the principles, concepts and provisions with which we are concerned have remained much the same."
+    ],
+    "title_key": "bull and another v hall and another"
+  },
+  "content": "{\"title\":\"Bull and another (Appellants) v Hall and another (Respondents)\",\"citation\":\"UKSC/2012/0065\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0065\",\"summary\":\"1. Is it lawful for a Christian hotel keeper, who sincerely believes that sexual relations outside marriage are sinful, to refuse a double-bedded room to a same sex couple?\",\"extracts\":[\"1. Is it lawful for a Christian hotel keeper, who sincerely believes that sexual relations outside marriage are sinful, to refuse a double-bedded room to a same sex couple? Does it make any difference that the couple have entered into a civil partnership? These are questions which would have been unthinkable less than two decades ago. That they can now be asked is a measure of how far we have come in the recognition of same sex relationships since the repeal of section 28 of the Local Government Act 1988, in Scotland in 2000 and in England and Wales in 2003.\",\"3. That was as far as EU law required, and still requires, it to go. But Parliament then passed the Equality Act 2006. This established the Equality and Human Rights Commission (EHRC) and extended the prohibition of discrimination on grounds of religion or belief into, among other things, the provision of goods, facilities and services. It also permitted the Secretary of State to make regulations similarly extending the scope of the prohibition of discrimination on grounds of sexual orientation. The Equality Act (Sexual Orientation) Regulations 2007, with which this case is concerned, were the result. All of this legislation has since been replaced (for a case such as this) by the Equality Act 2010, but the principles, concepts and provisions with which we are concerned have remained much the same.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"bull and another v hall and another\"}"
+}

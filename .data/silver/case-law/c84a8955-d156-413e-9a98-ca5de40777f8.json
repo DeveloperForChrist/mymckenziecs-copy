@@ -1,0 +1,21 @@
+{
+  "id": "c84a8955-d156-413e-9a98-ca5de40777f8",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Cardtronics UK Ltd and others (Respondents) v Sykes and others (Valuation Officers) (Appellants)",
+  "created_at": "2025-12-25T11:50:08.354Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0225",
+    "score": 2,
+    "title": "Cardtronics UK Ltd and others (Respondents) v Sykes and others (Valuation Officers) (Appellants)",
+    "summary": "Principle issue: Who is the rateable occupier of the site of a cash machine whose operator is a different company from the occupier of the premises in which it is located?",
+    "category": "procedure",
+    "citation": "UKSC/2018/0225",
+    "extracts": [
+      "1. The common subject matter of these appeals is the treatment for rating purposes of ATMs (or “automated teller machines”) situated in supermarkets or shops. That turns on two main issues: first, were the sites of the ATMs properly identified as separate hereditaments from the stores or shops? Secondly, if so, who was in rateable occupation? The present appeals have been designated as lead appeals. Appeals relating to some 10,000 other sites (amounting to some 34,000 appeals in all) have been stayed pending the final decision in these cases. For convenience I shall refer to the respondents collectively as “the retailers”, to include (where different) the companies operating the ATMs.",
+      "2. Different conclusions were reached at each level below. The Valuation Tribunal for England decided that in each case the sites of the ATMs were in separate rateable occupation. The Upper Tribunal (Lands Chamber) upheld that decision in respect of all the “external” machines, but not the “internal” machines. The Court of Appeal held that none of the machines, external or internal, were separately rateable."
+    ],
+    "title_key": "cardtronics uk ltd and others v sykes and others"
+  },
+  "content": "{\"title\":\"Cardtronics UK Ltd and others (Respondents) v Sykes and others (Valuation Officers) (Appellants)\",\"citation\":\"UKSC/2018/0225\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0225\",\"summary\":\"Principle issue: Who is the rateable occupier of the site of a cash machine whose operator is a different company from the occupier of the premises in which it is located?\",\"extracts\":[\"1. The common subject matter of these appeals is the treatment for rating purposes of ATMs (or “automated teller machines”) situated in supermarkets or shops. That turns on two main issues: first, were the sites of the ATMs properly identified as separate hereditaments from the stores or shops? Secondly, if so, who was in rateable occupation? The present appeals have been designated as lead appeals. Appeals relating to some 10,000 other sites (amounting to some 34,000 appeals in all) have been stayed pending the final decision in these cases. For convenience I shall refer to the respondents collectively as “the retailers”, to include (where different) the companies operating the ATMs.\",\"2. Different conclusions were reached at each level below. The Valuation Tribunal for England decided that in each case the sites of the ATMs were in separate rateable occupation. The Upper Tribunal (Lands Chamber) upheld that decision in respect of all the “external” machines, but not the “internal” machines. The Court of Appeal held that none of the machines, external or internal, were separately rateable.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"cardtronics uk ltd and others v sykes and others\"}"
+}

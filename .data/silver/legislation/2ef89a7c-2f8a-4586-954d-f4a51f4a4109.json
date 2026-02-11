@@ -1,0 +1,15 @@
+{
+  "id": "2ef89a7c-2f8a-4586-954d-f4a51f4a4109",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#10582",
+  "created_at": "2025-12-25T12:55:33.464Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1981/1818/contents/made",
+    "type": "uksi",
+    "year": 1981,
+    "number": 1818,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1981,\"number\":1818,\"url\":\"http://www.legislation.gov.uk/uksi/1981/1818/contents/made\",\"dataUrl\":null}"
+}

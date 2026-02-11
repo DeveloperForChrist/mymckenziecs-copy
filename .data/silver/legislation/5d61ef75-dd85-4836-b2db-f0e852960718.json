@@ -1,0 +1,15 @@
+{
+  "id": "5d61ef75-dd85-4836-b2db-f0e852960718",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#1858",
+  "created_at": "2025-12-25T12:02:38.306Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo5and1Edw8/26/2/contents",
+    "type": "ukpga",
+    "year": 1935,
+    "number": 2,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/Geo5and1Edw8/26/2/1998-11-19/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1935,\"number\":2,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo5and1Edw8/26/2/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/Geo5and1Edw8/26/2/1998-11-19/data.htm\"}"
+}

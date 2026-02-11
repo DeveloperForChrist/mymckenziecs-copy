@@ -1,0 +1,21 @@
+{
+  "id": "5370f8b2-facf-4776-b889-27dfc83d8221",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Nuclear Decommissioning Authority (Appellant) v\n                  EnergySolutions EU Ltd (now called ATK Energy EU Ltd) (Respondent)",
+  "created_at": "2025-12-25T11:49:16.731Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0006",
+    "score": 3,
+    "title": "Nuclear Decommissioning Authority (Appellant) v\n                  EnergySolutions EU Ltd (now called ATK Energy EU Ltd) (Respondent)",
+    "summary": "1. This is an appeal on preliminary points of European Union and domestic law regarding the circumstances in which damages may be recoverable for failure to comply with the requirements of the Public Procurement Directive (Parliament and Council Directive 2004/18/EC on the coordination of procedu...",
+    "category": "procedure",
+    "citation": "UKSC/2016/0006",
+    "extracts": [
+      "1. This is an appeal on preliminary points of European Union and domestic law regarding the circumstances in which damages may be recoverable for failure to comply with the requirements of the Public Procurement Directive (Parliament and Council Directive 2004/18/EC on the coordination of procedures for the award of public works contracts, public supply contracts and public service contracts (OJ 2004 L134, p114) (“the PP Directive”)), as given effect in the United Kingdom by the Public Contracts Regulations 2006 (SI 2006/5) (“the 2006 Regulations”).",
+      "2. As recited in the Statement of Facts and Issues, the appellant, the Nuclear Decommissioning Authority (“the NDA”) is a non-departmental public body established under the Energy Act 2004 (“the EA 2004”), and is responsible for 17 nuclear sites and the associated civil nuclear assets and liabilities formerly owned by the UK Atomic Energy Authority and British Nuclear Fuels Ltd. Pursuant to its duties under the EA 2004, the appellant is responsible for ensuring that, once decommissioned, sites previously used for nuclear generation are made suitable to be used for other purposes. The respondent, ATK Energy EU Ltd (“ATK”), provides integrated waste management and decommissioning services for the nuclear industry."
+    ],
+    "title_key": "nuclear decommissioning authority v energysolutions eu ltd"
+  },
+  "content": "{\"title\":\"Nuclear Decommissioning Authority (Appellant) v\\\\n                  EnergySolutions EU Ltd (now called ATK Energy EU Ltd) (Respondent)\",\"citation\":\"UKSC/2016/0006\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0006\",\"summary\":\"1. This is an appeal on preliminary points of European Union and domestic law regarding the circumstances in which damages may be recoverable for failure to comply with the requirements of the Public Procurement Directive (Parliament and Council Directive 2004/18/EC on the coordination of procedu...\",\"extracts\":[\"1. This is an appeal on preliminary points of European Union and domestic law regarding the circumstances in which damages may be recoverable for failure to comply with the requirements of the Public Procurement Directive (Parliament and Council Directive 2004/18/EC on the coordination of procedures for the award of public works contracts, public supply contracts and public service contracts (OJ 2004 L134, p114) (“the PP Directive”)), as given effect in the United Kingdom by the Public Contracts Regulations 2006 (SI 2006/5) (“the 2006 Regulations”).\",\"2. As recited in the Statement of Facts and Issues, the appellant, the Nuclear Decommissioning Authority (“the NDA”) is a non-departmental public body established under the Energy Act 2004 (“the EA 2004”), and is responsible for 17 nuclear sites and the associated civil nuclear assets and liabilities formerly owned by the UK Atomic Energy Authority and British Nuclear Fuels Ltd. Pursuant to its duties under the EA 2004, the appellant is responsible for ensuring that, once decommissioned, sites previously used for nuclear generation are made suitable to be used for other purposes. The respondent, ATK Energy EU Ltd (“ATK”), provides integrated waste management and decommissioning services for the nuclear industry.\"],\"category\":\"procedure\",\"score\":3,\"title_key\":\"nuclear decommissioning authority v energysolutions eu ltd\"}"
+}

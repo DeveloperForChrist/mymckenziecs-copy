@@ -1,0 +1,15 @@
+{
+  "id": "3db69a9c-a53c-4d41-bc6f-bf7d0c5c4ffb",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#22216",
+  "created_at": "2025-12-25T14:08:53.559Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2006/3472/contents",
+    "type": "uksi",
+    "year": 2006,
+    "number": 3472,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2006/3472/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2006,\"number\":3472,\"url\":\"http://www.legislation.gov.uk/uksi/2006/3472/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2006/3472/2020-12-31/data.htm\"}"
+}

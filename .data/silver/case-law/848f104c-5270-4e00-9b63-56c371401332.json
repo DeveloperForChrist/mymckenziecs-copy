@@ -1,0 +1,21 @@
+{
+  "id": "848f104c-5270-4e00-9b63-56c371401332",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Polmear and another (Appellants) v Royal Cornwall Hospitals NHS Trust (Respondent)",
+  "created_at": "2025-12-25T11:50:46.505Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2022-0044",
+    "score": 0,
+    "title": "Polmear and another (Appellants) v Royal Cornwall Hospitals NHS Trust (Respondent)",
+    "summary": "Principle issue: Can an individual make a claim for psychiatric injury caused by witnessing the death or other horrifying event of a close relative as a result of earlier clinical negligence?",
+    "category": "evidence_misc",
+    "citation": "UKSC/2022/0044",
+    "extracts": [
+      "1. We all die and, when we do, the fact or manner of our deaths may cause harm to other people. Often such harm is readily foreseeable. We all know that the death of someone’s child, or of their partner, or of a young child’s parent, will cause grief and suffering and can have prolonged and profound effects on physical and mental health. Death may also have damaging, even ruinous, financial consequences for family members or others who were dependent economically on the deceased.",
+      "2. Under the common law the rule was that “in a civil court, the death of a human being could not be complained of as an injury” by another person: Baker v Bolton (1808) 1 Camp 493 (Lord Ellenborough); Admiralty Comrs v SS Amerika [1917] AC 38. This is still the general rule. The same rule applies where the victim does not die but is severely injured. Essentially, the common law does not recognise one person as having any legally compensable interest in the physical well-being of another. The law affords compensation to the victim but not to others who suffer harm in consequence of the victim’s injuries or death, however severely affected they may be: see eg D v East Berkshire Community Health NHS Trust [2005] UKHL 23, [2005] 2 AC 373, paras 102- 105."
+    ],
+    "title_key": "polmear and another v royal cornwall hospitals nhs trust"
+  },
+  "content": "{\"title\":\"Polmear and another (Appellants) v Royal Cornwall Hospitals NHS Trust (Respondent)\",\"citation\":\"UKSC/2022/0044\",\"url\":\"https://supremecourt.uk/cases/uksc-2022-0044\",\"summary\":\"Principle issue: Can an individual make a claim for psychiatric injury caused by witnessing the death or other horrifying event of a close relative as a result of earlier clinical negligence?\",\"extracts\":[\"1. We all die and, when we do, the fact or manner of our deaths may cause harm to other people. Often such harm is readily foreseeable. We all know that the death of someone’s child, or of their partner, or of a young child’s parent, will cause grief and suffering and can have prolonged and profound effects on physical and mental health. Death may also have damaging, even ruinous, financial consequences for family members or others who were dependent economically on the deceased.\",\"2. Under the common law the rule was that “in a civil court, the death of a human being could not be complained of as an injury” by another person: Baker v Bolton (1808) 1 Camp 493 (Lord Ellenborough); Admiralty Comrs v SS Amerika [1917] AC 38. This is still the general rule. The same rule applies where the victim does not die but is severely injured. Essentially, the common law does not recognise one person as having any legally compensable interest in the physical well-being of another. The law affords compensation to the victim but not to others who suffer harm in consequence of the victim’s injuries or death, however severely affected they may be: see eg D v East Berkshire Community Health NHS Trust [2005] UKHL 23, [2005] 2 AC 373, paras 102- 105.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"polmear and another v royal cornwall hospitals nhs trust\"}"
+}

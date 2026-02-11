@@ -1,0 +1,21 @@
+{
+  "id": "16334133-f916-411e-984c-6bea44b1bef9",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Ivey (Appellant) v Genting Casinos (UK) Ltd t/a Crockfords (Respondent)",
+  "created_at": "2025-12-25T11:49:35.724Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0213",
+    "score": 0,
+    "title": "Ivey (Appellant) v Genting Casinos (UK) Ltd t/a Crockfords (Respondent)",
+    "summary": "1. This case, in which a professional gambler sues a casino for winnings at Punto Banco Baccarat, raises questions about (1) the meaning of the concept of cheating at gambling, (2) the relevance to it of dishonesty, and (3) the proper test for dishonesty if such is an essential element of cheating.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2016/0213",
+    "extracts": [
+      "1. This case, in which a professional gambler sues a casino for winnings at Punto Banco Baccarat, raises questions about (1) the meaning of the concept of cheating at gambling, (2) the relevance to it of dishonesty, and (3) the proper test for dishonesty if such is an essential element of cheating.",
+      "2. Over two days in August 2012 Mr Ivey, the claimant in this case, deployed a highly specialist technique called edge-sorting which had the effect of greatly improving his chances of winning. He had the help of another professional gambler, Cheung Yin Sun (“Ms Sun”). First they set up the conditions which enabled him to win. Then, later that evening and the following day, over the course of some hours, he won approximately £7.7m. The casino declined to pay, taking the view that what he had done amounted to cheating. His case is that it was not cheating, but deployment of a perfectly legitimate advantage."
+    ],
+    "title_key": "ivey v genting casinos ltd t a crockfords"
+  },
+  "content": "{\"title\":\"Ivey (Appellant) v Genting Casinos (UK) Ltd t/a Crockfords (Respondent)\",\"citation\":\"UKSC/2016/0213\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0213\",\"summary\":\"1. This case, in which a professional gambler sues a casino for winnings at Punto Banco Baccarat, raises questions about (1) the meaning of the concept of cheating at gambling, (2) the relevance to it of dishonesty, and (3) the proper test for dishonesty if such is an essential element of cheating.\",\"extracts\":[\"1. This case, in which a professional gambler sues a casino for winnings at Punto Banco Baccarat, raises questions about (1) the meaning of the concept of cheating at gambling, (2) the relevance to it of dishonesty, and (3) the proper test for dishonesty if such is an essential element of cheating.\",\"2. Over two days in August 2012 Mr Ivey, the claimant in this case, deployed a highly specialist technique called edge-sorting which had the effect of greatly improving his chances of winning. He had the help of another professional gambler, Cheung Yin Sun (“Ms Sun”). First they set up the conditions which enabled him to win. Then, later that evening and the following day, over the course of some hours, he won approximately £7.7m. The casino declined to pay, taking the view that what he had done amounted to cheating. His case is that it was not cheating, but deployment of a perfectly legitimate advantage.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"ivey v genting casinos ltd t a crockfords\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "5255f02c-b1fb-41ce-87c2-b865a05e3fa2",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7810",
+  "created_at": "2025-12-25T12:39:04.945Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1959/1982/contents/made",
+    "type": "uksi",
+    "year": 1959,
+    "number": 1982,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1959,\"number\":1982,\"url\":\"http://www.legislation.gov.uk/uksi/1959/1982/contents/made\",\"dataUrl\":null}"
+}

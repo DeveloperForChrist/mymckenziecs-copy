@@ -1,0 +1,15 @@
+{
+  "id": "9d240e07-8e88-4505-b5bf-f3435b1e41dd",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#2832",
+  "created_at": "2025-12-25T12:08:54.101Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo6and1Eliz2/15-16/37/contents",
+    "type": "ukpga",
+    "year": 1952,
+    "number": 37,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/Geo6and1Eliz2/15-16/37/2016-03-23/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1952,\"number\":37,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo6and1Eliz2/15-16/37/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/Geo6and1Eliz2/15-16/37/2016-03-23/data.htm\"}"
+}

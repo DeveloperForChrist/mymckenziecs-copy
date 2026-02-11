@@ -1,0 +1,15 @@
+{
+  "id": "61e18ca0-ac78-403e-8888-19728e6aebfc",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#27786",
+  "created_at": "2025-12-25T14:48:25.673Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2020/770/made",
+    "type": "uksi",
+    "year": 2020,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2020,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2020/770/made\",\"dataUrl\":null}"
+}

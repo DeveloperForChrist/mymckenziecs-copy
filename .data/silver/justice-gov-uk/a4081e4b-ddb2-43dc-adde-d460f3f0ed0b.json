@@ -1,0 +1,13 @@
+{
+  "id": "a4081e4b-ddb2-43dc-adde-d460f3f0ed0b",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#83",
+  "created_at": "2025-12-25T15:20:21.025Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part31/practice-direction-31c-disclosure-and-inspection-in-relation-to-competition-claims",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part31_practice_direction__8e66a2b846.html",
+    "fetchedAt": "2025-12-22T23:49:29.136Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part31/practice-direction-31c-disclosure-and-inspection-in-relation-to-competition-claims\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part31_practice_direction__8e66a2b846.html\",\"fetchedAt\":\"2025-12-22T23:49:29.136Z\"}"
+}

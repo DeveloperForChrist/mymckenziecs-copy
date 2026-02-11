@@ -1,0 +1,21 @@
+{
+  "id": "dcc6627d-90b0-46db-b062-773f3831a8d1",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Samuel Smith Old Brewery (Tadcaster) and others) (Respondents) v North Yorkshire County Council (Appellant)",
+  "created_at": "2025-12-25T11:49:57.783Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0077",
+    "score": 1,
+    "title": "R (on the application of Samuel Smith Old Brewery (Tadcaster) and others) (Respondents) v North Yorkshire County Council (Appellant)",
+    "summary": "Principle issue: Whether the appellant council misapplied paragraph 90 of the National Planning Policy Framework when considering mineral extraction in the Green Belt.",
+    "category": "procedure",
+    "citation": "UKSC/2018/0077",
+    "extracts": [
+      "1. The short point in this appeal is whether the appellant county council, as local planning authority, correctly understood the meaning of the word “openness” in the national planning policies applying to mineral working in the Green Belt, as expressed in the National Planning Policy Framework (“NPPF”). The Court of Appeal ([2018] EWCA Civ 489), disagreeing with Hickinbottom J ([2017] EWHC 442 (Admin)) in the High Court, held that, in granting planning permission for the extension of a quarry, the council had been misled by defective advice given by their planning officer. In the words of Lindblom LJ, giving the leading judgment:",
+      "“It was defective, at least, in failing to make clear to the members that, under government planning policy for mineral extraction in the Green Belt in para 90 of the NPPF, visual impact was a potentially relevant and potentially significant factor in their approach to the effect of the development on the ‘openness of the Green Belt’, …” (para 49, per Lindblom LJ)"
+    ],
+    "title_key": "r and others v north yorkshire county council"
+  },
+  "content": "{\"title\":\"R (on the application of Samuel Smith Old Brewery (Tadcaster) and others) (Respondents) v North Yorkshire County Council (Appellant)\",\"citation\":\"UKSC/2018/0077\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0077\",\"summary\":\"Principle issue: Whether the appellant council misapplied paragraph 90 of the National Planning Policy Framework when considering mineral extraction in the Green Belt.\",\"extracts\":[\"1. The short point in this appeal is whether the appellant county council, as local planning authority, correctly understood the meaning of the word “openness” in the national planning policies applying to mineral working in the Green Belt, as expressed in the National Planning Policy Framework (“NPPF”). The Court of Appeal ([2018] EWCA Civ 489), disagreeing with Hickinbottom J ([2017] EWHC 442 (Admin)) in the High Court, held that, in granting planning permission for the extension of a quarry, the council had been misled by defective advice given by their planning officer. In the words of Lindblom LJ, giving the leading judgment:\",\"“It was defective, at least, in failing to make clear to the members that, under government planning policy for mineral extraction in the Green Belt in para 90 of the NPPF, visual impact was a potentially relevant and potentially significant factor in their approach to the effect of the development on the ‘openness of the Green Belt’, …” (para 49, per Lindblom LJ)\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r and others v north yorkshire county council\"}"
+}

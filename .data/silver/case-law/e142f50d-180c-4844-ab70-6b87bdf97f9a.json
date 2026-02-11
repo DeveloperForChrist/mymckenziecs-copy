@@ -1,0 +1,21 @@
+{
+  "id": "e142f50d-180c-4844-ab70-6b87bdf97f9a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Roberts (FC) (Appellant) v Gill & Co Solicitors and others (Respondents)",
+  "created_at": "2025-12-25T11:46:40.604Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0071",
+    "score": 1,
+    "title": "Roberts (FC) (Appellant) v Gill & Co Solicitors and others (Respondents)",
+    "summary": "1. This appeal concerns a claim by a beneficiary under a will for negligence against solicitors who, he claims, allowed his brother, also a beneficiary and then the administrator of the estate, to acquire and dispose of land which should have been part of the residuary estate.",
+    "category": "procedure",
+    "citation": "UKSC/2009/0071",
+    "extracts": [
+      "1. This appeal concerns a claim by a beneficiary under a will for negligence against solicitors who, he claims, allowed his brother, also a beneficiary and then the administrator of the estate, to acquire and dispose of land which should have been part of the residuary estate. The claim was begun in a personal capacity, but it is now accepted that a claim that the solicitors owed a duty of care to beneficiaries would be difficult to sustain, and the claimant seeks to amend the proceedings to claim in a representative capacity on behalf of the estate. The events of which the claimant complains happened 13 or 14 years ago.",
+      "3. But section 35 has been described as being “without doubt one of the most convoluted provisions in the entire law of limitations” (McGee, Limitation Periods, 5th ed 2006, para 23.003). That is no doubt why there have been more than 25 decisions of the Court of Appeal on section 35 and the rules of court."
+    ],
+    "title_key": "roberts v gill co solicitors and others"
+  },
+  "content": "{\"title\":\"Roberts (FC) (Appellant) v Gill & Co Solicitors and others (Respondents)\",\"citation\":\"UKSC/2009/0071\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0071\",\"summary\":\"1. This appeal concerns a claim by a beneficiary under a will for negligence against solicitors who, he claims, allowed his brother, also a beneficiary and then the administrator of the estate, to acquire and dispose of land which should have been part of the residuary estate.\",\"extracts\":[\"1. This appeal concerns a claim by a beneficiary under a will for negligence against solicitors who, he claims, allowed his brother, also a beneficiary and then the administrator of the estate, to acquire and dispose of land which should have been part of the residuary estate. The claim was begun in a personal capacity, but it is now accepted that a claim that the solicitors owed a duty of care to beneficiaries would be difficult to sustain, and the claimant seeks to amend the proceedings to claim in a representative capacity on behalf of the estate. The events of which the claimant complains happened 13 or 14 years ago.\",\"3. But section 35 has been described as being “without doubt one of the most convoluted provisions in the entire law of limitations” (McGee, Limitation Periods, 5th ed 2006, para 23.003). That is no doubt why there have been more than 25 decisions of the Court of Appeal on section 35 and the rules of court.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"roberts v gill co solicitors and others\"}"
+}

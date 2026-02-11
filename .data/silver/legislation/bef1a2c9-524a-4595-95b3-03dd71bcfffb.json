@@ -1,0 +1,15 @@
+{
+  "id": "bef1a2c9-524a-4595-95b3-03dd71bcfffb",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20698",
+  "created_at": "2025-12-25T13:58:05.430Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2000/3370/contents/made",
+    "type": "uksi",
+    "year": 2000,
+    "number": 3370,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2000/3370/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2000,\"number\":3370,\"url\":\"http://www.legislation.gov.uk/uksi/2000/3370/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2000/3370/made/data.htm\"}"
+}

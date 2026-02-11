@@ -1,0 +1,15 @@
+{
+  "id": "89d39da2-9015-47ed-982a-f07ca2f44b53",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7507",
+  "created_at": "2025-12-25T12:37:23.845Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1956/1996/contents/made",
+    "type": "uksi",
+    "year": 1956,
+    "number": 1996,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1956,\"number\":1996,\"url\":\"http://www.legislation.gov.uk/uksi/1956/1996/contents/made\",\"dataUrl\":null}"
+}

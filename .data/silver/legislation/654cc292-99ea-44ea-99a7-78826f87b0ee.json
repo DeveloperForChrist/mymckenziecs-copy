@@ -1,0 +1,15 @@
+{
+  "id": "654cc292-99ea-44ea-99a7-78826f87b0ee",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#29408",
+  "created_at": "2025-12-25T15:00:16.116Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2022/551/made",
+    "type": "uksi",
+    "year": 2022,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2022,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2022/551/made\",\"dataUrl\":null}"
+}

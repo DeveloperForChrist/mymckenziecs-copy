@@ -1,0 +1,21 @@
+{
+  "id": "a78b8fd0-f4ae-4044-b2b0-483024c5cc45",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "HXA (Respondent) v Surrey County Council (Appellant)",
+  "created_at": "2025-12-25T11:50:52.948Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2022-0149",
+    "score": 1,
+    "title": "HXA (Respondent) v Surrey County Council (Appellant)",
+    "summary": "Principle issue: In each of the appeals, is it arguable that the local authority Appellant owed the Respondent (a minor at the relevant times) a common law duty of care to protect them from harm on the basis that the Respondent had assumed responsibility to protect them from such harm?",
+    "category": "procedure",
+    "citation": "UKSC/2022/0149",
+    "extracts": [
+      "THE COURT ORDERED that no one shall publish or reveal the name or address of the Respondents or publish or reveal any information which would be likely to lead to the identification of the Respondents or of any member of their families in connection with these proceedings.",
+      "1. These two cases are concerned with claims in the tort of negligence brought against local authorities by HXA and YXA, who were children when they suffered sexual or physical abuse by a parent or parent’s partner. It is alleged that the local authorities owed a common law duty of care to the claimants, when children, to protect them from that harm. The liability of local authorities in the tort of negligence for a failure to protect against harm by a third party has been explored and clarified by this court, in the context of alleged failures by a local authority’s social services department, in N v Poole Borough Council [2019] UKSC 25, [2020] AC 780 (“N v Poole”). The decisions in these cases turn on the application of the decision and reasoning in that leading case."
+    ],
+    "title_key": "hxa v surrey county council"
+  },
+  "content": "{\"title\":\"HXA (Respondent) v Surrey County Council (Appellant)\",\"citation\":\"UKSC/2022/0149\",\"url\":\"https://supremecourt.uk/cases/uksc-2022-0149\",\"summary\":\"Principle issue: In each of the appeals, is it arguable that the local authority Appellant owed the Respondent (a minor at the relevant times) a common law duty of care to protect them from harm on the basis that the Respondent had assumed responsibility to protect them from such harm?\",\"extracts\":[\"THE COURT ORDERED that no one shall publish or reveal the name or address of the Respondents or publish or reveal any information which would be likely to lead to the identification of the Respondents or of any member of their families in connection with these proceedings.\",\"1. These two cases are concerned with claims in the tort of negligence brought against local authorities by HXA and YXA, who were children when they suffered sexual or physical abuse by a parent or parent’s partner. It is alleged that the local authorities owed a common law duty of care to the claimants, when children, to protect them from that harm. The liability of local authorities in the tort of negligence for a failure to protect against harm by a third party has been explored and clarified by this court, in the context of alleged failures by a local authority’s social services department, in N v Poole Borough Council [2019] UKSC 25, [2020] AC 780 (“N v Poole”). The decisions in these cases turn on the application of the decision and reasoning in that leading case.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"hxa v surrey county council\"}"
+}

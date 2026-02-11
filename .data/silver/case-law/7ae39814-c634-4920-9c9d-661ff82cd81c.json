@@ -1,0 +1,21 @@
+{
+  "id": "7ae39814-c634-4920-9c9d-661ff82cd81c",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Stoffel & Co (Appellant) v Grondona\n                  (Respondent)",
+  "created_at": "2025-12-25T11:50:05.559Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0187",
+    "score": 1,
+    "title": "Stoffel & Co (Appellant) v Grondona\n                  (Respondent)",
+    "summary": "Principle issue: The issue for the Supreme Court is whether the Court of Appeal: erred in its application of the Patel v Mirza guidelines.",
+    "category": "procedure",
+    "citation": "UKSC/2018/0187",
+    "extracts": [
+      "2. On or about 1 March 2000, Ms Maria Grondona (“the respondent”) entered into an agreement (“the 2000 agreement”) with Mr C L Mitchell (“Mitchell”), with whom she had a business relationship, relating to four properties: 73b Beulah Road; 362 High Road, “Tottingham” (sic); and 12 and 12A Cator Road. The 2000 agreement provided:",
+      "“I Maria Grondona agree to have in my name mortgage loans in the above mentioned properties with the understanding and agreement that Mr CL Mitchell of Flat 2, 2 Silverdale, London SE26 4SZ will carry out the following tasks:"
+    ],
+    "title_key": "stoffel co v grondona"
+  },
+  "content": "{\"title\":\"Stoffel & Co (Appellant) v Grondona\\\\n                  (Respondent)\",\"citation\":\"UKSC/2018/0187\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0187\",\"summary\":\"Principle issue: The issue for the Supreme Court is whether the Court of Appeal: erred in its application of the Patel v Mirza guidelines.\",\"extracts\":[\"2. On or about 1 March 2000, Ms Maria Grondona (“the respondent”) entered into an agreement (“the 2000 agreement”) with Mr C L Mitchell (“Mitchell”), with whom she had a business relationship, relating to four properties: 73b Beulah Road; 362 High Road, “Tottingham” (sic); and 12 and 12A Cator Road. The 2000 agreement provided:\",\"“I Maria Grondona agree to have in my name mortgage loans in the above mentioned properties with the understanding and agreement that Mr CL Mitchell of Flat 2, 2 Silverdale, London SE26 4SZ will carry out the following tasks:\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"stoffel co v grondona\"}"
+}

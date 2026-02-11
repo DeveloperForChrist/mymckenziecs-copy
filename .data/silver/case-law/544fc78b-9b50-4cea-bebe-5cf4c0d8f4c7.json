@@ -1,0 +1,21 @@
+{
+  "id": "544fc78b-9b50-4cea-bebe-5cf4c0d8f4c7",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Progress Property Company Limited (Appellant) v Moorgarth Group Limited (Respondent)",
+  "created_at": "2025-12-25T11:46:47.809Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0146",
+    "score": 0,
+    "title": "Progress Property Company Limited (Appellant) v Moorgarth Group Limited (Respondent)",
+    "summary": "1. A limited company not in liquidation cannot lawfully return capital to its shareholders except by way of a reduction of capital approved by the court.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2009/0146",
+    "extracts": [
+      "1. A limited company not in liquidation cannot lawfully return capital to its shareholders except by way of a reduction of capital approved by the court. Profits may be distributed to shareholders (normally by way of dividend) but only out of distributable profits computed in accordance with the complicated provisions of the Companies Act 2006 (replacing similar provisions in the Companies Act 1985). Whether a transaction amounts to an unlawful distribution of capital is not simply a matter of form. As Hoffmann J said in Aveling Barford Ltd v Perion Ltd [1989] BCLC 626, 631,",
+      "“Whether or not the transaction is a distribution to shareholders does not depend exclusively on what the parties choose to call it. The court looks at the substance rather than the outward appearance.”"
+    ],
+    "title_key": "progress property company limited v moorgarth group limited"
+  },
+  "content": "{\"title\":\"Progress Property Company Limited (Appellant) v Moorgarth Group Limited (Respondent)\",\"citation\":\"UKSC/2009/0146\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0146\",\"summary\":\"1. A limited company not in liquidation cannot lawfully return capital to its shareholders except by way of a reduction of capital approved by the court.\",\"extracts\":[\"1. A limited company not in liquidation cannot lawfully return capital to its shareholders except by way of a reduction of capital approved by the court. Profits may be distributed to shareholders (normally by way of dividend) but only out of distributable profits computed in accordance with the complicated provisions of the Companies Act 2006 (replacing similar provisions in the Companies Act 1985). Whether a transaction amounts to an unlawful distribution of capital is not simply a matter of form. As Hoffmann J said in Aveling Barford Ltd v Perion Ltd [1989] BCLC 626, 631,\",\"“Whether or not the transaction is a distribution to shareholders does not depend exclusively on what the parties choose to call it. The court looks at the substance rather than the outward appearance.”\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"progress property company limited v moorgarth group limited\"}"
+}

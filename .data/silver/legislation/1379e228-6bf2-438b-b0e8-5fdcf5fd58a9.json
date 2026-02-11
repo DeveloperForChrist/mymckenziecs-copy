@@ -1,0 +1,15 @@
+{
+  "id": "1379e228-6bf2-438b-b0e8-5fdcf5fd58a9",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#22127",
+  "created_at": "2025-12-25T14:08:11.655Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2005/901/contents/made",
+    "type": "uksi",
+    "year": 2005,
+    "number": 901,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2005/901/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2005,\"number\":901,\"url\":\"http://www.legislation.gov.uk/uksi/2005/901/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2005/901/made/data.htm\"}"
+}

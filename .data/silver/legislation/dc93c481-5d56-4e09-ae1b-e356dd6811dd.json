@@ -1,0 +1,15 @@
+{
+  "id": "dc93c481-5d56-4e09-ae1b-e356dd6811dd",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#25344",
+  "created_at": "2025-12-25T14:30:51.481Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2016/981/contents",
+    "type": "uksi",
+    "year": 2016,
+    "number": 981,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2016/981/2024-05-28/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2016,\"number\":981,\"url\":\"http://www.legislation.gov.uk/uksi/2016/981/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2016/981/2024-05-28/data.htm\"}"
+}

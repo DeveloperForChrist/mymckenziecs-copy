@@ -1,0 +1,21 @@
+{
+  "id": "cba6e3b0-58c4-4121-b4dd-51aa80536270",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Sharp Corp Ltd (Respondent) v Viterra BV (previously known as Glencore Agriculture BV) (Appellant)",
+  "created_at": "2025-12-25T11:50:55.052Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2023-0029",
+    "score": 2,
+    "title": "Sharp Corp Ltd (Respondent) v Viterra BV (previously known as Glencore Agriculture BV) (Appellant)",
+    "summary": "Principle issue: \"Where goods sold Cost & Freight free out are located at their discharge port, on the date of the buyer's default, in the circumstances as found by the GAFTA Appeal Board in the Awards, is \"the actual or estimated value of the goods, on the date of default\" under sub-clause (c) of the GAFTA Default Clause to be assessed by reference to:\n\na) The market value of goods at that discharge port (where they are located on the date of default); or\n\nb) The theoretical cost on the date of default of (i) buying those goods Free on Board at the original port of shipment plus (ii) the market freight rate for transporting the goods from that port to the discharge port free out?\"",
+    "category": "contract_consumer",
+    "citation": "UKSC/2023/0029",
+    "extracts": [
+      "1. This appeal and cross-appeal arise out of two Grain and Feed Trade Association (“GAFTA”) appeal awards relating to Cost & Freight free out (“C&FFO”) Mundra sales made of pulses by the appellant seller, Viterra BV (“the Sellers”), to the respondent buyer, Sharp Corporation Ltd (“the Buyers”).",
+      "2. The appeal concerns the jurisdiction of the court on appeals from arbitration awards under the Arbitration Act 1996 (“the Act”). In particular, it is contended that the Court of Appeal erred in (i) amending the question of law for which permission to appeal had been given; (ii) deciding a question of law which the GAFTA Appeal Board (“the Appeal Board”) was not asked to determine and on which it did not make a decision, and (iii) in making findings of fact on matters on which the Appeal Board had made no finding."
+    ],
+    "title_key": "sharp corp ltd v viterra bv"
+  },
+  "content": "{\"title\":\"Sharp Corp Ltd (Respondent) v Viterra BV (previously known as Glencore Agriculture BV) (Appellant)\",\"citation\":\"UKSC/2023/0029\",\"url\":\"https://supremecourt.uk/cases/uksc-2023-0029\",\"summary\":\"Principle issue: \\\\\"Where goods sold Cost & Freight free out are located at their discharge port, on the date of the buyer's default, in the circumstances as found by the GAFTA Appeal Board in the Awards, is \\\\\"the actual or estimated value of the goods, on the date of default\\\\\" under sub-clause (c) of the GAFTA Default Clause to be assessed by reference to:\\\\n\\\\na) The market value of goods at that discharge port (where they are located on the date of default); or\\\\n\\\\nb) The theoretical cost on the date of default of (i) buying those goods Free on Board at the original port of shipment plus (ii) the market freight rate for transporting the goods from that port to the discharge port free out?\\\\\"\",\"extracts\":[\"1. This appeal and cross-appeal arise out of two Grain and Feed Trade Association (“GAFTA”) appeal awards relating to Cost & Freight free out (“C&FFO”) Mundra sales made of pulses by the appellant seller, Viterra BV (“the Sellers”), to the respondent buyer, Sharp Corporation Ltd (“the Buyers”).\",\"2. The appeal concerns the jurisdiction of the court on appeals from arbitration awards under the Arbitration Act 1996 (“the Act”). In particular, it is contended that the Court of Appeal erred in (i) amending the question of law for which permission to appeal had been given; (ii) deciding a question of law which the GAFTA Appeal Board (“the Appeal Board”) was not asked to determine and on which it did not make a decision, and (iii) in making findings of fact on matters on which the Appeal Board had made no finding.\"],\"category\":\"contract_consumer\",\"score\":2,\"title_key\":\"sharp corp ltd v viterra bv\"}"
+}

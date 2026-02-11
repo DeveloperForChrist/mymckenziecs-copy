@@ -1,0 +1,21 @@
+{
+  "id": "6c1d2a92-b12b-491d-9755-425ce0b399a4",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Fylde Coast Farms Ltd (formerly Oyston Estates Ltd)) v Fylde Borough Council (Respondent)",
+  "created_at": "2025-12-25T11:50:17.777Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2019-0167",
+    "score": 1,
+    "title": "R (on the application of Fylde Coast Farms Ltd (formerly Oyston Estates Ltd)) v Fylde Borough Council (Respondent)",
+    "summary": "Principle issue: Whether section 61N of the Town and Country Planning Act 1990 should be interpreted to mean that the Appellant’s application for judicial review was made out of time.",
+    "category": "procedure",
+    "citation": "UKSC/2019/0167",
+    "extracts": [
+      "1. This appeal raises a single short point about the interpretation and effect of section 61N of the Town and Country Planning Act 1990 (“the TCPA”), which is headed “Legal challenges in relation to neighbourhood development orders”. Its provisions apply also to legal challenges in relation to neighbourhood development plans, and it was to the making of such a plan that the legal challenge in the present case related.",
+      "2. Speaking generally, the making of neighbourhood development orders or plans requires the taking of what may loosely be described as seven consecutive steps, mainly by the relevant local planning authority. They are, in summary:"
+    ],
+    "title_key": "r v fylde borough council"
+  },
+  "content": "{\"title\":\"R (on the application of Fylde Coast Farms Ltd (formerly Oyston Estates Ltd)) v Fylde Borough Council (Respondent)\",\"citation\":\"UKSC/2019/0167\",\"url\":\"https://supremecourt.uk/cases/uksc-2019-0167\",\"summary\":\"Principle issue: Whether section 61N of the Town and Country Planning Act 1990 should be interpreted to mean that the Appellant’s application for judicial review was made out of time.\",\"extracts\":[\"1. This appeal raises a single short point about the interpretation and effect of section 61N of the Town and Country Planning Act 1990 (“the TCPA”), which is headed “Legal challenges in relation to neighbourhood development orders”. Its provisions apply also to legal challenges in relation to neighbourhood development plans, and it was to the making of such a plan that the legal challenge in the present case related.\",\"2. Speaking generally, the making of neighbourhood development orders or plans requires the taking of what may loosely be described as seven consecutive steps, mainly by the relevant local planning authority. They are, in summary:\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v fylde borough council\"}"
+}

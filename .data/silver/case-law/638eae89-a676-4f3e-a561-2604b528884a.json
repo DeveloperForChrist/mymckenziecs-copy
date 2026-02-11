@@ -1,0 +1,21 @@
+{
+  "id": "638eae89-a676-4f3e-a561-2604b528884a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Potanina (Respondent) v Potanin (Appellant)",
+  "created_at": "2025-12-25T11:50:39.207Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2021-0130",
+    "score": 1,
+    "title": "Potanina (Respondent) v Potanin (Appellant)",
+    "summary": "Principle issue: Should the court have granted the wife permission to apply for financial relief pursuant to Part III of the Matrimonial and Family Proceedings Act 1984?",
+    "category": "procedure",
+    "citation": "UKSC/2021/0130",
+    "extracts": [
+      "1. Rule one for any judge dealing with a case is that, before you make an order requested by one party, you must give the other party a chance to object. Sometimes a decision needs to be made before it is practicable to do this. Then you must do the next best thing, which is - if you make the order sought - to give the other party an opportunity to argue that the order should be set aside or varied. What is always unfair is to make a final order, only capable of correction on appeal, after hearing only from the party who wants you to make the order without allowing the other party to say why the order should not be made.",
+      "2. This fundamental principle of procedural fairness may seem so obvious and elementary that it goes without saying. On this appeal, however, we are asked to review a practice which has developed in dealing with applications under section 13 of Matrimonial and Family Proceedings Act 1984 that violates this fundamental principle. The practice has its origin in some observations made obiter in a judgment of this court in Agbaje v Agbaje [2010] UKSC 13; [2010] 1 AC 628. So far as the report of that case shows, no argument was addressed to the Supreme Court on the point, which was not an issue in the appeal. However, those obiter dicta have subsequently been treated as authoritative guidance which lower courts must follow."
+    ],
+    "title_key": "potanina v potanin"
+  },
+  "content": "{\"title\":\"Potanina (Respondent) v Potanin (Appellant)\",\"citation\":\"UKSC/2021/0130\",\"url\":\"https://supremecourt.uk/cases/uksc-2021-0130\",\"summary\":\"Principle issue: Should the court have granted the wife permission to apply for financial relief pursuant to Part III of the Matrimonial and Family Proceedings Act 1984?\",\"extracts\":[\"1. Rule one for any judge dealing with a case is that, before you make an order requested by one party, you must give the other party a chance to object. Sometimes a decision needs to be made before it is practicable to do this. Then you must do the next best thing, which is - if you make the order sought - to give the other party an opportunity to argue that the order should be set aside or varied. What is always unfair is to make a final order, only capable of correction on appeal, after hearing only from the party who wants you to make the order without allowing the other party to say why the order should not be made.\",\"2. This fundamental principle of procedural fairness may seem so obvious and elementary that it goes without saying. On this appeal, however, we are asked to review a practice which has developed in dealing with applications under section 13 of Matrimonial and Family Proceedings Act 1984 that violates this fundamental principle. The practice has its origin in some observations made obiter in a judgment of this court in Agbaje v Agbaje [2010] UKSC 13; [2010] 1 AC 628. So far as the report of that case shows, no argument was addressed to the Supreme Court on the point, which was not an issue in the appeal. However, those obiter dicta have subsequently been treated as authoritative guidance which lower courts must follow.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"potanina v potanin\"}"
+}

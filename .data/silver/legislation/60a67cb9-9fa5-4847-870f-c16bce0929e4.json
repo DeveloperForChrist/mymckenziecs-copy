@@ -1,0 +1,15 @@
+{
+  "id": "60a67cb9-9fa5-4847-870f-c16bce0929e4",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#23935",
+  "created_at": "2025-12-25T14:20:57.230Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2009/3468/contents",
+    "type": "uksi",
+    "year": 2009,
+    "number": 3468,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2009/3468/2009-12-04/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2009,\"number\":3468,\"url\":\"http://www.legislation.gov.uk/uksi/2009/3468/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2009/3468/2009-12-04/data.htm\"}"
+}

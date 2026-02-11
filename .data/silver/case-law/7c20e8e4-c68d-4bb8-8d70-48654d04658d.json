@@ -1,0 +1,21 @@
+{
+  "id": "7c20e8e4-c68d-4bb8-8d70-48654d04658d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Scotch Whisky Association and others (Appellants) v The Lord Advocate and another (Respondents) (Scotland)",
+  "created_at": "2025-12-25T11:49:39.411Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0025",
+    "score": 1,
+    "title": "Scotch Whisky Association and others (Appellants) v The Lord Advocate and another (Respondents) (Scotland)",
+    "summary": "3. There are two limbs to the petitioners’ challenge under EU law to the 2012 Act and to the principle of minimum pricing.",
+    "category": "public_law",
+    "citation": "UKSC/2017/0025",
+    "extracts": [
+      "3. There are two limbs to the petitioners’ challenge under EU law to the 2012 Act and to the principle of minimum pricing. First, it is submitted that they conflict with article 34 of the Treaty on the Functioning of the European Union (“TFEU”), providing that:",
+      "It is accepted that the proposed minimum pricing is a measure which would have equivalent effect to a quantitative restriction on imports, in that it will have an effect on, for example, actual or potential wine or beer imports from a number of other EU States. The respondents’ response is reliance on article 36 TFEU, providing:"
+    ],
+    "title_key": "scotch whisky association and others v the lord advocate and another"
+  },
+  "content": "{\"title\":\"Scotch Whisky Association and others (Appellants) v The Lord Advocate and another (Respondents) (Scotland)\",\"citation\":\"UKSC/2017/0025\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0025\",\"summary\":\"3. There are two limbs to the petitioners’ challenge under EU law to the 2012 Act and to the principle of minimum pricing.\",\"extracts\":[\"3. There are two limbs to the petitioners’ challenge under EU law to the 2012 Act and to the principle of minimum pricing. First, it is submitted that they conflict with article 34 of the Treaty on the Functioning of the European Union (“TFEU”), providing that:\",\"It is accepted that the proposed minimum pricing is a measure which would have equivalent effect to a quantitative restriction on imports, in that it will have an effect on, for example, actual or potential wine or beer imports from a number of other EU States. The respondents’ response is reliance on article 36 TFEU, providing:\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"scotch whisky association and others v the lord advocate and another\"}"
+}

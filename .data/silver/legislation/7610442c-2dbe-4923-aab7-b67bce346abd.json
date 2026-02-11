@@ -1,0 +1,15 @@
+{
+  "id": "7610442c-2dbe-4923-aab7-b67bce346abd",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#15256",
+  "created_at": "2025-12-25T13:24:01.811Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1988/279/contents/made",
+    "type": "uksi",
+    "year": 1988,
+    "number": 279,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1988/279/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1988,\"number\":279,\"url\":\"http://www.legislation.gov.uk/uksi/1988/279/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1988/279/made/data.htm\"}"
+}

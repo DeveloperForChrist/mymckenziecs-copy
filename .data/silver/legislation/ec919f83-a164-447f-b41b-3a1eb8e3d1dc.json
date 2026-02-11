@@ -1,0 +1,15 @@
+{
+  "id": "ec919f83-a164-447f-b41b-3a1eb8e3d1dc",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#23147",
+  "created_at": "2025-12-25T14:15:15.386Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2008/1595",
+    "type": "uksi",
+    "year": 2008,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2008,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2008/1595\",\"dataUrl\":null}"
+}

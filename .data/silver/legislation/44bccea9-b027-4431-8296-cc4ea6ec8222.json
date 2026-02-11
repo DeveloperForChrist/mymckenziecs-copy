@@ -1,0 +1,15 @@
+{
+  "id": "44bccea9-b027-4431-8296-cc4ea6ec8222",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4014",
+  "created_at": "2025-12-25T12:16:03.804Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1971/70/contents/enacted",
+    "type": "ukpga",
+    "year": 1971,
+    "number": 70,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1971,\"number\":70,\"url\":\"http://www.legislation.gov.uk/ukpga/1971/70/contents/enacted\",\"dataUrl\":null}"
+}

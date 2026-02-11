@@ -1,0 +1,13 @@
+{
+  "id": "ec9cf916-921d-4a45-a6f2-ec08280dedc7",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#132",
+  "created_at": "2025-12-25T15:20:41.662Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part51/practice-direction-51zb-the-damages-claims-pilot",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part51_practice_direction__3e707b18a8.html",
+    "fetchedAt": "2025-12-22T23:49:48.141Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part51/practice-direction-51zb-the-damages-claims-pilot\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part51_practice_direction__3e707b18a8.html\",\"fetchedAt\":\"2025-12-22T23:49:48.141Z\"}"
+}

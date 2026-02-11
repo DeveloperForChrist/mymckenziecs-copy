@@ -1,0 +1,21 @@
+{
+  "id": "b7b6a9cf-0b68-4551-a174-2e298bf3f642",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "T (Children)",
+  "created_at": "2025-12-25T11:47:18.862Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0244",
+    "score": 2,
+    "title": "T (Children)",
+    "summary": "1. It is rare for the Supreme Court to entertain an appeal that relates exclusively to costs, but this appeal raises an important issue of principle in relation to the liability of a local authority to pay the costs of a party to care proceedings.",
+    "category": "procedure",
+    "citation": "UKSC/2010/0244",
+    "extracts": [
+      "1. It is rare for the Supreme Court to entertain an appeal that relates exclusively to costs, but this appeal raises an important issue of principle in relation to the liability of a local authority to pay the costs of a party to care proceedings.",
+      "2. The proceedings related to two children, whose parents were separated. The children made allegations of sexual abuse by their father and six other men in which the father’s parents (“the grandparents”) had colluded. These allegations were included by the appellant (“the Council”) in the schedule of matters relied upon in the care proceedings as meeting the threshold criteria for a care order under section 31(2) of the Children Act 1989. The grandparents were joined as interveners, as were five of the six men. The judge conducted a discrete fact- finding hearing which occupied a total of five and a half weeks between February and December 2009. The lengthy findings that he then made exonerated the grandparents and five of the other six interveners."
+    ],
+    "title_key": "t"
+  },
+  "content": "{\"title\":\"T (Children)\",\"citation\":\"UKSC/2010/0244\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0244\",\"summary\":\"1. It is rare for the Supreme Court to entertain an appeal that relates exclusively to costs, but this appeal raises an important issue of principle in relation to the liability of a local authority to pay the costs of a party to care proceedings.\",\"extracts\":[\"1. It is rare for the Supreme Court to entertain an appeal that relates exclusively to costs, but this appeal raises an important issue of principle in relation to the liability of a local authority to pay the costs of a party to care proceedings.\",\"2. The proceedings related to two children, whose parents were separated. The children made allegations of sexual abuse by their father and six other men in which the father’s parents (“the grandparents”) had colluded. These allegations were included by the appellant (“the Council”) in the schedule of matters relied upon in the care proceedings as meeting the threshold criteria for a care order under section 31(2) of the Children Act 1989. The grandparents were joined as interveners, as were five of the six men. The judge conducted a discrete fact- finding hearing which occupied a total of five and a half weeks between February and December 2009. The lengthy findings that he then made exonerated the grandparents and five of the other six interveners.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"t\"}"
+}

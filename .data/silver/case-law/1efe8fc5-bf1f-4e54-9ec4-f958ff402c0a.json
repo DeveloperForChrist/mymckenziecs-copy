@@ -1,0 +1,21 @@
+{
+  "id": "1efe8fc5-bf1f-4e54-9ec4-f958ff402c0a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Day and another (Appellants) v Hosebay Limited (Respondent)",
+  "created_at": "2025-12-25T11:47:09.490Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0147",
+    "score": 1,
+    "title": "Day and another (Appellants) v Hosebay Limited (Respondent)",
+    "summary": "1. The Leasehold Reform Act 1967 is on its face a statute about houses, not commercial buildings.",
+    "category": "contract_consumer",
+    "citation": "UKSC/2010/0147",
+    "extracts": [
+      "1. The Leasehold Reform Act 1967 is on its face a statute about houses, not commercial buildings. The buildings with which we are concerned were originally designed and used as houses, but at the relevant date were used entirely for commercial purposes, one for offices, the other (in the judge’s words) as a “self- catering hotel”. In both cases the courts below felt constrained to hold that they were “houses” within the meaning of the 1967 Act, with the consequence that the lessees were entitled to “enfranchise”, that is, to acquire the freeholds compulsorily from their lessors on the terms fixed by the Act.",
+      "2. In the Court of Appeal [2010] EWCA Civ 748; [2010] 1 WLR 2317 Lord Neuberger of Abbotsbury MR regretted this result. He saw it as the probably unintended consequence of amendments made by the Commonhold and Leasehold Reform Act 2002, removing the previous residence requirements. However, he felt bound to apply his view of the relevant provisions as they stood after those amendments, rather than to decide what “the legislature would have said if it had fully appreciated the consequences…” (para 57)."
+    ],
+    "title_key": "day and another v hosebay limited"
+  },
+  "content": "{\"title\":\"Day and another (Appellants) v Hosebay Limited (Respondent)\",\"citation\":\"UKSC/2010/0147\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0147\",\"summary\":\"1. The Leasehold Reform Act 1967 is on its face a statute about houses, not commercial buildings.\",\"extracts\":[\"1. The Leasehold Reform Act 1967 is on its face a statute about houses, not commercial buildings. The buildings with which we are concerned were originally designed and used as houses, but at the relevant date were used entirely for commercial purposes, one for offices, the other (in the judge’s words) as a “self- catering hotel”. In both cases the courts below felt constrained to hold that they were “houses” within the meaning of the 1967 Act, with the consequence that the lessees were entitled to “enfranchise”, that is, to acquire the freeholds compulsorily from their lessors on the terms fixed by the Act.\",\"2. In the Court of Appeal [2010] EWCA Civ 748; [2010] 1 WLR 2317 Lord Neuberger of Abbotsbury MR regretted this result. He saw it as the probably unintended consequence of amendments made by the Commonhold and Leasehold Reform Act 2002, removing the previous residence requirements. However, he felt bound to apply his view of the relevant provisions as they stood after those amendments, rather than to decide what “the legislature would have said if it had fully appreciated the consequences…” (para 57).\"],\"category\":\"contract_consumer\",\"score\":1,\"title_key\":\"day and another v hosebay limited\"}"
+}

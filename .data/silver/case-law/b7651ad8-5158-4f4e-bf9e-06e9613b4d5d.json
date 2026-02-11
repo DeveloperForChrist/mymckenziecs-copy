@@ -1,0 +1,21 @@
+{
+  "id": "b7651ad8-5158-4f4e-bf9e-06e9613b4d5d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Glasgow City Council (Respondent) v X (Appellant) (AP) (Scotland)",
+  "created_at": "2025-12-25T11:50:58.350Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2023-0068",
+    "score": 1,
+    "title": "Glasgow City Council (Respondent) v X (Appellant) (AP) (Scotland)",
+    "summary": "Principle issue: Whether temporary (interim) accommodation provided by local authorities pursuant to the duty at section 29 of the Housing (Scotland) Act 1987 (the “1987 Act”) must meet the specific needs of individual members of the household in order to be suitable for the purposes of section 29(3) of the 1987 Act and article 4(b) of the Homeless Persons (Unsuitable Accommodation) (Scotland) Order 2014 (the “2014 Order”).",
+    "category": "public_law",
+    "citation": "UKSC/2023/0068",
+    "extracts": [
+      "THE COURT ORDERED that no one shall publish or reveal the name or address of the Appellant or reveal any information which would be likely to lead to the identification of the Appellant or of any member her family in connection with these proceedings.",
+      "1. This appeal concerns the scope of the interim duty imposed on local authorities in Scotland by section 29(1) of the Housing (Scotland) Act 1987 (“the 1987 Act”) and article 4(b) of the Homeless Persons (Unsuitable Accommodation) (Scotland) Order 2014 (SSI 2014/243) (“the 2014 Order”). It is not in doubt that section 29(1) imposes a mandatory duty on local authorities to secure accommodation on an interim basis that is not unsuitable within the meaning of the 2014 Order. The question is whether such accommodation will be unsuitable within the meaning of the 2014 Order unless it meets all the needs of the applicant and each member of the applicant’s household. The answer to that question depends on the meaning and effect of the phrase “taking into account the needs of the household” as it appears in article 4(b) of the 2014 Order."
+    ],
+    "title_key": "glasgow city council v x"
+  },
+  "content": "{\"title\":\"Glasgow City Council (Respondent) v X (Appellant) (AP) (Scotland)\",\"citation\":\"UKSC/2023/0068\",\"url\":\"https://supremecourt.uk/cases/uksc-2023-0068\",\"summary\":\"Principle issue: Whether temporary (interim) accommodation provided by local authorities pursuant to the duty at section 29 of the Housing (Scotland) Act 1987 (the “1987 Act”) must meet the specific needs of individual members of the household in order to be suitable for the purposes of section 29(3) of the 1987 Act and article 4(b) of the Homeless Persons (Unsuitable Accommodation) (Scotland) Order 2014 (the “2014 Order”).\",\"extracts\":[\"THE COURT ORDERED that no one shall publish or reveal the name or address of the Appellant or reveal any information which would be likely to lead to the identification of the Appellant or of any member her family in connection with these proceedings.\",\"1. This appeal concerns the scope of the interim duty imposed on local authorities in Scotland by section 29(1) of the Housing (Scotland) Act 1987 (“the 1987 Act”) and article 4(b) of the Homeless Persons (Unsuitable Accommodation) (Scotland) Order 2014 (SSI 2014/243) (“the 2014 Order”). It is not in doubt that section 29(1) imposes a mandatory duty on local authorities to secure accommodation on an interim basis that is not unsuitable within the meaning of the 2014 Order. The question is whether such accommodation will be unsuitable within the meaning of the 2014 Order unless it meets all the needs of the applicant and each member of the applicant’s household. The answer to that question depends on the meaning and effect of the phrase “taking into account the needs of the household” as it appears in article 4(b) of the 2014 Order.\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"glasgow city council v x\"}"
+}

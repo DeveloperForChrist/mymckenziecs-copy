@@ -1,0 +1,15 @@
+{
+  "id": "ce6eb952-94fa-4c80-aa24-3bc9985fac24",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4673",
+  "created_at": "2025-12-25T12:20:07.433Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1980/26/contents",
+    "type": "ukpga",
+    "year": 1980,
+    "number": 26,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1980/26/2013-03-22/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1980,\"number\":26,\"url\":\"http://www.legislation.gov.uk/ukpga/1980/26/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1980/26/2013-03-22/data.htm\"}"
+}

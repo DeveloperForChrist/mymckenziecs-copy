@@ -1,0 +1,21 @@
+{
+  "id": "2b2934d5-3d95-4301-9b67-2f0c30800d14",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Benkharbouche (Respondent) v Secretary of State for Foreign and Commonwealth Affairs (Appellant)",
+  "created_at": "2025-12-25T11:48:59.637Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0063",
+    "score": 1,
+    "title": "Benkharbouche (Respondent) v Secretary of State for Foreign and Commonwealth Affairs (Appellant)",
+    "summary": "Benkharbouche (Respondent) v Secretary of State for Foreign and Commonwealth Affairs (Appellant) and Secretary of State for Foreign and Commonwealth Affairs and Libya (Appellants) v Janah (Respondent)",
+    "category": "public_law",
+    "citation": "UKSC/2015/0063",
+    "extracts": [
+      "Benkharbouche (Respondent) v Secretary of State for Foreign and Commonwealth Affairs (Appellant) and Secretary of State for Foreign and Commonwealth Affairs and Libya (Appellants) v Janah (Respondent)",
+      "1. The question at issue on this appeal is whether two provisions of the State Immunity Act 1978 are consistent with the European Convention on Human Rights and the European Union Charter of Fundamental Rights. The two provisions are section 4(2)(b) and section 16(1)(a). I shall set out both below, but in summary the effect of section 4(2)(b) is that a state is immune as respects proceedings relating to a contract of employment between a state and a person who at the time of the contract is neither a national of the United Kingdom nor resident there; and the effect of section 16(1)(a) is that a state is immune as respects proceedings concerning the employment of members of a diplomatic mission, including its administrative, technical and domestic staff. It is common ground that the answer depends in both cases on whether these provisions have any basis in customary international law although, as I shall explain, there is an issue about what kind of basis it must have."
+    ],
+    "title_key": "benkharbouche v secretary of state for foreign and commonwealth affairs"
+  },
+  "content": "{\"title\":\"Benkharbouche (Respondent) v Secretary of State for Foreign and Commonwealth Affairs (Appellant)\",\"citation\":\"UKSC/2015/0063\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0063\",\"summary\":\"Benkharbouche (Respondent) v Secretary of State for Foreign and Commonwealth Affairs (Appellant) and Secretary of State for Foreign and Commonwealth Affairs and Libya (Appellants) v Janah (Respondent)\",\"extracts\":[\"Benkharbouche (Respondent) v Secretary of State for Foreign and Commonwealth Affairs (Appellant) and Secretary of State for Foreign and Commonwealth Affairs and Libya (Appellants) v Janah (Respondent)\",\"1. The question at issue on this appeal is whether two provisions of the State Immunity Act 1978 are consistent with the European Convention on Human Rights and the European Union Charter of Fundamental Rights. The two provisions are section 4(2)(b) and section 16(1)(a). I shall set out both below, but in summary the effect of section 4(2)(b) is that a state is immune as respects proceedings relating to a contract of employment between a state and a person who at the time of the contract is neither a national of the United Kingdom nor resident there; and the effect of section 16(1)(a) is that a state is immune as respects proceedings concerning the employment of members of a diplomatic mission, including its administrative, technical and domestic staff. It is common ground that the answer depends in both cases on whether these provisions have any basis in customary international law although, as I shall explain, there is an issue about what kind of basis it must have.\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"benkharbouche v secretary of state for foreign and commonwealth affairs\"}"
+}

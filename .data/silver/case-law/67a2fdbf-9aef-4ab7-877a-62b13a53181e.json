@@ -1,0 +1,21 @@
+{
+  "id": "67a2fdbf-9aef-4ab7-877a-62b13a53181e",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "REFERENCE by the Attorney General and the Advocate General for Scotland – European Charter of Local Self-Government (Incorporation) (Scotland) Bill",
+  "created_at": "2025-12-25T11:50:37.298Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2021-0080",
+    "score": 0,
+    "title": "REFERENCE by the Attorney General and the Advocate General for Scotland – European Charter of Local Self-Government (Incorporation) (Scotland) Bill",
+    "summary": "Principle issue: Whether certain provisions of two Bills passed by the Scottish Parliament in March 2021 (the United Nations Convention on the Rights of the Child (Incorporation) (Scotland) Bill and the European Charter of Local Self-Government (Incorporation) (Scotland) Bill) are outside the legislative competence of the Scottish Parliament.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2021/0080",
+    "extracts": [
+      "REFERENCE by the Attorney General and the Advocate General for Scotland - United Nations Convention on the Rights of the Child (Incorporation) (Scotland) Bill REFERENCE by the Attorney General and the Advocate General for Scotland - European Charter of Local Self- Government (Incorporation) (Scotland) Bill",
+      "1. On 16 March 2021 the Scottish Parliament passed the United Nations Convention on the Rights of the Child (Incorporation) (Scotland) Bill (“the UNCRC Bill”). On 23 March 2021 it passed the European Charter of Local Self-Government (Incorporation) (Scotland) Bill (“the ECLSG Bill”)."
+    ],
+    "title_key": "reference by the attorney general and the advocate general for scotland european charter of local self government bill"
+  },
+  "content": "{\"title\":\"REFERENCE by the Attorney General and the Advocate General for Scotland – European Charter of Local Self-Government (Incorporation) (Scotland) Bill\",\"citation\":\"UKSC/2021/0080\",\"url\":\"https://supremecourt.uk/cases/uksc-2021-0080\",\"summary\":\"Principle issue: Whether certain provisions of two Bills passed by the Scottish Parliament in March 2021 (the United Nations Convention on the Rights of the Child (Incorporation) (Scotland) Bill and the European Charter of Local Self-Government (Incorporation) (Scotland) Bill) are outside the legislative competence of the Scottish Parliament.\",\"extracts\":[\"REFERENCE by the Attorney General and the Advocate General for Scotland - United Nations Convention on the Rights of the Child (Incorporation) (Scotland) Bill REFERENCE by the Attorney General and the Advocate General for Scotland - European Charter of Local Self- Government (Incorporation) (Scotland) Bill\",\"1. On 16 March 2021 the Scottish Parliament passed the United Nations Convention on the Rights of the Child (Incorporation) (Scotland) Bill (“the UNCRC Bill”). On 23 March 2021 it passed the European Charter of Local Self-Government (Incorporation) (Scotland) Bill (“the ECLSG Bill”).\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"reference by the attorney general and the advocate general for scotland european charter of local self government bill\"}"
+}

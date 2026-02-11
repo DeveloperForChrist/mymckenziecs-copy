@@ -1,0 +1,15 @@
+{
+  "id": "104db257-09f8-423e-a6d5-37635a5d46bd",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#10918",
+  "created_at": "2025-12-25T12:57:38.705Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1983/1899/contents/made",
+    "type": "uksi",
+    "year": 1983,
+    "number": 1899,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1983,\"number\":1899,\"url\":\"http://www.legislation.gov.uk/nisi/1983/1899/contents/made\",\"dataUrl\":null}"
+}

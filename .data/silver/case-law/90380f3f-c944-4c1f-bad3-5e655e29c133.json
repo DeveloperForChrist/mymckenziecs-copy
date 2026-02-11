@@ -1,0 +1,21 @@
+{
+  "id": "90380f3f-c944-4c1f-bad3-5e655e29c133",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "SkyKick UK Ltd and another (Appellants) v Sky Ltd and others (Respondents)",
+  "created_at": "2025-12-25T11:50:41.870Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2021-0181",
+    "score": 0,
+    "title": "SkyKick UK Ltd and another (Appellants) v Sky Ltd and others (Respondents)",
+    "summary": "Principle issue: (1) What is the test for determining \"bad faith\" in s.3(6) of the Trade Marks Act 1994?               \n\n(2) If such bad faith is found, what is the correct approach to determining the specification that the proprietor of the trademark should be permitted to retain?",
+    "category": "evidence_misc",
+    "citation": "UKSC/2021/0181",
+    "extracts": [
+      "III. THE LEGAL FRAMEWORK – AN OUTLINE The dates for assessment ………………………………………………..……………..… 20-21 International law and the Nice Classification ………………………………………..….. 21-34 EU law and the EU trade mark regulations ……………………………………..………. 35-46 National registrations and the laws of Member States …………………………………. 47-53 The functions of a trade mark …………………………….……………………………. 54-57 The protection given to a registered trade mark …………………………………..…… 58-65 Relative grounds of objection to a later application ………………………………….…… 66 Departure of the United Kingdom from the European Union …………………………….. 67",
+      "IV. THE PARTIES AND THE PROCEEDINGS Introduction ……………………………………………………………………………… 68 The Sky parties …………………………………………………………..…………….... 69-71 The SkyKick parties ……………………………………………...………………..……. 72-77 The claim and counterclaim ……………………………………………………………. 78-80 The trial and main judgment ……………………………………………………….…… 81-91 The second judgment, the reference to the CJEU ……………………………………… 92-97 The third judgment ……………………………………………………………………. 98-112 The fourth judgment …………………………………………………………………. 113-118 The appeal to the Court of Appeal …………………………………………………… 119-124"
+    ],
+    "title_key": "skykick uk ltd and another v sky ltd and others"
+  },
+  "content": "{\"title\":\"SkyKick UK Ltd and another (Appellants) v Sky Ltd and others (Respondents)\",\"citation\":\"UKSC/2021/0181\",\"url\":\"https://supremecourt.uk/cases/uksc-2021-0181\",\"summary\":\"Principle issue: (1) What is the test for determining \\\\\"bad faith\\\\\" in s.3(6) of the Trade Marks Act 1994?               \\\\n\\\\n(2) If such bad faith is found, what is the correct approach to determining the specification that the proprietor of the trademark should be permitted to retain?\",\"extracts\":[\"III. THE LEGAL FRAMEWORK – AN OUTLINE The dates for assessment ………………………………………………..……………..… 20-21 International law and the Nice Classification ………………………………………..….. 21-34 EU law and the EU trade mark regulations ……………………………………..………. 35-46 National registrations and the laws of Member States …………………………………. 47-53 The functions of a trade mark …………………………….……………………………. 54-57 The protection given to a registered trade mark …………………………………..…… 58-65 Relative grounds of objection to a later application ………………………………….…… 66 Departure of the United Kingdom from the European Union …………………………….. 67\",\"IV. THE PARTIES AND THE PROCEEDINGS Introduction ……………………………………………………………………………… 68 The Sky parties …………………………………………………………..…………….... 69-71 The SkyKick parties ……………………………………………...………………..……. 72-77 The claim and counterclaim ……………………………………………………………. 78-80 The trial and main judgment ……………………………………………………….…… 81-91 The second judgment, the reference to the CJEU ……………………………………… 92-97 The third judgment ……………………………………………………………………. 98-112 The fourth judgment …………………………………………………………………. 113-118 The appeal to the Court of Appeal …………………………………………………… 119-124\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"skykick uk ltd and another v sky ltd and others\"}"
+}

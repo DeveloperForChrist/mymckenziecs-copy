@@ -1,0 +1,15 @@
+{
+  "id": "aab1de79-4343-46c7-91cd-b9de97a17fec",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#16079",
+  "created_at": "2025-12-25T13:29:17.359Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1989/1343/contents",
+    "type": "uksi",
+    "year": 1989,
+    "number": 1343,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/1989/1343/2025-09-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1989,\"number\":1343,\"url\":\"http://www.legislation.gov.uk/nisi/1989/1343/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/1989/1343/2025-09-01/data.htm\"}"
+}

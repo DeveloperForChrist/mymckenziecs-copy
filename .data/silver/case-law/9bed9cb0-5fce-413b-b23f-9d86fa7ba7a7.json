@@ -1,0 +1,21 @@
+{
+  "id": "9bed9cb0-5fce-413b-b23f-9d86fa7ba7a7",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of G) (FC) (Respondent) v The Governors of X School (Appellant)",
+  "created_at": "2025-12-25T11:47:00.300Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0033",
+    "score": 0,
+    "title": "R (on the application of G) (FC) (Respondent) v The Governors of X School (Appellant)",
+    "summary": "1. In about December 2005, the claimant commenced employment as a sessional music assistant at X school (“the school”).",
+    "category": "evidence_misc",
+    "citation": "UKSC/2010/0033",
+    "extracts": [
+      "1. In about December 2005, the claimant commenced employment as a sessional music assistant at X school (“the school”). On 4 October 2007, the parents of M, a 15 year old boy, who was undergoing a short period of work experience at the School, went to see the head teacher. They complained that the claimant, who was 22 years of age at the time, had kissed M. They also showed the head teacher two text messages which they said the claimant had sent to M and an entry in M’s diary which appeared to indicate that some form of sexual relationship had developed between the two of them. On the same day, the head teacher summoned the claimant and informed him that he was being suspended because of an incident involving a young man.",
+      "2. The school’s child protection co-ordinator later provided a statement to the school in which she said that, after he had been suspended, the claimant admitted to her that he had kissed M and that he had sent a text inviting him to his house, “but was concerned that this could be misinterpreted, so he added that they could go for a drive instead”."
+    ],
+    "title_key": "r v the governors of x school"
+  },
+  "content": "{\"title\":\"R (on the application of G) (FC) (Respondent) v The Governors of X School (Appellant)\",\"citation\":\"UKSC/2010/0033\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0033\",\"summary\":\"1. In about December 2005, the claimant commenced employment as a sessional music assistant at X school (“the school”).\",\"extracts\":[\"1. In about December 2005, the claimant commenced employment as a sessional music assistant at X school (“the school”). On 4 October 2007, the parents of M, a 15 year old boy, who was undergoing a short period of work experience at the School, went to see the head teacher. They complained that the claimant, who was 22 years of age at the time, had kissed M. They also showed the head teacher two text messages which they said the claimant had sent to M and an entry in M’s diary which appeared to indicate that some form of sexual relationship had developed between the two of them. On the same day, the head teacher summoned the claimant and informed him that he was being suspended because of an incident involving a young man.\",\"2. The school’s child protection co-ordinator later provided a statement to the school in which she said that, after he had been suspended, the claimant admitted to her that he had kissed M and that he had sent a text inviting him to his house, “but was concerned that this could be misinterpreted, so he added that they could go for a drive instead”.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"r v the governors of x school\"}"
+}

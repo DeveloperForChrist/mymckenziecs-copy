@@ -1,0 +1,15 @@
+{
+  "id": "d8899ede-f40c-40b2-b13c-fc99350f05cc",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#23976",
+  "created_at": "2025-12-25T14:21:18.251Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2010/3096/contents/made",
+    "type": "uksi",
+    "year": 2010,
+    "number": 3096,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2010,\"number\":3096,\"url\":\"http://www.legislation.gov.uk/uksi/2010/3096/contents/made\",\"dataUrl\":null}"
+}

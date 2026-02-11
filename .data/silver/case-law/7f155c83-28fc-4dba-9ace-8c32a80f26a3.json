@@ -1,0 +1,21 @@
+{
+  "id": "7f155c83-28fc-4dba-9ace-8c32a80f26a3",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Torfaen County Borough Council (Appellant) v Douglas Willis Limited (Respondent)",
+  "created_at": "2025-12-25T11:47:53.459Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0087",
+    "score": 0,
+    "title": "Torfaen County Borough Council (Appellant) v Douglas Willis Limited (Respondent)",
+    "summary": "1. Under the Food Safety Act 1990 the appellant local authority (“the council”) has responsibility for the enforcement of food safety laws in its area, many of which are contained in regulations made under the Act.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2012/0087",
+    "extracts": [
+      "1. Under the Food Safety Act 1990 the appellant local authority (“the council”) has responsibility for the enforcement of food safety laws in its area, many of which are contained in regulations made under the Act. We are concerned in this case with the Food Labelling Regulations 1996 (SI 1996/1499) (“the regulations”). The respondent (“the company”) carries on the business of buying, processing and selling meat products.",
+      "2. On 29 June 2011 inspectors from the council’s trading standards department visited the company’s premises where they found a number of packages of frozen meat labelled with “use by” dates which had passed. An information was preferred against it, including 23 charges under regulation 44(1)(d)."
+    ],
+    "title_key": "torfaen county borough council v douglas willis limited"
+  },
+  "content": "{\"title\":\"Torfaen County Borough Council (Appellant) v Douglas Willis Limited (Respondent)\",\"citation\":\"UKSC/2012/0087\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0087\",\"summary\":\"1. Under the Food Safety Act 1990 the appellant local authority (“the council”) has responsibility for the enforcement of food safety laws in its area, many of which are contained in regulations made under the Act.\",\"extracts\":[\"1. Under the Food Safety Act 1990 the appellant local authority (“the council”) has responsibility for the enforcement of food safety laws in its area, many of which are contained in regulations made under the Act. We are concerned in this case with the Food Labelling Regulations 1996 (SI 1996/1499) (“the regulations”). The respondent (“the company”) carries on the business of buying, processing and selling meat products.\",\"2. On 29 June 2011 inspectors from the council’s trading standards department visited the company’s premises where they found a number of packages of frozen meat labelled with “use by” dates which had passed. An information was preferred against it, including 23 charges under regulation 44(1)(d).\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"torfaen county borough council v douglas willis limited\"}"
+}

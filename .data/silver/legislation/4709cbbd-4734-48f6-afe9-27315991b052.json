@@ -1,0 +1,15 @@
+{
+  "id": "4709cbbd-4734-48f6-afe9-27315991b052",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20974",
+  "created_at": "2025-12-25T14:00:04.304Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2003/3333/contents",
+    "type": "uksi",
+    "year": 2003,
+    "number": 3333,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2003/3333/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2003,\"number\":3333,\"url\":\"http://www.legislation.gov.uk/uksi/2003/3333/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2003/3333/2020-12-31/data.htm\"}"
+}

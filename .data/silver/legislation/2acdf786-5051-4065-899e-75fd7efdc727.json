@@ -1,0 +1,15 @@
+{
+  "id": "2acdf786-5051-4065-899e-75fd7efdc727",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#29313",
+  "created_at": "2025-12-25T14:59:32.100Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2022/647/made",
+    "type": "uksi",
+    "year": 2022,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2022,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2022/647/made\",\"dataUrl\":null}"
+}

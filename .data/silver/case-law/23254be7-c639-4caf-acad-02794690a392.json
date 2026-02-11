@@ -1,0 +1,21 @@
+{
+  "id": "23254be7-c639-4caf-acad-02794690a392",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Barkas) (Appellant) v North Yorkshire County Council (Respondent)",
+  "created_at": "2025-12-25T11:48:08.442Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0035",
+    "score": 1,
+    "title": "R (on the application of Barkas) (Appellant) v North Yorkshire County Council (Respondent)",
+    "summary": "1. Helredale playing field (“the Field”) is situated in Whitby, North Yorkshire, and it is owned by Scarborough Borough Council.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0035",
+    "extracts": [
+      "1. Helredale playing field (“the Field”) is situated in Whitby, North Yorkshire, and it is owned by Scarborough Borough Council. The specific issue raised on this appeal is whether it should be registered as “a town or village green” under section 15 of the Commons Act 2006. The point of principle which this issue raises concerns the meaning of the expression “as of right” in section 15(2), and, more precisely, whether use is as of right when it is contemplated by the statutory provision under which a public body acquired and holds the land in question. This point, in turn, requires this Court to consider the reasoning of the House of Lords in R (Beresford) v Sunderland City Council [2004] 1 AC 889.",
+      "2. The factual background to the appeal is set out very fully in an excellent report prepared by Vivian Chapman QC, dated 28 July 2010, whose findings are accepted as accurate by the parties to these proceedings. For the purpose of this appeal, it is only necessary to set out his conclusions in very summary terms."
+    ],
+    "title_key": "r v north yorkshire county council"
+  },
+  "content": "{\"title\":\"R (on the application of Barkas) (Appellant) v North Yorkshire County Council (Respondent)\",\"citation\":\"UKSC/2013/0035\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0035\",\"summary\":\"1. Helredale playing field (“the Field”) is situated in Whitby, North Yorkshire, and it is owned by Scarborough Borough Council.\",\"extracts\":[\"1. Helredale playing field (“the Field”) is situated in Whitby, North Yorkshire, and it is owned by Scarborough Borough Council. The specific issue raised on this appeal is whether it should be registered as “a town or village green” under section 15 of the Commons Act 2006. The point of principle which this issue raises concerns the meaning of the expression “as of right” in section 15(2), and, more precisely, whether use is as of right when it is contemplated by the statutory provision under which a public body acquired and holds the land in question. This point, in turn, requires this Court to consider the reasoning of the House of Lords in R (Beresford) v Sunderland City Council [2004] 1 AC 889.\",\"2. The factual background to the appeal is set out very fully in an excellent report prepared by Vivian Chapman QC, dated 28 July 2010, whose findings are accepted as accurate by the parties to these proceedings. For the purpose of this appeal, it is only necessary to set out his conclusions in very summary terms.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v north yorkshire county council\"}"
+}

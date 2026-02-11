@@ -1,0 +1,21 @@
+{
+  "id": "4fdaf7e5-2ccd-4105-a335-18caa63e775c",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R v Mackinlay and others (Respondents)",
+  "created_at": "2025-12-25T11:49:58.428Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0091",
+    "score": 2,
+    "title": "R v Mackinlay and others (Respondents)",
+    "summary": "“Do property, goods, services or facilities transferred to or provided for the use or benefit of a candidate free of charge or at a discount (as identified in section 90C(1)(a) of the Representation of the People Act 1983 (as amended)) only fall to be declared as election expenses if they have be...",
+    "category": "contract_consumer",
+    "citation": "UKSC/2018/0091",
+    "extracts": [
+      "“Do property, goods, services or facilities transferred to or provided for the use or benefit of a candidate free of charge or at a discount (as identified in section 90C(1)(a) of the Representation of the People Act 1983 (as amended)) only fall to be declared as election expenses if they have been authorised",
+      "4. Since the 19th century, legislation has imposed limits upon a candidate’s election expenses. The current statute is the Representation of the People Act 1983 (“RPA 1983”). Some of the rules and concepts in that Act effectively date from Victorian times; others have been added by successive modern adjustments, and amendments have continued since 1983."
+    ],
+    "title_key": "r v mackinlay and others"
+  },
+  "content": "{\"title\":\"R v Mackinlay and others (Respondents)\",\"citation\":\"UKSC/2018/0091\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0091\",\"summary\":\"“Do property, goods, services or facilities transferred to or provided for the use or benefit of a candidate free of charge or at a discount (as identified in section 90C(1)(a) of the Representation of the People Act 1983 (as amended)) only fall to be declared as election expenses if they have be...\",\"extracts\":[\"“Do property, goods, services or facilities transferred to or provided for the use or benefit of a candidate free of charge or at a discount (as identified in section 90C(1)(a) of the Representation of the People Act 1983 (as amended)) only fall to be declared as election expenses if they have been authorised\",\"4. Since the 19th century, legislation has imposed limits upon a candidate’s election expenses. The current statute is the Representation of the People Act 1983 (“RPA 1983”). Some of the rules and concepts in that Act effectively date from Victorian times; others have been added by successive modern adjustments, and amendments have continued since 1983.\"],\"category\":\"contract_consumer\",\"score\":2,\"title_key\":\"r v mackinlay and others\"}"
+}

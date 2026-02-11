@@ -1,0 +1,21 @@
+{
+  "id": "eb5ffdb5-4a66-45ed-9b7c-7214e8ed64a1",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Agricultural Sector (Wales) Bill - Reference by the Attorney General for England and Wales",
+  "created_at": "2025-12-25T11:48:22.551Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0188",
+    "score": 0,
+    "title": "Agricultural Sector (Wales) Bill - Reference by the Attorney General for England and Wales",
+    "summary": "1. Her Majesty’s Attorney General for England and Wales has referred to this Court under section 112(1) of the Government of Wales Act 2006 (“GWA 2006”) the question of whether, on the proper construction of section 108 and Schedule 7 to the GWA 2006, the Agricultural Sector (Wales) Bill 2013 (“t...",
+    "category": "evidence_misc",
+    "citation": "UKSC/2013/0188",
+    "extracts": [
+      "1. Her Majesty’s Attorney General for England and Wales has referred to this Court under section 112(1) of the Government of Wales Act 2006 (“GWA 2006”) the question of whether, on the proper construction of section 108 and Schedule 7 to the GWA 2006, the Agricultural Sector (Wales) Bill 2013 (“the Bill”) is within the legislative competence of the National Assembly of Wales (“the Assembly”).",
+      "2. The Bill was passed on 17 July 2013 primarily to establish a scheme for the regulation of agricultural wages in Wales. As we shall explain in more detail, the Agricultural Wages Act 1948 had until 2013 provided a regime for regulating agricultural wages for England and Wales under the superintendence of the Agricultural Wages Board. The Board made its last Order in July 2012. In 2013 the United Kingdom Parliament enacted the Enterprise and Regulatory Reform Act. Section 72 of that Act abolished the Agricultural Wages Board for England and Wales. Schedule 20 repealed or amended many of the provisions of the Agricultural Wages Act 1948 and other statutory provisions and subordinate legislation relating to the agricultural wages regime."
+    ],
+    "title_key": "agricultural sector bill reference by the attorney general for england and wales"
+  },
+  "content": "{\"title\":\"Agricultural Sector (Wales) Bill - Reference by the Attorney General for England and Wales\",\"citation\":\"UKSC/2013/0188\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0188\",\"summary\":\"1. Her Majesty’s Attorney General for England and Wales has referred to this Court under section 112(1) of the Government of Wales Act 2006 (“GWA 2006”) the question of whether, on the proper construction of section 108 and Schedule 7 to the GWA 2006, the Agricultural Sector (Wales) Bill 2013 (“t...\",\"extracts\":[\"1. Her Majesty’s Attorney General for England and Wales has referred to this Court under section 112(1) of the Government of Wales Act 2006 (“GWA 2006”) the question of whether, on the proper construction of section 108 and Schedule 7 to the GWA 2006, the Agricultural Sector (Wales) Bill 2013 (“the Bill”) is within the legislative competence of the National Assembly of Wales (“the Assembly”).\",\"2. The Bill was passed on 17 July 2013 primarily to establish a scheme for the regulation of agricultural wages in Wales. As we shall explain in more detail, the Agricultural Wages Act 1948 had until 2013 provided a regime for regulating agricultural wages for England and Wales under the superintendence of the Agricultural Wages Board. The Board made its last Order in July 2012. In 2013 the United Kingdom Parliament enacted the Enterprise and Regulatory Reform Act. Section 72 of that Act abolished the Agricultural Wages Board for England and Wales. Schedule 20 repealed or amended many of the provisions of the Agricultural Wages Act 1948 and other statutory provisions and subordinate legislation relating to the agricultural wages regime.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"agricultural sector bill reference by the attorney general for england and wales\"}"
+}

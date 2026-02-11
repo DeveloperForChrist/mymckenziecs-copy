@@ -1,0 +1,21 @@
+{
+  "id": "42720157-d33a-4aad-9f84-e4e0ed11ed67",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Secretary of State for Health and others (Respondents) v Servier Laboratories Ltd and others (Appellants)",
+  "created_at": "2025-12-25T11:50:16.641Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2019-0150",
+    "score": 1,
+    "title": "Secretary of State for Health and others (Respondents) v Servier Laboratories Ltd and others (Appellants)",
+    "summary": "Principle issue: To what extent, if at all, are factual findings made by the General Court of the European Union in the course of its judgment in Case T-691/14 Servier SAS v EU Commission annulling a competition infringement decision of the European Commission binding as res judicata on English courts in a follow-on private damages action brought by the Respondents against the Appellants?",
+    "category": "procedure",
+    "citation": "UKSC/2019/0150",
+    "extracts": [
+      "2. The appellants (referred to collectively as “Servier”), who are defendants in each of the proceedings giving rise to this appeal, developed and manufactured the medicinal product perindopril erbumine (“Perindopril”), which is used in the treatment of cardiovascular diseases including the treatment of high blood pressure. They marketed Perindopril under the trade name “Coversyl”. Perindopril falls within the class of medicines known as angiotensin-converting-enzyme inhibitors (“ACE inhibitors”). Servier obtained a number of patents for Perindopril during the course of its development.",
+      "3. The respondents to this appeal (referred to collectively as “the claimants”), are the national health authorities of England, Wales, and Scotland and Northern Ireland. They are the claimants in the national proceedings. The High Court has directed that the three sets of proceedings be jointly managed and be tried on the same occasion (Order of Henderson J dated 26 February 2016). The present appeal is against the order of the Court of Appeal dated 27 June 2019 that followed a one-"
+    ],
+    "title_key": "secretary of state for health and others v servier laboratories ltd and others"
+  },
+  "content": "{\"title\":\"Secretary of State for Health and others (Respondents) v Servier Laboratories Ltd and others (Appellants)\",\"citation\":\"UKSC/2019/0150\",\"url\":\"https://supremecourt.uk/cases/uksc-2019-0150\",\"summary\":\"Principle issue: To what extent, if at all, are factual findings made by the General Court of the European Union in the course of its judgment in Case T-691/14 Servier SAS v EU Commission annulling a competition infringement decision of the European Commission binding as res judicata on English courts in a follow-on private damages action brought by the Respondents against the Appellants?\",\"extracts\":[\"2. The appellants (referred to collectively as “Servier”), who are defendants in each of the proceedings giving rise to this appeal, developed and manufactured the medicinal product perindopril erbumine (“Perindopril”), which is used in the treatment of cardiovascular diseases including the treatment of high blood pressure. They marketed Perindopril under the trade name “Coversyl”. Perindopril falls within the class of medicines known as angiotensin-converting-enzyme inhibitors (“ACE inhibitors”). Servier obtained a number of patents for Perindopril during the course of its development.\",\"3. The respondents to this appeal (referred to collectively as “the claimants”), are the national health authorities of England, Wales, and Scotland and Northern Ireland. They are the claimants in the national proceedings. The High Court has directed that the three sets of proceedings be jointly managed and be tried on the same occasion (Order of Henderson J dated 26 February 2016). The present appeal is against the order of the Court of Appeal dated 27 June 2019 that followed a one-\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"secretary of state for health and others v servier laboratories ltd and others\"}"
+}

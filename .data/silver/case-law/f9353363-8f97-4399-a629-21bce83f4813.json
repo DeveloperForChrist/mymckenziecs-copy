@@ -1,0 +1,21 @@
+{
+  "id": "f9353363-8f97-4399-a629-21bce83f4813",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In re Sigma Finance Corporation (in administrative receivership) and In re the Insolvency Act 1986 (First Appeal)",
+  "created_at": "2025-12-25T11:46:47.438Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0143",
+    "score": 1,
+    "title": "In re Sigma Finance Corporation (in administrative receivership) and In re the Insolvency Act 1986 (First Appeal)",
+    "summary": "Introduction 1. Sigma Finance Corporation (“Sigma”) and those who invested in it are victims of the current financial crisis.",
+    "category": "procedure",
+    "citation": "UKSC/2009/0143",
+    "extracts": [
+      "Introduction 1. Sigma Finance Corporation (“Sigma”) and those who invested in it are victims of the current financial crisis. Sigma is a structured investment vehicle, whose business involved acquiring asset-backed securities and other instruments, using funds raised by issuing or guaranteeing US dollar and Euro medium term notes (MTNs) as well as liquidity from other sources, such as facilities, derivatives, repurchase (or “repo”) contracts and capital notes (the last two categories representing its unsecured creditors). All of Sigma’s assets are secured in favour of its secured creditors upon the terms of a Security Trust Deed (STD), dated 27 March 2003, made between Sigma as issuer and Deutsche Trustee Company Limited (“Deutsche Trustee”) as security trustee and governed by English law.",
+      "3. Under the Security Trust Deed, the occurrence of an Enforcement Event started a 60-day “Realisation Period”, and triggered an obligation on the Trustee to use its reasonable endeavours to establish by the end of that period a Short Term Pool (for Short Term Liabilities, defined by clause 1 to cover “outstanding payment obligations … which are due"
+    ],
+    "title_key": "in re sigma finance corporation and in re the insolvency act 1986"
+  },
+  "content": "{\"title\":\"In re Sigma Finance Corporation (in administrative receivership) and In re the Insolvency Act 1986 (First Appeal)\",\"citation\":\"UKSC/2009/0143\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0143\",\"summary\":\"Introduction 1. Sigma Finance Corporation (“Sigma”) and those who invested in it are victims of the current financial crisis.\",\"extracts\":[\"Introduction 1. Sigma Finance Corporation (“Sigma”) and those who invested in it are victims of the current financial crisis. Sigma is a structured investment vehicle, whose business involved acquiring asset-backed securities and other instruments, using funds raised by issuing or guaranteeing US dollar and Euro medium term notes (MTNs) as well as liquidity from other sources, such as facilities, derivatives, repurchase (or “repo”) contracts and capital notes (the last two categories representing its unsecured creditors). All of Sigma’s assets are secured in favour of its secured creditors upon the terms of a Security Trust Deed (STD), dated 27 March 2003, made between Sigma as issuer and Deutsche Trustee Company Limited (“Deutsche Trustee”) as security trustee and governed by English law.\",\"3. Under the Security Trust Deed, the occurrence of an Enforcement Event started a 60-day “Realisation Period”, and triggered an obligation on the Trustee to use its reasonable endeavours to establish by the end of that period a Short Term Pool (for Short Term Liabilities, defined by clause 1 to cover “outstanding payment obligations … which are due\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"in re sigma finance corporation and in re the insolvency act 1986\"}"
+}

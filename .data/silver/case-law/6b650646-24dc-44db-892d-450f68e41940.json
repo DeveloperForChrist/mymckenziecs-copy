@@ -1,0 +1,21 @@
+{
+  "id": "6b650646-24dc-44db-892d-450f68e41940",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "CPRE Kent (Respondent) v China Gateway International Limited (Appellant)",
+  "created_at": "2025-12-25T11:49:32.141Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0190",
+    "score": 0,
+    "title": "CPRE Kent (Respondent) v China Gateway International Limited (Appellant)",
+    "summary": "1. When a local planning authority against the advice of its own professional advisers grants permission for a controversial development, what legal duty, if any, does it have to state the reasons for its decision, and in how much detail?",
+    "category": "evidence_misc",
+    "citation": "UKSC/2016/0190",
+    "extracts": [
+      "1. When a local planning authority against the advice of its own professional advisers grants permission for a controversial development, what legal duty, if any, does it have to state the reasons for its decision, and in how much detail? Is such a duty to be found in statutory sources, European or domestic, or in the common law? And what are the legal consequences of a breach of the duty?",
+      "2. Those issues are presented by this appeal in a particularly striking form. The context is a proposal for major development to the west of Dover, on two sites referred to as Western Heights and Farthingloe. The latter is within the Kent Downs Area of Outstanding Natural Beauty. Western Heights is a prominent hilltop overlooking Dover, dominated by a series of fortifications dating from the Napoleonic wars, including the so-called “Drop Redoubt”. The site is a scheduled monument. Farthingloe is in a long valley between the A20 and the B2001 to the west of Western Heights, and comprises 155 hectares of agricultural and scrubland."
+    ],
+    "title_key": "cpre kent v china gateway international limited"
+  },
+  "content": "{\"title\":\"CPRE Kent (Respondent) v China Gateway International Limited (Appellant)\",\"citation\":\"UKSC/2016/0190\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0190\",\"summary\":\"1. When a local planning authority against the advice of its own professional advisers grants permission for a controversial development, what legal duty, if any, does it have to state the reasons for its decision, and in how much detail?\",\"extracts\":[\"1. When a local planning authority against the advice of its own professional advisers grants permission for a controversial development, what legal duty, if any, does it have to state the reasons for its decision, and in how much detail? Is such a duty to be found in statutory sources, European or domestic, or in the common law? And what are the legal consequences of a breach of the duty?\",\"2. Those issues are presented by this appeal in a particularly striking form. The context is a proposal for major development to the west of Dover, on two sites referred to as Western Heights and Farthingloe. The latter is within the Kent Downs Area of Outstanding Natural Beauty. Western Heights is a prominent hilltop overlooking Dover, dominated by a series of fortifications dating from the Napoleonic wars, including the so-called “Drop Redoubt”. The site is a scheduled monument. Farthingloe is in a long valley between the A20 and the B2001 to the west of Western Heights, and comprises 155 hectares of agricultural and scrubland.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"cpre kent v china gateway international limited\"}"
+}

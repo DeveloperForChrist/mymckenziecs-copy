@@ -1,0 +1,15 @@
+{
+  "id": "22b75ed7-1dfe-45a2-9459-5715493227d3",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8406",
+  "created_at": "2025-12-25T12:42:36.754Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1965/2173/contents/made",
+    "type": "uksi",
+    "year": 1965,
+    "number": 2173,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1965,\"number\":2173,\"url\":\"http://www.legislation.gov.uk/uksi/1965/2173/contents/made\",\"dataUrl\":null}"
+}

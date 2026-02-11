@@ -1,0 +1,15 @@
+{
+  "id": "a51629d5-42ec-4210-928f-9831bc1dc771",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#26196",
+  "created_at": "2025-12-25T14:37:13.710Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2018/661/made",
+    "type": "uksi",
+    "year": 2018,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2018,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2018/661/made\",\"dataUrl\":null}"
+}

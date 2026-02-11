@@ -1,0 +1,13 @@
+{
+  "id": "7a136ba2-3c02-4f34-ad41-0d9d049eb164",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#290",
+  "created_at": "2025-12-25T15:21:52.564Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part-48-part-2of-the-legal-aid-sentencing-and-punishment-of-offenders-act-2012-relating-to-civil-litigation-funding-and-costs-transitional-provision-in-relation-to-pre-commencement-funding-arrangement/part-48-part-2of-the-legal-aid-sentencing-and-punishment-of-offenders-act-2012-relating-to-civil-litigation-funding-and-costs-transitional-provision-in-relation-to-pre-commencement-funding-arrangement",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part_48_part_2of_the_legal_21eeb305d3.html",
+    "fetchedAt": "2025-12-23T00:24:53.604Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part-48-part-2of-the-legal-aid-sentencing-and-punishment-of-offenders-act-2012-relating-to-civil-litigation-funding-and-costs-transitional-provision-in-relation-to-pre-commencement-funding-arrangement/part-48-part-2of-the-legal-aid-sentencing-and-punishment-of-offenders-act-2012-relating-to-civil-litigation-funding-and-costs-transitional-provision-in-relation-to-pre-commencement-funding-arrangement\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part_48_part_2of_the_legal_21eeb305d3.html\",\"fetchedAt\":\"2025-12-23T00:24:53.604Z\"}"
+}

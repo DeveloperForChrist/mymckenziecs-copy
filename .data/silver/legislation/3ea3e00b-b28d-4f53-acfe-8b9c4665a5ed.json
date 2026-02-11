@@ -1,0 +1,15 @@
+{
+  "id": "3ea3e00b-b28d-4f53-acfe-8b9c4665a5ed",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20863",
+  "created_at": "2025-12-25T13:59:14.136Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2002/3272/contents/made",
+    "type": "uksi",
+    "year": 2002,
+    "number": 3272,
+    "dataUrl": "http://www.legislation.gov.uk/wsi/2002/3272/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2002,\"number\":3272,\"url\":\"http://www.legislation.gov.uk/wsi/2002/3272/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/wsi/2002/3272/made/data.htm\"}"
+}

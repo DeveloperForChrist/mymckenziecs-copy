@@ -1,0 +1,15 @@
+{
+  "id": "899ef388-5061-4450-ba1b-3643587c1420",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4170",
+  "created_at": "2025-12-25T12:17:03.254Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1973/62/contents",
+    "type": "ukpga",
+    "year": 1973,
+    "number": 62,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1973/62/2000-08-25/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1973,\"number\":62,\"url\":\"http://www.legislation.gov.uk/ukpga/1973/62/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1973/62/2000-08-25/data.htm\"}"
+}

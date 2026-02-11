@@ -1,0 +1,21 @@
+{
+  "id": "b9af2422-e2dc-4a48-832d-c0688d45b50f",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "P (Appellant) v Commissioner of Police of the Metropolis (Respondent)",
+  "created_at": "2025-12-25T11:49:19.297Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0041",
+    "score": 1,
+    "title": "P (Appellant) v Commissioner of Police of the Metropolis (Respondent)",
+    "summary": "(1) Equality and Human Rights Commission (2) The Society of Black Lawyers, Operation Black Vote Association of Muslim Lawyers, NHS BME Network, BARAC, BLAKSOX, The Runneymede Charitable Trust and The National Black Police Association LORD REED: (with whom Lady Hale, Lord Kerr, Lord Wilson and Lor...",
+    "category": "public_law",
+    "citation": "UKSC/2016/0041",
+    "extracts": [
+      "(1) Equality and Human Rights Commission (2) The Society of Black Lawyers, Operation Black Vote Association of Muslim Lawyers, NHS BME Network, BARAC, BLAKSOX, The Runneymede Charitable Trust and The National Black Police Association LORD REED: (with whom Lady Hale, Lord Kerr, Lord Wilson and Lord Hughes agree)",
+      "1. This appeal concerns the directly effective right of police officers under EU law to have the principle of equal treatment applied to them. The question raised is whether the enforcement of that right by means of proceedings in the Employment Tribunal is barred by the principle of judicial immunity, where the allegedly discriminatory conduct is that of persons conducting a misconduct hearing."
+    ],
+    "title_key": "p v commissioner of police of the metropolis"
+  },
+  "content": "{\"title\":\"P (Appellant) v Commissioner of Police of the Metropolis (Respondent)\",\"citation\":\"UKSC/2016/0041\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0041\",\"summary\":\"(1) Equality and Human Rights Commission (2) The Society of Black Lawyers, Operation Black Vote Association of Muslim Lawyers, NHS BME Network, BARAC, BLAKSOX, The Runneymede Charitable Trust and The National Black Police Association LORD REED: (with whom Lady Hale, Lord Kerr, Lord Wilson and Lor...\",\"extracts\":[\"(1) Equality and Human Rights Commission (2) The Society of Black Lawyers, Operation Black Vote Association of Muslim Lawyers, NHS BME Network, BARAC, BLAKSOX, The Runneymede Charitable Trust and The National Black Police Association LORD REED: (with whom Lady Hale, Lord Kerr, Lord Wilson and Lord Hughes agree)\",\"1. This appeal concerns the directly effective right of police officers under EU law to have the principle of equal treatment applied to them. The question raised is whether the enforcement of that right by means of proceedings in the Employment Tribunal is barred by the principle of judicial immunity, where the allegedly discriminatory conduct is that of persons conducting a misconduct hearing.\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"p v commissioner of police of the metropolis\"}"
+}

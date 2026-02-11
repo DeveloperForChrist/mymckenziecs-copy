@@ -1,0 +1,13 @@
+{
+  "id": "435b4f9f-affd-43e9-a8c7-1190ad760b3a",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#7",
+  "created_at": "2025-12-25T15:19:47.499Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/forms",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_forms_b72e779dce.html",
+    "fetchedAt": "2025-12-22T23:48:56.242Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/forms\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_forms_b72e779dce.html\",\"fetchedAt\":\"2025-12-22T23:48:56.242Z\"}"
+}

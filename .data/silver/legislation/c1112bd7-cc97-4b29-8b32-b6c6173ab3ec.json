@@ -1,0 +1,15 @@
+{
+  "id": "c1112bd7-cc97-4b29-8b32-b6c6173ab3ec",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#21882",
+  "created_at": "2025-12-25T14:06:35.012Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2005/1978/contents/made",
+    "type": "uksi",
+    "year": 2005,
+    "number": 1978,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2005/1978/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2005,\"number\":1978,\"url\":\"http://www.legislation.gov.uk/uksi/2005/1978/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2005/1978/made/data.htm\"}"
+}

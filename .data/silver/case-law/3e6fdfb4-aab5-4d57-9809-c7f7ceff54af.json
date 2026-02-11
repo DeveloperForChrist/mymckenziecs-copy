@@ -1,0 +1,21 @@
+{
+  "id": "3e6fdfb4-aab5-4d57-9809-c7f7ceff54af",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "LOCAL GOVERNMENT BYELAWS (WALES) BILL 2012 - Reference by the Attorney General for England and Wales",
+  "created_at": "2025-12-25T11:48:01.060Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0185",
+    "score": 0,
+    "title": "LOCAL GOVERNMENT BYELAWS (WALES) BILL 2012 - Reference by the Attorney General for England and Wales",
+    "summary": "1. This is a reference made by the Attorney General for England and Wales (“the Attorney General”) under section 112 of the Government of Wales Act 2006 (“the 2006 Act”) for a determination on whether sections 6 and 9 of the Local Government Byelaws (Wales) Bill 2012 are within the legislative co...",
+    "category": "evidence_misc",
+    "citation": "UKSC/2012/0185",
+    "extracts": [
+      "1. This is a reference made by the Attorney General for England and Wales (“the Attorney General”) under section 112 of the Government of Wales Act 2006 (“the 2006 Act”) for a determination on whether sections 6 and 9 of the Local Government Byelaws (Wales) Bill 2012 are within the legislative competence of the National Assembly for Wales (“the Assembly”).",
+      "2. Following a referendum held in 1997, the Government of Wales Act 1998 (“the 1998 Act”) set out the initial devolution settlement for Wales. This included the establishment of the Assembly, a body corporate which had the legal responsibility for discharging the devolved executive and legislative functions. Sections 21 and 22 of the 1998 Act governed the functions of the Assembly, and they included provisions for transferring functions vested in a Minister of the Crown to the Assembly, by Order in Council. Schedule 2 to the 1998 Act set out the “fields” of functions which were to be devolved to the Assembly in the first such Order in Council, including “[t]he environment’ and ‘[l]ocal government”. The first Order in Council making such provision was the National Assembly for Wales (Transfer of Functions) Order 1999, SI 1999 No 672 (“the 1999 Order”)."
+    ],
+    "title_key": "local government byelaws bill 2012 reference by the attorney general for england and wales"
+  },
+  "content": "{\"title\":\"LOCAL GOVERNMENT BYELAWS (WALES) BILL 2012 - Reference by the Attorney General for England and Wales\",\"citation\":\"UKSC/2012/0185\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0185\",\"summary\":\"1. This is a reference made by the Attorney General for England and Wales (“the Attorney General”) under section 112 of the Government of Wales Act 2006 (“the 2006 Act”) for a determination on whether sections 6 and 9 of the Local Government Byelaws (Wales) Bill 2012 are within the legislative co...\",\"extracts\":[\"1. This is a reference made by the Attorney General for England and Wales (“the Attorney General”) under section 112 of the Government of Wales Act 2006 (“the 2006 Act”) for a determination on whether sections 6 and 9 of the Local Government Byelaws (Wales) Bill 2012 are within the legislative competence of the National Assembly for Wales (“the Assembly”).\",\"2. Following a referendum held in 1997, the Government of Wales Act 1998 (“the 1998 Act”) set out the initial devolution settlement for Wales. This included the establishment of the Assembly, a body corporate which had the legal responsibility for discharging the devolved executive and legislative functions. Sections 21 and 22 of the 1998 Act governed the functions of the Assembly, and they included provisions for transferring functions vested in a Minister of the Crown to the Assembly, by Order in Council. Schedule 2 to the 1998 Act set out the “fields” of functions which were to be devolved to the Assembly in the first such Order in Council, including “[t]he environment’ and ‘[l]ocal government”. The first Order in Council making such provision was the National Assembly for Wales (Transfer of Functions) Order 1999, SI 1999 No 672 (“the 1999 Order”).\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"local government byelaws bill 2012 reference by the attorney general for england and wales\"}"
+}

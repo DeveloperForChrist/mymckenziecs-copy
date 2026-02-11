@@ -1,0 +1,15 @@
+{
+  "id": "6cdae12a-67a2-431f-9763-c148df4ea0f7",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#21490",
+  "created_at": "2025-12-25T14:03:47.360Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2005/3447/contents/made",
+    "type": "uksi",
+    "year": 2005,
+    "number": 3447,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2005/3447/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2005,\"number\":3447,\"url\":\"http://www.legislation.gov.uk/uksi/2005/3447/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2005/3447/made/data.htm\"}"
+}

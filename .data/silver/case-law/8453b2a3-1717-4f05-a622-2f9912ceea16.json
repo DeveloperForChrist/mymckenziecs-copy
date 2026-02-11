@@ -1,0 +1,21 @@
+{
+  "id": "8453b2a3-1717-4f05-a622-2f9912ceea16",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Jetivia SA and another (Appellants) v Bilta (UK) Limited (in liquidation) and others (Respondents)",
+  "created_at": "2025-12-25T11:48:24.350Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0206",
+    "score": 1,
+    "title": "Jetivia SA and another (Appellants) v Bilta (UK) Limited (in liquidation) and others (Respondents)",
+    "summary": "1. The facts giving rise to this appeal can be shortly summarised, although they are more fully set out in the judgments of Lord Sumption at paras 56-59 and of Lords Toulson and Hodge at paras 113-116 below.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0206",
+    "extracts": [
+      "1. The facts giving rise to this appeal can be shortly summarised, although they are more fully set out in the judgments of Lord Sumption at paras 56-59 and of Lords Toulson and Hodge at paras 113-116 below.",
+      "2. Bilta (UK) Ltd is an English company which was compulsorily wound up in November 2009 pursuant to a petition presented by HMRC. Bilta’s liquidators then brought proceedings against, inter alia, its two former directors, Mr Chopra, who was also its sole shareholder, and Mr Nazir; and Jetivia SA, a Swiss company and its chief executive, Mr Brunschweiler, who is resident in France (“the four defendants”)."
+    ],
+    "title_key": "jetivia sa and another v bilta limited and others"
+  },
+  "content": "{\"title\":\"Jetivia SA and another (Appellants) v Bilta (UK) Limited (in liquidation) and others (Respondents)\",\"citation\":\"UKSC/2013/0206\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0206\",\"summary\":\"1. The facts giving rise to this appeal can be shortly summarised, although they are more fully set out in the judgments of Lord Sumption at paras 56-59 and of Lords Toulson and Hodge at paras 113-116 below.\",\"extracts\":[\"1. The facts giving rise to this appeal can be shortly summarised, although they are more fully set out in the judgments of Lord Sumption at paras 56-59 and of Lords Toulson and Hodge at paras 113-116 below.\",\"2. Bilta (UK) Ltd is an English company which was compulsorily wound up in November 2009 pursuant to a petition presented by HMRC. Bilta’s liquidators then brought proceedings against, inter alia, its two former directors, Mr Chopra, who was also its sole shareholder, and Mr Nazir; and Jetivia SA, a Swiss company and its chief executive, Mr Brunschweiler, who is resident in France (“the four defendants”).\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"jetivia sa and another v bilta limited and others\"}"
+}

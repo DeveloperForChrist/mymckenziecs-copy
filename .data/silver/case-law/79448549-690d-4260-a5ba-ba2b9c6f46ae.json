@@ -1,0 +1,21 @@
+{
+  "id": "79448549-690d-4260-a5ba-ba2b9c6f46ae",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Cart) (Appellant) v The Upper Tribunal (Respondent)",
+  "created_at": "2025-12-25T11:47:11.964Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0176",
+    "score": 2,
+    "title": "R (on the application of Cart) (Appellant) v The Upper Tribunal (Respondent)",
+    "summary": "1. There are three cases before the Court, two on appeal from the Court of Appeal of England and Wales and one from the Inner House of the Court of Session in Scotland.",
+    "category": "procedure",
+    "citation": "UKSC/2010/0176",
+    "extracts": [
+      "1. There are three cases before the Court, two on appeal from the Court of Appeal of England and Wales and one from the Inner House of the Court of Session in Scotland. This judgment deals with the two English cases, while a separate judgment will deal with the Scottish case. The issue common to all three is the scope for judicial review by the High Court or Court of Session of unappealable decisions of the Upper Tribunal established under the Tribunals, Courts and Enforcement Act 2007 (the “2007 Act”). It is no longer argued on behalf of the Government that such decisions are not amenable to judicial review at all. But it is argued that they are only reviewable in exceptional circumstances. The claimants argue that no such limit exists. The debate, therefore, has focussed upon the effect of the creation of a wholly new and integrated tribunal structure under the 2007 Act.",
+      "2. It has been helpful to hear three different cases together, all raising essentially the same question in different contexts. In all of them the claimant failed in an appeal to the First-tier Tribunal set up under the 2007 Act and was refused permission to appeal to the Upper Tribunal against that decision both by the First-tier Tribunal and by the Upper Tribunal. In all three the claimant seeks a judicial review of the refusal of permission to appeal by the Upper Tribunal."
+    ],
+    "title_key": "r v the upper tribunal"
+  },
+  "content": "{\"title\":\"R (on the application of Cart) (Appellant) v The Upper Tribunal (Respondent)\",\"citation\":\"UKSC/2010/0176\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0176\",\"summary\":\"1. There are three cases before the Court, two on appeal from the Court of Appeal of England and Wales and one from the Inner House of the Court of Session in Scotland.\",\"extracts\":[\"1. There are three cases before the Court, two on appeal from the Court of Appeal of England and Wales and one from the Inner House of the Court of Session in Scotland. This judgment deals with the two English cases, while a separate judgment will deal with the Scottish case. The issue common to all three is the scope for judicial review by the High Court or Court of Session of unappealable decisions of the Upper Tribunal established under the Tribunals, Courts and Enforcement Act 2007 (the “2007 Act”). It is no longer argued on behalf of the Government that such decisions are not amenable to judicial review at all. But it is argued that they are only reviewable in exceptional circumstances. The claimants argue that no such limit exists. The debate, therefore, has focussed upon the effect of the creation of a wholly new and integrated tribunal structure under the 2007 Act.\",\"2. It has been helpful to hear three different cases together, all raising essentially the same question in different contexts. In all of them the claimant failed in an appeal to the First-tier Tribunal set up under the 2007 Act and was refused permission to appeal to the Upper Tribunal against that decision both by the First-tier Tribunal and by the Upper Tribunal. In all three the claimant seeks a judicial review of the refusal of permission to appeal by the Upper Tribunal.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"r v the upper tribunal\"}"
+}

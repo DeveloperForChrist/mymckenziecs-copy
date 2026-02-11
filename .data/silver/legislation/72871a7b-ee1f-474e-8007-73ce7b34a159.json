@@ -1,0 +1,15 @@
+{
+  "id": "72871a7b-ee1f-474e-8007-73ce7b34a159",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7962",
+  "created_at": "2025-12-25T12:39:58.883Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1960/2425/contents/made",
+    "type": "uksi",
+    "year": 1960,
+    "number": 2425,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1960,\"number\":2425,\"url\":\"http://www.legislation.gov.uk/uksi/1960/2425/contents/made\",\"dataUrl\":null}"
+}

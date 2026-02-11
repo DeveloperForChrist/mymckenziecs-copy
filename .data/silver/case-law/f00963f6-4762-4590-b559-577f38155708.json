@@ -1,0 +1,21 @@
+{
+  "id": "f00963f6-4762-4590-b559-577f38155708",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Barclay and others) (Appellants) v Secretary of State for Justice and others (Respondents)",
+  "created_at": "2025-12-25T11:46:45.079Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0119",
+    "score": 1,
+    "title": "R (on the application of Barclay and others) (Appellants) v Secretary of State for Justice and others (Respondents)",
+    "summary": "1. As a result of the experience of the pre-war dictatorships, the right to free elections was emphasised during and immediately following the Second World War as an essential element of personal freedom and equality before the law.",
+    "category": "public_law",
+    "citation": "UKSC/2009/0119",
+    "extracts": [
+      "1. As a result of the experience of the pre-war dictatorships, the right to free elections was emphasised during and immediately following the Second World War as an essential element of personal freedom and equality before the law. As Professor Hersch (later Sir Hersch) Lauterpacht put it in 1945:",
+      "“… the right of self-government – which in developed society means government by persons freely chosen by and accountable to the electors – is in itself an expression and a condition of freedom. No individual … is free if he is governed against his will, that is, if the persons who exercise authority are not chosen by and accountable to the community at large.” (Lauterpacht, An International Bill of the Rights of Man (1945), 135)"
+    ],
+    "title_key": "r v secretary of state for justice and others"
+  },
+  "content": "{\"title\":\"R (on the application of Barclay and others) (Appellants) v Secretary of State for Justice and others (Respondents)\",\"citation\":\"UKSC/2009/0119\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0119\",\"summary\":\"1. As a result of the experience of the pre-war dictatorships, the right to free elections was emphasised during and immediately following the Second World War as an essential element of personal freedom and equality before the law.\",\"extracts\":[\"1. As a result of the experience of the pre-war dictatorships, the right to free elections was emphasised during and immediately following the Second World War as an essential element of personal freedom and equality before the law. As Professor Hersch (later Sir Hersch) Lauterpacht put it in 1945:\",\"“… the right of self-government – which in developed society means government by persons freely chosen by and accountable to the electors – is in itself an expression and a condition of freedom. No individual … is free if he is governed against his will, that is, if the persons who exercise authority are not chosen by and accountable to the community at large.” (Lauterpacht, An International Bill of the Rights of Man (1945), 135)\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"r v secretary of state for justice and others\"}"
+}

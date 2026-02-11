@@ -1,0 +1,15 @@
+{
+  "id": "b2942fdb-fa7a-4666-9cf8-88de7671ded8",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20",
+  "created_at": "2025-12-25T11:51:19.585Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Vict/63-64/43/contents/enacted",
+    "type": "ukpga",
+    "year": 1900,
+    "number": 43,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1900,\"number\":43,\"url\":\"http://www.legislation.gov.uk/ukpga/Vict/63-64/43/contents/enacted\",\"dataUrl\":null}"
+}

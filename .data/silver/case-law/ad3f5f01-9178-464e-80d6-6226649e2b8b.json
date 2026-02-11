@@ -1,0 +1,21 @@
+{
+  "id": "ad3f5f01-9178-464e-80d6-6226649e2b8b",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Wells (Respondent) v Devani (Appellant)",
+  "created_at": "2025-12-25T11:49:37.841Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0223",
+    "score": 1,
+    "title": "Wells (Respondent) v Devani (Appellant)",
+    "summary": "1. In this case an estate agent claims that commission became payable to him by the vendor of a number flats on the completion of the sale of those flats to a purchaser which he had introduced to the vendor.",
+    "category": "procedure",
+    "citation": "UKSC/2016/0223",
+    "extracts": [
+      "1. In this case an estate agent claims that commission became payable to him by the vendor of a number flats on the completion of the sale of those flats to a purchaser which he had introduced to the vendor. It gives rise to two issues. The first, raised on appeal by the agent, concerns the agreement between the agent and the vendor and whether it was complete and enforceable by the agent despite there being no express identification of the event which would trigger the obligation to pay the commission. The second, raised on a cross-appeal by the vendor, concerns the application of section 18 of the Estate Agents Act 1979 and whether, by reason of the agent’s failure to comply with the requirements imposed by the Act, the trial judge ought to have dismissed the claim or discharged the vendor’s liability to pay the commission.",
+      "2. In 2007, the defendant, Mr Wells, a retired stockbroker’s office administrator, completed the development of a block of flats in Hackney under the terms of a joint venture agreement with Mr White, a builder. By the beginning of 2008 six of the flats had been sold, one was under offer and seven were still on the market. They were being marketed by a local agency, Shaw & Co, under a contract for a sole agency and a commission of 1.75%, or 3% if the properties were sold through another agent."
+    ],
+    "title_key": "wells v devani"
+  },
+  "content": "{\"title\":\"Wells (Respondent) v Devani (Appellant)\",\"citation\":\"UKSC/2016/0223\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0223\",\"summary\":\"1. In this case an estate agent claims that commission became payable to him by the vendor of a number flats on the completion of the sale of those flats to a purchaser which he had introduced to the vendor.\",\"extracts\":[\"1. In this case an estate agent claims that commission became payable to him by the vendor of a number flats on the completion of the sale of those flats to a purchaser which he had introduced to the vendor. It gives rise to two issues. The first, raised on appeal by the agent, concerns the agreement between the agent and the vendor and whether it was complete and enforceable by the agent despite there being no express identification of the event which would trigger the obligation to pay the commission. The second, raised on a cross-appeal by the vendor, concerns the application of section 18 of the Estate Agents Act 1979 and whether, by reason of the agent’s failure to comply with the requirements imposed by the Act, the trial judge ought to have dismissed the claim or discharged the vendor’s liability to pay the commission.\",\"2. In 2007, the defendant, Mr Wells, a retired stockbroker’s office administrator, completed the development of a block of flats in Hackney under the terms of a joint venture agreement with Mr White, a builder. By the beginning of 2008 six of the flats had been sold, one was under offer and seven were still on the market. They were being marketed by a local agency, Shaw & Co, under a contract for a sole agency and a commission of 1.75%, or 3% if the properties were sold through another agent.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"wells v devani\"}"
+}

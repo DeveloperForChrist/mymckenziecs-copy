@@ -1,0 +1,21 @@
+{
+  "id": "f1cab9c6-2439-499c-b586-34630ff3e877",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Byers and others (Appellants) v Saudi National Bank (Respondent)",
+  "created_at": "2025-12-25T11:50:47.185Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2022-0048",
+    "score": 1,
+    "title": "Byers and others (Appellants) v Saudi National Bank (Respondent)",
+    "summary": "Principle issue: Whether a claim in knowing receipt requires a claimant to prove a continuing equitable interest in the property transferred to the defendant in breach of trust, in addition to knowledge on the part of the defendant so as to render his receipt unconscionable.",
+    "category": "procedure",
+    "citation": "UKSC/2022/0048",
+    "extracts": [
+      "1. I am very grateful to Lord Briggs and Lord Burrows for setting out the facts and for the reasoning by which they conclude that the appeal must be dismissed. They agree that a claim in knowing receipt cannot succeed once the claimant’s proprietary equitable interest in the property in question has been extinguished or overridden. I agree. Lord Briggs and Lord Burrows agree that the case law, although containing pointers in favour of their conclusion, does not provide a definitive answer in this case, and that they must decide the matter as a matter of equitable principle. Again, I agree. Because they have come to this conclusion by slightly different reasoning, it may be useful if I summarise what has been agreed as determining the outcome of the appeal. This is only a summary of agreed matters and the reader will find the reasoning in the judgments of Lord Briggs and Lord Burrows.",
+      "2. First, it is well established that the transfer of trust property by a trustee to a bona fide purchaser for value without notice extinguishes or overrides the proprietary equitable interest of the cestui que trust (the trust beneficiary) and this is so even if the trustee in so doing acts in breach of trust. (Lord Briggs paras 18 & 20, Lord Burrows para 156)."
+    ],
+    "title_key": "byers and others v saudi national bank"
+  },
+  "content": "{\"title\":\"Byers and others (Appellants) v Saudi National Bank (Respondent)\",\"citation\":\"UKSC/2022/0048\",\"url\":\"https://supremecourt.uk/cases/uksc-2022-0048\",\"summary\":\"Principle issue: Whether a claim in knowing receipt requires a claimant to prove a continuing equitable interest in the property transferred to the defendant in breach of trust, in addition to knowledge on the part of the defendant so as to render his receipt unconscionable.\",\"extracts\":[\"1. I am very grateful to Lord Briggs and Lord Burrows for setting out the facts and for the reasoning by which they conclude that the appeal must be dismissed. They agree that a claim in knowing receipt cannot succeed once the claimant’s proprietary equitable interest in the property in question has been extinguished or overridden. I agree. Lord Briggs and Lord Burrows agree that the case law, although containing pointers in favour of their conclusion, does not provide a definitive answer in this case, and that they must decide the matter as a matter of equitable principle. Again, I agree. Because they have come to this conclusion by slightly different reasoning, it may be useful if I summarise what has been agreed as determining the outcome of the appeal. This is only a summary of agreed matters and the reader will find the reasoning in the judgments of Lord Briggs and Lord Burrows.\",\"2. First, it is well established that the transfer of trust property by a trustee to a bona fide purchaser for value without notice extinguishes or overrides the proprietary equitable interest of the cestui que trust (the trust beneficiary) and this is so even if the trustee in so doing acts in breach of trust. (Lord Briggs paras 18 & 20, Lord Burrows para 156).\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"byers and others v saudi national bank\"}"
+}

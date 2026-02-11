@@ -1,0 +1,15 @@
+{
+  "id": "d78a4003-838d-4710-8d04-2f40dc20ff01",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#2631",
+  "created_at": "2025-12-25T12:07:37.670Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo6/12-13-14/86/contents/enacted",
+    "type": "ukpga",
+    "year": 1949,
+    "number": 86,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1949,\"number\":86,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo6/12-13-14/86/contents/enacted\",\"dataUrl\":null}"
+}

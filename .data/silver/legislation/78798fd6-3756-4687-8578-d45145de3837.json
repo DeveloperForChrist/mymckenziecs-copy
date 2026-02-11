@@ -1,0 +1,15 @@
+{
+  "id": "78798fd6-3756-4687-8578-d45145de3837",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20178",
+  "created_at": "2025-12-25T13:55:02.221Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1998/811/contents",
+    "type": "uksi",
+    "year": 1998,
+    "number": 811,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1998/811/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1998,\"number\":811,\"url\":\"http://www.legislation.gov.uk/uksi/1998/811/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1998/811/2020-12-31/data.htm\"}"
+}

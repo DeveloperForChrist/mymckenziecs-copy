@@ -1,0 +1,8 @@
+# Contexts Directory
+
+React Context providers will be placed here.
+
+Example contexts:
+- AuthContext.tsx - Authentication context
+- ChatContext.tsx - Chat state context
+- ThemeContext.tsx - Theme management context

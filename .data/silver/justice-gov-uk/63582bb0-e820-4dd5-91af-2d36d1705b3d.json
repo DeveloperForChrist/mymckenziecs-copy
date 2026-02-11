@@ -1,0 +1,13 @@
+{
+  "id": "63582bb0-e820-4dd5-91af-2d36d1705b3d",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#217",
+  "created_at": "2025-12-25T15:21:20.887Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part-81-applications-and-proceedings-in-relation-to-contempt-of-court",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_part_81_applications_and_p_02a54e0bee.html",
+    "fetchedAt": "2025-12-23T00:24:21.945Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part-81-applications-and-proceedings-in-relation-to-contempt-of-court\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_part_81_applications_and_p_02a54e0bee.html\",\"fetchedAt\":\"2025-12-23T00:24:21.945Z\"}"
+}

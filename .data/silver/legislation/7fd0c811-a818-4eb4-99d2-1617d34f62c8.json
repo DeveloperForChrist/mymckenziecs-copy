@@ -1,0 +1,15 @@
+{
+  "id": "7fd0c811-a818-4eb4-99d2-1617d34f62c8",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#3182",
+  "created_at": "2025-12-25T12:11:13.737Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Eliz2/6-7/20/contents/enacted",
+    "type": "ukpga",
+    "year": 1958,
+    "number": 20,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1958,\"number\":20,\"url\":\"http://www.legislation.gov.uk/ukpga/Eliz2/6-7/20/contents/enacted\",\"dataUrl\":null}"
+}

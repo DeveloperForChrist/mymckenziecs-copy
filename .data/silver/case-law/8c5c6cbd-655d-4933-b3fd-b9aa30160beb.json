@@ -1,0 +1,18 @@
+{
+  "id": "8c5c6cbd-655d-4933-b3fd-b9aa30160beb",
+  "source": "case-law",
+  "path": "data/bronze/case-law/curated.json",
+  "title": "The Mayor's Office for Policing and Crime (Appellant) v Mitsui Sumitomo Insurance Co (Europe) Ltd and others (Respondents)",
+  "created_at": "2025-12-25T11:46:27.070Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0165",
+    "title": "The Mayor's Office for Policing and Crime (Appellant) v Mitsui Sumitomo Insurance Co (Europe) Ltd and others (Respondents)",
+    "summary": "1. London suffered from serious rioting for four days from 6 to 9 August 2011.",
+    "citation": "UKSC/2014/0165",
+    "extracts": [
+      "1. London suffered from serious rioting for four days from 6 to 9 August 2011. The rioters caused extensive damage to property. Property owners and insurers suffered significant losses. Several owners of uninsured property, including two of the respondents in this appeal, lost their businesses when they became insolvent as a result of those losses. Property owners and insurers, which had compensated their assureds, submitted claims for compensation from the appellant police authority (“MOPC”) under section 2 of the Riot (Damages) Act 1886 (“the 1886 Act”). The MOPC contested those claims initially on both liability to compensate and the quantification of loss. The liability of the MOPC to pay compensation is no longer in issue. The question is the quantification of the claims.",
+      "2. This appeal raises a question of statutory construction. It is whether persons who suffer loss when rioters destroy their property can in principle obtain compensation for consequential losses, including loss of profits and loss of rent, under section 2 of the 1886 Act, and if so on what basis."
+    ]
+  },
+  "content": "{\"title\":\"The Mayor's Office for Policing and Crime (Appellant) v Mitsui Sumitomo Insurance Co (Europe) Ltd and others (Respondents)\",\"citation\":\"UKSC/2014/0165\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0165\",\"summary\":\"1. London suffered from serious rioting for four days from 6 to 9 August 2011.\",\"extracts\":[\"1. London suffered from serious rioting for four days from 6 to 9 August 2011. The rioters caused extensive damage to property. Property owners and insurers suffered significant losses. Several owners of uninsured property, including two of the respondents in this appeal, lost their businesses when they became insolvent as a result of those losses. Property owners and insurers, which had compensated their assureds, submitted claims for compensation from the appellant police authority (“MOPC”) under section 2 of the Riot (Damages) Act 1886 (“the 1886 Act”). The MOPC contested those claims initially on both liability to compensate and the quantification of loss. The liability of the MOPC to pay compensation is no longer in issue. The question is the quantification of the claims.\",\"2. This appeal raises a question of statutory construction. It is whether persons who suffer loss when rioters destroy their property can in principle obtain compensation for consequential losses, including loss of profits and loss of rent, under section 2 of the 1886 Act, and if so on what basis.\"]}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "204a7313-327a-489a-849b-963147700533",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9619",
+  "created_at": "2025-12-25T12:49:35.208Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1976/1992/contents/made",
+    "type": "uksi",
+    "year": 1976,
+    "number": 1992,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1976,\"number\":1992,\"url\":\"http://www.legislation.gov.uk/uksi/1976/1992/contents/made\",\"dataUrl\":null}"
+}

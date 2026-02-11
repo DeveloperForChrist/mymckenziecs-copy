@@ -1,0 +1,15 @@
+{
+  "id": "30bdc4df-3647-4f24-91dd-701f3cc97a4d",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#22203",
+  "created_at": "2025-12-25T14:08:45.984Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2005/717/contents",
+    "type": "uksi",
+    "year": 2005,
+    "number": 717,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2005/717/2005-12-16/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2005,\"number\":717,\"url\":\"http://www.legislation.gov.uk/uksi/2005/717/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2005/717/2005-12-16/data.htm\"}"
+}

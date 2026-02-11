@@ -1,0 +1,21 @@
+{
+  "id": "78518af2-95b4-4a89-917e-9783d687cde5",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Secretary of State for Foreign and Commonwealth Affairs and another (Appellants) v Yunus Rahmatullah (Respondent)",
+  "created_at": "2025-12-25T11:47:48.077Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0033",
+    "score": 1,
+    "title": "Secretary of State for Foreign and Commonwealth Affairs and another (Appellants) v Yunus Rahmatullah (Respondent)",
+    "summary": "1. On 20 March 2003 military operations involving armed forces of the United States of America and the United Kingdom began in Iraq.",
+    "category": "public_law",
+    "citation": "UKSC/2012/0033",
+    "extracts": [
+      "1. On 20 March 2003 military operations involving armed forces of the United States of America and the United Kingdom began in Iraq. Exactly six weeks later, on 1 May 2003, major combat operations came formally to an end. The United Kingdom became one of two occupying powers. The other was the United States.",
+      "2. On 16 October 2003, the United Nations Security Council adopted Resolution 1511 (2003) which authorised, “a multinational force under unified command to take all necessary measures to contribute to the maintenance of security and stability in Iraq”. From that date, UK Armed Forces deployed in Iraq formed part of that multinational force (MNF) and were responsible for security and stabilisation operations in south eastern Iraq as part of the Multi National Division (South East) (MND (SE))."
+    ],
+    "title_key": "secretary of state for foreign and commonwealth affairs and another v yunus rahmatullah"
+  },
+  "content": "{\"title\":\"Secretary of State for Foreign and Commonwealth Affairs and another (Appellants) v Yunus Rahmatullah (Respondent)\",\"citation\":\"UKSC/2012/0033\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0033\",\"summary\":\"1. On 20 March 2003 military operations involving armed forces of the United States of America and the United Kingdom began in Iraq.\",\"extracts\":[\"1. On 20 March 2003 military operations involving armed forces of the United States of America and the United Kingdom began in Iraq. Exactly six weeks later, on 1 May 2003, major combat operations came formally to an end. The United Kingdom became one of two occupying powers. The other was the United States.\",\"2. On 16 October 2003, the United Nations Security Council adopted Resolution 1511 (2003) which authorised, “a multinational force under unified command to take all necessary measures to contribute to the maintenance of security and stability in Iraq”. From that date, UK Armed Forces deployed in Iraq formed part of that multinational force (MNF) and were responsible for security and stabilisation operations in south eastern Iraq as part of the Multi National Division (South East) (MND (SE)).\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"secretary of state for foreign and commonwealth affairs and another v yunus rahmatullah\"}"
+}

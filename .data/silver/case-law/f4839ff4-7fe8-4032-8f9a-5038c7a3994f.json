@@ -1,0 +1,21 @@
+{
+  "id": "f4839ff4-7fe8-4032-8f9a-5038c7a3994f",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "FMX Foods Merchants Import Export Co Ltd (Respondent) v Commissioners for Her Majesty's Revenue & Customs (Appellant)",
+  "created_at": "2025-12-25T11:50:07.781Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0218",
+    "score": 2,
+    "title": "FMX Foods Merchants Import Export Co Ltd (Respondent) v Commissioners for Her Majesty's Revenue & Customs (Appellant)",
+    "summary": "Principle issue: Whether customs duty is irrecoverable in circumstances where communication of the customs debt occurred three years after the debt was incurred, in light of the time limit imposed by Article 221(3) of the “Customs Code” (Regulation EEC/2913/92, as amended by Regulation EC/2700/2000).",
+    "category": "procedure",
+    "citation": "UKSC/2018/0218",
+    "extracts": [
+      "1. The main issue in this appeal concerns the meaning and effect of a short, innocent-sounding, phrase in article 221(4) of the (now superseded) Customs Code of the EU, contained in Council Regulation (EEC) No 2913/92 of 12 October 1992. The Customs Code regulated the collection of, and accounting for, customs duty throughout the EU (in 1992, the EEC). As is spelt out in the recitals to Regulation No 2913/92, the purposes of the Customs Code include securing a balance between the needs of the customs authorities in ensuring the correct application of customs legislation, on the one hand, and the rights of traders to be treated fairly, on the other, the establishment of uniform rules and procedure within the internal market, and the prevention of fraud or irregularity which would be liable adversely to affect the General Budget of the EU.",
+      "2. In order to understand the main issue about the meaning and effect of article 221(4) as inserted by Council Regulation (EC) No 2700/2000 of 16 November 2000, it is necessary first to explain some of the basic concepts used within the Customs Code. At the heart of it lies the concept of “customs debt” which is defined in article 4(9), in relation to imports, as follows:"
+    ],
+    "title_key": "fmx foods merchants import export co ltd v commissioners for her majesty s revenue customs"
+  },
+  "content": "{\"title\":\"FMX Foods Merchants Import Export Co Ltd (Respondent) v Commissioners for Her Majesty's Revenue & Customs (Appellant)\",\"citation\":\"UKSC/2018/0218\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0218\",\"summary\":\"Principle issue: Whether customs duty is irrecoverable in circumstances where communication of the customs debt occurred three years after the debt was incurred, in light of the time limit imposed by Article 221(3) of the “Customs Code” (Regulation EEC/2913/92, as amended by Regulation EC/2700/2000).\",\"extracts\":[\"1. The main issue in this appeal concerns the meaning and effect of a short, innocent-sounding, phrase in article 221(4) of the (now superseded) Customs Code of the EU, contained in Council Regulation (EEC) No 2913/92 of 12 October 1992. The Customs Code regulated the collection of, and accounting for, customs duty throughout the EU (in 1992, the EEC). As is spelt out in the recitals to Regulation No 2913/92, the purposes of the Customs Code include securing a balance between the needs of the customs authorities in ensuring the correct application of customs legislation, on the one hand, and the rights of traders to be treated fairly, on the other, the establishment of uniform rules and procedure within the internal market, and the prevention of fraud or irregularity which would be liable adversely to affect the General Budget of the EU.\",\"2. In order to understand the main issue about the meaning and effect of article 221(4) as inserted by Council Regulation (EC) No 2700/2000 of 16 November 2000, it is necessary first to explain some of the basic concepts used within the Customs Code. At the heart of it lies the concept of “customs debt” which is defined in article 4(9), in relation to imports, as follows:\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"fmx foods merchants import export co ltd v commissioners for her majesty s revenue customs\"}"
+}

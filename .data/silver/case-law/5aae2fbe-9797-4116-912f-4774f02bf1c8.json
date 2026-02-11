@@ -1,0 +1,18 @@
+{
+  "id": "5aae2fbe-9797-4116-912f-4774f02bf1c8",
+  "source": "case-law",
+  "path": "data/bronze/case-law/curated.json",
+  "title": "R (on the application of Bourgass and another) (Appellants) v Secretary of State for Justice (Respondent)",
+  "created_at": "2025-12-25T11:45:57.877Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0230",
+    "title": "R (on the application of Bourgass and another) (Appellants) v Secretary of State for Justice (Respondent)",
+    "summary": "1. These appeals are concerned with the procedure followed when a prisoner is kept in solitary confinement, otherwise described as “segregation” or “removal from association”.",
+    "citation": "UKSC/2013/0230",
+    "extracts": [
+      "1. These appeals are concerned with the procedure followed when a prisoner is kept in solitary confinement, otherwise described as “segregation” or “removal from association”. The principal question raised is whether decisions to keep the appellants in segregation for substantial periods were taken lawfully. Before the courts below, the arguments focused on the procedural requirements of article 6.1 of the European Convention on Human Rights (“the ECHR”). Before this court, the primary focus of the parties’ printed cases was upon the requirements of procedural fairness at common law. During the course of the hearing, however, a different issue came to the forefront, namely whether the segregation was authorised as required by the applicable legislation. For the reasons I shall explain, I have concluded that it was not.",
+      "2. In the light of that conclusion, the question whether the requirements of procedural fairness were met does not affect the outcome of these appeals. Nevertheless, the nature of those requirements in this context is a question of general public importance, which has divided judicial opinion and was fully and carefully argued in these appeals. In the circumstances, it is appropriate that this court should deal with it."
+    ]
+  },
+  "content": "{\"title\":\"R (on the application of Bourgass and another) (Appellants) v Secretary of State for Justice (Respondent)\",\"citation\":\"UKSC/2013/0230\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0230\",\"summary\":\"1. These appeals are concerned with the procedure followed when a prisoner is kept in solitary confinement, otherwise described as “segregation” or “removal from association”.\",\"extracts\":[\"1. These appeals are concerned with the procedure followed when a prisoner is kept in solitary confinement, otherwise described as “segregation” or “removal from association”. The principal question raised is whether decisions to keep the appellants in segregation for substantial periods were taken lawfully. Before the courts below, the arguments focused on the procedural requirements of article 6.1 of the European Convention on Human Rights (“the ECHR”). Before this court, the primary focus of the parties’ printed cases was upon the requirements of procedural fairness at common law. During the course of the hearing, however, a different issue came to the forefront, namely whether the segregation was authorised as required by the applicable legislation. For the reasons I shall explain, I have concluded that it was not.\",\"2. In the light of that conclusion, the question whether the requirements of procedural fairness were met does not affect the outcome of these appeals. Nevertheless, the nature of those requirements in this context is a question of general public importance, which has divided judicial opinion and was fully and carefully argued in these appeals. In the circumstances, it is appropriate that this court should deal with it.\"]}"
+}

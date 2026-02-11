@@ -1,0 +1,15 @@
+{
+  "id": "6232bb7a-5e3d-4147-abad-f963365bbe41",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#30835",
+  "created_at": "2025-12-25T15:15:27.818Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2024/661/contents/made",
+    "type": "uksi",
+    "year": 2024,
+    "number": 661,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2024,\"number\":661,\"url\":\"http://www.legislation.gov.uk/uksi/2024/661/contents/made\",\"dataUrl\":null}"
+}

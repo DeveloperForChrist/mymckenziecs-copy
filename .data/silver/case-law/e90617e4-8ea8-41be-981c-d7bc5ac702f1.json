@@ -1,0 +1,21 @@
+{
+  "id": "e90617e4-8ea8-41be-981c-d7bc5ac702f1",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "THE UK WITHDRAWAL FROM THE EUROPEAN UNION (LEGAL CONTINUITY) (SCOTLAND) BILL – A Reference by the Attorney General and the Advocate General for Scotland",
+  "created_at": "2025-12-25T11:49:58.095Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0080",
+    "score": 0,
+    "title": "THE UK WITHDRAWAL FROM THE EUROPEAN UNION (LEGAL CONTINUITY) (SCOTLAND) BILL – A Reference by the Attorney General and the Advocate General for Scotland",
+    "summary": "1. Does the Scottish Parliament have power to legislate for the continuity of laws relating to devolved matters in Scotland which are now the subject of European Union (“EU”) law but which will cease to have effect after the United Kingdom (“UK”) withdraws from the EU?",
+    "category": "evidence_misc",
+    "citation": "UKSC/2018/0080",
+    "extracts": [
+      "1. Does the Scottish Parliament have power to legislate for the continuity of laws relating to devolved matters in Scotland which are now the subject of European Union (“EU”) law but which will cease to have effect after the United Kingdom (“UK”) withdraws from the EU? That is the principal subject matter of a reference by the Attorney General and the Advocate General for Scotland (“the UK Law Officers”) to this court under section 33 of the Scotland Act 1998 as amended (“the Scotland Act”).",
+      "3. On 29 March 2017 the UK Government notified the European Council of its decision that the UK would withdraw from the EU in accordance with article 50 of the Treaty on European Union (“article 50” and “TEU”). Subject to the judgment of the Court of Justice of the European Union (“CJEU”) on the reference by the Inner House of the Court of Session on the revocability of article 50 or unless a withdrawal agreement were to provide otherwise or there were to be unanimous agreement of the member states of the EU to an extension of the time limit for withdrawal set out in article 50, the UK will cease to be a member of the EU on 29 March 2019."
+    ],
+    "title_key": "the uk withdrawal from the european union bill a reference by the attorney general and the advocate general for scotland"
+  },
+  "content": "{\"title\":\"THE UK WITHDRAWAL FROM THE EUROPEAN UNION (LEGAL CONTINUITY) (SCOTLAND) BILL – A Reference by the Attorney General and the Advocate General for Scotland\",\"citation\":\"UKSC/2018/0080\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0080\",\"summary\":\"1. Does the Scottish Parliament have power to legislate for the continuity of laws relating to devolved matters in Scotland which are now the subject of European Union (“EU”) law but which will cease to have effect after the United Kingdom (“UK”) withdraws from the EU?\",\"extracts\":[\"1. Does the Scottish Parliament have power to legislate for the continuity of laws relating to devolved matters in Scotland which are now the subject of European Union (“EU”) law but which will cease to have effect after the United Kingdom (“UK”) withdraws from the EU? That is the principal subject matter of a reference by the Attorney General and the Advocate General for Scotland (“the UK Law Officers”) to this court under section 33 of the Scotland Act 1998 as amended (“the Scotland Act”).\",\"3. On 29 March 2017 the UK Government notified the European Council of its decision that the UK would withdraw from the EU in accordance with article 50 of the Treaty on European Union (“article 50” and “TEU”). Subject to the judgment of the Court of Justice of the European Union (“CJEU”) on the reference by the Inner House of the Court of Session on the revocability of article 50 or unless a withdrawal agreement were to provide otherwise or there were to be unanimous agreement of the member states of the EU to an extension of the time limit for withdrawal set out in article 50, the UK will cease to be a member of the EU on 29 March 2019.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"the uk withdrawal from the european union bill a reference by the attorney general and the advocate general for scotland\"}"
+}

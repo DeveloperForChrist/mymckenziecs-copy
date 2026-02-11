@@ -1,0 +1,21 @@
+{
+  "id": "5c12aa78-cfab-4fda-8f4f-0b2c8eb42c01",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Schutz (UK) Limited (Respondent) v Werit (UK) Limited (Appellant)",
+  "created_at": "2025-12-25T11:47:31.609Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0159",
+    "score": 1,
+    "title": "Schutz (UK) Limited (Respondent) v Werit (UK) Limited (Appellant)",
+    "summary": "1. A person infringes a patent for a particular product if “he makes, disposes of, offers to dispose of, uses or imports the product or keeps it …” – see section 60(1)(a) of the Patents Act 1977 (“the 1977 Act”).",
+    "category": "procedure",
+    "citation": "UKSC/2011/0159",
+    "extracts": [
+      "1. A person infringes a patent for a particular product if “he makes, disposes of, offers to dispose of, uses or imports the product or keeps it …” – see section 60(1)(a) of the Patents Act 1977 (“the 1977 Act”). The principal issue on this appeal concerns the meaning of the word “makes”. The other aspect of this appeal raises a number of issues arising out of section 68 of the 1977 Act.",
+      "2. An intermediate bulk container, unsurprisingly known as an “IBC”, is a large container, normally around 1000 litres in volume, used for the transport of liquids. Such containers face tough transport conditions. They must be capable of bearing heavy weights (as much as six tonnes, as they are often stacked four-high), of withstanding prolonged or violent vibration, and of resisting the forces caused by the liquid splashing around inside, without buckling, cracking or springing leaks."
+    ],
+    "title_key": "schutz limited v werit limited"
+  },
+  "content": "{\"title\":\"Schutz (UK) Limited (Respondent) v Werit (UK) Limited (Appellant)\",\"citation\":\"UKSC/2011/0159\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0159\",\"summary\":\"1. A person infringes a patent for a particular product if “he makes, disposes of, offers to dispose of, uses or imports the product or keeps it …” – see section 60(1)(a) of the Patents Act 1977 (“the 1977 Act”).\",\"extracts\":[\"1. A person infringes a patent for a particular product if “he makes, disposes of, offers to dispose of, uses or imports the product or keeps it …” – see section 60(1)(a) of the Patents Act 1977 (“the 1977 Act”). The principal issue on this appeal concerns the meaning of the word “makes”. The other aspect of this appeal raises a number of issues arising out of section 68 of the 1977 Act.\",\"2. An intermediate bulk container, unsurprisingly known as an “IBC”, is a large container, normally around 1000 litres in volume, used for the transport of liquids. Such containers face tough transport conditions. They must be capable of bearing heavy weights (as much as six tonnes, as they are often stacked four-high), of withstanding prolonged or violent vibration, and of resisting the forces caused by the liquid splashing around inside, without buckling, cracking or springing leaks.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"schutz limited v werit limited\"}"
+}

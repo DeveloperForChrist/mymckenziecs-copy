@@ -1,0 +1,21 @@
+{
+  "id": "0d2be544-e2a1-449a-887e-ababe59a377e",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Coke-Wallis) (Appellant) v Institute of Chartered Accountants in England and Wales (Respondent)",
+  "created_at": "2025-12-25T11:46:50.991Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0175",
+    "score": 3,
+    "title": "R (on the application of Coke-Wallis) (Appellant) v Institute of Chartered Accountants in England and Wales (Respondent)",
+    "summary": "1. This appeal is concerned with the relevance and application of the principles of autrefois acquit, res judicata and abuse of process in the context of successive proceedings before a regulatory or disciplinary tribunal.",
+    "category": "procedure",
+    "citation": "UKSC/2009/0175",
+    "extracts": [
+      "1. This appeal is concerned with the relevance and application of the principles of autrefois acquit, res judicata and abuse of process in the context of successive proceedings before a regulatory or disciplinary tribunal.",
+      "2. The appellant is a chartered accountant and a member of the respondent institute (“the Institute”), which is responsible for the regulation of chartered accountants including the appellant. At the relevant time he and his wife were directors and shareholders of a number of trust companies carrying out regulated financial services work in Jersey. On 18 December 2002 the Jersey Financial Services Commission issued a direction (“the direction”) to the companies and their directors to cease to take on any new trust company business and to commence an orderly winding up of the companies’ affairs. It also directed that “no records or files in respect of the companies or any customers shall be removed from the offices of the companies”."
+    ],
+    "title_key": "r v institute of chartered accountants in england and wales"
+  },
+  "content": "{\"title\":\"R (on the application of Coke-Wallis) (Appellant) v Institute of Chartered Accountants in England and Wales (Respondent)\",\"citation\":\"UKSC/2009/0175\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0175\",\"summary\":\"1. This appeal is concerned with the relevance and application of the principles of autrefois acquit, res judicata and abuse of process in the context of successive proceedings before a regulatory or disciplinary tribunal.\",\"extracts\":[\"1. This appeal is concerned with the relevance and application of the principles of autrefois acquit, res judicata and abuse of process in the context of successive proceedings before a regulatory or disciplinary tribunal.\",\"2. The appellant is a chartered accountant and a member of the respondent institute (“the Institute”), which is responsible for the regulation of chartered accountants including the appellant. At the relevant time he and his wife were directors and shareholders of a number of trust companies carrying out regulated financial services work in Jersey. On 18 December 2002 the Jersey Financial Services Commission issued a direction (“the direction”) to the companies and their directors to cease to take on any new trust company business and to commence an orderly winding up of the companies’ affairs. It also directed that “no records or files in respect of the companies or any customers shall be removed from the offices of the companies”.\"],\"category\":\"procedure\",\"score\":3,\"title_key\":\"r v institute of chartered accountants in england and wales\"}"
+}

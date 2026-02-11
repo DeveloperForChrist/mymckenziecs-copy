@@ -1,0 +1,21 @@
+{
+  "id": "b3f5bc78-0f7d-4bde-9489-bd8b7220d387",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Hartley and others (Appellants) v King Edward VI College (Respondent)",
+  "created_at": "2025-12-25T11:49:06.090Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0142",
+    "score": 2,
+    "title": "Hartley and others (Appellants) v King Edward VI College (Respondent)",
+    "summary": "1. I can take the underlying facts from the agreed statement of facts and issues.",
+    "category": "procedure",
+    "citation": "UKSC/2015/0142",
+    "extracts": [
+      "1. I can take the underlying facts from the agreed statement of facts and issues. The appellants are employed as teachers at the respondent’s sixth form college. They have brought this action and pursued this appeal supported by their union, the NASUWT. Their contracts of employment incorporate terms relating to working time from a collective agreement entitled Conditions of Service Handbook for Teaching Staff in Sixth Form Colleges. It is known as the Red Book. When sixth form teachers whose contracts of employment incorporate the Red Book go on strike their employer can withhold their pay. The issue in these proceedings and in this appeal is how much the employer can deduct for each day of strike action.",
+      "2. On 30 November 2011 the appellants participated in a full day of lawful strike action. On or about 31 January 2012, the respondent made deductions from their pay at the rate of 1/260 of their annual pay. The figure of 260 was arrived at by taking 365 days, less weekends, that is by taking the total number of weekdays in the calendar year. The appellants say that the appropriate deduction was 1/365 of their annual pay, pursuant to section 2 of the Apportionment Act 1870 (“the Act”). The contracts of employment in secondary education, that is at schools rather than sixth form colleges, include an express term contained in the relevant agreement, which is known as the Burgundy Book, that when teachers are on strike their employers are entitled to deduct salary at the rate of 1/365 of their annual pay."
+    ],
+    "title_key": "hartley and others v king edward vi college"
+  },
+  "content": "{\"title\":\"Hartley and others (Appellants) v King Edward VI College (Respondent)\",\"citation\":\"UKSC/2015/0142\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0142\",\"summary\":\"1. I can take the underlying facts from the agreed statement of facts and issues.\",\"extracts\":[\"1. I can take the underlying facts from the agreed statement of facts and issues. The appellants are employed as teachers at the respondent’s sixth form college. They have brought this action and pursued this appeal supported by their union, the NASUWT. Their contracts of employment incorporate terms relating to working time from a collective agreement entitled Conditions of Service Handbook for Teaching Staff in Sixth Form Colleges. It is known as the Red Book. When sixth form teachers whose contracts of employment incorporate the Red Book go on strike their employer can withhold their pay. The issue in these proceedings and in this appeal is how much the employer can deduct for each day of strike action.\",\"2. On 30 November 2011 the appellants participated in a full day of lawful strike action. On or about 31 January 2012, the respondent made deductions from their pay at the rate of 1/260 of their annual pay. The figure of 260 was arrived at by taking 365 days, less weekends, that is by taking the total number of weekdays in the calendar year. The appellants say that the appropriate deduction was 1/365 of their annual pay, pursuant to section 2 of the Apportionment Act 1870 (“the Act”). The contracts of employment in secondary education, that is at schools rather than sixth form colleges, include an express term contained in the relevant agreement, which is known as the Burgundy Book, that when teachers are on strike their employers are entitled to deduct salary at the rate of 1/365 of their annual pay.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"hartley and others v king edward vi college\"}"
+}

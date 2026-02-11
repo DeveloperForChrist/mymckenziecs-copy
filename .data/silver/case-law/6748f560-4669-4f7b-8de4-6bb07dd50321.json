@@ -1,0 +1,21 @@
+{
+  "id": "6748f560-4669-4f7b-8de4-6bb07dd50321",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Test Claimants in the Franked Investment Income Group Litigation (Appellants) v Commissioners of Inland Revenue and another (Respondents)",
+  "created_at": "2025-12-25T11:47:03.647Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0085",
+    "score": 1,
+    "title": "Test Claimants in the Franked Investment Income Group Litigation (Appellants) v Commissioners of Inland Revenue and another (Respondents)",
+    "summary": "1. Very substantial judgments have been prepared in this case by Lord Walker, Lord Reed and Lord Sumption, to each of which I pay tribute.",
+    "category": "public_law",
+    "citation": "UKSC/2010/0085",
+    "extracts": [
+      "1. Very substantial judgments have been prepared in this case by Lord Walker, Lord Reed and Lord Sumption, to each of which I pay tribute. I wish in this short introduction to do two things. First, I shall say a bit about the background, to assist the reader in understanding at the outset what the issues are and to provide a guide to the passages in those judgments where they are dealt with. Second, I shall indicate briefly what my opinion is on each of them. I will however have to say a bit more about the one issue on which the court is divided: the DMG remedy/section 320 issue: see para 11, below. As it raises a question of EU law and the division of opinion shows that the answer to it is not acte clair, it is plain that it will need to be the subject of a reference to the Court of Justice for a preliminary ruling under article 267 TFEU.",
+      "3. The test claimants’ case is that the differences between their tax treatment and that of wholly UK-resident groups of companies breached article 43 (freedom of establishment) and article 56 (free movement of capital) of the EC Treaty (now articles 49 and 63 of the Treaty on the Functioning of the European Union) and their predecessor articles, and that these breaches have caused them loss dating back, at least in some cases, to the accession of the UK to the European Economic"
+    ],
+    "title_key": "test claimants in the franked investment income group litigation v commissioners of inland revenue and another"
+  },
+  "content": "{\"title\":\"Test Claimants in the Franked Investment Income Group Litigation (Appellants) v Commissioners of Inland Revenue and another (Respondents)\",\"citation\":\"UKSC/2010/0085\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0085\",\"summary\":\"1. Very substantial judgments have been prepared in this case by Lord Walker, Lord Reed and Lord Sumption, to each of which I pay tribute.\",\"extracts\":[\"1. Very substantial judgments have been prepared in this case by Lord Walker, Lord Reed and Lord Sumption, to each of which I pay tribute. I wish in this short introduction to do two things. First, I shall say a bit about the background, to assist the reader in understanding at the outset what the issues are and to provide a guide to the passages in those judgments where they are dealt with. Second, I shall indicate briefly what my opinion is on each of them. I will however have to say a bit more about the one issue on which the court is divided: the DMG remedy/section 320 issue: see para 11, below. As it raises a question of EU law and the division of opinion shows that the answer to it is not acte clair, it is plain that it will need to be the subject of a reference to the Court of Justice for a preliminary ruling under article 267 TFEU.\",\"3. The test claimants’ case is that the differences between their tax treatment and that of wholly UK-resident groups of companies breached article 43 (freedom of establishment) and article 56 (free movement of capital) of the EC Treaty (now articles 49 and 63 of the Treaty on the Functioning of the European Union) and their predecessor articles, and that these breaches have caused them loss dating back, at least in some cases, to the accession of the UK to the European Economic\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"test claimants in the franked investment income group litigation v commissioners of inland revenue and another\"}"
+}

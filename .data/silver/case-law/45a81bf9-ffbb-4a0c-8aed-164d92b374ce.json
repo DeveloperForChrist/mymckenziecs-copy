@@ -1,0 +1,21 @@
+{
+  "id": "45a81bf9-ffbb-4a0c-8aed-164d92b374ce",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Davies (Respondent) v Bridgend County Borough Council (Appellant)",
+  "created_at": "2025-12-25T11:50:54.757Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2023-0028",
+    "score": 1,
+    "title": "Davies (Respondent) v Bridgend County Borough Council (Appellant)",
+    "summary": "Principle issue: Were the lower courts correct to decide that loss suffered by the Respondent, in the form of diminution in value of the Respondent's property as a result of the encroachment of Japanese knotweed from the Appellant's land, was caused by the Appellant's breach of duty in failing to treat the knotweed, in circumstances where the encroachment first arose before the Appellant's breach?",
+    "category": "evidence_misc",
+    "citation": "UKSC/2023/0028",
+    "extracts": [
+      "4. At trial the defendant contended that the claim for residual diminution in value was fatally flawed as any residual diminution in value was caused by the non-actionable presence of JKW on the claimant’s land which occurred “well before 2004” and therefore before the defendant’s breach which commenced in 2013. The continued presence of JKW rhizomes in the soil of the claimant’s land and the burden imposed on the claimant because JKW is “controlled waste” were issues which had been caused prior to the defendant’s breach of duty. Furthermore, the stigma attaching to the claimant’s land had also been caused prior to the defendant’s breach of duty.",
+      "6. District Judge Fouracre (“the district judge”) in his judgment dated 8 November 2021 dismissed all the claimant’s claims for damages including the claim for £4,900 as the residual diminution in value. Judge Beard, in his judgment dated 27 May 2022, dismissed the claimant’s appeal."
+    ],
+    "title_key": "davies v bridgend county borough council"
+  },
+  "content": "{\"title\":\"Davies (Respondent) v Bridgend County Borough Council (Appellant)\",\"citation\":\"UKSC/2023/0028\",\"url\":\"https://supremecourt.uk/cases/uksc-2023-0028\",\"summary\":\"Principle issue: Were the lower courts correct to decide that loss suffered by the Respondent, in the form of diminution in value of the Respondent's property as a result of the encroachment of Japanese knotweed from the Appellant's land, was caused by the Appellant's breach of duty in failing to treat the knotweed, in circumstances where the encroachment first arose before the Appellant's breach?\",\"extracts\":[\"4. At trial the defendant contended that the claim for residual diminution in value was fatally flawed as any residual diminution in value was caused by the non-actionable presence of JKW on the claimant’s land which occurred “well before 2004” and therefore before the defendant’s breach which commenced in 2013. The continued presence of JKW rhizomes in the soil of the claimant’s land and the burden imposed on the claimant because JKW is “controlled waste” were issues which had been caused prior to the defendant’s breach of duty. Furthermore, the stigma attaching to the claimant’s land had also been caused prior to the defendant’s breach of duty.\",\"6. District Judge Fouracre (“the district judge”) in his judgment dated 8 November 2021 dismissed all the claimant’s claims for damages including the claim for £4,900 as the residual diminution in value. Judge Beard, in his judgment dated 27 May 2022, dismissed the claimant’s appeal.\"],\"category\":\"evidence_misc\",\"score\":1,\"title_key\":\"davies v bridgend county borough council\"}"
+}

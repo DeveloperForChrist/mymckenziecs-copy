@@ -1,0 +1,18 @@
+{
+  "id": "729e0284-8b30-4657-bcdb-82f8fc649b82",
+  "source": "case-law",
+  "path": "data/bronze/case-law/curated.json",
+  "title": "Daejan Investments Limited (Appellant) v Benson and others (Respondents)",
+  "created_at": "2025-12-25T11:46:15.438Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0057",
+    "title": "Daejan Investments Limited (Appellant) v Benson and others (Respondents)",
+    "summary": "1. Almost all long leases of flats contain an obligation on the landlord (or a service company) to provide services, such as repairing the exterior and common parts of the block, and a concomitant obligation on the tenants to pay service charges, ie a specified proportion of the cost of providing...",
+    "citation": "UKSC/2011/0057",
+    "extracts": [
+      "1. Almost all long leases of flats contain an obligation on the landlord (or a service company) to provide services, such as repairing the exterior and common parts of the block, and a concomitant obligation on the tenants to pay service charges, ie a specified proportion of the cost of providing such services. The right of a landlord to recover such service charges obviously depends on the terms of the particular lease, but, since 1972, Parliament has imposed certain statutory requirements and restrictions on a landlord, which impinge on its ability to recover service charges.",
+      "2. The current statutory requirements are contained in the Landlord and Tenant Act 1985 (“the 1985 Act”), which has been frequently amended, most relevantly for present purposes by the Commonhold and Leasehold Reform Act 2002 (“the 2002 Act”). All references hereafter to sections are to sections of the 1985 Act as amended, unless the contrary is stated."
+    ]
+  },
+  "content": "{\"title\":\"Daejan Investments Limited (Appellant) v Benson and others (Respondents)\",\"citation\":\"UKSC/2011/0057\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0057\",\"summary\":\"1. Almost all long leases of flats contain an obligation on the landlord (or a service company) to provide services, such as repairing the exterior and common parts of the block, and a concomitant obligation on the tenants to pay service charges, ie a specified proportion of the cost of providing...\",\"extracts\":[\"1. Almost all long leases of flats contain an obligation on the landlord (or a service company) to provide services, such as repairing the exterior and common parts of the block, and a concomitant obligation on the tenants to pay service charges, ie a specified proportion of the cost of providing such services. The right of a landlord to recover such service charges obviously depends on the terms of the particular lease, but, since 1972, Parliament has imposed certain statutory requirements and restrictions on a landlord, which impinge on its ability to recover service charges.\",\"2. The current statutory requirements are contained in the Landlord and Tenant Act 1985 (“the 1985 Act”), which has been frequently amended, most relevantly for present purposes by the Commonhold and Leasehold Reform Act 2002 (“the 2002 Act”). All references hereafter to sections are to sections of the 1985 Act as amended, unless the contrary is stated.\"]}"
+}

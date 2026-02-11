@@ -1,0 +1,15 @@
+{
+  "id": "92aecbb2-eaf1-4e09-bba2-a50b0fa93b8c",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#1756",
+  "created_at": "2025-12-25T12:02:01.865Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo5/24-25/59/contents/enacted",
+    "type": "ukpga",
+    "year": 1934,
+    "number": 59,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1934,\"number\":59,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo5/24-25/59/contents/enacted\",\"dataUrl\":null}"
+}

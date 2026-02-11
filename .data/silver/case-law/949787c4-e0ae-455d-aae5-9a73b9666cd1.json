@@ -1,0 +1,21 @@
+{
+  "id": "949787c4-e0ae-455d-aae5-9a73b9666cd1",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Birmingham City Council (Appellant) v Abdulla and others (Respondents)",
+  "created_at": "2025-12-25T11:47:44.659Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0008",
+    "score": 1,
+    "title": "Birmingham City Council (Appellant) v Abdulla and others (Respondents)",
+    "summary": "1. Birmingham City Council (“Birmingham”) appeals against the order of the Court of Appeal (Mummery and Davis LJJ and Dame Janet Smith) dated 29 November 2011, whereby it dismissed Birmingham’s appeal against the order of Mr Colin Edelman QC, sitting as a deputy judge of the High Court, Queen’s B...",
+    "category": "procedure",
+    "citation": "UKSC/2012/0008",
+    "extracts": [
+      "1. Birmingham City Council (“Birmingham”) appeals against the order of the Court of Appeal (Mummery and Davis LJJ and Dame Janet Smith) dated 29 November 2011, whereby it dismissed Birmingham’s appeal against the order of Mr Colin Edelman QC, sitting as a deputy judge of the High Court, Queen’s Bench Division, dated 17 December 2010. The deputy judge had dismissed Birmingham’s application for a direction that the claims made against it by 174 claimants, joined as parties to the single action, should be struck out.",
+      "2. The claimants allege that they are former employees of Birmingham. All except four of them are women. The claims, which were issued in the High Court on 30 July 2010, were founded on an alleged breach of the “equality clause” which, by section 1(1) of the Equal Pay Act 1970 (“the Act”), as substituted by section 8(1) of the Sex Discrimination Act 1975, was deemed to have been included in their contracts of employment. On 1 October 2010 the Act was repealed; and the provisions of it which this appeal requires the court to consider were replaced by provisions to similar effect in Chapter 3 of Part 5, and in particular in Chapter 4 of Part 9, of the Equality Act 2010."
+    ],
+    "title_key": "birmingham city council v abdulla and others"
+  },
+  "content": "{\"title\":\"Birmingham City Council (Appellant) v Abdulla and others (Respondents)\",\"citation\":\"UKSC/2012/0008\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0008\",\"summary\":\"1. Birmingham City Council (“Birmingham”) appeals against the order of the Court of Appeal (Mummery and Davis LJJ and Dame Janet Smith) dated 29 November 2011, whereby it dismissed Birmingham’s appeal against the order of Mr Colin Edelman QC, sitting as a deputy judge of the High Court, Queen’s B...\",\"extracts\":[\"1. Birmingham City Council (“Birmingham”) appeals against the order of the Court of Appeal (Mummery and Davis LJJ and Dame Janet Smith) dated 29 November 2011, whereby it dismissed Birmingham’s appeal against the order of Mr Colin Edelman QC, sitting as a deputy judge of the High Court, Queen’s Bench Division, dated 17 December 2010. The deputy judge had dismissed Birmingham’s application for a direction that the claims made against it by 174 claimants, joined as parties to the single action, should be struck out.\",\"2. The claimants allege that they are former employees of Birmingham. All except four of them are women. The claims, which were issued in the High Court on 30 July 2010, were founded on an alleged breach of the “equality clause” which, by section 1(1) of the Equal Pay Act 1970 (“the Act”), as substituted by section 8(1) of the Sex Discrimination Act 1975, was deemed to have been included in their contracts of employment. On 1 October 2010 the Act was repealed; and the provisions of it which this appeal requires the court to consider were replaced by provisions to similar effect in Chapter 3 of Part 5, and in particular in Chapter 4 of Part 9, of the Equality Act 2010.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"birmingham city council v abdulla and others\"}"
+}

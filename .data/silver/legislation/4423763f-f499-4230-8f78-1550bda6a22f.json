@@ -1,0 +1,15 @@
+{
+  "id": "4423763f-f499-4230-8f78-1550bda6a22f",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#19700",
+  "created_at": "2025-12-25T13:52:06.191Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1998/1671/contents/made",
+    "type": "uksi",
+    "year": 1998,
+    "number": 1671,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1998/1671/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1998,\"number\":1671,\"url\":\"http://www.legislation.gov.uk/uksi/1998/1671/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1998/1671/made/data.htm\"}"
+}

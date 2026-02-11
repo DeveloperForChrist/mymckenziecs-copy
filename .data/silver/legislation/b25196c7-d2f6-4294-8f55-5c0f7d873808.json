@@ -1,0 +1,15 @@
+{
+  "id": "b25196c7-d2f6-4294-8f55-5c0f7d873808",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#24110",
+  "created_at": "2025-12-25T14:22:18.331Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2012/3280/contents/made",
+    "type": "uksi",
+    "year": 2012,
+    "number": 3280,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2012,\"number\":3280,\"url\":\"http://www.legislation.gov.uk/uksi/2012/3280/contents/made\",\"dataUrl\":null}"
+}

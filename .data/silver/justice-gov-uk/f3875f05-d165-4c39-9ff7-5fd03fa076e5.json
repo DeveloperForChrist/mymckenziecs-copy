@@ -1,0 +1,13 @@
+{
+  "id": "f3875f05-d165-4c39-9ff7-5fd03fa076e5",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#15",
+  "created_at": "2025-12-25T15:19:50.784Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/protocol/pre-action-protocol-for-resolution-of-package-travel-claims",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_protocol_pre_action_protocol_for_92eaf09489.html",
+    "fetchedAt": "2025-12-22T23:49:03.139Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/protocol/pre-action-protocol-for-resolution-of-package-travel-claims\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_protocol_pre_action_protocol_for_92eaf09489.html\",\"fetchedAt\":\"2025-12-22T23:49:03.139Z\"}"
+}

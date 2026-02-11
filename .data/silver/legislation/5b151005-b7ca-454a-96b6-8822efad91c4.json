@@ -1,0 +1,15 @@
+{
+  "id": "5b151005-b7ca-454a-96b6-8822efad91c4",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#1308",
+  "created_at": "2025-12-25T11:59:17.303Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo5/15-16/77/contents/enacted",
+    "type": "ukpga",
+    "year": 1925,
+    "number": 77,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1925,\"number\":77,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo5/15-16/77/contents/enacted\",\"dataUrl\":null}"
+}

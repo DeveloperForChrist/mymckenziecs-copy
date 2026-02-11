@@ -1,0 +1,21 @@
+{
+  "id": "0ad39ab6-d6d1-4422-be8d-0a4b83203c7d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Lewis) (Appellant) v Redcar and Cleveland Borough Council and another (Respondents)",
+  "created_at": "2025-12-25T11:46:49.607Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0167",
+    "score": 0,
+    "title": "R (on the application of Lewis) (Appellant) v Redcar and Cleveland Borough Council and another (Respondents)",
+    "summary": "(a) a significant number of the inhabitants of any locality, or of any neighbourhood within a locality, have indulged as of right in lawful sports and pastimes on the land for a period of at least 20 years; and",
+    "category": "evidence_misc",
+    "citation": "UKSC/2009/0167",
+    "extracts": [
+      "(a) a significant number of the inhabitants of any locality, or of any neighbourhood within a locality, have indulged as of right in lawful sports and pastimes on the land for a period of at least 20 years; and",
+      "(a) a significant number of the inhabitants of any locality, or of any neighbourhood within a locality, indulged as of right in lawful sports and pastimes on the land for a period of at least 20 years;"
+    ],
+    "title_key": "r v redcar and cleveland borough council and another"
+  },
+  "content": "{\"title\":\"R (on the application of Lewis) (Appellant) v Redcar and Cleveland Borough Council and another (Respondents)\",\"citation\":\"UKSC/2009/0167\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0167\",\"summary\":\"(a) a significant number of the inhabitants of any locality, or of any neighbourhood within a locality, have indulged as of right in lawful sports and pastimes on the land for a period of at least 20 years; and\",\"extracts\":[\"(a) a significant number of the inhabitants of any locality, or of any neighbourhood within a locality, have indulged as of right in lawful sports and pastimes on the land for a period of at least 20 years; and\",\"(a) a significant number of the inhabitants of any locality, or of any neighbourhood within a locality, indulged as of right in lawful sports and pastimes on the land for a period of at least 20 years;\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"r v redcar and cleveland borough council and another\"}"
+}

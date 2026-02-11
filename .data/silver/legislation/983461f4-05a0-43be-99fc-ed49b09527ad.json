@@ -1,0 +1,15 @@
+{
+  "id": "983461f4-05a0-43be-99fc-ed49b09527ad",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#24176",
+  "created_at": "2025-12-25T14:22:46.379Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2013/3306/contents/made",
+    "type": "uksi",
+    "year": 2013,
+    "number": 3306,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2013,\"number\":3306,\"url\":\"http://www.legislation.gov.uk/uksi/2013/3306/contents/made\",\"dataUrl\":null}"
+}

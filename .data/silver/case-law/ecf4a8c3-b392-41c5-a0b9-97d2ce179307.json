@@ -1,0 +1,21 @@
+{
+  "id": "ecf4a8c3-b392-41c5-a0b9-97d2ce179307",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R v Adams (Appellant) (Northern Ireland)",
+  "created_at": "2025-12-25T11:50:00.025Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0104",
+    "score": 2,
+    "title": "R v Adams (Appellant) (Northern Ireland)",
+    "summary": "Principle issue: Whether a decision to make an interim custody order under the Detention of Terrorists (Northern Ireland) Order 1972 art. 4(1) was rendered invalid by the fact that it was made by the Minister of State and had not been considered personally by the Secretary of State.",
+    "category": "public_law",
+    "citation": "UKSC/2018/0104",
+    "extracts": [
+      "1. From 1922 successive items of legislation authorised the detention without trial of persons in Northern Ireland, a regime commonly known as internment. Internment was last introduced in that province on 9 August 1971. On that date and for some time following it, a large number of persons were detained. The way in which internment operated then was that initially an interim custody order (ICO) was made where the Secretary of State considered that an individual was involved in terrorism. On foot of the ICO that person was taken into custody. The person detained had to be released within 28 days unless the Chief Constable referred the matter to a commissioner. The detention continued while the commissioner considered the matter. If satisfied that the person was involved in terrorism, the commissioner would make a detention order. If not so satisfied, the release of the person detained would be ordered.",
+      "2. An ICO was made in respect of the appellant on 21 July 1973. The order was signed by a Minister of State in the Northern Ireland Office. The matter was referred to a commissioner by an Assistant Chief Constable on 10 August 1973 and the commissioner decided that the appellant should continue to be detained."
+    ],
+    "title_key": "r v adams"
+  },
+  "content": "{\"title\":\"R v Adams (Appellant) (Northern Ireland)\",\"citation\":\"UKSC/2018/0104\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0104\",\"summary\":\"Principle issue: Whether a decision to make an interim custody order under the Detention of Terrorists (Northern Ireland) Order 1972 art. 4(1) was rendered invalid by the fact that it was made by the Minister of State and had not been considered personally by the Secretary of State.\",\"extracts\":[\"1. From 1922 successive items of legislation authorised the detention without trial of persons in Northern Ireland, a regime commonly known as internment. Internment was last introduced in that province on 9 August 1971. On that date and for some time following it, a large number of persons were detained. The way in which internment operated then was that initially an interim custody order (ICO) was made where the Secretary of State considered that an individual was involved in terrorism. On foot of the ICO that person was taken into custody. The person detained had to be released within 28 days unless the Chief Constable referred the matter to a commissioner. The detention continued while the commissioner considered the matter. If satisfied that the person was involved in terrorism, the commissioner would make a detention order. If not so satisfied, the release of the person detained would be ordered.\",\"2. An ICO was made in respect of the appellant on 21 July 1973. The order was signed by a Minister of State in the Northern Ireland Office. The matter was referred to a commissioner by an Assistant Chief Constable on 10 August 1973 and the commissioner decided that the appellant should continue to be detained.\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"r v adams\"}"
+}

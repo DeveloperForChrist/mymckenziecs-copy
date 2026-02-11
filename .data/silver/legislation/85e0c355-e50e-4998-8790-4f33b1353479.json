@@ -1,0 +1,15 @@
+{
+  "id": "85e0c355-e50e-4998-8790-4f33b1353479",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#5671",
+  "created_at": "2025-12-25T12:26:09.614Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1997/33/contents",
+    "type": "ukpga",
+    "year": 1997,
+    "number": 33,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1997/33/2010-01-29/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1997,\"number\":33,\"url\":\"http://www.legislation.gov.uk/ukpga/1997/33/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1997/33/2010-01-29/data.htm\"}"
+}

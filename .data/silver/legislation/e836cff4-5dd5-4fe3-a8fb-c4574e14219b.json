@@ -1,0 +1,15 @@
+{
+  "id": "e836cff4-5dd5-4fe3-a8fb-c4574e14219b",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#26454",
+  "created_at": "2025-12-25T14:39:06.324Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2018/392/made",
+    "type": "uksi",
+    "year": 2018,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2018,\"number\":null,\"url\":\"http://www.legislation.gov.uk/wsi/2018/392/made\",\"dataUrl\":null}"
+}

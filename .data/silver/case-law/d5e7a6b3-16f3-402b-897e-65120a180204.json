@@ -1,0 +1,21 @@
+{
+  "id": "d5e7a6b3-16f3-402b-897e-65120a180204",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "BPP Holdings Ltd and others (Respondents) v Commissioners for Her Majesty's Revenue and Customs (Appellant)",
+  "created_at": "2025-12-25T11:49:20.581Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0069",
+    "score": 2,
+    "title": "BPP Holdings Ltd and others (Respondents) v Commissioners for Her Majesty's Revenue and Customs (Appellant)",
+    "summary": "1. The issue ultimately to be determined on this appeal is whether the First-tier Tribunal (“Ft-T”) was entitled to make an order debarring the Commissioners for HM Revenue and Customs (“HMRC”) from defending an appeal concerning liability for VAT brought by three companies in the BPP Group of co...",
+    "category": "procedure",
+    "citation": "UKSC/2016/0069",
+    "extracts": [
+      "1. The issue ultimately to be determined on this appeal is whether the First-tier Tribunal (“Ft-T”) was entitled to make an order debarring the Commissioners for HM Revenue and Customs (“HMRC”) from defending an appeal concerning liability for VAT brought by three companies in the BPP Group of companies (to which, save where it is important to distinguish between those companies, I shall refer generically as “BPP”).",
+      "2. Between 1999 and 2006, BPP Holdings Ltd supplied education and books to students. Following a corporate rearrangement in 2006, one company, BPP Learning Media Ltd, supplied books and another company, BPP University College of Professional Studies Ltd, supplied education. BPP took the view that there were now two separate supplies by separate companies, one of education (which is standard rated for VAT purposes), and the other of books (which is zero-rated). Accordingly, BPP did not account for VAT on the supplies of books. However, HMRC did not agree with this and contended that BPP’s analysis was flawed, or in the alternative that the changes made in 2006 represented an abuse. (The law has been changed by section 75 of the Finance Act 2011)."
+    ],
+    "title_key": "bpp holdings ltd and others v commissioners for her majesty s revenue and customs"
+  },
+  "content": "{\"title\":\"BPP Holdings Ltd and others (Respondents) v Commissioners for Her Majesty's Revenue and Customs (Appellant)\",\"citation\":\"UKSC/2016/0069\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0069\",\"summary\":\"1. The issue ultimately to be determined on this appeal is whether the First-tier Tribunal (“Ft-T”) was entitled to make an order debarring the Commissioners for HM Revenue and Customs (“HMRC”) from defending an appeal concerning liability for VAT brought by three companies in the BPP Group of co...\",\"extracts\":[\"1. The issue ultimately to be determined on this appeal is whether the First-tier Tribunal (“Ft-T”) was entitled to make an order debarring the Commissioners for HM Revenue and Customs (“HMRC”) from defending an appeal concerning liability for VAT brought by three companies in the BPP Group of companies (to which, save where it is important to distinguish between those companies, I shall refer generically as “BPP”).\",\"2. Between 1999 and 2006, BPP Holdings Ltd supplied education and books to students. Following a corporate rearrangement in 2006, one company, BPP Learning Media Ltd, supplied books and another company, BPP University College of Professional Studies Ltd, supplied education. BPP took the view that there were now two separate supplies by separate companies, one of education (which is standard rated for VAT purposes), and the other of books (which is zero-rated). Accordingly, BPP did not account for VAT on the supplies of books. However, HMRC did not agree with this and contended that BPP’s analysis was flawed, or in the alternative that the changes made in 2006 represented an abuse. (The law has been changed by section 75 of the Finance Act 2011).\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"bpp holdings ltd and others v commissioners for her majesty s revenue and customs\"}"
+}

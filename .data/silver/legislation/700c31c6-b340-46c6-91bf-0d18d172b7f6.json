@@ -1,0 +1,15 @@
+{
+  "id": "700c31c6-b340-46c6-91bf-0d18d172b7f6",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#11153",
+  "created_at": "2025-12-25T12:59:11.368Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1983/1560/contents",
+    "type": "uksi",
+    "year": 1983,
+    "number": 1560,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1983/1560/2001-12-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1983,\"number\":1560,\"url\":\"http://www.legislation.gov.uk/uksi/1983/1560/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1983/1560/2001-12-01/data.htm\"}"
+}

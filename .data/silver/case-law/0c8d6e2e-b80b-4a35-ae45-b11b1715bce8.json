@@ -1,0 +1,21 @@
+{
+  "id": "0c8d6e2e-b80b-4a35-ae45-b11b1715bce8",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "NJDB (Appellant) v JEG and another (Respondents) (Scotland)",
+  "created_at": "2025-12-25T11:47:32.058Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0173",
+    "score": 1,
+    "title": "NJDB (Appellant) v JEG and another (Respondents) (Scotland)",
+    "summary": "1. This appeal concerns a child, S, who was born on 1 April 2000.",
+    "category": "procedure",
+    "citation": "UKSC/2011/0173",
+    "extracts": [
+      "1. This appeal concerns a child, S, who was born on 1 April 2000. His father is the appellant, and his mother is the first respondent. The second respondent is a solicitor who was appointed as curator ad litem to S in respect of these proceedings. The issue between the parties is whether the appellant should have contact with S.",
+      "2. The appellant and the first respondent began a relationship in 1997. It ended a few months after S’s birth. The first respondent subsequently married BG. She has a daughter, Z, by a prior relationship. She also has a son, A, by her marriage to BG."
+    ],
+    "title_key": "njdb v jeg and another"
+  },
+  "content": "{\"title\":\"NJDB (Appellant) v JEG and another (Respondents) (Scotland)\",\"citation\":\"UKSC/2011/0173\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0173\",\"summary\":\"1. This appeal concerns a child, S, who was born on 1 April 2000.\",\"extracts\":[\"1. This appeal concerns a child, S, who was born on 1 April 2000. His father is the appellant, and his mother is the first respondent. The second respondent is a solicitor who was appointed as curator ad litem to S in respect of these proceedings. The issue between the parties is whether the appellant should have contact with S.\",\"2. The appellant and the first respondent began a relationship in 1997. It ended a few months after S’s birth. The first respondent subsequently married BG. She has a daughter, Z, by a prior relationship. She also has a son, A, by her marriage to BG.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"njdb v jeg and another\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "416ae7d8-60a3-4dd5-8828-fe7491bdeccf",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Lachaux (Respondent) v Independent Print Ltd and another (Appellants)",
+  "created_at": "2025-12-25T11:49:48.210Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0175",
+    "score": 1,
+    "title": "Lachaux (Respondent) v Independent Print Ltd and another (Appellants)",
+    "summary": "Page 2 3. In February 2015, Eady J conducted a meaning hearing.",
+    "category": "public_law",
+    "citation": "UKSC/2017/0175",
+    "extracts": [
+      "Page 2 3. In February 2015, Eady J conducted a meaning hearing. In a reserved judgment, he held that the article in the Independent bore eight defamatory meanings, and the article in the Evening Standard 12. In summary, the articles were held to have meant (inter alia) that Mr Lachaux had been violent and abusive towards his wife during their marriage, had hidden Louis’ passport to stop her removing him from the UAE, had made use of UAE law and the UAE courts to deprive her of custody and contact with her son, had callously and without justification taken Louis out of her possession, and then falsely accused her of abducting him. For the purpose of the trial of the issue before of serious harm, which took place before Warby J in July 2015, the newspapers did not contest the primary facts set out in Mr Lachaux’s Particulars of Claim. Their case was that the statements in the articles were not defamatory because they did not meet the threshold of seriousness in section 1(1) of the Act of 2013. To appreciate the force of this point, it is necessary to summarise some well-established features of the common law relating to damage to reputation.",
+      "“… may put the plaintiff in a purely financial sense in a much stronger position than he was before the wrong. Not merely can he recover the estimated sum of his past and future losses, but, in case the libel, driven underground, emerges from its lurking place at some future date, he must be able to point to a sum awarded by a jury sufficient to convince a bystander of the baselessness of the charge ...”"
+    ],
+    "title_key": "lachaux v independent print ltd and another"
+  },
+  "content": "{\"title\":\"Lachaux (Respondent) v Independent Print Ltd and another (Appellants)\",\"citation\":\"UKSC/2017/0175\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0175\",\"summary\":\"Page 2 3. In February 2015, Eady J conducted a meaning hearing.\",\"extracts\":[\"Page 2 3. In February 2015, Eady J conducted a meaning hearing. In a reserved judgment, he held that the article in the Independent bore eight defamatory meanings, and the article in the Evening Standard 12. In summary, the articles were held to have meant (inter alia) that Mr Lachaux had been violent and abusive towards his wife during their marriage, had hidden Louis’ passport to stop her removing him from the UAE, had made use of UAE law and the UAE courts to deprive her of custody and contact with her son, had callously and without justification taken Louis out of her possession, and then falsely accused her of abducting him. For the purpose of the trial of the issue before of serious harm, which took place before Warby J in July 2015, the newspapers did not contest the primary facts set out in Mr Lachaux’s Particulars of Claim. Their case was that the statements in the articles were not defamatory because they did not meet the threshold of seriousness in section 1(1) of the Act of 2013. To appreciate the force of this point, it is necessary to summarise some well-established features of the common law relating to damage to reputation.\",\"“… may put the plaintiff in a purely financial sense in a much stronger position than he was before the wrong. Not merely can he recover the estimated sum of his past and future losses, but, in case the libel, driven underground, emerges from its lurking place at some future date, he must be able to point to a sum awarded by a jury sufficient to convince a bystander of the baselessness of the charge ...”\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"lachaux v independent print ltd and another\"}"
+}

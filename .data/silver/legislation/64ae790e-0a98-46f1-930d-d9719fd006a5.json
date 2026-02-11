@@ -1,0 +1,15 @@
+{
+  "id": "64ae790e-0a98-46f1-930d-d9719fd006a5",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#29570",
+  "created_at": "2025-12-25T15:01:39.916Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2022/387/made",
+    "type": "uksi",
+    "year": 2022,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2022,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2022/387/made\",\"dataUrl\":null}"
+}

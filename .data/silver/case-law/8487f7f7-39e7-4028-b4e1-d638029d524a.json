@@ -1,0 +1,21 @@
+{
+  "id": "8487f7f7-39e7-4028-b4e1-d638029d524a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Modaresi) (FC) (Appellant) v Secretary of State for Health (Respondent)",
+  "created_at": "2025-12-25T11:47:52.906Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0069",
+    "score": 1,
+    "title": "R (on the application of Modaresi) (FC) (Appellant) v Secretary of State for Health (Respondent)",
+    "summary": "1. This appeal arises out of an unfortunate but isolated oversight in the offices of the West London Mental Health NHS Trust.",
+    "category": "procedure",
+    "citation": "UKSC/2012/0069",
+    "extracts": [
+      "1. This appeal arises out of an unfortunate but isolated oversight in the offices of the West London Mental Health NHS Trust. It occurred over the New Year period at the end of 2010. The consequences have long since ceased to have any practical significance for any of the parties. No relief, financial or otherwise, is now sought in these proceedings against the trust itself. The appeal has been pursued to this court solely against the Secretary of State, on the basis that it raises a question of general importance.",
+      "“As: (i) a public body with obligations in public law and (ii) a public authority under the Human Rights Act 1998 'HRA' can the Secretary of State for Health 'the S/S' lawfully refuse to refer a patient's case to the First-tier Mental Health Review Tribunal 'MHRT' under section 67(1) of the Mental Health Act 1983 'MHA' in circumstances where the MHRT has unlawfully declined to hear that patient's application to it under section 66(1)-(2) and where the patient requests that there be a section 67(1) referral?”"
+    ],
+    "title_key": "r v secretary of state for health"
+  },
+  "content": "{\"title\":\"R (on the application of Modaresi) (FC) (Appellant) v Secretary of State for Health (Respondent)\",\"citation\":\"UKSC/2012/0069\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0069\",\"summary\":\"1. This appeal arises out of an unfortunate but isolated oversight in the offices of the West London Mental Health NHS Trust.\",\"extracts\":[\"1. This appeal arises out of an unfortunate but isolated oversight in the offices of the West London Mental Health NHS Trust. It occurred over the New Year period at the end of 2010. The consequences have long since ceased to have any practical significance for any of the parties. No relief, financial or otherwise, is now sought in these proceedings against the trust itself. The appeal has been pursued to this court solely against the Secretary of State, on the basis that it raises a question of general importance.\",\"“As: (i) a public body with obligations in public law and (ii) a public authority under the Human Rights Act 1998 'HRA' can the Secretary of State for Health 'the S/S' lawfully refuse to refer a patient's case to the First-tier Mental Health Review Tribunal 'MHRT' under section 67(1) of the Mental Health Act 1983 'MHA' in circumstances where the MHRT has unlawfully declined to hear that patient's application to it under section 66(1)-(2) and where the patient requests that there be a section 67(1) referral?”\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v secretary of state for health\"}"
+}

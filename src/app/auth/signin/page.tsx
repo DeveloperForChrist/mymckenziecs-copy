@@ -1,0 +1,57 @@
+import SignInForm from '@/components/auth/SignInForm'
+import styles from '@/app/auth/auth.module.css'
+
+export default function SignInPage() {
+  return (
+    <>
+      <main className={styles.page}>
+        <div className={styles.shell}>
+          <section className={styles.hero}>
+            <span className={styles.heroTag}>Case-ready workflow</span>
+            <div>
+              <h1 className={styles.heroTitle}>Pick up where you left off.</h1>
+              <p className={styles.heroCopy}>
+                Review your notes, keep the conversation moving, and stay aligned with court deadlines.
+              </p>
+              <div className={styles.heroList}>
+                <div className={styles.heroListItem}>
+                  <span>01</span>
+                  <div>Live case notes and chat summaries in one place.</div>
+                </div>
+                <div className={styles.heroListItem}>
+                  <span>02</span>
+                  <div>Document context stays attached to the case.</div>
+                </div>
+                <div className={styles.heroListItem}>
+                  <span>03</span>
+                  <div>Ready to scale up? Explore Standard, Essential, and Plus plans.</div>
+                </div>
+              </div>
+            </div>
+            <div className={styles.heroFooter}>
+              <span className={styles.pill}>Persistent chat history</span>
+              <a href="/pricing">Pricing</a>
+              <a href="/faq">Plan FAQ</a>
+            </div>
+          </section>
+
+          <section className={styles.formPanel}>
+            <div>
+              <h2 className={styles.formTitle}>Welcome back</h2>
+              <p className={styles.formSubtitle}>
+                Sign in to resume your case workspace and review updated notes.
+              </p>
+            </div>
+            <SignInForm />
+            <p className={styles.footnote}>
+              Don&apos;t have an account?{' '}
+              <a href="/auth/signup" className={styles.inlineLink}>
+                Start free
+              </a>
+            </p>
+          </section>
+        </div>
+      </main>
+    </>
+  )
+}

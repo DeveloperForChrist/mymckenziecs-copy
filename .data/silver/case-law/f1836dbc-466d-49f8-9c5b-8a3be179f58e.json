@@ -1,0 +1,21 @@
+{
+  "id": "f1836dbc-466d-49f8-9c5b-8a3be179f58e",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Bank of Cyprus UK Limited (Respondent) v Menelaou (Appellant)",
+  "created_at": "2025-12-25T11:48:20.359Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0171",
+    "score": 1,
+    "title": "Bank of Cyprus UK Limited (Respondent) v Menelaou (Appellant)",
+    "summary": "1. This appeal is concerned with the law of unjust enrichment and subrogation.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0171",
+    "extracts": [
+      "1. This appeal is concerned with the law of unjust enrichment and subrogation. The original parties to the action were Melissa Menelaou as claimant (“Melissa”), the Bank of Cyprus UK Ltd as defendant (“the Bank”) and a firm of solicitors, Boulter & Co, as third party (“Boulters”). The trial of the action came before David Donaldson QC, sitting as an additional judge of the Chancery Division (“the judge”): [2012] EWHC 1991 (Ch). The trial began on 16 May 2012 and lasted three days. By the end of the trial only the Bank’s counterclaim against Melissa was live. On 19 July 2012 the judge handed down a judgment dismissing the counterclaim. The Bank appealed to the Court of Appeal (Moses, Tomlinson and Floyd LJJ), which allowed the appeal on 4 July 2013: [2013] EWCA Civ 1960, [2014] 1 WLR 854. Melissa appeals to this court.",
+      "2. The facts can largely be taken from the agreed statement of facts and issues. Melissa, who was born on 27 January 1990, is the second of the four children of Mr Parris and Mrs Donna Menelaou (“the Menelaou parents”). The other children were Danielle, born on 9 August 1986, Max, born on 24 June 1991 and Ella-Mae, born on 6 February 2002. In mid-2008, the Menelaou parents and their three youngest children lived at Rush Green Hall, Great Amwell, Hertfordshire (“Rush Green Hall”), which was a property owned by the Menelaou parents jointly. Melissa was 18 and a student at a nearby college. Rush Green Hall was subject to two charges in favour of the Bank. The Menelaou parents directly owed the Bank about £2.2m, and had personally guaranteed loans made by the Bank to their companies."
+    ],
+    "title_key": "bank of cyprus uk limited v menelaou"
+  },
+  "content": "{\"title\":\"Bank of Cyprus UK Limited (Respondent) v Menelaou (Appellant)\",\"citation\":\"UKSC/2013/0171\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0171\",\"summary\":\"1. This appeal is concerned with the law of unjust enrichment and subrogation.\",\"extracts\":[\"1. This appeal is concerned with the law of unjust enrichment and subrogation. The original parties to the action were Melissa Menelaou as claimant (“Melissa”), the Bank of Cyprus UK Ltd as defendant (“the Bank”) and a firm of solicitors, Boulter & Co, as third party (“Boulters”). The trial of the action came before David Donaldson QC, sitting as an additional judge of the Chancery Division (“the judge”): [2012] EWHC 1991 (Ch). The trial began on 16 May 2012 and lasted three days. By the end of the trial only the Bank’s counterclaim against Melissa was live. On 19 July 2012 the judge handed down a judgment dismissing the counterclaim. The Bank appealed to the Court of Appeal (Moses, Tomlinson and Floyd LJJ), which allowed the appeal on 4 July 2013: [2013] EWCA Civ 1960, [2014] 1 WLR 854. Melissa appeals to this court.\",\"2. The facts can largely be taken from the agreed statement of facts and issues. Melissa, who was born on 27 January 1990, is the second of the four children of Mr Parris and Mrs Donna Menelaou (“the Menelaou parents”). The other children were Danielle, born on 9 August 1986, Max, born on 24 June 1991 and Ella-Mae, born on 6 February 2002. In mid-2008, the Menelaou parents and their three youngest children lived at Rush Green Hall, Great Amwell, Hertfordshire (“Rush Green Hall”), which was a property owned by the Menelaou parents jointly. Melissa was 18 and a student at a nearby college. Rush Green Hall was subject to two charges in favour of the Bank. The Menelaou parents directly owed the Bank about £2.2m, and had personally guaranteed loans made by the Bank to their companies.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"bank of cyprus uk limited v menelaou\"}"
+}

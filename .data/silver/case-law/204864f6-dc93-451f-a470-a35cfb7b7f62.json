@@ -1,0 +1,18 @@
+{
+  "id": "204864f6-dc93-451f-a470-a35cfb7b7f62",
+  "source": "case-law",
+  "path": "data/bronze/case-law/curated.json",
+  "title": "Coventry and others (Respondents) v Lawrence and another (Appellants)",
+  "created_at": "2025-12-25T11:46:24.173Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0076",
+    "title": "Coventry and others (Respondents) v Lawrence and another (Appellants)",
+    "summary": "1. This judgment is concerned with an attack on the compatibility with the European Convention on Human Rights (“the Convention”) of the system for recovery of costs in civil litigation in England and Wales following the passing of the Access to Justice Act 1999 (“the 1999 Act”).",
+    "citation": "UKSC/2012/0076",
+    "extracts": [
+      "1. This judgment is concerned with an attack on the compatibility with the European Convention on Human Rights (“the Convention”) of the system for recovery of costs in civil litigation in England and Wales following the passing of the Access to Justice Act 1999 (“the 1999 Act”). The proceedings to which it relates have been the subject of two previous judgments of this court – [2014] UKSC 13, [2014] AC 822 and [2014] UKSC 46, [2015] AC 106. The fact that this is the third judgment of this court in this case is an unfortunate irony, as the issue which has to be addressed arises from the contention that the order for costs made against the respondents at first instance infringed article 6 of, and/or article 1 of the First Protocol to, the Convention, and considerable further costs have been incurred since then.",
+      "2. A detailed summary of the factual and procedural history is to be found in the first two judgments at [2014] AC 822, paras 2-27 and [2015] AC 106, paras 1-4. So far as relevant for present purposes, and at the risk of over- simplification, the facts are as follows."
+    ]
+  },
+  "content": "{\"title\":\"Coventry and others (Respondents) v Lawrence and another (Appellants)\",\"citation\":\"UKSC/2012/0076\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0076\",\"summary\":\"1. This judgment is concerned with an attack on the compatibility with the European Convention on Human Rights (“the Convention”) of the system for recovery of costs in civil litigation in England and Wales following the passing of the Access to Justice Act 1999 (“the 1999 Act”).\",\"extracts\":[\"1. This judgment is concerned with an attack on the compatibility with the European Convention on Human Rights (“the Convention”) of the system for recovery of costs in civil litigation in England and Wales following the passing of the Access to Justice Act 1999 (“the 1999 Act”). The proceedings to which it relates have been the subject of two previous judgments of this court – [2014] UKSC 13, [2014] AC 822 and [2014] UKSC 46, [2015] AC 106. The fact that this is the third judgment of this court in this case is an unfortunate irony, as the issue which has to be addressed arises from the contention that the order for costs made against the respondents at first instance infringed article 6 of, and/or article 1 of the First Protocol to, the Convention, and considerable further costs have been incurred since then.\",\"2. A detailed summary of the factual and procedural history is to be found in the first two judgments at [2014] AC 822, paras 2-27 and [2015] AC 106, paras 1-4. So far as relevant for present purposes, and at the risk of over- simplification, the facts are as follows.\"]}"
+}

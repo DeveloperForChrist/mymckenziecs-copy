@@ -1,0 +1,21 @@
+{
+  "id": "e2469bc5-ecea-41d4-a371-4311783f5e6a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "ANS (Respondent) and another v ML (AP) (Appellant) (Scotland)",
+  "created_at": "2025-12-25T11:47:56.194Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0105",
+    "score": 1,
+    "title": "ANS (Respondent) and another v ML (AP) (Appellant) (Scotland)",
+    "summary": "1. The issue in this appeal is whether section 31(3)(d) of the Adoption and Children (Scotland) Act 2007 is within the legislative competence of the Scottish Parliament.",
+    "category": "procedure",
+    "citation": "UKSC/2012/0105",
+    "extracts": [
+      "1. The issue in this appeal is whether section 31(3)(d) of the Adoption and Children (Scotland) Act 2007 is within the legislative competence of the Scottish Parliament. It is contended on behalf of the appellant that the provision is incompatible with the Convention rights set out in Schedule 1 to the Human Rights Act 1998, that section 29(2)(d) of the Scotland Act 1998 therefore applies, and that the provision is accordingly not law.",
+      "2. The issue has arisen in the course of adoption proceedings in the Sheriff Court, in circumstances to which I shall return. The sheriff decided to refer the issue to the Inner House of the Court of Session, in accordance with paragraph 7 of Schedule 6 to the Scotland Act. The Inner House held that the provision was not incompatible with the Convention rights and was within the legislative competence of the Parliament: ANS and DCS v ML [2012] CSIH 38, 2012 SC 8. The present appeal is brought against that decision, in accordance with paragraph 12 of Schedule 6."
+    ],
+    "title_key": "ans and another v ml"
+  },
+  "content": "{\"title\":\"ANS (Respondent) and another v ML (AP) (Appellant) (Scotland)\",\"citation\":\"UKSC/2012/0105\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0105\",\"summary\":\"1. The issue in this appeal is whether section 31(3)(d) of the Adoption and Children (Scotland) Act 2007 is within the legislative competence of the Scottish Parliament.\",\"extracts\":[\"1. The issue in this appeal is whether section 31(3)(d) of the Adoption and Children (Scotland) Act 2007 is within the legislative competence of the Scottish Parliament. It is contended on behalf of the appellant that the provision is incompatible with the Convention rights set out in Schedule 1 to the Human Rights Act 1998, that section 29(2)(d) of the Scotland Act 1998 therefore applies, and that the provision is accordingly not law.\",\"2. The issue has arisen in the course of adoption proceedings in the Sheriff Court, in circumstances to which I shall return. The sheriff decided to refer the issue to the Inner House of the Court of Session, in accordance with paragraph 7 of Schedule 6 to the Scotland Act. The Inner House held that the provision was not incompatible with the Convention rights and was within the legislative competence of the Parliament: ANS and DCS v ML [2012] CSIH 38, 2012 SC 8. The present appeal is brought against that decision, in accordance with paragraph 12 of Schedule 6.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"ans and another v ml\"}"
+}

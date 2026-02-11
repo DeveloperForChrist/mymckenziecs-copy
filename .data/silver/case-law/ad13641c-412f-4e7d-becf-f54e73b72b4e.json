@@ -1,0 +1,21 @@
+{
+  "id": "ad13641c-412f-4e7d-becf-f54e73b72b4e",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Carlyle (Appellant) v Royal Bank of Scotland PLC (Respondent) (Scotland)",
+  "created_at": "2025-12-25T11:48:26.172Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0227",
+    "score": 1,
+    "title": "Carlyle (Appellant) v Royal Bank of Scotland PLC (Respondent) (Scotland)",
+    "summary": "1. This appeal is concerned with oral discussions between a property developer and his bank about funding a development at Gleneagles, Perthshire.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0227",
+    "extracts": [
+      "1. This appeal is concerned with oral discussions between a property developer and his bank about funding a development at Gleneagles, Perthshire. The central issue in the case, which went to proof before the Lord Ordinary, Lord Glennie, in 2009, was whether, on an objective assessment of what the parties said to each other, the bank intended to enter into a legally binding promise to advance sums in the future to fund not only the purchase of two development plots but also the construction of a house on each plot.",
+      "2. In considering that issue, because the matter is raised on appeal, the court must have regard to the limited power of an appellate court to reverse the findings of fact of the judge who has heard the evidence. Those limits are well known. The House of Lords discussed them in Thomas v Thomas 1947 SC (HL) 45. More recently this court has reiterated those limits in McGraddie v McGraddie 2014 SC (UKSC) 12 and Henderson v Foxworth Investments Ltd 2014 SC (UKSC) 203; [2014] 1 WLR 2600 and the Judicial Committee of the Privy Council has made similar comments in Beacon Insurance Company Limited v Maharaj Bookstore Ltd [2014] UKPC 21, at paras 11-17. Those limits apply equally in this court as in other appellate courts."
+    ],
+    "title_key": "carlyle v royal bank of scotland plc"
+  },
+  "content": "{\"title\":\"Carlyle (Appellant) v Royal Bank of Scotland PLC (Respondent) (Scotland)\",\"citation\":\"UKSC/2013/0227\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0227\",\"summary\":\"1. This appeal is concerned with oral discussions between a property developer and his bank about funding a development at Gleneagles, Perthshire.\",\"extracts\":[\"1. This appeal is concerned with oral discussions between a property developer and his bank about funding a development at Gleneagles, Perthshire. The central issue in the case, which went to proof before the Lord Ordinary, Lord Glennie, in 2009, was whether, on an objective assessment of what the parties said to each other, the bank intended to enter into a legally binding promise to advance sums in the future to fund not only the purchase of two development plots but also the construction of a house on each plot.\",\"2. In considering that issue, because the matter is raised on appeal, the court must have regard to the limited power of an appellate court to reverse the findings of fact of the judge who has heard the evidence. Those limits are well known. The House of Lords discussed them in Thomas v Thomas 1947 SC (HL) 45. More recently this court has reiterated those limits in McGraddie v McGraddie 2014 SC (UKSC) 12 and Henderson v Foxworth Investments Ltd 2014 SC (UKSC) 203; [2014] 1 WLR 2600 and the Judicial Committee of the Privy Council has made similar comments in Beacon Insurance Company Limited v Maharaj Bookstore Ltd [2014] UKPC 21, at paras 11-17. Those limits apply equally in this court as in other appellate courts.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"carlyle v royal bank of scotland plc\"}"
+}

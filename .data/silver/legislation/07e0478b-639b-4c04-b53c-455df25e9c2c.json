@@ -1,0 +1,15 @@
+{
+  "id": "07e0478b-639b-4c04-b53c-455df25e9c2c",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8213",
+  "created_at": "2025-12-25T12:41:28.491Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1962/2877/contents/made",
+    "type": "uksi",
+    "year": 1962,
+    "number": 2877,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1962,\"number\":2877,\"url\":\"http://www.legislation.gov.uk/uksi/1962/2877/contents/made\",\"dataUrl\":null}"
+}

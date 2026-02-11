@@ -1,0 +1,21 @@
+{
+  "id": "80626437-62ce-4bfd-8039-4d201cf7a882",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Pakistan International Airline Corporation (Respondent) v Times Travel (UK) Ltd (Appellant)",
+  "created_at": "2025-12-25T11:50:16.050Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2019-0142",
+    "score": 1,
+    "title": "Pakistan International Airline Corporation (Respondent) v Times Travel (UK) Ltd (Appellant)",
+    "summary": "Principle issue: What are the ingredients of economic duress? Can economic duress arise where lawful acts or threats are made by one party in support of a demand which that party genuinely believes it is entitled to make?",
+    "category": "contract_consumer",
+    "citation": "UKSC/2019/0142",
+    "extracts": [
+      "2. Where I respectfully disagree with him is in my analysis of what the law has recognised as an illegitimate threat or pressure. As I will seek to show, the courts have developed the common law doctrine of duress to include lawful act economic duress by drawing on the rules of equity in relation to undue influence and treating as “illegitimate” conduct which, when the law of duress was less developed, had been identified by equity as giving rise to an agreement which it was unconscionable for the party who had conducted himself or herself in that way to seek to enforce. In other words, morally reprehensible behaviour which in equity was judged to render the enforcement of a contract unconscionable in the context of undue influence has been treated by English common law as illegitimate pressure in the context of duress.",
+      "3. The boundaries of the doctrine of lawful act duress are not fixed and the courts should approach any extension with caution, particularly in the context of contractual negotiations between commercial entities. In any development of the doctrine of lawful act duress it will also be important to bear in mind not only that analogous remedies already exist in equity, such as the doctrines of undue influence and unconscionable bargains, but also the absence in English law of any overriding"
+    ],
+    "title_key": "pakistan international airline corporation v times travel ltd"
+  },
+  "content": "{\"title\":\"Pakistan International Airline Corporation (Respondent) v Times Travel (UK) Ltd (Appellant)\",\"citation\":\"UKSC/2019/0142\",\"url\":\"https://supremecourt.uk/cases/uksc-2019-0142\",\"summary\":\"Principle issue: What are the ingredients of economic duress? Can economic duress arise where lawful acts or threats are made by one party in support of a demand which that party genuinely believes it is entitled to make?\",\"extracts\":[\"2. Where I respectfully disagree with him is in my analysis of what the law has recognised as an illegitimate threat or pressure. As I will seek to show, the courts have developed the common law doctrine of duress to include lawful act economic duress by drawing on the rules of equity in relation to undue influence and treating as “illegitimate” conduct which, when the law of duress was less developed, had been identified by equity as giving rise to an agreement which it was unconscionable for the party who had conducted himself or herself in that way to seek to enforce. In other words, morally reprehensible behaviour which in equity was judged to render the enforcement of a contract unconscionable in the context of undue influence has been treated by English common law as illegitimate pressure in the context of duress.\",\"3. The boundaries of the doctrine of lawful act duress are not fixed and the courts should approach any extension with caution, particularly in the context of contractual negotiations between commercial entities. In any development of the doctrine of lawful act duress it will also be important to bear in mind not only that analogous remedies already exist in equity, such as the doctrines of undue influence and unconscionable bargains, but also the absence in English law of any overriding\"],\"category\":\"contract_consumer\",\"score\":1,\"title_key\":\"pakistan international airline corporation v times travel ltd\"}"
+}

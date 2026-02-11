@@ -1,0 +1,13 @@
+{
+  "id": "68908913-e0eb-4130-beb6-3744020025b2",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#2",
+  "created_at": "2025-12-25T15:19:45.253Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/standard-directions",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_standard_directions_9d83299bc9.html",
+    "fetchedAt": "2025-12-22T23:48:54.371Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/standard-directions\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_standard_directions_9d83299bc9.html\",\"fetchedAt\":\"2025-12-22T23:48:54.371Z\"}"
+}

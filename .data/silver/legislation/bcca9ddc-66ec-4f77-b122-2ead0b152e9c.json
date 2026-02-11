@@ -1,0 +1,15 @@
+{
+  "id": "bcca9ddc-66ec-4f77-b122-2ead0b152e9c",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#29177",
+  "created_at": "2025-12-25T14:58:22.751Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2022/785/made",
+    "type": "uksi",
+    "year": 2022,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2022,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2022/785/made\",\"dataUrl\":null}"
+}

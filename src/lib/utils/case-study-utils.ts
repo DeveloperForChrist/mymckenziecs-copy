@@ -1,0 +1,240 @@
+/**
+ * Utility functions for case study content processing and analysis
+ * @module case-study-utils
+ */
+
+export interface PaginatedContent {
+  page: number;
+  content: string;
+  totalPages: number;
+}
+
+export interface ContentStatistics {
+  wordCount: number;
+  characterCount: number;
+  sentenceCount: number;
+  paragraphCount: number;
+  averageWordsPerSentence: number;
+  readingTimeMinutes: number;
+}
+
+/**
+ * Paginate text content into chunks by word count
+ * @param content - The full text content to paginate
+ * @param wordsPerPage - Number of words per page (default: 500)
+ * @returns Array of paginated content objects
+ */
+export function paginateContent(content: string, wordsPerPage: number = 500): PaginatedContent[] {
+  if (!content || content.trim().length === 0) {
+    return [];
+  }
+
+  const words = content.split(/\s+/).filter(word => word.length > 0);
+  const totalPages = Math.ceil(words.length / wordsPerPage);
+  
+  const paginatedContent: PaginatedContent[] = [];
+  
+  for (let i = 0; i < totalPages; i++) {
+    const start = i * wordsPerPage;
+    const end = start + wordsPerPage;
+    const pageWords = words.slice(start, end);
+    
+    paginatedContent.push({
+      page: i + 1,
+      content: pageWords.join(' '),
+      totalPages: totalPages
+    });
+  }
+  
+  return paginatedContent;
+}
+
+/**
+ * Calculate comprehensive statistics for text content
+ * @param content - The text content to analyze
+ * @returns Statistics object with various metrics
+ */
+export function analyzeContentStatistics(content: string): ContentStatistics {
+  if (!content || content.trim().length === 0) {
+    return {
+      wordCount: 0,
+      characterCount: 0,
+      sentenceCount: 0,
+      paragraphCount: 0,
+      averageWordsPerSentence: 0,
+      readingTimeMinutes: 0
+    };
+  }
+
+  const words = content.split(/\s+/).filter(word => word.length > 0);
+  const wordCount = words.length;
+  const characterCount = content.length;
+  
+  // Count sentences (simple heuristic)
+  const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  const sentenceCount = sentences.length;
+  
+  // Count paragraphs (by double newlines or significant breaks)
+  const paragraphs = content.split(/\n\n+/).filter(p => p.trim().length > 0);
+  const paragraphCount = paragraphs.length;
+  
+  // Calculate average words per sentence
+  const averageWordsPerSentence = sentenceCount > 0 
+    ? Math.round(wordCount / sentenceCount * 10) / 10 
+    : 0;
+  
+  // Estimate reading time (assuming 200 words per minute average reading speed)
+  const readingTimeMinutes = Math.ceil(wordCount / 200);
+  
+  return {
+    wordCount,
+    characterCount,
+    sentenceCount,
+    paragraphCount,
+    averageWordsPerSentence,
+    readingTimeMinutes
+  };
+}
+
+/**
+ * Extract section headings from case study content
+ * @param content - The case study text
+ * @returns Array of section heading objects with titles and positions
+ */
+export function extractSections(content: string): Array<{ title: string; position: number }> {
+  const sections: Array<{ title: string; position: number }> = [];
+  const lines = content.split('\n');
+  
+  let currentPosition = 0;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    
+    // Match all-caps headings (e.g., "CASE SUMMARY")
+    if (/^[A-Z][A-Z\s]{2,}$/.test(trimmed) && trimmed.length > 3 && trimmed.length < 50) {
+      sections.push({
+        title: trimmed,
+        position: currentPosition
+      });
+    }
+    // Match numbered sections (e.g., "1. CASE OVERVIEW")
+    else if (/^\d+\.\s+[A-Z]/.test(trimmed)) {
+      sections.push({
+        title: trimmed,
+        position: currentPosition
+      });
+    }
+    
+    currentPosition += line.length + 1; // +1 for newline
+  }
+  
+  return sections;
+}
+
+/**
+ * Sanitize and validate case study input data
+ * @param data - Raw input data
+ * @returns Sanitized data object
+ */
+export function sanitizeCaseInput(data: any): {
+  title: string;
+  citation: string;
+  summary: string;
+  extracts: string[];
+  court: string;
+  year: number;
+  outcome: string;
+  url: string;
+} {
+  return {
+    title: String(data.title || '').trim().substring(0, 500),
+    citation: String(data.citation || '').trim().substring(0, 200),
+    summary: String(data.summary || 'No summary available').trim().substring(0, 10000),
+    extracts: Array.isArray(data.extracts) 
+      ? data.extracts
+          .filter((e: any) => typeof e === 'string' && e.trim().length > 0)
+          .map((e: string) => e.substring(0, 5000))
+          .slice(0, 5)
+      : [],
+    court: String(data.court || 'Not specified').trim(),
+    year: Number(data.year) || new Date().getFullYear(),
+    outcome: String(data.outcome || 'Not specified').trim(),
+    url: String(data.url || '').trim()
+  };
+}
+
+/**
+ * Format case study content for display with proper whitespace handling
+ * @param content - Raw content string
+ * @returns Formatted content with normalized whitespace
+ */
+export function formatCaseStudyContent(content: string): string {
+  if (!content) return '';
+  
+  return content
+    .replace(/\r\n/g, '\n') // Normalize line endings
+    .replace(/\n{3,}/g, '\n\n') // Max 2 consecutive newlines
+    .replace(/[ \t]+/g, ' ') // Normalize spaces
+    .trim();
+}
+
+/**
+ * Calculate a quality score for case study content
+ * @param content - The case study content
+ * @returns Score from 0-100 indicating content quality
+ */
+export function calculateContentQuality(content: string): number {
+  if (!content || content.trim().length === 0) return 0;
+  
+  let score = 0;
+  const stats = analyzeContentStatistics(content);
+  const sections = extractSections(content);
+  
+  // Word count score (max 30 points)
+  if (stats.wordCount >= 3000) score += 30;
+  else if (stats.wordCount >= 2000) score += 20;
+  else if (stats.wordCount >= 1000) score += 10;
+  
+  // Section structure score (max 30 points)
+  const expectedSections = ['CASE SUMMARY', 'CASE OVERVIEW', 'LEGAL PRINCIPLES', 'LEARNING POINTS'];
+  const foundSections = sections.filter(s => 
+    expectedSections.some(expected => s.title.includes(expected))
+  );
+  score += Math.min(30, foundSections.length * 10);
+  
+  // Readability score (max 20 points)
+  if (stats.averageWordsPerSentence >= 15 && stats.averageWordsPerSentence <= 25) {
+    score += 20; // Optimal sentence length
+  } else if (stats.averageWordsPerSentence >= 10 && stats.averageWordsPerSentence <= 30) {
+    score += 10; // Acceptable sentence length
+  }
+  
+  // Paragraph structure score (max 20 points)
+  const wordsPerParagraph = stats.paragraphCount > 0 
+    ? stats.wordCount / stats.paragraphCount 
+    : 0;
+  if (wordsPerParagraph >= 50 && wordsPerParagraph <= 150) {
+    score += 20; // Well-structured paragraphs
+  } else if (wordsPerParagraph >= 30 && wordsPerParagraph <= 200) {
+    score += 10; // Acceptable paragraphs
+  }
+  
+  return Math.min(100, Math.max(0, score));
+}
+
+/**
+ * Estimate the educational value level of case study content
+ * @param content - The case study content
+ * @returns Educational value level: 'basic', 'intermediate', or 'comprehensive'
+ */
+export function assessEducationalValue(content: string): 'basic' | 'intermediate' | 'comprehensive' {
+  const stats = analyzeContentStatistics(content);
+  const quality = calculateContentQuality(content);
+  
+  if (stats.wordCount >= 3000 && quality >= 70) {
+    return 'comprehensive';
+  } else if (stats.wordCount >= 1500 && quality >= 50) {
+    return 'intermediate';
+  } else {
+    return 'basic';
+  }
+}

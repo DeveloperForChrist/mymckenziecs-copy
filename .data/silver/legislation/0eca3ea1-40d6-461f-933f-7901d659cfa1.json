@@ -1,0 +1,15 @@
+{
+  "id": "0eca3ea1-40d6-461f-933f-7901d659cfa1",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#26715",
+  "created_at": "2025-12-25T14:40:59.987Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2018/122/made/data.xht",
+    "type": "uksi",
+    "year": 2018,
+    "number": null,
+    "dataUrl": "http://www.legislation.gov.uk/wsi/2018/122/made/data.akn"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2018,\"number\":null,\"url\":\"http://www.legislation.gov.uk/wsi/2018/122/made/data.xht\",\"dataUrl\":\"http://www.legislation.gov.uk/wsi/2018/122/made/data.akn\"}"
+}

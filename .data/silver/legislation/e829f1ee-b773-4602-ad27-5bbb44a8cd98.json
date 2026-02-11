@@ -1,0 +1,15 @@
+{
+  "id": "e829f1ee-b773-4602-ad27-5bbb44a8cd98",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4857",
+  "created_at": "2025-12-25T12:21:19.387Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1983/31/contents/enacted",
+    "type": "ukpga",
+    "year": 1983,
+    "number": 31,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1983,\"number\":31,\"url\":\"http://www.legislation.gov.uk/ukpga/1983/31/contents/enacted\",\"dataUrl\":null}"
+}

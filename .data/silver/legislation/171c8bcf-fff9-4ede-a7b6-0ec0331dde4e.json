@@ -1,0 +1,15 @@
+{
+  "id": "171c8bcf-fff9-4ede-a7b6-0ec0331dde4e",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20259",
+  "created_at": "2025-12-25T13:55:31.955Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1998/669/contents",
+    "type": "uksi",
+    "year": 1998,
+    "number": 669,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1998/669/1998-04-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1998,\"number\":669,\"url\":\"http://www.legislation.gov.uk/uksi/1998/669/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1998/669/1998-04-01/data.htm\"}"
+}

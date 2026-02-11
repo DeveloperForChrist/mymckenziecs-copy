@@ -1,0 +1,15 @@
+{
+  "id": "5df5865a-a94a-4467-bff7-edc93f28eed0",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#17008",
+  "created_at": "2025-12-25T13:35:12.922Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1997/3032/contents",
+    "type": "uksi",
+    "year": 1997,
+    "number": 3032,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1997/3032/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1997,\"number\":3032,\"url\":\"http://www.legislation.gov.uk/uksi/1997/3032/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1997/3032/2020-12-31/data.htm\"}"
+}

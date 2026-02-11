@@ -1,0 +1,16 @@
+<!-- Trigger: subscription updated (upgrade/downgrade)
+     Purpose: confirm plan change
+     Key elements: previous plan, new plan, manage link -->
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"/><title>Plan updated</title></head>
+  <body>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <h1>Your plan has been updated</h1>
+    <p>Hi {{name}},</p>
+    <p>Your plan was {{change_type}} from <strong>{{old_plan}}</strong> to <strong>{{new_plan}}</strong>.</p>
+    <p><a href="{{manage_url}}">Manage your plan</a></p>
+    <p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MymckenzieCS</p>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "id": "33705dbe-1b9e-4c88-a7b4-cf3c10f4dea2",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Sevilleja (Respondent) v Marex Financial Ltd (Appellant)",
+  "created_at": "2025-12-25T11:50:04.996Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0178",
+    "score": 1,
+    "title": "Sevilleja (Respondent) v Marex Financial Ltd (Appellant)",
+    "summary": "Principle issue: Whether the rule against reflective loss bars creditors of a company from claiming directly against a third party for asset-stripping the company.",
+    "category": "procedure",
+    "citation": "UKSC/2018/0178",
+    "extracts": [
+      "1. This appeal concerns the supposed principle that “reflective loss” cannot be recovered. Before describing the factual background, or entering into the details of the legal issues, it may be helpful to begin by considering some basic principles of our law.",
+      "2. It is not uncommon for two persons, A and B, to suffer loss as a result of the conduct of a third person, C. If that conduct was in breach of an obligation owed by C to A, then A will in principle have a cause of action against C. If the conduct was also in breach of an obligation owed by C to B, then B will also have a cause of action against C. A and B are both at liberty to sue C whenever they please, subject to rules as to limitation and prescription, and C is normally liable to compensate them both for the loss which they have suffered. If A obtains and enforces a pecuniary award against C, and some time later B also seeks a similar award but C is unable to pay it, then in principle that is B’s misfortune. However, where C is insolvent at the time when the first claim is made against him, the law of insolvency protects the position of both A and B by imposing a regime for the distribution of C’s assets among his creditors which ensures that they are treated equally, after the claims of secured or preferred creditors have been met."
+    ],
+    "title_key": "sevilleja v marex financial ltd"
+  },
+  "content": "{\"title\":\"Sevilleja (Respondent) v Marex Financial Ltd (Appellant)\",\"citation\":\"UKSC/2018/0178\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0178\",\"summary\":\"Principle issue: Whether the rule against reflective loss bars creditors of a company from claiming directly against a third party for asset-stripping the company.\",\"extracts\":[\"1. This appeal concerns the supposed principle that “reflective loss” cannot be recovered. Before describing the factual background, or entering into the details of the legal issues, it may be helpful to begin by considering some basic principles of our law.\",\"2. It is not uncommon for two persons, A and B, to suffer loss as a result of the conduct of a third person, C. If that conduct was in breach of an obligation owed by C to A, then A will in principle have a cause of action against C. If the conduct was also in breach of an obligation owed by C to B, then B will also have a cause of action against C. A and B are both at liberty to sue C whenever they please, subject to rules as to limitation and prescription, and C is normally liable to compensate them both for the loss which they have suffered. If A obtains and enforces a pecuniary award against C, and some time later B also seeks a similar award but C is unable to pay it, then in principle that is B’s misfortune. However, where C is insolvent at the time when the first claim is made against him, the law of insolvency protects the position of both A and B by imposing a regime for the distribution of C’s assets among his creditors which ensures that they are treated equally, after the claims of secured or preferred creditors have been met.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"sevilleja v marex financial ltd\"}"
+}

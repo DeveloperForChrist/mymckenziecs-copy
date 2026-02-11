@@ -1,0 +1,21 @@
+{
+  "id": "f6e09096-3e76-401a-acc2-c2f41c3e28e6",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "X (Appellant) v Mid Sussex Citizens Advice Bureau and another (Respondents)",
+  "created_at": "2025-12-25T11:47:29.365Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0112",
+    "score": 1,
+    "title": "X (Appellant) v Mid Sussex Citizens Advice Bureau and another (Respondents)",
+    "summary": "1. Any responsible organisation aims to combat discrimination on the grounds of disability – or indeed any other characteristic protected by the Equality Act 2010 - and will do so for the benefit of persons serving or wishing to serve as volunteers in the organisation no less than anyone else.",
+    "category": "procedure",
+    "citation": "UKSC/2011/0112",
+    "extracts": [
+      "1. Any responsible organisation aims to combat discrimination on the grounds of disability – or indeed any other characteristic protected by the Equality Act 2010 - and will do so for the benefit of persons serving or wishing to serve as volunteers in the organisation no less than anyone else. But the present appeal is not about this moral imperative. It is about whether, under European and domestic law, discrimination against volunteers, or some categories of volunteer, on the grounds of disability is currently unlawful and if so how the relevant volunteers are to be defined.",
+      "2. The appellant has both academic and practical qualifications in law. From 12th May 2006 she became a volunteer adviser for the respondent, the Mid Sussex Citizens Advice Bureau (“the CAB”). She did this after an interview in which it was explained that there would be no binding legal contract between her and the CAB. This was confirmed in her case by her signature of a volunteer agreement headed: “This agreement is binding in honour only and is not a contract of employment or legally binding”. The Employment Tribunal concluded that no legally binding contract came into existence, and the contrary is no longer suggested."
+    ],
+    "title_key": "x v mid sussex citizens advice bureau and another"
+  },
+  "content": "{\"title\":\"X (Appellant) v Mid Sussex Citizens Advice Bureau and another (Respondents)\",\"citation\":\"UKSC/2011/0112\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0112\",\"summary\":\"1. Any responsible organisation aims to combat discrimination on the grounds of disability – or indeed any other characteristic protected by the Equality Act 2010 - and will do so for the benefit of persons serving or wishing to serve as volunteers in the organisation no less than anyone else.\",\"extracts\":[\"1. Any responsible organisation aims to combat discrimination on the grounds of disability – or indeed any other characteristic protected by the Equality Act 2010 - and will do so for the benefit of persons serving or wishing to serve as volunteers in the organisation no less than anyone else. But the present appeal is not about this moral imperative. It is about whether, under European and domestic law, discrimination against volunteers, or some categories of volunteer, on the grounds of disability is currently unlawful and if so how the relevant volunteers are to be defined.\",\"2. The appellant has both academic and practical qualifications in law. From 12th May 2006 she became a volunteer adviser for the respondent, the Mid Sussex Citizens Advice Bureau (“the CAB”). She did this after an interview in which it was explained that there would be no binding legal contract between her and the CAB. This was confirmed in her case by her signature of a volunteer agreement headed: “This agreement is binding in honour only and is not a contract of employment or legally binding”. The Employment Tribunal concluded that no legally binding contract came into existence, and the contrary is no longer suggested.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"x v mid sussex citizens advice bureau and another\"}"
+}

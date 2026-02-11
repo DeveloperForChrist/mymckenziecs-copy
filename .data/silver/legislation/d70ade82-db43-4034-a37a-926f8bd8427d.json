@@ -1,0 +1,15 @@
+{
+  "id": "d70ade82-db43-4034-a37a-926f8bd8427d",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#27937",
+  "created_at": "2025-12-25T14:49:26.504Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2020/613/made",
+    "type": "uksi",
+    "year": 2020,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2020,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2020/613/made\",\"dataUrl\":null}"
+}

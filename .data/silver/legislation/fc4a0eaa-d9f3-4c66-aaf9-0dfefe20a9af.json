@@ -1,0 +1,15 @@
+{
+  "id": "fc4a0eaa-d9f3-4c66-aaf9-0dfefe20a9af",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8465",
+  "created_at": "2025-12-25T12:42:56.855Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1968/2052/contents/made",
+    "type": "uksi",
+    "year": 1968,
+    "number": 2052,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1968,\"number\":2052,\"url\":\"http://www.legislation.gov.uk/uksi/1968/2052/contents/made\",\"dataUrl\":null}"
+}

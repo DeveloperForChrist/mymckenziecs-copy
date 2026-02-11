@@ -1,0 +1,15 @@
+{
+  "id": "3d344c5f-3650-4ecf-92f8-5f15bced7a82",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#10914",
+  "created_at": "2025-12-25T12:57:37.047Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1983/1903/contents/made",
+    "type": "uksi",
+    "year": 1983,
+    "number": 1903,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1983/1903/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1983,\"number\":1903,\"url\":\"http://www.legislation.gov.uk/uksi/1983/1903/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1983/1903/made/data.htm\"}"
+}

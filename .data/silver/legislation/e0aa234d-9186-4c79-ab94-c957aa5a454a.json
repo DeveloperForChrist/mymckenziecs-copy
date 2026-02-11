@@ -1,0 +1,15 @@
+{
+  "id": "e0aa234d-9186-4c79-ab94-c957aa5a454a",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#11662",
+  "created_at": "2025-12-25T13:02:09.630Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1983/611/contents/made",
+    "type": "uksi",
+    "year": 1983,
+    "number": 611,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1983,\"number\":611,\"url\":\"http://www.legislation.gov.uk/uksi/1983/611/contents/made\",\"dataUrl\":null}"
+}

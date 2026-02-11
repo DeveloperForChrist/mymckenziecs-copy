@@ -1,0 +1,15 @@
+{
+  "id": "444275c4-dc9a-4f86-a93c-8a939cda9474",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#12163",
+  "created_at": "2025-12-25T13:05:18.147Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1986/1813/contents/made",
+    "type": "uksi",
+    "year": 1986,
+    "number": 1813,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1986,\"number\":1813,\"url\":\"http://www.legislation.gov.uk/uksi/1986/1813/contents/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "a5f78ab6-c968-4fab-a7d7-f643e5c80e43",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20758",
+  "created_at": "2025-12-25T13:58:31.115Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2001/4025/contents/made",
+    "type": "uksi",
+    "year": 2001,
+    "number": 4025,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2001/4025/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2001,\"number\":4025,\"url\":\"http://www.legislation.gov.uk/uksi/2001/4025/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2001/4025/made/data.htm\"}"
+}

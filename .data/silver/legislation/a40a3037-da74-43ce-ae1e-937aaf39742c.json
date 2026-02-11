@@ -1,0 +1,15 @@
+{
+  "id": "a40a3037-da74-43ce-ae1e-937aaf39742c",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#3902",
+  "created_at": "2025-12-25T12:15:22.091Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1969/65/contents/enacted",
+    "type": "ukpga",
+    "year": 1969,
+    "number": 65,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1969,\"number\":65,\"url\":\"http://www.legislation.gov.uk/ukpga/1969/65/contents/enacted\",\"dataUrl\":null}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "fcc10ed0-d4cf-4a50-b556-2f8c7f6dae2e",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Wyatt (Appellant) v Vince (Respondent)",
+  "created_at": "2025-12-25T11:48:21.793Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0186",
+    "score": 1,
+    "title": "Wyatt (Appellant) v Vince (Respondent)",
+    "summary": "4. The wife is aged 55.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2013/0186",
+    "extracts": [
+      "4. The wife is aged 55. According to her written evidence, which (as the husband accepts) should be assumed to be true for the purposes of his strike- out application, she is in poor health. She lives in a house with three or four bedrooms in Monmouth which in 2010 she purchased from the local authority on a discounted basis under the Right to Buy scheme for £60,000 by virtue of a mortgage in that amount. The house is in a poor state of repair.",
+      "(a) Emily, who is aged 36. Emily was born to the wife prior to the marriage by a man other than the husband. Emily’s father never maintained her. Upon the marriage the husband and the wife treated her as a child of the family. Throughout her life Emily has encountered difficulties which the wife has tried to help her to surmount. Emily lives in the house in Monmouth. She has a daughter, aged four, who lives mid-week with the wife’s mother and at weekends and during holidays in the house in Monmouth."
+    ],
+    "title_key": "wyatt v vince"
+  },
+  "content": "{\"title\":\"Wyatt (Appellant) v Vince (Respondent)\",\"citation\":\"UKSC/2013/0186\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0186\",\"summary\":\"4. The wife is aged 55.\",\"extracts\":[\"4. The wife is aged 55. According to her written evidence, which (as the husband accepts) should be assumed to be true for the purposes of his strike- out application, she is in poor health. She lives in a house with three or four bedrooms in Monmouth which in 2010 she purchased from the local authority on a discounted basis under the Right to Buy scheme for £60,000 by virtue of a mortgage in that amount. The house is in a poor state of repair.\",\"(a) Emily, who is aged 36. Emily was born to the wife prior to the marriage by a man other than the husband. Emily’s father never maintained her. Upon the marriage the husband and the wife treated her as a child of the family. Throughout her life Emily has encountered difficulties which the wife has tried to help her to surmount. Emily lives in the house in Monmouth. She has a daughter, aged four, who lives mid-week with the wife’s mother and at weekends and during holidays in the house in Monmouth.\"],\"category\":\"evidence_misc\",\"score\":1,\"title_key\":\"wyatt v vince\"}"
+}

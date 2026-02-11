@@ -1,0 +1,15 @@
+{
+  "id": "897a2dfe-e6e5-40e4-abcf-4de5d54d6b31",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7297",
+  "created_at": "2025-12-25T12:36:05.428Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1954/1725/contents/made",
+    "type": "uksi",
+    "year": 1954,
+    "number": 1725,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1954,\"number\":1725,\"url\":\"http://www.legislation.gov.uk/uksi/1954/1725/contents/made\",\"dataUrl\":null}"
+}

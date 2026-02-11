@@ -1,0 +1,21 @@
+{
+  "id": "9adc980b-1bea-43a5-9d0e-1ce8fc14d1b3",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Bakijasi (AP) (Appellant) v Secretary of State for the Home Department (Respondent)",
+  "created_at": "2025-12-25T11:49:35.447Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0211",
+    "score": 1,
+    "title": "Bakijasi (AP) (Appellant) v Secretary of State for the Home Department (Respondent)",
+    "summary": "Principle issue: Whether the appellants’ fraud made their acquisition of British citizenship a nullity rather than rendering them liable to deprivation of citizenship in accordance with sections 40 and 40A of the British Nationality Act 1981",
+    "category": "procedure",
+    "citation": "UKSC/2016/0211",
+    "extracts": [
+      "1. This judgment is given in unusual circumstances. The Secretary of State, as respondent to these appeals, has applied pursuant to rule 34(2) of the Supreme Court Rules 2009 for these appeals to be allowed by consent. The appellants of course agree. However, this court took the view that we could not make an order allowing the appeals and setting aside the orders in the courts below without understanding the reasons for doing so and their impact upon the point of law of general public importance raised by the appeals. The Secretary of State has supplied those reasons, with which this court agrees. This judgment is accordingly based upon them.",
+      "2. Although there are only two appeals before this court, these cases were heard in the Court of Appeal along with a third case, that of Mr Kaziu, which was decided on the same basis: R (Kaziu) v Secretary of State for the Home Department [2015] EWCA Civ 1195, [2016] 1 WLR 673. The Secretary of State therefore accepts that the principles adopted in this judgment should also apply to him."
+    ],
+    "title_key": "bakijasi v secretary of state for the home department"
+  },
+  "content": "{\"title\":\"Bakijasi (AP) (Appellant) v Secretary of State for the Home Department (Respondent)\",\"citation\":\"UKSC/2016/0211\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0211\",\"summary\":\"Principle issue: Whether the appellants’ fraud made their acquisition of British citizenship a nullity rather than rendering them liable to deprivation of citizenship in accordance with sections 40 and 40A of the British Nationality Act 1981\",\"extracts\":[\"1. This judgment is given in unusual circumstances. The Secretary of State, as respondent to these appeals, has applied pursuant to rule 34(2) of the Supreme Court Rules 2009 for these appeals to be allowed by consent. The appellants of course agree. However, this court took the view that we could not make an order allowing the appeals and setting aside the orders in the courts below without understanding the reasons for doing so and their impact upon the point of law of general public importance raised by the appeals. The Secretary of State has supplied those reasons, with which this court agrees. This judgment is accordingly based upon them.\",\"2. Although there are only two appeals before this court, these cases were heard in the Court of Appeal along with a third case, that of Mr Kaziu, which was decided on the same basis: R (Kaziu) v Secretary of State for the Home Department [2015] EWCA Civ 1195, [2016] 1 WLR 673. The Secretary of State therefore accepts that the principles adopted in this judgment should also apply to him.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"bakijasi v secretary of state for the home department\"}"
+}

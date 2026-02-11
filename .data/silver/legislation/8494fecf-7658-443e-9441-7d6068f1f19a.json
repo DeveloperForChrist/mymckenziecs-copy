@@ -1,0 +1,15 @@
+{
+  "id": "8494fecf-7658-443e-9441-7d6068f1f19a",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8440",
+  "created_at": "2025-12-25T12:42:48.531Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1967/1960/contents/made",
+    "type": "uksi",
+    "year": 1967,
+    "number": 1960,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1967,\"number\":1960,\"url\":\"http://www.legislation.gov.uk/uksi/1967/1960/contents/made\",\"dataUrl\":null}"
+}

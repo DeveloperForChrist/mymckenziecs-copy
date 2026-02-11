@@ -1,0 +1,21 @@
+{
+  "id": "83659a64-740a-4531-bd08-5593e8388d86",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "RM (AP) (Appellant) v The Scottish Ministers (Respondent) (Scotland)",
+  "created_at": "2025-12-25T11:47:36.567Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0212",
+    "score": 1,
+    "title": "RM (AP) (Appellant) v The Scottish Ministers (Respondent) (Scotland)",
+    "summary": "1. This appeal raises a question as to the effect of a commencement provision in a statute which provides that provisions “shall come into force” on a specified date, and a consequential question as to the effect of a provision conferring upon Ministers the power to make regulations, where the pr...",
+    "category": "procedure",
+    "citation": "UKSC/2011/0212",
+    "extracts": [
+      "1. This appeal raises a question as to the effect of a commencement provision in a statute which provides that provisions “shall come into force” on a specified date, and a consequential question as to the effect of a provision conferring upon Ministers the power to make regulations, where the provisions which are subject to the commencement provision cannot come into effective operation unless such regulations have been made.",
+      "2. These questions arise in relation to the Mental Health (Care and Treatment) (Scotland) Act 2003 (“the 2003 Act”). The relevant substantive provisions are contained in Chapter 3 of Part 17, comprising sections 264 to 273. That Chapter is concerned with the detention of patients in conditions of excessive security."
+    ],
+    "title_key": "rm v the scottish ministers"
+  },
+  "content": "{\"title\":\"RM (AP) (Appellant) v The Scottish Ministers (Respondent) (Scotland)\",\"citation\":\"UKSC/2011/0212\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0212\",\"summary\":\"1. This appeal raises a question as to the effect of a commencement provision in a statute which provides that provisions “shall come into force” on a specified date, and a consequential question as to the effect of a provision conferring upon Ministers the power to make regulations, where the pr...\",\"extracts\":[\"1. This appeal raises a question as to the effect of a commencement provision in a statute which provides that provisions “shall come into force” on a specified date, and a consequential question as to the effect of a provision conferring upon Ministers the power to make regulations, where the provisions which are subject to the commencement provision cannot come into effective operation unless such regulations have been made.\",\"2. These questions arise in relation to the Mental Health (Care and Treatment) (Scotland) Act 2003 (“the 2003 Act”). The relevant substantive provisions are contained in Chapter 3 of Part 17, comprising sections 264 to 273. That Chapter is concerned with the detention of patients in conditions of excessive security.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"rm v the scottish ministers\"}"
+}

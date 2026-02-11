@@ -1,0 +1,15 @@
+{
+  "id": "726b36ca-66ab-4037-a769-64650836b282",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#15043",
+  "created_at": "2025-12-25T13:22:51.507Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1988/595/contents",
+    "type": "uksi",
+    "year": 1988,
+    "number": 595,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/1988/595/2011-04-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1988,\"number\":595,\"url\":\"http://www.legislation.gov.uk/nisi/1988/595/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/1988/595/2011-04-01/data.htm\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "7d7938dc-827d-4471-bc6d-f873da427b03",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of E) (Respondent) v Governing Body of JFS and the Admissions Appeal Panel of JFS (Appellants) and others",
+  "created_at": "2025-12-25T11:46:43.434Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0105",
+    "score": 1,
+    "title": "R (on the application of E) (Respondent) v Governing Body of JFS and the Admissions Appeal Panel of JFS (Appellants) and others",
+    "summary": "R (on the application of E) (Respondent) v Governing Body of JFS and the Admissions Appeal Panel of JFS (Appellants) and others R (on the application of E) (Respondent) v Governing Body of JFS and the Admissions Appeal Panel of JFS and others (United Synagogue) (Appellants)",
+    "category": "procedure",
+    "citation": "UKSC/2009/0105",
+    "extracts": [
+      "R (on the application of E) (Respondent) v Governing Body of JFS and the Admissions Appeal Panel of JFS (Appellants) and others R (on the application of E) (Respondent) v Governing Body of JFS and the Admissions Appeal Panel of JFS and others (United Synagogue) (Appellants)",
+      "The five judgements which uphold the judgment of the Court of Appeal on the issue of direct discrimination appear first. The most detailed description of the background facts and the relevant statutory provisions is set out in the judgment of Lord Hope."
+    ],
+    "title_key": "r v governing body of jfs and the admissions appeal panel of jfs and others"
+  },
+  "content": "{\"title\":\"R (on the application of E) (Respondent) v Governing Body of JFS and the Admissions Appeal Panel of JFS (Appellants) and others\",\"citation\":\"UKSC/2009/0105\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0105\",\"summary\":\"R (on the application of E) (Respondent) v Governing Body of JFS and the Admissions Appeal Panel of JFS (Appellants) and others R (on the application of E) (Respondent) v Governing Body of JFS and the Admissions Appeal Panel of JFS and others (United Synagogue) (Appellants)\",\"extracts\":[\"R (on the application of E) (Respondent) v Governing Body of JFS and the Admissions Appeal Panel of JFS (Appellants) and others R (on the application of E) (Respondent) v Governing Body of JFS and the Admissions Appeal Panel of JFS and others (United Synagogue) (Appellants)\",\"The five judgements which uphold the judgment of the Court of Appeal on the issue of direct discrimination appear first. The most detailed description of the background facts and the relevant statutory provisions is set out in the judgment of Lord Hope.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v governing body of jfs and the admissions appeal panel of jfs and others\"}"
+}

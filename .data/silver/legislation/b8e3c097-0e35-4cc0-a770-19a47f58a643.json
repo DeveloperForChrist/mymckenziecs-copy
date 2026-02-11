@@ -1,0 +1,15 @@
+{
+  "id": "b8e3c097-0e35-4cc0-a770-19a47f58a643",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9455",
+  "created_at": "2025-12-25T12:48:37.949Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1976/2205/contents/made",
+    "type": "uksi",
+    "year": 1976,
+    "number": 2205,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1976,\"number\":2205,\"url\":\"http://www.legislation.gov.uk/uksi/1976/2205/contents/made\",\"dataUrl\":null}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "16a71e1e-f2d9-4f60-ab64-2db40c463935",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#753",
+  "created_at": "2025-12-25T11:55:45.793Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1916/50/contents/enacted",
+    "type": "ukpga",
+    "year": 1916,
+    "number": 50,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1916/50/enacted/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1916,\"number\":50,\"url\":\"http://www.legislation.gov.uk/ukpga/1916/50/contents/enacted\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1916/50/enacted/data.htm\"}"
+}

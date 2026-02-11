@@ -1,0 +1,15 @@
+{
+  "id": "f0261cfd-5dec-4154-8c03-810dab418029",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9698",
+  "created_at": "2025-12-25T12:50:04.000Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1977/2103/contents/made",
+    "type": "uksi",
+    "year": 1977,
+    "number": 2103,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1977,\"number\":2103,\"url\":\"http://www.legislation.gov.uk/uksi/1977/2103/contents/made\",\"dataUrl\":null}"
+}

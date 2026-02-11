@@ -1,0 +1,21 @@
+{
+  "id": "69565ee1-bf85-45c3-99d6-73e20e7d5175",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Flood (Respondent) v Times Newspapers Limited (Appellant)",
+  "created_at": "2025-12-25T11:47:11.180Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0166",
+    "score": 1,
+    "title": "Flood (Respondent) v Times Newspapers Limited (Appellant)",
+    "summary": "3. Tugendhat J held that TNL are protected by Reynolds privilege [2009] EWHC 2375 (QB) [2010] EMLR 169, but his decision was reversed by the Court of Appeal, Lord Neuberger MR, Moore-Bick and Moses LJJ, [2010] EWCA Civ 804 [2011] 1WLR 153.",
+    "category": "procedure",
+    "citation": "UKSC/2010/0166",
+    "extracts": [
+      "3. Tugendhat J held that TNL are protected by Reynolds privilege [2009] EWHC 2375 (QB) [2010] EMLR 169, but his decision was reversed by the Court of Appeal, Lord Neuberger MR, Moore-Bick and Moses LJJ, [2010] EWCA Civ 804 [2011] 1WLR 153. The major reason for the Court of Appeal’s decision was their view that the journalists responsible for the Article had failed to act responsibly in that they had failed adequately to verify the allegations of fact that it contained.",
+      "Page 2 “Detective accused of taking bribes from Russian exiles. Police investigating the alleged sale to a security company of intelligence on the Kremlin's attempts to extradite opponents of President Putin, Michael Gillard reports”."
+    ],
+    "title_key": "flood v times newspapers limited"
+  },
+  "content": "{\"title\":\"Flood (Respondent) v Times Newspapers Limited (Appellant)\",\"citation\":\"UKSC/2010/0166\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0166\",\"summary\":\"3. Tugendhat J held that TNL are protected by Reynolds privilege [2009] EWHC 2375 (QB) [2010] EMLR 169, but his decision was reversed by the Court of Appeal, Lord Neuberger MR, Moore-Bick and Moses LJJ, [2010] EWCA Civ 804 [2011] 1WLR 153.\",\"extracts\":[\"3. Tugendhat J held that TNL are protected by Reynolds privilege [2009] EWHC 2375 (QB) [2010] EMLR 169, but his decision was reversed by the Court of Appeal, Lord Neuberger MR, Moore-Bick and Moses LJJ, [2010] EWCA Civ 804 [2011] 1WLR 153. The major reason for the Court of Appeal’s decision was their view that the journalists responsible for the Article had failed to act responsibly in that they had failed adequately to verify the allegations of fact that it contained.\",\"Page 2 “Detective accused of taking bribes from Russian exiles. Police investigating the alleged sale to a security company of intelligence on the Kremlin's attempts to extradite opponents of President Putin, Michael Gillard reports”.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"flood v times newspapers limited\"}"
+}

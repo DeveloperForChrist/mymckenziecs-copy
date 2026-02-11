@@ -1,0 +1,21 @@
+{
+  "id": "5d1ae4d5-2c4f-4f03-8d12-b73f7bea8874",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Patel (Respondent) v Mirza (Appellant)",
+  "created_at": "2025-12-25T11:48:49.344Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0218",
+    "score": 0,
+    "title": "Patel (Respondent) v Mirza (Appellant)",
+    "summary": "1. “No court will lend its aid to a man who founds his cause of action upon an immoral or an illegal act.” So spoke Lord Mansfield in Holman v Johnson (1775) 1 Cowp 341, 343, ushering in two centuries and more of case law about the extent and effect of this maxim.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2014/0218",
+    "extracts": [
+      "1. “No court will lend its aid to a man who founds his cause of action upon an immoral or an illegal act.” So spoke Lord Mansfield in Holman v Johnson (1775) 1 Cowp 341, 343, ushering in two centuries and more of case law about the extent and effect of this maxim. He stated that the reason was one of public policy:",
+      "“If, from the plaintiff’s own stating or otherwise, the cause of action appears to arise ex turpi causa, or the transgression of a positive law of this country, there the court says he has no right to be assisted. It is upon that ground the court goes; not for the sake of the defendant, but because they will not lend their aid to such a plaintiff. So if the plaintiff and defendant were to change sides, and the defendant was to bring his action against the plaintiff, the latter would then have the advantage of it; for where both are equally in fault, potior est conditio defendentis.”"
+    ],
+    "title_key": "patel v mirza"
+  },
+  "content": "{\"title\":\"Patel (Respondent) v Mirza (Appellant)\",\"citation\":\"UKSC/2014/0218\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0218\",\"summary\":\"1. “No court will lend its aid to a man who founds his cause of action upon an immoral or an illegal act.” So spoke Lord Mansfield in Holman v Johnson (1775) 1 Cowp 341, 343, ushering in two centuries and more of case law about the extent and effect of this maxim.\",\"extracts\":[\"1. “No court will lend its aid to a man who founds his cause of action upon an immoral or an illegal act.” So spoke Lord Mansfield in Holman v Johnson (1775) 1 Cowp 341, 343, ushering in two centuries and more of case law about the extent and effect of this maxim. He stated that the reason was one of public policy:\",\"“If, from the plaintiff’s own stating or otherwise, the cause of action appears to arise ex turpi causa, or the transgression of a positive law of this country, there the court says he has no right to be assisted. It is upon that ground the court goes; not for the sake of the defendant, but because they will not lend their aid to such a plaintiff. So if the plaintiff and defendant were to change sides, and the defendant was to bring his action against the plaintiff, the latter would then have the advantage of it; for where both are equally in fault, potior est conditio defendentis.”\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"patel v mirza\"}"
+}

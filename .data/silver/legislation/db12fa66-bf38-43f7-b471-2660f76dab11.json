@@ -1,0 +1,15 @@
+{
+  "id": "db12fa66-bf38-43f7-b471-2660f76dab11",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#5396",
+  "created_at": "2025-12-25T12:24:28.515Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1992/29/contents",
+    "type": "ukpga",
+    "year": 1992,
+    "number": 29,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1992/29/2004-07-22/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1992,\"number\":29,\"url\":\"http://www.legislation.gov.uk/ukpga/1992/29/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1992/29/2004-07-22/data.htm\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "56fc0e08-44b2-484d-8b14-a28da1fee994",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Hayward (Respondent) v Zurich Insurance Company plc (Appellant)",
+  "created_at": "2025-12-25T11:49:02.894Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0099",
+    "score": 1,
+    "title": "Hayward (Respondent) v Zurich Insurance Company plc (Appellant)",
+    "summary": "2. In Summers the issue was what remedies were available to the employer and its insurers, whereas in the instant case the issue arises out of a settlement agreement reached between the parties on 3 October 2003, the accident having occurred on 9 June 1998.",
+    "category": "procedure",
+    "citation": "UKSC/2015/0099",
+    "extracts": [
+      "2. In Summers the issue was what remedies were available to the employer and its insurers, whereas in the instant case the issue arises out of a settlement agreement reached between the parties on 3 October 2003, the accident having occurred on 9 June 1998. The agreement was made shortly before the issue of quantum was due to be tried and was incorporated in a Tomlin Order. The employer’s case was conducted on its behalf by its liability insurer, Zurich Insurance Company Plc (“Zurich”), which is the appellant in this appeal. The employer (in practice Zurich) agreed to pay £134,973.11, inclusive of CRU of £22,473.11, in full and final settlement of Mr Hayward’s claim.",
+      "4. In 2005, Mr Hayward’s neighbours, Mr and Mrs Cox, who had lived next door to him since June 2002, approached the employer to say that they believed that his claim to have suffered a serious back injury was dishonest. From their observation of his conduct and activities, they believed that he had recovered in full from his injury at least a year before the settlement. They were referred to Zurich and made full witness statements to that effect."
+    ],
+    "title_key": "hayward v zurich insurance company plc"
+  },
+  "content": "{\"title\":\"Hayward (Respondent) v Zurich Insurance Company plc (Appellant)\",\"citation\":\"UKSC/2015/0099\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0099\",\"summary\":\"2. In Summers the issue was what remedies were available to the employer and its insurers, whereas in the instant case the issue arises out of a settlement agreement reached between the parties on 3 October 2003, the accident having occurred on 9 June 1998.\",\"extracts\":[\"2. In Summers the issue was what remedies were available to the employer and its insurers, whereas in the instant case the issue arises out of a settlement agreement reached between the parties on 3 October 2003, the accident having occurred on 9 June 1998. The agreement was made shortly before the issue of quantum was due to be tried and was incorporated in a Tomlin Order. The employer’s case was conducted on its behalf by its liability insurer, Zurich Insurance Company Plc (“Zurich”), which is the appellant in this appeal. The employer (in practice Zurich) agreed to pay £134,973.11, inclusive of CRU of £22,473.11, in full and final settlement of Mr Hayward’s claim.\",\"4. In 2005, Mr Hayward’s neighbours, Mr and Mrs Cox, who had lived next door to him since June 2002, approached the employer to say that they believed that his claim to have suffered a serious back injury was dishonest. From their observation of his conduct and activities, they believed that he had recovered in full from his injury at least a year before the settlement. They were referred to Zurich and made full witness statements to that effect.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"hayward v zurich insurance company plc\"}"
+}

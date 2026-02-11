@@ -1,0 +1,15 @@
+{
+  "id": "1af8b616-e89d-4839-b65c-208fff068913",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#16616",
+  "created_at": "2025-12-25T13:32:54.558Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1989/492/contents",
+    "type": "uksi",
+    "year": 1989,
+    "number": 492,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/1989/492/2006-01-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1989,\"number\":492,\"url\":\"http://www.legislation.gov.uk/nisi/1989/492/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/1989/492/2006-01-01/data.htm\"}"
+}

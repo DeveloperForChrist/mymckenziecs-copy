@@ -1,0 +1,15 @@
+{
+  "id": "9a650041-2157-4a05-838b-e12114f513a8",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#3877",
+  "created_at": "2025-12-25T12:15:12.907Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1968/25/contents",
+    "type": "ukpga",
+    "year": 1968,
+    "number": 25,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1968/25/2001-12-01/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1968,\"number\":25,\"url\":\"http://www.legislation.gov.uk/ukpga/1968/25/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1968/25/2001-12-01/data.htm\"}"
+}

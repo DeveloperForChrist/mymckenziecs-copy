@@ -1,0 +1,21 @@
+{
+  "id": "a8d12278-bd27-444c-8d07-08cd8a921899",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of Pearce and another) (Respondents) v Parole Board for England and Wales (Appellant)",
+  "created_at": "2025-12-25T11:50:47.851Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2022-0052",
+    "score": 1,
+    "title": "R (on the application of Pearce and another) (Respondents) v Parole Board for England and Wales (Appellant)",
+    "summary": "Principle issue: (1) When the Parole Board is deciding whether or not to direct the release of a prisoner on licence, can it only take into account allegations if they are proved on the balance of probabilities?(2)Does the Parole Board’s \"Guidance on Allegations\" (the Guidance) misstate the law on this issue?",
+    "category": "procedure",
+    "citation": "UKSC/2022/0052",
+    "extracts": [
+      "1. The issue in this appeal is what approach the Parole Board (“the Board”) may properly take, when deciding whether or not to direct the release of a prisoner on licence, to potentially relevant assertions or allegations made about the prisoner which have not been determined, either by the Board or some other body, to be either proved or disproved on the balance of probabilities. After the decision of the Divisional Court in R (D) v Parole Board; [2019] QB 285 (the Worboys case; hereinafter “R(D)”) the Board published Guidance directed to this issue. The lawfulness of that Guidance is in issue in these proceedings.",
+      "2. The claimant, Dean Pearce (“the claimant”), is a prisoner whose release the Board declined to direct. He brought the present proceedings for judicial review to challenge that decision and in doing so contended that the published Guidance is unlawful. That contention was upheld by the Court of Appeal ([2022] 1 WLR 2216), although the decision of the Board on the particular facts of the claimant’s case was held to have been proper and justified. There is no longer any dispute about the Board’s decision in relation to the claimant, but the challenge to the lawfulness of the general Guidance remains."
+    ],
+    "title_key": "r v parole board for england and wales"
+  },
+  "content": "{\"title\":\"R (on the application of Pearce and another) (Respondents) v Parole Board for England and Wales (Appellant)\",\"citation\":\"UKSC/2022/0052\",\"url\":\"https://supremecourt.uk/cases/uksc-2022-0052\",\"summary\":\"Principle issue: (1) When the Parole Board is deciding whether or not to direct the release of a prisoner on licence, can it only take into account allegations if they are proved on the balance of probabilities?(2)Does the Parole Board’s \\\\\"Guidance on Allegations\\\\\" (the Guidance) misstate the law on this issue?\",\"extracts\":[\"1. The issue in this appeal is what approach the Parole Board (“the Board”) may properly take, when deciding whether or not to direct the release of a prisoner on licence, to potentially relevant assertions or allegations made about the prisoner which have not been determined, either by the Board or some other body, to be either proved or disproved on the balance of probabilities. After the decision of the Divisional Court in R (D) v Parole Board; [2019] QB 285 (the Worboys case; hereinafter “R(D)”) the Board published Guidance directed to this issue. The lawfulness of that Guidance is in issue in these proceedings.\",\"2. The claimant, Dean Pearce (“the claimant”), is a prisoner whose release the Board declined to direct. He brought the present proceedings for judicial review to challenge that decision and in doing so contended that the published Guidance is unlawful. That contention was upheld by the Court of Appeal ([2022] 1 WLR 2216), although the decision of the Board on the particular facts of the claimant’s case was held to have been proper and justified. There is no longer any dispute about the Board’s decision in relation to the claimant, but the challenge to the lawfulness of the general Guidance remains.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v parole board for england and wales\"}"
+}

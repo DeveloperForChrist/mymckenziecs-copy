@@ -1,0 +1,21 @@
+{
+  "id": "1183830d-1749-48bb-81c0-6750d1768c46",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Jessy Saint Prix (Appellant) v Secretary of State for Work and Pensions (Respondent)",
+  "created_at": "2025-12-25T11:47:32.897Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0176",
+    "score": 2,
+    "title": "Jessy Saint Prix (Appellant) v Secretary of State for Work and Pensions (Respondent)",
+    "summary": "1. The issue in this case is whether a woman who has temporarily left work because of the late stages of pregnancy and early aftermath of childbirth is to be treated as a ‘worker’ for the purpose of the right of free movement enshrined in article 45 of the Treaty on the Functioning of the Europea...",
+    "category": "public_law",
+    "citation": "UKSC/2011/0176",
+    "extracts": [
+      "1. The issue in this case is whether a woman who has temporarily left work because of the late stages of pregnancy and early aftermath of childbirth is to be treated as a ‘worker’ for the purpose of the right of free movement enshrined in article 45 of the Treaty on the Functioning of the European Union (TFEU) and more specifically the right of residence conferred by Article 7 of Directive 2004/38/EC of the European Parliament and of the Council on the right of citizens of the Union and their family members to move and reside freely within the territory of the Member States (the Citizenship Directive). Upon this depends her entitlement to income support, a non-contributory, means-tested benefit. Under UK domestic law, a pregnant woman within 11 weeks of her expected date of confinement is not required to be available for, or actively to seek, work. However, a national of another EU state will be excluded as a ‘person from abroad’ unless, in this case, she falls within Article 7.",
+      "3. On 4 September 2008, the First Tier Tribunal allowed the claimant’s appeal against the refusal of income support. But on 7 May 2010, the Upper Tribunal allowed the appeal of the Secretary of State. On 13 July 2011, the Court of Appeal"
+    ],
+    "title_key": "jessy saint prix v secretary of state for work and pensions"
+  },
+  "content": "{\"title\":\"Jessy Saint Prix (Appellant) v Secretary of State for Work and Pensions (Respondent)\",\"citation\":\"UKSC/2011/0176\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0176\",\"summary\":\"1. The issue in this case is whether a woman who has temporarily left work because of the late stages of pregnancy and early aftermath of childbirth is to be treated as a ‘worker’ for the purpose of the right of free movement enshrined in article 45 of the Treaty on the Functioning of the Europea...\",\"extracts\":[\"1. The issue in this case is whether a woman who has temporarily left work because of the late stages of pregnancy and early aftermath of childbirth is to be treated as a ‘worker’ for the purpose of the right of free movement enshrined in article 45 of the Treaty on the Functioning of the European Union (TFEU) and more specifically the right of residence conferred by Article 7 of Directive 2004/38/EC of the European Parliament and of the Council on the right of citizens of the Union and their family members to move and reside freely within the territory of the Member States (the Citizenship Directive). Upon this depends her entitlement to income support, a non-contributory, means-tested benefit. Under UK domestic law, a pregnant woman within 11 weeks of her expected date of confinement is not required to be available for, or actively to seek, work. However, a national of another EU state will be excluded as a ‘person from abroad’ unless, in this case, she falls within Article 7.\",\"3. On 4 September 2008, the First Tier Tribunal allowed the claimant’s appeal against the refusal of income support. But on 7 May 2010, the Upper Tribunal allowed the appeal of the Secretary of State. On 13 July 2011, the Court of Appeal\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"jessy saint prix v secretary of state for work and pensions\"}"
+}

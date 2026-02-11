@@ -1,0 +1,15 @@
+{
+  "id": "6176da0f-6c92-40fc-85cd-e548fcc67b44",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#3488",
+  "created_at": "2025-12-25T12:12:56.678Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1963/36/contents",
+    "type": "ukpga",
+    "year": 1963,
+    "number": 36,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1963/36/1991-10-25/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1963,\"number\":36,\"url\":\"http://www.legislation.gov.uk/ukpga/1963/36/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1963/36/1991-10-25/data.htm\"}"
+}

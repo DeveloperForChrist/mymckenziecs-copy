@@ -1,0 +1,173 @@
+// DBML schema for MyMcKenzie webapp
+// Import into dbdiagram.io or use dbml-cli to render
+
+Table users {
+  id uuid [pk]
+  email text [unique]
+  name text
+  created_at timestamptz
+  updated_at timestamptz
+}
+
+Table cases {
+  id uuid [pk]
+  user_id uuid [ref: > users.id]
+  title text
+  description text
+  case_type text
+  court text
+  status text
+  court_deadline date
+  last_accessed timestamptz
+  message_count int
+  search_vector tsvector
+  deleted_at timestamptz
+  created_at timestamptz
+  updated_at timestamptz
+}
+
+Table messages {
+  id uuid [pk]
+  case_id uuid [ref: > cases.id]
+  conversation_id uuid
+  role text
+  content text
+  timestamp timestamptz
+}
+
+Table documents {
+  id uuid [pk]
+  case_id uuid [ref: > cases.id]
+  name text
+  storage_url text
+  storage_path text
+  type text
+  file_size int
+  mime_type text
+  version int
+  uploaded_by uuid [ref: > users.id]
+  deleted_at timestamptz
+  created_at timestamptz
+}
+
+Table document_analyses {
+  id uuid [pk]
+  document_id uuid [ref: > documents.id]
+  analysis_text text
+  analyzed_at timestamptz
+  created_at timestamptz
+}
+
+Table subscriptions {
+  id uuid [pk]
+  user_id uuid [ref: > users.id]
+  stripe_subscription_id text
+  plan_type text
+  status text
+  current_period_start timestamptz
+  current_period_end timestamptz
+  cancel_at_period_end boolean
+  created_at timestamptz
+  updated_at timestamptz
+}
+
+Table user_passes {
+  id uuid [pk]
+  user_id uuid [ref: > users.id]
+  case_id uuid [ref: > cases.id]
+  pass_type text
+  stripe_payment_id text
+  price_paid decimal
+  expires_at timestamptz
+  created_at timestamptz
+}
+
+Table message_usage {
+  case_id uuid [pk, ref: > cases.id]
+  free_messages_used int
+  total_messages int
+  pass_id uuid [ref: > user_passes.id]
+  subscription_id uuid [ref: > subscriptions.id]
+  updated_at timestamptz
+}
+
+Table audit_log {
+  id uuid [pk]
+  user_id uuid [ref: > users.id]
+  table_name text
+  record_id uuid
+  action text
+  old_data jsonb
+  new_data jsonb
+  ip_address text
+  user_agent text
+  created_at timestamptz
+}
+
+Table user_preferences {
+  user_id uuid [pk, ref: > users.id]
+  email_notifications boolean
+  deadline_reminders boolean
+  timezone text
+  language text
+  updated_at timestamptz
+}
+
+Table cache {
+  key text [pk]
+  value jsonb
+  cache_type text
+  expires_at timestamptz
+  hit_count int
+  created_at timestamptz
+}
+
+Table api_usage {
+  id uuid [pk]
+  provider text
+  endpoint text
+  model text
+  request_type text
+  success boolean
+  status_code int
+  prompt_tokens int
+  completion_tokens int
+  total_tokens int
+  cost_usd numeric
+  latency_ms int
+  user_id uuid [ref: > users.id]
+  error text
+  metadata jsonb
+  created_at timestamptz
+}
+
+Table calendar_events {
+  id uuid [pk]
+  user_id uuid [ref: > users.id]
+  title text
+  notes text
+  time time
+  date timestamptz
+  category text
+  priority text
+  type text
+  source text
+  created_at timestamptz
+  updated_at timestamptz
+}
+
+Ref: cases.user_id > users.id
+Ref: messages.case_id > cases.id
+Ref: documents.case_id > cases.id
+Ref: documents.uploaded_by > users.id
+Ref: document_analyses.document_id > documents.id
+Ref: subscriptions.user_id > users.id
+Ref: user_passes.user_id > users.id
+Ref: user_passes.case_id > cases.id
+Ref: message_usage.case_id > cases.id
+Ref: message_usage.pass_id > user_passes.id
+Ref: message_usage.subscription_id > subscriptions.id
+Ref: audit_log.user_id > users.id
+Ref: user_preferences.user_id > users.id
+Ref: api_usage.user_id > users.id
+Ref: calendar_events.user_id > users.id

@@ -1,0 +1,21 @@
+{
+  "id": "c57ca39d-d804-4080-b5d8-90ce3e855bf9",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "OB (by his mother and litigation friend) (FC) (Respondent) v Aventis Pasteur SA (Appellants)",
+  "created_at": "2025-12-25T11:46:48.111Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0152",
+    "score": 0,
+    "title": "OB (by his mother and litigation friend) (FC) (Respondent) v Aventis Pasteur SA (Appellants)",
+    "summary": "2. The vaccine in question was manufactured in France by a French company, now known as Aventis Pasteur SA (“APSA”).",
+    "category": "evidence_misc",
+    "citation": "UKSC/2009/0152",
+    "extracts": [
+      "2. The vaccine in question was manufactured in France by a French company, now known as Aventis Pasteur SA (“APSA”). On 18 September 1992 APSA sent a consignment of the vaccine, including the Product, to a company, now known as Aventis Pasteur MSD Ltd (“APMSD”), in England. At all relevant times in 1992 APMSD was a wholly owned subsidiary of APSA and acted as a United Kingdom distributor for APSA’s products. APMSD received the consignment on 22 September. On an unknown date, probably in late September or early October, APMSD sold part of the consignment, including the Product, to the Department of Health, which in turn supplied it to the medical practice which used it to vaccinate the claimant.",
+      "3. On 1 August 2001 the claimant began proceedings for damages against APMSD, alleging that he had suffered damage caused by a defect in the Product which APMSD had manufactured and/or produced and so it was liable under section 2 of the Consumer Protection Act 1987. In its defence, served in November 2001, APMSD pointed out that it was not the manufacturer, but merely the distributor, of the Product. In response to a further request, in April 2002 APMSD identified APSA as the manufacturer of the Product."
+    ],
+    "title_key": "ob v aventis pasteur sa"
+  },
+  "content": "{\"title\":\"OB (by his mother and litigation friend) (FC) (Respondent) v Aventis Pasteur SA (Appellants)\",\"citation\":\"UKSC/2009/0152\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0152\",\"summary\":\"2. The vaccine in question was manufactured in France by a French company, now known as Aventis Pasteur SA (“APSA”).\",\"extracts\":[\"2. The vaccine in question was manufactured in France by a French company, now known as Aventis Pasteur SA (“APSA”). On 18 September 1992 APSA sent a consignment of the vaccine, including the Product, to a company, now known as Aventis Pasteur MSD Ltd (“APMSD”), in England. At all relevant times in 1992 APMSD was a wholly owned subsidiary of APSA and acted as a United Kingdom distributor for APSA’s products. APMSD received the consignment on 22 September. On an unknown date, probably in late September or early October, APMSD sold part of the consignment, including the Product, to the Department of Health, which in turn supplied it to the medical practice which used it to vaccinate the claimant.\",\"3. On 1 August 2001 the claimant began proceedings for damages against APMSD, alleging that he had suffered damage caused by a defect in the Product which APMSD had manufactured and/or produced and so it was liable under section 2 of the Consumer Protection Act 1987. In its defence, served in November 2001, APMSD pointed out that it was not the manufacturer, but merely the distributor, of the Product. In response to a further request, in April 2002 APMSD identified APSA as the manufacturer of the Product.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"ob v aventis pasteur sa\"}"
+}

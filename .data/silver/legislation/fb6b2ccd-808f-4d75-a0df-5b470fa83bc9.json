@@ -1,0 +1,15 @@
+{
+  "id": "fb6b2ccd-808f-4d75-a0df-5b470fa83bc9",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#11907",
+  "created_at": "2025-12-25T13:03:41.756Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1986/2181/contents",
+    "type": "uksi",
+    "year": 1986,
+    "number": 2181,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1986/2181/1987-01-07/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1986,\"number\":2181,\"url\":\"http://www.legislation.gov.uk/uksi/1986/2181/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1986/2181/1987-01-07/data.htm\"}"
+}

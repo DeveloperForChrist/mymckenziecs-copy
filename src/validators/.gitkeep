@@ -1,0 +1,8 @@
+# Validators Directory
+
+Validation schemas (e.g., Zod) will be placed here.
+
+Example validators:
+- case.schema.ts - Case data validation
+- user.schema.ts - User data validation
+- document.schema.ts - Document validation

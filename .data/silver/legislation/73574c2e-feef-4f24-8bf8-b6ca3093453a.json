@@ -1,0 +1,15 @@
+{
+  "id": "73574c2e-feef-4f24-8bf8-b6ca3093453a",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#3233",
+  "created_at": "2025-12-25T12:11:32.194Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Eliz2/7-8/42/contents/enacted",
+    "type": "ukpga",
+    "year": 1959,
+    "number": 42,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1959,\"number\":42,\"url\":\"http://www.legislation.gov.uk/ukpga/Eliz2/7-8/42/contents/enacted\",\"dataUrl\":null}"
+}

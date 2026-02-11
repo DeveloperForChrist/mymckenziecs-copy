@@ -1,0 +1,15 @@
+{
+  "id": "7bfbb510-9e79-480a-99aa-05cbf625f8f4",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#21720",
+  "created_at": "2025-12-25T14:05:29.634Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2005/2362/contents",
+    "type": "uksi",
+    "year": 2005,
+    "number": 2362,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2005/2362/2020-04-06/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2005,\"number\":2362,\"url\":\"http://www.legislation.gov.uk/uksi/2005/2362/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2005/2362/2020-04-06/data.htm\"}"
+}

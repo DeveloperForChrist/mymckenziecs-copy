@@ -1,0 +1,21 @@
+{
+  "id": "ef353660-2f89-45ca-ae60-f1a8c217ea3f",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "British Airways plc (Respondent) v Williams and others (Appellants)",
+  "created_at": "2025-12-25T11:46:38.990Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0042",
+    "score": 1,
+    "title": "British Airways plc (Respondent) v Williams and others (Appellants)",
+    "summary": "1. By its judgment in this appeal dated 24 March 2010 the Supreme Court referred to the Court of Justice five questions regarding the nature and assessment of the concept of “paid annual leave” in articles 7 of Council Directives 93/104/EC and 2003/88/EC and clause 3 of the European Agreement ann...",
+    "category": "procedure",
+    "citation": "UKSC/2009/0042",
+    "extracts": [
+      "1. By its judgment in this appeal dated 24 March 2010 the Supreme Court referred to the Court of Justice five questions regarding the nature and assessment of the concept of “paid annual leave” in articles 7 of Council Directives 93/104/EC and 2003/88/EC and clause 3 of the European Agreement annexed to and intended to be implemented under Council Directive 2000/79/EC (“the Aviation Directive”). The Court of Justice by its judgment dated 15 September 2011 gave its response: British Airways plc v Williams (Case C-155/10) [2012] ICR 847. The parties are now at odds as to its consequences for the dispute between them.",
+      "“(1) Mobile staff in civil aviation are entitled to paid annual leave of at least four weeks, in accordance with the conditions for entitlement to, and granting of, such leave laid down by national legislation and/or practice."
+    ],
+    "title_key": "british airways plc v williams and others"
+  },
+  "content": "{\"title\":\"British Airways plc (Respondent) v Williams and others (Appellants)\",\"citation\":\"UKSC/2009/0042\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0042\",\"summary\":\"1. By its judgment in this appeal dated 24 March 2010 the Supreme Court referred to the Court of Justice five questions regarding the nature and assessment of the concept of “paid annual leave” in articles 7 of Council Directives 93/104/EC and 2003/88/EC and clause 3 of the European Agreement ann...\",\"extracts\":[\"1. By its judgment in this appeal dated 24 March 2010 the Supreme Court referred to the Court of Justice five questions regarding the nature and assessment of the concept of “paid annual leave” in articles 7 of Council Directives 93/104/EC and 2003/88/EC and clause 3 of the European Agreement annexed to and intended to be implemented under Council Directive 2000/79/EC (“the Aviation Directive”). The Court of Justice by its judgment dated 15 September 2011 gave its response: British Airways plc v Williams (Case C-155/10) [2012] ICR 847. The parties are now at odds as to its consequences for the dispute between them.\",\"“(1) Mobile staff in civil aviation are entitled to paid annual leave of at least four weeks, in accordance with the conditions for entitlement to, and granting of, such leave laid down by national legislation and/or practice.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"british airways plc v williams and others\"}"
+}

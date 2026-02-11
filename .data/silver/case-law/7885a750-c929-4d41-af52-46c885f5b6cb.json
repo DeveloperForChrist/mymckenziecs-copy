@@ -1,0 +1,21 @@
+{
+  "id": "7885a750-c929-4d41-af52-46c885f5b6cb",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R (on the application of L) (FC) (Appellant) v Commissioner of Police of the Metropolis (Respondent)",
+  "created_at": "2025-12-25T11:46:42.999Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0104",
+    "score": 2,
+    "title": "R (on the application of L) (FC) (Appellant) v Commissioner of Police of the Metropolis (Respondent)",
+    "summary": "2. The question is whether, as it has been interpreted, section 115(7) of the 1997 Act is compatible with the applicant’s right to respect for his or her private life under article 8 of the European Convention on Human Rights.",
+    "category": "public_law",
+    "citation": "UKSC/2009/0104",
+    "extracts": [
+      "2. The question is whether, as it has been interpreted, section 115(7) of the 1997 Act is compatible with the applicant’s right to respect for his or her private life under article 8 of the European Convention on Human Rights. The leading authority on the meaning and effect of the subsection is R (X) v Chief Constable of the West Midlands Police [2004] EWCA Civ 1068; [2005] 1 WLR 65. Lord Woolf CJ said in para 36 that, having regard to the language of section 115(7), the Chief Constable was under a duty to disclose if the information might be relevant, unless there was some good reason for not making such disclosure. In para 37 he added these words:",
+      "“This was obviously required by Parliament because it was important (for the protection of children and vulnerable adults) that the information should be disclosed even if it only might be true. If it might be true, the person who was proposing to employ the claimant should be entitled to take it into account before the decision was made as to whether or not to employ the claimant. This was the policy of the legislation in order to serve a pressing social need.”"
+    ],
+    "title_key": "r v commissioner of police of the metropolis"
+  },
+  "content": "{\"title\":\"R (on the application of L) (FC) (Appellant) v Commissioner of Police of the Metropolis (Respondent)\",\"citation\":\"UKSC/2009/0104\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0104\",\"summary\":\"2. The question is whether, as it has been interpreted, section 115(7) of the 1997 Act is compatible with the applicant’s right to respect for his or her private life under article 8 of the European Convention on Human Rights.\",\"extracts\":[\"2. The question is whether, as it has been interpreted, section 115(7) of the 1997 Act is compatible with the applicant’s right to respect for his or her private life under article 8 of the European Convention on Human Rights. The leading authority on the meaning and effect of the subsection is R (X) v Chief Constable of the West Midlands Police [2004] EWCA Civ 1068; [2005] 1 WLR 65. Lord Woolf CJ said in para 36 that, having regard to the language of section 115(7), the Chief Constable was under a duty to disclose if the information might be relevant, unless there was some good reason for not making such disclosure. In para 37 he added these words:\",\"“This was obviously required by Parliament because it was important (for the protection of children and vulnerable adults) that the information should be disclosed even if it only might be true. If it might be true, the person who was proposing to employ the claimant should be entitled to take it into account before the decision was made as to whether or not to employ the claimant. This was the policy of the legislation in order to serve a pressing social need.”\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"r v commissioner of police of the metropolis\"}"
+}

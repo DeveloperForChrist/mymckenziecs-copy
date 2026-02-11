@@ -1,0 +1,21 @@
+{
+  "id": "89e0934d-19fc-41dc-a62b-be58e6020fdf",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Travelers Insurance Company Ltd (Appellant) v XYZ (Respondents)",
+  "created_at": "2025-12-25T11:50:01.386Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0117",
+    "score": 1,
+    "title": "Travelers Insurance Company Ltd (Appellant) v XYZ (Respondents)",
+    "summary": "Principle issue: Where a liability insurer was contractually obliged to indemnify its insured against the costs of defending claims against it by third parties, in what circumstances is it appropriate to make an order pursuant to section 51 of the Senior Courts Act 1981 (the “1981 Act”) the effect of which is to impose on a liability insurer, an extra-contractual liability to pay those third parties’ costs of bringing the claims?",
+    "category": "procedure",
+    "citation": "UKSC/2018/0117",
+    "extracts": [
+      "THE COURT ORDERED that no one shall publish or reveal the name or address of the Respondents who are the subject of these proceedings or publish or reveal any information which would be likely to lead to the identification of the Respondents or of any member of their families in connection with these proceedings.",
+      "1. This appeal challenges the making of a non-party costs order under section 51 of the Senior Courts Act 1981 against the product liability insurer of one of the defendants in litigation being managed under a Group Litigation Order (“GLO”)."
+    ],
+    "title_key": "travelers insurance company ltd v xyz"
+  },
+  "content": "{\"title\":\"Travelers Insurance Company Ltd (Appellant) v XYZ (Respondents)\",\"citation\":\"UKSC/2018/0117\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0117\",\"summary\":\"Principle issue: Where a liability insurer was contractually obliged to indemnify its insured against the costs of defending claims against it by third parties, in what circumstances is it appropriate to make an order pursuant to section 51 of the Senior Courts Act 1981 (the “1981 Act”) the effect of which is to impose on a liability insurer, an extra-contractual liability to pay those third parties’ costs of bringing the claims?\",\"extracts\":[\"THE COURT ORDERED that no one shall publish or reveal the name or address of the Respondents who are the subject of these proceedings or publish or reveal any information which would be likely to lead to the identification of the Respondents or of any member of their families in connection with these proceedings.\",\"1. This appeal challenges the making of a non-party costs order under section 51 of the Senior Courts Act 1981 against the product liability insurer of one of the defendants in litigation being managed under a Group Litigation Order (“GLO”).\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"travelers insurance company ltd v xyz\"}"
+}

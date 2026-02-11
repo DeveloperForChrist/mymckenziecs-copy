@@ -1,0 +1,21 @@
+{
+  "id": "22883ba9-373c-452d-8d24-d746be74bc4c",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "REFERENCE by the Attorney General for Northern Ireland - In the matter of an application by Agnew and others for Judicial Review",
+  "created_at": "2025-12-25T11:49:34.047Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0201",
+    "score": 2,
+    "title": "REFERENCE by the Attorney General for Northern Ireland - In the matter of an application by Agnew and others for Judicial Review",
+    "summary": "R (on the application of Miller and another) (Respondents) v Secretary of State for Exiting the European Union (Appellant) REFERENCE by the Attorney General for Northern Ireland - In the matter of an application by Agnew and others for Judicial Review REFERENCE by the Court of Appeal (Northern Ir...",
+    "category": "public_law",
+    "citation": "UKSC/2016/0201",
+    "extracts": [
+      "R (on the application of Miller and another) (Respondents) v Secretary of State for Exiting the European Union (Appellant) REFERENCE by the Attorney General for Northern Ireland - In the matter of an application by Agnew and others for Judicial Review REFERENCE by the Court of Appeal (Northern Ireland) – In the matter of an application by Raymond McCord for Judicial Review",
+      "1. On 1 January 1973, the United Kingdom became a member of the European Economic Community (“the EEC”) and certain other associated European organisations. On that date, EEC law took effect as part of the domestic law of the United Kingdom, in accordance with the European Communities Act 1972 which had been passed ten weeks earlier. Over the next 40 years, the EEC expanded from nine to 28 member states, extended its powers or “competences”, merged with the associated organisations, and changed its name to the European Community in 1993 and to the European Union in 2009."
+    ],
+    "title_key": "reference by the attorney general for northern ireland in the matter of an application by agnew and others for judicial review"
+  },
+  "content": "{\"title\":\"REFERENCE by the Attorney General for Northern Ireland - In the matter of an application by Agnew and others for Judicial Review\",\"citation\":\"UKSC/2016/0201\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0201\",\"summary\":\"R (on the application of Miller and another) (Respondents) v Secretary of State for Exiting the European Union (Appellant) REFERENCE by the Attorney General for Northern Ireland - In the matter of an application by Agnew and others for Judicial Review REFERENCE by the Court of Appeal (Northern Ir...\",\"extracts\":[\"R (on the application of Miller and another) (Respondents) v Secretary of State for Exiting the European Union (Appellant) REFERENCE by the Attorney General for Northern Ireland - In the matter of an application by Agnew and others for Judicial Review REFERENCE by the Court of Appeal (Northern Ireland) – In the matter of an application by Raymond McCord for Judicial Review\",\"1. On 1 January 1973, the United Kingdom became a member of the European Economic Community (“the EEC”) and certain other associated European organisations. On that date, EEC law took effect as part of the domestic law of the United Kingdom, in accordance with the European Communities Act 1972 which had been passed ten weeks earlier. Over the next 40 years, the EEC expanded from nine to 28 member states, extended its powers or “competences”, merged with the associated organisations, and changed its name to the European Community in 1993 and to the European Union in 2009.\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"reference by the attorney general for northern ireland in the matter of an application by agnew and others for judicial review\"}"
+}

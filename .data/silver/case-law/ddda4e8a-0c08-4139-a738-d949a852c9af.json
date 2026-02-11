@@ -1,0 +1,21 @@
+{
+  "id": "ddda4e8a-0c08-4139-a738-d949a852c9af",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Standish (Appellant) v Standish (Respondent)",
+  "created_at": "2025-12-25T11:51:09.326Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2024-0089",
+    "score": 1,
+    "title": "Standish (Appellant) v Standish (Respondent)",
+    "summary": "Principle issue: When does non-matrimonial property become matrimonial property in the context of financial remedy proceedings, and how should the sharing principle be applied to such property?",
+    "category": "procedure",
+    "citation": "UKSC/2024/0089",
+    "extracts": [
+      "1. This case concerns the application of section 25 of the Matrimonial Causes Act 1973, which deals with how courts should exercise their powers to make financial orders following a divorce. That section confers upon a court a wide discretion under which regard must be had “to all the circumstances of the case” albeit that first consideration must be given to the welfare, while a minor, of a child of the family and, in relation to a party to the marriage, particular regard must be had to certain specified matters.",
+      "2. Section 25 also applies where a marriage has been annulled or there has been a judicial separation; and, by reason of the Civil Partnership Act 2004, Sch 5, para 21, the same principles apply where there has been a dissolution, nullity or separation in respect of a civil partnership. The facts of this case concern a marriage and divorce. Therefore, while recognising that the same principles apply to other proceedings, we shall confine our attention to marriage and divorce. Throughout we shall refer to the parties as the wife and the husband for ease of reference. We do not intend any disrespect to either by so doing."
+    ],
+    "title_key": "standish v standish"
+  },
+  "content": "{\"title\":\"Standish (Appellant) v Standish (Respondent)\",\"citation\":\"UKSC/2024/0089\",\"url\":\"https://supremecourt.uk/cases/uksc-2024-0089\",\"summary\":\"Principle issue: When does non-matrimonial property become matrimonial property in the context of financial remedy proceedings, and how should the sharing principle be applied to such property?\",\"extracts\":[\"1. This case concerns the application of section 25 of the Matrimonial Causes Act 1973, which deals with how courts should exercise their powers to make financial orders following a divorce. That section confers upon a court a wide discretion under which regard must be had “to all the circumstances of the case” albeit that first consideration must be given to the welfare, while a minor, of a child of the family and, in relation to a party to the marriage, particular regard must be had to certain specified matters.\",\"2. Section 25 also applies where a marriage has been annulled or there has been a judicial separation; and, by reason of the Civil Partnership Act 2004, Sch 5, para 21, the same principles apply where there has been a dissolution, nullity or separation in respect of a civil partnership. The facts of this case concern a marriage and divorce. Therefore, while recognising that the same principles apply to other proceedings, we shall confine our attention to marriage and divorce. Throughout we shall refer to the parties as the wife and the husband for ease of reference. We do not intend any disrespect to either by so doing.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"standish v standish\"}"
+}

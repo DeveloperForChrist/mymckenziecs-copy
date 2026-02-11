@@ -1,0 +1,15 @@
+{
+  "id": "502cbc02-740d-4d1f-b967-5a3da5430eed",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4638",
+  "created_at": "2025-12-25T12:19:53.282Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1980/61/contents/enacted",
+    "type": "ukpga",
+    "year": 1980,
+    "number": 61,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1980,\"number\":61,\"url\":\"http://www.legislation.gov.uk/ukpga/1980/61/contents/enacted\",\"dataUrl\":null}"
+}

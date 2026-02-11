@@ -1,0 +1,21 @@
+{
+  "id": "5fe31c17-3415-4d28-90e1-557f15fe2b31",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Okpabi and others (Appellants) v Royal Dutch Shell Plc and another (Respondents)",
+  "created_at": "2025-12-25T11:49:56.818Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0068",
+    "score": 2,
+    "title": "Okpabi and others (Appellants) v Royal Dutch Shell Plc and another (Respondents)",
+    "summary": "Principle issue: Whether and in what circumstances the UK-domiciled parent company of a multi-national group of companies may owe a common law duty of care to individuals who allegedly suffer serious harm as a result of alleged systemic health, safety and environmental failings of one of its overseas subsidiaries as the operator of a joint venture operation.",
+    "category": "procedure",
+    "citation": "UKSC/2018/0068",
+    "extracts": [
+      "1. This is a jurisdiction appeal which raises the question of whether the claimants have an arguable case that a UK domiciled parent company owed them a common law duty of care so as properly to found jurisdiction against a foreign subsidiary company as a necessary and proper party to the proceedings.",
+      "2. A similar issue was addressed in the recent Supreme Court decision of Lungowe v Vedanta Resources plc [2019] UKSC 20; [2020] AC 1045. It might reasonably have been expected that the guidance provided by that decision would resolve this appeal without the need for a hearing. That proved not to be the case, but Vedanta is very relevant to both the procedural and the substantive issues raised on this appeal."
+    ],
+    "title_key": "okpabi and others v royal dutch shell plc and another"
+  },
+  "content": "{\"title\":\"Okpabi and others (Appellants) v Royal Dutch Shell Plc and another (Respondents)\",\"citation\":\"UKSC/2018/0068\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0068\",\"summary\":\"Principle issue: Whether and in what circumstances the UK-domiciled parent company of a multi-national group of companies may owe a common law duty of care to individuals who allegedly suffer serious harm as a result of alleged systemic health, safety and environmental failings of one of its overseas subsidiaries as the operator of a joint venture operation.\",\"extracts\":[\"1. This is a jurisdiction appeal which raises the question of whether the claimants have an arguable case that a UK domiciled parent company owed them a common law duty of care so as properly to found jurisdiction against a foreign subsidiary company as a necessary and proper party to the proceedings.\",\"2. A similar issue was addressed in the recent Supreme Court decision of Lungowe v Vedanta Resources plc [2019] UKSC 20; [2020] AC 1045. It might reasonably have been expected that the guidance provided by that decision would resolve this appeal without the need for a hearing. That proved not to be the case, but Vedanta is very relevant to both the procedural and the substantive issues raised on this appeal.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"okpabi and others v royal dutch shell plc and another\"}"
+}

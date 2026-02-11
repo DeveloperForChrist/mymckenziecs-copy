@@ -1,0 +1,21 @@
+{
+  "id": "f4f0084f-0692-4676-8b3a-d1d49ea599e5",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "South Lanarkshire Council (Appellant) v The Scottish Information Commissioner (Respondent) (Scotland)",
+  "created_at": "2025-12-25T11:47:58.380Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0126",
+    "score": 1,
+    "title": "South Lanarkshire Council (Appellant) v The Scottish Information Commissioner (Respondent) (Scotland)",
+    "summary": "1. In May 2010, Mr Mark Irvine made a number of requests under the Freedom of Information (Scotland) Act 2002 (FOISA) for information from South Lanarkshire Council.",
+    "category": "procedure",
+    "citation": "UKSC/2012/0126",
+    "extracts": [
+      "1. In May 2010, Mr Mark Irvine made a number of requests under the Freedom of Information (Scotland) Act 2002 (FOISA) for information from South Lanarkshire Council. He wanted to know how many of their employees in a particular post were placed at 10 particular points on the Council’s pay scales. His underlying purpose was to find out whether the Council’s pay gradings favoured work traditionally done by men. He did not want to know the names of the employees concerned. The Council refused his request on the ground that to comply with it would contravene the Data Protection Act 1998 (DPA). Mr Irvine complained to the Scottish Information Commissioner who investigated and decided that the information should be disclosed. The Council appealed unsuccessfully to the Inner House of the Court of Session and now appeals to this Court.",
+      "2. There are two issues before this Court. First and most important is the proper interpretation of condition 6 in Schedule 2 to the 1998 Act. It is common ground for the purpose of this case that the information requested is “personal data” in the hands of the Council as data controller. Personal data may only be processed if one of the conditions in Schedule 2 is met and condition 6 is the only relevant condition:"
+    ],
+    "title_key": "south lanarkshire council v the scottish information commissioner"
+  },
+  "content": "{\"title\":\"South Lanarkshire Council (Appellant) v The Scottish Information Commissioner (Respondent) (Scotland)\",\"citation\":\"UKSC/2012/0126\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0126\",\"summary\":\"1. In May 2010, Mr Mark Irvine made a number of requests under the Freedom of Information (Scotland) Act 2002 (FOISA) for information from South Lanarkshire Council.\",\"extracts\":[\"1. In May 2010, Mr Mark Irvine made a number of requests under the Freedom of Information (Scotland) Act 2002 (FOISA) for information from South Lanarkshire Council. He wanted to know how many of their employees in a particular post were placed at 10 particular points on the Council’s pay scales. His underlying purpose was to find out whether the Council’s pay gradings favoured work traditionally done by men. He did not want to know the names of the employees concerned. The Council refused his request on the ground that to comply with it would contravene the Data Protection Act 1998 (DPA). Mr Irvine complained to the Scottish Information Commissioner who investigated and decided that the information should be disclosed. The Council appealed unsuccessfully to the Inner House of the Court of Session and now appeals to this Court.\",\"2. There are two issues before this Court. First and most important is the proper interpretation of condition 6 in Schedule 2 to the 1998 Act. It is common ground for the purpose of this case that the information requested is “personal data” in the hands of the Council as data controller. Personal data may only be processed if one of the conditions in Schedule 2 is met and condition 6 is the only relevant condition:\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"south lanarkshire council v the scottish information commissioner\"}"
+}

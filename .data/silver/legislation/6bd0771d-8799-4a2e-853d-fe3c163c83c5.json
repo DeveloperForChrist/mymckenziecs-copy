@@ -1,0 +1,15 @@
+{
+  "id": "6bd0771d-8799-4a2e-853d-fe3c163c83c5",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#28134",
+  "created_at": "2025-12-25T14:50:36.369Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2020/413/made",
+    "type": "uksi",
+    "year": 2020,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2020,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2020/413/made\",\"dataUrl\":null}"
+}

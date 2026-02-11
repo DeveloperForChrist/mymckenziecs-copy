@@ -1,0 +1,21 @@
+{
+  "id": "6c00632f-e928-4cd6-9207-1b2f71eb4499",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Nottingham City Council (Appellant) v Parr and another (Respondents)",
+  "created_at": "2025-12-25T11:49:42.163Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0073",
+    "score": 1,
+    "title": "Nottingham City Council (Appellant) v Parr and another (Respondents)",
+    "summary": "1. The appellant, Nottingham City Council (“Nottingham”), is the licensing authority for those houses in multiple occupation (“HMOs”) in its district which are licensable under Part 2, Housing Act 2004.",
+    "category": "procedure",
+    "citation": "UKSC/2017/0073",
+    "extracts": [
+      "1. The appellant, Nottingham City Council (“Nottingham”), is the licensing authority for those houses in multiple occupation (“HMOs”) in its district which are licensable under Part 2, Housing Act 2004. This appeal concerns two HMOs, namely 44, Rothesay Avenue, Lenton, Nottingham NG7 1PU and 50, Bute Avenue, Lenton, Nottingham NG7 1QA. Both are owned by the second respondent, Trevor Parr Associates Ltd, which carries on the business of providing accommodation for students. The first respondent Dominic Parr is the managing director of the second respondent and the manager of the properties.",
+      "2. Nottingham appeals against the decision of the Court of Appeal dated 29 March 2017, dismissing its appeal against the decision of the Upper Tribunal (Lands Chamber) dated 9 February 2016, dismissing its appeals against decisions of the First-tier Tribunal dated 5 November 2014 (44, Rothesay Avenue) and 6 May 2015 (50, Bute Avenue) respectively, allowing the respondents’ appeal against the imposition by Nottingham of certain HMO licensing conditions."
+    ],
+    "title_key": "nottingham city council v parr and another"
+  },
+  "content": "{\"title\":\"Nottingham City Council (Appellant) v Parr and another (Respondents)\",\"citation\":\"UKSC/2017/0073\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0073\",\"summary\":\"1. The appellant, Nottingham City Council (“Nottingham”), is the licensing authority for those houses in multiple occupation (“HMOs”) in its district which are licensable under Part 2, Housing Act 2004.\",\"extracts\":[\"1. The appellant, Nottingham City Council (“Nottingham”), is the licensing authority for those houses in multiple occupation (“HMOs”) in its district which are licensable under Part 2, Housing Act 2004. This appeal concerns two HMOs, namely 44, Rothesay Avenue, Lenton, Nottingham NG7 1PU and 50, Bute Avenue, Lenton, Nottingham NG7 1QA. Both are owned by the second respondent, Trevor Parr Associates Ltd, which carries on the business of providing accommodation for students. The first respondent Dominic Parr is the managing director of the second respondent and the manager of the properties.\",\"2. Nottingham appeals against the decision of the Court of Appeal dated 29 March 2017, dismissing its appeal against the decision of the Upper Tribunal (Lands Chamber) dated 9 February 2016, dismissing its appeals against decisions of the First-tier Tribunal dated 5 November 2014 (44, Rothesay Avenue) and 6 May 2015 (50, Bute Avenue) respectively, allowing the respondents’ appeal against the imposition by Nottingham of certain HMO licensing conditions.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"nottingham city council v parr and another\"}"
+}

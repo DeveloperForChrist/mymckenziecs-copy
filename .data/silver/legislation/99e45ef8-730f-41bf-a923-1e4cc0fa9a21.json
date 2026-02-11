@@ -1,0 +1,15 @@
+{
+  "id": "99e45ef8-730f-41bf-a923-1e4cc0fa9a21",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#3512",
+  "created_at": "2025-12-25T12:13:04.612Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1963/12/contents",
+    "type": "ukpga",
+    "year": 1963,
+    "number": 12,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1963/12/2023-04-01/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1963,\"number\":12,\"url\":\"http://www.legislation.gov.uk/ukpga/1963/12/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1963/12/2023-04-01/data.htm\"}"
+}

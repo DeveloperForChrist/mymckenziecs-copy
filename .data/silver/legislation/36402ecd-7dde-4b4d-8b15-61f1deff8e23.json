@@ -1,0 +1,15 @@
+{
+  "id": "36402ecd-7dde-4b4d-8b15-61f1deff8e23",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20952",
+  "created_at": "2025-12-25T13:59:56.189Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2002/3139/contents",
+    "type": "uksi",
+    "year": 2002,
+    "number": 3139,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2002/3139/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2002,\"number\":3139,\"url\":\"http://www.legislation.gov.uk/uksi/2002/3139/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2002/3139/2020-12-31/data.htm\"}"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "7f3c3e46-e20d-4526-a811-62454cadff6a",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#253",
+  "created_at": "2025-12-25T15:21:36.130Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/protocol/pre-action-protocol-for-housing-disrepair-cases-wales",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_protocol_pre_action_protocol_for_f513fbe895.html",
+    "fetchedAt": "2025-12-23T00:24:36.155Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/protocol/pre-action-protocol-for-housing-disrepair-cases-wales\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_protocol_pre_action_protocol_for_f513fbe895.html\",\"fetchedAt\":\"2025-12-23T00:24:36.155Z\"}"
+}

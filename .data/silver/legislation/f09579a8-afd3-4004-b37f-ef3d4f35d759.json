@@ -1,0 +1,15 @@
+{
+  "id": "f09579a8-afd3-4004-b37f-ef3d4f35d759",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#23123",
+  "created_at": "2025-12-25T14:15:03.345Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2008/1660/contents",
+    "type": "uksi",
+    "year": 2008,
+    "number": 1660,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2008/1660/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2008,\"number\":1660,\"url\":\"http://www.legislation.gov.uk/uksi/2008/1660/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2008/1660/2020-12-31/data.htm\"}"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "185c5118-44f6-40ec-8f63-1c623072c939",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#251",
+  "created_at": "2025-12-25T15:21:35.193Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/protocol/prot_dis",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_protocol_prot_dis_00cbd2ea8e.html",
+    "fetchedAt": "2025-12-23T00:24:35.330Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/protocol/prot_dis\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_protocol_prot_dis_00cbd2ea8e.html\",\"fetchedAt\":\"2025-12-23T00:24:35.330Z\"}"
+}

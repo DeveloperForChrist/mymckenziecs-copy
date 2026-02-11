@@ -1,0 +1,21 @@
+{
+  "id": "1f19b33f-f821-4734-941a-b7dfea0947d9",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Human Genome Sciences Inc (Appellant) v Eli Lilly and Company (Respondent)",
+  "created_at": "2025-12-25T11:47:01.809Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0047",
+    "score": 1,
+    "title": "Human Genome Sciences Inc (Appellant) v Eli Lilly and Company (Respondent)",
+    "summary": "1. This appeal is concerned with the validity of a patent which claims the nucleotide sequence of the gene which encodes for a novel protein (and which has further associated claims).",
+    "category": "procedure",
+    "citation": "UKSC/2010/0047",
+    "extracts": [
+      "1. This appeal is concerned with the validity of a patent which claims the nucleotide sequence of the gene which encodes for a novel protein (and which has further associated claims). Although there is an insufficiency issue, which I will consider at the end of this judgment, the primary issue on this appeal raises a difficult question, namely the way in which the requirement of industrial applicability in Articles 52 and 57 of the European Patent Convention (“the EPC”) extends to a patent for biological material.",
+      "2. While this issue can be said to raise an important question of principle, its resolution is inevitably fact-sensitive, and therefore any answer may be of limited value in other cases. Further, the issue arises in the context of a fast-developing field, which requires a court to approach it with caution. The need for caution is reinforced by the fact that the answer may give rise to potentially far-reaching consequences for scientific research, the biotech industry, and human health. On the other hand, for those very reasons, it is particularly important that the law in this area is as clear, consistent and certain as possible."
+    ],
+    "title_key": "human genome sciences inc v eli lilly and company"
+  },
+  "content": "{\"title\":\"Human Genome Sciences Inc (Appellant) v Eli Lilly and Company (Respondent)\",\"citation\":\"UKSC/2010/0047\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0047\",\"summary\":\"1. This appeal is concerned with the validity of a patent which claims the nucleotide sequence of the gene which encodes for a novel protein (and which has further associated claims).\",\"extracts\":[\"1. This appeal is concerned with the validity of a patent which claims the nucleotide sequence of the gene which encodes for a novel protein (and which has further associated claims). Although there is an insufficiency issue, which I will consider at the end of this judgment, the primary issue on this appeal raises a difficult question, namely the way in which the requirement of industrial applicability in Articles 52 and 57 of the European Patent Convention (“the EPC”) extends to a patent for biological material.\",\"2. While this issue can be said to raise an important question of principle, its resolution is inevitably fact-sensitive, and therefore any answer may be of limited value in other cases. Further, the issue arises in the context of a fast-developing field, which requires a court to approach it with caution. The need for caution is reinforced by the fact that the answer may give rise to potentially far-reaching consequences for scientific research, the biotech industry, and human health. On the other hand, for those very reasons, it is particularly important that the law in this area is as clear, consistent and certain as possible.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"human genome sciences inc v eli lilly and company\"}"
+}

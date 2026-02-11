@@ -1,0 +1,21 @@
+{
+  "id": "8404a33b-f524-4439-a4fc-c340dc9b0f70",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R v Taylor (Appellant)",
+  "created_at": "2025-12-25T11:48:41.230Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0157",
+    "score": 1,
+    "title": "R v Taylor (Appellant)",
+    "summary": "1. This is an appeal by leave of the Court of Appeal on a point of law arising in the course of the trial of the appellant, Jack Taylor, in the Crown Court at Exeter for aggravated vehicle taking, contrary to section 12A of the Theft Act 1968.",
+    "category": "procedure",
+    "citation": "UKSC/2014/0157",
+    "extracts": [
+      "1. This is an appeal by leave of the Court of Appeal on a point of law arising in the course of the trial of the appellant, Jack Taylor, in the Crown Court at Exeter for aggravated vehicle taking, contrary to section 12A of the Theft Act 1968.",
+      "2. The facts can be shortly stated. On the evening of 23 June 2012, the appellant, who was in Exmouth, took a Ford Transit Tipper truck from a friend, David Marriott, in order to collect another friend from Exeter. The truck belonged to Marriott’s employer, and the Crown alleges that it was taken without the owner’s consent. Having picked up the friend, the appellant was driving back to Exmouth when he collided on a bend in a narrow country lane with a scooter driven by Steven Davidson-Hackett. The scooter slid under the wheels of the truck, and Davidson- Hackett was killed. The appellant was later found to be over the drink drive limit. He was also uninsured. But the Crown, after a careful investigation of the accident, accepts that there was no evidence on which a jury could be sure that the manner of his driving was at fault or open to criticism."
+    ],
+    "title_key": "r v taylor"
+  },
+  "content": "{\"title\":\"R v Taylor (Appellant)\",\"citation\":\"UKSC/2014/0157\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0157\",\"summary\":\"1. This is an appeal by leave of the Court of Appeal on a point of law arising in the course of the trial of the appellant, Jack Taylor, in the Crown Court at Exeter for aggravated vehicle taking, contrary to section 12A of the Theft Act 1968.\",\"extracts\":[\"1. This is an appeal by leave of the Court of Appeal on a point of law arising in the course of the trial of the appellant, Jack Taylor, in the Crown Court at Exeter for aggravated vehicle taking, contrary to section 12A of the Theft Act 1968.\",\"2. The facts can be shortly stated. On the evening of 23 June 2012, the appellant, who was in Exmouth, took a Ford Transit Tipper truck from a friend, David Marriott, in order to collect another friend from Exeter. The truck belonged to Marriott’s employer, and the Crown alleges that it was taken without the owner’s consent. Having picked up the friend, the appellant was driving back to Exmouth when he collided on a bend in a narrow country lane with a scooter driven by Steven Davidson-Hackett. The scooter slid under the wheels of the truck, and Davidson- Hackett was killed. The appellant was later found to be over the drink drive limit. He was also uninsured. But the Crown, after a careful investigation of the accident, accepts that there was no evidence on which a jury could be sure that the manner of his driving was at fault or open to criticism.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v taylor\"}"
+}

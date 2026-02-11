@@ -1,0 +1,15 @@
+{
+  "id": "24c57735-a2c5-4c08-8da4-9ed61bef6b07",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#21125",
+  "created_at": "2025-12-25T14:01:08.004Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2003/2817/contents/made",
+    "type": "uksi",
+    "year": 2003,
+    "number": 2817,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2003/2817/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2003,\"number\":2817,\"url\":\"http://www.legislation.gov.uk/uksi/2003/2817/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2003/2817/made/data.htm\"}"
+}

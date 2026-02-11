@@ -1,0 +1,15 @@
+{
+  "id": "c4b9af3e-f7cc-4247-83ab-6e68e3fb7bcb",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#18408",
+  "created_at": "2025-12-25T13:44:06.216Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1997/597/contents/made",
+    "type": "uksi",
+    "year": 1997,
+    "number": 597,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1997/597/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1997,\"number\":597,\"url\":\"http://www.legislation.gov.uk/uksi/1997/597/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1997/597/made/data.htm\"}"
+}

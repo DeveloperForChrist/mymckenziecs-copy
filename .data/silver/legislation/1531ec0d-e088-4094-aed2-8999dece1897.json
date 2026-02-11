@@ -1,0 +1,15 @@
+{
+  "id": "1531ec0d-e088-4094-aed2-8999dece1897",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#5477",
+  "created_at": "2025-12-25T12:24:57.802Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1994/41/contents",
+    "type": "ukpga",
+    "year": 1994,
+    "number": 41,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1994/41/1996-07-24/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1994,\"number\":41,\"url\":\"http://www.legislation.gov.uk/ukpga/1994/41/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1994/41/1996-07-24/data.htm\"}"
+}

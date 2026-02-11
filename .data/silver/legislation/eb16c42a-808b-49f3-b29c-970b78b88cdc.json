@@ -1,0 +1,15 @@
+{
+  "id": "eb16c42a-808b-49f3-b29c-970b78b88cdc",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4579",
+  "created_at": "2025-12-25T12:19:29.163Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1979/52/contents",
+    "type": "ukpga",
+    "year": 1979,
+    "number": 52,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1979/52/1991-02-01/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1979,\"number\":52,\"url\":\"http://www.legislation.gov.uk/ukpga/1979/52/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1979/52/1991-02-01/data.htm\"}"
+}

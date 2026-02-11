@@ -1,0 +1,21 @@
+{
+  "id": "b41978d7-976c-4661-89bb-148a8c182826",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "BNY Corporate Trustee Services Limited and others (Respondents) v Eurosail-UK 2007-3BL PLC (Appellant)",
+  "created_at": "2025-12-25T11:47:34.642Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0199",
+    "score": 1,
+    "title": "BNY Corporate Trustee Services Limited and others (Respondents) v Eurosail-UK 2007-3BL PLC (Appellant)",
+    "summary": "(2) A company is also deemed unable to pay its debts if it is proved to the satisfaction of the court that the value of the company’s assets is less than the amount of its liabilities, taking into account its contingent and prospective liabilities.”",
+    "category": "procedure",
+    "citation": "UKSC/2011/0199",
+    "extracts": [
+      "(2) A company is also deemed unable to pay its debts if it is proved to the satisfaction of the court that the value of the company’s assets is less than the amount of its liabilities, taking into account its contingent and prospective liabilities.”",
+      "A company in the situation described in subsection (1)(e) is often said to be “cash-flow” insolvent. A company in the situation described in subsection (2) is often said to be “balance-sheet” insolvent, but that expression is not to be taken literally. It is a convenient shorthand expression, but a company’s statutory balance sheet, properly prepared in accordance with the requirements of company law, may omit some contingent assets or some contingent liabilities. There is no statutory provision which links section 123(2) of the 1986 Act to the detailed provisions of the Companies Act 2006 as to the form and contents of a company’s financial statements. This appeal is concerned with the construction and effect of section 123(1)(e) and (2) as incorporated into the documentation of an issue of loan notes."
+    ],
+    "title_key": "bny corporate trustee services limited and others v eurosail uk 2007 3bl plc"
+  },
+  "content": "{\"title\":\"BNY Corporate Trustee Services Limited and others (Respondents) v Eurosail-UK 2007-3BL PLC (Appellant)\",\"citation\":\"UKSC/2011/0199\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0199\",\"summary\":\"(2) A company is also deemed unable to pay its debts if it is proved to the satisfaction of the court that the value of the company’s assets is less than the amount of its liabilities, taking into account its contingent and prospective liabilities.”\",\"extracts\":[\"(2) A company is also deemed unable to pay its debts if it is proved to the satisfaction of the court that the value of the company’s assets is less than the amount of its liabilities, taking into account its contingent and prospective liabilities.”\",\"A company in the situation described in subsection (1)(e) is often said to be “cash-flow” insolvent. A company in the situation described in subsection (2) is often said to be “balance-sheet” insolvent, but that expression is not to be taken literally. It is a convenient shorthand expression, but a company’s statutory balance sheet, properly prepared in accordance with the requirements of company law, may omit some contingent assets or some contingent liabilities. There is no statutory provision which links section 123(2) of the 1986 Act to the detailed provisions of the Companies Act 2006 as to the form and contents of a company’s financial statements. This appeal is concerned with the construction and effect of section 123(1)(e) and (2) as incorporated into the documentation of an issue of loan notes.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"bny corporate trustee services limited and others v eurosail uk 2007 3bl plc\"}"
+}

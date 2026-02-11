@@ -1,0 +1,21 @@
+{
+  "id": "2f011326-90ec-4afb-a79a-8b9aac843681",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Sharland (Appellant) v Sharland (Respondent)",
+  "created_at": "2025-12-25T11:48:36.640Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0074",
+    "score": 0,
+    "title": "Sharland (Appellant) v Sharland (Respondent)",
+    "summary": "1. What is the impact of fraud upon a financial settlement which is agreed between a divorcing husband and wife, especially where, as will almost always be the case, that agreement is embodied in a court order?",
+    "category": "evidence_misc",
+    "citation": "UKSC/2014/0074",
+    "extracts": [
+      "1. What is the impact of fraud upon a financial settlement which is agreed between a divorcing husband and wife, especially where, as will almost always be the case, that agreement is embodied in a court order? Does “fraud unravel all”, as is normally the case when agreements are embodied in court orders, or is there some special magic about orders made in matrimonial proceedings, which means that they are different? This case happens to concern a husband and wife in divorce proceedings, but the same questions would also arise in judicial separation proceedings, and between same sex partners who are either married or in a civil partnership in divorce, dissolution or separation proceedings. They entail consideration, in particular, of the leading case on non-disclosure in matrimonial financial proceedings, Livesey (formerly Jenkins) v Jenkins [1985] AC 424 (“Livesey”).",
+      "2. The husband and wife (who are not yet divorced) were married in 1993 and separated 17 years later, in 2010, having had three children together. When their financial proceedings were heard, in July 2012, the children were aged 17, 15 and 12. The wife has been the children’s primary carer throughout the marriage and she anticipates that she will remain responsible for the care of their elder son, who has severe autism, for the rest of her life. Sadly, the parties also cannot agree about matters relating to the future care of their son and so there are also proceedings in the Court of Protection about him."
+    ],
+    "title_key": "sharland v sharland"
+  },
+  "content": "{\"title\":\"Sharland (Appellant) v Sharland (Respondent)\",\"citation\":\"UKSC/2014/0074\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0074\",\"summary\":\"1. What is the impact of fraud upon a financial settlement which is agreed between a divorcing husband and wife, especially where, as will almost always be the case, that agreement is embodied in a court order?\",\"extracts\":[\"1. What is the impact of fraud upon a financial settlement which is agreed between a divorcing husband and wife, especially where, as will almost always be the case, that agreement is embodied in a court order? Does “fraud unravel all”, as is normally the case when agreements are embodied in court orders, or is there some special magic about orders made in matrimonial proceedings, which means that they are different? This case happens to concern a husband and wife in divorce proceedings, but the same questions would also arise in judicial separation proceedings, and between same sex partners who are either married or in a civil partnership in divorce, dissolution or separation proceedings. They entail consideration, in particular, of the leading case on non-disclosure in matrimonial financial proceedings, Livesey (formerly Jenkins) v Jenkins [1985] AC 424 (“Livesey”).\",\"2. The husband and wife (who are not yet divorced) were married in 1993 and separated 17 years later, in 2010, having had three children together. When their financial proceedings were heard, in July 2012, the children were aged 17, 15 and 12. The wife has been the children’s primary carer throughout the marriage and she anticipates that she will remain responsible for the care of their elder son, who has severe autism, for the rest of her life. Sadly, the parties also cannot agree about matters relating to the future care of their son and so there are also proceedings in the Court of Protection about him.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"sharland v sharland\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "a93e6aba-e8de-46bf-b622-8b4cf05e7a79",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Trump International Golf Club Scotland Limited and another (Appellants) v The Scottish Ministers (Respondents) (Scotland)",
+  "created_at": "2025-12-25T11:49:07.571Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0160",
+    "score": 1,
+    "title": "Trump International Golf Club Scotland Limited and another (Appellants) v The Scottish Ministers (Respondents) (Scotland)",
+    "summary": "1. Trump International Golf Club Scotland Limited (“TIGC”) has developed a golf club and resort at Menie Estate and Menie Links, Balmedie, Aberdeenshire.",
+    "category": "procedure",
+    "citation": "UKSC/2015/0160",
+    "extracts": [
+      "1. Trump International Golf Club Scotland Limited (“TIGC”) has developed a golf club and resort at Menie Estate and Menie Links, Balmedie, Aberdeenshire. In 2011 Aberdeen Offshore Wind Farm Limited (“AOWFL”) applied for consent under section 36 of the Electricity Act 1989 (“the 1989 Act”) to construct and operate the European Offshore Wind Deployment Centre in Aberdeen Bay, off the coast of Blackdog, Aberdeenshire. The application concerned the construction of up to 11 wind turbines, which might be of different sizes, with a maximum power generation of 100MW. The proposed windfarm, if constructed, would be located about 3.5 kilometres from the golf resort and would be seen by people using the resort. TIGC, concerned that the proposed windfarm development would materially diminish the amenity of the golf resort, opposed the application. On 26 March 2013 the Scottish Ministers granted consent for the development and operation of the windfarm subject to conditions. TIGC has challenged that decision on various grounds in the courts in Scotland without success. Two grounds of challenge remain in this appeal.",
+      "(i) because the Scottish Ministers had no power under the 1989 Act to grant consent to the windfarm application as only a licence holder or an exempt person may apply for and be granted a construction consent under section 36 of that Act; and"
+    ],
+    "title_key": "trump international golf club scotland limited and another v the scottish ministers"
+  },
+  "content": "{\"title\":\"Trump International Golf Club Scotland Limited and another (Appellants) v The Scottish Ministers (Respondents) (Scotland)\",\"citation\":\"UKSC/2015/0160\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0160\",\"summary\":\"1. Trump International Golf Club Scotland Limited (“TIGC”) has developed a golf club and resort at Menie Estate and Menie Links, Balmedie, Aberdeenshire.\",\"extracts\":[\"1. Trump International Golf Club Scotland Limited (“TIGC”) has developed a golf club and resort at Menie Estate and Menie Links, Balmedie, Aberdeenshire. In 2011 Aberdeen Offshore Wind Farm Limited (“AOWFL”) applied for consent under section 36 of the Electricity Act 1989 (“the 1989 Act”) to construct and operate the European Offshore Wind Deployment Centre in Aberdeen Bay, off the coast of Blackdog, Aberdeenshire. The application concerned the construction of up to 11 wind turbines, which might be of different sizes, with a maximum power generation of 100MW. The proposed windfarm, if constructed, would be located about 3.5 kilometres from the golf resort and would be seen by people using the resort. TIGC, concerned that the proposed windfarm development would materially diminish the amenity of the golf resort, opposed the application. On 26 March 2013 the Scottish Ministers granted consent for the development and operation of the windfarm subject to conditions. TIGC has challenged that decision on various grounds in the courts in Scotland without success. Two grounds of challenge remain in this appeal.\",\"(i) because the Scottish Ministers had no power under the 1989 Act to grant consent to the windfarm application as only a licence holder or an exempt person may apply for and be granted a construction consent under section 36 of that Act; and\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"trump international golf club scotland limited and another v the scottish ministers\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "af966d56-cab7-4658-b812-ddf7d30d314d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Secretary of State for the Home Department (Respondent) v Shah (Appellant)",
+  "created_at": "2025-12-25T11:49:53.679Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0021",
+    "score": 1,
+    "title": "Secretary of State for the Home Department (Respondent) v Shah (Appellant)",
+    "summary": "1. These two appeals were heard together by the Court of Appeal and raise common issues as to the scope of the principle in Ruiz Zambrano v Office national de l’emploi (Case C-34/09) [2012] QB 265 (“Zambrano”).",
+    "category": "procedure",
+    "citation": "UKSC/2018/0021",
+    "extracts": [
+      "1. These two appeals were heard together by the Court of Appeal and raise common issues as to the scope of the principle in Ruiz Zambrano v Office national de l’emploi (Case C-34/09) [2012] QB 265 (“Zambrano”). In Zambrano, the Court of Justice of the European Union (“the CJEU”) held that a third-country (ie non- member state) national parent (“TCN” parent), of a Union citizen child resident in Union territory, was entitled to a right of residence to avoid the child being deprived of the genuine enjoyment of the substance of their Union citizenship rights on removal of the TCN parent. The principle extends to dependents who are not children, and has been applied even where the Union citizen has not exercised their right of free movement. The right of residence is a “derivative right”, that is, one derived from the dependent Union citizen. A key to this derivative right is the deprivation of the benefits of the Union citizenship as a result of the Union citizen being compelled, by the TCN’s departure, to leave Union territory. This case is about the nature or intensity of that compulsion.",
+      "2. The derivative residence right was implemented in UK law by regulation 15A(4A) of the Immigration (European Economic Area) Regulations 2006. At the material time, this provided a TCN, “P”, with a derivative right to reside where:"
+    ],
+    "title_key": "secretary of state for the home department v shah"
+  },
+  "content": "{\"title\":\"Secretary of State for the Home Department (Respondent) v Shah (Appellant)\",\"citation\":\"UKSC/2018/0021\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0021\",\"summary\":\"1. These two appeals were heard together by the Court of Appeal and raise common issues as to the scope of the principle in Ruiz Zambrano v Office national de l’emploi (Case C-34/09) [2012] QB 265 (“Zambrano”).\",\"extracts\":[\"1. These two appeals were heard together by the Court of Appeal and raise common issues as to the scope of the principle in Ruiz Zambrano v Office national de l’emploi (Case C-34/09) [2012] QB 265 (“Zambrano”). In Zambrano, the Court of Justice of the European Union (“the CJEU”) held that a third-country (ie non- member state) national parent (“TCN” parent), of a Union citizen child resident in Union territory, was entitled to a right of residence to avoid the child being deprived of the genuine enjoyment of the substance of their Union citizenship rights on removal of the TCN parent. The principle extends to dependents who are not children, and has been applied even where the Union citizen has not exercised their right of free movement. The right of residence is a “derivative right”, that is, one derived from the dependent Union citizen. A key to this derivative right is the deprivation of the benefits of the Union citizenship as a result of the Union citizen being compelled, by the TCN’s departure, to leave Union territory. This case is about the nature or intensity of that compulsion.\",\"2. The derivative residence right was implemented in UK law by regulation 15A(4A) of the Immigration (European Economic Area) Regulations 2006. At the material time, this provided a TCN, “P”, with a derivative right to reside where:\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"secretary of state for the home department v shah\"}"
+}

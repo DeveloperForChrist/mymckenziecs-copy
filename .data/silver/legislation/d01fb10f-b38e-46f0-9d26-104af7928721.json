@@ -1,0 +1,15 @@
+{
+  "id": "d01fb10f-b38e-46f0-9d26-104af7928721",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8121",
+  "created_at": "2025-12-25T12:40:54.750Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1961/2020/contents/made",
+    "type": "uksi",
+    "year": 1961,
+    "number": 2020,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1961,\"number\":2020,\"url\":\"http://www.legislation.gov.uk/uksi/1961/2020/contents/made\",\"dataUrl\":null}"
+}

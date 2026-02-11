@@ -1,0 +1,13 @@
+{
+  "id": "2eec840a-a6c7-47d0-9efa-daeb276cc112",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#230",
+  "created_at": "2025-12-25T15:21:25.895Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/insolvency_pd",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_rules_insolvency_pd_86e7b1b164.html",
+    "fetchedAt": "2025-12-23T00:24:27.196Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/rules/insolvency_pd\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_rules_insolvency_pd_86e7b1b164.html\",\"fetchedAt\":\"2025-12-23T00:24:27.196Z\"}"
+}

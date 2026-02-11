@@ -1,0 +1,15 @@
+{
+  "id": "5281ad52-b39c-4d87-8337-c0cabaa1658a",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#14416",
+  "created_at": "2025-12-25T13:19:10.269Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1988/1495/contents",
+    "type": "uksi",
+    "year": 1988,
+    "number": 1495,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1988/1495/2023-07-14/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1988,\"number\":1495,\"url\":\"http://www.legislation.gov.uk/uksi/1988/1495/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1988/1495/2023-07-14/data.htm\"}"
+}

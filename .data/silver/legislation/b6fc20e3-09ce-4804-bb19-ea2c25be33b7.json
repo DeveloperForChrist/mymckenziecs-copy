@@ -1,0 +1,15 @@
+{
+  "id": "b6fc20e3-09ce-4804-bb19-ea2c25be33b7",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#10893",
+  "created_at": "2025-12-25T12:57:29.568Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1983/1927/contents",
+    "type": "uksi",
+    "year": 1983,
+    "number": 1927,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1983/1927/1983-12-20/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1983,\"number\":1927,\"url\":\"http://www.legislation.gov.uk/uksi/1983/1927/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1983/1927/1983-12-20/data.htm\"}"
+}

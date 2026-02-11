@@ -1,0 +1,21 @@
+{
+  "id": "e60050a7-6e73-48b1-95ef-d0c53e4d75c3",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Rock Advertising Limited (Respondent) v MWB Business Exchange Centres Limited (Appellant)",
+  "created_at": "2025-12-25T11:49:27.140Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0152",
+    "score": 1,
+    "title": "Rock Advertising Limited (Respondent) v MWB Business Exchange Centres Limited (Appellant)",
+    "summary": "1. Modern litigation rarely raises truly fundamental issues in the law of contract.",
+    "category": "procedure",
+    "citation": "UKSC/2016/0152",
+    "extracts": [
+      "1. Modern litigation rarely raises truly fundamental issues in the law of contract. This appeal is exceptional. It raises two of them. The first is whether a contractual term prescribing that an agreement may not be amended save in writing signed on behalf of the parties (commonly called a “No Oral Modification” clause) is legally effective. The second is whether an agreement whose sole effect is to vary a contract to pay money by substituting an obligation to pay less money or the same money later, is supported by consideration.",
+      "2. MWB Business Exchange Centres Ltd operates serviced offices in central London. On 12 August 2011, Rock Advertising Ltd entered into a contractual licence with MWB to occupy office space at Marble Arch Tower in Bryanston Street, London W1, for a fixed term of 12 months commencing on 1 November 2011. The licence fee was £3,500 per month for the first three months and £4,333.34 per month for the rest of the term. Clause 7.6 of the agreement provided:"
+    ],
+    "title_key": "rock advertising limited v mwb business exchange centres limited"
+  },
+  "content": "{\"title\":\"Rock Advertising Limited (Respondent) v MWB Business Exchange Centres Limited (Appellant)\",\"citation\":\"UKSC/2016/0152\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0152\",\"summary\":\"1. Modern litigation rarely raises truly fundamental issues in the law of contract.\",\"extracts\":[\"1. Modern litigation rarely raises truly fundamental issues in the law of contract. This appeal is exceptional. It raises two of them. The first is whether a contractual term prescribing that an agreement may not be amended save in writing signed on behalf of the parties (commonly called a “No Oral Modification” clause) is legally effective. The second is whether an agreement whose sole effect is to vary a contract to pay money by substituting an obligation to pay less money or the same money later, is supported by consideration.\",\"2. MWB Business Exchange Centres Ltd operates serviced offices in central London. On 12 August 2011, Rock Advertising Ltd entered into a contractual licence with MWB to occupy office space at Marble Arch Tower in Bryanston Street, London W1, for a fixed term of 12 months commencing on 1 November 2011. The licence fee was £3,500 per month for the first three months and £4,333.34 per month for the rest of the term. Clause 7.6 of the agreement provided:\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"rock advertising limited v mwb business exchange centres limited\"}"
+}

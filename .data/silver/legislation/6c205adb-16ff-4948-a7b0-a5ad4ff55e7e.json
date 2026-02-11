@@ -1,0 +1,15 @@
+{
+  "id": "6c205adb-16ff-4948-a7b0-a5ad4ff55e7e",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#5132",
+  "created_at": "2025-12-25T12:23:02.130Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1987/16/contents",
+    "type": "ukpga",
+    "year": 1987,
+    "number": 16,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1987/16/2024-02-22/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1987,\"number\":16,\"url\":\"http://www.legislation.gov.uk/ukpga/1987/16/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1987/16/2024-02-22/data.htm\"}"
+}

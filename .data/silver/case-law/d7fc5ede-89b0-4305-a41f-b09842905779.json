@@ -1,0 +1,21 @@
+{
+  "id": "d7fc5ede-89b0-4305-a41f-b09842905779",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Aspect Contracts (Asbestos) Limited (Respondent) v Higgins Construction Plc (Appellant)",
+  "created_at": "2025-12-25T11:48:31.702Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2014-0021",
+    "score": 1,
+    "title": "Aspect Contracts (Asbestos) Limited (Respondent) v Higgins Construction Plc (Appellant)",
+    "summary": "1. This appeal raises difficult and important issues about the effect of adjudication pursuant to provisions implied into a construction contract under section 108(5) of the Housing Grants, Construction and Regeneration Act 1996, read with the Scheme for Construction Contracts (England and Wales)...",
+    "category": "procedure",
+    "citation": "UKSC/2014/0021",
+    "extracts": [
+      "1. This appeal raises difficult and important issues about the effect of adjudication pursuant to provisions implied into a construction contract under section 108(5) of the Housing Grants, Construction and Regeneration Act 1996, read with the Scheme for Construction Contracts (England and Wales) Regulations 1998 (SI 1998 No 649). The construction contract (within the broad meaning assigned by section 104(2) of the 1996 Act) was a contract by the respondent, Aspect Contracts (Asbestos) Ltd (“Aspect”), to carry out an asbestos survey and report on blocks of maisonettes in Hounslow which the appellant building contractor, Higgins Construction Plc (“Higgins”), was considering redeveloping.",
+      "2. The survey was conducted in March 2004 and the report was dated 27 April 2004. During the redevelopment in early 2005, Higgins allegedly found and had to have removed asbestos containing materials which had not been identified in the report. A dispute consequently arose with Aspect."
+    ],
+    "title_key": "aspect contracts limited v higgins construction plc"
+  },
+  "content": "{\"title\":\"Aspect Contracts (Asbestos) Limited (Respondent) v Higgins Construction Plc (Appellant)\",\"citation\":\"UKSC/2014/0021\",\"url\":\"https://supremecourt.uk/cases/uksc-2014-0021\",\"summary\":\"1. This appeal raises difficult and important issues about the effect of adjudication pursuant to provisions implied into a construction contract under section 108(5) of the Housing Grants, Construction and Regeneration Act 1996, read with the Scheme for Construction Contracts (England and Wales)...\",\"extracts\":[\"1. This appeal raises difficult and important issues about the effect of adjudication pursuant to provisions implied into a construction contract under section 108(5) of the Housing Grants, Construction and Regeneration Act 1996, read with the Scheme for Construction Contracts (England and Wales) Regulations 1998 (SI 1998 No 649). The construction contract (within the broad meaning assigned by section 104(2) of the 1996 Act) was a contract by the respondent, Aspect Contracts (Asbestos) Ltd (“Aspect”), to carry out an asbestos survey and report on blocks of maisonettes in Hounslow which the appellant building contractor, Higgins Construction Plc (“Higgins”), was considering redeveloping.\",\"2. The survey was conducted in March 2004 and the report was dated 27 April 2004. During the redevelopment in early 2005, Higgins allegedly found and had to have removed asbestos containing materials which had not been identified in the report. A dispute consequently arose with Aspect.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"aspect contracts limited v higgins construction plc\"}"
+}

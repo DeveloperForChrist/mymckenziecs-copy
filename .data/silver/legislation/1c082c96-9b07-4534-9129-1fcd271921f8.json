@@ -1,0 +1,15 @@
+{
+  "id": "1c082c96-9b07-4534-9129-1fcd271921f8",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#22896",
+  "created_at": "2025-12-25T14:13:23.927Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2008/1958/contents",
+    "type": "uksi",
+    "year": 2008,
+    "number": null,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2008/1958/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2008,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2008/1958/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2008/1958/2020-12-31/data.htm\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "e5cbd106-0784-4bca-8b12-0b0532d523e1",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#6329",
+  "created_at": "2025-12-25T12:29:55.125Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/2015/15/contents",
+    "type": "ukpga",
+    "year": 2015,
+    "number": 15,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/2015/15/2025-04-06/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":2015,\"number\":15,\"url\":\"http://www.legislation.gov.uk/ukpga/2015/15/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/2015/15/2025-04-06/data.htm\"}"
+}

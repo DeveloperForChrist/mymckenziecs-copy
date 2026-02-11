@@ -1,0 +1,21 @@
+{
+  "id": "465e28b0-0f4c-432b-8d89-1ece75217f01",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Reilly (Appellant) v Sandwell Metropolitan Borough Council (Respondent)",
+  "created_at": "2025-12-25T11:49:30.186Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0170",
+    "score": 1,
+    "title": "Reilly (Appellant) v Sandwell Metropolitan Borough Council (Respondent)",
+    "summary": "THE COURT ORDERED that no one shall in connection with these proceedings publish or reveal the name and address of the school with which this appeal was concerned or of the Governing Body of that school.",
+    "category": "procedure",
+    "citation": "UKSC/2016/0170",
+    "extracts": [
+      "THE COURT ORDERED that no one shall in connection with these proceedings publish or reveal the name and address of the school with which this appeal was concerned or of the Governing Body of that school.",
+      "1. Ms Reilly, the head teacher of a primary school, is in a close relationship with Mr Selwood but it is not sexual and they do not live together. Mr Selwood is convicted of making indecent images of children. Ms Reilly has previously been unaware of his criminal activities. She fails to inform the school’s governing body of his conviction with the result that, when it learns of it, her employer summarily dismisses her. The Employment Tribunal (“the tribunal”) decides that, save in an irrelevant procedural respect, her dismissal has not been unfair. Should the tribunal’s decision stand?"
+    ],
+    "title_key": "reilly v sandwell metropolitan borough council"
+  },
+  "content": "{\"title\":\"Reilly (Appellant) v Sandwell Metropolitan Borough Council (Respondent)\",\"citation\":\"UKSC/2016/0170\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0170\",\"summary\":\"THE COURT ORDERED that no one shall in connection with these proceedings publish or reveal the name and address of the school with which this appeal was concerned or of the Governing Body of that school.\",\"extracts\":[\"THE COURT ORDERED that no one shall in connection with these proceedings publish or reveal the name and address of the school with which this appeal was concerned or of the Governing Body of that school.\",\"1. Ms Reilly, the head teacher of a primary school, is in a close relationship with Mr Selwood but it is not sexual and they do not live together. Mr Selwood is convicted of making indecent images of children. Ms Reilly has previously been unaware of his criminal activities. She fails to inform the school’s governing body of his conviction with the result that, when it learns of it, her employer summarily dismisses her. The Employment Tribunal (“the tribunal”) decides that, save in an irrelevant procedural respect, her dismissal has not been unfair. Should the tribunal’s decision stand?\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"reilly v sandwell metropolitan borough council\"}"
+}

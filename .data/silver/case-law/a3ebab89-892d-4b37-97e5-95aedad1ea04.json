@@ -1,0 +1,21 @@
+{
+  "id": "a3ebab89-892d-4b37-97e5-95aedad1ea04",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "VTB Capital plc (Appellant) v Nutritek International Corp and others (Respondents)",
+  "created_at": "2025-12-25T11:48:00.283Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0167",
+    "score": 0,
+    "title": "VTB Capital plc (Appellant) v Nutritek International Corp and others (Respondents)",
+    "summary": "1. The appellant, VTB Capital plc (“VTB”), is incorporated and registered, and authorised and regulated as a bank, in England.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2012/0167",
+    "extracts": [
+      "1. The appellant, VTB Capital plc (“VTB”), is incorporated and registered, and authorised and regulated as a bank, in England. It is majority-owned by JSC VTB Bank (“VTB Moscow”), a state-owned bank based in Moscow. The first, second and fourth respondents are, respectively, Nutritek International Corp (“Nutritek”), Marshall Capital Holdings Ltd (“Marcap BVI”), both British Virgin Islands companies, and Mr Konstantin Malofeev, a Russian businessman resident in Moscow said to be the ultimate owner and controller of both, as well as of the third respondent, Marshall Capital LLC (“Marcap Moscow”), a Russian company which has not been served.",
+      "2. The present case arises from a Facility Agreement dated 23 November 2007 (“the Facility Agreement”) entered into between VTB and a Russian company, Russagroprom LLC (“RAP”), under which VTB advanced some US$225,050,000 to RAP. The advance was primarily to enable RAP to buy six Russian dairy companies and three associated companies (“the dairy companies”) from Nutritek. After making three interest payments (and no payments of capital), RAP defaulted on the loan in November 2008. VTB believes the security provided for the loan to be worth only in the region of US$32m to US$40m."
+    ],
+    "title_key": "vtb capital plc v nutritek international corp and others"
+  },
+  "content": "{\"title\":\"VTB Capital plc (Appellant) v Nutritek International Corp and others (Respondents)\",\"citation\":\"UKSC/2012/0167\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0167\",\"summary\":\"1. The appellant, VTB Capital plc (“VTB”), is incorporated and registered, and authorised and regulated as a bank, in England.\",\"extracts\":[\"1. The appellant, VTB Capital plc (“VTB”), is incorporated and registered, and authorised and regulated as a bank, in England. It is majority-owned by JSC VTB Bank (“VTB Moscow”), a state-owned bank based in Moscow. The first, second and fourth respondents are, respectively, Nutritek International Corp (“Nutritek”), Marshall Capital Holdings Ltd (“Marcap BVI”), both British Virgin Islands companies, and Mr Konstantin Malofeev, a Russian businessman resident in Moscow said to be the ultimate owner and controller of both, as well as of the third respondent, Marshall Capital LLC (“Marcap Moscow”), a Russian company which has not been served.\",\"2. The present case arises from a Facility Agreement dated 23 November 2007 (“the Facility Agreement”) entered into between VTB and a Russian company, Russagroprom LLC (“RAP”), under which VTB advanced some US$225,050,000 to RAP. The advance was primarily to enable RAP to buy six Russian dairy companies and three associated companies (“the dairy companies”) from Nutritek. After making three interest payments (and no payments of capital), RAP defaulted on the loan in November 2008. VTB believes the security provided for the loan to be worth only in the region of US$32m to US$40m.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"vtb capital plc v nutritek international corp and others\"}"
+}

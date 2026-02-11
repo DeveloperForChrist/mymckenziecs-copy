@@ -1,0 +1,21 @@
+{
+  "id": "95b2ead5-2ed7-4570-8fd4-a18dbaaa4d94",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "PST Energy 7 Shipping LLC and another (Appellants) v O W Bunker Malta Limited and another (Respondents)",
+  "created_at": "2025-12-25T11:49:14.066Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2015-0236",
+    "score": 2,
+    "title": "PST Energy 7 Shipping LLC and another (Appellants) v O W Bunker Malta Limited and another (Respondents)",
+    "summary": "1. Despite the significance of her name in Cartesian philosophy, the vessel “Res Cogitans” depends on bunkers.",
+    "category": "remedies",
+    "citation": "UKSC/2015/0236",
+    "extracts": [
+      "1. Despite the significance of her name in Cartesian philosophy, the vessel “Res Cogitans” depends on bunkers. The parties’ submissions have in compensation lent a degree of metaphysical complexity to commonplace facts. We are told that many similar cases worldwide await our decision with interest.",
+      "2. The essential problem arises from the insolvency of the OW Bunker Group and the concerns of vessel owners that they may be exposed to paying twice over, once to their immediate bunker supply group now insolvent, and again to the ultimate source of the bunkers who may claim rights under a reservation of title or maritime lien. The concerns stem from what are understood to be fairly typical conditions on which bunkers are supplied worldwide."
+    ],
+    "title_key": "pst energy 7 shipping llc and another v o w bunker malta limited and another"
+  },
+  "content": "{\"title\":\"PST Energy 7 Shipping LLC and another (Appellants) v O W Bunker Malta Limited and another (Respondents)\",\"citation\":\"UKSC/2015/0236\",\"url\":\"https://supremecourt.uk/cases/uksc-2015-0236\",\"summary\":\"1. Despite the significance of her name in Cartesian philosophy, the vessel “Res Cogitans” depends on bunkers.\",\"extracts\":[\"1. Despite the significance of her name in Cartesian philosophy, the vessel “Res Cogitans” depends on bunkers. The parties’ submissions have in compensation lent a degree of metaphysical complexity to commonplace facts. We are told that many similar cases worldwide await our decision with interest.\",\"2. The essential problem arises from the insolvency of the OW Bunker Group and the concerns of vessel owners that they may be exposed to paying twice over, once to their immediate bunker supply group now insolvent, and again to the ultimate source of the bunkers who may claim rights under a reservation of title or maritime lien. The concerns stem from what are understood to be fairly typical conditions on which bunkers are supplied worldwide.\"],\"category\":\"remedies\",\"score\":2,\"title_key\":\"pst energy 7 shipping llc and another v o w bunker malta limited and another\"}"
+}

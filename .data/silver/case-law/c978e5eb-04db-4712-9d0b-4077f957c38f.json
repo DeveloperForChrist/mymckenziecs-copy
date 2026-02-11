@@ -1,0 +1,21 @@
+{
+  "id": "c978e5eb-04db-4712-9d0b-4077f957c38f",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "JTI POLSKA Sp. Z o.o. and others (Respondents) v Jakubowski and others (Appellants)",
+  "created_at": "2025-12-25T11:50:40.343Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2021-0144",
+    "score": 2,
+    "title": "JTI POLSKA Sp. Z o.o. and others (Respondents) v Jakubowski and others (Appellants)",
+    "summary": "Principle issue: Whether the Supreme Court should depart from the judgment of the House of Lords in James Buchanan & Co. Ltd v Babco Forwarding & Shipping (UK) Ltd. [1978] AC 141 (\"Buchanan\") and hold that excise duty payable in respect of goods which are stolen in the course of international carriage by road cannot be claimed under article 23.44 of the Convention on the Contract for the International Carriage of Goods by Road 1956 (the \"CMR\").",
+    "category": "procedure",
+    "citation": "UKSC/2021/0144",
+    "extracts": [
+      "1. The question in this appeal is whether the road carrier is liable for excise duty of £449,557 levied by His Majesty’s Revenue and Customs (“HMRC”) on the owner of 289 cases of cigarettes which were stolen at a service station on the M25 during the course of carriage by road from Poland to England.",
+      "2. The road carriage was undertaken subject to the Convention on the Contract for the International Carriage of Goods by Road 1956 (“the CMR”). The CMR has the force of law in the United Kingdom under the Carriage of Goods by Road Act 1965 and its terms are contained in the Schedule thereto. The CMR is a United Nations Treaty which has been adopted by 58 states including all EU member states. CMR is the acronym for the title of the Convention in French: “Convention relative au Contrat de Transport International de Marchandises par Route: CMR”."
+    ],
+    "title_key": "jti polska sp z o o and others v jakubowski and others"
+  },
+  "content": "{\"title\":\"JTI POLSKA Sp. Z o.o. and others (Respondents) v Jakubowski and others (Appellants)\",\"citation\":\"UKSC/2021/0144\",\"url\":\"https://supremecourt.uk/cases/uksc-2021-0144\",\"summary\":\"Principle issue: Whether the Supreme Court should depart from the judgment of the House of Lords in James Buchanan & Co. Ltd v Babco Forwarding & Shipping (UK) Ltd. [1978] AC 141 (\\\\\"Buchanan\\\\\") and hold that excise duty payable in respect of goods which are stolen in the course of international carriage by road cannot be claimed under article 23.44 of the Convention on the Contract for the International Carriage of Goods by Road 1956 (the \\\\\"CMR\\\\\").\",\"extracts\":[\"1. The question in this appeal is whether the road carrier is liable for excise duty of £449,557 levied by His Majesty’s Revenue and Customs (“HMRC”) on the owner of 289 cases of cigarettes which were stolen at a service station on the M25 during the course of carriage by road from Poland to England.\",\"2. The road carriage was undertaken subject to the Convention on the Contract for the International Carriage of Goods by Road 1956 (“the CMR”). The CMR has the force of law in the United Kingdom under the Carriage of Goods by Road Act 1965 and its terms are contained in the Schedule thereto. The CMR is a United Nations Treaty which has been adopted by 58 states including all EU member states. CMR is the acronym for the title of the Convention in French: “Convention relative au Contrat de Transport International de Marchandises par Route: CMR”.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"jti polska sp z o o and others v jakubowski and others\"}"
+}

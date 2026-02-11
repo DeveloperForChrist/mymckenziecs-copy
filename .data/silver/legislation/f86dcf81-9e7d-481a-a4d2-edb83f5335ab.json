@@ -1,0 +1,15 @@
+{
+  "id": "f86dcf81-9e7d-481a-a4d2-edb83f5335ab",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#10327",
+  "created_at": "2025-12-25T12:54:08.271Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1980/1900/contents/made",
+    "type": "uksi",
+    "year": 1980,
+    "number": 1900,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1980,\"number\":1900,\"url\":\"http://www.legislation.gov.uk/uksi/1980/1900/contents/made\",\"dataUrl\":null}"
+}

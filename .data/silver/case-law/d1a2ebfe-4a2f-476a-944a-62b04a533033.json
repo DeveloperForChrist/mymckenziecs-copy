@@ -1,0 +1,21 @@
+{
+  "id": "d1a2ebfe-4a2f-476a-944a-62b04a533033",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Robinson (Appellant) v Chief Constable of West Yorkshire Police (Respondent)",
+  "created_at": "2025-12-25T11:49:21.855Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0082",
+    "score": 0,
+    "title": "Robinson (Appellant) v Chief Constable of West Yorkshire Police (Respondent)",
+    "summary": "1. On a Tuesday afternoon in July 2008 Mrs Elizabeth Robinson, described by the Recorder as a relatively frail lady then aged 76, was walking along Kirkgate, a shopping street in the centre of Huddersfield, when she was knocked over by a group of men who were struggling with one another.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2016/0082",
+    "extracts": [
+      "1. On a Tuesday afternoon in July 2008 Mrs Elizabeth Robinson, described by the Recorder as a relatively frail lady then aged 76, was walking along Kirkgate, a shopping street in the centre of Huddersfield, when she was knocked over by a group of men who were struggling with one another. Two of the men were sturdily built police officers, and the third was a suspected drug dealer whom they were attempting to arrest. As they struggled, the men knocked into Mrs Robinson and they all fell to the ground, with Mrs Robinson underneath. She suffered injuries as a result.",
+      "2. The principal question which has to be decided in this appeal is whether the officers owed a duty of care to Mrs Robinson. The other important question is whether, if they did, they were in breach of that duty. Mr Recorder Pimm held that the officers had been negligent, but that police officers engaged in the apprehension of criminals were immune from suit. The Court of Appeal held that no duty of care was owed, and that, even if the officers had owed Mrs Robinson such a duty, they had not acted in breach of it: [2014] EWCA Civ 15."
+    ],
+    "title_key": "robinson v chief constable of west yorkshire police"
+  },
+  "content": "{\"title\":\"Robinson (Appellant) v Chief Constable of West Yorkshire Police (Respondent)\",\"citation\":\"UKSC/2016/0082\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0082\",\"summary\":\"1. On a Tuesday afternoon in July 2008 Mrs Elizabeth Robinson, described by the Recorder as a relatively frail lady then aged 76, was walking along Kirkgate, a shopping street in the centre of Huddersfield, when she was knocked over by a group of men who were struggling with one another.\",\"extracts\":[\"1. On a Tuesday afternoon in July 2008 Mrs Elizabeth Robinson, described by the Recorder as a relatively frail lady then aged 76, was walking along Kirkgate, a shopping street in the centre of Huddersfield, when she was knocked over by a group of men who were struggling with one another. Two of the men were sturdily built police officers, and the third was a suspected drug dealer whom they were attempting to arrest. As they struggled, the men knocked into Mrs Robinson and they all fell to the ground, with Mrs Robinson underneath. She suffered injuries as a result.\",\"2. The principal question which has to be decided in this appeal is whether the officers owed a duty of care to Mrs Robinson. The other important question is whether, if they did, they were in breach of that duty. Mr Recorder Pimm held that the officers had been negligent, but that police officers engaged in the apprehension of criminals were immune from suit. The Court of Appeal held that no duty of care was owed, and that, even if the officers had owed Mrs Robinson such a duty, they had not acted in breach of it: [2014] EWCA Civ 15.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"robinson v chief constable of west yorkshire police\"}"
+}

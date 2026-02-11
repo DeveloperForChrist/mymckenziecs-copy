@@ -1,0 +1,15 @@
+{
+  "id": "dedd2322-90d1-40c0-8117-aae310ef514f",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#29314",
+  "created_at": "2025-12-25T14:59:32.475Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2022/646/made",
+    "type": "uksi",
+    "year": 2022,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2022,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2022/646/made\",\"dataUrl\":null}"
+}

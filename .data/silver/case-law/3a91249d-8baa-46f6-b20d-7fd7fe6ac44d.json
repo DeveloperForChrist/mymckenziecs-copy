@@ -1,0 +1,21 @@
+{
+  "id": "3a91249d-8baa-46f6-b20d-7fd7fe6ac44d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of S (A Child)",
+  "created_at": "2025-12-25T11:47:42.520Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0265",
+    "score": 1,
+    "title": "In the matter of S (A Child)",
+    "summary": "1. A mother appeals against an order of the Court of Appeal (Thorpe, Longmore and McFarlane LJJ), [2011] EWCA Civ 1385, dated 14 December 2011, that she should forthwith return her son, WS (whom I will call W), and who was born on 13 November 2009 so is aged two, to Australia.",
+    "category": "procedure",
+    "citation": "UKSC/2011/0265",
+    "extracts": [
+      "1. A mother appeals against an order of the Court of Appeal (Thorpe, Longmore and McFarlane LJJ), [2011] EWCA Civ 1385, dated 14 December 2011, that she should forthwith return her son, WS (whom I will call W), and who was born on 13 November 2009 so is aged two, to Australia. The order was made pursuant to article 12 of the Convention on the Civil Aspects of International Child Abduction signed at The Hague on 25 October 1980 (“the Convention”) and to section 1(2) of the Child Abduction and Custody Act 1985 which gives the Convention the force of law.",
+      "2. In making its order the Court of Appeal set aside an order of Charles J, made in the High Court, Family Division, [2011] EWHC 2624 (Fam), dated 30 August 2011, that the application of W’s father for an order for his return forthwith to Australia pursuant to the Convention should be dismissed."
+    ],
+    "title_key": "in the matter of s"
+  },
+  "content": "{\"title\":\"In the matter of S (A Child)\",\"citation\":\"UKSC/2011/0265\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0265\",\"summary\":\"1. A mother appeals against an order of the Court of Appeal (Thorpe, Longmore and McFarlane LJJ), [2011] EWCA Civ 1385, dated 14 December 2011, that she should forthwith return her son, WS (whom I will call W), and who was born on 13 November 2009 so is aged two, to Australia.\",\"extracts\":[\"1. A mother appeals against an order of the Court of Appeal (Thorpe, Longmore and McFarlane LJJ), [2011] EWCA Civ 1385, dated 14 December 2011, that she should forthwith return her son, WS (whom I will call W), and who was born on 13 November 2009 so is aged two, to Australia. The order was made pursuant to article 12 of the Convention on the Civil Aspects of International Child Abduction signed at The Hague on 25 October 1980 (“the Convention”) and to section 1(2) of the Child Abduction and Custody Act 1985 which gives the Convention the force of law.\",\"2. In making its order the Court of Appeal set aside an order of Charles J, made in the High Court, Family Division, [2011] EWHC 2624 (Fam), dated 30 August 2011, that the application of W’s father for an order for his return forthwith to Australia pursuant to the Convention should be dismissed.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"in the matter of s\"}"
+}

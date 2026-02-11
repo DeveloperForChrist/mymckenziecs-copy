@@ -1,0 +1,18 @@
+{
+  "id": "6bd3025b-e4a6-45cb-92a9-920581cc265a",
+  "source": "case-law",
+  "path": "data/bronze/case-law/curated.json",
+  "title": "Autoclenz Limited (Appellant) v Belcher and others (Respondents)",
+  "created_at": "2025-12-25T11:46:12.497Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0198",
+    "title": "Autoclenz Limited (Appellant) v Belcher and others (Respondents)",
+    "summary": "1. The appellant (“Autoclenz”) provides car-cleaning services to motor retailers and auctioneers.",
+    "citation": "UKSC/2009/0198",
+    "extracts": [
+      "1. The appellant (“Autoclenz”) provides car-cleaning services to motor retailers and auctioneers. It has contracts with British Car Auctions (“BCA”) for cleaning vehicles at a number of different places. The respondents (“the claimants”) are 20 individual valeters who at the relevant time provided car- cleaning services at BCA’s Measham site in Derbyshire. In these proceedings the claimants say that they were workers within the meaning of the National Minimum Wage Regulations 1999 (“NMWR”) (SI 1999/584) and of the Working Time Regulations 1998 (“WTR”) (SI 1998/1833) and that, as workers, they were entitled to be paid in accordance with the NMWR and to receive statutory paid leave under the WTR. Their case is that they were paid neither.",
+      "2. The question is whether the claimants were workers within regulation 2(1) of the NWMR, which adopted the definition in section 54(3) of the National Minimum Wage Act 1998, and in regulation 2(1) of the WTR. The definition of worker is in materially identical terms in both sets of regulations as follows:"
+    ]
+  },
+  "content": "{\"title\":\"Autoclenz Limited (Appellant) v Belcher and others (Respondents)\",\"citation\":\"UKSC/2009/0198\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0198\",\"summary\":\"1. The appellant (“Autoclenz”) provides car-cleaning services to motor retailers and auctioneers.\",\"extracts\":[\"1. The appellant (“Autoclenz”) provides car-cleaning services to motor retailers and auctioneers. It has contracts with British Car Auctions (“BCA”) for cleaning vehicles at a number of different places. The respondents (“the claimants”) are 20 individual valeters who at the relevant time provided car- cleaning services at BCA’s Measham site in Derbyshire. In these proceedings the claimants say that they were workers within the meaning of the National Minimum Wage Regulations 1999 (“NMWR”) (SI 1999/584) and of the Working Time Regulations 1998 (“WTR”) (SI 1998/1833) and that, as workers, they were entitled to be paid in accordance with the NMWR and to receive statutory paid leave under the WTR. Their case is that they were paid neither.\",\"2. The question is whether the claimants were workers within regulation 2(1) of the NWMR, which adopted the definition in section 54(3) of the National Minimum Wage Act 1998, and in regulation 2(1) of the WTR. The definition of worker is in materially identical terms in both sets of regulations as follows:\"]}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "95669731-e326-4677-afb1-1ffac871d7fb",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Routier and another (Appellants) v Commissioners for Her Majesty’s Revenue and Customs (Respondent)",
+  "created_at": "2025-12-25T11:49:49.298Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0190",
+    "score": 0,
+    "title": "Routier and another (Appellants) v Commissioners for Her Majesty’s Revenue and Customs (Respondent)",
+    "summary": "1. The appellants in this case are the executors of Mrs Beryl Coulter, who died in Jersey on 9 October 2007, leaving her residuary estate on trust for purposes which are agreed to be exclusively charitable under English law.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2017/0190",
+    "extracts": [
+      "1. The appellants in this case are the executors of Mrs Beryl Coulter, who died in Jersey on 9 October 2007, leaving her residuary estate on trust for purposes which are agreed to be exclusively charitable under English law. The appellants were appointed under Mrs Coulter’s will as the trustees. They were domiciled in Jersey, and the proper law of the trust (“the Coulter Trust”) was specified in the will as the law of Jersey. The estate included assets in the United Kingdom amounting to £1.7m.",
+      "2. At the time of Mrs Coulter’s death, there was in force a treaty between the United Kingdom and Jersey which included provision for the exchange of information relating to income tax. In 2009 a further treaty (the United Kingdom/Jersey Tax Information Exchange Agreement) came into force, which included provision for the exchange of information relating to inheritance tax."
+    ],
+    "title_key": "routier and another v commissioners for her majesty s revenue and customs"
+  },
+  "content": "{\"title\":\"Routier and another (Appellants) v Commissioners for Her Majesty’s Revenue and Customs (Respondent)\",\"citation\":\"UKSC/2017/0190\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0190\",\"summary\":\"1. The appellants in this case are the executors of Mrs Beryl Coulter, who died in Jersey on 9 October 2007, leaving her residuary estate on trust for purposes which are agreed to be exclusively charitable under English law.\",\"extracts\":[\"1. The appellants in this case are the executors of Mrs Beryl Coulter, who died in Jersey on 9 October 2007, leaving her residuary estate on trust for purposes which are agreed to be exclusively charitable under English law. The appellants were appointed under Mrs Coulter’s will as the trustees. They were domiciled in Jersey, and the proper law of the trust (“the Coulter Trust”) was specified in the will as the law of Jersey. The estate included assets in the United Kingdom amounting to £1.7m.\",\"2. At the time of Mrs Coulter’s death, there was in force a treaty between the United Kingdom and Jersey which included provision for the exchange of information relating to income tax. In 2009 a further treaty (the United Kingdom/Jersey Tax Information Exchange Agreement) came into force, which included provision for the exchange of information relating to inheritance tax.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"routier and another v commissioners for her majesty s revenue and customs\"}"
+}

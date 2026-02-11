@@ -1,0 +1,21 @@
+{
+  "id": "8d4aeef5-ba75-4d2a-b893-8703293c9b89",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Lucasfilm Limited and others (Appellants) v Ainsworth and another (Respondents)",
+  "created_at": "2025-12-25T11:46:58.153Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0015",
+    "score": 1,
+    "title": "Lucasfilm Limited and others (Appellants) v Ainsworth and another (Respondents)",
+    "summary": "1. The first Star Wars film (later renamed “Star Wars Episode IV – A New Hope” in order to provide for “prequels” as well as sequels) was released in the United States in 1977.",
+    "category": "procedure",
+    "citation": "UKSC/2010/0015",
+    "extracts": [
+      "1. The first Star Wars film (later renamed “Star Wars Episode IV – A New Hope” in order to provide for “prequels” as well as sequels) was released in the United States in 1977. It was an enormous commercial success. It won an Oscar for best costume design. This appeal is concerned with intellectual property rights in various artefacts made for use in the film. The most important of these was the Imperial Stormtrooper helmet to which the trial judge (Mann J) referred in his judgment ([2008] EWHC 1878 (Ch), [2009] FSR 103, paras [2] and [121]):",
+      "“One of the most abiding images in the film was that of the Imperial Stormtroopers. These were soldiers clad in white armour, including a white helmet which left no part of the face uncovered... The purpose of the helmet was that it was to be worn as an item of costume in a film, to identify a character, but in addition to portray something about that character – its allegiance, force, menace, purpose and, to some extent, probably its anonymity. It was a mixture of costume and prop.”"
+    ],
+    "title_key": "lucasfilm limited and others v ainsworth and another"
+  },
+  "content": "{\"title\":\"Lucasfilm Limited and others (Appellants) v Ainsworth and another (Respondents)\",\"citation\":\"UKSC/2010/0015\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0015\",\"summary\":\"1. The first Star Wars film (later renamed “Star Wars Episode IV – A New Hope” in order to provide for “prequels” as well as sequels) was released in the United States in 1977.\",\"extracts\":[\"1. The first Star Wars film (later renamed “Star Wars Episode IV – A New Hope” in order to provide for “prequels” as well as sequels) was released in the United States in 1977. It was an enormous commercial success. It won an Oscar for best costume design. This appeal is concerned with intellectual property rights in various artefacts made for use in the film. The most important of these was the Imperial Stormtrooper helmet to which the trial judge (Mann J) referred in his judgment ([2008] EWHC 1878 (Ch), [2009] FSR 103, paras [2] and [121]):\",\"“One of the most abiding images in the film was that of the Imperial Stormtroopers. These were soldiers clad in white armour, including a white helmet which left no part of the face uncovered... The purpose of the helmet was that it was to be worn as an item of costume in a film, to identify a character, but in addition to portray something about that character – its allegiance, force, menace, purpose and, to some extent, probably its anonymity. It was a mixture of costume and prop.”\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"lucasfilm limited and others v ainsworth and another\"}"
+}

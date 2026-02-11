@@ -1,0 +1,21 @@
+{
+  "id": "6b79685c-fdb7-4810-a5b3-dd141985700e",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Sims (Appellant) v Dacorum Borough Council (Respondent)",
+  "created_at": "2025-12-25T11:48:29.715Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0264",
+    "score": 2,
+    "title": "Sims (Appellant) v Dacorum Borough Council (Respondent)",
+    "summary": "1. Where a tenancy of land is held by more than one person, those persons hold the tenancy jointly.",
+    "category": "contract_consumer",
+    "citation": "UKSC/2013/0264",
+    "extracts": [
+      "1. Where a tenancy of land is held by more than one person, those persons hold the tenancy jointly. In Hammersmith and Fulham LBC v. Monk [1992] AC 478 (“Monk”), the House of Lords unanimously held that, where such a tenancy is a periodic tenancy, which can be brought to an end by a notice to quit, the common law rule is that, in the absence of a contractual term to the contrary, the tenancy will be validly determined by service on the landlord of a notice to quit by only one of the joint tenants. (This was not a revolutionary decision: it had long been assumed to be the law: see eg Doe d Aslin v Summersett (1830) 1 B & Ad135, 140 per Lord Tenterden CJ).",
+      "2. Thus, in common law, one of a number of joint periodic tenants can bring the tenancy to an end against the wishes, even without the knowledge, of his or her co-tenant or co-tenants, by serving a notice to quit on the landlord."
+    ],
+    "title_key": "sims v dacorum borough council"
+  },
+  "content": "{\"title\":\"Sims (Appellant) v Dacorum Borough Council (Respondent)\",\"citation\":\"UKSC/2013/0264\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0264\",\"summary\":\"1. Where a tenancy of land is held by more than one person, those persons hold the tenancy jointly.\",\"extracts\":[\"1. Where a tenancy of land is held by more than one person, those persons hold the tenancy jointly. In Hammersmith and Fulham LBC v. Monk [1992] AC 478 (“Monk”), the House of Lords unanimously held that, where such a tenancy is a periodic tenancy, which can be brought to an end by a notice to quit, the common law rule is that, in the absence of a contractual term to the contrary, the tenancy will be validly determined by service on the landlord of a notice to quit by only one of the joint tenants. (This was not a revolutionary decision: it had long been assumed to be the law: see eg Doe d Aslin v Summersett (1830) 1 B & Ad135, 140 per Lord Tenterden CJ).\",\"2. Thus, in common law, one of a number of joint periodic tenants can bring the tenancy to an end against the wishes, even without the knowledge, of his or her co-tenant or co-tenants, by serving a notice to quit on the landlord.\"],\"category\":\"contract_consumer\",\"score\":2,\"title_key\":\"sims v dacorum borough council\"}"
+}

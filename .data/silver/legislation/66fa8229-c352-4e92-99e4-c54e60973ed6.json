@@ -1,0 +1,15 @@
+{
+  "id": "66fa8229-c352-4e92-99e4-c54e60973ed6",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#26356",
+  "created_at": "2025-12-25T14:38:19.501Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2018/495/made",
+    "type": "uksi",
+    "year": 2018,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2018,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2018/495/made\",\"dataUrl\":null}"
+}

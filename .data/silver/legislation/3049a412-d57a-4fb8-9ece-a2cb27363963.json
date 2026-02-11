@@ -1,0 +1,15 @@
+{
+  "id": "3049a412-d57a-4fb8-9ece-a2cb27363963",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#3501",
+  "created_at": "2025-12-25T12:13:00.698Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1963/23/contents/enacted",
+    "type": "ukpga",
+    "year": 1963,
+    "number": 23,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1963,\"number\":23,\"url\":\"http://www.legislation.gov.uk/ukpga/1963/23/contents/enacted\",\"dataUrl\":null}"
+}

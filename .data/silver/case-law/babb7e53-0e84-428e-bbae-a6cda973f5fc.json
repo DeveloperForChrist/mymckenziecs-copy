@@ -1,0 +1,21 @@
+{
+  "id": "babb7e53-0e84-428e-bbae-a6cda973f5fc",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Seldon (Appellant) v Clarkson Wright and Jakes (A Partnership) (Respondent)",
+  "created_at": "2025-12-25T11:47:14.105Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0201",
+    "score": 1,
+    "title": "Seldon (Appellant) v Clarkson Wright and Jakes (A Partnership) (Respondent)",
+    "summary": "1. This case raises difficult issues about the scope for justifying direct discrimination on the ground of age and in particular a mandatory contractual retirement age.",
+    "category": "contract_consumer",
+    "citation": "UKSC/2010/0201",
+    "extracts": [
+      "1. This case raises difficult issues about the scope for justifying direct discrimination on the ground of age and in particular a mandatory contractual retirement age. It arises under the Employment Equality (Age) Regulations 2006 (SI 2006/1031) (“the Age Regulations”), the measure by which the United Kingdom transposed Council Directive 2000/78/EC, establishing a general framework for equal treatment in employment and occupation (“the Directive”), into UK law in respect of age discrimination. But the same issues arise under the Equality Act 2010, which has now replaced those Regulations.",
+      "“However, differences in treatment in connection with age may be justified under certain circumstances and therefore require specific provisions which may vary in accordance with the situation in Member States. It is therefore essential to distinguish between differences in treatment which are justified, in particular by legitimate employment policy, labour market and vocational training objectives, and discrimination which must be prohibited.”"
+    ],
+    "title_key": "seldon v clarkson wright and jakes"
+  },
+  "content": "{\"title\":\"Seldon (Appellant) v Clarkson Wright and Jakes (A Partnership) (Respondent)\",\"citation\":\"UKSC/2010/0201\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0201\",\"summary\":\"1. This case raises difficult issues about the scope for justifying direct discrimination on the ground of age and in particular a mandatory contractual retirement age.\",\"extracts\":[\"1. This case raises difficult issues about the scope for justifying direct discrimination on the ground of age and in particular a mandatory contractual retirement age. It arises under the Employment Equality (Age) Regulations 2006 (SI 2006/1031) (“the Age Regulations”), the measure by which the United Kingdom transposed Council Directive 2000/78/EC, establishing a general framework for equal treatment in employment and occupation (“the Directive”), into UK law in respect of age discrimination. But the same issues arise under the Equality Act 2010, which has now replaced those Regulations.\",\"“However, differences in treatment in connection with age may be justified under certain circumstances and therefore require specific provisions which may vary in accordance with the situation in Member States. It is therefore essential to distinguish between differences in treatment which are justified, in particular by legitimate employment policy, labour market and vocational training objectives, and discrimination which must be prohibited.”\"],\"category\":\"contract_consumer\",\"score\":1,\"title_key\":\"seldon v clarkson wright and jakes\"}"
+}

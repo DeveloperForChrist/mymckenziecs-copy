@@ -1,0 +1,21 @@
+{
+  "id": "fdee3c14-b198-498a-a644-d2748122e22c",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Joint Administrators of Heritable Bank plc (Respondent) v The Winding-Up Board of Landsbanki Islands HF (Appellant) (Scotland)",
+  "created_at": "2025-12-25T11:47:37.346Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2011-0234",
+    "score": 1,
+    "title": "Joint Administrators of Heritable Bank plc (Respondent) v The Winding-Up Board of Landsbanki Islands HF (Appellant) (Scotland)",
+    "summary": "1. Iceland is one of the most productive countries per capita in the world.",
+    "category": "procedure",
+    "citation": "UKSC/2011/0234",
+    "extracts": [
+      "1. Iceland is one of the most productive countries per capita in the world. It ranks high in economic and political stability. But the global financial crisis of 2008 exposed its dependence on the banking sector, and in the autumn of that year the nation’s entire banking system failed. The dispute which has given rise to this appeal is one of the products of that crisis. It has its origin too in the fact that Iceland is a party, as are all the Member States of the European Union, to the Agreement on the European Economic Area (“the EEA Agreement”) which was established on 1 January 1994.",
+      "2. On 6 December 2002 Annex IX (Financial Services) to the EEA Agreement was amended by the incorporation of Directive 2001/24/EC of the European Parliament and of the Council of 4 April 2001 on the reorganisation and winding- up of credit institutions (“the Directive”). Landsbanki Islands hf (“Landsbanki”) and its wholly owned subsidiary Heritable Bank plc (“Heritable”) are both credit institutions for the purposes of article 1(1) of the Directive. Landsbanki is a company incorporated under the laws of Iceland with its registered office in Reykjavik. Heritable is a company incorporated under the Companies Act 1985 with its registered office in Glasgow."
+    ],
+    "title_key": "joint administrators of heritable bank plc v the winding up board of landsbanki islands hf"
+  },
+  "content": "{\"title\":\"Joint Administrators of Heritable Bank plc (Respondent) v The Winding-Up Board of Landsbanki Islands HF (Appellant) (Scotland)\",\"citation\":\"UKSC/2011/0234\",\"url\":\"https://supremecourt.uk/cases/uksc-2011-0234\",\"summary\":\"1. Iceland is one of the most productive countries per capita in the world.\",\"extracts\":[\"1. Iceland is one of the most productive countries per capita in the world. It ranks high in economic and political stability. But the global financial crisis of 2008 exposed its dependence on the banking sector, and in the autumn of that year the nation’s entire banking system failed. The dispute which has given rise to this appeal is one of the products of that crisis. It has its origin too in the fact that Iceland is a party, as are all the Member States of the European Union, to the Agreement on the European Economic Area (“the EEA Agreement”) which was established on 1 January 1994.\",\"2. On 6 December 2002 Annex IX (Financial Services) to the EEA Agreement was amended by the incorporation of Directive 2001/24/EC of the European Parliament and of the Council of 4 April 2001 on the reorganisation and winding- up of credit institutions (“the Directive”). Landsbanki Islands hf (“Landsbanki”) and its wholly owned subsidiary Heritable Bank plc (“Heritable”) are both credit institutions for the purposes of article 1(1) of the Directive. Landsbanki is a company incorporated under the laws of Iceland with its registered office in Reykjavik. Heritable is a company incorporated under the Companies Act 1985 with its registered office in Glasgow.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"joint administrators of heritable bank plc v the winding up board of landsbanki islands hf\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "d7aa96fa-54dd-49c5-9dac-561088d95190",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Principal Reporter (Respondent) v K (Appellant) and others (Scotland)",
+  "created_at": "2025-12-25T11:47:07.619Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0128",
+    "score": 1,
+    "title": "Principal Reporter (Respondent) v K (Appellant) and others (Scotland)",
+    "summary": "1. This is a case about the rights of unmarried fathers to take part in children’s hearings under Part II of the Children (Scotland) Act 1995.",
+    "category": "public_law",
+    "citation": "UKSC/2010/0128",
+    "extracts": [
+      "1. This is a case about the rights of unmarried fathers to take part in children’s hearings under Part II of the Children (Scotland) Act 1995. It raises two distinct issues. The first concerns the kind of order made in the sheriff court which would be competent to give a father the right to take part in the children’s hearing. The second concerns the compatibility of the present scheme with the rights of the father (and indeed the child) under the European Convention on Human Rights. As the reader will discern, Lord Hope has taken the primary responsibility for dealing with the first issue in paras 2-31, and Lady Hale has taken primary responsibility for the second in paras 32-69. But this is a judgment of the court with which all members agree.",
+      "3. JR then alleged that L had been sexually abused by K, and L’s contact with K was stopped. The allegation was investigated by the police, who concluded that there was insufficient evidence to support it. But it continued to cast a shadow over K’s attempts to resume contact. K returned to the sheriff court on 21 March 2006 when he asked the sheriff to ordain JR to appear to explain her failure to obtemper the interim contact order. The sheriff declined to do so, and on 5 May 2006 he suspended interim contact and ordered a report from a local solicitor. By then steps had been taken by the local authority’s social work services department to refer"
+    ],
+    "title_key": "principal reporter v k and others"
+  },
+  "content": "{\"title\":\"Principal Reporter (Respondent) v K (Appellant) and others (Scotland)\",\"citation\":\"UKSC/2010/0128\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0128\",\"summary\":\"1. This is a case about the rights of unmarried fathers to take part in children’s hearings under Part II of the Children (Scotland) Act 1995.\",\"extracts\":[\"1. This is a case about the rights of unmarried fathers to take part in children’s hearings under Part II of the Children (Scotland) Act 1995. It raises two distinct issues. The first concerns the kind of order made in the sheriff court which would be competent to give a father the right to take part in the children’s hearing. The second concerns the compatibility of the present scheme with the rights of the father (and indeed the child) under the European Convention on Human Rights. As the reader will discern, Lord Hope has taken the primary responsibility for dealing with the first issue in paras 2-31, and Lady Hale has taken primary responsibility for the second in paras 32-69. But this is a judgment of the court with which all members agree.\",\"3. JR then alleged that L had been sexually abused by K, and L’s contact with K was stopped. The allegation was investigated by the police, who concluded that there was insufficient evidence to support it. But it continued to cast a shadow over K’s attempts to resume contact. K returned to the sheriff court on 21 March 2006 when he asked the sheriff to ordain JR to appear to explain her failure to obtemper the interim contact order. The sheriff declined to do so, and on 5 May 2006 he suspended interim contact and ordered a report from a local solicitor. By then steps had been taken by the local authority’s social work services department to refer\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"principal reporter v k and others\"}"
+}

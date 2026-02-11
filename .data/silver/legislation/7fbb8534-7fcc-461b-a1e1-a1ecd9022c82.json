@@ -1,0 +1,15 @@
+{
+  "id": "7fbb8534-7fcc-461b-a1e1-a1ecd9022c82",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#22234",
+  "created_at": "2025-12-25T14:09:01.703Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2007/3627/contents",
+    "type": "uksi",
+    "year": 2007,
+    "number": 3627,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/2007/3627/2024-01-15/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2007,\"number\":3627,\"url\":\"http://www.legislation.gov.uk/uksi/2007/3627/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/2007/3627/2024-01-15/data.htm\"}"
+}

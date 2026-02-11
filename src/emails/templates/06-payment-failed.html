@@ -1,0 +1,20 @@
+<!-- Trigger: payment failure from Stripe
+     Purpose: Prompt user to retry payment; show invoice link and grace period
+     Key elements: invoice link, retry CTA, grace period notice -->
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"/><title>Payment failed</title></head>
+  <body>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <h1>Payment Failed</h1>
+    <p>We were unable to process your recent payment.</p>
+    <p>We couldn't process payment for invoice {{invoice_id}}.</p>
+    <p>We’ll retry your payment on {{next_retry_date}}.</p>
+    <p>If payment isn’t completed by {{grace_end_date}}, your account moves to the Free plan.</p>
+    <p>Retry now: <a href="{{retry_url}}">Retry payment</a></p>
+    <p>Invoice: <a href="{{invoice_url}}">View invoice</a></p>
+    <p>Please update payment within {{grace_days}} days to avoid service interruption.</p>
+    <p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MymckenzieCS</p>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "id": "c3f684eb-7d5e-4a9a-82bf-dc1f7de2fa3a",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9050",
+  "created_at": "2025-12-25T12:46:09.581Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1972/2013/contents/made",
+    "type": "uksi",
+    "year": 1972,
+    "number": 2013,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1972,\"number\":2013,\"url\":\"http://www.legislation.gov.uk/uksi/1972/2013/contents/made\",\"dataUrl\":null}"
+}

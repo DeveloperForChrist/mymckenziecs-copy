@@ -1,0 +1,21 @@
+{
+  "id": "92cbf32c-3df6-4e84-b8dd-ed14deb15fdd",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "OWD Ltd trading as Birmingham Cash and Carry (In Liquidation) and another (Appellants) v Commissioners for Her Majesty’s Revenue and Customs (Respondent)",
+  "created_at": "2025-12-25T11:49:46.824Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0156",
+    "score": 0,
+    "title": "OWD Ltd trading as Birmingham Cash and Carry (In Liquidation) and another (Appellants) v Commissioners for Her Majesty’s Revenue and Customs (Respondent)",
+    "summary": "OWD Ltd trading as Birmingham Cash and Carry (In Liquidation) and another (Appellants) v Commissioners for Her Majesty’s Revenue and Customs (Respondent) OWD Ltd trading as Birmingham Cash and Carry (In Liquidation) and another (Respondents) v Commissioners for Her Majesty’s Revenue and Customs (...",
+    "category": "evidence_misc",
+    "citation": "UKSC/2017/0156",
+    "extracts": [
+      "OWD Ltd trading as Birmingham Cash and Carry (In Liquidation) and another (Appellants) v Commissioners for Her Majesty’s Revenue and Customs (Respondent) OWD Ltd trading as Birmingham Cash and Carry (In Liquidation) and another (Respondents) v Commissioners for Her Majesty’s Revenue and Customs (Appellant)",
+      "1. The Finance Act 2015 introduced a regulatory scheme requiring wholesalers supplying duty-paid alcohol to be approved by Her Majesty’s Revenue and Customs Commissioners (“HMRC” or “the Commissioners”) under section 88C of the Alcoholic Liquor Duties Act 1979 (“ALDA”). Approval may only be given if HMRC are satisfied that the person seeking to carry on the activity is a fit and proper person to do so."
+    ],
+    "title_key": "owd ltd trading as birmingham cash and carry and another v commissioners for her majesty s revenue and customs"
+  },
+  "content": "{\"title\":\"OWD Ltd trading as Birmingham Cash and Carry (In Liquidation) and another (Appellants) v Commissioners for Her Majesty’s Revenue and Customs (Respondent)\",\"citation\":\"UKSC/2017/0156\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0156\",\"summary\":\"OWD Ltd trading as Birmingham Cash and Carry (In Liquidation) and another (Appellants) v Commissioners for Her Majesty’s Revenue and Customs (Respondent) OWD Ltd trading as Birmingham Cash and Carry (In Liquidation) and another (Respondents) v Commissioners for Her Majesty’s Revenue and Customs (...\",\"extracts\":[\"OWD Ltd trading as Birmingham Cash and Carry (In Liquidation) and another (Appellants) v Commissioners for Her Majesty’s Revenue and Customs (Respondent) OWD Ltd trading as Birmingham Cash and Carry (In Liquidation) and another (Respondents) v Commissioners for Her Majesty’s Revenue and Customs (Appellant)\",\"1. The Finance Act 2015 introduced a regulatory scheme requiring wholesalers supplying duty-paid alcohol to be approved by Her Majesty’s Revenue and Customs Commissioners (“HMRC” or “the Commissioners”) under section 88C of the Alcoholic Liquor Duties Act 1979 (“ALDA”). Approval may only be given if HMRC are satisfied that the person seeking to carry on the activity is a fit and proper person to do so.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"owd ltd trading as birmingham cash and carry and another v commissioners for her majesty s revenue and customs\"}"
+}

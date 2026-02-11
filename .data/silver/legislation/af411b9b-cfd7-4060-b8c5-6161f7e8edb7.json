@@ -1,0 +1,15 @@
+{
+  "id": "af411b9b-cfd7-4060-b8c5-6161f7e8edb7",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#26292",
+  "created_at": "2025-12-25T14:37:54.709Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/wsi/2018/563/made",
+    "type": "uksi",
+    "year": 2018,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2018,\"number\":null,\"url\":\"http://www.legislation.gov.uk/wsi/2018/563/made\",\"dataUrl\":null}"
+}

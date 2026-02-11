@@ -1,0 +1,15 @@
+{
+  "id": "ba09adae-4cc4-46eb-8605-52b476bcbdb2",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#1469",
+  "created_at": "2025-12-25T12:00:19.098Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Geo5/17-18/7/contents/enacted",
+    "type": "ukpga",
+    "year": 1927,
+    "number": 7,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1927,\"number\":7,\"url\":\"http://www.legislation.gov.uk/ukpga/Geo5/17-18/7/contents/enacted\",\"dataUrl\":null}"
+}

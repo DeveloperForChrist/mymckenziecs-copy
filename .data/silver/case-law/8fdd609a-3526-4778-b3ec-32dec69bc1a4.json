@@ -1,0 +1,21 @@
+{
+  "id": "8fdd609a-3526-4778-b3ec-32dec69bc1a4",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "In the matter of an application by 'JR17' for Judicial Review (Northern Ireland)",
+  "created_at": "2025-12-25T11:46:50.566Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2009-0173",
+    "score": 1,
+    "title": "In the matter of an application by 'JR17' for Judicial Review (Northern Ireland)",
+    "summary": "1. On 7 February 2007, the principal of a school in County Antrim suspended the appellant from school for 5 days.",
+    "category": "public_law",
+    "citation": "UKSC/2009/0173",
+    "extracts": [
+      "1. On 7 February 2007, the principal of a school in County Antrim suspended the appellant from school for 5 days. The appellant was a year 12 pupil. The suspension was renewed for 3 further 5 day periods until 13 March. Between 13 March and 20 April, the North Eastern Education and Library Board (“the Board”) provided him with home tuition. He returned to the school in June to sit his GCSE examinations.",
+      "2. He issued these proceedings in April 2007 seeking judicial review of the principal’s decision to suspend him. The case raises issues as to whether the principal had the power to suspend the appellant and, if he did, whether he exercised that power lawfully."
+    ],
+    "title_key": "in the matter of an application by jr17 for judicial review"
+  },
+  "content": "{\"title\":\"In the matter of an application by 'JR17' for Judicial Review (Northern Ireland)\",\"citation\":\"UKSC/2009/0173\",\"url\":\"https://supremecourt.uk/cases/uksc-2009-0173\",\"summary\":\"1. On 7 February 2007, the principal of a school in County Antrim suspended the appellant from school for 5 days.\",\"extracts\":[\"1. On 7 February 2007, the principal of a school in County Antrim suspended the appellant from school for 5 days. The appellant was a year 12 pupil. The suspension was renewed for 3 further 5 day periods until 13 March. Between 13 March and 20 April, the North Eastern Education and Library Board (“the Board”) provided him with home tuition. He returned to the school in June to sit his GCSE examinations.\",\"2. He issued these proceedings in April 2007 seeking judicial review of the principal’s decision to suspend him. The case raises issues as to whether the principal had the power to suspend the appellant and, if he did, whether he exercised that power lawfully.\"],\"category\":\"public_law\",\"score\":1,\"title_key\":\"in the matter of an application by jr17 for judicial review\"}"
+}

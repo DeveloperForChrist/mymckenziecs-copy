@@ -1,0 +1,21 @@
+{
+  "id": "4ab1738f-75c0-4050-a0c5-3139ce9fc6b8",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Walker (Appellant) v Innospec Limited and others (Respondents)",
+  "created_at": "2025-12-25T11:49:23.037Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0090",
+    "score": 0,
+    "title": "Walker (Appellant) v Innospec Limited and others (Respondents)",
+    "summary": "1. John Walker, the appellant in these proceedings, started to work for Innospec Ltd on 2 January 1980.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2016/0090",
+    "extracts": [
+      "1. John Walker, the appellant in these proceedings, started to work for Innospec Ltd on 2 January 1980. From the beginning of his employment, he was required to become a member of the firm’s contributory pension scheme. He continued to pay into the scheme throughout the time that he was employed by Innospec. His employment continued until Mr Walker accepted early retirement on 31 March 2003. He would have reached normal retirement age, as prescribed by the pension scheme, in 2007.",
+      "2. Under the terms on which Mr Walker could take early retirement, he was able to maximise his pension to the level that it would have reached if he had retired in 2007. The concessions made by his employer which allowed him to do so were not made in exchange for any waiver by him of his future pension rights."
+    ],
+    "title_key": "walker v innospec limited and others"
+  },
+  "content": "{\"title\":\"Walker (Appellant) v Innospec Limited and others (Respondents)\",\"citation\":\"UKSC/2016/0090\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0090\",\"summary\":\"1. John Walker, the appellant in these proceedings, started to work for Innospec Ltd on 2 January 1980.\",\"extracts\":[\"1. John Walker, the appellant in these proceedings, started to work for Innospec Ltd on 2 January 1980. From the beginning of his employment, he was required to become a member of the firm’s contributory pension scheme. He continued to pay into the scheme throughout the time that he was employed by Innospec. His employment continued until Mr Walker accepted early retirement on 31 March 2003. He would have reached normal retirement age, as prescribed by the pension scheme, in 2007.\",\"2. Under the terms on which Mr Walker could take early retirement, he was able to maximise his pension to the level that it would have reached if he had retired in 2007. The concessions made by his employer which allowed him to do so were not made in exchange for any waiver by him of his future pension rights.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"walker v innospec limited and others\"}"
+}

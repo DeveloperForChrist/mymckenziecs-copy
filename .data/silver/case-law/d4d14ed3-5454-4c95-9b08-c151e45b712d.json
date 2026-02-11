@@ -1,0 +1,21 @@
+{
+  "id": "d4d14ed3-5454-4c95-9b08-c151e45b712d",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Telereal Trillium (Respondent) v Hewitt (Valuation Officer) (Appellant)",
+  "created_at": "2025-12-25T11:49:54.246Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2018-0031",
+    "score": 1,
+    "title": "Telereal Trillium (Respondent) v Hewitt (Valuation Officer) (Appellant)",
+    "summary": "1. The issue in the appeal is the correct approach to determination of the rateable value of an office building (“Mexford House”), in circumstances where the evidence showed at the relevant time a general demand in the area for comparable office buildings, but no actual tenant willing to pay a po...",
+    "category": "procedure",
+    "citation": "UKSC/2018/0031",
+    "extracts": [
+      "1. The issue in the appeal is the correct approach to determination of the rateable value of an office building (“Mexford House”), in circumstances where the evidence showed at the relevant time a general demand in the area for comparable office buildings, but no actual tenant willing to pay a positive price for the building itself.",
+      "“Mexford House is a substantial three-storey block of offices in the North Shore area of Blackpool. It was purpose-built in 1971, and was occupied continuously as Government offices from 1972, in part by the Department of Work and Pensions (‘the DWP’) and in part by the Commissioners for Her Majesty’s Revenue and Customs (‘HMRC’). By the material date, however, the property was vacant. Both HMRC (on 29 February 2008) and the DWP (on 13 March 2008) had given notice of their intention to vacate the property, and it was formally handed back to the lessor on 31 March 2009. It is uncertain when the process of vacating the premises was finally complete, but there is no dispute that the property was empty by 1 April 2010, that being the date on which the 2010 non- domestic rating list for the area of Blackpool Borough Council first came into force by virtue of section 41(2) of the Local Government Finance Act 1988 (‘the 1988 Act’).”"
+    ],
+    "title_key": "telereal trillium v hewitt"
+  },
+  "content": "{\"title\":\"Telereal Trillium (Respondent) v Hewitt (Valuation Officer) (Appellant)\",\"citation\":\"UKSC/2018/0031\",\"url\":\"https://supremecourt.uk/cases/uksc-2018-0031\",\"summary\":\"1. The issue in the appeal is the correct approach to determination of the rateable value of an office building (“Mexford House”), in circumstances where the evidence showed at the relevant time a general demand in the area for comparable office buildings, but no actual tenant willing to pay a po...\",\"extracts\":[\"1. The issue in the appeal is the correct approach to determination of the rateable value of an office building (“Mexford House”), in circumstances where the evidence showed at the relevant time a general demand in the area for comparable office buildings, but no actual tenant willing to pay a positive price for the building itself.\",\"“Mexford House is a substantial three-storey block of offices in the North Shore area of Blackpool. It was purpose-built in 1971, and was occupied continuously as Government offices from 1972, in part by the Department of Work and Pensions (‘the DWP’) and in part by the Commissioners for Her Majesty’s Revenue and Customs (‘HMRC’). By the material date, however, the property was vacant. Both HMRC (on 29 February 2008) and the DWP (on 13 March 2008) had given notice of their intention to vacate the property, and it was formally handed back to the lessor on 31 March 2009. It is uncertain when the process of vacating the premises was finally complete, but there is no dispute that the property was empty by 1 April 2010, that being the date on which the 2010 non- domestic rating list for the area of Blackpool Borough Council first came into force by virtue of section 41(2) of the Local Government Finance Act 1988 (‘the 1988 Act’).”\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"telereal trillium v hewitt\"}"
+}

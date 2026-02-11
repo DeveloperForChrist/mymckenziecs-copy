@@ -1,0 +1,21 @@
+{
+  "id": "b9b5623e-c690-4f0c-9553-d84eab85bf79",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Loveridge (Appellant) v Mayor and Burgesses of the London Borough of Lambeth (Respondent)",
+  "created_at": "2025-12-25T11:48:30.091Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0273",
+    "score": 1,
+    "title": "Loveridge (Appellant) v Mayor and Burgesses of the London Borough of Lambeth (Respondent)",
+    "summary": "3. The parties further agreed that, at common law, the damages for any unlawful eviction of Mr Loveridge from the flat during the subsistence of a secure tenancy amounted to £7,400.",
+    "category": "contract_consumer",
+    "citation": "UKSC/2013/0273",
+    "extracts": [
+      "3. The parties further agreed that, at common law, the damages for any unlawful eviction of Mr Loveridge from the flat during the subsistence of a secure tenancy amounted to £7,400. Mr Loveridge contended, however, that he was entitled to a higher sum by way of damages under sections 27 and 28 of the 1988 Act and he conceded that, if so, he was precluded by section 27(5) from also receiving damages at common law in respect of the eviction.",
+      "5. But the government, when introducing the bill which became the 1988 Act, and Parliament, when enacting it, both realised that it created a danger. It was that some unscrupulous landlords, tempted by the prospect of entering into new tenancies on terms much more favourable to themselves (or of selling their properties with vacant possession in what in 1988 was a spiralling real property market), would seek to drive out such of their existing tenants as, under the Rent Act 1977, enjoyed protection in respect both of rent and of security of tenure. So, in the White Paper, the government wrote:"
+    ],
+    "title_key": "loveridge v mayor and burgesses of the london borough of lambeth"
+  },
+  "content": "{\"title\":\"Loveridge (Appellant) v Mayor and Burgesses of the London Borough of Lambeth (Respondent)\",\"citation\":\"UKSC/2013/0273\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0273\",\"summary\":\"3. The parties further agreed that, at common law, the damages for any unlawful eviction of Mr Loveridge from the flat during the subsistence of a secure tenancy amounted to £7,400.\",\"extracts\":[\"3. The parties further agreed that, at common law, the damages for any unlawful eviction of Mr Loveridge from the flat during the subsistence of a secure tenancy amounted to £7,400. Mr Loveridge contended, however, that he was entitled to a higher sum by way of damages under sections 27 and 28 of the 1988 Act and he conceded that, if so, he was precluded by section 27(5) from also receiving damages at common law in respect of the eviction.\",\"5. But the government, when introducing the bill which became the 1988 Act, and Parliament, when enacting it, both realised that it created a danger. It was that some unscrupulous landlords, tempted by the prospect of entering into new tenancies on terms much more favourable to themselves (or of selling their properties with vacant possession in what in 1988 was a spiralling real property market), would seek to drive out such of their existing tenants as, under the Rent Act 1977, enjoyed protection in respect both of rent and of security of tenure. So, in the White Paper, the government wrote:\"],\"category\":\"contract_consumer\",\"score\":1,\"title_key\":\"loveridge v mayor and burgesses of the london borough of lambeth\"}"
+}

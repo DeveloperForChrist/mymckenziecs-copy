@@ -1,0 +1,21 @@
+{
+  "id": "52cf3d38-f68f-42c8-863a-ed65469221df",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Smith and another (Appellants) v Royal Bank of Scotland (Respondent)",
+  "created_at": "2025-12-25T11:50:44.214Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2022-0004",
+    "score": 2,
+    "title": "Smith and another (Appellants) v Royal Bank of Scotland (Respondent)",
+    "summary": "Principle issue: This appeal concerns the proper interpretation of section 140A of the Consumer Credit Act 1974. The key issue is whether, in assessing the fairness of a relationship between a debtor and a creditor, the court can compartmentalise the relationship and, accordingly, consider whether the relationship is unfair at a given point, rather than at the end of the relationship.",
+    "category": "procedure",
+    "citation": "UKSC/2022/0004",
+    "extracts": [
+      "2. For the reasons given in this judgment, I would allow the appeal and restore the decision of the district judge in each case. In short, a claim for a remedial order under section 140B can be made at any time while the credit relationship said to be unfair to the debtor is continuing. The relevant relationship in these cases was the relationship arising out of the credit card agreement between the bank and the claimant, which continued after the PPI policy came to an end. The period of limitation begins to run only when the relationship ends and expires after six years. Each of these claims was brought within that period. So the claims are not time-barred.",
+      "4. Karen Smith applied (successfully) for a credit card with the bank in January 2000. The same application form offered her PPI “to protect your … card payments in the event of death, accident, sickness or involuntary unemployment” and stated:"
+    ],
+    "title_key": "smith and another v royal bank of scotland"
+  },
+  "content": "{\"title\":\"Smith and another (Appellants) v Royal Bank of Scotland (Respondent)\",\"citation\":\"UKSC/2022/0004\",\"url\":\"https://supremecourt.uk/cases/uksc-2022-0004\",\"summary\":\"Principle issue: This appeal concerns the proper interpretation of section 140A of the Consumer Credit Act 1974. The key issue is whether, in assessing the fairness of a relationship between a debtor and a creditor, the court can compartmentalise the relationship and, accordingly, consider whether the relationship is unfair at a given point, rather than at the end of the relationship.\",\"extracts\":[\"2. For the reasons given in this judgment, I would allow the appeal and restore the decision of the district judge in each case. In short, a claim for a remedial order under section 140B can be made at any time while the credit relationship said to be unfair to the debtor is continuing. The relevant relationship in these cases was the relationship arising out of the credit card agreement between the bank and the claimant, which continued after the PPI policy came to an end. The period of limitation begins to run only when the relationship ends and expires after six years. Each of these claims was brought within that period. So the claims are not time-barred.\",\"4. Karen Smith applied (successfully) for a credit card with the bank in January 2000. The same application form offered her PPI “to protect your … card payments in the event of death, accident, sickness or involuntary unemployment” and stated:\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"smith and another v royal bank of scotland\"}"
+}

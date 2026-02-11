@@ -1,0 +1,15 @@
+{
+  "id": "8a2a4ce2-4e9d-42f1-a67a-4b467a2f75ae",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9462",
+  "created_at": "2025-12-25T12:48:40.234Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1976/2198/contents/made",
+    "type": "uksi",
+    "year": 1976,
+    "number": 2198,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1976,\"number\":2198,\"url\":\"http://www.legislation.gov.uk/uksi/1976/2198/contents/made\",\"dataUrl\":null}"
+}

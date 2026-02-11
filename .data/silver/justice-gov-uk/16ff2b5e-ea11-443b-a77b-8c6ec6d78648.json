@@ -1,0 +1,13 @@
+{
+  "id": "16ff2b5e-ea11-443b-a77b-8c6ec6d78648",
+  "source": "justice-gov-uk",
+  "path": "data/bronze/justice-gov-uk/manifest.json",
+  "title": "manifest.json#301",
+  "created_at": "2025-12-25T15:21:56.741Z",
+  "metadata": {
+    "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/standard-directions/general/witness-statements",
+    "file": "www_justice_gov_uk_courts_procedure_rules_civil_standard_directions_general_witn_56f72396e6.html",
+    "fetchedAt": "2025-12-23T00:25:01.367Z"
+  },
+  "content": "{\"url\":\"https://www.justice.gov.uk/courts/procedure-rules/civil/standard-directions/general/witness-statements\",\"file\":\"www_justice_gov_uk_courts_procedure_rules_civil_standard_directions_general_witn_56f72396e6.html\",\"fetchedAt\":\"2025-12-23T00:25:01.367Z\"}"
+}

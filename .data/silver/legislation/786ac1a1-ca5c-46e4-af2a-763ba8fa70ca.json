@@ -1,0 +1,15 @@
+{
+  "id": "786ac1a1-ca5c-46e4-af2a-763ba8fa70ca",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20021",
+  "created_at": "2025-12-25T13:54:08.063Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1998/1069/contents",
+    "type": "uksi",
+    "year": 1998,
+    "number": 1069,
+    "dataUrl": "http://www.legislation.gov.uk/nisi/1998/1069/2009-01-16/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1998,\"number\":1069,\"url\":\"http://www.legislation.gov.uk/nisi/1998/1069/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/nisi/1998/1069/2009-01-16/data.htm\"}"
+}

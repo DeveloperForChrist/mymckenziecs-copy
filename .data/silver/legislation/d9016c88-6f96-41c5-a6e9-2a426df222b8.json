@@ -1,0 +1,15 @@
+{
+  "id": "d9016c88-6f96-41c5-a6e9-2a426df222b8",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#9503",
+  "created_at": "2025-12-25T12:48:57.746Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/nisi/1976/2147/contents/made",
+    "type": "uksi",
+    "year": 1976,
+    "number": 2147,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1976,\"number\":2147,\"url\":\"http://www.legislation.gov.uk/nisi/1976/2147/contents/made\",\"dataUrl\":null}"
+}

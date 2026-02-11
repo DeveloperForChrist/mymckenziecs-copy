@@ -1,0 +1,21 @@
+{
+  "id": "3c271585-78bd-4e7e-9bfc-cc3c68ae8c9c",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Fimbank Plc (Appellant) v KCH Shipping Co Ltd (Respondent)",
+  "created_at": "2025-12-25T11:50:59.867Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2023-0085",
+    "score": 2,
+    "title": "Fimbank Plc (Appellant) v KCH Shipping Co Ltd (Respondent)",
+    "summary": "Principle issue: Whether the one-year time limit in Article III, rule 6 of the Hague Visby Rules applies to claims for mis-delivery of cargo after discharge of the cargo from the vessel.",
+    "category": "contract_consumer",
+    "citation": "UKSC/2023/0085",
+    "extracts": [
+      "1. The international carriage of goods by sea is almost invariably governed either by the Hague Rules, a 1924 international convention for the unification of rules of law relating to bills of lading, or the Hague Visby Rules, the Hague Rules as amended by the 1968 Brussels Protocol (the “Protocol”). The Hague or Hague Visby Rules have been ratified by more than 95 states across the world. Where not compulsorily applicable, they are widely contractually incorporated into bills of lading, charterparties and other contracts of affreightment, often through a clause paramount.",
+      "2. Both the Hague Rules and the Hague Visby Rules provide in article III, rule 6 that the carrier will be discharged from “all liability” unless suit is brought within one year of the delivery of the goods or the date when they should have been delivered. The central issue on this appeal is whether this one year time limit applies to claims which arise after discharge of the goods from the vessel and specifically to misdelivery claims. Misdelivery occurs where the carrier delivers the goods without production of the bill of lading to a person not entitled to receive them."
+    ],
+    "title_key": "fimbank plc v kch shipping co ltd"
+  },
+  "content": "{\"title\":\"Fimbank Plc (Appellant) v KCH Shipping Co Ltd (Respondent)\",\"citation\":\"UKSC/2023/0085\",\"url\":\"https://supremecourt.uk/cases/uksc-2023-0085\",\"summary\":\"Principle issue: Whether the one-year time limit in Article III, rule 6 of the Hague Visby Rules applies to claims for mis-delivery of cargo after discharge of the cargo from the vessel.\",\"extracts\":[\"1. The international carriage of goods by sea is almost invariably governed either by the Hague Rules, a 1924 international convention for the unification of rules of law relating to bills of lading, or the Hague Visby Rules, the Hague Rules as amended by the 1968 Brussels Protocol (the “Protocol”). The Hague or Hague Visby Rules have been ratified by more than 95 states across the world. Where not compulsorily applicable, they are widely contractually incorporated into bills of lading, charterparties and other contracts of affreightment, often through a clause paramount.\",\"2. Both the Hague Rules and the Hague Visby Rules provide in article III, rule 6 that the carrier will be discharged from “all liability” unless suit is brought within one year of the delivery of the goods or the date when they should have been delivered. The central issue on this appeal is whether this one year time limit applies to claims which arise after discharge of the goods from the vessel and specifically to misdelivery claims. Misdelivery occurs where the carrier delivers the goods without production of the bill of lading to a person not entitled to receive them.\"],\"category\":\"contract_consumer\",\"score\":2,\"title_key\":\"fimbank plc v kch shipping co ltd\"}"
+}

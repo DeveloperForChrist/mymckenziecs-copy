@@ -1,0 +1,21 @@
+{
+  "id": "4d8e1cf7-7415-4158-8efb-e4cf4a106ee5",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "An NHS Trust and others (Respondents) v Y (by his litigation friend, the Official Solicitor) and another (Appellant)",
+  "created_at": "2025-12-25T11:49:49.900Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2017-0202",
+    "score": 1,
+    "title": "An NHS Trust and others (Respondents) v Y (by his litigation friend, the Official Solicitor) and another (Appellant)",
+    "summary": "1. The question that arises in this appeal is whether a court order must always be obtained before clinically assisted nutrition and hydration, which is keeping alive a person with a prolonged disorder of consciousness, can be withdrawn, or whether, in some circumstances, this can occur without c...",
+    "category": "procedure",
+    "citation": "UKSC/2017/0202",
+    "extracts": [
+      "1. The question that arises in this appeal is whether a court order must always be obtained before clinically assisted nutrition and hydration, which is keeping alive a person with a prolonged disorder of consciousness, can be withdrawn, or whether, in some circumstances, this can occur without court involvement.",
+      "2. The term “prolonged disorder of consciousness” encompasses both a permanent vegetative state (sometimes referred to as a persistent vegetative state, and often shortened to “PVS”) and a minimally conscious state (or “MCS”). “Prolonged disorder of consciousness” is commonly shortened to “PDOC” and that practice is followed in this judgment. Clinically assisted nutrition and hydration is now referred to as “CANH”, although it has been variously described in the past."
+    ],
+    "title_key": "an nhs trust and others v y and another"
+  },
+  "content": "{\"title\":\"An NHS Trust and others (Respondents) v Y (by his litigation friend, the Official Solicitor) and another (Appellant)\",\"citation\":\"UKSC/2017/0202\",\"url\":\"https://supremecourt.uk/cases/uksc-2017-0202\",\"summary\":\"1. The question that arises in this appeal is whether a court order must always be obtained before clinically assisted nutrition and hydration, which is keeping alive a person with a prolonged disorder of consciousness, can be withdrawn, or whether, in some circumstances, this can occur without c...\",\"extracts\":[\"1. The question that arises in this appeal is whether a court order must always be obtained before clinically assisted nutrition and hydration, which is keeping alive a person with a prolonged disorder of consciousness, can be withdrawn, or whether, in some circumstances, this can occur without court involvement.\",\"2. The term “prolonged disorder of consciousness” encompasses both a permanent vegetative state (sometimes referred to as a persistent vegetative state, and often shortened to “PVS”) and a minimally conscious state (or “MCS”). “Prolonged disorder of consciousness” is commonly shortened to “PDOC” and that practice is followed in this judgment. Clinically assisted nutrition and hydration is now referred to as “CANH”, although it has been variously described in the past.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"an nhs trust and others v y and another\"}"
+}

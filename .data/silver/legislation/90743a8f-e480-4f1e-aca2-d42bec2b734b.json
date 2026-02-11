@@ -1,0 +1,15 @@
+{
+  "id": "90743a8f-e480-4f1e-aca2-d42bec2b734b",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#5999",
+  "created_at": "2025-12-25T12:28:04.080Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/2005/10/contents",
+    "type": "ukpga",
+    "year": 2005,
+    "number": 10,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/2005/10/2019-07-23/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":2005,\"number\":10,\"url\":\"http://www.legislation.gov.uk/ukpga/2005/10/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/2005/10/2019-07-23/data.htm\"}"
+}

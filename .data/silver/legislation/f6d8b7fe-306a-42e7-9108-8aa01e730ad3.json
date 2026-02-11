@@ -1,0 +1,15 @@
+{
+  "id": "f6d8b7fe-306a-42e7-9108-8aa01e730ad3",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#4906",
+  "created_at": "2025-12-25T12:21:38.220Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1984/43/contents",
+    "type": "ukpga",
+    "year": 1984,
+    "number": 43,
+    "dataUrl": "http://www.legislation.gov.uk/ukpga/1984/43/2024-02-22/data.htm"
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1984,\"number\":43,\"url\":\"http://www.legislation.gov.uk/ukpga/1984/43/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/ukpga/1984/43/2024-02-22/data.htm\"}"
+}

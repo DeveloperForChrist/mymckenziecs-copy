@@ -1,0 +1,15 @@
+{
+  "id": "888d82a0-2e30-4369-9168-d515e0420c3b",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20662",
+  "created_at": "2025-12-25T13:57:50.158Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1999/3447/contents",
+    "type": "uksi",
+    "year": 1999,
+    "number": 3447,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1999/3447/2000-03-01/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1999,\"number\":3447,\"url\":\"http://www.legislation.gov.uk/uksi/1999/3447/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1999/3447/2000-03-01/data.htm\"}"
+}

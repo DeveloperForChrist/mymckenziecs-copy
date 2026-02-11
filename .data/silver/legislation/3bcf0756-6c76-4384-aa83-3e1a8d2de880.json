@@ -1,0 +1,15 @@
+{
+  "id": "3bcf0756-6c76-4384-aa83-3e1a8d2de880",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8240",
+  "created_at": "2025-12-25T12:41:38.438Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1963/2133/contents/made",
+    "type": "uksi",
+    "year": 1963,
+    "number": 2133,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1963,\"number\":2133,\"url\":\"http://www.legislation.gov.uk/uksi/1963/2133/contents/made\",\"dataUrl\":null}"
+}

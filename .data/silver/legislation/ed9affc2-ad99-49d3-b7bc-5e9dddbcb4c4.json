@@ -1,0 +1,15 @@
+{
+  "id": "ed9affc2-ad99-49d3-b7bc-5e9dddbcb4c4",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#29389",
+  "created_at": "2025-12-25T15:00:07.499Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/2022/570/made",
+    "type": "uksi",
+    "year": 2022,
+    "number": null,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":2022,\"number\":null,\"url\":\"http://www.legislation.gov.uk/uksi/2022/570/made\",\"dataUrl\":null}"
+}

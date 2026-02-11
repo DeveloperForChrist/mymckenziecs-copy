@@ -1,0 +1,21 @@
+{
+  "id": "f0be9e88-d344-4dec-bf0c-877704bcadf7",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Uber BV and others (Appellants) v Aslam and others (Respondents)",
+  "created_at": "2025-12-25T11:50:10.860Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2019-0029",
+    "score": 3,
+    "title": "Uber BV and others (Appellants) v Aslam and others (Respondents)",
+    "summary": "Principle issue: Whether the Respondents were \"workers\" providing personal services to the Second Appellant.\nIf the Respondents were \"workers\", what periods constituted their \"working time\".",
+    "category": "procedure",
+    "citation": "UKSC/2019/0029",
+    "extracts": [
+      "1. New ways of working organised through digital platforms pose pressing questions about the employment status of the people who do the work involved. The central question on this appeal is whether an employment tribunal was entitled to find that drivers whose work is arranged through Uber’s smartphone application (“the Uber app”) work for Uber under workers’ contracts and so qualify for the national minimum wage, paid annual leave and other workers’ rights; or whether, as Uber contends, the drivers do not have these rights because they work for themselves as independent contractors, performing services under contracts made with passengers through Uber as their booking agent. If drivers work for Uber under workers’ contracts, a secondary question arises as to whether the employment tribunal was also entitled to find that the drivers who have brought the present claims were working under such contracts whenever they were logged into the Uber app within the territory in which they were licensed to operate and ready and willing to accept trips; or whether, as Uber argues, they were working only when driving passengers to their destinations.",
+      "2. For the reasons given in this judgment, I would affirm the conclusion of the Employment Appeal Tribunal and the majority of the Court of Appeal that the employment tribunal was entitled to decide both questions in the claimants’ favour."
+    ],
+    "title_key": "uber bv and others v aslam and others"
+  },
+  "content": "{\"title\":\"Uber BV and others (Appellants) v Aslam and others (Respondents)\",\"citation\":\"UKSC/2019/0029\",\"url\":\"https://supremecourt.uk/cases/uksc-2019-0029\",\"summary\":\"Principle issue: Whether the Respondents were \\\\\"workers\\\\\" providing personal services to the Second Appellant.\\\\nIf the Respondents were \\\\\"workers\\\\\", what periods constituted their \\\\\"working time\\\\\".\",\"extracts\":[\"1. New ways of working organised through digital platforms pose pressing questions about the employment status of the people who do the work involved. The central question on this appeal is whether an employment tribunal was entitled to find that drivers whose work is arranged through Uber’s smartphone application (“the Uber app”) work for Uber under workers’ contracts and so qualify for the national minimum wage, paid annual leave and other workers’ rights; or whether, as Uber contends, the drivers do not have these rights because they work for themselves as independent contractors, performing services under contracts made with passengers through Uber as their booking agent. If drivers work for Uber under workers’ contracts, a secondary question arises as to whether the employment tribunal was also entitled to find that the drivers who have brought the present claims were working under such contracts whenever they were logged into the Uber app within the territory in which they were licensed to operate and ready and willing to accept trips; or whether, as Uber argues, they were working only when driving passengers to their destinations.\",\"2. For the reasons given in this judgment, I would affirm the conclusion of the Employment Appeal Tribunal and the majority of the Court of Appeal that the employment tribunal was entitled to decide both questions in the claimants’ favour.\"],\"category\":\"procedure\",\"score\":3,\"title_key\":\"uber bv and others v aslam and others\"}"
+}

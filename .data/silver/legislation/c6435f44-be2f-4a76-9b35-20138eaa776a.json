@@ -1,0 +1,15 @@
+{
+  "id": "c6435f44-be2f-4a76-9b35-20138eaa776a",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#1923",
+  "created_at": "2025-12-25T12:03:03.284Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/Edw8and1Geo6/1/61/contents/enacted",
+    "type": "ukpga",
+    "year": 1937,
+    "number": 61,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1937,\"number\":61,\"url\":\"http://www.legislation.gov.uk/ukpga/Edw8and1Geo6/1/61/contents/enacted\",\"dataUrl\":null}"
+}

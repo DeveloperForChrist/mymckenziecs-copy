@@ -1,0 +1,21 @@
+{
+  "id": "309c9cc6-2fd5-44a7-8430-4084304ca72f",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Secretary of State for the Home Department (Appellant) v Kolicaj (Respondent)",
+  "created_at": "2025-12-25T11:51:12.518Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2025-0043",
+    "score": 3,
+    "title": "Secretary of State for the Home Department (Appellant) v Kolicaj (Respondent)",
+    "summary": "Principle issue: (1) Was it procedurally unfair for the Secretary of State for the Home Department to deprive Mr Kolicaj of his British citizenship without affording him an opportunity to make representations?\n\n(2) Did the Court of Appeal act in excess of jurisdiction by quashing the deprivation order made against Mr Kolicaj?",
+    "category": "procedure",
+    "citation": "UKSC/2025/0043",
+    "extracts": [
+      "Page 2 (3) The Secretary of State may by order deprive a person of a citizenship status which results from his registration or naturalisation if the Secretary of State is satisfied that the registration or naturalisation was obtained by means of—",
+      "(b) the Secretary of State is satisfied that the deprivation is conducive to the public good because the person, while having that citizenship status, has conducted him or herself in a manner which is seriously prejudicial to the vital interests of the United Kingdom, any of the Islands, or any British overseas territory, and"
+    ],
+    "title_key": "secretary of state for the home department v kolicaj"
+  },
+  "content": "{\"title\":\"Secretary of State for the Home Department (Appellant) v Kolicaj (Respondent)\",\"citation\":\"UKSC/2025/0043\",\"url\":\"https://supremecourt.uk/cases/uksc-2025-0043\",\"summary\":\"Principle issue: (1) Was it procedurally unfair for the Secretary of State for the Home Department to deprive Mr Kolicaj of his British citizenship without affording him an opportunity to make representations?\\\\n\\\\n(2) Did the Court of Appeal act in excess of jurisdiction by quashing the deprivation order made against Mr Kolicaj?\",\"extracts\":[\"Page 2 (3) The Secretary of State may by order deprive a person of a citizenship status which results from his registration or naturalisation if the Secretary of State is satisfied that the registration or naturalisation was obtained by means of—\",\"(b) the Secretary of State is satisfied that the deprivation is conducive to the public good because the person, while having that citizenship status, has conducted him or herself in a manner which is seriously prejudicial to the vital interests of the United Kingdom, any of the Islands, or any British overseas territory, and\"],\"category\":\"procedure\",\"score\":3,\"title_key\":\"secretary of state for the home department v kolicaj\"}"
+}

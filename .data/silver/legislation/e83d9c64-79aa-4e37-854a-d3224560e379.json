@@ -1,0 +1,15 @@
+{
+  "id": "e83d9c64-79aa-4e37-854a-d3224560e379",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#7522",
+  "created_at": "2025-12-25T12:37:30.529Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1956/1972/contents/made",
+    "type": "uksi",
+    "year": 1956,
+    "number": 1972,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1956,\"number\":1972,\"url\":\"http://www.legislation.gov.uk/uksi/1956/1972/contents/made\",\"dataUrl\":null}"
+}

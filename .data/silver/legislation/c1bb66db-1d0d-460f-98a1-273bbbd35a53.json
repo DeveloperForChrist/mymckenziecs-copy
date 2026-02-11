@@ -1,0 +1,15 @@
+{
+  "id": "c1bb66db-1d0d-460f-98a1-273bbbd35a53",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#19097",
+  "created_at": "2025-12-25T13:48:38.628Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1998/2877/contents/made",
+    "type": "uksi",
+    "year": 1998,
+    "number": 2877,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1998/2877/made/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1998,\"number\":2877,\"url\":\"http://www.legislation.gov.uk/uksi/1998/2877/contents/made\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1998/2877/made/data.htm\"}"
+}

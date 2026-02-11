@@ -1,0 +1,15 @@
+{
+  "id": "4c9df456-e232-4546-a309-9f02445bd410",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#8895",
+  "created_at": "2025-12-25T12:45:15.636Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1970/1968/contents/made",
+    "type": "uksi",
+    "year": 1970,
+    "number": 1968,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1970,\"number\":1968,\"url\":\"http://www.legislation.gov.uk/uksi/1970/1968/contents/made\",\"dataUrl\":null}"
+}

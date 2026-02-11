@@ -1,0 +1,21 @@
+{
+  "id": "1861c455-6611-4d78-b7bf-be019700508c",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Armes (Appellant) v Nottinghamshire County Council (Respondent)",
+  "created_at": "2025-12-25T11:49:16.086Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0004",
+    "score": 0,
+    "title": "Armes (Appellant) v Nottinghamshire County Council (Respondent)",
+    "summary": "1. As a child, the claimant was abused physically and sexually by foster parents with whom she was placed while in the care of the defendant local authority.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2016/0004",
+    "extracts": [
+      "1. As a child, the claimant was abused physically and sexually by foster parents with whom she was placed while in the care of the defendant local authority. The local authority were not negligent in the selection or supervision of the foster parents. The question the court has to decide is whether the local authority are nevertheless liable to the claimant for the abuse which she suffered, either on the basis that they were in breach of a non-delegable duty of care, or on the basis that they are vicariously liable for the wrongdoing of the foster parents.",
+      "2. The claimant was taken into the care of the local authority in February 1985, when she was aged seven. Statutory care orders followed. Between March 1985 and March 1986 she was fostered by a Mr and Mrs Allison. The judge found that during that period, she was physically and emotionally abused by Mrs Allison. Between October 1987 and February 1988 she was fostered by a Mr and Mrs Blakely. The judge found that during that period, she was sexually abused by Mr Blakely. In each case, the abuse took place in the foster home in the course of day-to-day care and control of the claimant. Mrs Allison employed grossly excessive violence to discipline her. Mr Blakely molested her when bathing her and when she was alone in her bedroom."
+    ],
+    "title_key": "armes v nottinghamshire county council"
+  },
+  "content": "{\"title\":\"Armes (Appellant) v Nottinghamshire County Council (Respondent)\",\"citation\":\"UKSC/2016/0004\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0004\",\"summary\":\"1. As a child, the claimant was abused physically and sexually by foster parents with whom she was placed while in the care of the defendant local authority.\",\"extracts\":[\"1. As a child, the claimant was abused physically and sexually by foster parents with whom she was placed while in the care of the defendant local authority. The local authority were not negligent in the selection or supervision of the foster parents. The question the court has to decide is whether the local authority are nevertheless liable to the claimant for the abuse which she suffered, either on the basis that they were in breach of a non-delegable duty of care, or on the basis that they are vicariously liable for the wrongdoing of the foster parents.\",\"2. The claimant was taken into the care of the local authority in February 1985, when she was aged seven. Statutory care orders followed. Between March 1985 and March 1986 she was fostered by a Mr and Mrs Allison. The judge found that during that period, she was physically and emotionally abused by Mrs Allison. Between October 1987 and February 1988 she was fostered by a Mr and Mrs Blakely. The judge found that during that period, she was sexually abused by Mr Blakely. In each case, the abuse took place in the foster home in the course of day-to-day care and control of the claimant. Mrs Allison employed grossly excessive violence to discipline her. Mr Blakely molested her when bathing her and when she was alone in her bedroom.\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"armes v nottinghamshire county council\"}"
+}

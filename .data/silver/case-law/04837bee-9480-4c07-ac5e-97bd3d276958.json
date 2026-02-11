@@ -1,0 +1,21 @@
+{
+  "id": "04837bee-9480-4c07-ac5e-97bd3d276958",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "O'Connor (Appellant) v Bar Standards Board (Respondent)",
+  "created_at": "2025-12-25T11:49:30.539Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0174",
+    "score": 2,
+    "title": "O'Connor (Appellant) v Bar Standards Board (Respondent)",
+    "summary": "1. In these proceedings the appellant, Ms O’Connor, a practising barrister, claims damages under the Human Rights Act 1998 against the respondent, the Bar Standards Board (“the BSB”), alleging discrimination in her enjoyment of the right to a fair trial, in breach of article 14 of the European Co...",
+    "category": "public_law",
+    "citation": "UKSC/2016/0174",
+    "extracts": [
+      "1. In these proceedings the appellant, Ms O’Connor, a practising barrister, claims damages under the Human Rights Act 1998 against the respondent, the Bar Standards Board (“the BSB”), alleging discrimination in her enjoyment of the right to a fair trial, in breach of article 14 of the European Convention on Human Rights (“ECHR”) considered in conjunction with article 6 ECHR. The appellant, who is black, alleges that the BSB discriminated against her on grounds of her race in bringing disciplinary proceedings which ended in her acquittal on appeal in August 2012.",
+      "4. The appellant appealed to the Visitors to the Inns of Court (“the Visitors”). (It should be noted that the procedure for an appeal to the Visitors with which we are concerned in this case is no longer in force, having been replaced by an appeal to the High Court. See section 24(1) of the Crime and Courts Act 2013 which came into force on 7 January 2014; Tariq Rehman v The Bar Standards Board [2016] EWHC 1199 (Admin), at para 22, Hickinbottom J.) On 17 August 2012 her appeal was allowed. The Visitors found that none of the conduct alleged against the appellant involved any breach of the Code of Conduct of the Bar of England and Wales. Sir Andrew Collins, delivering the judgment of the Visitors, observed that"
+    ],
+    "title_key": "o connor v bar standards board"
+  },
+  "content": "{\"title\":\"O'Connor (Appellant) v Bar Standards Board (Respondent)\",\"citation\":\"UKSC/2016/0174\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0174\",\"summary\":\"1. In these proceedings the appellant, Ms O’Connor, a practising barrister, claims damages under the Human Rights Act 1998 against the respondent, the Bar Standards Board (“the BSB”), alleging discrimination in her enjoyment of the right to a fair trial, in breach of article 14 of the European Co...\",\"extracts\":[\"1. In these proceedings the appellant, Ms O’Connor, a practising barrister, claims damages under the Human Rights Act 1998 against the respondent, the Bar Standards Board (“the BSB”), alleging discrimination in her enjoyment of the right to a fair trial, in breach of article 14 of the European Convention on Human Rights (“ECHR”) considered in conjunction with article 6 ECHR. The appellant, who is black, alleges that the BSB discriminated against her on grounds of her race in bringing disciplinary proceedings which ended in her acquittal on appeal in August 2012.\",\"4. The appellant appealed to the Visitors to the Inns of Court (“the Visitors”). (It should be noted that the procedure for an appeal to the Visitors with which we are concerned in this case is no longer in force, having been replaced by an appeal to the High Court. See section 24(1) of the Crime and Courts Act 2013 which came into force on 7 January 2014; Tariq Rehman v The Bar Standards Board [2016] EWHC 1199 (Admin), at para 22, Hickinbottom J.) On 17 August 2012 her appeal was allowed. The Visitors found that none of the conduct alleged against the appellant involved any breach of the Code of Conduct of the Bar of England and Wales. Sir Andrew Collins, delivering the judgment of the Visitors, observed that\"],\"category\":\"public_law\",\"score\":2,\"title_key\":\"o connor v bar standards board\"}"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "868bc176-4a5b-49f6-9358-7a42422ce43a",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#3804",
+  "created_at": "2025-12-25T12:14:44.333Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/ukpga/1967/21/contents/enacted",
+    "type": "ukpga",
+    "year": 1967,
+    "number": 21,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"ukpga\",\"year\":1967,\"number\":21,\"url\":\"http://www.legislation.gov.uk/ukpga/1967/21/contents/enacted\",\"dataUrl\":null}"
+}

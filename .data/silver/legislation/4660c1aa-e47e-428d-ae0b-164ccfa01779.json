@@ -1,0 +1,15 @@
+{
+  "id": "4660c1aa-e47e-428d-ae0b-164ccfa01779",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#10239",
+  "created_at": "2025-12-25T12:53:35.592Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1980/2008/contents/made",
+    "type": "uksi",
+    "year": 1980,
+    "number": 2008,
+    "dataUrl": null
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1980,\"number\":2008,\"url\":\"http://www.legislation.gov.uk/uksi/1980/2008/contents/made\",\"dataUrl\":null}"
+}

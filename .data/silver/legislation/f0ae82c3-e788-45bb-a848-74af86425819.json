@@ -1,0 +1,15 @@
+{
+  "id": "f0ae82c3-e788-45bb-a848-74af86425819",
+  "source": "legislation",
+  "path": "data/bronze/legislation/list.json",
+  "title": "list.json#20031",
+  "created_at": "2025-12-25T13:54:12.248Z",
+  "metadata": {
+    "url": "http://www.legislation.gov.uk/uksi/1998/1059/contents",
+    "type": "uksi",
+    "year": 1998,
+    "number": 1059,
+    "dataUrl": "http://www.legislation.gov.uk/uksi/1998/1059/2020-12-31/data.htm"
+  },
+  "content": "{\"type\":\"uksi\",\"year\":1998,\"number\":1059,\"url\":\"http://www.legislation.gov.uk/uksi/1998/1059/contents\",\"dataUrl\":\"http://www.legislation.gov.uk/uksi/1998/1059/2020-12-31/data.htm\"}"
+}

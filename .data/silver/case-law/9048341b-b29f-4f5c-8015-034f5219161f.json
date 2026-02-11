@@ -1,0 +1,21 @@
+{
+  "id": "9048341b-b29f-4f5c-8015-034f5219161f",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "On Tower UK Ltd (formerly known as Arqiva Services Ltd) (Appellant) v AP Wireless II (UK) Ltd (Respondent)",
+  "created_at": "2025-12-25T11:50:29.314Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2020-0168",
+    "score": 1,
+    "title": "On Tower UK Ltd (formerly known as Arqiva Services Ltd) (Appellant) v AP Wireless II (UK) Ltd (Respondent)",
+    "summary": "Principle issue: What is the meaning and effect of paragraphs 20 and 27 of the Electronic Communications Code as set out in Schedule 3A to the Communications Act 2003?",
+    "category": "procedure",
+    "citation": "UKSC/2020/0168",
+    "extracts": [
+      "Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Compton Beauchamp Estates Ltd (Respondent) Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Ashloch Ltd and AP Wireless II (UK) Ltd (Respondents) On Tower UK Ltd (formerly known as Arqiva Services Ltd) (Appellant) v AP Wireless II (UK) Ltd (Respondent)",
+      "1. When the revised Electronic Communications Code with which these appeals are concerned was published in May 2016, the Minister of State for Culture and the Digital Economy described the roll out of digital communications infrastructure as vitally important to citizens across the UK, as digital communications become an ever more essential part of the economic and social fabric of this country. The new Code was, the Minister said, intended to “provide a robust platform to enable long-term investment and development of digital communications infrastructure in the 21st Century”: see the Foreword to the Government’s consultation response “A New Electronic Communications Code”."
+    ],
+    "title_key": "on tower uk ltd v ap wireless ii ltd"
+  },
+  "content": "{\"title\":\"On Tower UK Ltd (formerly known as Arqiva Services Ltd) (Appellant) v AP Wireless II (UK) Ltd (Respondent)\",\"citation\":\"UKSC/2020/0168\",\"url\":\"https://supremecourt.uk/cases/uksc-2020-0168\",\"summary\":\"Principle issue: What is the meaning and effect of paragraphs 20 and 27 of the Electronic Communications Code as set out in Schedule 3A to the Communications Act 2003?\",\"extracts\":[\"Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Compton Beauchamp Estates Ltd (Respondent) Cornerstone Telecommunications Infrastructure Ltd (Appellant) v Ashloch Ltd and AP Wireless II (UK) Ltd (Respondents) On Tower UK Ltd (formerly known as Arqiva Services Ltd) (Appellant) v AP Wireless II (UK) Ltd (Respondent)\",\"1. When the revised Electronic Communications Code with which these appeals are concerned was published in May 2016, the Minister of State for Culture and the Digital Economy described the roll out of digital communications infrastructure as vitally important to citizens across the UK, as digital communications become an ever more essential part of the economic and social fabric of this country. The new Code was, the Minister said, intended to “provide a robust platform to enable long-term investment and development of digital communications infrastructure in the 21st Century”: see the Foreword to the Government’s consultation response “A New Electronic Communications Code”.\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"on tower uk ltd v ap wireless ii ltd\"}"
+}

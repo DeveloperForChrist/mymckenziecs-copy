@@ -1,0 +1,21 @@
+{
+  "id": "cd22a7b9-9df5-4038-afb7-c373026e0262",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "R v Chaytor and others (Appellants)",
+  "created_at": "2025-12-25T11:47:13.793Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2010-0195",
+    "score": 1,
+    "title": "R v Chaytor and others (Appellants)",
+    "summary": "2. The defendants, but not Lord Hanningfield, sought permission to appeal.",
+    "category": "procedure",
+    "citation": "UKSC/2010/0195",
+    "extracts": [
+      "2. The defendants, but not Lord Hanningfield, sought permission to appeal. Lord Hanningfield sought permission to intervene. Permission was granted to him to intervene in writing for the limited purpose of drawing attention to any distinction between expenses schemes and privileges in the two Houses of Parliament. At the opening of the hearing the court granted permission to appeal.",
+      "…(b) in furnishing information for any purpose produces or makes use of any account, or any such record or document as aforesaid, which to his knowledge is or may be misleading, false or deceptive in a material particular;"
+    ],
+    "title_key": "r v chaytor and others"
+  },
+  "content": "{\"title\":\"R v Chaytor and others (Appellants)\",\"citation\":\"UKSC/2010/0195\",\"url\":\"https://supremecourt.uk/cases/uksc-2010-0195\",\"summary\":\"2. The defendants, but not Lord Hanningfield, sought permission to appeal.\",\"extracts\":[\"2. The defendants, but not Lord Hanningfield, sought permission to appeal. Lord Hanningfield sought permission to intervene. Permission was granted to him to intervene in writing for the limited purpose of drawing attention to any distinction between expenses schemes and privileges in the two Houses of Parliament. At the opening of the hearing the court granted permission to appeal.\",\"…(b) in furnishing information for any purpose produces or makes use of any account, or any such record or document as aforesaid, which to his knowledge is or may be misleading, false or deceptive in a material particular;\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"r v chaytor and others\"}"
+}

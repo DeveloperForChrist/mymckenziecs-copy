@@ -1,0 +1,21 @@
+{
+  "id": "cf251678-0a4c-4163-b0a7-db2a4bed76b5",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "HM Inspector of Health and Safety (Appellant) v Chevron North Sea Limited (Respondent) (Scotland)",
+  "created_at": "2025-12-25T11:49:29.802Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2016-0166",
+    "score": 0,
+    "title": "HM Inspector of Health and Safety (Appellant) v Chevron North Sea Limited (Respondent) (Scotland)",
+    "summary": "(1) This section applies to any activities which are being or are likely to be carried on by or under the control of any person, being activities to or in relation to which any of the relevant statutory provisions apply or will, if the activities are so carried on, apply.",
+    "category": "evidence_misc",
+    "citation": "UKSC/2016/0166",
+    "extracts": [
+      "(1) This section applies to any activities which are being or are likely to be carried on by or under the control of any person, being activities to or in relation to which any of the relevant statutory provisions apply or will, if the activities are so carried on, apply.",
+      "(2) If as regards any activities to which this section applies an inspector is of the opinion that, as carried on or likely to be carried on by or under the control of the person in question, the activities involve or, as the case may be, will involve a risk of Page 2 serious personal injury, the inspector may serve on that person a notice (in this Part referred to as ‘a prohibition notice’)."
+    ],
+    "title_key": "hm inspector of health and safety v chevron north sea limited"
+  },
+  "content": "{\"title\":\"HM Inspector of Health and Safety (Appellant) v Chevron North Sea Limited (Respondent) (Scotland)\",\"citation\":\"UKSC/2016/0166\",\"url\":\"https://supremecourt.uk/cases/uksc-2016-0166\",\"summary\":\"(1) This section applies to any activities which are being or are likely to be carried on by or under the control of any person, being activities to or in relation to which any of the relevant statutory provisions apply or will, if the activities are so carried on, apply.\",\"extracts\":[\"(1) This section applies to any activities which are being or are likely to be carried on by or under the control of any person, being activities to or in relation to which any of the relevant statutory provisions apply or will, if the activities are so carried on, apply.\",\"(2) If as regards any activities to which this section applies an inspector is of the opinion that, as carried on or likely to be carried on by or under the control of the person in question, the activities involve or, as the case may be, will involve a risk of Page 2 serious personal injury, the inspector may serve on that person a notice (in this Part referred to as ‘a prohibition notice’).\"],\"category\":\"evidence_misc\",\"score\":0,\"title_key\":\"hm inspector of health and safety v chevron north sea limited\"}"
+}

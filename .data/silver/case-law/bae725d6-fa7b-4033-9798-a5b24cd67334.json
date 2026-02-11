@@ -1,0 +1,21 @@
+{
+  "id": "bae725d6-fa7b-4033-9798-a5b24cd67334",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "Healthcare at Home Limited (Appellant) v The Common Services Agency (Respondent)",
+  "created_at": "2025-12-25T11:48:13.651Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2013-0108",
+    "score": 1,
+    "title": "Healthcare at Home Limited (Appellant) v The Common Services Agency (Respondent)",
+    "summary": "1. The Clapham omnibus has many passengers.",
+    "category": "procedure",
+    "citation": "UKSC/2013/0108",
+    "extracts": [
+      "1. The Clapham omnibus has many passengers. The most venerable is the reasonable man, who was born during the reign of Victoria but remains in vigorous health. Amongst the other passengers are the right-thinking member of society, familiar from the law of defamation, the officious bystander, the reasonable parent, the reasonable landlord, and the fair-minded and informed observer, all of whom have had season tickets for many years.",
+      "2. The horse-drawn bus between Knightsbridge and Clapham, which Lord Bowen is thought to have had in mind, was real enough. But its most famous passenger, and the others I have mentioned, are legal fictions. They belong to an intellectual tradition of defining a legal standard by reference to a hypothetical person, which stretches back to the creation by Roman jurists of the figure of the bonus paterfamilias. As Lord Radcliffe observed in Davis Contractors Ltd v Fareham Urban District Council [1956] AC 696, 728:"
+    ],
+    "title_key": "healthcare at home limited v the common services agency"
+  },
+  "content": "{\"title\":\"Healthcare at Home Limited (Appellant) v The Common Services Agency (Respondent)\",\"citation\":\"UKSC/2013/0108\",\"url\":\"https://supremecourt.uk/cases/uksc-2013-0108\",\"summary\":\"1. The Clapham omnibus has many passengers.\",\"extracts\":[\"1. The Clapham omnibus has many passengers. The most venerable is the reasonable man, who was born during the reign of Victoria but remains in vigorous health. Amongst the other passengers are the right-thinking member of society, familiar from the law of defamation, the officious bystander, the reasonable parent, the reasonable landlord, and the fair-minded and informed observer, all of whom have had season tickets for many years.\",\"2. The horse-drawn bus between Knightsbridge and Clapham, which Lord Bowen is thought to have had in mind, was real enough. But its most famous passenger, and the others I have mentioned, are legal fictions. They belong to an intellectual tradition of defining a legal standard by reference to a hypothetical person, which stretches back to the creation by Roman jurists of the figure of the bonus paterfamilias. As Lord Radcliffe observed in Davis Contractors Ltd v Fareham Urban District Council [1956] AC 696, 728:\"],\"category\":\"procedure\",\"score\":1,\"title_key\":\"healthcare at home limited v the common services agency\"}"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "edb68555-954d-4012-b397-b5b896622a67",
+  "source": "case-law",
+  "path": "data/bronze/case-law/uksc-candidates.jsonl",
+  "title": "G (AP) (Appellant) v Scottish Ministers and another (Respondents) (Scotland)",
+  "created_at": "2025-12-25T11:48:02.079Z",
+  "metadata": {
+    "url": "https://supremecourt.uk/cases/uksc-2012-0196",
+    "score": 2,
+    "title": "G (AP) (Appellant) v Scottish Ministers and another (Respondents) (Scotland)",
+    "summary": "1. This appeal concerns the interpretation and application of the Mental Health (Care and Treatment) (Scotland) Act 2003 (“the Act”).",
+    "category": "procedure",
+    "citation": "UKSC/2012/0196",
+    "extracts": [
+      "1. This appeal concerns the interpretation and application of the Mental Health (Care and Treatment) (Scotland) Act 2003 (“the Act”). The appellant is a patient detained in the State Hospital at Carstairs who made an application to the Mental Health Tribunal for Scotland (“the tribunal”) for an order under section 264(2) of the Act, declaring that he was being detained under conditions of excessive security and specifying a period during which the duties under section 264(3) and (5) should be performed. His application was refused. An appeal to the Court of Session against that decision, under section 322 of the Act, was also refused ([2011] CSIH 55; 2012 SC 138). He now appeals to this court.",
+      "2. For the reasons I shall explain, the appeal must be dismissed. It has however provided an opportunity to clarify the nature of decision-making under section 264(2), and the factors which are relevant to the proper application of that section and of other provisions of the Act."
+    ],
+    "title_key": "g v scottish ministers and another"
+  },
+  "content": "{\"title\":\"G (AP) (Appellant) v Scottish Ministers and another (Respondents) (Scotland)\",\"citation\":\"UKSC/2012/0196\",\"url\":\"https://supremecourt.uk/cases/uksc-2012-0196\",\"summary\":\"1. This appeal concerns the interpretation and application of the Mental Health (Care and Treatment) (Scotland) Act 2003 (“the Act”).\",\"extracts\":[\"1. This appeal concerns the interpretation and application of the Mental Health (Care and Treatment) (Scotland) Act 2003 (“the Act”). The appellant is a patient detained in the State Hospital at Carstairs who made an application to the Mental Health Tribunal for Scotland (“the tribunal”) for an order under section 264(2) of the Act, declaring that he was being detained under conditions of excessive security and specifying a period during which the duties under section 264(3) and (5) should be performed. His application was refused. An appeal to the Court of Session against that decision, under section 322 of the Act, was also refused ([2011] CSIH 55; 2012 SC 138). He now appeals to this court.\",\"2. For the reasons I shall explain, the appeal must be dismissed. It has however provided an opportunity to clarify the nature of decision-making under section 264(2), and the factors which are relevant to the proper application of that section and of other provisions of the Act.\"],\"category\":\"procedure\",\"score\":2,\"title_key\":\"g v scottish ministers and another\"}"
+}
