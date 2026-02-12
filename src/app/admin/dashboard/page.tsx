@@ -237,7 +237,7 @@ const toTitleCase = (value?: string) => {
     .replace(/\w\S*/g, (word) => word[0].toUpperCase() + word.slice(1))
 }
 
-const formatDate = (value?: TimestampValue) => {
+const formatDate = (value?: TimestampValue | null) => {
   if (!value) return 'N/A'
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return 'N/A'

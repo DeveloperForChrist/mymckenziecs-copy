@@ -29,12 +29,12 @@ const nextConfig = {
   // Bundle optimization
   experimental: {
     optimizeCss: true,
-    optimizePackageImports: ['@supabase/supabase-js', 'openai', 'langchain'],
   },
   
-  // Code splitting
+  // Keep only lightweight client fallbacks; avoid manual splitChunks overrides
+  // because Next.js manages chunking for App Router and custom settings can
+  // break module runtime loading in the browser.
   webpack: (config, { isServer }) => {
-    // Optimize client-side bundle
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -44,41 +44,8 @@ const nextConfig = {
       };
     }
 
-    // Ensure webpack uses a global object that exists in Node (avoid `self`)
     if (!config.output) config.output = {};
     config.output.globalObject = 'globalThis';
-    
-    // Optimize chunk splitting (client only)
-    if (!isServer) {
-      config.optimization.splitChunks = {
-        chunks: 'all',
-        cacheGroups: {
-          default: {
-            minChunks: 2,
-            priority: -20,
-            reuseExistingChunk: true,
-          },
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            priority: -10,
-            reuseExistingChunk: true,
-          },
-          ai: {
-            test: /[\\/]node_modules[\\/](openai|@huggingface|@azure|@google|langchain)[\\/]/,
-            name: 'ai-libs',
-            priority: 10,
-            reuseExistingChunk: true,
-          },
-          supabase: {
-            test: /[\\/]node_modules[\\/]@supabase[\\/]/,
-            name: 'supabase',
-            priority: 15,
-            reuseExistingChunk: true,
-          },
-        },
-      };
-    }
     
     return config;
   },

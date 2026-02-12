@@ -153,7 +153,7 @@ export default function DocumentsClient() {
         throw new Error(data?.error || 'Upload failed');
       }
       const targetFolderId = activeFolder || uploadFolderId || undefined;
-      const newDocs = (data.documents || []).map((x:any)=> mapApiDocument(x, folderMap, targetFolderId));
+      const newDocs: Document[] = (data.documents || []).map((x:any)=> mapApiDocument(x, folderMap, targetFolderId));
       setDocuments(p=>[...newDocs,...p]);
       const mapFolderId = targetFolderId || '';
       if (mapFolderId) {

@@ -450,6 +450,16 @@ export async function POST(request: NextRequest) {
           caseKeywords
         )
 
+    if (!agentResponse.response || !agentResponse.response.trim()) {
+      return NextResponse.json(
+        {
+          response: 'I had trouble generating a response. Please try again in a moment.',
+          metadata: { emptyResponse: true }
+        },
+        { status: 200 }
+      )
+    }
+
     if (chatManager.shouldPersistMessages()) {
       await chatManager.storeRawMessage(
         agentResponse.response,

@@ -28,8 +28,9 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ entries: entries || [], total: (entries || []).length });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching audit log:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to fetch audit log';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

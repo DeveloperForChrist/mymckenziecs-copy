@@ -4,6 +4,16 @@ import { supabaseAdmin } from '@/lib/database/supabase-server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+type DocumentRow = {
+  id: string
+  uploaded_by?: string | null
+  cases?: Array<{ users?: Array<{ email?: string | null }> | null }> | null
+  name?: string | null
+  type?: string | null
+  created_at?: string | null
+  file_size?: number | null
+}
+
 export async function GET(request: Request) {
   try {
     // Verify admin session
@@ -43,10 +53,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const documents = (docsData || []).map((doc: any) => ({
+    const documents = (docsData || []).map((doc: DocumentRow) => ({
       id: doc.id,
       userId: doc.uploaded_by,
-      userEmail: doc.cases?.users?.email || 'N/A',
+      userEmail: doc.cases?.[0]?.users?.[0]?.email || 'N/A',
       title: doc.name || 'Untitled',
       type: doc.type || 'General',
       status: 'Uploaded',
@@ -59,8 +69,9 @@ export async function GET(request: Request) {
       documents, 
       total: documents.length 
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching documents:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to fetch documents';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

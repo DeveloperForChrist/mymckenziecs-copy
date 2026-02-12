@@ -4,6 +4,16 @@ import { supabaseAdmin } from '@/lib/database/supabase-server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+type UserRow = {
+  id: string
+  email?: string | null
+  name?: string | null
+  fullName?: string | null
+  address?: string | null
+  created_at?: string | null
+  updated_at?: string | null
+}
+
 
 export async function GET(request: Request) {
   try {
@@ -38,7 +48,7 @@ export async function GET(request: Request) {
 
     const users = [];
 
-    for (const userData of usersData || []) {
+    for (const userData of (usersData || []) as UserRow[]) {
       // Check subscription for plan - get the most recent active subscription
       const { data: activeSub } = await supabaseAdmin
         .from('subscriptions')
@@ -59,11 +69,11 @@ export async function GET(request: Request) {
       users.push({
         id: userData.id,
         email: userData.email || 'N/A',
-        fullName: userData.name || (userData as any).fullName || 'N/A',
+        fullName: userData.name || userData.fullName || 'N/A',
         plan: userPlan,
         createdAt: userData.created_at || new Date().toISOString(),
         lastActive: userData.updated_at || null,
-        address: (userData as any).address || '',
+        address: userData.address || '',
         disabled: false,
         emailVerified: true
       });

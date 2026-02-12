@@ -1840,7 +1840,7 @@ export default function ChatInterface() {
         throw new Error(`API ${response.status}${details ? `: ${details}` : ''}`)
       }
 
-      if (!data || typeof data.response !== 'string') {
+      if (!data || typeof data.response !== 'string' || !data.response.trim()) {
         throw new Error('API 200: Invalid response payload')
       }
 
@@ -2259,7 +2259,7 @@ export default function ChatInterface() {
                       textShadow: isUser ? 'none' : 'none',
                       transform: isUser ? 'translateZ(0)' : 'none',
                       alignSelf: isUser ? 'flex-end' : 'flex-start',
-                      marginRight: isUser ? '8px' : '0'
+                      marginRight: isUser ? '18px' : '0'
                     }}
                     className={isUser ? 'user-message-bubble' : ''}
                   >
@@ -2310,7 +2310,7 @@ export default function ChatInterface() {
                             ))}
                           </div>
                         )}
-                        <p className="whitespace-pre-wrap" style={{ fontFamily: 'Open Sans, sans-serif', fontSize: '16px', fontWeight: 500, lineHeight: 1.65, margin: 0, color: '#e2e8f0' }}>
+                        <p className="whitespace-pre-wrap assistant-paragraph">
                           {renderMessageContent(message.content)}
                         </p>
                       </>

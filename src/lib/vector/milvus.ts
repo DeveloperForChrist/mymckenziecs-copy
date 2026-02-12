@@ -1,9 +1,7 @@
 import OpenAI from 'openai';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
+import { spawn } from 'child_process';
 import path from 'path';
 
-const execFileAsync = promisify(execFile);
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function embedText(text: string): Promise<number[]> {
@@ -36,10 +34,30 @@ export async function searchVectorsByEmbedding(embedding: number[], topk: number
   const payload = JSON.stringify({ embedding, topk });
 
   try {
-    const { stdout, stderr } = await execFileAsync('python3', [pyPath], { input: payload, maxBuffer: 10 * 1024 * 1024 });
-    if (stderr && stderr.trim().length) {
-      console.warn('Python Milvus helper stderr:', stderr.toString());
-    }
+    const { stdout, stderr } = await new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
+      const child = spawn('python3', [pyPath], { stdio: ['pipe', 'pipe', 'pipe'] });
+      let stdout = '';
+      let stderr = '';
+
+      child.stdout.on('data', (chunk) => {
+        stdout += String(chunk);
+      });
+      child.stderr.on('data', (chunk) => {
+        stderr += String(chunk);
+      });
+      child.on('error', reject);
+      child.on('close', (code) => {
+        if (code === 0) {
+          resolve({ stdout, stderr });
+          return;
+        }
+        reject(new Error(stderr || `Python exited with code ${code}`));
+      });
+
+      child.stdin.write(payload);
+      child.stdin.end();
+    });
+    if (stderr.trim().length) console.warn('Python Milvus helper stderr:', stderr);
     const parsed = JSON.parse(stdout || '[]');
     return Array.isArray(parsed) ? parsed : [];
   } catch (err: any) {
@@ -63,4 +81,3 @@ export async function searchByText(text: string, topk: number = 5): Promise<any[
   const emb = await embedText(text);
   return searchVectorsByEmbedding(emb, topk);
 }
-

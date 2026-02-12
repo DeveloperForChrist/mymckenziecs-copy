@@ -4,6 +4,19 @@ import { supabaseAdmin } from '@/lib/database/supabase-server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+type FeedbackLogRow = {
+  id: string
+  details?: unknown
+  created_at?: string | null
+}
+
+type FeedbackItem = {
+  id: string
+  feedbackType?: string
+  createdAt?: string | null
+  [key: string]: unknown
+}
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,10 +52,11 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Feedback submitted successfully'
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error submitting feedback:', error);
+    const details = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to submit feedback', details: error.message },
+      { error: 'Failed to submit feedback', details },
       { status: 500 }
     );
   }
@@ -80,20 +94,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const feedback = (feedbackData || []).map((f: any) => {
-      const details = typeof f.details === 'string' ? JSON.parse(f.details) : f.details;
+    const feedback: FeedbackItem[] = (feedbackData || []).map((f: FeedbackLogRow) => {
+      const details = typeof f.details === 'string' ? JSON.parse(f.details) : (f.details || {});
       return {
         id: f.id,
-        ...details,
+        ...(typeof details === 'object' && details !== null ? details : {}),
         createdAt: f.created_at
       };
     });
 
     // Count by type
     const counts = {
-      likes: feedback.filter((f: any) => f.feedbackType === 'like').length,
-      dislikes: feedback.filter((f: any) => f.feedbackType === 'dislike').length,
-      reports: feedback.filter((f: any) => f.feedbackType === 'report').length,
+      likes: feedback.filter((f) => f.feedbackType === 'like').length,
+      dislikes: feedback.filter((f) => f.feedbackType === 'dislike').length,
+      reports: feedback.filter((f) => f.feedbackType === 'report').length,
       total: feedback.length
     };
 
@@ -102,10 +116,11 @@ export async function GET(request: NextRequest) {
       counts,
       total: feedback.length
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching feedback:', error);
+    const details = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to fetch feedback', details: error.message },
+      { error: 'Failed to fetch feedback', details },
       { status: 500 }
     );
   }

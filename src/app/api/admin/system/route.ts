@@ -30,10 +30,11 @@ export async function GET(request: Request) {
     };
 
     return NextResponse.json({ health });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching system info:', error);
+    const message = error instanceof Error ? error.message : 'Failed to fetch system info';
     return NextResponse.json({ 
-      error: error.message,
+      error: message,
       health: { status: 'error' }
     }, { status: 500 });
   }
@@ -60,8 +61,9 @@ export async function POST(request: Request) {
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error performing system action:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to perform system action';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -4,6 +4,16 @@ import { supabaseAdmin } from '@/lib/database/supabase-server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+type CaseRow = {
+  id: string
+  user_id: string
+  case_type?: string | null
+  status?: string | null
+  description?: string | null
+  created_at?: string | null
+  updated_at?: string | null
+  users?: Array<{ email?: string | null }> | null
+}
 
 export async function GET(request: Request) {
   try {
@@ -49,10 +59,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const cases = (casesData || []).map((c: any) => ({
+    const cases = (casesData || []).map((c: CaseRow) => ({
       id: c.id,
       userId: c.user_id,
-      userEmail: c.users?.email || 'N/A',
+      userEmail: c.users?.[0]?.email || 'N/A',
       caseNumber: 'N/A',
       caseType: c.case_type || 'N/A',
       status: c.status || 'Active',
@@ -64,9 +74,10 @@ export async function GET(request: Request) {
     }));
 
     return NextResponse.json({ cases, total: cases.length });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching cases:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to fetch cases';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -78,7 +89,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body: any = await request.json();
+    const body = await request.json() as { caseId?: string; caseProfile?: { id?: string } };
     const providedCaseId = typeof body?.caseId === 'string' ? body.caseId : undefined;
     const caseProfile = body?.caseProfile && typeof body.caseProfile === 'object' ? body.caseProfile : null;
     const caseId = providedCaseId || (caseProfile && typeof caseProfile.id === 'string' ? caseProfile.id : undefined);
@@ -97,8 +108,9 @@ export async function DELETE(request: Request) {
     }
 
     return NextResponse.json({ success: true, message: 'Case deleted' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting case:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to delete case';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

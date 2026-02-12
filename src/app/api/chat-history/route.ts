@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
-import { decompressConversationChunk } from '@/lib/utils/conversation-encoding';
 
-function normalizeTimestamp(value: any): string {
+function normalizeTimestamp(value: unknown): string {
   if (!value) {
     return new Date(0).toISOString();
   }
@@ -16,15 +15,20 @@ function normalizeTimestamp(value: any): string {
     return value.toISOString();
   }
 
-  if (typeof value.toDate === 'function') {
-    return value.toDate().toISOString();
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    'toDate' in value &&
+    typeof (value as { toDate?: unknown }).toDate === 'function'
+  ) {
+    return ((value as { toDate: () => Date }).toDate()).toISOString();
   }
 
-  const parsed = new Date(value);
+  const parsed = new Date(value as string | number | Date);
   return Number.isNaN(parsed.getTime()) ? new Date(0).toISOString() : parsed.toISOString();
 }
 
-function normalizePlanLabel(value: any): string {
+function normalizePlanLabel(value: unknown): string {
   if (!value) return '';
   return value.toString().trim().toLowerCase();
 }
@@ -47,7 +51,7 @@ function isPlanStandard(plan: string): boolean {
 }
 
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const supabase = await createSupabaseRouteClient();
     const { data: authData, error: authError } = await supabase.auth.getUser();
@@ -79,7 +83,7 @@ export async function GET(request: NextRequest) {
     const freemiumSince = userRow?.freemium_since ? new Date(userRow.freemium_since) : null;
     const limited = !isPaidPlan;
     const maxThreads = limited ? 5 : 60;
-    const cutoffDate = null;
+    const cutoffDate = process.env.FREEMIUM_CUTOFF_DATE ? new Date(process.env.FREEMIUM_CUTOFF_DATE) : null;
 
     const { data: casesData } = await supabaseAdmin
       .from('cases')
@@ -87,7 +91,7 @@ export async function GET(request: NextRequest) {
       .eq('user_id', authUid)
       .is('deleted_at', null);
 
-    const caseIds = (casesData || []).map((c: any) => c.id).filter(Boolean);
+    const caseIds = (casesData || []).map((c) => c.id).filter(Boolean);
     if (caseIds.length === 0) {
       return NextResponse.json({ conversations: [], total: 0, limited });
     }
@@ -158,26 +162,10 @@ export async function GET(request: NextRequest) {
       limited,
       freemiumSince: freemiumSince ? freemiumSince.toISOString() : null
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Chat history GET error:', error);
     return NextResponse.json({ error: 'Failed to load chat history' }, { status: 500 });
   }
-}
-
-function resolveStoredMessage(data: Record<string, any>): string {
-  const mode = (data.storageMode || '').toString();
-  if (mode === 'compressed') {
-    const payload = decompressConversationChunk(data.compressedMessage);
-    if (payload && payload.length) {
-      return payload;
-    }
-  }
-
-  if (mode === 'summary') {
-    return typeof data.summary === 'string' && data.summary.length ? data.summary : '';
-  }
-
-  return typeof data.message === 'string' ? data.message : (data.summary || '');
 }
 
 // Get messages for a specific conversation/case
@@ -212,7 +200,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
     const freemiumSince = userRow?.freemium_since ? new Date(userRow.freemium_since) : null;
     const limited = !isPaidPlan;
-    const cutoffDate = null;
+    const cutoffDate = process.env.FREEMIUM_CUTOFF_DATE ? new Date(process.env.FREEMIUM_CUTOFF_DATE) : null;
 
     const { caseId, conversationId, sessionId } = await request.json();
     const resolvedConversationId = conversationId || sessionId;
@@ -229,13 +217,13 @@ export async function POST(request: NextRequest) {
       .select('id')
       .eq('user_id', authUid)
       .is('deleted_at', null);
-    const caseIds = (casesData || []).map((c: any) => c.id).filter(Boolean);
+    const caseIds = (casesData || []).map((c) => c.id).filter(Boolean);
     if (caseIds.length === 0) {
       return NextResponse.json({ messages: [], total: 0, limited });
     }
 
     // Fetch messages from Supabase using chosen filter
-    let query: any = supabaseAdmin
+    let query = supabaseAdmin
       .from('messages')
       .select('id, role, content, timestamp')
       .order('timestamp', { ascending: true });
@@ -296,7 +284,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
     }
 
-    const messageEntries = (messagesData || []).map((msg: any) => ({
+    const messageEntries = (messagesData || []).map((msg) => ({
       id: msg.id,
       role: msg.role,
       message: msg.content || '',
@@ -309,7 +297,7 @@ export async function POST(request: NextRequest) {
       limited,
       freemiumSince: freemiumSince ? freemiumSince.toISOString() : null
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching messages:', error);
     return NextResponse.json(
       { error: 'Failed to fetch messages' },
@@ -339,7 +327,7 @@ export async function DELETE(request: NextRequest) {
       .select('id')
       .eq('user_id', authUid)
       .is('deleted_at', null);
-    const caseIds = (casesData || []).map((c: any) => c.id).filter(Boolean);
+    const caseIds = (casesData || []).map((c) => c.id).filter(Boolean);
     if (caseIds.length === 0) {
       return NextResponse.json({ success: true });
     }
@@ -357,7 +345,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Delete conversation error:', error);
     return NextResponse.json(
       { error: 'Failed to delete conversation' },

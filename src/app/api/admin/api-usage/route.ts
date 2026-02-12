@@ -6,6 +6,11 @@ export const dynamic = 'force-dynamic';
 
 
 const PERIODS: Record<string, number> = { day: 1, week: 7, month: 30 }
+type ApiUsageRow = {
+  success?: boolean
+  total_tokens?: number | null
+  cost_usd?: number | string | null
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -37,7 +42,7 @@ export async function GET(req: NextRequest) {
 
     const usage = data || []
     const summary = usage.reduce(
-      (acc, row: any) => {
+      (acc, row: ApiUsageRow) => {
         acc.totalRequests += 1
         if (!row.success) acc.totalErrors += 1
         acc.totalTokens += row.total_tokens || 0
@@ -57,8 +62,9 @@ export async function GET(req: NextRequest) {
       summary: { ...summary, errorRate },
       period: { key: period, start: startDate.toISOString(), end: now.toISOString() },
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching api usage:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Failed to fetch api usage'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

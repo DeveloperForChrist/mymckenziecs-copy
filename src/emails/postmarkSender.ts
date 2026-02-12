@@ -1,8 +1,5 @@
 import fs from "fs";
 import path from "path";
-import postmark from "postmark";
-
-const client = new postmark.ServerClient(process.env.POSTMARK_API_KEY || "");
 const FROM = process.env.FROM_EMAIL || "noreply@yourdomain";
 
 function renderTemplate(templatePath: string, vars: Record<string, string>) {
@@ -14,6 +11,9 @@ function renderTemplate(templatePath: string, vars: Record<string, string>) {
 }
 
 export async function send(opts: { to: string; subject: string; templatePath: string; vars?: Record<string, string>; }) {
+  const moduleName = "postmark";
+  const postmarkModule = await import(moduleName);
+  const client = new postmarkModule.ServerClient(process.env.POSTMARK_API_KEY || "");
   const html = renderTemplate(opts.templatePath, opts.vars || {});
   const res = await client.sendEmail({
     From: FROM,

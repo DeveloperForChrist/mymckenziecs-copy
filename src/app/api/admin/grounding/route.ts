@@ -39,7 +39,7 @@ const readGroundingLog = () => {
   return { counts, recent, total: lines.length }
 }
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const session = getAdminSessionFromCookies()
     if (!session.ok) {
@@ -48,8 +48,9 @@ export async function GET(request: Request) {
 
     const summary = readGroundingLog()
     return NextResponse.json({ summary })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching grounding log:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Failed to fetch grounding log'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

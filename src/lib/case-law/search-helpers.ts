@@ -384,7 +384,13 @@ async function enrichResultsWithUrlSummaries(results: any[]) {
       const url = r.url;
       const cacheKey = `grounding:${r.citation || r.id}:${encodeURIComponent(url)}`;
 
-      const { data: cached } = await supabaseAdmin.from('cache').select('value').eq('key', cacheKey).limit(1).single().catch(() => ({ data: null } as any));
+      let cached: { value?: { summary?: string } } | null = null;
+      try {
+        const { data } = await supabaseAdmin.from('cache').select('value').eq('key', cacheKey).limit(1).single();
+        cached = (data as { value?: { summary?: string } } | null) || null;
+      } catch {
+        cached = null;
+      }
       let summaryText: string | null = null;
 
       if (cached && cached.value && cached.value.summary) {
@@ -413,9 +419,13 @@ async function enrichResultsWithUrlSummaries(results: any[]) {
 
         if (summaryText) {
           const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
-          await supabaseAdmin.from('cache').upsert([
-            { key: cacheKey, value: { url, summary: summaryText }, cache_type: 'grounding', expires_at: expires }
-          ]).catch(e => console.warn('Failed to cache grounding:', e));
+          try {
+            await supabaseAdmin.from('cache').upsert([
+              { key: cacheKey, value: { url, summary: summaryText }, cache_type: 'grounding', expires_at: expires }
+            ]);
+          } catch (cacheError) {
+            console.warn('Failed to cache grounding:', cacheError);
+          }
         }
       }
 

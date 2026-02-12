@@ -12,6 +12,15 @@ const PERIODS = {
 } as const
 
 type PeriodKey = keyof typeof PERIODS
+type MetricsRow = Record<string, unknown>
+type MetricsQuery = unknown
+
+const chain = (query: MetricsQuery, method: string, ...args: unknown[]): MetricsQuery => {
+  if (!query || typeof query !== 'object') return query
+  const candidate = (query as Record<string, unknown>)[method]
+  if (typeof candidate !== 'function') return query
+  return (candidate as (...params: unknown[]) => unknown).apply(query, args)
+}
 
 export async function GET(request: Request) {
   try {
@@ -39,12 +48,12 @@ export async function GET(request: Request) {
     const count = async (
       table: string,
       label: string,
-      apply?: (query: ReturnType<typeof supabaseAdmin.from>) => ReturnType<typeof supabaseAdmin.from>
+      apply?: (query: MetricsQuery) => MetricsQuery
     ) => {
       try {
-        let query = supabaseAdmin.from(table).select('*', { count: 'exact', head: true })
+        let query: MetricsQuery = supabaseAdmin.from(table).select('*', { count: 'exact', head: true })
         if (apply) query = apply(query)
-        const { count, error } = await query
+        const { count, error } = await (query as { then: PromiseLike<{ count: number | null; error: unknown }>['then'] })
         if (error) throw error
         return count ?? 0
       } catch (error) {
@@ -53,18 +62,18 @@ export async function GET(request: Request) {
       }
     }
 
-    const select = async <T extends Record<string, any>>(
+    const select = async <T extends Record<string, unknown>>(
       table: string,
       columns: string,
       label: string,
-      apply?: (query: ReturnType<typeof supabaseAdmin.from>) => ReturnType<typeof supabaseAdmin.from>
+      apply?: (query: MetricsQuery) => MetricsQuery
     ) => {
       try {
-        let query = supabaseAdmin.from(table).select(columns)
+        let query: MetricsQuery = supabaseAdmin.from(table).select(columns)
         if (apply) query = apply(query)
-        const { data, error } = await query
+        const { data, error } = await (query as { then: PromiseLike<{ data: unknown[] | null; error: unknown }>['then'] })
         if (error) throw error
-        return (data || []) as T[]
+        return (data || []) as unknown as T[]
       } catch (error) {
         warn(label, error)
         return [] as T[]
@@ -75,9 +84,9 @@ export async function GET(request: Request) {
       table: string,
       column: string,
       label: string,
-      apply?: (query: ReturnType<typeof supabaseAdmin.from>) => ReturnType<typeof supabaseAdmin.from>
+      apply?: (query: MetricsQuery) => MetricsQuery
     ) => {
-      const rows = await select<Record<string, any>>(table, column, label, apply)
+      const rows = await select<MetricsRow>(table, column, label, apply)
       const counts: Record<string, number> = {}
       for (const row of rows) {
         const key = (row?.[column] ?? 'Unknown') as string
@@ -90,9 +99,9 @@ export async function GET(request: Request) {
       table: string,
       column: string,
       label: string,
-      apply?: (query: ReturnType<typeof supabaseAdmin.from>) => ReturnType<typeof supabaseAdmin.from>
+      apply?: (query: MetricsQuery) => MetricsQuery
     ) => {
-      const rows = await select<Record<string, any>>(table, column, label, apply)
+      const rows = await select<MetricsRow>(table, column, label, apply)
       let total = 0
       let max = 0
       for (const row of rows) {
@@ -145,43 +154,43 @@ export async function GET(request: Request) {
       apiUsageErrors,
     ] = await Promise.all([
       count('users', 'users.total'),
-      count('users', 'users.newInPeriod', (q) => q.gte('created_at', startIso)),
-      count('users', 'users.updatedInPeriod', (q) => q.gte('updated_at', startIso)),
+      count('users', 'users.newInPeriod', (q) => chain(q, 'gte', 'created_at', startIso)),
+      count('users', 'users.updatedInPeriod', (q) => chain(q, 'gte', 'updated_at', startIso)),
       count('cases', 'cases.total'),
-      count('cases', 'cases.active', (q) => q.eq('status', 'active').is('deleted_at', null)),
-      count('cases', 'cases.closed', (q) => q.eq('status', 'closed').is('deleted_at', null)),
-      count('cases', 'cases.archived', (q) => q.eq('status', 'archived').is('deleted_at', null)),
-      count('cases', 'cases.deleted', (q) => q.not('deleted_at', 'is', null)),
-      count('cases', 'cases.createdInPeriod', (q) => q.gte('created_at', startIso)),
-      count('cases', 'cases.withDeadline', (q) => q.not('court_deadline', 'is', null)),
-      count('cases', 'cases.overdue', (q) => q.lt('court_deadline', now.toISOString()).eq('status', 'active')),
+      count('cases', 'cases.active', (q) => chain(chain(q, 'eq', 'status', 'active'), 'is', 'deleted_at', null)),
+      count('cases', 'cases.closed', (q) => chain(chain(q, 'eq', 'status', 'closed'), 'is', 'deleted_at', null)),
+      count('cases', 'cases.archived', (q) => chain(chain(q, 'eq', 'status', 'archived'), 'is', 'deleted_at', null)),
+      count('cases', 'cases.deleted', (q) => chain(q, 'not', 'deleted_at', 'is', null)),
+      count('cases', 'cases.createdInPeriod', (q) => chain(q, 'gte', 'created_at', startIso)),
+      count('cases', 'cases.withDeadline', (q) => chain(q, 'not', 'court_deadline', 'is', null)),
+      count('cases', 'cases.overdue', (q) => chain(chain(q, 'lt', 'court_deadline', now.toISOString()), 'eq', 'status', 'active')),
       count('messages', 'messages.total'),
-      count('messages', 'messages.inPeriod', (q) => q.gte('timestamp', startIso)),
-      count('messages', 'messages.last24h', (q) => q.gte('timestamp', new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString())),
-      count('messages', 'messages.guest', (q) => q.is('case_id', null)),
+      count('messages', 'messages.inPeriod', (q) => chain(q, 'gte', 'timestamp', startIso)),
+      count('messages', 'messages.last24h', (q) => chain(q, 'gte', 'timestamp', new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString())),
+      count('messages', 'messages.guest', (q) => chain(q, 'is', 'case_id', null)),
       count('documents', 'documents.total'),
-      count('documents', 'documents.inPeriod', (q) => q.gte('created_at', startIso)),
+      count('documents', 'documents.inPeriod', (q) => chain(q, 'gte', 'created_at', startIso)),
       count('subscriptions', 'subscriptions.total'),
-      count('subscriptions', 'subscriptions.active', (q) => q.eq('status', 'active')),
-      count('subscriptions', 'subscriptions.cancelled', (q) => q.eq('status', 'cancelled')),
-      count('subscriptions', 'subscriptions.past_due', (q) => q.eq('status', 'past_due')),
-      count('subscriptions', 'subscriptions.expired', (q) => q.eq('status', 'expired')),
-      count('subscriptions', 'subscriptions.cancel_at_period_end', (q) => q.eq('cancel_at_period_end', true)),
+      count('subscriptions', 'subscriptions.active', (q) => chain(q, 'eq', 'status', 'active')),
+      count('subscriptions', 'subscriptions.cancelled', (q) => chain(q, 'eq', 'status', 'cancelled')),
+      count('subscriptions', 'subscriptions.past_due', (q) => chain(q, 'eq', 'status', 'past_due')),
+      count('subscriptions', 'subscriptions.expired', (q) => chain(q, 'eq', 'status', 'expired')),
+      count('subscriptions', 'subscriptions.cancel_at_period_end', (q) => chain(q, 'eq', 'cancel_at_period_end', true)),
       count('document_analyses', 'document_analyses.total'),
-      count('document_analyses', 'document_analyses.inPeriod', (q) => q.gte('created_at', startIso)),
+      count('document_analyses', 'document_analyses.inPeriod', (q) => chain(q, 'gte', 'created_at', startIso)),
       count('audit_log', 'audit.total'),
-      count('audit_log', 'audit.inPeriod', (q) => q.gte('created_at', startIso)),
+      count('audit_log', 'audit.inPeriod', (q) => chain(q, 'gte', 'created_at', startIso)),
       count('cache', 'cache.total'),
-      count('cache', 'cache.expired', (q) => q.lt('expires_at', now.toISOString())),
+      count('cache', 'cache.expired', (q) => chain(q, 'lt', 'expires_at', now.toISOString())),
       count('calendar_events', 'calendar.total'),
-      count('calendar_events', 'calendar.upcoming', (q) => q.gte('date', now.toISOString()).lte('date', new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString())),
-      count('calendar_events', 'calendar.overdue', (q) => q.lt('date', now.toISOString())),
+      count('calendar_events', 'calendar.upcoming', (q) => chain(chain(q, 'gte', 'date', now.toISOString()), 'lte', 'date', new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString())),
+      count('calendar_events', 'calendar.overdue', (q) => chain(q, 'lt', 'date', now.toISOString())),
       count('case_law', 'case_law.total'),
       count('case_law_searches', 'case_law_searches.total'),
-      count('case_law_searches', 'case_law_searches.inPeriod', (q) => q.gte('created_at', startIso)),
+      count('case_law_searches', 'case_law_searches.inPeriod', (q) => chain(q, 'gte', 'created_at', startIso)),
       count('api_usage', 'api_usage.total'),
-      count('api_usage', 'api_usage.inPeriod', (q) => q.gte('created_at', startIso)),
-      count('api_usage', 'api_usage.errors', (q) => q.eq('success', false)),
+      count('api_usage', 'api_usage.inPeriod', (q) => chain(q, 'gte', 'created_at', startIso)),
+      count('api_usage', 'api_usage.errors', (q) => chain(q, 'eq', 'success', false)),
     ])
 
     const [
@@ -230,7 +239,7 @@ export async function GET(request: Request) {
       sumColumn('documents', 'file_size', 'documents.size'),
       sumColumn('cache', 'hit_count', 'cache.hit_count'),
       select<{ free_messages_used?: number; total_messages?: number }>('message_usage', 'free_messages_used,total_messages', 'message_usage'),
-      select<{ conversation_id: string | null }>('messages', 'conversation_id', 'messages.conversations', (q) => q.gte('timestamp', startIso)),
+      select<{ conversation_id: string | null }>('messages', 'conversation_id', 'messages.conversations', (q) => chain(q, 'gte', 'timestamp', startIso)),
       select<{ results_count?: number }>('case_law_searches', 'results_count', 'case_law_searches.results'),
       sumColumn('api_usage', 'cost_usd', 'api_usage.cost'),
       sumColumn('api_usage', 'total_tokens', 'api_usage.tokens'),
@@ -363,8 +372,9 @@ export async function GET(request: Request) {
       },
       warnings,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching metrics:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Failed to fetch metrics'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
