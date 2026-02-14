@@ -34,7 +34,7 @@ export default function FaqPage() {
           <article className={styles.card}>
             <h3>What does Essential add?</h3>
             <p>
-              Essential unlocks the MyMcKenzie Smart Assistant with verification, provides higher
+              Essential unlocks the MyMcKenzie Smart Assistant, provides higher
               unlimited conversations with a 40‑message per thread limit, includes Case Law Search + MyMckenzie Case Study, and deadline reminder emails.
             </p>
           </article>

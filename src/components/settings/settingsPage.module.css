@@ -144,6 +144,15 @@
 .dangerOutlineBtn:hover { background:#dc2626; color:#fff; }
 .actionsRow, .bottomActions { display:flex; gap:16px; flex-wrap:wrap; }
 .bottomActions { margin-top:8px; }
+.secondaryBtn { background:rgba(255,255,255,0.08); color:rgba(248, 250, 252, 0.96); border:1px solid rgba(255,255,255,0.2); padding:12px 18px; font-weight:600; font-size:0.9rem; border-radius:10px; cursor:pointer; }
+.secondaryBtn:hover { background:rgba(255,255,255,0.14); }
+
+/* Modal */
+.modalOverlay { position:fixed; inset:0; background:rgba(4, 4, 12, 0.7); display:flex; align-items:center; justify-content:center; z-index:2000; padding:24px; }
+.modalCard { width:min(520px, 92vw); background:rgba(20, 12, 32, 0.95); border:1px solid rgba(255,255,255,0.16); border-radius:18px; padding:24px; box-shadow:0 24px 80px rgba(0,0,0,0.5); color:rgba(248, 250, 252, 0.98); }
+.modalTitle { margin:0 0 8px; font-size:1.2rem; font-weight:700; }
+.modalBody { margin:0 0 18px; color:rgba(226, 232, 240, 0.9); line-height:1.5; }
+.modalActions { display:flex; gap:12px; justify-content:flex-end; flex-wrap:wrap; }
 
 /* Plan / billing */
 .planInfo { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:24px; }

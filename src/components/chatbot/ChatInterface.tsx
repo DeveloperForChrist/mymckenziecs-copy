@@ -1555,12 +1555,34 @@ export default function ChatInterface() {
 
   // Typing effect function
   const typeMessage = (fullText: string, messageIndex: number) => {
-    const sanitizedText = stripAssistantSourcesBlock(fullText)
+    const strippedText = stripAssistantSourcesBlock(fullText)
+    const fallbackText = typeof fullText === 'string' ? fullText.trim() : ''
+    const sanitizedText = strippedText || fallbackText
     setMessages((prev) => {
       const updated = [...prev]
       if (updated[messageIndex]) {
         updated[messageIndex] = {
           ...updated[messageIndex],
+          content: formatAssistantResponse(sanitizedText),
+          isTyping: false
+        }
+      }
+      return updated
+    })
+    setLoading(false)
+    setLoadingLabel(null)
+  }
+
+  const typeMessageById = (fullText: string, messageId: string) => {
+    const strippedText = stripAssistantSourcesBlock(fullText)
+    const fallbackText = typeof fullText === 'string' ? fullText.trim() : ''
+    const sanitizedText = strippedText || fallbackText
+    setMessages((prev) => {
+      const updated = [...prev]
+      const targetIndex = updated.findIndex((m) => m.id === messageId)
+      if (targetIndex >= 0) {
+        updated[targetIndex] = {
+          ...updated[targetIndex],
           content: formatAssistantResponse(sanitizedText),
           isTyping: false
         }
@@ -1845,7 +1867,9 @@ export default function ChatInterface() {
       }
 
       const assistantText = data.response
+      const assistantMessageId = `assistant_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
       const assistantMessage: Message = {
+        id: assistantMessageId,
         role: 'assistant',
         content: '',
         timestamp: new Date(),
@@ -1853,29 +1877,22 @@ export default function ChatInterface() {
         metadata: data.metadata as AssistantMetadata | undefined
       }
 
-      setMessages((prev) => {
-        const newMessages = [...prev, assistantMessage]
-        // Start typing effect for the new message using the new array length
-        const messageIndex = newMessages.length - 1
-        typeMessage(assistantText, messageIndex)
-        return newMessages
-      })
+      setMessages((prev) => [...prev, assistantMessage])
+      typeMessageById(assistantText, assistantMessageId)
     } catch (error: unknown) {
       const errorText = error instanceof Error && error.message
         ? error.message
         : 'MyMckenzie is unavailable to help right now. Please try again later.'
+      const errorMessageId = `assistant_error_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
       const errorMessage: Message = {
+        id: errorMessageId,
         role: 'assistant',
         content: '',
         timestamp: new Date(),
         isTyping: true
       }
-      setMessages((prev) => {
-        const newMessages = [...prev, errorMessage]
-        const messageIndex = newMessages.length - 1
-        typeMessage(errorText, messageIndex)
-        return newMessages
-      })
+      setMessages((prev) => [...prev, errorMessage])
+      typeMessageById(errorText, errorMessageId)
     }
   }
 

@@ -92,7 +92,7 @@ export default function CookiePolicyPage() {
           <b className="block mt-2">Email Providers (if applicable)</b>
           <ul className="list-disc pl-6 mt-1">
             <li>Anti-spam measures</li>
-            <li>Verification flows</li>
+            <li>Account security and email delivery</li>
           </ul>
           <p className="mt-2">These providers have their own cookie and privacy policies.</p>
         </li>

@@ -39,13 +39,49 @@ export async function POST(request: NextRequest) {
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-    const { data: existing } = await supabaseAdmin
-      .from('users')
-      .select('id, welcome_email_sent_at')
-      .eq('id', user.id)
-      .maybeSingle();
+    const nowIso = new Date().toISOString();
 
-    if (existing?.welcome_email_sent_at) {
+    const { data: updatedRows, error: updateError } = await supabaseAdmin
+      .from('users')
+      .update({ welcome_email_sent_at: nowIso, email, name })
+      .eq('id', user.id)
+      .is('welcome_email_sent_at', null)
+      .select('id');
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    let claimed = (updatedRows?.length || 0) > 0;
+
+    if (!claimed) {
+      const { error: insertError } = await supabaseAdmin.from('users').insert({
+        id: user.id,
+        email,
+        name,
+        welcome_email_sent_at: nowIso,
+      });
+
+      if (!insertError) {
+        claimed = true;
+      } else {
+        const { data: existing, error: existingError } = await supabaseAdmin
+          .from('users')
+          .select('id, welcome_email_sent_at')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (existingError) {
+          throw existingError;
+        }
+
+        if (existing?.welcome_email_sent_at) {
+          return NextResponse.json({ success: true, skipped: true });
+        }
+      }
+    }
+
+    if (!claimed) {
       return NextResponse.json({ success: true, skipped: true });
     }
 
@@ -54,28 +90,20 @@ export async function POST(request: NextRequest) {
       cta_url: `${appUrl}/dashboard`,
     });
 
-    await sendResendEmail({
-      to: email,
-      subject: 'Welcome to MymckenzieCS',
-      htmlBody,
-      tag: 'welcome-signup',
-    });
-
-    const nowIso = new Date().toISOString();
-    if (existing?.id) {
+    try {
+      await sendResendEmail({
+        to: email,
+        subject: 'Welcome to MymckenzieCS',
+        htmlBody,
+        tag: 'welcome-signup',
+      });
+    } catch (sendError) {
       await supabaseAdmin
         .from('users')
-        .update({ welcome_email_sent_at: nowIso })
-        .eq('id', existing.id);
-    } else {
-      await supabaseAdmin
-        .from('users')
-        .insert({
-          id: user.id,
-          email,
-          name,
-          welcome_email_sent_at: nowIso,
-        });
+        .update({ welcome_email_sent_at: null })
+        .eq('id', user.id)
+        .eq('welcome_email_sent_at', nowIso);
+      throw sendError;
     }
 
     return NextResponse.json({ success: true });

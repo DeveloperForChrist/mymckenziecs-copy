@@ -21,6 +21,8 @@ type CalendarEvent = {
 }
 
 type EventsByDate = Record<string, CalendarEvent[]>
+type RepeatPattern = 'none' | 'weekly' | 'biweekly' | 'monthly'
+type EventStatus = 'done' | 'overdue' | 'today' | 'upcoming' | 'future'
 
 type DayCell = {
   date: Date
@@ -43,6 +45,14 @@ function addMonths(date: Date, months: number) {
   const d = new Date(date)
   d.setDate(1)
   d.setMonth(d.getMonth() + months)
+  return d
+}
+
+function addRecurringDate(date: Date, repeat: RepeatPattern, index: number) {
+  const d = new Date(date)
+  if (repeat === 'weekly') d.setDate(d.getDate() + index * 7)
+  if (repeat === 'biweekly') d.setDate(d.getDate() + index * 14)
+  if (repeat === 'monthly') d.setMonth(d.getMonth() + index)
   return d
 }
 
@@ -70,6 +80,50 @@ function parseEventDate(value?: string | Date | null) {
   return Number.isNaN(parsed.getTime()) ? new Date() : parsed
 }
 
+function getDaysUntil(date: Date) {
+  return Math.round((startOfDay(date).getTime() - startOfDay(new Date()).getTime()) / (1000 * 60 * 60 * 24))
+}
+
+function resolveDaysUntil(event: CalendarEvent) {
+  if (event.dateValue) {
+    return getDaysUntil(parseEventDate(event.dateValue))
+  }
+  return event.daysUntil ?? null
+}
+
+function getEventStatus(event: CalendarEvent): EventStatus {
+  if (event.completed) return 'done'
+  const daysUntil = resolveDaysUntil(event)
+  if (daysUntil === null) return 'future'
+  if (event.category === 'deadline') {
+    if (daysUntil < 0) return 'overdue'
+    if (daysUntil === 0) return 'today'
+    if (daysUntil <= 7) return 'upcoming'
+  }
+  if (daysUntil === 0) return 'today'
+  if (daysUntil > 0 && daysUntil <= 7) return 'upcoming'
+  return 'future'
+}
+
+function statusRank(status: EventStatus) {
+  if (status === 'overdue') return 0
+  if (status === 'today') return 1
+  if (status === 'upcoming') return 2
+  if (status === 'future') return 3
+  return 4
+}
+
+function statusLabel(event: CalendarEvent) {
+  const status = getEventStatus(event)
+  const daysUntil = resolveDaysUntil(event)
+  if (status === 'done') return 'Completed'
+  if (daysUntil === null) return 'Scheduled'
+  if (status === 'overdue') return `Overdue by ${Math.abs(daysUntil)} day${Math.abs(daysUntil) === 1 ? '' : 's'}`
+  if (status === 'today') return 'Due today'
+  if (daysUntil > 0) return `In ${daysUntil} day${daysUntil === 1 ? '' : 's'}`
+  return 'Scheduled'
+}
+
 export default function EnhancedCalendarClient() {
   const [visibleMonth, setVisibleMonth] = useState(startOfDay(new Date()))
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(startOfDay(new Date()))
@@ -79,19 +133,25 @@ export default function EnhancedCalendarClient() {
   const [newNotes, setNewNotes] = useState('')
   const [newCategory, setNewCategory] = useState<CalendarEvent['category']>('deadline')
   const [newPriority, setNewPriority] = useState<CalendarEvent['priority']>('medium')
+  const [newRepeat, setNewRepeat] = useState<RepeatPattern>('none')
+  const [newOccurrences, setNewOccurrences] = useState(4)
   const [uid, setUid] = useState<string | null>(null)
   const [isPaidPlan, setIsPaidPlan] = useState(false)
   const [remindersEnabled, setRemindersEnabled] = useState(true)
   const [prefsLoading, setPrefsLoading] = useState(false)
   const [prefsSaving, setPrefsSaving] = useState(false)
   const [prefsError, setPrefsError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
+  const [isSavingEvent, setIsSavingEvent] = useState(false)
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient()
     supabase.auth.getUser().then(({ data }) => {
       setUid(data?.user?.id || null)
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUid(session?.user?.id || null)
     })
     return () => subscription.unsubscribe()
@@ -126,7 +186,6 @@ export default function EnhancedCalendarClient() {
           ;(data.events || []).forEach((ev: any) => {
             const jsDate = parseEventDate(ev.date)
             const key = dateKey(jsDate)
-            const daysUntil = Math.round((startOfDay(jsDate).getTime() - startOfDay(new Date()).getTime()) / (1000 * 60 * 60 * 24))
             const event: CalendarEvent = {
               id: ev.id,
               docId: ev.id,
@@ -136,7 +195,7 @@ export default function EnhancedCalendarClient() {
               type: ev.type,
               source: ev.source,
               dateValue: jsDate,
-              daysUntil,
+              daysUntil: getDaysUntil(jsDate),
               priority: ev.priority || 'medium',
               category: ev.category || 'deadline',
               completed: Boolean(ev.completed),
@@ -217,13 +276,40 @@ export default function EnhancedCalendarClient() {
     }
   }
 
+  const resetForm = () => {
+    setNewTitle('')
+    setNewTime('')
+    setNewNotes('')
+    setNewRepeat('none')
+    setNewOccurrences(4)
+    setFormError(null)
+  }
+
   const addEvent = async () => {
     if (!selectedDate) return
     const title = newTitle.trim()
-    if (!title) return
-    const key = dateKey(selectedDate)
+    if (title.length < 2) {
+      setFormError('Title must be at least 2 characters.')
+      return
+    }
+    if (title.length > 180) {
+      setFormError('Title cannot be more than 180 characters.')
+      return
+    }
+    if (newNotes.trim().length > 2000) {
+      setFormError('Notes cannot be more than 2000 characters.')
+      return
+    }
+    if (newRepeat !== 'none' && (newOccurrences < 2 || newOccurrences > 24)) {
+      setFormError('For recurring events, occurrences must be between 2 and 24.')
+      return
+    }
+
+    setFormError(null)
+    setIsSavingEvent(true)
+
     const normalizedSelected = startOfDay(selectedDate)
-    const dayDiff = Math.round((normalizedSelected.getTime() - startOfDay(new Date()).getTime()) / (1000 * 60 * 60 * 24))
+    const occurrences = newRepeat === 'none' ? 1 : newOccurrences
 
     if (uid) {
       try {
@@ -233,58 +319,92 @@ export default function EnhancedCalendarClient() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             title,
-            notes: newNotes || null,
+            notes: newNotes.trim() || null,
             time: newTime || null,
             date: normalizedSelected.toISOString(),
-            dateKey: key,
             category: newCategory,
             priority: newPriority,
             completed: false,
-          })
+            repeat: newRepeat,
+            occurrences,
+          }),
         })
-        if (response.ok) {
-          const data = await response.json()
-          const ev: CalendarEvent = {
-            id: data.event?.id || `${Date.now()}`,
-            docId: data.event?.id,
-            title,
-            time: newTime || undefined,
-            notes: newNotes || undefined,
-            dateValue: normalizedSelected,
-            daysUntil: dayDiff,
-            category: newCategory,
-            priority: newPriority,
-            completed: false,
-          }
-          setEventsByDate((prev) => ({
-            ...prev,
-            [key]: [...(prev[key] || []), ev],
-          }))
+
+        const data = await response.json().catch(() => ({}))
+        if (!response.ok) {
+          setFormError(data?.error || 'Failed to save event.')
+          return
         }
+
+        const insertedEvents: any[] = Array.isArray(data?.events)
+          ? data.events
+          : data?.event
+          ? [data.event]
+          : []
+
+        if (insertedEvents.length === 0) {
+          setFormError('No events were created.')
+          return
+        }
+
+        setEventsByDate((prev) => {
+          const next = { ...prev }
+          insertedEvents.forEach((ev) => {
+            const jsDate = parseEventDate(ev.date)
+            const key = dateKey(jsDate)
+            const mappedEvent: CalendarEvent = {
+              id: ev.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+              docId: ev.id,
+              title: ev.title ?? title,
+              notes: ev.notes ?? undefined,
+              time: ev.time ?? undefined,
+              type: ev.type ?? undefined,
+              source: ev.source ?? undefined,
+              dateValue: jsDate,
+              daysUntil: getDaysUntil(jsDate),
+              priority: (ev.priority || newPriority || 'medium') as CalendarEvent['priority'],
+              category: (ev.category || newCategory || 'deadline') as CalendarEvent['category'],
+              completed: Boolean(ev.completed),
+            }
+            next[key] = [...(next[key] || []), mappedEvent]
+          })
+          return next
+        })
+
+        resetForm()
       } catch (error) {
         console.error('Failed to add event:', error)
+        setFormError('Failed to save event. Please try again.')
+      } finally {
+        setIsSavingEvent(false)
       }
-    } else {
-      const ev: CalendarEvent = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        title,
-        time: newTime || undefined,
-        notes: newNotes || undefined,
-        dateValue: normalizedSelected,
-        daysUntil: dayDiff,
-        category: newCategory,
-        priority: newPriority,
-        completed: false,
-      }
-      setEventsByDate((prev) => ({
-        ...prev,
-        [key]: [...(prev[key] || []), ev],
-      }))
+      return
     }
 
-    setNewTitle('')
-    setNewTime('')
-    setNewNotes('')
+    setEventsByDate((prev) => {
+      const next = { ...prev }
+      for (let i = 0; i < occurrences; i++) {
+        const nextDate = addRecurringDate(normalizedSelected, newRepeat, i)
+        const key = dateKey(nextDate)
+        const ev: CalendarEvent = {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${i}`,
+          title,
+          time: newTime || undefined,
+          notes: newNotes.trim() || undefined,
+          dateValue: nextDate,
+          daysUntil: getDaysUntil(nextDate),
+          category: newCategory,
+          priority: newPriority,
+          completed: false,
+          source: newRepeat === 'none' ? undefined : `recurring:${newRepeat}`,
+        }
+        next[key] = [...(next[key] || []), ev]
+      }
+      return next
+    })
+
+    resetForm()
+    setIsSavingEvent(false)
   }
 
   const deleteEvent = async (key: string, id: string) => {
@@ -292,9 +412,16 @@ export default function EnhancedCalendarClient() {
       const ev = (eventsByDate[key] || []).find((e) => e.docId === id || e.id === id)
       if (ev?.docId) {
         try {
-          await fetch(`/api/calendar?id=${ev.docId}`, { method: 'DELETE', credentials: 'include' })
+          const response = await fetch(`/api/calendar?id=${ev.docId}`, { method: 'DELETE', credentials: 'include' })
+          if (!response.ok) {
+            const data = await response.json().catch(() => ({}))
+            setFormError(data?.error || 'Failed to delete event.')
+            return
+          }
         } catch (error) {
           console.error('Failed to delete event:', error)
+          setFormError('Failed to delete event.')
+          return
         }
       }
     }
@@ -313,25 +440,34 @@ export default function EnhancedCalendarClient() {
     if (!target) return
     const nextCompleted = !target.completed
 
-    if (uid && target.docId) {
-      try {
-        await fetch('/api/calendar', {
-          method: 'PUT',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: target.docId, completed: nextCompleted })
-        })
-      } catch (error) {
-        console.error('Failed to update event:', error)
-      }
-    }
-
     setEventsByDate((prev) => ({
       ...prev,
       [key]: (prev[key] || []).map((e) =>
         e.id === id || e.docId === id ? { ...e, completed: nextCompleted } : e
       ),
     }))
+
+    if (uid && target.docId) {
+      try {
+        const response = await fetch('/api/calendar', {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: target.docId, completed: nextCompleted }),
+        })
+        if (!response.ok) {
+          throw new Error('Failed to update event')
+        }
+      } catch (error) {
+        console.error('Failed to update event:', error)
+        setEventsByDate((prev) => ({
+          ...prev,
+          [key]: (prev[key] || []).map((e) =>
+            e.id === id || e.docId === id ? { ...e, completed: !nextCompleted } : e
+          ),
+        }))
+      }
+    }
   }
 
   const monthName = visibleMonth.toLocaleString(undefined, { month: 'long', year: 'numeric' })
@@ -358,7 +494,15 @@ export default function EnhancedCalendarClient() {
   }, [visibleMonth, selectedDate, today])
 
   const selectedKey = selectedDate ? dateKey(selectedDate) : dateKey(today)
-  const selectedEvents = (eventsByDate[selectedKey] || []).sort((a, b) => (a.time || '').localeCompare(b.time || ''))
+  const selectedEvents = useMemo(() => {
+    return [...(eventsByDate[selectedKey] || [])].sort((a, b) => {
+      const statusDiff = statusRank(getEventStatus(a)) - statusRank(getEventStatus(b))
+      if (statusDiff !== 0) return statusDiff
+      const timeDiff = (a.time || '').localeCompare(b.time || '')
+      if (timeDiff !== 0) return timeDiff
+      return (a.title || '').localeCompare(b.title || '')
+    })
+  }, [eventsByDate, selectedKey])
 
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   const categoryClass = (category?: CalendarEvent['category']) => {
@@ -391,6 +535,14 @@ export default function EnhancedCalendarClient() {
     }
   }
 
+  const statusClass = (status: EventStatus) => {
+    if (status === 'overdue') return styles.eventStatusOverdue
+    if (status === 'today') return styles.eventStatusToday
+    if (status === 'upcoming') return styles.eventStatusUpcoming
+    if (status === 'done') return styles.eventStatusDone
+    return styles.eventStatusFuture
+  }
+
   return (
     <div className={styles.calendarPage}>
       <div className={styles.header}>
@@ -418,7 +570,9 @@ export default function EnhancedCalendarClient() {
           </div>
           <div className={styles.monthGrid}>
             {dayNames.map((day) => (
-              <div key={day} className={styles.dayHeader}>{day}</div>
+              <div key={day} className={styles.dayHeader}>
+                {day}
+              </div>
             ))}
             {monthCells.map((cell) => {
               const key = dateKey(cell.date)
@@ -427,20 +581,25 @@ export default function EnhancedCalendarClient() {
                 <div
                   key={cell.date.toISOString()}
                   onClick={() => setSelectedDate(cell.date)}
-                  className={`${styles.dayCell} ${cell.inCurrentMonth ? '' : styles.dayCellMuted} ${cell.isToday ? styles.dayCellToday : ''} ${cell.isSelected ? styles.dayCellActive : ''}`}
+                  className={`${styles.dayCell} ${cell.inCurrentMonth ? '' : styles.dayCellMuted} ${
+                    cell.isToday ? styles.dayCellToday : ''
+                  } ${cell.isSelected ? styles.dayCellActive : ''}`}
                 >
                   <div className={styles.dayNumber}>{cell.date.getDate()}</div>
-                  {events.slice(0, 2).map((event) => (
-                    <div
-                      key={event.id}
-                      className={`${styles.eventPill} ${categoryClass(event.category)} ${event.completed ? styles.eventPillDone : ''}`}
-                    >
-                      {event.title}
-                    </div>
-                  ))}
-                  {events.length > 2 && (
-                    <div className={styles.eventPill}>+{events.length - 2} more</div>
-                  )}
+                  {events.slice(0, 2).map((event) => {
+                    const status = getEventStatus(event)
+                    return (
+                      <div
+                        key={event.id}
+                        className={`${styles.eventPill} ${categoryClass(event.category)} ${
+                          event.completed ? styles.eventPillDone : ''
+                        } ${statusClass(status)}`}
+                      >
+                        {event.title}
+                      </div>
+                    )
+                  })}
+                  {events.length > 2 && <div className={styles.eventPill}>+{events.length - 2} more</div>}
                 </div>
               )
             })}
@@ -462,36 +621,35 @@ export default function EnhancedCalendarClient() {
                 {selectedEvents.length === 0 && (
                   <div className={styles.emptyState}>No events for this date. Add a deadline to get started.</div>
                 )}
-                {selectedEvents.map((event) => (
-                  <div key={event.id} className={`${styles.eventItem} ${categoryItemClass(event.category)}`}>
-                    <div className={styles.eventItemHeader}>
-                      <div className={styles.eventTitle} style={{ textDecoration: event.completed ? 'line-through' : 'none' }}>
-                        {event.title}
+                {selectedEvents.map((event) => {
+                  const status = getEventStatus(event)
+                  return (
+                    <div key={event.id} className={`${styles.eventItem} ${categoryItemClass(event.category)}`}>
+                      <div className={styles.eventItemHeader}>
+                        <div className={styles.eventTitle} style={{ textDecoration: event.completed ? 'line-through' : 'none' }}>
+                          {event.title}
+                        </div>
+                        <span className={`${styles.badge} ${event.priority === 'high' ? styles.badgeHigh : ''}`}>
+                          {event.priority}
+                        </span>
                       </div>
-                      <span className={`${styles.badge} ${event.priority === 'high' ? styles.badgeHigh : ''}`}>
-                        {event.priority}
-                      </span>
+                      <div className={styles.eventMeta}>
+                        {event.time ? `${event.time} · ` : ''}
+                        {event.category}
+                      </div>
+                      <div className={`${styles.eventStatus} ${statusClass(status)}`}>{statusLabel(event)}</div>
+                      {event.notes && <div className={styles.eventMeta}>{event.notes}</div>}
+                      <div className={styles.eventActions}>
+                        <button className={styles.inlineButton} onClick={() => toggleCompleted(selectedKey, event.id)}>
+                          {event.completed ? 'Unmark' : 'Mark done'}
+                        </button>
+                        <button className={styles.inlineButton} onClick={() => deleteEvent(selectedKey, event.id)}>
+                          Delete
+                        </button>
+                      </div>
                     </div>
-                    <div className={styles.eventMeta}>
-                      {event.time ? `${event.time} · ` : ''}{event.category}
-                    </div>
-                    {event.notes && <div className={styles.eventMeta}>{event.notes}</div>}
-                    <div className={styles.eventActions}>
-                      <button
-                        className={styles.inlineButton}
-                        onClick={() => toggleCompleted(selectedKey, event.id)}
-                      >
-                        {event.completed ? 'Unmark' : 'Mark done'}
-                      </button>
-                      <button
-                        className={styles.inlineButton}
-                        onClick={() => deleteEvent(selectedKey, event.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -502,7 +660,7 @@ export default function EnhancedCalendarClient() {
               <div className={styles.preferenceRow}>
                 <div>
                   <div className={styles.preferenceLabel}>Deadline reminder emails</div>
-                  <div className={styles.preferenceHint}>Get email alerts for upcoming deadlines.</div>
+                  <div className={styles.preferenceHint}>Sent by the daily scheduler when this switch is enabled.</div>
                 </div>
                 <button
                   className={`${styles.toggleButton} ${remindersEnabled ? styles.toggleOn : ''}`}
@@ -541,7 +699,7 @@ export default function EnhancedCalendarClient() {
             </div>
             <div className={styles.formGroup}>
               <label>Category</label>
-              <select value={newCategory} onChange={(e) => setNewCategory(e.target.value as any)}>
+              <select value={newCategory} onChange={(e) => setNewCategory(e.target.value as CalendarEvent['category'])}>
                 <option value="deadline">Deadline</option>
                 <option value="hearing">Hearing</option>
                 <option value="meeting">Meeting</option>
@@ -551,26 +709,44 @@ export default function EnhancedCalendarClient() {
             </div>
             <div className={styles.formGroup}>
               <label>Priority</label>
-              <select value={newPriority} onChange={(e) => setNewPriority(e.target.value as any)}>
+              <select value={newPriority} onChange={(e) => setNewPriority(e.target.value as CalendarEvent['priority'])}>
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
               </select>
             </div>
             <div className={styles.formGroup}>
+              <label>Repeat</label>
+              <select value={newRepeat} onChange={(e) => setNewRepeat(e.target.value as RepeatPattern)}>
+                <option value="none">Does not repeat</option>
+                <option value="weekly">Weekly</option>
+                <option value="biweekly">Every 2 weeks</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+            {newRepeat !== 'none' && (
+              <div className={styles.formGroup}>
+                <label>Occurrences</label>
+                <input
+                  type="number"
+                  min={2}
+                  max={24}
+                  value={newOccurrences}
+                  onChange={(e) => setNewOccurrences(Number(e.target.value || 4))}
+                />
+              </div>
+            )}
+            <div className={styles.formGroup}>
               <label>Notes</label>
               <textarea rows={3} value={newNotes} onChange={(e) => setNewNotes(e.target.value)} />
             </div>
+            {formError && <div className={styles.formError}>{formError}</div>}
             <div className={styles.modalActions}>
-              <button className={styles.navButton} onClick={() => {
-                setNewTitle('')
-                setNewTime('')
-                setNewNotes('')
-              }}>
+              <button className={styles.navButton} onClick={resetForm}>
                 Clear
               </button>
-              <button className={styles.primaryButton} onClick={addEvent}>
-                Save deadline
+              <button className={styles.primaryButton} onClick={addEvent} disabled={isSavingEvent}>
+                {isSavingEvent ? 'Saving...' : 'Save deadline'}
               </button>
             </div>
           </div>

@@ -255,7 +255,7 @@ export default function PricingPage() {
               </div>
               <ul className="space-y-3 mb-8 text-left">
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#a5b4fc' }}>✓</span> MyMcKenzie Smart Assistant (with verification)
+                  <span className="mr-2 font-bold" style={{ color: '#a5b4fc' }}>✓</span> MyMcKenzie Smart Assistant
                 </li>
                 <li className="flex items-start text-white">
                   <span className="mr-2 font-bold" style={{ color: '#a5b4fc' }}>✓</span> Unlimited conversations with a 30‑message per thread limit
@@ -307,7 +307,7 @@ export default function PricingPage() {
                   <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> Everything included in Basic
                 </li>
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> MyMcKenzie Smart Assistant (with verification) — finds information and reviews responses for correctness and safety
+                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> MyMcKenzie Smart Assistant — finds information and reviews responses for correctness and safety
                 </li>
                 <li className="flex items-start text-white">
                   <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> Unlimited conversations with a 40‑message per thread limit

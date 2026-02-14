@@ -93,13 +93,6 @@ export default function DashboardPage() {
     normalizedPlan.includes('pro');
   const features = [
     {
-      icon: 'bx-check-circle',
-      title: 'MyChekclist',
-      desc: 'Create and track case checklists',
-      href: '/dashboard/my-checklist',
-      color: '#0ea5e9,#38bdf8'
-    },
-    {
       icon: 'bx-edit',
       title: 'Store My Document',
       desc: 'Upload your legal document',
@@ -118,8 +111,7 @@ export default function DashboardPage() {
       title: 'Check My Calendar',
       desc: 'Track dates and deadlines',
       href: '/dashboard/calendar',
-      color: '#ea580c,#fb923c',
-      badge: 'Upcoming: 13 May'
+      color: '#ea580c,#fb923c'
     },
     {
       icon: 'bx-search',

@@ -23,6 +23,7 @@ export default function AccountSection() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   // User data
   const [firstName, setFirstName] = useState('');
@@ -145,6 +146,17 @@ export default function AccountSection() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    setShowDeleteConfirm(true);
+    // TODO: Wire this to a real delete endpoint.
+  };
+
+  const handleConfirmDelete = async () => {
+    setShowDeleteConfirm(false);
+    // TODO: Wire this to a real delete endpoint.
+    alert('Account deletion is not yet implemented. Please contact support.');
+  };
+
   return (
     <div className={styles.sectionWrapper}>
       <section className={styles.settingsSection}>
@@ -239,8 +251,36 @@ export default function AccountSection() {
         >
           {saving ? 'Saving...' : 'Save Changes'}
         </button>
-        <button className={styles.dangerBtn}>Delete Account</button>
+        <button className={styles.dangerBtn} onClick={handleDeleteAccount}>
+          Delete Account
+        </button>
       </div>
+      {showDeleteConfirm && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true">
+          <div className={styles.modalCard}>
+            <h3 className={styles.modalTitle}>Delete account?</h3>
+            <p className={styles.modalBody}>
+              This action is permanent. Your account and data will be removed.
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.secondaryBtn}
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={styles.dangerBtn}
+                onClick={handleConfirmDelete}
+              >
+                Yes, delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

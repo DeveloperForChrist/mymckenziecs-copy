@@ -105,15 +105,6 @@ export default function SignUpForm() {
         // no-op
       }
 
-      try {
-        await fetch('/api/email/verify', {
-          method: 'POST',
-          credentials: 'include'
-        })
-      } catch {
-        // no-op
-      }
-
       router.push('/dashboard')
       router.refresh()
     } catch (err: unknown) {

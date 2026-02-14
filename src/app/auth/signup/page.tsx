@@ -21,7 +21,7 @@ export default function SignUpPage() {
                 </div>
                 <div className={styles.heroListItem}>
                   <span>02</span>
-                  <div>Summaries and checklists tuned for UK civil procedure.</div>
+                <div>Summaries and next steps tuned for UK civil procedure.</div>
                 </div>
                 <div className={styles.heroListItem}>
                   <span>03</span>

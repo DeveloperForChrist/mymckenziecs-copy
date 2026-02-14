@@ -195,6 +195,36 @@
   text-decoration: line-through;
 }
 
+.eventStatusOverdue {
+  background: rgba(239, 68, 68, 0.16);
+  color: #991b1b;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.eventStatusToday {
+  background: rgba(37, 99, 235, 0.14);
+  color: #1d4ed8;
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.eventStatusUpcoming {
+  background: rgba(245, 158, 11, 0.16);
+  color: #92400e;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.eventStatusFuture {
+  background: rgba(107, 114, 128, 0.12);
+  color: #374151;
+  border-color: rgba(107, 114, 128, 0.24);
+}
+
+.eventStatusDone {
+  background: rgba(16, 185, 129, 0.14);
+  color: #0f766e;
+  border-color: rgba(16, 185, 129, 0.26);
+}
+
 .sidebarColumn {
   display: flex;
   flex-direction: column;
@@ -265,6 +295,17 @@
 .eventMeta {
   font-size: 0.8rem;
   color: var(--admin-muted);
+}
+
+.eventStatus {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  width: fit-content;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 4px 8px;
 }
 
 .eventActions {
@@ -338,6 +379,16 @@
   gap: 12px;
   justify-content: flex-end;
   margin-top: 16px;
+}
+
+.formError {
+  margin-top: 8px;
+  border: 1px solid rgba(185, 28, 28, 0.25);
+  background: rgba(254, 226, 226, 0.8);
+  color: #991b1b;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.82rem;
 }
 
 .addCard {
