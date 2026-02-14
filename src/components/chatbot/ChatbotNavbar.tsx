@@ -13,6 +13,7 @@ interface Conversation {
 }
 
 const FREE_USER_MESSAGE_LIMIT_24H = 20;
+const GUEST_MESSAGE_LIMIT = 5;
 const ESSENTIAL_MESSAGE_LIMIT_PER_THREAD = 30;
 const PLUS_MESSAGE_LIMIT_PER_THREAD = 50;
 
@@ -300,6 +301,10 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
 
   const displayedMessageCount = Math.min(freemiumMessageCount, FREE_USER_MESSAGE_LIMIT_24H);
   const remainingMessages = Math.max(FREE_USER_MESSAGE_LIMIT_24H - displayedMessageCount, 0);
+  const guestMessageCount = Math.min(
+    sessionMessages.filter((msg) => msg.role === 'user').length,
+    GUEST_MESSAGE_LIMIT
+  );
 
   const loadChatHistory = async () => {
     setLoadingHistory(true);
@@ -386,7 +391,46 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
     <>
       <AppTopbar
         left={(
-          isFreemiumPlan ? (
+          !isLoggedIn ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                paddingLeft: '8px'
+              }}
+            >
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'rgba(236, 72, 153, 0.12)',
+                paddingLeft: '10px',
+                paddingRight: '12px',
+                paddingTop: '6px',
+                paddingBottom: '6px',
+                borderRadius: '8px',
+                border: '1px solid rgba(236, 72, 153, 0.25)'
+              }}>
+                <span style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: 'rgba(255,255,255,0.8)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Guest:
+                </span>
+                <span style={{
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  color: guestMessageCount >= GUEST_MESSAGE_LIMIT ? '#ef4444' : '#ec4899'
+                }}>
+                  {guestMessageCount}/{GUEST_MESSAGE_LIMIT}
+                </span>
+              </div>
+            </div>
+          ) : isFreemiumPlan ? (
             <div
               style={{
                 display: 'flex',

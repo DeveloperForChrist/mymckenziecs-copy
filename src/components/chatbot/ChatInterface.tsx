@@ -1322,23 +1322,10 @@ export default function ChatInterface() {
   }, [messages, isGuestFreePlan]);
 
   useEffect(() => {
-    if (!isGuestFreePlan || !isGuestLimitReached || guestLimitNotified) {
-      if (!isGuestLimitReached || !isGuestFreePlan) {
-        setGuestLimitNotified(false);
-      }
-      return;
+    if (!isGuestLimitReached || !isGuestFreePlan) {
+      setGuestLimitNotified(false);
     }
-
-    setGuestLimitNotified(true);
-    setMessages(prev => [
-      ...prev,
-      {
-        role: 'assistant',
-        content: `Hi, you have reached your ${GUEST_MESSAGE_LIMIT}-message guest limit. Please sign up to continue.`,
-        timestamp: new Date()
-      }
-    ]);
-  }, [isGuestFreePlan, isGuestLimitReached, guestLimitNotified]);
+  }, [isGuestLimitReached, isGuestFreePlan]);
 
   useEffect(() => {
     if (!isFreemiumPlan || typeof window === 'undefined') {
@@ -1489,7 +1476,9 @@ export default function ChatInterface() {
       }
 
       const assistantText = stripAssistantSourcesBlock(String(data.response || ''))
+      const assistantMessageId = `assistant_regen_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
       const assistantMessage: Message = {
+        id: assistantMessageId,
         role: 'assistant',
         content: '',
         timestamp: new Date(),
@@ -1498,20 +1487,21 @@ export default function ChatInterface() {
       }
 
       setMessages((prev) => [...prev, assistantMessage])
-      
-      const newMessageIndex = messageIndex
-      typeMessage(assistantText, newMessageIndex)
+
+      typeMessageById(assistantText, assistantMessageId)
     } catch (error: unknown) {
       const errorText = 'MyMckenzie is unavailable to help right now. Please try again later.'
+      const errorMessageId = `assistant_regen_error_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
       const errorMessage: Message = {
+        id: errorMessageId,
         role: 'assistant',
         content: '',
         timestamp: new Date(),
         isTyping: true
       }
       setMessages((prev) => [...prev, errorMessage])
-      
-      typeMessage(errorText, messageIndex)
+
+      typeMessageById(errorText, errorMessageId)
     }
   }
 
@@ -1553,44 +1543,74 @@ export default function ChatInterface() {
     }
   }, [messages.length, autoScroll])
 
-  // Typing effect function
-  const typeMessage = (fullText: string, messageIndex: number) => {
+  const runTypingAnimation = (
+    fullText: string,
+    applyUpdate: (prev: Message[], text: string, isDone: boolean) => Message[]
+  ) => {
     const strippedText = stripAssistantSourcesBlock(fullText)
     const fallbackText = typeof fullText === 'string' ? fullText.trim() : ''
     const sanitizedText = strippedText || fallbackText
-    setMessages((prev) => {
-      const updated = [...prev]
-      if (updated[messageIndex]) {
-        updated[messageIndex] = {
-          ...updated[messageIndex],
-          content: formatAssistantResponse(sanitizedText),
-          isTyping: false
+
+    if (typingIntervalRef.current) {
+      clearInterval(typingIntervalRef.current)
+      typingIntervalRef.current = null
+    }
+
+    if (!sanitizedText) {
+      setMessages((prev) => applyUpdate(prev, '', true))
+      setLoading(false)
+      setLoadingLabel(null)
+      return
+    }
+
+    const totalLength = sanitizedText.length
+    // Drive typing by elapsed time so it never jumps from empty to full text.
+    const tickMs = 24
+    const minDurationMs = 1400
+    const maxDurationMs = 9000
+    const targetDurationMs = Math.min(maxDurationMs, Math.max(minDurationMs, totalLength * 26))
+    const startedAt = Date.now()
+    let cursor = 0
+
+    const tick = () => {
+      const elapsed = Date.now() - startedAt
+      const progress = Math.min(1, elapsed / targetDurationMs)
+      const nextCursor = Math.max(cursor, Math.ceil(totalLength * progress))
+      cursor = Math.min(totalLength, nextCursor)
+      const chunk = formatAssistantResponse(sanitizedText.slice(0, cursor))
+      const isDone = cursor >= totalLength
+
+      setMessages((prev) => applyUpdate(prev, chunk, isDone))
+
+      if (isDone) {
+        if (typingIntervalRef.current) {
+          clearInterval(typingIntervalRef.current)
+          typingIntervalRef.current = null
         }
+        setLoading(false)
+        setLoadingLabel(null)
       }
-      return updated
-    })
-    setLoading(false)
-    setLoadingLabel(null)
+    }
+
+    tick()
+    if (cursor < totalLength) {
+      typingIntervalRef.current = setInterval(tick, tickMs)
+    }
   }
 
   const typeMessageById = (fullText: string, messageId: string) => {
-    const strippedText = stripAssistantSourcesBlock(fullText)
-    const fallbackText = typeof fullText === 'string' ? fullText.trim() : ''
-    const sanitizedText = strippedText || fallbackText
-    setMessages((prev) => {
+    runTypingAnimation(fullText, (prev, text, isDone) => {
       const updated = [...prev]
       const targetIndex = updated.findIndex((m) => m.id === messageId)
       if (targetIndex >= 0) {
         updated[targetIndex] = {
           ...updated[targetIndex],
-          content: formatAssistantResponse(sanitizedText),
-          isTyping: false
+          content: text,
+          isTyping: !isDone
         }
       }
       return updated
     })
-    setLoading(false)
-    setLoadingLabel(null)
   }
 
   // Load conversation history if conversationId is in URL
@@ -1742,8 +1762,25 @@ export default function ChatInterface() {
     e?.preventDefault()
     const hasText = input.trim().length > 0
     const hasAttachments = attachedFiles.length > 0
+    const guestMessagesCount = messages.filter((m) => m.role === 'user').length
     if ((!hasText && !hasAttachments) || loading) return
-    if (isGuestLimitReached) return
+    if (isGuestFreePlan && guestMessagesCount >= GUEST_MESSAGE_LIMIT) {
+      setIsGuestLimitReached(true)
+      if (!guestLimitNotified) {
+        setGuestLimitNotified(true)
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `assistant_limit_${Date.now()}`,
+            role: 'assistant',
+            content: `Hi, you have reached your ${GUEST_MESSAGE_LIMIT}-message guest limit. Please sign up to continue.`,
+            timestamp: new Date()
+          }
+        ])
+      }
+      setShowGuestSignupModal(true)
+      return
+    }
     if (isFreemiumPlan && freemiumMessageCount >= FREEMIUM_MESSAGE_LIMIT) {
       setShowLimitModal(true)
       return
