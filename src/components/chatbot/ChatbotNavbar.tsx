@@ -28,7 +28,7 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [historyLimited, setHistoryLimited] = useState(false)
   const [plan, setPlan] = useState<string | null>(null)
-  const [planLoaded, setPlanLoaded] = useState(true) // Default to loaded for faster UX
+  const [planLoaded, setPlanLoaded] = useState(false)
   const [freemiumMessageCount, setFreemiumMessageCount] = useState(0)
   const [premiumThreadMessageCount, setPremiumThreadMessageCount] = useState(0)
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
@@ -84,14 +84,12 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
     const supabase = getSupabaseBrowserClient();
     let cancelled = false;
 
-    // Set initial state immediately for faster loading
-    setPlanLoaded(true);
-    if (onPlanLoaded) onPlanLoaded(true);
-
     const loadPlan = async (accessToken: string | null, userId: string | null) => {
       if (!userId) {
         setIsLoggedIn(false);
         setPlan('Free');
+        setPlanLoaded(true);
+        if (onPlanLoaded) onPlanLoaded(true);
         return;
       }
       setIsLoggedIn(true);
@@ -111,7 +109,10 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
           // Silently fail - user will still get Free plan access
         }
       }
-      // Note: planLoaded already set to true above, no need to set again
+      if (!cancelled) {
+        setPlanLoaded(true);
+        if (onPlanLoaded) onPlanLoaded(true);
+      }
     };
 
     supabase.auth.getSession().then((res: any) => {
