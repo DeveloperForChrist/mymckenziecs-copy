@@ -23,11 +23,6 @@ const ContactSection = dynamic(() => import('../../components/settings/ContactSe
   loading: () => <div style={{padding: '20px'}}>Loading contact options...</div>
 });
 
-const CaseProfileSection = dynamic(() => import('../../components/settings/CaseProfileSection'), {
-  ssr: false,
-  loading: () => <div style={{padding: '20px'}}>Loading case profile...</div>
-});
-
 import styles from '../../components/settings/settingsPage.module.css';
 
 export default function SettingsPage() {
@@ -63,13 +58,6 @@ export default function SettingsPage() {
                   <h1 className={styles.heading}>Contact Us</h1>
                   <p className={styles.desc}>Reach the MyMcKenzie team for help and support</p>
                   <ContactSection />
-                </>
-              )}
-              {active === 'caseProfile' && (
-                <>
-                  <h1 className={styles.heading}>Case Profile</h1>
-                  <p className={styles.desc}>Save a representative case profile to use across the workspace.</p>
-                  <CaseProfileSection />
                 </>
               )}
             </main>

@@ -6,7 +6,6 @@ type Item = { label: string; key: string };
 const menuItems: Item[] = [
   { label: 'Account Info', key: 'account' },
   { label: 'Billing & Plans', key: 'billing' },
-  { label: 'Case Profile', key: 'caseProfile' },
   { label: 'Contact Us', key: 'contact' },
 ];
 
