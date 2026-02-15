@@ -1904,6 +1904,19 @@ export default function ChatInterface() {
       }
 
       const assistantText = data.response
+      const serverIndicatedLimitReached =
+        Boolean((data as any)?.guestLimitReached) ||
+        Boolean((data as any)?.metadata?.guestLimitReached) ||
+        Boolean((data as any)?.metadata?.limitReached)
+      const looksLikeGuestLimitMessage =
+        typeof assistantText === 'string' &&
+        /guest\s+limit/i.test(assistantText) &&
+        /sign\s*up|sign\s+in|continue/i.test(assistantText)
+
+      if (serverIndicatedLimitReached || looksLikeGuestLimitMessage) {
+        setIsGuestLimitReached(true)
+        setShowGuestSignupModal(true)
+      }
       const assistantMessageId = `assistant_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
       const assistantMessage: Message = {
         id: assistantMessageId,
