@@ -138,6 +138,22 @@ export async function DELETE(request: NextRequest) {
 
     if (userEmail) {
       try {
+        // Idempotency: if we've already sent the deletion email for this user, skip.
+        const { data: alreadySent, error: sentErr } = await supabaseAdmin
+          .from('audit_log')
+          .select('id')
+          .eq('table_name', 'users')
+          .eq('record_id', userId)
+          .eq('action', 'email_account_deleted_sent')
+          .limit(1)
+
+        if (sentErr) {
+          console.error('Account deletion email check failed', sentErr)
+        }
+
+        if (Array.isArray(alreadySent) && alreadySent.length > 0) {
+          // Continue with deletion, but don't spam emails.
+        } else {
         const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com'
         const htmlBody = renderTemplate('18-account-deleted.html', {
           name: String(displayName),
@@ -149,6 +165,16 @@ export async function DELETE(request: NextRequest) {
           htmlBody,
           tag: 'account-deleted-confirmation',
         })
+
+          // Record that we sent this email (store user_id as null to avoid FK issues).
+          await supabaseAdmin.from('audit_log').insert({
+            user_id: null,
+            table_name: 'users',
+            record_id: userId,
+            action: 'email_account_deleted_sent',
+            new_data: { email: userEmail } as any,
+          })
+        }
       } catch (emailError) {
         console.error('Account deletion email failed', emailError)
       }

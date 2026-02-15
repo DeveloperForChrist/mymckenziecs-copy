@@ -12,10 +12,23 @@ export default function AdminLoginPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Check if already logged in
-    const isAdminLoggedIn = localStorage.getItem('adminLoggedIn')
-    if (isAdminLoggedIn === 'true') {
-      router.push('/admin/dashboard')
+    let cancelled = false
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/admin/session', { credentials: 'include' })
+        const data = response.ok ? await response.json() : null
+        if (!cancelled && data?.authenticated) {
+          localStorage.setItem('adminLoggedIn', 'true')
+          if (data?.email) localStorage.setItem('adminEmail', String(data.email))
+          router.push('/admin/dashboard')
+        }
+      } catch {
+        // ignore
+      }
+    }
+    checkSession()
+    return () => {
+      cancelled = true
     }
   }, [router])
 
@@ -24,16 +37,23 @@ export default function AdminLoginPage() {
     setError('')
     setLoading(true)
 
-    // Hardcoded admin credentials
-    const ADMIN_EMAIL = 'dataforchrist@outlook.com'
-    const ADMIN_PASSWORD = 'Pentagon100'
-
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
+      if (!response.ok) {
+        setError('Invalid email or password')
+        setLoading(false)
+        return
+      }
       localStorage.setItem('adminLoggedIn', 'true')
       localStorage.setItem('adminEmail', email)
       router.push('/admin/dashboard')
-    } else {
-      setError('Invalid email or password')
+    } catch {
+      setError('Login failed. Please try again.')
       setLoading(false)
     }
   }

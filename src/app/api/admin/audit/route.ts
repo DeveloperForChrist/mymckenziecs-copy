@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
-import { getAdminSessionFromCookies } from '@/lib/auth/admin-session';
+import { requireAdminSession } from '@/lib/auth/admin-guard';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -8,10 +8,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    const session = getAdminSessionFromCookies();
-    if (!session.ok) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const admin = requireAdminSession();
+    if (!admin.ok) return admin.response;
 
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '100');

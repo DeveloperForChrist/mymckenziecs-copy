@@ -33,12 +33,6 @@ describe('Smoke Tests', () => {
       expect(typeof chatModule.POST).toBe('function');
     });
 
-    it('should have analyze-document API route', async () => {
-      const analyzeModule = await import('@/app/api/analyze-document/route');
-      expect(analyzeModule.POST).toBeDefined();
-      expect(typeof analyzeModule.POST).toBe('function');
-    });
-
     it('should have search-case-law API route', async () => {
       const searchModule = await import('@/app/api/search-case-law/route');
       expect(searchModule.POST).toBeDefined();

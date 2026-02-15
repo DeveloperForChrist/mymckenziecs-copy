@@ -8,8 +8,6 @@ type DocumentsTableProps = {
   formatDate: (value: string) => string;
   formatSize: (value: number) => string;
   onView: (doc: Document) => void;
-  onSummarize: (doc: Document) => void;
-  onAnalyze: (doc: Document) => void;
   onToggleStar: (id: string) => void;
   onDelete: (id: string) => void;
   onFolderChange: (docId: string, folderId: string) => void;
@@ -21,8 +19,6 @@ export default function DocumentsTable({
   formatDate,
   formatSize,
   onView,
-  onSummarize,
-  onAnalyze,
   onToggleStar,
   onDelete,
   onFolderChange,
@@ -73,22 +69,6 @@ export default function DocumentsTable({
                   type="button"
                 >
                   <i className="bx bx-show"></i>
-                </button>
-                <button
-                  className={styles.actionIcon}
-                  onClick={() => onSummarize(doc)}
-                  title="Summarize"
-                  type="button"
-                >
-                  <i className="bx bx-file-blank"></i>
-                </button>
-                <button
-                  className={styles.actionIcon}
-                  onClick={() => onAnalyze(doc)}
-                  title="Analyse"
-                  type="button"
-                >
-                  <i className="bx bx-search-alt"></i>
                 </button>
                 <button
                   className={`${styles.actionIcon} ${doc.starred ? styles.starActive : ""}`}

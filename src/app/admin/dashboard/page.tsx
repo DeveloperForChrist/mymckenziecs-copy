@@ -285,13 +285,21 @@ export default function AdminDashboard() {
   const router = useRouter()
 
   useEffect(() => {
-    const isAdminLoggedIn = localStorage.getItem('adminLoggedIn')
-    if (isAdminLoggedIn !== 'true') {
-      router.push('/admin')
-      return
+    const check = async () => {
+      try {
+        const res = await fetch('/api/admin/session', { credentials: 'include' })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || !data?.authenticated) {
+          router.push('/admin')
+          return
+        }
+        localStorage.setItem('adminLoggedIn', 'true')
+        void refreshAll()
+      } catch {
+        router.push('/admin')
+      }
     }
-
-    void refreshAll()
+    void check()
   }, [router, period])
 
   const refreshAll = async () => {
@@ -308,28 +316,27 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      const headers = { 'x-admin-auth': 'true' }
-      const analyticsRes = await fetch(`/api/admin/analytics?period=${period}`, { headers })
+      const analyticsRes = await fetch(`/api/admin/analytics?period=${period}`, { credentials: 'include' })
       const analyticsData = await analyticsRes.json()
       setAnalytics(analyticsData.overview)
 
-      const usersRes = await fetch('/api/admin/users', { headers })
+      const usersRes = await fetch('/api/admin/users', { credentials: 'include' })
       const usersData = await usersRes.json()
       setUsers(usersData.users || [])
 
-      const casesRes = await fetch('/api/admin/cases', { headers })
+      const casesRes = await fetch('/api/admin/cases', { credentials: 'include' })
       const casesData = await casesRes.json()
       setCases(casesData.cases || [])
 
-      const docsRes = await fetch('/api/admin/documents', { headers })
+      const docsRes = await fetch('/api/admin/documents', { credentials: 'include' })
       const docsData = await docsRes.json()
       setDocuments(docsData.documents || [])
 
-      const healthRes = await fetch('/api/admin/system', { headers })
+      const healthRes = await fetch('/api/admin/system', { credentials: 'include' })
       const healthData = await healthRes.json()
       setSystemHealth(healthData.health)
 
-      const feedbackRes = await fetch('/api/admin/feedback', { headers })
+      const feedbackRes = await fetch('/api/admin/feedback', { credentials: 'include' })
       const feedbackData = await feedbackRes.json()
       setFeedback(feedbackData.feedback || [])
       setFeedbackCounts(feedbackData.counts || { likes: 0, dislikes: 0, reports: 0, total: 0 })
@@ -340,8 +347,7 @@ export default function AdminDashboard() {
 
   const fetchMetrics = async () => {
     try {
-      const headers = { 'x-admin-auth': 'true' }
-      const res = await fetch(`/api/admin/metrics?period=${period}`, { headers })
+      const res = await fetch(`/api/admin/metrics?period=${period}`, { credentials: 'include' })
       const data = await res.json()
       if (!res.ok) {
         throw new Error(data?.error || 'Failed to fetch metrics')
@@ -359,8 +365,7 @@ export default function AdminDashboard() {
 
   const fetchApiUsage = async () => {
     try {
-      const headers = { 'x-admin-auth': 'true' }
-      const res = await fetch(`/api/admin/api-usage?period=${period}`, { headers })
+      const res = await fetch(`/api/admin/api-usage?period=${period}`, { credentials: 'include' })
       const data = await res.json()
       setApiUsage(data.usage || [])
       setApiUsageSummary(
@@ -390,8 +395,8 @@ export default function AdminDashboard() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-auth': 'true',
         },
+        credentials: 'include',
         body: JSON.stringify({ action, userId, data }),
       })
 
@@ -422,8 +427,8 @@ export default function AdminDashboard() {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-auth': 'true',
         },
+        credentials: 'include',
         body: JSON.stringify({ caseId }),
       })
 
@@ -441,9 +446,15 @@ export default function AdminDashboard() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('adminLoggedIn')
-    localStorage.removeItem('adminEmail')
-    router.push('/admin')
+    const perform = async () => {
+      try {
+        await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' })
+      } catch {}
+      localStorage.removeItem('adminLoggedIn')
+      localStorage.removeItem('adminEmail')
+      router.push('/admin')
+    }
+    void perform()
   }
 
   const tabs = useMemo(

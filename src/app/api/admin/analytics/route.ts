@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
+import { requireAdminSession } from '@/lib/auth/admin-guard';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -7,11 +8,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    // Verify admin session
-    const adminLoggedIn = request.headers.get('x-admin-auth');
-    if (adminLoggedIn !== 'true') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const admin = requireAdminSession();
+    if (!admin.ok) return admin.response;
 
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period') || 'week'; // day, week, month

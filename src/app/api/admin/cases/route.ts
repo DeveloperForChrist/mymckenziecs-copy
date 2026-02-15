@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
+import { requireAdminSession } from '@/lib/auth/admin-guard';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,11 +18,8 @@ type CaseRow = {
 
 export async function GET(request: Request) {
   try {
-    // Verify admin session
-    const adminLoggedIn = request.headers.get('x-admin-auth');
-    if (adminLoggedIn !== 'true') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const admin = requireAdminSession();
+    if (!admin.ok) return admin.response;
 
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId') || '';
@@ -83,11 +81,8 @@ export async function GET(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    // Verify admin session
-    const adminLoggedIn = request.headers.get('x-admin-auth');
-    if (adminLoggedIn !== 'true') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const admin = requireAdminSession();
+    if (!admin.ok) return admin.response;
 
     const body = await request.json() as { caseId?: string; caseProfile?: { id?: string } };
     const providedCaseId = typeof body?.caseId === 'string' ? body.caseId : undefined;

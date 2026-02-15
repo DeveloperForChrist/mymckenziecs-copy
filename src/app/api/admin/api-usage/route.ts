@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
+import { requireAdminSession } from '@/lib/auth/admin-guard'
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -14,9 +15,8 @@ type ApiUsageRow = {
 
 export async function GET(req: NextRequest) {
   try {
-    if (req.headers.get('x-admin-auth') !== 'true') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const admin = requireAdminSession()
+    if (!admin.ok) return admin.response
 
     const { searchParams } = req.nextUrl
     const provider = searchParams.get('provider') || ''

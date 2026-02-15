@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
+import { requireAdminSession } from '@/lib/auth/admin-guard';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -64,10 +65,8 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('x-admin-auth');
-    if (authHeader !== 'true') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const admin = requireAdminSession();
+    if (!admin.ok) return admin.response;
 
     const searchParams = request.nextUrl.searchParams;
     const type = searchParams.get('type');

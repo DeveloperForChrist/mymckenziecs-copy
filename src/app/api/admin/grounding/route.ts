@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { NextResponse } from 'next/server'
-import { getAdminSessionFromCookies } from '@/lib/auth/admin-session'
+import { requireAdminSession } from '@/lib/auth/admin-guard'
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -41,10 +41,8 @@ const readGroundingLog = () => {
 
 export async function GET() {
   try {
-    const session = getAdminSessionFromCookies()
-    if (!session.ok) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const admin = requireAdminSession()
+    if (!admin.ok) return admin.response
 
     const summary = readGroundingLog()
     return NextResponse.json({ summary })

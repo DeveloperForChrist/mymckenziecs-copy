@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { requireAdminSession } from '@/lib/auth/admin-guard';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -6,11 +7,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    // Verify admin session
-    const adminLoggedIn = request.headers.get('x-admin-auth');
-    if (adminLoggedIn !== 'true') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const admin = requireAdminSession();
+    if (!admin.ok) return admin.response;
 
     // System health check
     const health = {
@@ -42,11 +40,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    // Verify admin session
-    const adminLoggedIn = request.headers.get('x-admin-auth');
-    if (adminLoggedIn !== 'true') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const admin = requireAdminSession();
+    if (!admin.ok) return admin.response;
 
     const { action } = await request.json();
 

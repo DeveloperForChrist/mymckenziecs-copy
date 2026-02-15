@@ -53,3 +53,10 @@ logs/legal_documents_export.csv
 .dev_server.pid
 .logs/
 data/
+
+# Supabase CLI local state (may contain tokens)
+.supabase/
+supabase/.temp/
+
+# Tooling cache
+.npm/

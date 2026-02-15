@@ -4,12 +4,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/database/supabase-browser";
 import styles from "./documents-page-new.module.css";
 import DocumentsActionBar from "./documents/DocumentsActionBar";
-import DocumentsAnalysisModal from "./documents/DocumentsAnalysisModal";
 import DocumentsFilters from "./documents/DocumentsFilters";
 import DocumentsFolderModal from "./documents/DocumentsFolderModal";
 import DocumentsHeader from "./documents/DocumentsHeader";
 import DocumentsSidebar from "./documents/DocumentsSidebar";
-import DocumentsSummaryModal from "./documents/DocumentsSummaryModal";
 import DocumentsTable from "./documents/DocumentsTable";
 import DocumentsViewerModal from "./documents/DocumentsViewerModal";
 import type { Document, Folder } from "./documents/types";
@@ -40,14 +38,6 @@ export default function DocumentsClient() {
   const [uploadFolderId, setUploadFolderId] = useState<string>('');
   const [activeCaseId, setActiveCaseId] = useState('');
   const [uid, setUid] = useState<string | null>(null);
-  const [reviewingDocument, setReviewingDocument] = useState<Document | null>(null);
-  const [analysisResult, setAnalysisResult] = useState<string>('');
-  const [isAnalysing, setIsAnalysing] = useState(false);
-  const [analysisById, setAnalysisById] = useState<Record<string, { text: string; highlights?: { start: number; end: number; label?: string; reason?: string }[] }>>({});
-  const [summarizingDocument, setSummarizingDocument] = useState<Document | null>(null);
-  const [summaryResult, setSummaryResult] = useState<string>('');
-  const [isSummarizing, setIsSummarizing] = useState(false);
-  const [summaryById, setSummaryById] = useState<Record<string, string>>({});
   const [viewingDocument, setViewingDocument] = useState<Document | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewText, setPreviewText] = useState<string | null>(null);
@@ -58,6 +48,17 @@ export default function DocumentsClient() {
   const [newFolderName, setNewFolderName] = useState('');
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+
+  const readApiJson = async (res: Response) => {
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) return await res.json();
+    const text = await res.text();
+    const trimmed = text.trim();
+    if (trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<html')) {
+      return { error: 'Server returned an unexpected response. Please try again.' };
+    }
+    return { error: trimmed || 'Request failed' };
+  };
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -103,10 +104,8 @@ export default function DocumentsClient() {
     const fetchDocuments = async () => {
       try {
         const res = await fetch('/api/documents', { credentials: 'include', signal: controller.signal });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data?.error || 'Failed to load documents');
-        }
+        const data: any = await readApiJson(res);
+        if (!res.ok) throw new Error(data?.error || 'Failed to load documents');
         setDocuments((data.documents || []).map((x: any) => mapApiDocument(x, folderMap)));
       } catch (err: any) {
         if (err?.name === 'AbortError') return;
@@ -147,11 +146,9 @@ export default function DocumentsClient() {
       files.forEach(file => formData.append('files', file));
       if (activeCaseId) formData.append('caseId', activeCaseId);
 
-      const res = await fetch('/api/documents', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data?.error || 'Upload failed');
-      }
+      const res = await fetch('/api/documents', { method: 'POST', body: formData, credentials: 'include' });
+      const data: any = await readApiJson(res);
+      if (!res.ok) throw new Error(data?.error || 'Upload failed');
       const targetFolderId = activeFolder || uploadFolderId || undefined;
       const newDocs: Document[] = (data.documents || []).map((x:any)=> mapApiDocument(x, folderMap, targetFolderId));
       setDocuments(p=>[...newDocs,...p]);
@@ -179,9 +176,20 @@ export default function DocumentsClient() {
     setDocuments(p => p.map(d => d.id === id ? {...d, starred: !d.starred} : d));
   };
 
-  const deleteDocument = (id: string) => {
-    if (confirm('Are you sure you want to delete this document?')) {
+  const deleteDocument = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this document?')) return;
+    try {
+      const res = await fetch(`/api/documents/${encodeURIComponent(id)}`, { method: 'DELETE', credentials: 'include' });
+      const data: any = await readApiJson(res);
+      if (!res.ok) throw new Error(data?.error || 'Failed to delete document');
       setDocuments(p => p.filter(d => d.id !== id));
+      setFolderMap(prev => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    } catch (err: any) {
+      setUploadError(err?.message || 'Failed to delete document');
     }
   };
 
@@ -208,60 +216,7 @@ export default function DocumentsClient() {
     }
   };
 
-  const analyseDocument = async (document: Document, openModal = false) => {
-    if (openModal) setReviewingDocument(document);
-    setAnalysisResult('');
-    setIsAnalysing(true);
-    
-    try {
-      const res = await fetch('/api/analyze-document', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentId: document.id })
-      });
-      const data = await res.json();
-      if (res.ok && (data.analysis || data.analysisText)) {
-        const analysisText = data.analysisText || data.analysis || '';
-        setAnalysisResult(analysisText);
-        setAnalysisById(prev => ({ ...prev, [document.id]: { text: analysisText, highlights: data.highlights || [] } }));
-      } else {
-        setAnalysisResult(data.error || 'Failed to analyse document');
-      }
-    } catch (err) {
-      setAnalysisResult('Error analysing document. Please try again.');
-    } finally {
-      setIsAnalysing(false);
-    }
-  };
-
-  const summarizeDocument = async (document: Document) => {
-    setSummarizingDocument(document);
-    setSummaryResult('');
-    setIsSummarizing(true);
-    
-    try {
-      if (!document.content) {
-        setSummaryResult('Summary is only available for text previews. Download the file for full review.');
-        return;
-      }
-      const res = await fetch('/api/summarize-document', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: document.title, content: document.content })
-      });
-      const data = await res.json();
-      if (res.ok && data.summary) {
-        setSummaryResult(data.summary);
-        setSummaryById(prev => ({ ...prev, [document.id]: data.summary }));
-      } else {
-        setSummaryResult(data.error || 'Failed to summarize document');
-      }
-    } catch (err) {
-      setSummaryResult('Error summarizing document. Please try again.');
-    } finally {
-      setIsSummarizing(false);
-    }
-  };
+  // Summarize / analyse actions removed per product decision.
 
   const getPreviewKind = (doc: Document) => {
     const name = doc.title.toLowerCase();
@@ -293,16 +248,16 @@ export default function DocumentsClient() {
 
       setPreviewLoading(true);
       try {
-        const res = await fetch(`/api/documents/${viewingDocument.id}/signed`);
-        const data = await res.json();
+        const res = await fetch(`/api/documents/${viewingDocument.id}/signed`, { credentials: 'include' });
+        const data: any = await readApiJson(res);
         if (!res.ok || !data?.url) {
           throw new Error(data?.error || 'Unable to load preview');
         }
         setPreviewUrl(data.url);
         const kind = getPreviewKind(viewingDocument);
         if (kind === 'text' || kind === 'docx') {
-          const previewRes = await fetch(`/api/documents/${viewingDocument.id}/preview`);
-          const previewData = await previewRes.json();
+          const previewRes = await fetch(`/api/documents/${viewingDocument.id}/preview`, { credentials: 'include' });
+          const previewData: any = await readApiJson(previewRes);
           if (kind === 'text' && previewData?.text) {
             setPreviewText(previewData.text);
             setDocuments(prev => prev.map(doc => doc.id === viewingDocument.id ? { ...doc, content: previewData.text } : doc));
@@ -474,11 +429,6 @@ export default function DocumentsClient() {
     setViewingDocument(doc);
   };
 
-  const handleAnalyzeFromTable = (doc: Document) => {
-    setViewingDocument(doc);
-    analyseDocument(doc);
-  };
-
   return (
     <div className={styles.container}>
       <DocumentsSidebar
@@ -530,8 +480,6 @@ export default function DocumentsClient() {
               formatDate={fmt}
               formatSize={fmtSize}
               onView={handleViewDocument}
-              onSummarize={summarizeDocument}
-              onAnalyze={handleAnalyzeFromTable}
               onToggleStar={toggleStar}
               onDelete={deleteDocument}
               onFolderChange={handleFolderAssignment}
@@ -539,22 +487,6 @@ export default function DocumentsClient() {
           )}
         </div>
       </main>
-
-      <DocumentsAnalysisModal
-        document={reviewingDocument}
-        analysisResult={analysisResult}
-        isAnalysing={isAnalysing}
-        formatDate={fmt}
-        onClose={() => setReviewingDocument(null)}
-      />
-
-      <DocumentsSummaryModal
-        document={summarizingDocument}
-        summaryResult={summaryResult}
-        isSummarizing={isSummarizing}
-        formatDate={fmt}
-        onClose={() => setSummarizingDocument(null)}
-      />
 
       <DocumentsViewerModal
         document={viewingDocument}
@@ -564,15 +496,11 @@ export default function DocumentsClient() {
         previewText={previewText}
         previewHtml={previewHtml}
         previewUrl={previewUrl}
-        analysisById={analysisById}
-        summaryById={summaryById}
         buildHighlights={buildHighlights}
         buildHighlightsFromRanges={buildHighlightsFromRanges}
         buildHighlightedHtml={buildHighlightedHtml}
         extractIssues={extractIssues}
         getPreviewKind={getPreviewKind}
-        onAnalyze={analyseDocument}
-        onSummarize={summarizeDocument}
         onClose={() => setViewingDocument(null)}
       />
 
