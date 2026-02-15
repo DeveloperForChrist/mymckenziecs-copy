@@ -236,20 +236,52 @@ const truncateText = (value: string, maxChars: number) => {
 
 export async function POST(request: NextRequest) {
   let authUserId: string | undefined
+  let guestId: string | null = null
+  let shouldSetGuestCookie = false
   try {
+    // Basic CSRF/bot protections (defense in depth).
+    const secFetchSite = request.headers.get('sec-fetch-site')
+    if (secFetchSite && secFetchSite === 'cross-site') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+    if (!isAllowedOrigin(request)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+    const contentType = request.headers.get('content-type') || ''
+    if (!contentType.toLowerCase().includes('application/json')) {
+      return NextResponse.json({ error: 'Unsupported Media Type' }, { status: 415 })
+    }
+
     // Get user session for rate limiting
     const supabase = await createSupabaseRouteClient()
     const { data: authData } = await supabase.auth.getUser()
     authUserId = authData?.user?.id
     let userId = authUserId
-    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip')
+    const ip =
+      parseForwardedFor(request.headers.get('x-forwarded-for')) ||
+      parseForwardedFor(request.headers.get('x-real-ip')) ||
+      null
+
+    // For guests: use an httpOnly cookie-based ID (stable across devices/browsers per device).
+    // Do NOT trust client-provided userId.
+    if (!userId) {
+      const existing = request.cookies.get(GUEST_COOKIE_NAME)?.value || null
+      if (existing && uuidRegex.test(existing)) {
+        guestId = existing
+      } else {
+        guestId = crypto.randomUUID()
+        shouldSetGuestCookie = true
+      }
+      userId = `anon_${guestId}`
+    }
     
-    // Apply rate limiting (10 requests per 60 seconds for AI operations)
-    const identifier = getIdentifier(userId, ip || undefined)
-    const rateLimitResult = await rateLimit(aiRateLimiter, identifier, 10, 60000)
+    // Apply rate limiting (authenticated vs guest)
+    const limiter = authUserId ? aiRateLimiter : aiGuestRateLimiter
+    const identifier = authUserId ? getIdentifier(userId, ip || undefined) : `guest:${guestId}`
+    const rateLimitResult = await rateLimit(limiter, identifier, authUserId ? 10 : 6, 60000)
     
     if (!rateLimitResult.success) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { 
           error: 'Too many requests',
           message: 'You have exceeded the rate limit. Please try again later.',
@@ -264,16 +296,46 @@ export async function POST(request: NextRequest) {
           }
         }
       )
+      if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
+      return response
+    }
+
+    // Extra IP-based limiter for guests.
+    if (!authUserId && ip) {
+      const ipResult = await rateLimit(aiIpRateLimiter, `ip:${ip}`, 60, 10 * 60 * 1000)
+      if (!ipResult.success) {
+        const response = NextResponse.json(
+          {
+            error: 'Too many requests',
+            message: 'You have exceeded the rate limit. Please try again later.',
+            resetAt: new Date(ipResult.reset).toISOString(),
+          },
+          {
+            status: 429,
+            headers: {
+              'X-RateLimit-Limit': String(ipResult.limit),
+              'X-RateLimit-Remaining': String(ipResult.remaining),
+              'X-RateLimit-Reset': String(ipResult.reset),
+            },
+          }
+        )
+        if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
+        return response
+      }
     }
 
     const body = await request.json()
     const parsedBody = chatRequestSchema.safeParse(body)
     if (!parsedBody.success) {
-      return NextResponse.json({ error: 'Invalid input', details: parsedBody.error.issues }, { status: 400 })
+      const response = NextResponse.json(
+        { error: 'Invalid input', details: parsedBody.error.issues },
+        { status: 400 }
+      )
+      if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
+      return response
     }
     const bodyData = parsedBody.data
 
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
     const sanitizedCaseId =
       typeof bodyData?.activeCaseId === 'string' && uuidRegex.test(bodyData.activeCaseId.trim())
         ? bodyData.activeCaseId.trim()
@@ -292,16 +354,17 @@ export async function POST(request: NextRequest) {
     })
     
     if (!validation.success) {
-        return NextResponse.json(
-          { error: 'Invalid input', details: validation.error.issues },
+      const response = NextResponse.json(
+        { error: 'Invalid input', details: validation.error.issues },
         { status: 400 }
       )
+      if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
+      return response
     }
 
     const {
       message,
       history,
-      userId: clientUserId,
       conversationId,
       attachmentsOnly,
       attachments,
@@ -312,19 +375,58 @@ export async function POST(request: NextRequest) {
     const activeCaseId = sanitizedCaseId || profileCaseId
 
     if (!message || typeof message !== 'string') {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { message: 'Message is required' },
         { status: 400 }
       )
+      if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
+      return response
     }
 
-    // Reuse userId from rate limiting check above
-    if (!userId && typeof clientUserId === 'string' && clientUserId.trim().length > 0) {
-      const trimmedId = clientUserId.trim().slice(0, 64)
-      userId = trimmedId.startsWith('anon_') ? trimmedId : `anon_${trimmedId}`
-    }
-    if (!userId) {
-      userId = 'anonymous'
+    // userId is determined server-side (auth user id or cookie-based guest id).
+
+    // Enforce guest limit server-side: after the guest limit is hit, do not answer queries.
+    // This runs before any expensive processing/agent calls.
+    if (!authUserId && guestId) {
+      const windowMs = 24 * 60 * 60 * 1000
+      try {
+        const { data: rows, error: rpcError } = await supabaseAdmin.rpc('consume_guest_message', {
+          p_guest_id: guestId,
+          p_limit: GUEST_MESSAGE_LIMIT_24H,
+          p_window_ms: windowMs,
+        })
+        if (rpcError) throw rpcError
+
+        const row: any = Array.isArray(rows) ? rows[0] : rows
+        const allowed = Boolean(row?.allowed)
+        if (!allowed) {
+          const canMessageAgainAt =
+            typeof row?.can_message_again_at === 'string' ? row.can_message_again_at : null
+          const response = NextResponse.json(
+            {
+              response: `Hi, you have reached your ${GUEST_MESSAGE_LIMIT_24H}-message guest limit. Please sign up to continue.`,
+              guestLimitReached: true,
+              guestLimit: GUEST_MESSAGE_LIMIT_24H,
+              canMessageAgainAt,
+            },
+            { status: 200 }
+          )
+          if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
+          return response
+        }
+      } catch (error) {
+        // If usage tracking fails, don't accidentally give unlimited access.
+        Sentry.captureException(error)
+        const response = NextResponse.json(
+          {
+            response: 'I am unavailable right now. Please try again later.',
+            metadata: { guestUsageError: true },
+          },
+          { status: 200 }
+        )
+        if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
+        return response
+      }
     }
 
     // Initialize ChatManager for intelligent case management
@@ -345,7 +447,7 @@ export async function POST(request: NextRequest) {
     
     // If multiple cases exist without active case, prompt user to select
     if (sessionInfo.requiresCaseSelection) {
-      return NextResponse.json({
+      const response = NextResponse.json({
         requiresCaseSelection: true,
         cases: sessionInfo.cases,
         response: "I see you have multiple cases. Which case would you like to discuss?\n\n" + 
@@ -353,6 +455,8 @@ export async function POST(request: NextRequest) {
             `${i + 1}. ${c.caseType || 'Case'} - ${c.caseNumber || c.id}`
           ).join('\n')
       });
+      if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
+      return response
     }
 
     // Check if user is continuing discussion about existing case (even in new chat)
@@ -451,13 +555,15 @@ export async function POST(request: NextRequest) {
         )
 
     if (!agentResponse.response || !agentResponse.response.trim()) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         {
           response: 'I had trouble generating a response. Please try again in a moment.',
           metadata: { emptyResponse: true }
         },
         { status: 200 }
       )
+      if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
+      return response
     }
 
     if (chatManager.shouldPersistMessages()) {
@@ -475,7 +581,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       { 
         response: agentResponse.response,
         metadata: {
@@ -490,6 +596,8 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     )
+    if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
+    return response
   } catch (error: any) {
     // Capture error in Sentry
     Sentry.captureException(error, {
@@ -506,31 +614,37 @@ export async function POST(request: NextRequest) {
     })
 
     if (error instanceof MessageLimitError) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         {
           response: error.message,
           metadata: { limitType: 'message', limitReached: true }
         },
         { status: 200 }
       );
+      if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
+      return response
     }
 
     console.error('Chat API error:', error)
     
     // Handle rate limits gracefully
     if (error.message?.includes('rate limit') || error.status === 429) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { response: '⚠️ I\'m experiencing high demand right now. Please try again in a moment.' },
         { status: 200 } // Return 200 so UI doesn't show error
       )
+      if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
+      return response
     }
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       { 
         message: error.message || 'Chat failed',
         response: 'I apologize, but I encountered an error. Please try again or rephrase your question.'
       },
       { status: 500 }
     )
+    if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
+    return response
   }
 }
