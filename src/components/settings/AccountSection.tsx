@@ -24,6 +24,9 @@ export default function AccountSection() {
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteFinalConfirm, setShowDeleteFinalConfirm] = useState(false);
+  const [deleteAcknowledged, setDeleteAcknowledged] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   
   // User data
   const [firstName, setFirstName] = useState('');
@@ -147,14 +150,41 @@ export default function AccountSection() {
   };
 
   const handleDeleteAccount = async () => {
+    setShowDeleteFinalConfirm(false);
+    setDeleteAcknowledged(false);
     setShowDeleteConfirm(true);
-    // TODO: Wire this to a real delete endpoint.
   };
 
   const handleConfirmDelete = async () => {
-    setShowDeleteConfirm(false);
-    // TODO: Wire this to a real delete endpoint.
-    alert('Account deletion is not yet implemented. Please contact support.');
+    if (deletingAccount) return;
+    setDeletingAccount(true);
+    try {
+      const response = await fetch('/api/user', {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data?.error || 'Failed to delete account');
+      }
+
+      const supabase = getSupabaseBrowserClient();
+      await supabase.auth.signOut();
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('userId');
+        localStorage.removeItem('currentConversationId');
+        localStorage.removeItem('chatHistory');
+        window.location.replace('/');
+      }
+    } catch (error) {
+      console.error('Delete account error:', error);
+      alert('Failed to delete account. Please try again.');
+      setDeletingAccount(false);
+      setShowDeleteConfirm(false);
+      setShowDeleteFinalConfirm(false);
+      setDeleteAcknowledged(false);
+    }
   };
 
   return (
@@ -260,22 +290,70 @@ export default function AccountSection() {
           <div className={styles.modalCard}>
             <h3 className={styles.modalTitle}>Delete account?</h3>
             <p className={styles.modalBody}>
-              This action is permanent. Your account and data will be removed.
+              Your account and data will be permanently removed.
             </p>
             <div className={styles.modalActions}>
               <button
                 type="button"
                 className={styles.secondaryBtn}
-                onClick={() => setShowDeleteConfirm(false)}
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setShowDeleteFinalConfirm(false);
+                  setDeleteAcknowledged(false);
+                }}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 className={styles.dangerBtn}
-                onClick={handleConfirmDelete}
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setShowDeleteFinalConfirm(true);
+                }}
               >
-                Yes, delete
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteFinalConfirm && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true">
+          <div className={styles.modalCard}>
+            <h3 className={styles.modalTitle}>Are you sure, you wish to delete your account?</h3>
+            <p className={styles.modalBody}>
+              This action cannot be undone.
+            </p>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+              <input
+                type="checkbox"
+                checked={deleteAcknowledged}
+                onChange={(e) => setDeleteAcknowledged(e.target.checked)}
+              />
+              <span style={{ color: 'rgba(226, 232, 240, 0.92)', fontSize: '0.92rem' }}>
+                I understand this will permanently delete my account.
+              </span>
+            </label>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.secondaryBtn}
+                onClick={() => {
+                  setShowDeleteFinalConfirm(false);
+                  setDeleteAcknowledged(false);
+                }}
+              >
+                No
+              </button>
+              <button
+                type="button"
+                className={styles.dangerBtn}
+                onClick={handleConfirmDelete}
+                disabled={deletingAccount || !deleteAcknowledged}
+              >
+                {deletingAccount ? 'Deleting...' : 'Yes, delete'}
               </button>
             </div>
           </div>

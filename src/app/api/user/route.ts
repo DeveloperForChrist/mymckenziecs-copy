@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
+import { sendResendEmail } from '@/lib/email/resend'
+import fs from 'fs'
+import path from 'path'
+
+const TEMPLATE_DIR = path.join(process.cwd(), 'src', 'emails', 'templates')
+
+function renderTemplate(templateName: string, vars: Record<string, string>) {
+  const templatePath = path.join(TEMPLATE_DIR, templateName)
+  let html = fs.readFileSync(templatePath, 'utf8')
+  for (const [k, v] of Object.entries(vars)) {
+    html = html.split(`{{${k}}}`).join(v)
+  }
+  return html
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -103,5 +117,52 @@ export async function PUT(request: NextRequest) {
       { error: 'Failed to update user data' },
       { status: 500 }
     );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createSupabaseRouteClient()
+    const { data, error } = await supabase.auth.getUser()
+    if (error || !data.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const user = data.user
+    const userId = user.id
+    const userEmail = user.email || ''
+    const displayName =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.display_name ||
+      (userEmail ? userEmail.split('@')[0] : 'there')
+
+    if (userEmail) {
+      try {
+        const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com'
+        const htmlBody = renderTemplate('18-account-deleted.html', {
+          name: String(displayName),
+          support_email: supportEmail,
+        })
+        await sendResendEmail({
+          to: userEmail,
+          subject: 'Your MymckenzieCS account was deleted',
+          htmlBody,
+          tag: 'account-deleted-confirmation',
+        })
+      } catch (emailError) {
+        console.error('Account deletion email failed', emailError)
+      }
+    }
+
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+    if (deleteError) {
+      console.error('Account deletion failed:', deleteError)
+      return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    console.error('Error deleting account:', error)
+    return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 })
   }
 }
