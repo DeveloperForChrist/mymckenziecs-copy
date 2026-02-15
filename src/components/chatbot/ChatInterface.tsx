@@ -1374,19 +1374,24 @@ export default function ChatInterface() {
   }, [freemiumMessageCount, isFreemiumPlan, caseId, planLoaded]);
 
   useEffect(() => {
-    if (!planLoaded || !isFreemiumPlan) return;
-    const normalizedUserId = normalizeUserId(localStorage.getItem('userId'));
-    if (!normalizedUserId) return;
-    const params = new URLSearchParams({ userId: normalizedUserId });
-    fetch(`/api/message-count?${params.toString()}`)
-      .then((res) => res.ok ? res.json() : null)
+    if (!planLoaded) return;
+    if (!isFreemiumPlan && !isGuestFreePlan) return;
+    fetch('/api/message-count', { credentials: 'include' })
+      .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (typeof data?.count === 'number') {
-          setFreemiumMessageCount(Math.min(data.count, FREEMIUM_MESSAGE_LIMIT));
+          if (isFreemiumPlan) {
+            setFreemiumMessageCount(Math.min(data.count, FREEMIUM_MESSAGE_LIMIT));
+          }
+        }
+        if (isGuestFreePlan && typeof data?.limit === 'number' && typeof data?.count === 'number') {
+          const reached = data.count >= data.limit;
+          setIsGuestLimitReached(reached);
+          if (reached) setShowGuestSignupModal(true);
         }
       })
       .catch(() => undefined);
-  }, [planLoaded, isFreemiumPlan, caseId]);
+  }, [planLoaded, isFreemiumPlan, isGuestFreePlan, caseId]);
 
   const handleSubmitReport = async () => {
     if (!reportIssue.trim() || !reportProblem.trim()) {
@@ -1812,9 +1817,6 @@ export default function ChatInterface() {
     }
 
     setMessages((prev) => [...prev, userMessage])
-    if (isFreemiumPlan) {
-      setFreemiumMessageCount(prev => Math.min(prev + 1, FREEMIUM_MESSAGE_LIMIT))
-    }
     setInput('')
     setAttachedFiles([])
 
