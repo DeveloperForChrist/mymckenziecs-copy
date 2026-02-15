@@ -2,12 +2,9 @@
 import { useEffect, useState } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import Link from 'next/link';
-import UserName from '@/components/user/UserName';
 
 export default function DashboardPage() {
   const [uid, setUid] = useState<string | null>(null);
-  const [cases, setCases] = useState<any[]>([]);
-  const [activeCaseId, setActiveCaseId] = useState<string>('');
   const [plan, setPlan] = useState<string>('free');
   const [planLoaded, setPlanLoaded] = useState(false);
 
@@ -23,25 +20,7 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('selectedCaseId') : null;
-    if (stored) setActiveCaseId(stored);
-  }, []);
-
-  useEffect(() => {
-    const fetchCases = async () => {
-      if (!uid) {
-        setCases([]);
-        return;
-      }
-      try {
-        const res = await fetch('/api/cases');
-        const data = await res.json();
-        setCases(Array.isArray(data.cases) ? data.cases : []);
-      } catch (err) {
-        console.error('Failed to fetch cases', err);
-      }
-    };
-    fetchCases();
+    // No-op: dashboard no longer tracks an "active case" context.
   }, [uid]);
 
   useEffect(() => {
@@ -84,7 +63,6 @@ export default function DashboardPage() {
     };
   }, [uid]);
 
-  const activeCase = cases.find((c) => c.id === activeCaseId) || null;
   const normalizedPlan = plan.toString().toLowerCase();
   const hasPlanAccess =
     normalizedPlan.includes('premium') ||
@@ -147,30 +125,6 @@ export default function DashboardPage() {
     <div style={{ background: 'linear-gradient(135deg, #240724 0%, #240724 50%, #240724 100%)', minHeight: '100vh' }}>
       <main style={{ minHeight: '100vh', color: '#ffffff' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '40px 20px' }}>
-          {/* Dashboard Header */}
-          {cases.length > 0 && (
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: '20px',
-              background: 'rgba(15, 23, 42, 0.6)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: '18px',
-              padding: '18px 22px',
-              marginBottom: '28px',
-              boxShadow: '0 18px 60px rgba(0,0,0,0.26)',
-              backdropFilter: 'blur(18px)'
-            }}>
-              <div>
-                <div style={{ fontSize: '0.8rem', color: 'rgba(226,232,240,0.7)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Active case</div>
-                <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>
-                  {activeCase ? (activeCase.title || 'Untitled case') : 'No case selected'}
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Welcome Section */}
           <div style={{ marginBottom: '60px' }}>
             <h1 style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '12px', lineHeight: 1.2 }}>
