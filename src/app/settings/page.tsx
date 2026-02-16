@@ -13,6 +13,11 @@ const AccountSection = dynamic(() => import('../../components/settings/AccountSe
   loading: () => <div style={{padding: '20px'}}>Loading account settings...</div>
 });
 
+const CaseProfileSection = dynamic(() => import('../../components/settings/CaseProfileSection'), {
+  ssr: false,
+  loading: () => <div style={{padding: '20px'}}>Loading case profile...</div>
+});
+
 const BillingSection = dynamic(() => import('../../components/settings/BillingSection'), {
   ssr: false,
   loading: () => <div style={{padding: '20px'}}>Loading billing information...</div>
@@ -51,6 +56,13 @@ export default function SettingsPage() {
                   <h1 className={styles.heading}>Billing & Plans</h1>
                   <p className={styles.desc}>Review your current subscription and payment methods</p>
                   <BillingSection />
+                </>
+              )}
+              {active === 'case-profile' && (
+                <>
+                  <h1 className={styles.heading}>Case Profile</h1>
+                  <p className={styles.desc}>Fill your case profile so MyMcKenzie Assistant can personalise guidance for you.</p>
+                  <CaseProfileSection />
                 </>
               )}
               {active === 'contact' && (

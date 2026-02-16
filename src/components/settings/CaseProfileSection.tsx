@@ -4,10 +4,10 @@ import React, { useState } from 'react'
 import styles from './settingsPage.module.css'
 
 export default function CaseProfileSection() {
-  const [caseName, setCaseName] = useState('')
-  const [caseType, setCaseType] = useState('')
+  const [caseTitle, setCaseTitle] = useState('')
   const [caseNumber, setCaseNumber] = useState('')
-  const [notes, setNotes] = useState('')
+  const [hearingDate, setHearingDate] = useState('')
+  const [caseSummary, setCaseSummary] = useState('')
   const [saving, setSaving] = useState(false)
 
   const handleSave = async () => {
@@ -18,7 +18,13 @@ export default function CaseProfileSection() {
       const res = await fetch('/api/user/case-details', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ caseId: caseNumber || null, caseType, caseTitle: caseName, caseDescription: notes, userId }),
+        body: JSON.stringify({
+          caseId: caseNumber || null,
+          caseType: hearingDate || null,
+          caseTitle: caseTitle || null,
+          caseDescription: caseSummary || null,
+          userId,
+        }),
       })
       const data = await res.json()
       if (res.ok && data.case?.id) {
@@ -39,31 +45,47 @@ export default function CaseProfileSection() {
   return (
     <section className={styles.settingsSection}>
       <h2 className={styles.sectionHeading}>Case Profile</h2>
-      <p className={styles.desc}>Store basic information about a representative case to prefill forms and link tools.</p>
+      <p className={styles.desc}>Fill case profile to make MyMcKenzie Assistant more personalised for you.</p>
 
       <div className={styles.caseProfileLayout}>
         <div className={styles.caseProfileCard}>
           <div className={styles.formGrid}>
             <div className={styles.caseProfileRow}>
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Case Name</label>
-                <input className={styles.textInput} value={caseName} onChange={(e) => setCaseName(e.target.value)} />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Case Type</label>
-                <input className={styles.textInput} value={caseType} onChange={(e) => setCaseType(e.target.value)} />
+                <label className={styles.formLabel}>By Case Number</label>
+                <input className={styles.textInput} value={caseNumber} onChange={(e) => setCaseNumber(e.target.value)} />
+                <p className={styles.caseProfileHint}>The case number for the case needs to be entered in the following format.</p>
               </div>
             </div>
 
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Case Number / ID</label>
-              <input className={styles.textInput} value={caseNumber} onChange={(e) => setCaseNumber(e.target.value)} />
+            <div className={styles.caseProfileRow}>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>By Title</label>
+                <input className={styles.textInput} value={caseTitle} onChange={(e) => setCaseTitle(e.target.value)} />
+                <p className={styles.caseProfileHint}>For example, in the case of Smith & Co v Jones, either "Smith" or "Jones" as placeholder.</p>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>By Date</label>
+                <input
+                  className={styles.textInput}
+                  placeholder="15-Jan-09"
+                  value={hearingDate}
+                  onChange={(e) => setHearingDate(e.target.value)}
+                />
+                <p className={styles.caseProfileHint}>A date of hearing can be entered in the following format DD-MMM-YY, e.g. 15-Jan-09.</p>
+              </div>
             </div>
 
             <div className={styles.formGroupFull}>
-              <label className={styles.formLabel}>Overview of Case</label>
-              <textarea className={styles.textArea} rows={7} value={notes} onChange={(e) => setNotes(e.target.value)} />
-              <p className={styles.caseProfileHint}>Summarise the dispute, key dates, and what you want to achieve.</p>
+              <label className={styles.formLabel}>Case Description/Summary</label>
+              <textarea
+                className={styles.textArea}
+                rows={7}
+                value={caseSummary}
+                onChange={(e) => setCaseSummary(e.target.value)}
+              />
+              <p className={styles.caseProfileHint}>Summarise the dispute, key dates, and what outcome you want.</p>
             </div>
 
             <div className={styles.caseProfileActions}>

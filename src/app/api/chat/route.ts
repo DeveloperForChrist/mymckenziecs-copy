@@ -5,7 +5,7 @@ import { invokeFreeLegalAgent, invokeLegalAgent } from '@/lib/ai/agents/legal-ag
 import { ChatManager, MessageLimitError } from '@/lib/ai/chat-manager'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
-import { aiRateLimiter, rateLimit, getIdentifier } from '@/lib/utils/rate-limit'
+import { aiRateLimiter, aiGuestRateLimiter, aiIpRateLimiter, rateLimit, getIdentifier } from '@/lib/utils/rate-limit'
 import { chatMessageSchema } from '@/validators/index'
 import * as Sentry from '@sentry/nextjs'
 import { z } from 'zod'
@@ -17,30 +17,89 @@ type ChatAttachment = {
   storagePath?: string | null
 }
 
+type ExtractedAction = {
+  title: string
+  dueDate: string | null
+  confidence: 'high' | 'medium'
+}
+
 const chatAttachmentSchema = z.object({
   name: z.string().optional(),
   downloadURL: z.string().optional(),
   mimeType: z.string().nullable().optional(),
   storagePath: z.string().nullable().optional(),
-});
+})
 
 const chatRequestSchema = z.object({
   message: z.string().min(1).max(5000),
   activeCaseId: z.string().uuid().optional(),
   caseProfile: z.object({ id: z.string().uuid().optional() }).passthrough().optional(),
   mode: z.enum(['legal-advisor', 'document-review', 'general']).optional(),
-  history: z
-    .array(z.object({ role: z.string(), content: z.string() }))
-    .optional(),
+  history: z.array(z.object({ role: z.string(), content: z.string() })).optional(),
   attachmentsOnly: z.boolean().optional(),
   attachments: z.array(chatAttachmentSchema).optional(),
   userId: z.string().optional(),
   conversationId: z.string().optional(),
   sessionMessageCount: z.number().int().nonnegative().optional(),
   sessionStartedAt: z.string().optional(),
-}).passthrough();
+}).passthrough()
 
 const nodeRequire = createRequire(import.meta.url)
+const GUEST_COOKIE_NAME = 'mm_guest_id'
+const GUEST_MESSAGE_LIMIT_24H = 5
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+const parseForwardedFor = (value: string | null) => {
+  if (!value) return null
+  const first = value.split(',')[0]?.trim()
+  return first || null
+}
+
+const normalizeHost = (value: string | null) => {
+  const trimmed = (value || '').trim()
+  if (!trimmed) return null
+  return trimmed.split(':')[0]?.toLowerCase() || null
+}
+
+const isAllowedOrigin = (request: NextRequest) => {
+  const origin = request.headers.get('origin')
+  if (!origin) return true
+
+  let originHost: string | null = null
+  try {
+    originHost = new URL(origin).hostname.toLowerCase()
+  } catch {
+    return false
+  }
+
+  const reqHost = normalizeHost(request.headers.get('x-forwarded-host') || request.headers.get('host'))
+  if (reqHost && originHost === reqHost) return true
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (appUrl) {
+    try {
+      const appHost = new URL(appUrl).hostname.toLowerCase()
+      if (originHost === appHost) return true
+    } catch {
+      // ignore invalid env var
+    }
+  }
+
+  return false
+}
+
+const setGuestCookie = (response: NextResponse, guestId: string) => {
+  response.cookies.set({
+    name: GUEST_COOKIE_NAME,
+    value: guestId,
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 60,
+  })
+  return response
+}
 
 const getExtension = (name?: string) => {
   if (!name) return ''
@@ -104,9 +163,7 @@ const buildAttachmentContext = async (attachments: ChatAttachment[], baseUrl: st
       const section = `Document: ${name}\n${excerpt}`
       sections.push(section)
       totalLength += section.length
-      if (totalLength >= 3500) {
-        break
-      }
+      if (totalLength >= 3500) break
     } catch {
       sections.push(`Document: ${name}\n(Failed to read file content)`)
     }
@@ -126,29 +183,28 @@ const buildAttachmentMetadata = (attachments: ChatAttachment[]) => {
   return `\n\nAttachment list:\n${lines.join('\n')}`
 }
 
+const truncateText = (value: string, maxChars: number) => {
+  if (!value) return ''
+  if (value.length <= maxChars) return value
+  return `${value.slice(0, maxChars - 1)}…`
+}
+
 const extractCaseKeywords = (caseData: Record<string, any>): string => {
   if (!caseData) return ''
   const keywords: string[] = []
 
-  // Case type and court are most important for search
   if (caseData.caseType) keywords.push(caseData.caseType)
   if (caseData.court) keywords.push(caseData.court)
   if (caseData.claimType) keywords.push(caseData.claimType)
-  
-  // Role of user
   if (caseData.userRole) keywords.push(caseData.userRole)
-  
-  // Key facts (first 3)
   if (Array.isArray(caseData.keyFacts)) {
     keywords.push(...caseData.keyFacts.slice(0, 3).map((f: any) => String(f)))
   }
-  
-  // Legal areas mentioned
   if (Array.isArray(caseData.legalAreas)) {
     keywords.push(...caseData.legalAreas.slice(0, 2).map((a: any) => String(a)))
   }
 
-  return keywords.filter(Boolean).join(' ').slice(0, 200)
+  return keywords.filter(Boolean).join(' ').slice(0, 220)
 }
 
 const buildCaseContext = (caseData: Record<string, any>) => {
@@ -165,81 +221,137 @@ const buildCaseContext = (caseData: Record<string, any>) => {
   if (caseData.caseNumber) lines.push(`Case number: ${caseData.caseNumber}`)
   if (caseData.caseType) lines.push(`Case type: ${caseData.caseType}`)
   if (caseData.court) lines.push(`Court: ${caseData.court}`)
-  if (caseData.location) lines.push(`Location: ${caseData.location}`)
 
   pushList('Parties', caseData.partiesInvolved)
-  pushList('Opponents', caseData.opponents)
-  pushList('Incident dates', caseData.incidentDates)
   pushList('Key facts', caseData.keyFacts)
   pushList('Evidence', caseData.evidence)
-
-  if (Array.isArray(caseData.deadlines) && caseData.deadlines.length > 0) {
-    const formatted = caseData.deadlines.slice(0, 3).map((item: any) => {
-      if (!item) return null
-      const desc = item.description || 'Deadline'
-      const date = item.date || ''
-      return `${desc}${date ? ` (${date})` : ''}`
-    }).filter(Boolean)
-    if (formatted.length) lines.push(`Deadlines: ${formatted.join('; ')}`)
-  }
-
-  if (Array.isArray(caseData.hearings) && caseData.hearings.length > 0) {
-    const formatted = caseData.hearings.slice(0, 3).map((item: any) => {
-      if (!item) return null
-      const desc = item.description || 'Hearing'
-      const date = item.date || ''
-      return `${desc}${date ? ` (${date})` : ''}`
-    }).filter(Boolean)
-    if (formatted.length) lines.push(`Hearings: ${formatted.join('; ')}`)
-  }
-
-  const summaryState = caseData.caseNotes?.summaryState
-  if (summaryState) lines.push(`Case notes: ${summaryState}`)
 
   if (!lines.length) return ''
   return `\n\nCase context:\n${lines.join('\n')}`
 }
 
-const buildSessionSnapshotContext = (caseData: Record<string, any>) => {
-  const snapshot = caseData?.sessionSnapshot
-  if (!snapshot) return ''
+const buildMemoryKey = (
+  authUserId: string | undefined,
+  guestId: string | null,
+  caseId: string | null,
+  conversationId: string | null
+) => {
+  const userPart = authUserId ? `u:${authUserId}` : guestId ? `g:${guestId}` : 'anon'
+  const casePart = caseId ? `c:${caseId}` : 'c:none'
+  const convPart = conversationId ? `v:${conversationId}` : 'v:none'
+  return `${userPart}|${casePart}|${convPart}`
+}
+
+const extractKeyFactsFromMessage = (message: string) => {
+  const cleaned = message.replace(/\s+/g, ' ').trim()
+  if (!cleaned) return [] as string[]
+
+  const facts: string[] = []
+  const sentenceParts = cleaned.split(/[.!?]+/).map((s) => s.trim()).filter(Boolean)
+  for (const sentence of sentenceParts) {
+    const lower = sentence.toLowerCase()
+    if (
+      /\b(my|i have|i am|i was|i need|the issue|the problem|deadline|hearing|court|landlord|tenant|employer|claim)\b/.test(lower) &&
+      sentence.length >= 16
+    ) {
+      facts.push(truncateText(sentence, 180))
+    }
+    if (facts.length >= 8) break
+  }
+  return facts
+}
+
+const mergeFacts = (existing: unknown, incoming: string[]) => {
+  const current = Array.isArray(existing) ? existing.map((x) => String(x)).filter(Boolean) : []
+  const merged = [...current]
+  for (const fact of incoming) {
+    if (!merged.includes(fact)) merged.push(fact)
+    if (merged.length >= 12) break
+  }
+  return merged
+}
+
+const parseDateGuess = (text: string): string | null => {
+  const cleaned = text.trim()
+  if (!cleaned) return null
+  const parsed = new Date(cleaned)
+  if (!Number.isNaN(parsed.getTime())) return parsed.toISOString()
+  return null
+}
+
+const extractActionItems = (text: string): ExtractedAction[] => {
+  const lines = text
+    .split(/\n+/)
+    .map((line) => line.replace(/^[-*•\d.)\s]+/, '').trim())
+    .filter(Boolean)
+
+  const actionVerb = /\b(file|submit|serve|prepare|draft|contact|call|email|attend|pay|gather|upload|review|send|complete)\b/i
+  const duePattern = /\b(?:by|on|before)\s+([\w\-/, ]{3,30})/i
+  const actions: ExtractedAction[] = []
+
+  for (const line of lines) {
+    if (!actionVerb.test(line)) continue
+
+    const dueMatch = line.match(duePattern)
+    let dueDate: string | null = null
+    if (dueMatch?.[1]) {
+      dueDate = parseDateGuess(dueMatch[1])
+    }
+
+    actions.push({
+      title: truncateText(line, 220),
+      dueDate,
+      confidence: dueDate ? 'high' : 'medium',
+    })
+
+    if (actions.length >= 5) break
+  }
+
+  return actions
+}
+
+const inferFollowUpQuestion = (intent: string, message: string) => {
+  const text = message.toLowerCase()
+  const hasDate = /\b\d{1,2}[/\-]\d{1,2}([/\-]\d{2,4})?\b|\b(today|tomorrow|next week|next month|monday|tuesday|wednesday|thursday|friday)\b/i.test(message)
+
+  if (intent === 'calendar' && !hasDate) {
+    return 'Could you share the exact deadline or hearing date so I can give guidance in the right order and timing?'
+  }
+  if (intent === 'evidence' && !/\b(document|email|letter|photo|screenshot|witness|statement)\b/.test(text)) {
+    return 'What evidence do you currently have (for example emails, letters, screenshots, or witnesses)?'
+  }
+  if (intent === 'procedure' && !/\b(claim form|defence|hearing|judgment|order|appeal|n244|cpr)\b/.test(text)) {
+    return 'Which stage are you at right now (for example pre-claim, claim filed, defence filed, or hearing listed)?'
+  }
+  return null
+}
+
+const buildMemoryContext = (memory: any) => {
+  if (!memory) return ''
   const lines: string[] = []
 
-  if (snapshot.lastInteractionSummary) {
-    lines.push(`Last interaction: ${truncateText(String(snapshot.lastInteractionSummary), 240)}`)
+  if (memory.memory_summary) {
+    lines.push(`Memory summary: ${truncateText(String(memory.memory_summary), 260)}`)
   }
-  if (snapshot.aiContextSummary) {
-    lines.push(`AI context: ${truncateText(String(snapshot.aiContextSummary), 260)}`)
+  if (Array.isArray(memory.key_facts) && memory.key_facts.length > 0) {
+    const facts = memory.key_facts.slice(0, 6).map((f: any) => `- ${truncateText(String(f), 150)}`)
+    lines.push(`Known facts:\n${facts.join('\n')}`)
   }
-  if (Array.isArray(snapshot.messageSummaries) && snapshot.messageSummaries.length > 0) {
-    const summaries = snapshot.messageSummaries.slice(-3).map((entry: any) => {
-      const role = entry?.role === 'assistant' ? 'Assistant' : 'User'
-      const summary = entry?.summary ? truncateText(String(entry.summary), 200) : ''
-      return summary ? `${role}: ${summary}` : null
-    }).filter(Boolean)
-    if (summaries.length) lines.push(`Recent summaries: ${summaries.join(' | ')}`)
-  }
-  if (Array.isArray(snapshot.pendingTasks) && snapshot.pendingTasks.length > 0) {
-    const tasks = snapshot.pendingTasks.slice(0, 4).map((task: any) => truncateText(String(task), 140))
-    lines.push(`Open tasks: ${tasks.join('; ')}`)
+  if (Array.isArray(memory.open_questions) && memory.open_questions.length > 0) {
+    const qs = memory.open_questions.slice(0, 2).map((q: any) => truncateText(String(q), 160))
+    lines.push(`Open questions: ${qs.join(' | ')}`)
   }
 
   if (!lines.length) return ''
-  return `\n\nSession snapshot:\n${lines.join('\n')}`
-}
-
-const truncateText = (value: string, maxChars: number) => {
-  if (!value) return ''
-  if (value.length <= maxChars) return value
-  return `${value.slice(0, maxChars - 1)}…`
+  return `\n\nConversation memory:\n${lines.join('\n')}`
 }
 
 export async function POST(request: NextRequest) {
   let authUserId: string | undefined
   let guestId: string | null = null
   let shouldSetGuestCookie = false
+
   try {
-    // Basic CSRF/bot protections (defense in depth).
     const secFetchSite = request.headers.get('sec-fetch-site')
     if (secFetchSite && secFetchSite === 'cross-site') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -247,23 +359,22 @@ export async function POST(request: NextRequest) {
     if (!isAllowedOrigin(request)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
+
     const contentType = request.headers.get('content-type') || ''
     if (!contentType.toLowerCase().includes('application/json')) {
       return NextResponse.json({ error: 'Unsupported Media Type' }, { status: 415 })
     }
 
-    // Get user session for rate limiting
     const supabase = await createSupabaseRouteClient()
     const { data: authData } = await supabase.auth.getUser()
     authUserId = authData?.user?.id
+
     let userId = authUserId
     const ip =
       parseForwardedFor(request.headers.get('x-forwarded-for')) ||
       parseForwardedFor(request.headers.get('x-real-ip')) ||
       null
 
-    // For guests: use an httpOnly cookie-based ID (stable across devices/browsers per device).
-    // Do NOT trust client-provided userId.
     if (!userId) {
       const existing = request.cookies.get(GUEST_COOKIE_NAME)?.value || null
       if (existing && uuidRegex.test(existing)) {
@@ -274,66 +385,64 @@ export async function POST(request: NextRequest) {
       }
       userId = `anon_${guestId}`
     }
-    
-    // Apply rate limiting (authenticated vs guest)
+
+    const withCookie = (res: NextResponse) => {
+      if (shouldSetGuestCookie && guestId) setGuestCookie(res, guestId)
+      return res
+    }
+
     const limiter = authUserId ? aiRateLimiter : aiGuestRateLimiter
     const identifier = authUserId ? getIdentifier(userId, ip || undefined) : `guest:${guestId}`
     const rateLimitResult = await rateLimit(limiter, identifier, authUserId ? 10 : 6, 60000)
-    
     if (!rateLimitResult.success) {
-      const response = NextResponse.json(
-        { 
-          error: 'Too many requests',
-          message: 'You have exceeded the rate limit. Please try again later.',
-          resetAt: new Date(rateLimitResult.reset).toISOString()
-        },
-        { 
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': String(rateLimitResult.limit),
-            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
-            'X-RateLimit-Reset': String(rateLimitResult.reset),
-          }
-        }
-      )
-      if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
-      return response
-    }
-
-    // Extra IP-based limiter for guests.
-    if (!authUserId && ip) {
-      const ipResult = await rateLimit(aiIpRateLimiter, `ip:${ip}`, 60, 10 * 60 * 1000)
-      if (!ipResult.success) {
-        const response = NextResponse.json(
+      return withCookie(
+        NextResponse.json(
           {
             error: 'Too many requests',
             message: 'You have exceeded the rate limit. Please try again later.',
-            resetAt: new Date(ipResult.reset).toISOString(),
+            resetAt: new Date(rateLimitResult.reset).toISOString(),
           },
           {
             status: 429,
             headers: {
-              'X-RateLimit-Limit': String(ipResult.limit),
-              'X-RateLimit-Remaining': String(ipResult.remaining),
-              'X-RateLimit-Reset': String(ipResult.reset),
+              'X-RateLimit-Limit': String(rateLimitResult.limit),
+              'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+              'X-RateLimit-Reset': String(rateLimitResult.reset),
             },
           }
         )
-        if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
-        return response
+      )
+    }
+
+    if (!authUserId && ip) {
+      const ipResult = await rateLimit(aiIpRateLimiter, `ip:${ip}`, 60, 10 * 60 * 1000)
+      if (!ipResult.success) {
+        return withCookie(
+          NextResponse.json(
+            {
+              error: 'Too many requests',
+              message: 'You have exceeded the rate limit. Please try again later.',
+              resetAt: new Date(ipResult.reset).toISOString(),
+            },
+            {
+              status: 429,
+              headers: {
+                'X-RateLimit-Limit': String(ipResult.limit),
+                'X-RateLimit-Remaining': String(ipResult.remaining),
+                'X-RateLimit-Reset': String(ipResult.reset),
+              },
+            }
+          )
+        )
       }
     }
 
     const body = await request.json()
     const parsedBody = chatRequestSchema.safeParse(body)
     if (!parsedBody.success) {
-      const response = NextResponse.json(
-        { error: 'Invalid input', details: parsedBody.error.issues },
-        { status: 400 }
-      )
-      if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
-      return response
+      return withCookie(NextResponse.json({ error: 'Invalid input', details: parsedBody.error.issues }, { status: 400 }))
     }
+
     const bodyData = parsedBody.data
 
     const sanitizedCaseId =
@@ -341,52 +450,28 @@ export async function POST(request: NextRequest) {
         ? bodyData.activeCaseId.trim()
         : undefined
 
-    // Allow clients to pass a `caseProfile` object instead of an activeCaseId.
-    // If provided, prefer the profile's `id` when present and valid.
     const caseProfile = bodyData?.caseProfile && typeof bodyData.caseProfile === 'object' ? bodyData.caseProfile : null
-    const profileCaseId = caseProfile && typeof caseProfile.id === 'string' && uuidRegex.test(caseProfile.id) ? caseProfile.id : undefined
-    
-    // Validate input
+    const profileCaseId =
+      caseProfile && typeof caseProfile.id === 'string' && uuidRegex.test(caseProfile.id)
+        ? caseProfile.id
+        : undefined
+
     const validation = chatMessageSchema.safeParse({
       message: bodyData.message,
       caseId: sanitizedCaseId,
       mode: bodyData.mode,
     })
-    
     if (!validation.success) {
-      const response = NextResponse.json(
-        { error: 'Invalid input', details: validation.error.issues },
-        { status: 400 }
-      )
-      if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
-      return response
+      return withCookie(NextResponse.json({ error: 'Invalid input', details: validation.error.issues }, { status: 400 }))
     }
 
-    const {
-      message,
-      history,
-      conversationId,
-      attachmentsOnly,
-      attachments,
-      sessionMessageCount,
-      sessionStartedAt
-    } = bodyData
-    // Determine active case id: explicit activeCaseId wins, otherwise caseProfile id if provided
+    const { message, history, conversationId, attachmentsOnly, attachments, sessionMessageCount, sessionStartedAt } = bodyData
     const activeCaseId = sanitizedCaseId || profileCaseId
 
     if (!message || typeof message !== 'string') {
-      const response = NextResponse.json(
-        { message: 'Message is required' },
-        { status: 400 }
-      )
-      if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
-      return response
+      return withCookie(NextResponse.json({ message: 'Message is required' }, { status: 400 }))
     }
 
-    // userId is determined server-side (auth user id or cookie-based guest id).
-
-    // Enforce guest limit server-side: after the guest limit is hit, do not answer queries.
-    // This runs before any expensive processing/agent calls.
     if (!authUserId && guestId) {
       const windowMs = 24 * 60 * 60 * 1000
       try {
@@ -398,122 +483,138 @@ export async function POST(request: NextRequest) {
         if (rpcError) throw rpcError
 
         const row: any = Array.isArray(rows) ? rows[0] : rows
-        const allowed = Boolean(row?.allowed)
-        if (!allowed) {
-          const canMessageAgainAt =
-            typeof row?.can_message_again_at === 'string' ? row.can_message_again_at : null
-          const response = NextResponse.json(
+        if (!Boolean(row?.allowed)) {
+          return withCookie(
+            NextResponse.json(
+              {
+                response: `Hi, you have reached your ${GUEST_MESSAGE_LIMIT_24H}-message guest limit. Please sign up to continue.`,
+                guestLimitReached: true,
+                guestLimit: GUEST_MESSAGE_LIMIT_24H,
+                canMessageAgainAt: typeof row?.can_message_again_at === 'string' ? row.can_message_again_at : null,
+              },
+              { status: 200 }
+            )
+          )
+        }
+      } catch (error) {
+        Sentry.captureException(error)
+        return withCookie(
+          NextResponse.json(
             {
-              response: `Hi, you have reached your ${GUEST_MESSAGE_LIMIT_24H}-message guest limit. Please sign up to continue.`,
-              guestLimitReached: true,
-              guestLimit: GUEST_MESSAGE_LIMIT_24H,
-              canMessageAgainAt,
+              response: 'I am unavailable right now. Please try again later.',
+              metadata: { guestUsageError: true },
             },
             { status: 200 }
           )
-          if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
-          return response
-        }
-      } catch (error) {
-        // If usage tracking fails, don't accidentally give unlimited access.
-        Sentry.captureException(error)
-        const response = NextResponse.json(
-          {
-            response: 'I am unavailable right now. Please try again later.',
-            metadata: { guestUsageError: true },
-          },
-          { status: 200 }
         )
-        if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
-        return response
       }
     }
 
-    // Initialize ChatManager for intelligent case management
-    const chatManager = new ChatManager(userId, activeCaseId, conversationId);
+    const chatManager = new ChatManager(userId, activeCaseId, conversationId)
 
     const sanitizedHistory = Array.isArray(history)
       ? history
           .filter((entry: any) => entry && typeof entry.role === 'string' && typeof entry.content === 'string')
           .map((entry: any) => ({
             role: entry.role === 'assistant' ? 'assistant' : 'user',
-            content: truncateText(entry.content, 600)
+            content: truncateText(entry.content, 600),
           }))
           .slice(-6)
-      : [];
+      : []
 
-    // Step 1: Check if session initialization needed
-    const sessionInfo = await chatManager.initializeSession();
-    
-    // If multiple cases exist without active case, prompt user to select
+    const sessionInfo = await chatManager.initializeSession()
     if (sessionInfo.requiresCaseSelection) {
-      const response = NextResponse.json({
-        requiresCaseSelection: true,
-        cases: sessionInfo.cases,
-        response: "I see you have multiple cases. Which case would you like to discuss?\n\n" + 
-          sessionInfo.cases.map((c: any, i: number) => 
-            `${i + 1}. ${c.caseType || 'Case'} - ${c.caseNumber || c.id}`
-          ).join('\n')
-      });
-      if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
-      return response
+      return withCookie(
+        NextResponse.json({
+          requiresCaseSelection: true,
+          cases: sessionInfo.cases,
+          response:
+            'I see you have multiple cases. Which case would you like to discuss?\n\n' +
+            sessionInfo.cases
+              .map((c: any, i: number) => `${i + 1}. ${c.caseType || 'Case'} - ${c.caseNumber || c.id}`)
+              .join('\n'),
+        })
+      )
     }
 
-    // Check if user is continuing discussion about existing case (even in new chat)
-    // Note: detectExistingCaseReference was removed in simplified ChatManager
-    // Users now select cases via UI
-    if (false) {
-      // Placeholder for future case detection logic
-    }
-
-    // Step 2-6: Process message through ChatManager
     const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || ''
     const proto = request.headers.get('x-forwarded-proto') || 'http'
     const baseUrl = host ? `${proto}://${host}` : ''
-    const hasAttachments = Array.isArray(attachments) && attachments.length > 0
-    const attachmentContext = hasAttachments && baseUrl
-      ? await buildAttachmentContext(attachments, baseUrl)
-      : ''
-    const attachmentMetadata = hasAttachments && !attachmentContext
-      ? buildAttachmentMetadata(attachments)
-      : ''
-    const messageForProcessing = message
-    const caseIdForContext = activeCaseId || null
 
-    const processingResult = await chatManager.processMessage(messageForProcessing, hasAttachments, {
+    const hasAttachments = Array.isArray(attachments) && attachments.length > 0
+    const attachmentContext = hasAttachments && baseUrl ? await buildAttachmentContext(attachments, baseUrl) : ''
+    const attachmentMetadata = hasAttachments && !attachmentContext ? buildAttachmentMetadata(attachments) : ''
+
+    const processingResult = await chatManager.processMessage(message, hasAttachments, {
       userAgent: request.headers.get('user-agent'),
       sessionMessageCount: typeof sessionMessageCount === 'number' ? sessionMessageCount : null,
       sessionStartedAt: typeof sessionStartedAt === 'string' ? sessionStartedAt : null,
-    });
-    
-    console.log('📊 Chat processing result:', processingResult);
+    })
 
-    const resolvedCaseId = processingResult.caseId || sessionInfo.activeCaseId || caseIdForContext
+    const resolvedCaseId = processingResult.caseId || sessionInfo.activeCaseId || activeCaseId || null
     const needsStoredContext = sanitizedHistory.length < 2
-    // If a caseProfile was provided by the client, prefer using it as the source
-    const shouldFetchCaseContext = Boolean((resolvedCaseId || caseProfile) && (hasAttachments || needsStoredContext))
+
     let caseContextData = null
     if (caseProfile) {
       caseContextData = caseProfile
     } else if (resolvedCaseId) {
       caseContextData = await chatManager.getCaseData(resolvedCaseId)
     }
+
+    const memoryKey = buildMemoryKey(authUserId, guestId, resolvedCaseId || null, sessionInfo.conversationId || conversationId || null)
+    const { data: memoryRow } = await supabaseAdmin
+      .from('chat_memory')
+      .select('memory_summary,key_facts,open_questions')
+      .eq('memory_key', memoryKey)
+      .maybeSingle()
+
+    const followUpQuestion = inferFollowUpQuestion(processingResult.intent, message)
+    const shouldShortCircuitToQuestion = Boolean(followUpQuestion && !hasAttachments && sanitizedHistory.length <= 1)
+
+    if (shouldShortCircuitToQuestion) {
+      const facts = extractKeyFactsFromMessage(message)
+      const mergedFacts = mergeFacts(memoryRow?.key_facts, facts)
+      await supabaseAdmin.from('chat_memory').upsert(
+        {
+          memory_key: memoryKey,
+          user_id: authUserId || null,
+          guest_id: guestId || null,
+          case_id: resolvedCaseId || null,
+          conversation_id: sessionInfo.conversationId || conversationId || null,
+          memory_summary: truncateText(`User asked: ${message}`, 320),
+          key_facts: mergedFacts,
+          open_questions: [followUpQuestion],
+          last_intent: processingResult.intent,
+        },
+        { onConflict: 'memory_key' }
+      )
+
+      return withCookie(
+        NextResponse.json(
+          {
+            response: followUpQuestion,
+            metadata: {
+              followUpQuestion,
+              requiresClarification: true,
+              caseProcessing: processingResult,
+              activeCaseId: resolvedCaseId,
+            },
+          },
+          { status: 200 }
+        )
+      )
+    }
+
     const caseContext = caseContextData ? buildCaseContext(caseContextData) : ''
     const caseKeywords = caseContextData ? extractCaseKeywords(caseContextData) : ''
-    const sessionSnapshotContext = caseContextData && needsStoredContext
-      ? buildSessionSnapshotContext(caseContextData)
-      : ''
+    const memoryContext = buildMemoryContext(memoryRow)
+
     const rawMessageForAgent = attachmentContext
-      ? `${message}\n\nThe user uploaded documents. Use the excerpts below in your analysis.${caseContext}${sessionSnapshotContext}\n${attachmentContext}`
-      : `${message}${caseContext}${sessionSnapshotContext}${attachmentMetadata}`
+      ? `${message}\n\nThe user uploaded documents. Use the excerpts below in your analysis.${caseContext}${memoryContext}\n${attachmentContext}`
+      : `${message}${caseContext}${memoryContext}${attachmentMetadata}`
+
     const messageForAgent = truncateText(rawMessageForAgent, 12000)
-
-    // Generate a thread ID
     const threadId = `thread_${Date.now()}_${userId}`
-
-    const shouldSkipClarification = hasAttachments || attachmentsOnly === true
-
-    // The following block was removed because processingResult does not have shouldBypassAgent or followUpResponse.
 
     let usePremiumAgents = false
     if (authUserId) {
@@ -532,39 +633,58 @@ export async function POST(request: NextRequest) {
         planLabel.includes('pro')
     }
 
-    // Invoke the support agent with conversation history and case context
     const agentResponse = usePremiumAgents
-      ? await invokeLegalAgent(
-          messageForAgent,
-          threadId,
-          userId,
-          sanitizedHistory,
-          caseKeywords,
-          {
-            useDiscriminator: true,
-            useSearch: true,
-            includeCitations: true
-          }
-        )
-      : await invokeFreeLegalAgent(
-          messageForAgent,
-          threadId,
-          userId,
-          sanitizedHistory,
-          caseKeywords
-        )
+      ? await invokeLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
+          useDiscriminator: true,
+          useSearch: true,
+          includeCitations: true,
+        })
+      : await invokeFreeLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords)
 
     if (!agentResponse.response || !agentResponse.response.trim()) {
-      const response = NextResponse.json(
-        {
-          response: 'I had trouble generating a response. Please try again in a moment.',
-          metadata: { emptyResponse: true }
-        },
-        { status: 200 }
+      return withCookie(
+        NextResponse.json(
+          {
+            response: 'I had trouble generating a response. Please try again in a moment.',
+            metadata: { emptyResponse: true },
+          },
+          { status: 200 }
+        )
       )
-      if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
-      return response
     }
+
+    const actionItems = extractActionItems(`${message}\n${agentResponse.response}`)
+    if (actionItems.length > 0) {
+      const rows = actionItems.map((item) => ({
+        memory_key: memoryKey,
+        user_id: authUserId || null,
+        guest_id: guestId || null,
+        case_id: resolvedCaseId || null,
+        conversation_id: sessionInfo.conversationId || conversationId || null,
+        title: item.title,
+        due_date: item.dueDate,
+        status: 'pending',
+        source_text: truncateText(message, 400),
+      }))
+      await supabaseAdmin.from('chat_action_items').insert(rows)
+    }
+
+    const incomingFacts = extractKeyFactsFromMessage(message)
+    const mergedFacts = mergeFacts(memoryRow?.key_facts, incomingFacts)
+    await supabaseAdmin.from('chat_memory').upsert(
+      {
+        memory_key: memoryKey,
+        user_id: authUserId || null,
+        guest_id: guestId || null,
+        case_id: resolvedCaseId || null,
+        conversation_id: sessionInfo.conversationId || conversationId || null,
+        memory_summary: truncateText(`User: ${message} | Assistant: ${agentResponse.response}`, 480),
+        key_facts: mergedFacts,
+        open_questions: [],
+        last_intent: processingResult.intent,
+      },
+      { onConflict: 'memory_key' }
+    )
 
     if (chatManager.shouldPersistMessages()) {
       await chatManager.storeRawMessage(
@@ -574,32 +694,33 @@ export async function POST(request: NextRequest) {
           autoGenerated: true,
           type: 'legal_agent_response',
           caseId: processingResult.caseId || null,
-          tags: (processingResult as any).tags || null,
-          sources: agentResponse.sources || []
+          sources: agentResponse.sources || [],
+          actionItems,
         },
         processingResult.caseId || sessionInfo.activeCaseId || null
-      );
+      )
     }
 
-    const response = NextResponse.json(
-      { 
-        response: agentResponse.response,
-        metadata: {
-          documentGenerated: agentResponse.document_generated,
-          guidanceProvided: agentResponse.guidance_provided,
-          nextSteps: agentResponse.next_steps,
-          sources: agentResponse.sources || [],
-          caseProcessing: processingResult,
-          activeCaseId: processingResult.caseId || sessionInfo.activeCaseId,
-          pendingCalendarEntries: (processingResult as any).pendingCalendarEntries || null
-        }
-      },
-      { status: 200 }
+    return withCookie(
+      NextResponse.json(
+        {
+          response: agentResponse.response,
+          metadata: {
+            documentGenerated: agentResponse.document_generated,
+            guidanceProvided: agentResponse.guidance_provided,
+            nextSteps: agentResponse.next_steps,
+            sources: agentResponse.sources || [],
+            caseProcessing: processingResult,
+            activeCaseId: processingResult.caseId || sessionInfo.activeCaseId,
+            pendingCalendarEntries: (processingResult as any).pendingCalendarEntries || null,
+            followUpQuestion,
+            actionItems,
+          },
+        },
+        { status: 200 }
+      )
     )
-    if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
-    return response
   } catch (error: any) {
-    // Capture error in Sentry
     Sentry.captureException(error, {
       tags: {
         api: 'chat',
@@ -609,42 +730,33 @@ export async function POST(request: NextRequest) {
         request: {
           url: request.url,
           method: request.method,
-        }
-      }
+        },
+      },
     })
 
     if (error instanceof MessageLimitError) {
-      const response = NextResponse.json(
+      return NextResponse.json(
         {
           response: error.message,
-          metadata: { limitType: 'message', limitReached: true }
+          metadata: { limitType: 'message', limitReached: true },
         },
         { status: 200 }
-      );
-      if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
-      return response
-    }
-
-    console.error('Chat API error:', error)
-    
-    // Handle rate limits gracefully
-    if (error.message?.includes('rate limit') || error.status === 429) {
-      const response = NextResponse.json(
-        { response: '⚠️ I\'m experiencing high demand right now. Please try again in a moment.' },
-        { status: 200 } // Return 200 so UI doesn't show error
       )
-      if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
-      return response
     }
 
-    const response = NextResponse.json(
-      { 
-        message: error.message || 'Chat failed',
-        response: 'I apologize, but I encountered an error. Please try again or rephrase your question.'
+    if (error?.message?.includes('rate limit') || error?.status === 429) {
+      return NextResponse.json(
+        { response: "⚠️ I'm experiencing high demand right now. Please try again in a moment." },
+        { status: 200 }
+      )
+    }
+
+    return NextResponse.json(
+      {
+        message: error?.message || 'Chat failed',
+        response: 'I apologize, but I encountered an error. Please try again or rephrase your question.',
       },
       { status: 500 }
     )
-    if (shouldSetGuestCookie && guestId) setGuestCookie(response, guestId)
-    return response
   }
 }

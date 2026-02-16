@@ -151,6 +151,11 @@ export class ChatManager {
    * Step 1: Initialize session - load user and check for existing cases
    */
   async initializeSession() {
+    if (this.isGuestUser()) {
+      this.userPlan = 'Guest';
+      return { requiresCaseSelection: false, activeCaseId: null, cases: [], conversationId: this.conversationId };
+    }
+
     // Resolve or create user in Supabase (idempotent upsert to avoid unique constraint errors)
     const { data: fetchedUserRow } = await supabaseAdmin
       .from('users')

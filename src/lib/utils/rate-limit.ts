@@ -67,6 +67,32 @@ export const aiRateLimiter = redis
   : null
 
 /**
+ * Rate limiter for guest AI usage
+ * 6 requests per 60 seconds per guest ID
+ */
+export const aiGuestRateLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(6, '60 s'),
+      analytics: true,
+      prefix: 'ratelimit:ai_guest',
+    })
+  : null
+
+/**
+ * IP-wide AI limiter (defense in depth)
+ * 60 requests per 10 minutes per IP
+ */
+export const aiIpRateLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(60, '600 s'),
+      analytics: true,
+      prefix: 'ratelimit:ai_ip',
+    })
+  : null
+
+/**
  * Rate limiter for general API operations
  * 100 requests per 60 seconds per user
  */

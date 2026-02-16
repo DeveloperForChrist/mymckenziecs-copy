@@ -5,6 +5,7 @@ import styles from './settingsSidebar.module.css';
 type Item = { label: string; key: string };
 const menuItems: Item[] = [
   { label: 'Account Info', key: 'account' },
+  { label: 'Case Profile', key: 'case-profile' },
   { label: 'Billing & Plans', key: 'billing' },
   { label: 'Contact Us', key: 'contact' },
 ];
