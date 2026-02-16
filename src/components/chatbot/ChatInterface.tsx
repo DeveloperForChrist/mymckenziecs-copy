@@ -719,6 +719,14 @@ type UploadedAttachment = {
   mimeType?: string | null;
 };
 
+type CaseProfilePayload = {
+  id?: string;
+  caseTitle?: string;
+  caseNumber?: string;
+  caseType?: string;
+  caseDescription?: string;
+};
+
 type AttachmentDisplay = {
   name: string;
   downloadURL?: string | null;
@@ -941,6 +949,7 @@ const normalizeManualDateInput = (value: string) => {
 
 export default function ChatInterface() {
   const [caseId, setCaseId] = useState<string>("");
+  const [caseProfileContext, setCaseProfileContext] = useState<CaseProfilePayload | null>(null);
   const [supabaseUser, setSupabaseUser] = useState<any>(null);
   const supabase = getSupabaseBrowserClient();
   const lastUserIdRef = useRef<string | null>(null);
@@ -993,6 +1002,50 @@ export default function ChatInterface() {
     window.addEventListener('activeCaseChanged', handler as EventListener);
     return () => window.removeEventListener('activeCaseChanged', handler as EventListener);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchCaseProfileContext = async () => {
+      if (!supabaseUser?.id) {
+        if (!cancelled) setCaseProfileContext(null);
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/cases', { credentials: 'include' });
+        if (!res.ok) {
+          if (!cancelled) setCaseProfileContext(null);
+          return;
+        }
+
+        const data = await res.json();
+        const cases = Array.isArray(data?.cases) ? data.cases : [];
+        const active = (caseId && cases.find((c: any) => c?.id === caseId)) || cases[0];
+
+        if (!active) {
+          if (!cancelled) setCaseProfileContext(null);
+          return;
+        }
+
+        const mapped: CaseProfilePayload = {
+          id: active.id,
+          caseTitle: active.title || undefined,
+          caseNumber: active.external_id || undefined,
+          caseType: active.case_type || undefined,
+          caseDescription: active.description || undefined,
+        };
+
+        if (!cancelled) setCaseProfileContext(mapped);
+      } catch {
+        if (!cancelled) setCaseProfileContext(null);
+      }
+    };
+
+    fetchCaseProfileContext();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabaseUser?.id, caseId]);
 
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -1459,6 +1512,8 @@ export default function ChatInterface() {
           history: messages.slice(0, messageIndex - 1),
           userId: userId,
           conversationId: conversationId,
+          caseProfile: caseProfileContext || undefined,
+          activeCaseId: normalizeCaseId(caseId) || undefined,
           attachments: regenAttachments,
           attachmentsOnly: attachmentsOnly,
           sessionMessageCount: sessionUserMessageCount,
@@ -1874,6 +1929,7 @@ export default function ChatInterface() {
           userId: userId,
           conversationId: conversationId,
           activeCaseId: normalizeCaseId(caseId) || undefined,
+          caseProfile: caseProfileContext || undefined,
           attachments: uploadedAttachments,
           attachmentsOnly: !hasText && uploadedAttachments.length > 0,
           sessionMessageCount: sessionUserMessageCount,

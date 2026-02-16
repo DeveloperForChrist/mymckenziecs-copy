@@ -53,16 +53,18 @@ export default function DocumentsSidebar({
                 >
                   <i className="bx bx-folder"></i>
                   <span className={styles.folderName}>{folder.name}</span>
-                  <button
-                    className={styles.folderDelete}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onDeleteFolder(folder.id);
-                    }}
-                    type="button"
-                  >
-                    <i className="bx bx-x"></i>
-                  </button>
+                  {!folder.locked && (
+                    <button
+                      className={styles.folderDelete}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onDeleteFolder(folder.id);
+                      }}
+                      type="button"
+                    >
+                      <i className="bx bx-x"></i>
+                    </button>
+                  )}
                 </div>
               ))
             )}

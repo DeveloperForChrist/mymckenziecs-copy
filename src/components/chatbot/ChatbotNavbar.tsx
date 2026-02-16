@@ -64,6 +64,17 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
     }, []);
 
     useEffect(() => {
+      const handleActiveCaseChanged = (event: Event) => {
+        const detail = (event as CustomEvent<{ caseId?: string | null }>).detail;
+        const nextCaseId = detail?.caseId?.trim();
+        if (!nextCaseId) return;
+        setActiveCaseId(nextCaseId);
+      };
+      window.addEventListener('activeCaseChanged', handleActiveCaseChanged as EventListener);
+      return () => window.removeEventListener('activeCaseChanged', handleActiveCaseChanged as EventListener);
+    }, []);
+
+    useEffect(() => {
       const fetchCases = async () => {
         if (!uid) {
           setCases([]);
@@ -80,6 +91,9 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
       fetchCases();
     }, [uid]);
     const activeCase = cases.find((c) => c.id === activeCaseId) || null;
+    const workingOnLabel = activeCase?.title?.trim()
+      || activeCase?.case_type?.trim()
+      || 'General guidance';
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
     let cancelled = false;
@@ -518,6 +532,38 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
               </div>
             </div>
           ) : null
+        )}
+        center={(
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '7px 12px',
+              borderRadius: '999px',
+              border: '1px solid rgba(255,255,255,0.22)',
+              background: 'rgba(255,255,255,0.08)',
+              color: '#f8fafc',
+              maxWidth: '100%'
+            }}
+            title={workingOnLabel}
+          >
+            <span style={{ fontSize: '12px', color: 'rgba(248,250,252,0.78)', letterSpacing: '0.3px' }}>
+              Working on:
+            </span>
+            <span
+              style={{
+                fontSize: '13px',
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '340px'
+              }}
+            >
+              {workingOnLabel}
+            </span>
+          </div>
         )}
         right={(
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

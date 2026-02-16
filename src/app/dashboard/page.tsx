@@ -3,19 +3,10 @@ import { useEffect, useState } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import Link from 'next/link';
 
-type CalendarEvent = {
-  id: string;
-  title: string;
-  date: string;
-  category?: 'deadline' | 'hearing' | 'meeting' | 'reminder' | 'other';
-};
-
 export default function DashboardPage() {
   const [uid, setUid] = useState<string | null>(null);
   const [plan, setPlan] = useState<string>('free');
   const [planLoaded, setPlanLoaded] = useState(false);
-  const [upcomingDeadlines, setUpcomingDeadlines] = useState<CalendarEvent[]>([]);
-  const [deadlinesLoading, setDeadlinesLoading] = useState(false);
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -67,45 +58,6 @@ export default function DashboardPage() {
     if (!cancelled && uid) {
       sendWelcomeIfVerified();
     }
-    return () => {
-      cancelled = true;
-    };
-  }, [uid]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const loadUpcomingDeadlines = async () => {
-      if (!uid) {
-        setUpcomingDeadlines([]);
-        return;
-      }
-      setDeadlinesLoading(true);
-      try {
-        const now = new Date();
-        const end = new Date();
-        end.setMonth(end.getMonth() + 6);
-        const params = new URLSearchParams({
-          startDate: now.toISOString(),
-          endDate: end.toISOString(),
-        });
-        const res = await fetch(`/api/calendar?${params.toString()}`, { credentials: 'include' });
-        const data = await res.json();
-        if (!res.ok || cancelled) return;
-
-        const filtered = (Array.isArray(data?.events) ? data.events : [])
-          .filter((ev: CalendarEvent) => ev?.date && ev.category === 'deadline')
-          .filter((ev: CalendarEvent) => new Date(ev.date).getTime() >= now.getTime())
-          .sort((a: CalendarEvent, b: CalendarEvent) => new Date(a.date).getTime() - new Date(b.date).getTime())
-          .slice(0, 3);
-
-        if (!cancelled) setUpcomingDeadlines(filtered);
-      } catch {
-        if (!cancelled) setUpcomingDeadlines([]);
-      } finally {
-        if (!cancelled) setDeadlinesLoading(false);
-      }
-    };
-    loadUpcomingDeadlines();
     return () => {
       cancelled = true;
     };
@@ -211,47 +163,6 @@ export default function DashboardPage() {
                     <i className={`bx ${feature.icon}`} style={{ fontSize: '2.5rem', display: 'block', marginBottom: '16px', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))' }}></i>
                     <h3 style={{ fontSize: '1.3rem', fontWeight: 600, marginBottom: '8px' }}>{feature.title}</h3>
                     <p style={{ fontSize: '0.95rem', opacity: 0.9, marginBottom: '12px' }}>{feature.desc}</p>
-                    {feature.href === '/dashboard/calendar' && (
-                      <div
-                        style={{
-                          marginTop: '10px',
-                          padding: '10px',
-                          borderRadius: '8px',
-                          background: 'rgba(0,0,0,0.16)',
-                          border: '1px solid rgba(255,255,255,0.2)',
-                        }}
-                      >
-                        {deadlinesLoading ? (
-                          <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.92 }}>Loading nearest deadline…</p>
-                        ) : upcomingDeadlines.length === 0 ? (
-                          <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.92 }}>No upcoming deadlines.</p>
-                        ) : (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            {upcomingDeadlines.slice(0, 2).map((item) => {
-                              const when = new Date(item.date);
-                              return (
-                                <div
-                                  key={item.id}
-                                  style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    gap: '8px',
-                                    fontSize: '0.82rem',
-                                  }}
-                                >
-                                  <span style={{ opacity: 0.95, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {item.title || 'Deadline'}
-                                  </span>
-                                  <span style={{ color: '#fde68a', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                                    {when.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
                   {feature.badge && (
                     <span style={{ fontSize: '0.85rem', background: 'rgba(255,255,255,0.2)', padding: '6px 12px', borderRadius: '20px', width: 'fit-content' }}>

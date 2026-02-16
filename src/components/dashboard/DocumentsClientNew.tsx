@@ -20,7 +20,7 @@ const mapApiDocument = (x: any, folderMap: Record<string, string>, folderOverrid
   createdAt: x.created_at || new Date().toISOString(),
   starred: false,
   size: x.file_size || 0,
-  folderId: folderOverride || folderMap[x.id] || undefined,
+  folderId: folderOverride || x.case_id || folderMap[x.id] || undefined,
   mimeType: x.mime_type || null,
   storagePath: x.storage_path || null,
   storageUrl: x.storage_url || null
@@ -33,7 +33,8 @@ export default function DocumentsClient() {
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [folders, setFolders] = useState<Folder[]>([]);
+  const [customFolders, setCustomFolders] = useState<Folder[]>([]);
+  const [caseFolders, setCaseFolders] = useState<Folder[]>([]);
   const [folderMap, setFolderMap] = useState<Record<string, string>>({});
   const [uploadFolderId, setUploadFolderId] = useState<string>('');
   const [activeCaseId, setActiveCaseId] = useState('');
@@ -76,7 +77,7 @@ export default function DocumentsClient() {
       const storedFolders = localStorage.getItem('documentFolders:v1');
       const storedMap = localStorage.getItem('documentFolderMap:v1');
       if (storedFolders) {
-        setFolders(JSON.parse(storedFolders));
+        setCustomFolders(JSON.parse(storedFolders));
       }
       if (storedMap) {
         setFolderMap(JSON.parse(storedMap));
@@ -86,9 +87,9 @@ export default function DocumentsClient() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('documentFolders:v1', JSON.stringify(folders));
+      localStorage.setItem('documentFolders:v1', JSON.stringify(customFolders));
     } catch (_) {}
-  }, [folders]);
+  }, [customFolders]);
 
   useEffect(() => {
     try {
@@ -99,6 +100,33 @@ export default function DocumentsClient() {
   useEffect(() => {
     if (activeFolder) setUploadFolderId(activeFolder);
   }, [activeFolder]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const fetchCaseFolders = async () => {
+      if (!uid) return;
+      try {
+        const response = await fetch('/api/cases', { credentials: 'include', signal: controller.signal });
+        const data = await readApiJson(response);
+        if (!response.ok) return;
+        const foldersFromCases: Folder[] = Array.isArray(data?.cases)
+          ? data.cases.map((c: any) => ({
+              id: String(c.id),
+              name: c?.title || c?.case_number || 'Untitled case',
+              kind: 'case' as const,
+              locked: true,
+            }))
+          : [];
+        setCaseFolders(foldersFromCases);
+      } catch (error: any) {
+        if (error?.name !== 'AbortError') {
+          console.error('Failed to fetch case folders', error);
+        }
+      }
+    };
+    fetchCaseFolders();
+    return () => controller.abort();
+  }, [uid]);
   useEffect(() => {
     const controller = new AbortController();
     const fetchDocuments = async () => {
@@ -144,16 +172,17 @@ export default function DocumentsClient() {
       const files = Array.from(e.target.files);
       const formData = new FormData();
       files.forEach(file => formData.append('files', file));
-      if (activeCaseId) formData.append('caseId', activeCaseId);
+      const targetFolderId = activeFolder || uploadFolderId || undefined;
+      const targetCaseId = caseFolders.some((f) => f.id === targetFolderId) ? targetFolderId : activeCaseId || undefined;
+      if (targetCaseId) formData.append('caseId', targetCaseId);
 
       const res = await fetch('/api/documents', { method: 'POST', body: formData, credentials: 'include' });
       const data: any = await readApiJson(res);
       if (!res.ok) throw new Error(data?.error || 'Upload failed');
-      const targetFolderId = activeFolder || uploadFolderId || undefined;
       const newDocs: Document[] = (data.documents || []).map((x:any)=> mapApiDocument(x, folderMap, targetFolderId));
       setDocuments(p=>[...newDocs,...p]);
       const mapFolderId = targetFolderId || '';
-      if (mapFolderId) {
+      if (mapFolderId && !caseFolders.some((f) => f.id === mapFolderId)) {
         setFolderMap(prev => {
           const next = { ...prev };
           newDocs.forEach(doc => { next[doc.id] = mapFolderId; });
@@ -169,6 +198,7 @@ export default function DocumentsClient() {
 
   const handleFolderAssignment = (docId: string, folderId: string) => {
     setDocuments(p => p.map(d => d.id == docId ? { ...d, folderId: folderId || undefined } : d));
+    if (caseFolders.some((folder) => folder.id === folderId)) return;
     setFolderMap(p => ({ ...p, [docId]: folderId }));
   };
 
@@ -194,8 +224,9 @@ export default function DocumentsClient() {
   };
 
   const deleteFolder = (folderId: string) => {
+    if (caseFolders.some((folder) => folder.id === folderId)) return;
     if (confirm('Are you sure you want to delete this folder?')) {
-      setFolders(p => p.filter(f => f.id !== folderId));
+      setCustomFolders(p => p.filter(f => f.id !== folderId));
       if (activeFolder === folderId) {
         setActiveFolder(null);
         try { router.replace('/dashboard/documents'); } catch(e){}
@@ -210,7 +241,7 @@ export default function DocumentsClient() {
 
   const handleCreateFolder = () => {
     if (newFolderName.trim()) {
-      setFolders(p => [...p, { id: `folder-${Date.now()}`, name: newFolderName.trim() }]);
+      setCustomFolders(p => [...p, { id: `folder-${Date.now()}`, name: newFolderName.trim(), kind: 'custom' }]);
       setShowFolderModal(false);
       setNewFolderName('');
     }
@@ -274,6 +305,20 @@ export default function DocumentsClient() {
     };
     loadPreview();
   }, [viewingDocument]);
+
+  const folders = useMemo(() => [...caseFolders, ...customFolders], [caseFolders, customFolders]);
+
+  useEffect(() => {
+    if (!activeFolder) {
+      setActiveCaseId('');
+      return;
+    }
+    if (caseFolders.some((folder) => folder.id === activeFolder)) {
+      setActiveCaseId(activeFolder);
+    } else {
+      setActiveCaseId('');
+    }
+  }, [activeFolder, caseFolders]);
 
   const fmt = (d:string) => new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'});
   const fmtSize = (b:number) => b>1048576?`${(b/1048576).toFixed(1)} MB`:b>0?`${(b/1024).toFixed(0)} KB`:'-';

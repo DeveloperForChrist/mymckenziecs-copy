@@ -1,19 +1,51 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import styles from './settingsPage.module.css'
 
 export default function CaseProfileSection() {
+  const [caseId, setCaseId] = useState<string | null>(null)
   const [caseTitle, setCaseTitle] = useState('')
   const [caseNumber, setCaseNumber] = useState('')
   const [hearingDate, setHearingDate] = useState('')
   const [caseSummary, setCaseSummary] = useState('')
   const [saving, setSaving] = useState(false)
+  const [loadingProfile, setLoadingProfile] = useState(true)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteConfirmed, setDeleteConfirmed] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    const loadCaseProfile = async () => {
+      try {
+        const response = await fetch('/api/user/case-details', { credentials: 'include' })
+        const data = await response.json()
+        if (!response.ok || cancelled) return
+        const item = data?.case
+        if (!item) return
+
+        setCaseId(item.id || null)
+        setCaseTitle(item.title === 'Untitled case' ? '' : (item.title || ''))
+        setCaseNumber(item.external_id || '')
+        setHearingDate(item.case_type || '')
+        setCaseSummary(item.description || '')
+      } catch {
+        // no-op
+      } finally {
+        if (!cancelled) setLoadingProfile(false)
+      }
+    }
+
+    loadCaseProfile()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const handleSave = async () => {
     setSaving(true)
     try {
-      // Placeholder: call API to save case profile
       const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null
       const res = await fetch('/api/user/case-details', {
         method: 'POST',
@@ -28,7 +60,7 @@ export default function CaseProfileSection() {
       })
       const data = await res.json()
       if (res.ok && data.case?.id) {
-        // Do not persist case id to localStorage; feature disabled
+        setCaseId(data.case.id)
         alert('Case profile saved')
       } else {
         console.error('save failed', data)
@@ -39,6 +71,36 @@ export default function CaseProfileSection() {
       alert('Failed to save case profile')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleDeleteProfile = async () => {
+    if (!deleteConfirmed || deleting) return
+
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/user/case-details', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caseId }),
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (res.ok && data?.ok) {
+        setCaseTitle('')
+        setCaseNumber('')
+        setHearingDate('')
+        setCaseSummary('')
+        setShowDeleteModal(false)
+        setDeleteConfirmed(false)
+        alert('Case profile cleared')
+      } else {
+        alert(data?.error || 'Failed to clear case profile')
+      }
+    } catch {
+      alert('Failed to clear case profile')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -92,6 +154,13 @@ export default function CaseProfileSection() {
               <button className={styles.primaryBtn} onClick={handleSave} disabled={saving}>
                 {saving ? 'Saving…' : 'Save Case Profile'}
               </button>
+              <button
+                className={styles.dangerOutlineBtn}
+                onClick={() => setShowDeleteModal(true)}
+                disabled={loadingProfile || deleting}
+              >
+                Delete Case Profile
+              </button>
             </div>
           </div>
         </div>
@@ -117,6 +186,44 @@ export default function CaseProfileSection() {
           </div>
         </aside>
       </div>
+
+      {showDeleteModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalCard}>
+            <h3 className={styles.modalTitle}>Delete case profile?</h3>
+            <p className={styles.modalBody}>
+              This will clear your case title, case number, hearing date, and case summary used to personalise MyMcKenzie Assistant.
+              Your chatbot responses may become less tailored until you fill in a new case profile.
+            </p>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px', fontSize: '0.9rem' }}>
+              <input
+                type="checkbox"
+                checked={deleteConfirmed}
+                onChange={(e) => setDeleteConfirmed(e.target.checked)}
+              />
+              I understand and want to clear my case profile.
+            </label>
+            <div className={styles.modalActions}>
+              <button
+                className={styles.secondaryBtn}
+                onClick={() => {
+                  setShowDeleteModal(false)
+                  setDeleteConfirmed(false)
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.dangerBtn}
+                onClick={handleDeleteProfile}
+                disabled={!deleteConfirmed || deleting}
+              >
+                {deleting ? 'Deleting…' : 'Yes, Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
