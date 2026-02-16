@@ -2075,7 +2075,7 @@ export default function ChatInterface() {
             {messages.length === 0 && (
               <div style={{ textAlign: 'center', marginTop: '30px', opacity: 0.85, color: '#ffffff', marginLeft: 0 }}>
                 {!authLoaded ? null : !supabaseUser ? (
-                  <div style={{ maxWidth: '700px', margin: '0 auto', lineHeight: 1.7, fontFamily: 'Open Sans, sans-serif', fontSize: '17px', fontWeight: 500 }}>
+                  <div style={{ maxWidth: '700px', margin: '0 auto', lineHeight: 1.7, fontFamily: 'Google Sans, sans-serif', fontSize: '17px', fontWeight: 500 }}>
                     <p style={{ fontSize: '17px', fontWeight: 500, marginBottom: '20px' }}>
                       Welcome to MyMcKenzie Assistant.
                     </p>
@@ -2097,7 +2097,7 @@ export default function ChatInterface() {
                       maxWidth: '700px',
                       margin: '0 auto',
                       lineHeight: 1.7,
-                      fontFamily: 'Open Sans, sans-serif',
+                      fontFamily: 'Google Sans, sans-serif',
                       fontSize: '17px',
                       fontWeight: 500,
                       minHeight: '120px',
@@ -2225,7 +2225,7 @@ export default function ChatInterface() {
                       gap: 8px;
                     }
                     .message-container .assistant-heading {
-                      font-family: 'Open Sans, sans-serif';
+                      font-family: 'Google Sans, sans-serif';
                       font-size: 17px;
                       font-weight: 600;
                       letter-spacing: 0.01em;
@@ -2239,7 +2239,7 @@ export default function ChatInterface() {
                       text-underline-offset: 6px;
                     }
                     .message-container .assistant-subheading {
-                      font-family: 'Open Sans, sans-serif';
+                      font-family: 'Google Sans, sans-serif';
                       font-size: 16px;
                       font-weight: 600;
                       line-height: 1.6;
@@ -2249,7 +2249,7 @@ export default function ChatInterface() {
                       text-decoration: none;
                     }
                     .message-container .assistant-summary {
-                      font-family: 'Open Sans, sans-serif';
+                      font-family: 'Google Sans, sans-serif';
                       font-size: 16px;
                       font-weight: 600;
                       line-height: 1.65;
@@ -2257,7 +2257,7 @@ export default function ChatInterface() {
                       color: #f8fafc;
                     }
                     .message-container .assistant-paragraph {
-                      font-family: 'Open Sans, sans-serif';
+                      font-family: 'Google Sans, sans-serif';
                       font-size: 16px;
                       font-weight: 500;
                       line-height: 1.65;
@@ -2272,7 +2272,7 @@ export default function ChatInterface() {
                       color: #e2e8f0;
                     }
                     .message-container .assistant-list-item {
-                      font-family: 'Open Sans, sans-serif';
+                      font-family: 'Google Sans, sans-serif';
                       font-size: 16px;
                       font-weight: 500;
                       line-height: 1.65;
@@ -2312,7 +2312,7 @@ export default function ChatInterface() {
                       width: isUser ? 'fit-content' : '100%',
                       boxSizing: 'border-box',
                       lineHeight: 1.65,
-                      fontFamily: 'Open Sans, sans-serif',
+                      fontFamily: 'Google Sans, sans-serif',
                       fontSize: '16px',
                       fontWeight: 500,
                       background: isUser
@@ -2709,7 +2709,7 @@ export default function ChatInterface() {
                           📝
                         </div>
                         <div style={{ flex: 1 }}>
-                          <p style={{ fontFamily: 'Open Sans, sans-serif', fontSize: '16px', fontWeight: 500, margin: 0 }}>
+                          <p style={{ fontFamily: 'Google Sans, sans-serif', fontSize: '16px', fontWeight: 500, margin: 0 }}>
                             Save this draft to MyFiles
                           </p>
                           <p style={{ fontSize: '16px', color: '#cbd5f5', marginTop: '4px', marginBottom: '8px' }}>
@@ -2932,7 +2932,7 @@ export default function ChatInterface() {
                     </p>
                   </div>
                 </div>
-                <p style={{ fontFamily: 'Open Sans, sans-serif', fontSize: '17px', fontWeight: 500, lineHeight: 1.7, margin: '10px 0 20px' }}>
+                <p style={{ fontFamily: 'Google Sans, sans-serif', fontSize: '17px', fontWeight: 500, lineHeight: 1.7, margin: '10px 0 20px' }}>
                   You&apos;ve used {FREEMIUM_MESSAGE_LIMIT} messages in the last 24 hours. The limit resets on a rolling basis. Upgrade to continue,
                   or start a new case to keep working.
                 </p>
@@ -3104,7 +3104,7 @@ export default function ChatInterface() {
                       flex: 1,
                       border: 'none',
                       background: 'transparent',
-                      fontFamily: 'Open Sans, sans-serif',
+                      fontFamily: 'Google Sans, sans-serif',
                       fontSize: '16px',
                       fontWeight: 500,
                       color: '#F3F1FA',
