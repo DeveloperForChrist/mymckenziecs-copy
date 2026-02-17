@@ -68,6 +68,9 @@ export default function PricingPage() {
   }
 
   const standardPriceId = PLAN_PRICES.find((plan) => plan.name === 'Standard')?.priceId || '';
+  const essentialPriceId = PLAN_PRICES.find((plan) => plan.name === 'Essential')?.priceId || '';
+  const premiumCheapPriceId = PLAN_PRICES.find((plan) => plan.name === 'Premium Cheap')?.priceId || '';
+  const plusPriceId = PLAN_PRICES.find((plan) => plan.name === 'Plus')?.priceId || '';
 
   return (
     <>
@@ -197,6 +200,10 @@ export default function PricingPage() {
                   <span style={{ color: '#7bd4c9' }}>£25 / mo</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
+                  <span>Premium Cheap</span>
+                  <span style={{ color: '#93c5fd' }}>£1 / mo</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
                   <span>Plus</span>
                   <span style={{ color: '#f8a76f' }}>£45 / mo</span>
                 </div>
@@ -204,7 +211,7 @@ export default function PricingPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
             {/* Basic Plan */}
             <div className="p-8 text-center relative transition-all duration-300 hover:-translate-y-2" style={{
               background: 'linear-gradient(160deg, rgba(15, 15, 25, 0.95), rgba(23, 23, 35, 0.9))',
@@ -328,12 +335,62 @@ export default function PricingPage() {
               <button
                 className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
                 style={{ background: 'linear-gradient(135deg, #7bd4c9, #3aa79d)', border: '2px solid transparent' }}
-                onClick={() => handleSubscribe('price_1SdKVHK39SdPnLNUgTE3dhSg')}
-                disabled={checkoutLoading === 'price_1SdKVHK39SdPnLNUgTE3dhSg'}
+                onClick={() => handleSubscribe(essentialPriceId)}
+                disabled={!essentialPriceId || checkoutLoading === essentialPriceId}
               >
-                {checkoutLoading === 'price_1SdKVHK39SdPnLNUgTE3dhSg' ? 'Redirecting…' : (isSignedIn ? 'Subscribe' : 'Sign in to Subscribe')}
+                {!essentialPriceId ? 'Configure price ID' : (checkoutLoading === essentialPriceId ? 'Redirecting…' : (isSignedIn ? 'Subscribe' : 'Sign in to Subscribe'))}
               </button>
-              {checkoutError && checkoutLoading === 'price_1SdKVHK39SdPnLNUgTE3dhSg' && (
+              {checkoutError && checkoutLoading === essentialPriceId && (
+                <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>
+              )}
+            </div>
+
+            {/* Premium Cheap Plan */}
+            <div className="p-8 text-center relative transition-all duration-300 hover:-translate-y-2" style={{
+              background: 'linear-gradient(160deg, rgba(20, 26, 45, 0.95), rgba(12, 16, 34, 0.9))',
+              borderRadius: '26px',
+              border: '1px solid rgba(147, 197, 253, 0.35)',
+              boxShadow: '0 16px 40px rgba(0, 0, 0, 0.35)'
+            }}>
+              <h3 className="text-3xl font-bold text-white mb-4">Premium Cheap</h3>
+              <div className="text-5xl font-bold mb-6" style={{ color: '#93c5fd' }}>
+                £1<span className="text-2xl">/Month</span>
+              </div>
+              <ul className="space-y-3 mb-8 text-left">
+                <li className="flex items-start text-white">
+                  <span className="mr-2 font-bold" style={{ color: '#93c5fd' }}>✓</span> Everything included in Essential
+                </li>
+                <li className="flex items-start text-white">
+                  <span className="mr-2 font-bold" style={{ color: '#93c5fd' }}>✓</span> Unlimited conversations with a 50‑message per thread limit
+                </li>
+                <li className="flex items-start text-white">
+                  <span className="mr-2 font-bold" style={{ color: '#93c5fd' }}>✓</span> 30 document storage
+                </li>
+                <li className="flex items-start text-white">
+                  <span className="mr-2 font-bold" style={{ color: '#93c5fd' }}>✓</span> Persistent chat history
+                </li>
+                <li className="flex items-start text-white">
+                  <span className="mr-2 font-bold" style={{ color: '#93c5fd' }}>✓</span> Case Law Search + MyMckenzie Case Study
+                </li>
+                <li className="flex items-start text-white">
+                  <span className="mr-2 font-bold" style={{ color: '#93c5fd' }}>✓</span> Deadline reminder emails
+                </li>
+                <li className="flex items-start text-white">
+                  <span className="mr-2 font-bold" style={{ color: '#93c5fd' }}>✓</span> Priority support (reply within 24 hours)
+                </li>
+                <li className="flex items-start text-white">
+                  <span className="mr-2 font-bold" style={{ color: '#93c5fd' }}>✓</span> Early access to new features
+                </li>
+              </ul>
+              <button
+                className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
+                style={{ background: 'linear-gradient(135deg, #93c5fd, #3b82f6)', border: '2px solid transparent' }}
+                onClick={() => handleSubscribe(premiumCheapPriceId)}
+                disabled={!premiumCheapPriceId || checkoutLoading === premiumCheapPriceId}
+              >
+                {!premiumCheapPriceId ? 'Configure price ID' : (checkoutLoading === premiumCheapPriceId ? 'Redirecting…' : (isSignedIn ? 'Subscribe' : 'Sign in to Subscribe'))}
+              </button>
+              {checkoutError && checkoutLoading === premiumCheapPriceId && (
                 <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>
               )}
             </div>
@@ -378,12 +435,12 @@ export default function PricingPage() {
               <button
                 className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
                 style={{ background: 'linear-gradient(135deg, #f8a76f, #f26a3d)', border: '2px solid transparent' }}
-                onClick={() => handleSubscribe('price_1SdKVIK39SdPnLNURgr8DlL2')}
-                disabled={checkoutLoading === 'price_1SdKVIK39SdPnLNURgr8DlL2'}
+                onClick={() => handleSubscribe(plusPriceId)}
+                disabled={!plusPriceId || checkoutLoading === plusPriceId}
               >
-                {checkoutLoading === 'price_1SdKVIK39SdPnLNURgr8DlL2' ? 'Redirecting…' : (isSignedIn ? 'Subscribe' : 'Sign in to Subscribe')}
+                {!plusPriceId ? 'Configure price ID' : (checkoutLoading === plusPriceId ? 'Redirecting…' : (isSignedIn ? 'Subscribe' : 'Sign in to Subscribe'))}
               </button>
-              {checkoutError && checkoutLoading === 'price_1SdKVIK39SdPnLNURgr8DlL2' && (
+              {checkoutError && checkoutLoading === plusPriceId && (
                 <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>
               )}
             </div>

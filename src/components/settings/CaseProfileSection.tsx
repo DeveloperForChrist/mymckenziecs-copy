@@ -124,7 +124,7 @@ export default function CaseProfileSection() {
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>By Title</label>
                 <input className={styles.textInput} value={caseTitle} onChange={(e) => setCaseTitle(e.target.value)} />
-                <p className={styles.caseProfileHint}>For example, in the case of Smith & Co v Jones, either "Smith" or "Jones" as placeholder.</p>
+                <p className={styles.caseProfileHint}>For example, in the case of Smith & Co v Jones, either &quot;Smith&quot; or &quot;Jones&quot; as placeholder.</p>
               </div>
 
               <div className={styles.formGroup}>

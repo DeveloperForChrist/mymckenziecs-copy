@@ -101,7 +101,7 @@ Sent from MyMcKenzie Contact Form
         },
       });
 
-      const isPlusPlan = /plus|premium\s*pro/i.test(planLabel);
+      const isPlusPlan = /plus|premium\s*pro|premium\s*cheap/i.test(planLabel);
       const priorityHeaders = {
         'X-Plan': planLabel,
         'X-Priority': isPlusPlan ? 'High' : 'Normal',

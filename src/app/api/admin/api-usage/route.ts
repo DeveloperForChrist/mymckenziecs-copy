@@ -15,7 +15,7 @@ type ApiUsageRow = {
 
 export async function GET(req: NextRequest) {
   try {
-    const admin = requireAdminSession()
+    const admin = await requireAdminSession()
     if (!admin.ok) return admin.response
 
     const { searchParams } = req.nextUrl

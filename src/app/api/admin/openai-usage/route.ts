@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 
 export async function GET(req: NextRequest) {
-  const admin = requireAdminSession();
+  const admin = await requireAdminSession();
   if (!admin.ok) return admin.response;
   const logPath = path.join(process.cwd(), 'data/logs/openai-usage.log.jsonl');
   try {

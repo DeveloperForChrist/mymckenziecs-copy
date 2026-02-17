@@ -18,7 +18,7 @@ type UserRow = {
 
 export async function GET(request: Request) {
   try {
-    const admin = requireAdminSession();
+    const admin = await requireAdminSession();
     if (!admin.ok) return admin.response;
 
     const { searchParams } = new URL(request.url);
@@ -87,7 +87,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const admin = requireAdminSession();
+    const admin = await requireAdminSession();
     if (!admin.ok) return admin.response;
 
     const { action, userId, data } = await request.json();
@@ -115,7 +115,7 @@ export async function POST(request: Request) {
 
       case 'updatePlan': {
         // Validate plan
-        const validPlans = ['free', 'standard', 'essential', 'plus'];
+        const validPlans = ['free', 'standard', 'essential', 'plus', 'premium cheap', 'premium pro'];
         if (!data?.plan || !validPlans.includes(data.plan.toLowerCase())) {
           console.error('❌ Invalid plan:', data?.plan);
           return NextResponse.json({ 
@@ -125,7 +125,13 @@ export async function POST(request: Request) {
           }, { status: 400 });
         }
         
-        const planToSet = data.plan.toLowerCase();
+        const requestedPlan = data.plan.toLowerCase();
+        const planToSet =
+          requestedPlan === 'plus'
+            ? 'premium pro'
+            : requestedPlan === 'essential'
+              ? 'premium'
+              : requestedPlan;
 
         console.log(`🔄 Updating plan for user ${userId} to ${planToSet}`);
 

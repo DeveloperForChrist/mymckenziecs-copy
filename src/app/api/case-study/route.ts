@@ -12,7 +12,7 @@ import {
 } from '@/lib/utils/case-study-utils';
 import { caseStudyCache } from '@/lib/cache/case-study-cache';
 import { z } from 'zod';
-import * as Sentry from '@sentry/nextjs';
+import { captureServerException } from '@/lib/monitoring/error-logger';
 
 // Input validation schema with better validation rules
 const caseStudySchema = z.object({
@@ -294,18 +294,13 @@ export async function POST(req: NextRequest) {
     const processingTime = Date.now() - startTime;
     console.error(`Case study generation error (${processingTime}ms):`, error);
     
-    // Send error to Sentry with context
-    if (error instanceof Error) {
-      Sentry.captureException(error, {
-        tags: {
-          endpoint: 'case-study',
-          processingTime
-        },
-        extra: {
-          errorType: error.constructor.name
-        }
-      });
-    }
+    await captureServerException(error, {
+      component: 'case-study',
+      route: '/api/case-study',
+      method: 'POST',
+      processingTime,
+      errorType: error instanceof Error ? error.constructor.name : typeof error,
+    });
 
     // Handle validation errors with detailed feedback
     if (error instanceof z.ZodError) {

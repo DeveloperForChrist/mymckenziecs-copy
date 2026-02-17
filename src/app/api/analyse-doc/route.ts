@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
 import mammoth from 'mammoth';
-import { PDFParse } from 'pdf-parse';
+import { createRequire } from 'module';
+
+const nodeRequire = createRequire(import.meta.url);
 
 // Helper to safely extract text from DOCX
 async function extractDocxText(buffer: Buffer): Promise<string> {
@@ -17,10 +19,11 @@ async function extractDocxText(buffer: Buffer): Promise<string> {
 // Helper to safely extract text from PDF
 async function extractPdfText(buffer: Buffer): Promise<string> {
   try {
-    const parser = new PDFParse({ data: buffer });
-    const result = await parser.getText();
-    await parser.destroy();
-    return result.text || '';
+    // Use CJS entry to avoid ESM bundling issues with pdfjs-dist on Next 16.
+    const pdfParseModule = nodeRequire('pdf-parse');
+    const parse = pdfParseModule?.default ?? pdfParseModule;
+    const result = await parse(buffer);
+    return result?.text || '';
   } catch (error) {
     console.warn('PDF extraction failed:', error);
     return '';

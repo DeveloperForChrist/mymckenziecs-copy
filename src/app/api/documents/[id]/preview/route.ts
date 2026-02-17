@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import mammoth from 'mammoth'
 
-export async function GET(_request: NextRequest, context: { params: { id: string } }) {
+export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const supabase = await createSupabaseRouteClient()
   const { data: authData } = await supabase.auth.getUser()
   if (!authData?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { id } = context.params
+  const { id } = await context.params
   const { data: document, error } = await supabase
     .from('documents')
     .select('id, storage_path, mime_type, name')

@@ -18,7 +18,7 @@ type CaseRow = {
 
 export async function GET(request: Request) {
   try {
-    const admin = requireAdminSession();
+    const admin = await requireAdminSession();
     if (!admin.ok) return admin.response;
 
     const { searchParams } = new URL(request.url);
@@ -81,7 +81,7 @@ export async function GET(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const admin = requireAdminSession();
+    const admin = await requireAdminSession();
     if (!admin.ok) return admin.response;
 
     const body = await request.json() as { caseId?: string; caseProfile?: { id?: string } };

@@ -7,8 +7,8 @@ import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { aiRateLimiter, aiGuestRateLimiter, aiIpRateLimiter, rateLimit, getIdentifier } from '@/lib/utils/rate-limit'
 import { chatMessageSchema } from '@/validators/index'
-import * as Sentry from '@sentry/nextjs'
 import { z } from 'zod'
+import { captureServerException } from '@/lib/monitoring/error-logger'
 
 type ChatAttachment = {
   name?: string
@@ -497,7 +497,12 @@ export async function POST(request: NextRequest) {
           )
         }
       } catch (error) {
-        Sentry.captureException(error)
+        await captureServerException(error, {
+          component: 'chat',
+          route: '/api/chat',
+          method: 'POST',
+          guestUsageRpc: true,
+        })
         return withCookie(
           NextResponse.json(
             {
@@ -721,17 +726,12 @@ export async function POST(request: NextRequest) {
       )
     )
   } catch (error: any) {
-    Sentry.captureException(error, {
-      tags: {
-        api: 'chat',
-        userId: authUserId,
-      },
-      contexts: {
-        request: {
-          url: request.url,
-          method: request.method,
-        },
-      },
+    await captureServerException(error, {
+      component: 'chat',
+      route: '/api/chat',
+      method: request.method,
+      userId: authUserId || null,
+      url: request.url,
     })
 
     if (error instanceof MessageLimitError) {

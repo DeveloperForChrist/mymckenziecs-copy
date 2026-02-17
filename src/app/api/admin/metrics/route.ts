@@ -25,7 +25,7 @@ const chain = (query: MetricsQuery, method: string, ...args: unknown[]): Metrics
 
 export async function GET(request: Request) {
   try {
-    const admin = requireAdminSession()
+    const admin = await requireAdminSession()
     if (!admin.ok) return admin.response
 
     const { searchParams } = new URL(request.url)

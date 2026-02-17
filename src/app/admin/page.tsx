@@ -20,7 +20,7 @@ export default function AdminLoginPage() {
         if (!cancelled && data?.authenticated) {
           localStorage.setItem('adminLoggedIn', 'true')
           if (data?.email) localStorage.setItem('adminEmail', String(data.email))
-          router.push('/admin/dashboard')
+          router.push('/jesusistheadmin/dashboard')
         }
       } catch {
         // ignore
@@ -51,7 +51,7 @@ export default function AdminLoginPage() {
       }
       localStorage.setItem('adminLoggedIn', 'true')
       localStorage.setItem('adminEmail', email)
-      router.push('/admin/dashboard')
+      router.push('/jesusistheadmin/dashboard')
     } catch {
       setError('Login failed. Please try again.')
       setLoading(false)

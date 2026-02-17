@@ -2,6 +2,14 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+
+  // Migrate legacy admin URLs to the new admin path.
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    const redirectedPath = pathname.replace(/^\/admin/, '/jesusistheadmin')
+    return NextResponse.redirect(new URL(redirectedPath, request.url))
+  }
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -61,9 +69,7 @@ export async function middleware(request: NextRequest) {
   ]
 
   // Admin routes - require admin role
-  const adminPaths = ['/admin', '/api/admin']
-
-  const pathname = request.nextUrl.pathname
+  const adminPaths = ['/jesusistheadmin', '/api/admin']
 
   // Check if path requires authentication
   const requiresAuth = protectedPaths.some((path) => pathname.startsWith(path))

@@ -45,7 +45,7 @@ export default function ContactSection() {
   }, []);
 
   const planLabel = userPlan.toString();
-  const isPlusPlan = /plus|premium\s*pro/i.test(planLabel);
+  const isPlusPlan = /plus|premium\s*pro|premium\s*cheap/i.test(planLabel);
   const responseTime = isPlusPlan ? 'within 24 hours' : 'within 2-3 days';
 
   const handleSubmit = async (e: React.FormEvent) => {

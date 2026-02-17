@@ -13,15 +13,10 @@ const nextConfig = {
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   },
   // Performance optimizations
-  swcMinify: true,
   compress: true,
   poweredByHeader: false,
   generateEtags: false,
   output: 'standalone',
-
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -35,6 +30,16 @@ const nextConfig = {
   // because Next.js manages chunking for App Router and custom settings can
   // break module runtime loading in the browser.
   webpack: (config, { isServer }) => {
+    // pdf-parse uses an internal dynamic require that webpack flags as a
+    // critical dependency. This warning is expected and non-breaking here.
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      {
+        module: /pdf-parse[\\/]dist[\\/]pdf-parse[\\/]cjs[\\/]index\.cjs/,
+        message: /Critical dependency: the request of a dependency is an expression/,
+      },
+    ];
+
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,

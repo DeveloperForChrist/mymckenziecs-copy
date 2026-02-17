@@ -198,6 +198,7 @@ function normalizePlanTypeFromPrice(priceId?: string | null): string {
   if (!priceId) return 'free';
   const match = PLAN_PRICES.find((plan) => plan.priceId === priceId);
   const name = (match?.name || '').toLowerCase();
+  if (name.includes('premium cheap')) return 'premium cheap';
   if (name.includes('plus')) return 'premium pro';
   if (name.includes('essential')) return 'premium';
   if (name.includes('standard')) return 'standard';
@@ -206,6 +207,7 @@ function normalizePlanTypeFromPrice(priceId?: string | null): string {
 
 function displayPlanName(planType?: string | null): string {
   const raw = (planType || '').toLowerCase();
+  if (raw.includes('premium cheap')) return 'Premium Cheap';
   if (raw.includes('premium pro') || raw.includes('plus')) return 'Plus';
   if (raw.includes('premium') || raw.includes('essential')) return 'Essential';
   if (raw.includes('standard')) return 'Standard';
@@ -305,6 +307,7 @@ async function upsertSubscriptionFromStripe(subscription: any) {
       const newName = displayPlanName(planType);
       const rank = (name: string) => {
         const n = name.toLowerCase();
+        if (n.includes('premium cheap')) return 2;
         if (n.includes('plus') || n.includes('premium pro')) return 2;
         if (n.includes('essential') || n.includes('premium')) return 1;
         return 0;
@@ -330,7 +333,8 @@ async function upsertSubscriptionFromStripe(subscription: any) {
 }
 
 export async function POST(request: Request) {
-  const signature = headers().get('stripe-signature');
+  const headerStore = await headers();
+  const signature = headerStore.get('stripe-signature');
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   if (!signature || !webhookSecret) {

@@ -6,6 +6,6 @@ export const dynamic = 'force-dynamic';
 
 
 export async function GET() {
-  const session = getAdminSessionFromCookies()
+  const session = await getAdminSessionFromCookies()
   return NextResponse.json({ authenticated: session.ok, email: session.email || null })
 }

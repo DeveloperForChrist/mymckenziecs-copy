@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 
-export async function DELETE(_request: NextRequest, context: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createSupabaseRouteClient()
     const { data: authData, error: authErr } = await supabase.auth.getUser()
@@ -9,7 +9,7 @@ export async function DELETE(_request: NextRequest, context: { params: { id: str
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const id = context?.params?.id
+    const { id } = await context.params
     if (!id) {
       return NextResponse.json({ error: 'Missing document id' }, { status: 400 })
     }
@@ -54,4 +54,3 @@ export async function DELETE(_request: NextRequest, context: { params: { id: str
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }
-

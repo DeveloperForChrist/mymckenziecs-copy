@@ -41,7 +41,7 @@ const readGroundingLog = () => {
 
 export async function GET() {
   try {
-    const admin = requireAdminSession()
+    const admin = await requireAdminSession()
     if (!admin.ok) return admin.response
 
     const summary = readGroundingLog()

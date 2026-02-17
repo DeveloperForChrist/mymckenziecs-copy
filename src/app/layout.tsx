@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import ClientErrorReporter from '@/components/monitoring/ClientErrorReporter'
 
 export const metadata: Metadata = {
   title: 'MymckenzieCS',
@@ -28,7 +29,10 @@ export default function RootLayout({
           type="image/svg+xml"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <ClientErrorReporter />
+        {children}
+      </body>
     </html>
   )
 }

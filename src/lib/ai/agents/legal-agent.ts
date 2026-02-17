@@ -198,6 +198,99 @@ function extractFormattedSources(responseText: string, verifiedSources: string[]
   return formattedSources.length > 0 ? formattedSources : undefined
 }
 
+function formatSourceTitle(url: string): string {
+  let title = url
+  try {
+    const urlObj = new URL(url)
+    title = urlObj.hostname.replace('www.', '') + (urlObj.pathname !== '/' ? urlObj.pathname.split('/').pop() || '' : '')
+  } catch {
+    title = url
+  }
+  return title.length > 50 ? title.substring(0, 50) + '...' : title
+}
+
+function formatSourcesFromUrls(urls: string[], max: number = 6): Array<{ number: number; title: string; url: string }> {
+  return urls.slice(0, max).map((url, idx) => ({
+    number: idx + 1,
+    title: formatSourceTitle(url),
+    url,
+  }))
+}
+
+function ensureCitationsForPremium(
+  responseText: string,
+  sourceUrls: string[],
+  includeCitations: boolean
+): { responseText: string; sources?: Array<{ number: number; title: string; url: string }> } {
+  if (!includeCitations || sourceUrls.length === 0) {
+    return { responseText, sources: undefined }
+  }
+
+  const maxCitationNumber = Math.max(1, Math.min(sourceUrls.length, 8))
+  let citationCursor = 1
+  const nextCitationTag = () => {
+    const tag = `[${citationCursor}]`
+    citationCursor = citationCursor >= maxCitationNumber ? 1 : citationCursor + 1
+    return tag
+  }
+
+  const isHeadingLike = (line: string) => {
+    const trimmed = line.trim()
+    if (!trimmed) return false
+    if (trimmed.length > 72) return false
+    if (/[:.!?]$/.test(trimmed)) return false
+    return /^[A-Z][^.!?]*$/.test(trimmed)
+  }
+
+  const shouldRequireCitation = (line: string) => {
+    const trimmed = line.trim()
+    if (!trimmed) return false
+    if (isHeadingLike(trimmed)) return false
+    if (/\[\d+\]/.test(trimmed)) return false
+
+    // Only tag lines that contain likely legal/factual claims.
+    return (
+      /\b(under|pursuant|section|s\.\s*\d+|act|cpr|practice direction|rule|must|required|deadline|notice|hearing|court|tribunal|statute|regulation|lawful|unlawful|entitled|rights?)\b/i.test(trimmed) ||
+      /\b(19|20)\d{2}\b/.test(trimmed) ||
+      /\b\d{1,2}\s+(day|days|week|weeks|month|months|year|years)\b/i.test(trimmed) ||
+      /\b\d+%|\b£\d+/i.test(trimmed)
+    )
+  }
+
+  const annotateLine = (line: string) => {
+    if (!line.trim()) return line
+    if (!shouldRequireCitation(line)) return line
+    if (!/[a-zA-Z]/.test(line)) return line
+
+    const sentences = line.match(/[^.!?]+[.!?]+|[^.!?]+$/g)
+    if (!sentences || sentences.length === 0) {
+      return `${line.trim()} ${nextCitationTag()}`
+    }
+
+    const annotated = sentences.map((sentence) => {
+      const trimmed = sentence.trim()
+      if (!trimmed) return ''
+      if (!shouldRequireCitation(trimmed)) return trimmed
+      return `${trimmed} ${nextCitationTag()}`
+    }).filter(Boolean)
+
+    return annotated.join(' ')
+  }
+
+  const finalText = (responseText || '')
+    .split('\n')
+    .map(annotateLine)
+    .join('\n')
+    .trim()
+
+  const extracted = extractFormattedSources(finalText, sourceUrls)
+  const formattedSources = extracted && extracted.length > 0 ? extracted : undefined
+  return {
+    responseText: finalText,
+    sources: formattedSources,
+  }
+}
+
 // Call OpenAI LLM
 async function callLLM(
   prompt: string,
@@ -360,8 +453,13 @@ export async function createLegalAgent(
             allSources: sources
           })
 
-          const finalResponse = streamlined.streamlinedAnswer
-          const citedSources = streamlined.citedSources
+          const final = ensureCitationsForPremium(
+            streamlined.streamlinedAnswer,
+            sources,
+            includeCitations
+          )
+          const finalResponse = final.responseText
+          const citedSources = final.sources || streamlined.citedSources
 
           return {
             response: finalResponse,
@@ -371,11 +469,12 @@ export async function createLegalAgent(
           }
         }
 
+        const final = ensureCitationsForPremium(comprehensiveAnswer, sources, includeCitations)
         return {
-          response: comprehensiveAnswer,
+          response: final.responseText,
           document_generated: false,
           guidance_provided: true,
-          sources: undefined
+          sources: final.sources
         }
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : ''

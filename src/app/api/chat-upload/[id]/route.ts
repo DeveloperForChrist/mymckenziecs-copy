@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
 import os from 'os'
@@ -9,9 +9,9 @@ const uploadDir = path.join(os.tmpdir(), 'mymckenzie-chat-uploads')
 
 const isSafeId = (value: string) => /^[a-zA-Z0-9_\-]+$/.test(value)
 
-export async function GET(_: Request, context: { params: { id: string } }) {
+export async function GET(_: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const id = context.params.id
+    const { id } = await context.params
     if (!id || !isSafeId(id)) {
       return NextResponse.json({ message: 'Invalid download id.' }, { status: 400 })
     }

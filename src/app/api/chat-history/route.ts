@@ -36,7 +36,7 @@ function normalizePlanLabel(value: unknown): string {
 function isPlanPremiumPro(plan: string): boolean {
   if (!plan) return false;
   const compact = plan.replace(/\s+/g, '');
-  return compact === 'premiumpro' || plan.includes('premium pro');
+  return compact === 'premiumpro' || plan.includes('premium pro') || plan.includes('premium cheap');
 }
 
 function isPlanPremium(plan: string): boolean {

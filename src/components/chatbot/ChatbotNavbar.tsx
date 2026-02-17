@@ -157,7 +157,10 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
     normalizedPlan.includes('freemium') ||
     normalizedPlan.includes('guest')
   );
-  const isPlusPlan = normalizedPlan.includes('plus') || normalizedPlan.includes('premium pro');
+  const isPlusPlan =
+    normalizedPlan.includes('plus') ||
+    normalizedPlan.includes('premium pro') ||
+    normalizedPlan.includes('premium cheap');
   const threadMessageLimit = isPlusPlan ? PLUS_MESSAGE_LIMIT_PER_THREAD : ESSENTIAL_MESSAGE_LIMIT_PER_THREAD;
   const shouldShowHistory = planLoaded && isLoggedIn && !isFreemiumPlan;
   const shouldShowSessionHistory = planLoaded && isLoggedIn && isFreemiumPlan;

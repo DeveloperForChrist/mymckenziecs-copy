@@ -78,8 +78,9 @@ export const verifyAdminSessionToken = (token?: string): AdminSessionResult => {
   return { ok: true, email }
 }
 
-export const getAdminSessionFromCookies = (): AdminSessionResult => {
-  const token = cookies().get(COOKIE_NAME)?.value
+export const getAdminSessionFromCookies = async (): Promise<AdminSessionResult> => {
+  const cookieStore = await cookies()
+  const token = cookieStore.get(COOKIE_NAME)?.value
   return verifyAdminSessionToken(token)
 }
 

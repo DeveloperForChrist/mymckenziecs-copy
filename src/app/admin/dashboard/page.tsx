@@ -290,13 +290,13 @@ export default function AdminDashboard() {
         const res = await fetch('/api/admin/session', { credentials: 'include' })
         const data = await res.json().catch(() => ({}))
         if (!res.ok || !data?.authenticated) {
-          router.push('/admin')
+          router.push('/jesusistheadmin')
           return
         }
         localStorage.setItem('adminLoggedIn', 'true')
         void refreshAll()
       } catch {
-        router.push('/admin')
+        router.push('/jesusistheadmin')
       }
     }
     void check()
@@ -452,7 +452,7 @@ export default function AdminDashboard() {
       } catch {}
       localStorage.removeItem('adminLoggedIn')
       localStorage.removeItem('adminEmail')
-      router.push('/admin')
+      router.push('/jesusistheadmin')
     }
     void perform()
   }
@@ -947,7 +947,9 @@ export default function AdminDashboard() {
                   <select className={styles.select} value={filterPlan} onChange={(e) => setFilterPlan(e.target.value)}>
                     <option value="">All plans</option>
                     <option value="free">Free</option>
+                    <option value="standard">Standard</option>
                     <option value="premium">Premium</option>
+                    <option value="premium cheap">Premium Cheap</option>
                     <option value="premium pro">Premium Pro</option>
                   </select>
                 </div>
@@ -998,7 +1000,7 @@ export default function AdminDashboard() {
                               <button
                                 className={styles.actionButton}
                                 onClick={() => {
-                                  const newPlan = prompt('Enter new plan (free, standard, essential, plus):', user.plan)
+                                  const newPlan = prompt('Enter new plan (free, standard, essential, plus, premium cheap, premium pro):', user.plan)
                                   if (newPlan) handleUserAction(user.id, 'updatePlan', { plan: newPlan })
                                 }}
                               >

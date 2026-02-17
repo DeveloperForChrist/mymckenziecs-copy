@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { apiRateLimiter, rateLimit, getIdentifier } from '@/lib/utils/rate-limit';
 import { caseLawSearchSchema } from '@/validators/index';
-import * as Sentry from '@sentry/nextjs';
 import { searchByText } from '@/lib/vector/milvus';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { z } from 'zod';
 import { applyFilters, enrichResultsWithSupabase, enrichResultsWithUrlSummaries } from '@/lib/case-law/search-helpers';
+import { captureServerException } from '@/lib/monitoring/error-logger';
 
 const caseLawRequestSchema = z.object({
   query: z.string(),
@@ -45,7 +45,10 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     const planLabel = (activeSub?.plan_type || '').toString().toLowerCase();
-    const isPlus = planLabel.includes('plus') || planLabel.includes('pro');
+    const isPlus =
+      planLabel.includes('plus') ||
+      planLabel.includes('pro') ||
+      planLabel.includes('premium cheap');
     const isEssential = planLabel.includes('essential') || planLabel.includes('premium');
 
     if (!isPlus && !isEssential) {
@@ -108,7 +111,7 @@ export async function POST(request: NextRequest) {
       }));
     } catch (err) {
       console.error('Vector search error:', err);
-      Sentry.captureException(err);
+      await captureServerException(err, { component: 'case-law-search', route: '/api/search-case-law', method: 'POST' });
       return NextResponse.json({ error: 'Vector search failed', details: String(err) }, { status: 500 });
     }
 
@@ -140,9 +143,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Search error:', error);
-    if (error instanceof Error) {
-      Sentry.captureException(error);
-    }
+    await captureServerException(error, { component: 'case-law-search', route: '/api/search-case-law', method: 'POST' });
     return NextResponse.json({ error: 'Search failed', details: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
   }
 }

@@ -51,6 +51,10 @@ const safeJsonParse = <T,>(value: string): T | null => {
 }
 
 const normalizeWhitespace = (value: string) => value.replace(/\s+/g, ' ').trim()
+const STOPWORDS = new Set([
+  'the', 'a', 'an', 'and', 'or', 'to', 'of', 'for', 'in', 'on', 'at', 'by', 'is', 'are', 'was', 'were',
+  'what', 'how', 'when', 'where', 'which', 'with', 'about', 'from', 'under', 'over', 'into', 'your', 'their'
+])
 
 const stripHtml = (html: string) => {
   const withoutScripts = html
@@ -90,6 +94,56 @@ const getDomainQuality = (url: string): number => {
   }
   // Default for other sources
   return 3
+}
+
+const tokenize = (value: string): string[] =>
+  normalizeWhitespace(value)
+    .toLowerCase()
+    .split(/[^a-z0-9]+/g)
+    .filter((token) => token.length >= 3 && !STOPWORDS.has(token))
+
+const computeRelevanceScore = (query: string, title: string, excerpt: string): number => {
+  const terms = Array.from(new Set(tokenize(query))).slice(0, 16)
+  if (terms.length === 0) return 0
+
+  const titleLower = (title || '').toLowerCase()
+  const excerptLower = (excerpt || '').toLowerCase()
+  let hits = 0
+  for (const term of terms) {
+    if (titleLower.includes(term)) hits += 2
+    else if (excerptLower.includes(term)) hits += 1
+  }
+  const raw = hits / (terms.length * 2)
+  return Math.max(0, Math.min(10, Number((raw * 10).toFixed(2))))
+}
+
+const extractLatestYear = (...values: string[]): number | null => {
+  const currentYear = new Date().getFullYear()
+  let latest: number | null = null
+
+  for (const value of values) {
+    const matches = value.match(/\b(19|20)\d{2}\b/g) || []
+    for (const match of matches) {
+      const year = Number(match)
+      if (year >= 1990 && year <= currentYear + 1) {
+        if (latest === null || year > latest) latest = year
+      }
+    }
+  }
+
+  return latest
+}
+
+const computeRecencyScore = (title: string, url: string, excerpt: string): number => {
+  const latestYear = extractLatestYear(title || '', url || '', excerpt || '')
+  if (!latestYear) return 4.5
+
+  const age = new Date().getFullYear() - latestYear
+  if (age <= 1) return 10
+  if (age <= 3) return 8.5
+  if (age <= 5) return 7
+  if (age <= 10) return 5.5
+  return 3.5
 }
 
 const fetchWithTimeout = async (url: string, timeoutMs: number): Promise<Response> => {
@@ -226,25 +280,32 @@ export class SearchTool extends Tool {
           const excerpt = buildExcerpt(text.text, query, 900)
           if (!excerpt || excerpt.length < 120) return null
           const quality = getDomainQuality(result.url)
+          const title = result.title || text.title || ''
+          const relevance = computeRelevanceScore(query, title, excerpt)
+          const recency = computeRecencyScore(title, result.url, excerpt)
+          const score = Number((relevance * 0.5 + recency * 0.2 + quality * 0.3).toFixed(2))
           return {
             url: result.url,
-            title: result.title || text.title,
+            title,
             quality,
-            excerpt
+            relevance,
+            recency,
+            score,
+            excerpt,
           }
         })
       )
 
-      // Filter and sort by quality
+      // Filter and sort by blended ranking score (relevance + recency + domain quality)
       const sources = fetched
         .filter((value): value is NonNullable<typeof value> => Boolean(value))
-        .sort((a, b) => b.quality - a.quality)
+        .sort((a, b) => b.score - a.score)
         .slice(0, 8)
 
       const packet = `Reviewed ${sources.length} sources from across the internet.\n\n` +
         sources.map((s, idx) => {
           const titleLine = s.title ? `Title: ${s.title}\n` : ''
-          return `SOURCE ${idx + 1} (Quality: ${s.quality}/10):\n${titleLine}URL: ${s.url}\nEXTRACT: ${s.excerpt}`
+          return `SOURCE ${idx + 1} (Score: ${s.score}/10 | Relevance: ${s.relevance}/10 | Recency: ${s.recency}/10 | Domain quality: ${s.quality}/10):\n${titleLine}URL: ${s.url}\nEXTRACT: ${s.excerpt}`
         }).join('\n\n')
 
       const output: SearchToolOutput = {

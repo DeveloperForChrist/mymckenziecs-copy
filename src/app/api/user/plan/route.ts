@@ -41,10 +41,11 @@ export async function GET() {
 
     const rawPlan = activeSub?.plan_type || 'Free';
     const normalizedPlan = rawPlan.toString().toLowerCase().replace(/_/g, ' ');
-    const isPro = normalizedPlan.includes('premium pro') || normalizedPlan.includes('plus');
+    const isPremiumCheap = normalizedPlan.includes('premium cheap');
+    const isPro = isPremiumCheap || normalizedPlan.includes('premium pro') || normalizedPlan.includes('plus');
     const isPremium = normalizedPlan.includes('premium') || normalizedPlan.includes('essential');
     const isStandard = normalizedPlan.includes('standard');
-    const planPrice = activeSub ? (isPro ? '45' : isPremium ? '25' : isStandard ? '15' : '0') : '0';
+    const planPrice = activeSub ? (isPremiumCheap ? '1' : isPro ? '45' : isPremium ? '25' : isStandard ? '15' : '0') : '0';
 
     const planData = {
       plan: rawPlan,

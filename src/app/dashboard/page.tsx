@@ -69,7 +69,14 @@ export default function DashboardPage() {
     normalizedPlan.includes('essential') ||
     normalizedPlan.includes('plus') ||
     normalizedPlan.includes('pro');
-  const features = [
+  const features: Array<{
+    icon: string;
+    title: string;
+    desc: string;
+    href: string;
+    color: string;
+    badge?: string;
+  }> = [
     {
       icon: 'bx-edit',
       title: 'Store My Document',

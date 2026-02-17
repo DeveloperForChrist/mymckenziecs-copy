@@ -18,7 +18,7 @@ Sentry.init({
   environment: process.env.NODE_ENV,
 
   // Filter out sensitive data
-  beforeSend(event, hint) {
+  beforeSend(event: any, hint: any) {
     // Filter out passwords and tokens
     if (event.request?.data) {
       const data = event.request.data as Record<string, any>;

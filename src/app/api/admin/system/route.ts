@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    const admin = requireAdminSession();
+    const admin = await requireAdminSession();
     if (!admin.ok) return admin.response;
 
     // System health check
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const admin = requireAdminSession();
+    const admin = await requireAdminSession();
     if (!admin.ok) return admin.response;
 
     const { action } = await request.json();

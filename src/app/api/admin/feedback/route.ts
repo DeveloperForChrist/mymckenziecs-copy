@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const admin = requireAdminSession();
+    const admin = await requireAdminSession();
     if (!admin.ok) return admin.response;
 
     const searchParams = request.nextUrl.searchParams;

@@ -1113,7 +1113,10 @@ export default function ChatInterface() {
       }
     }
   }, [isAuthenticated, conversationId])
-  const isPremiumProPlan = normalizedPlan.replace(/\s+/g, '') === 'premiumpro' || normalizedPlan.includes('premium pro')
+  const isPremiumProPlan =
+    normalizedPlan.replace(/\s+/g, '') === 'premiumpro' ||
+    normalizedPlan.includes('premium pro') ||
+    normalizedPlan.includes('premium cheap')
   const isPremiumPlan = !isPremiumProPlan && normalizedPlan.includes('premium')
   const isFreemiumPlan =
     planLoaded &&
@@ -2024,7 +2027,10 @@ export default function ChatInterface() {
     padding: '0'
   }
 
-  const isPremiumPro = plan ? plan.replace(/\s+/g, '').toLowerCase() === 'premiumpro' : false
+  const normalizedPlanForTier = (plan || '').toLowerCase()
+  const isPremiumPro =
+    normalizedPlanForTier.replace(/\s+/g, '') === 'premiumpro' ||
+    normalizedPlanForTier.includes('premium cheap')
 
   const handleCalendarDismiss = (key: string) => {
     // Calendar dismissed (feature removed) — no-op

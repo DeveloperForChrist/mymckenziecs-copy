@@ -168,7 +168,7 @@ export default function BillingSection() {
                 </span>
                 <h3 className={styles.planTitle}>{planData?.plan || 'Free Plan'}</h3>
                 {planData?.planPrice && planData?.planPrice !== '0' && planData?.planPrice !== 0 && (
-                  <p className={styles.planPriceLarge}>${planData?.planPrice}/month</p>
+                  <p className={styles.planPriceLarge}>£{planData?.planPrice}/month</p>
                 )}
                 {!uid && (
                   <p className={styles.planHint}>
