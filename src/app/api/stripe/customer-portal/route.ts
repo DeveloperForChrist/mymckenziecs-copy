@@ -4,6 +4,22 @@ import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { logApiUsage } from '@/lib/utils/api-usage-logger';
 
+function resolveReturnUrl(request: Request): string {
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return `${process.env.NEXT_PUBLIC_APP_URL}/settings`;
+  }
+
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const host = forwardedHost || request.headers.get('host');
+  const protocol = request.headers.get('x-forwarded-proto') || 'https';
+
+  if (host) {
+    return `${protocol}://${host}/settings`;
+  }
+
+  return 'http://localhost:3000/settings';
+}
+
 export async function POST(req: Request) {
   try {
     const supabase = await createSupabaseRouteClient();
@@ -36,7 +52,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No Stripe customer ID on user record' }, { status: 400 });
     }
 
-    const returnUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000/settings';
+    const returnUrl = resolveReturnUrl(req);
     const sessionStart = Date.now();
     let session;
     try {

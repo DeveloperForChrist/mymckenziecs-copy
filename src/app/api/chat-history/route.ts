@@ -64,7 +64,7 @@ export async function GET() {
       .from('subscriptions')
       .select('plan_type, status')
       .eq('user_id', authUid)
-      .in('status', ['active', 'past_due'])
+      .in('status', ['active', 'past_due', 'trialing'])
       .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
       .from('subscriptions')
       .select('plan_type, status')
       .eq('user_id', authUid)
-      .in('status', ['active', 'past_due'])
+      .in('status', ['active', 'past_due', 'trialing'])
       .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle();

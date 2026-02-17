@@ -4,12 +4,35 @@ import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { stripe } from '@/lib/payments/stripe';
 import { logApiUsage } from '@/lib/utils/api-usage-logger';
 
-const DEFAULT_SUCCESS_URL = process.env.NEXT_PUBLIC_APP_URL
-  ? `${process.env.NEXT_PUBLIC_APP_URL}/settings`
-  : 'http://localhost:3000/settings';
+function resolveAppSettingsUrl(request: NextRequest): string {
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return `${process.env.NEXT_PUBLIC_APP_URL}/settings`;
+  }
+
+  const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+  const protocol = request.headers.get('x-forwarded-proto') || 'https';
+
+  if (host) {
+    return `${protocol}://${host}/settings`;
+  }
+
+  return 'http://localhost:3000/settings';
+}
+
+function withCheckoutParams(url: string, status: 'success' | 'cancelled') {
+  const parsed = new URL(url);
+  parsed.searchParams.set('checkout', status);
+  if (status === 'success') {
+    parsed.searchParams.set('session_id', '{CHECKOUT_SESSION_ID}');
+  }
+  return parsed.toString();
+}
 
 export async function POST(request: NextRequest) {
   try {
+    const baseSettingsUrl = resolveAppSettingsUrl(request);
+    const defaultSuccessUrl = withCheckoutParams(baseSettingsUrl, 'success');
+    const defaultCancelUrl = withCheckoutParams(baseSettingsUrl, 'cancelled');
     const supabase = await createSupabaseRouteClient();
     const { data: authData, error: authError } = await supabase.auth.getUser();
     if (authError || !authData?.user) {
@@ -81,8 +104,8 @@ export async function POST(request: NextRequest) {
           { price: planId, quantity: 1 },
         ],
         metadata: { userId: authUid, planId },
-        success_url: successUrl || DEFAULT_SUCCESS_URL,
-        cancel_url: cancelUrl || DEFAULT_SUCCESS_URL,
+        success_url: successUrl ? withCheckoutParams(successUrl, 'success') : defaultSuccessUrl,
+        cancel_url: cancelUrl ? withCheckoutParams(cancelUrl, 'cancelled') : defaultCancelUrl,
       });
       void logApiUsage({
         provider: 'stripe',

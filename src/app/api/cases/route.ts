@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       .from('subscriptions')
       .select('plan_type')
       .eq('user_id', supabaseUserId)
-      .in('status', ['active', 'past_due'])
+      .in('status', ['active', 'past_due', 'trialing'])
       .maybeSingle();
 
     const rawPlan = activeSub?.plan_type || 'Free';

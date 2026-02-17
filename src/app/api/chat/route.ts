@@ -627,7 +627,7 @@ export async function POST(request: NextRequest) {
         .from('subscriptions')
         .select('id, plan_type')
         .eq('user_id', authUserId)
-        .eq('status', 'active')
+        .in('status', ['active', 'past_due', 'trialing'])
         .maybeSingle()
       const planLabel = (activeSub?.plan_type || '').toString().toLowerCase()
       usePremiumAgents =

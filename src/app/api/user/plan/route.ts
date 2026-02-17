@@ -34,7 +34,7 @@ export async function GET() {
       .from('subscriptions')
       .select('plan_type, status, current_period_end, stripe_subscription_id')
       .eq('user_id', userRow.id)
-      .in('status', ['active', 'past_due'])
+      .in('status', ['active', 'past_due', 'trialing'])
       .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle();

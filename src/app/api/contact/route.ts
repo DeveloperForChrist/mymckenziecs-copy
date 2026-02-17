@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
           .from('subscriptions')
           .select('plan_type, status')
           .eq('user_id', user.id)
-          .in('status', ['active', 'past_due'])
+          .in('status', ['active', 'past_due', 'trialing'])
           .order('updated_at', { ascending: false })
           .limit(1)
           .maybeSingle();

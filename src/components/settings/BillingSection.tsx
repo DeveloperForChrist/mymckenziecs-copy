@@ -23,6 +23,7 @@ type PaymentMethodSummary = {
 export default function BillingSection() {
   const [uid, setUid] = useState<string | null>(null);
   const [idToken, setIdToken] = useState<string | null>(null);
+  const [authResolved, setAuthResolved] = useState(false);
   const [planData, setPlanData] = useState<UserPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +32,14 @@ export default function BillingSection() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodSummary | null>(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [checkoutSynced, setCheckoutSynced] = useState(false);
+  const [billingBackfillChecked, setBillingBackfillChecked] = useState(false);
+
+  const normalizedPlan = (planData?.plan || 'free').toString().toLowerCase();
+  const isFreemiumPlan =
+    normalizedPlan.includes('free') ||
+    normalizedPlan.includes('freemium') ||
+    normalizedPlan.includes('basic');
 
   useEffect(() => {
     let mounted = true
@@ -43,11 +52,13 @@ export default function BillingSection() {
         setUid(null)
         setIdToken(null)
       }
+      if (mounted) setAuthResolved(true)
     })
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       const user = session?.user
       setUid(user?.id ?? null)
       setIdToken(session?.access_token ?? null)
+      setAuthResolved(true)
     })
     return () => {
       mounted = false
@@ -85,7 +96,114 @@ export default function BillingSection() {
   }, [uid, idToken]);
 
   useEffect(() => {
-    if (!uid) {
+    if (!uid || !idToken || checkoutSynced) {
+      return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const checkout = params.get('checkout');
+    const sessionId = params.get('session_id');
+    if (checkout !== 'success' || !sessionId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const syncCheckout = async () => {
+      try {
+        await fetch('/api/stripe/checkout-sync', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`,
+          },
+          body: JSON.stringify({ sessionId }),
+        });
+
+        if (!cancelled) {
+          const res = await fetch('/api/user/plan', {
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+            },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setPlanData(data);
+          }
+        }
+      } catch (syncError) {
+        console.error('Failed to sync checkout session:', syncError);
+      } finally {
+        if (!cancelled) {
+          const cleanUrl = new URL(window.location.href);
+          cleanUrl.searchParams.delete('checkout');
+          cleanUrl.searchParams.delete('session_id');
+          window.history.replaceState({}, '', `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
+          setCheckoutSynced(true);
+        }
+      }
+    };
+
+    void syncCheckout();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [uid, idToken, checkoutSynced]);
+
+  useEffect(() => {
+    if (!uid || !idToken || billingBackfillChecked || loading) {
+      return;
+    }
+
+    const planLabel = (planData?.plan || '').toString().toLowerCase();
+    const looksFree = !planLabel || planLabel.includes('free') || planLabel.includes('freemium');
+    if (!looksFree) {
+      setBillingBackfillChecked(true);
+      return;
+    }
+
+    let cancelled = false;
+
+    const runBackfillSync = async () => {
+      try {
+        await fetch('/api/stripe/checkout-sync', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`,
+          },
+          body: JSON.stringify({}),
+        });
+
+        if (!cancelled) {
+          const res = await fetch('/api/user/plan', {
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+            },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setPlanData(data);
+          }
+        }
+      } catch (backfillError) {
+        console.error('Failed to run billing backfill sync:', backfillError);
+      } finally {
+        if (!cancelled) {
+          setBillingBackfillChecked(true);
+        }
+      }
+    };
+
+    void runBackfillSync();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [uid, idToken, billingBackfillChecked, loading, planData?.plan]);
+
+  useEffect(() => {
+    if (!uid || isFreemiumPlan || !planData?.hasStripeCustomer) {
       setPaymentMethod(null);
       setPaymentLoading(false);
       setPaymentError(null);
@@ -115,7 +233,7 @@ export default function BillingSection() {
         setPaymentError(err.message);
         setPaymentLoading(false);
       });
-  }, [uid, idToken]);
+  }, [uid, idToken, isFreemiumPlan, planData?.hasStripeCustomer]);
 
   function formatNextBillingDate(value: any): string {
     if (!value) return '—';
@@ -142,11 +260,15 @@ export default function BillingSection() {
         });
         const json = await res.json();
         if (!res.ok || !json.url) {
-          throw new Error(json.error || 'Unable to create portal session');
+          const rawError = String(json?.error || '').toLowerCase();
+          if (rawError.includes('no stripe customer id')) {
+            throw new Error('Billing management becomes available after you start a paid plan.');
+          }
+          throw new Error('We could not open billing management right now. Please try again.');
         }
         window.location.href = json.url;
       } catch (e: any) {
-        setPortalError(e.message);
+        setPortalError(e?.message || 'We could not open billing management right now. Please try again.');
       }
     });
   };
@@ -170,27 +292,15 @@ export default function BillingSection() {
                 {planData?.planPrice && planData?.planPrice !== '0' && planData?.planPrice !== 0 && (
                   <p className={styles.planPriceLarge}>£{planData?.planPrice}/month</p>
                 )}
-                {!uid && (
-                  <p className={styles.planHint}>
-                    Sign in to sync this plan to your Firebase profile.
-                  </p>
-                )}
-              </div>
-              <div className={styles.planMeta}>
-                <div>
-                  <p className={styles.planMetaLabel}>Next billing</p>
-                  <p className={styles.planMetaValue}>{formatNextBillingDate(planData?.nextBillingDate)}</p>
-                </div>
-                <div>
-                  <p className={styles.planMetaLabel}>Billing link</p>
-                  <p className={styles.planMetaValue}>{planData?.hasStripeCustomer ? 'Connected' : 'Not linked'}</p>
-                </div>
+                <p className={styles.planHint}>
+                  Next billing: {formatNextBillingDate(planData?.nextBillingDate)}
+                </p>
               </div>
             </div>
             <div className={styles.planCardActions}>
               <div className={styles.planButtons}>
                 <a href="/pricing" className={styles.primaryBtn} style={{ textDecoration: 'none' }}>Change Plan</a>
-                {uid && (
+                {uid && planData?.hasStripeCustomer && (
                   <button
                     type="button"
                     disabled={portalPending}
@@ -204,12 +314,8 @@ export default function BillingSection() {
                   </button>
                 )}
               </div>
-              <p className={styles.planRenewal}>Next billing date: {formatNextBillingDate(planData?.nextBillingDate)}</p>
             </div>
           </div>
-        )}
-        {!uid && !loading && (
-          <p className={styles.helpText} style={{ marginTop: 12 }}>Sign in to view or upgrade your plan.</p>
         )}
         {portalError && (
           <p className={styles.helpText} style={{ marginTop: 8, color: '#dc2626' }}>Portal error: {portalError}</p>
@@ -218,42 +324,56 @@ export default function BillingSection() {
 
       <section className={styles.settingsSection}>
         <h2 className={styles.sectionHeading}>Payment Methods</h2>
-        <div className={styles.paymentCard}>
-          <div className={styles.cardInfo}>
-            <div>
-              {paymentLoading ? (
-                <>
-                  <h4>Loading payment method…</h4>
-                  <p className={styles.helpText}>Please wait while we fetch your billing details.</p>
-                </>
-              ) : !uid ? (
-                <>
-                  <h4>Unavailable while signed out</h4>
-                  <p className={styles.helpText}>Sign in to manage payment methods.</p>
-                </>
-              ) : paymentMethod ? (
-                <>
-                  <h4>Card ending •••• {paymentMethod.last4}</h4>
-                  <p className={styles.helpText}>
-                    {paymentMethod.brand ? `${paymentMethod.brand.toUpperCase()} ` : ''}exp {paymentMethod.exp_month}/{paymentMethod.exp_year}
-                    {paymentMethod.name ? ` · ${paymentMethod.name}` : ''}
-                  </p>
-                  <p className={styles.helpText}>Plan: {planData?.plan || 'Free Plan'} ({planData?.planStatus || 'Active'})</p>
-                </>
-              ) : (
-                <>
-                  <h4>No payment method on file</h4>
-                  <p className={styles.helpText}>Add a payment method to manage paid plans.</p>
-                  <p className={styles.helpText}>Plan: {planData?.plan || 'Free Plan'} ({planData?.planStatus || 'Active'})</p>
-                </>
-              )}
-              {paymentError && (
-                <p className={styles.helpText} style={{ color: '#dc2626' }}>{paymentError}</p>
-              )}
+        {isFreemiumPlan ? (
+          <div className={styles.paymentCard}>
+            <div className={styles.cardInfo}>
+              <div>
+                <h4>Available on paid plans</h4>
+                <p className={styles.helpText}>Your payment method details will appear here after you start a paid subscription.</p>
+              </div>
             </div>
           </div>
-        </div>
-        {uid && (
+        ) : (
+          <div className={styles.paymentCard}>
+            <div className={styles.cardInfo}>
+              <div>
+                {paymentLoading ? (
+                  <>
+                    <h4>Loading payment method…</h4>
+                    <p className={styles.helpText}>Please wait while we fetch your billing details.</p>
+                  </>
+                ) : !authResolved ? (
+                  <>
+                    <h4>Loading account session…</h4>
+                    <p className={styles.helpText}>Please wait.</p>
+                  </>
+                ) : !uid ? (
+                  <>
+                    <h4>Unavailable</h4>
+                    <p className={styles.helpText}>Account session unavailable. Refresh and try again.</p>
+                  </>
+                ) : paymentMethod ? (
+                  <>
+                    <h4>Card ending •••• {paymentMethod.last4}</h4>
+                    <p className={styles.helpText}>
+                      {paymentMethod.brand ? `${paymentMethod.brand.toUpperCase()} ` : ''}exp {paymentMethod.exp_month}/{paymentMethod.exp_year}
+                      {paymentMethod.name ? ` · ${paymentMethod.name}` : ''}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h4>No payment method on file</h4>
+                    <p className={styles.helpText}>Add a payment method to manage your paid subscription.</p>
+                  </>
+                )}
+                {paymentError && (
+                  <p className={styles.helpText} style={{ color: '#dc2626' }}>{paymentError}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        {uid && !isFreemiumPlan && (
           <div className={styles.bottomActions}>
             {planData?.hasStripeCustomer ? (
               <button type="button" className={styles.primaryBtn} disabled={portalPending} onClick={openCustomerPortal}>

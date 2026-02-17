@@ -199,7 +199,7 @@ export class ChatManager {
       .from('subscriptions')
       .select('plan_type')
       .eq('user_id', supabaseUserId)
-      .eq('status', 'active')
+      .in('status', ['active', 'past_due', 'trialing'])
       .maybeSingle();
 
     this.userPlan = activeSub?.plan_type || 'Free';

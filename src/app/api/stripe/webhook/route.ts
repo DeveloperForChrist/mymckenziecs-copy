@@ -364,28 +364,44 @@ export async function POST(request: Request) {
       const metadata = session.metadata || {};
       const userId = metadata.userId;
       const planId = metadata.planId;
+      const checkoutEmail = session?.customer_details?.email || session?.customer_email || null;
+      const checkoutName = session?.customer_details?.name || '';
 
-      if (userId) {
-        const user = await getUserEmail(userId);
-        if (user) {
-          if (planId) {
-            await sendResendEmail({
-              to: user.email,
-              subject: 'Your MymckenzieCS plan is being activated',
-              htmlBody: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                  <h2 style="color: #4c1d95;">Plan upgrade received</h2>
-                  <p>Hi${user.name ? ` ${user.name}` : ''},</p>
-                  <p>We received your plan upgrade request. Your subscription will be active shortly.</p>
-                  <p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MymckenzieCS</p>
-                </div>
-              `,
-              tag: 'billing-plan-upgrade',
-            });
-          }
-        }
+      const user = userId ? await getUserEmail(userId) : null;
+      const recipientEmail = user?.email || checkoutEmail;
+
+      if (recipientEmail && planId) {
+        await sendResendEmail({
+          to: recipientEmail,
+          subject: 'Your MymckenzieCS plan is being activated',
+          htmlBody: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #4c1d95;">Plan upgrade received</h2>
+              <p>Hi${user?.name ? ` ${user.name}` : checkoutName ? ` ${checkoutName}` : ''},</p>
+              <p>We received your plan upgrade request. Your subscription will be active shortly.</p>
+              <p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MymckenzieCS</p>
+            </div>
+          `,
+          tag: 'billing-plan-upgrade',
+        });
       } else {
-        console.warn('Checkout session missing userId metadata, skipping email actions');
+        console.warn('Checkout session missing recipient email or planId, skipping upgrade email', {
+          hasUserId: Boolean(userId),
+          hasCheckoutEmail: Boolean(checkoutEmail),
+          hasPlanId: Boolean(planId),
+        });
+      }
+
+      // Keep plan state in sync even if subscription.created/updated webhooks are
+      // not configured or delayed.
+      if (session?.subscription) {
+        try {
+          const subscription = await stripe.subscriptions.retrieve(String(session.subscription));
+          await upsertSubscriptionFromStripe(subscription);
+          await clearSubscriptionGrace(session.customer as string | null, 'active');
+        } catch (syncError) {
+          console.error('Failed to sync subscription on checkout completion', syncError);
+        }
       }
     } else if (event.type === 'customer.subscription.created' || event.type === 'customer.subscription.updated') {
       const subscription = event.data.object as any;

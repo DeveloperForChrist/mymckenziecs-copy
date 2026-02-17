@@ -52,7 +52,7 @@ export async function GET(request: Request) {
         .from('subscriptions')
         .select('plan_type, updated_at')
         .eq('user_id', userData.id)
-        .eq('status', 'active')
+        .in('status', ['active', 'past_due', 'trialing'])
         .order('updated_at', { ascending: false })
         .limit(1)
         .maybeSingle();

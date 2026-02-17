@@ -56,7 +56,7 @@ export async function GET(request: Request) {
     const { count: premiumUsers, error: premiumErr } = await supabaseAdmin
       .from('subscriptions')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'active');
+      .in('status', ['active', 'past_due', 'trialing']);
     if (premiumErr) throw premiumErr;
 
     // Messages in period
