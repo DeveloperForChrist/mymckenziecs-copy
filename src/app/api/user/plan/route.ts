@@ -13,6 +13,7 @@ export async function GET() {
     }
 
     const authUid = data.user.id;
+    const authEmail = (data.user.email || '').trim();
 
     // Prefer currently billable subscription states first.
     const { data: activeSub } = await supabaseAdmin
@@ -36,6 +37,43 @@ export async function GET() {
         .maybeSingle();
       if (latestSub && isPaidPlan(latestSub.plan_type)) {
         resolvedSub = latestSub;
+      }
+    }
+
+    // Extra fallback: handle environments where subscriptions are linked to a
+    // legacy/mismatched user_id by resolving through the same auth email.
+    if (!resolvedSub && authEmail) {
+      const { data: emailUsers } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .ilike('email', authEmail);
+
+      const emailUserIds = (emailUsers || []).map((row: any) => row.id).filter(Boolean);
+      if (emailUserIds.length > 0) {
+        const { data: emailActiveSub } = await supabaseAdmin
+          .from('subscriptions')
+          .select('plan_type, status, current_period_end, stripe_subscription_id, stripe_customer_id')
+          .in('user_id', emailUserIds)
+          .in('status', [...BILLING_ACTIVE_STATUSES])
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (emailActiveSub) {
+          resolvedSub = emailActiveSub;
+        } else {
+          const { data: emailLatestSub } = await supabaseAdmin
+            .from('subscriptions')
+            .select('plan_type, status, current_period_end, stripe_subscription_id, stripe_customer_id')
+            .in('user_id', emailUserIds)
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (emailLatestSub && isPaidPlan(emailLatestSub.plan_type)) {
+            resolvedSub = emailLatestSub;
+          }
+        }
       }
     }
 
