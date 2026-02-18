@@ -41,13 +41,27 @@ export async function GET() {
 
     const rawPlan = resolvedSub?.plan_type || 'Free';
     const planPrice = resolvedSub ? planPriceForLabel(rawPlan) : '0';
+    let hasStripeCustomer = !!(resolvedSub?.stripe_customer_id || resolvedSub?.stripe_subscription_id);
+
+    if (!hasStripeCustomer) {
+      const { data: latestCustomerSub } = await supabaseAdmin
+        .from('subscriptions')
+        .select('stripe_customer_id, stripe_subscription_id')
+        .eq('user_id', authUid)
+        .or('stripe_customer_id.not.is.null,stripe_subscription_id.not.is.null')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      hasStripeCustomer = !!(latestCustomerSub?.stripe_customer_id || latestCustomerSub?.stripe_subscription_id);
+    }
 
     const planData = {
       plan: rawPlan,
       planStatus: resolvedSub?.status || 'free',
       planPrice,
       nextBillingDate: resolvedSub?.current_period_end || null,
-      hasStripeCustomer: !!(resolvedSub?.stripe_customer_id || resolvedSub?.stripe_subscription_id)
+      hasStripeCustomer
     };
 
     return NextResponse.json(planData);

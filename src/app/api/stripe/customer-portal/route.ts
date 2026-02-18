@@ -30,21 +30,14 @@ export async function POST(req: Request) {
 
     const authUid = authData.user.id;
 
-    // Fetch user's subscription to get stripeCustomerId
-    const { data: userRow } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('id', authUid)
-      .maybeSingle();
-
-    if (!userRow) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
+    // Fetch the latest known Stripe customer ID for this user.
     const { data: subscription } = await supabaseAdmin
       .from('subscriptions')
       .select('stripe_customer_id')
-      .eq('user_id', userRow.id)
+      .eq('user_id', authUid)
+      .not('stripe_customer_id', 'is', null)
+      .order('updated_at', { ascending: false })
+      .limit(1)
       .maybeSingle();
 
     const customerId = subscription?.stripe_customer_id;
