@@ -1,16 +1,26 @@
 export default function Loading() {
   return (
-    <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px" }}>
-      <div style={{ width: "min(620px, 92%)" }}>
-        <div style={{ height: 16, width: "45%", background: "rgba(148, 163, 184, 0.25)", borderRadius: 9999, marginBottom: 18 }} />
-        <div style={{ height: 10, width: "70%", background: "rgba(148, 163, 184, 0.2)", borderRadius: 9999, marginBottom: 30 }} />
-        <div style={{ display: "grid", gap: 12 }}>
-          <div style={{ height: 18, background: "rgba(148, 163, 184, 0.2)", borderRadius: 8 }} />
-          <div style={{ height: 18, background: "rgba(148, 163, 184, 0.2)", borderRadius: 8 }} />
-          <div style={{ height: 18, background: "rgba(148, 163, 184, 0.2)", borderRadius: 8 }} />
-          <div style={{ height: 18, background: "rgba(148, 163, 184, 0.2)", borderRadius: 8 }} />
-        </div>
-        <div style={{ height: 44, width: 160, background: "rgba(148, 163, 184, 0.2)", borderRadius: 9999, marginTop: 28 }} />
+    <div
+      style={{
+        background: 'linear-gradient(135deg, #240724 0%, #240724 50%, #240724 100%)',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
+        <div
+          className="animate-spin"
+          style={{
+            width: 28,
+            height: 28,
+            border: '3px solid rgba(255, 255, 255, 0.35)',
+            borderTopColor: '#ffffff',
+            borderRadius: '9999px',
+          }}
+        />
+        <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14 }}>Loading...</div>
       </div>
     </div>
   );

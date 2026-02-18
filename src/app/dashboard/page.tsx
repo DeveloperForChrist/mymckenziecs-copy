@@ -76,42 +76,42 @@ export default function DashboardPage() {
     {
       icon: 'bx-edit',
       title: 'Store My Document',
-      desc: 'Upload your legal document',
+      desc: 'Upload and manage your documents',
       href: '/dashboard/documents',
       color: '#2563eb,#60a5fa'
     },
     {
       icon: 'bx-folder-open',
       title: 'Review My Notes',
-      desc: 'Access active and closed matters',
+      desc: 'Write and organise your notes',
       href: '/dashboard/MyNotes',
       color: '#db2777,#f472b6'
     },
     {
       icon: 'bx-briefcase',
       title: 'Check My Calendar',
-      desc: 'Track dates and deadlines',
+      desc: 'Monitor important dates and deadlines',
       href: '/dashboard/calendar',
       color: '#ea580c,#fb923c'
     },
     {
       icon: 'bx-search',
       title: 'Search Case Law',
-      desc: 'Find relevant case law for your matter',
+      desc: 'Research and study UK case law and judgments',
       href: '/dashboard/case-law-search',
       color: '#f59e42,#fbbf24'
     },
     {
       icon: 'bx-message-dots',
       title: 'Talk to MyMcKenzie Assistant',
-      desc: 'Get AI-powered legal guidance',
+      desc: 'Receive AI-assisted legal information and support',
       href: '/chatbot',
       color: '#10b981,#34d399'
     },
     {
       icon: 'bx-cog',
       title: 'User Settings',
-      desc: 'Manage profile, billing, and alerts',
+      desc: 'Manage your profile, billing, and alerts',
       href: '/settings',
       color: '#7c3aed,#22d3ee'
     }
@@ -128,8 +128,18 @@ export default function DashboardPage() {
     return (
       <div style={{ background: 'linear-gradient(135deg, #240724 0%, #240724 50%, #240724 100%)', minHeight: '100vh' }}>
         <main style={{ minHeight: '100vh', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ textAlign: 'center', opacity: 0.85 }}>
-            <div style={{ marginBottom: 10 }}>Loading your workspace...</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
+            <div
+              className="animate-spin"
+              style={{
+                width: 28,
+                height: 28,
+                border: '3px solid rgba(255, 255, 255, 0.35)',
+                borderTopColor: '#ffffff',
+                borderRadius: '9999px'
+              }}
+            />
+            <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14 }}>Loading...</div>
           </div>
         </main>
       </div>
@@ -153,7 +163,12 @@ export default function DashboardPage() {
           {/* Features Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '60px' }}>
             {visibleFeatures.map((feature, idx) => (
-              <Link key={idx} href={feature.href} style={{ textDecoration: 'none' }}>
+              <Link
+                key={idx}
+                href={feature.href}
+                prefetch={feature.href === '/settings' ? false : undefined}
+                style={{ textDecoration: 'none' }}
+              >
                 <div style={{
                   background: `linear-gradient(135deg, ${feature.color})`,
                   padding: '32px 24px',

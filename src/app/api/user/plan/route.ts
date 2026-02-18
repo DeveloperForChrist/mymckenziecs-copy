@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
-import { planPriceForLabel } from '@/lib/plans/access';
+import { BILLING_ACTIVE_STATUSES } from '@/lib/payments/subscription-status';
+import { isPaidPlan, planPriceForLabel } from '@/lib/plans/access';
 
 export async function GET() {
   try {
@@ -13,42 +14,40 @@ export async function GET() {
 
     const authUid = data.user.id;
 
-    // Resolve Supabase user row
-    const { data: userRow } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('id', authUid)
-      .maybeSingle();
-
-    if (!userRow) {
-      return NextResponse.json({
-        plan: 'Free',
-        planStatus: 'Active',
-        planPrice: '0',
-        nextBillingDate: null,
-        hasStripeCustomer: false
-      });
-    }
-
-    // Check for active or grace-period subscription
+    // Prefer currently billable subscription states first.
     const { data: activeSub } = await supabaseAdmin
       .from('subscriptions')
-      .select('plan_type, status, current_period_end, stripe_subscription_id')
-      .eq('user_id', userRow.id)
-      .in('status', ['active', 'past_due'])
+      .select('plan_type, status, current_period_end, stripe_subscription_id, stripe_customer_id')
+      .eq('user_id', authUid)
+      .in('status', [...BILLING_ACTIVE_STATUSES])
       .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    const rawPlan = activeSub?.plan_type || 'Free';
-    const planPrice = activeSub ? planPriceForLabel(rawPlan) : '0';
+    // Fallback for legacy rows where status may be stale but plan is still paid.
+    let resolvedSub = activeSub;
+    if (!resolvedSub) {
+      const { data: latestSub } = await supabaseAdmin
+        .from('subscriptions')
+        .select('plan_type, status, current_period_end, stripe_subscription_id, stripe_customer_id')
+        .eq('user_id', authUid)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (latestSub && isPaidPlan(latestSub.plan_type)) {
+        resolvedSub = latestSub;
+      }
+    }
+
+    const rawPlan = resolvedSub?.plan_type || 'Free';
+    const planPrice = resolvedSub ? planPriceForLabel(rawPlan) : '0';
 
     const planData = {
       plan: rawPlan,
-      planStatus: activeSub?.status || 'Active',
+      planStatus: resolvedSub?.status || 'free',
       planPrice,
-      nextBillingDate: activeSub?.current_period_end || null,
-      hasStripeCustomer: !!activeSub?.stripe_subscription_id
+      nextBillingDate: resolvedSub?.current_period_end || null,
+      hasStripeCustomer: !!(resolvedSub?.stripe_customer_id || resolvedSub?.stripe_subscription_id)
     };
 
     return NextResponse.json(planData);

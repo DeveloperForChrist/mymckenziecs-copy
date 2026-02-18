@@ -5,7 +5,6 @@ import type { Folder } from "./types";
 type DocumentsActionBarProps = {
   searchQuery: string;
   onSearchChange: (value: string) => void;
-  onCreateFolder: () => void;
   folders: Folder[];
   uploadFolderId: string;
   onUploadFolderChange: (value: string) => void;
@@ -16,7 +15,6 @@ type DocumentsActionBarProps = {
 export default function DocumentsActionBar({
   searchQuery,
   onSearchChange,
-  onCreateFolder,
   folders,
   uploadFolderId,
   onUploadFolderChange,
@@ -37,12 +35,9 @@ export default function DocumentsActionBar({
       </div>
 
       <div className={styles.actionButtons}>
-        <button className={styles.secondaryBtn} onClick={onCreateFolder} type="button">
-          New folder
-        </button>
-        {folders.length > 0 && (
-          <div className={styles.folderSelectWrap}>
-            <label className={styles.folderSelectLabel}>Upload to</label>
+        <div className={styles.uploadGroup}>
+          <label className={styles.uploadGroupLabel}>Upload to</label>
+          <div className={styles.uploadGroupControls}>
             <select
               className={styles.folderSelect}
               value={uploadFolderId}
@@ -55,12 +50,12 @@ export default function DocumentsActionBar({
                 </option>
               ))}
             </select>
+            <label className={styles.primaryBtn}>
+              {uploading ? "Uploading…" : "Upload +"}
+              <input type="file" multiple hidden onChange={onUpload} />
+            </label>
           </div>
-        )}
-        <label className={styles.primaryBtn}>
-          {uploading ? "Uploading…" : "Upload +"}
-          <input type="file" multiple hidden onChange={onUpload} />
-        </label>
+        </div>
       </div>
     </div>
   );

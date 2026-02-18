@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/payments/stripe';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { sendResendEmail } from '@/lib/email/resend';
+import { isBillingActiveStripeStatus, normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
 import fs from 'fs';
 import path from 'path';
 import { PLAN_PRICES } from '@/constants';
@@ -32,14 +33,9 @@ function formatAmount(amountMinor?: number | null, currency?: string | null) {
   return `${(amountMinor / 100).toFixed(2)} ${code}`;
 }
 
-function resolvePlanDetailsFromPriceId(priceId?: string | null) {
+function resolvePlanNameFromPriceId(priceId?: string | null) {
   const plan = PLAN_PRICES.find((p) => p.priceId === priceId);
-  const name = plan?.name || 'Your new plan';
-  const limitLine =
-    plan?.features?.find((f) => /message per thread/i.test(f)) ||
-    plan?.features?.find((f) => /document storage/i.test(f)) ||
-    'Updated access limits apply immediately.';
-  return { name, limits: limitLine };
+  return plan?.name || 'Your new plan';
 }
 
 function parseTimestamp(value: any): number | null {
@@ -239,12 +235,6 @@ function displayPlanName(planType?: string | null): string {
   return planType || 'Plan';
 }
 
-function normalizeSubscriptionStatus(status?: string | null): string {
-  const raw = (status || '').toLowerCase();
-  if (raw === 'canceled') return 'cancelled';
-  return raw || 'active';
-}
-
 async function resolveUserIdForCustomer(customerId: string | null) {
   if (!customerId) return null;
   const { data: existingSub } = await supabaseAdmin
@@ -280,7 +270,7 @@ async function upsertSubscriptionFromStripe(subscription: any) {
 
   const priceId = subscription?.items?.data?.[0]?.price?.id || null;
   const planType = normalizePlanTypeFromPrice(priceId);
-  const status = normalizeSubscriptionStatus(subscription?.status);
+  const status = normalizeStripeSubscriptionStatus(subscription?.status);
   const nowIso = new Date().toISOString();
 
   const currentPeriodStart = subscription?.current_period_start
@@ -314,7 +304,7 @@ async function upsertSubscriptionFromStripe(subscription: any) {
     console.error('Failed to upsert subscription from Stripe', error);
   }
 
-  if (status === 'active') {
+  if (isBillingActiveStripeStatus(status)) {
     const { error: userError } = await supabaseAdmin
       .from('users')
       .update({ freemium_since: null })
@@ -395,7 +385,7 @@ export async function POST(request: Request) {
       const recipientEmail = user?.email || checkoutEmail;
 
       if (recipientEmail && planId) {
-        const { name: planName, limits } = resolvePlanDetailsFromPriceId(planId);
+        const planName = resolvePlanNameFromPriceId(planId);
         const invoicePdfUrl =
           (session?.invoice && typeof session.invoice === 'object' ? session.invoice.invoice_pdf : null) ||
           (process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/settings` : 'http://localhost:3000/settings');
@@ -403,7 +393,7 @@ export async function POST(request: Request) {
           name: user?.name || checkoutName || recipientEmail,
           txn_id: String(session?.payment_intent || session?.id || '—'),
           amount: formatAmount(session?.amount_total, session?.currency),
-          new_limits: `${planName}: ${limits}`,
+          new_plan: planName,
           invoice_pdf_url: String(invoicePdfUrl),
         });
         await sendResendEmail({
@@ -465,7 +455,6 @@ export async function POST(request: Request) {
         name: user.name || '',
         plan_name: planName,
         renewal_date: renewalDate,
-        plan_recap: planName,
         manage_url: manageUrl,
         days_left: String(daysLeft),
       });

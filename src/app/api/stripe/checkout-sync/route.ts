@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/payments/stripe';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
+import { isBillingActiveStripeStatus, normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
 import { PLAN_PRICES } from '@/constants';
 
 function normalizePlanTypeFromPrice(priceId?: string | null): string {
@@ -15,17 +16,6 @@ function normalizePlanTypeFromPrice(priceId?: string | null): string {
   return 'Free';
 }
 
-function normalizeSubscriptionStatus(status?: string | null): string {
-  const raw = (status || '').toLowerCase();
-  if (raw === 'canceled') return 'cancelled';
-  return raw || 'active';
-}
-
-function isPaidSubscriptionStatus(status?: string | null): boolean {
-  const normalized = normalizeSubscriptionStatus(status);
-  return normalized === 'active' || normalized === 'past_due';
-}
-
 async function upsertSubscriptionForUser(
   userId: string,
   subscription: any
@@ -37,7 +27,7 @@ async function upsertSubscriptionForUser(
   const stripeSubscriptionId = subscription.id;
   const priceId = subscription.items?.data?.[0]?.price?.id || null;
   const planType = normalizePlanTypeFromPrice(priceId);
-  const status = normalizeSubscriptionStatus(subscription.status);
+  const status = normalizeStripeSubscriptionStatus(subscription.status);
   const currentPeriodStart = subscription.current_period_start
     ? new Date(subscription.current_period_start * 1000).toISOString()
     : null;
@@ -74,7 +64,7 @@ async function upsertSubscriptionForUser(
     throw new Error('Failed to sync subscription');
   }
 
-  if (isPaidSubscriptionStatus(status)) {
+  if (isBillingActiveStripeStatus(status)) {
     const { error: userError } = await supabaseAdmin
       .from('users')
       .update({ freemium_since: null })
@@ -158,7 +148,7 @@ export async function POST(request: NextRequest) {
       limit: 20,
     });
 
-    const paidSub = subscriptions.data.find((sub: any) => isPaidSubscriptionStatus(sub.status));
+    const paidSub = subscriptions.data.find((sub: any) => isBillingActiveStripeStatus(sub.status));
     if (!paidSub) {
       return NextResponse.json({ ok: true, synced: false, reason: 'no-paid-subscription' });
     }

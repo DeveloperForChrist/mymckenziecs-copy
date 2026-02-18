@@ -503,7 +503,6 @@ export default function DocumentsClient() {
         <DocumentsActionBar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          onCreateFolder={createFolder}
           folders={folders}
           uploadFolderId={uploadFolderId}
           onUploadFolderChange={setUploadFolderId}
