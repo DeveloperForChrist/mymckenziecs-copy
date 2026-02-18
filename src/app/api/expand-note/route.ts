@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { aiIpRateLimiter, aiRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -27,6 +28,19 @@ Important: You are helping someone represent themselves in court. Be thorough bu
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIp(request.headers);
+    const identifier = `ai:expand-note:${getIdentifier(undefined, ip)}`;
+    const userLimit = await rateLimit(aiRateLimiter, identifier, 10, 60 * 1000);
+    if (!userLimit.success) {
+      return rateLimitExceededResponse(userLimit, 'Too many note expansion requests. Please try again later.');
+    }
+    if (ip) {
+      const ipLimit = await rateLimit(aiIpRateLimiter, `ai:expand-note:ip:${ip}`, 60, 10 * 60 * 1000);
+      if (!ipLimit.success) {
+        return rateLimitExceededResponse(ipLimit, 'Too many note expansion requests from this network. Please try again later.');
+      }
+    }
+
     const { noteTitle, noteContent } = await request.json();
 
     if (!noteContent || noteContent.trim().length === 0) {

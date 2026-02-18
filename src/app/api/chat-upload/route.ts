@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto'
 import fs from 'fs/promises'
 import path from 'path'
 import os from 'os'
+import { getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse, uploadIpRateLimiter } from '@/lib/utils/rate-limit'
 
 export const runtime = 'nodejs'
 
@@ -19,6 +20,12 @@ const ensureUploadDir = async () => {
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request.headers)
+    const limit = await rateLimit(uploadIpRateLimiter, `upload:chat:ip:${getIdentifier(undefined, ip)}`, 60, 10 * 60 * 1000)
+    if (!limit.success) {
+      return rateLimitExceededResponse(limit, 'Too many upload requests. Please try again later.')
+    }
+
     const formData = await request.formData()
     const entries = formData.getAll('files')
     if (!entries.length) {

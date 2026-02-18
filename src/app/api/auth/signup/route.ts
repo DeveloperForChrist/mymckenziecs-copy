@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { authRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, fullName } = await request.json()
+    const ip = getClientIp(request.headers)
+    const identifier = `auth:signup:${getIdentifier(undefined, ip)}`
+    const limit = await rateLimit(authRateLimiter, identifier, 5, 5 * 60 * 1000)
+    if (!limit.success) {
+      return rateLimitExceededResponse(limit, 'Too many sign-up attempts. Please try again later.')
+    }
 
-    // TODO: Integrate Supabase Auth signup
-    // For now, return a placeholder response
-    
     return NextResponse.json(
-      { message: 'Sign up successful', user: { email, fullName } },
-      { status: 201 }
+      { message: 'Not implemented. Sign-up is handled directly via Supabase client auth in the frontend.' },
+      { status: 501 }
     )
   } catch (error: any) {
     return NextResponse.json(

@@ -36,6 +36,7 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
   const [canMessageAgainAt, setCanMessageAgainAt] = useState<string | null>(null)
   const [planInfo, setPlanInfo] = useState<any>(null)
+  const [planInfoLoaded, setPlanInfoLoaded] = useState(false)
   const [historyLimitedSince, setHistoryLimitedSince] = useState<string | null>(null)
   const [cases, setCases] = useState<any[]>([])
   const [activeCaseId, setActiveCaseId] = useState<string | null>(null)
@@ -56,10 +57,12 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
   }, [currentConversationId])
   // Fetch plan info on mount
     useEffect(() => {
+      setPlanInfoLoaded(false)
       fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' })
         .then(res => res.ok ? res.json() : null)
         .then(data => setPlanInfo(data))
-        .catch(() => setPlanInfo(null));
+        .catch(() => setPlanInfo(null))
+        .finally(() => setPlanInfoLoaded(true));
     }, []);
     useEffect(() => {
       const supabase = getSupabaseBrowserClient();
@@ -720,38 +723,7 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
             </div>
           ) : null
         )}
-        center={(
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '7px 12px',
-              borderRadius: '999px',
-              border: '1px solid rgba(255,255,255,0.22)',
-              background: 'rgba(255,255,255,0.08)',
-              color: '#f8fafc',
-              maxWidth: '100%'
-            }}
-            title={workingOnLabel}
-          >
-            <span style={{ fontSize: '12px', color: 'rgba(248,250,252,0.78)', letterSpacing: '0.3px' }}>
-              Working on:
-            </span>
-            <span
-              style={{
-                fontSize: '13px',
-                fontWeight: 700,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                maxWidth: '340px'
-              }}
-            >
-              {workingOnLabel}
-            </span>
-          </div>
-        )}
+        center={null}
         right={(
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {isLoggedIn && (
@@ -932,9 +904,31 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
                 <div><b>Plan:</b> {planInfo.plan || 'Free'}</div>
                 {planInfo.nextBillingDate && <div><b>Renews:</b> {formatDate(planInfo.nextBillingDate)}</div>}
                 <div><b>Status:</b> {planInfo.planStatus || 'Active'}</div>
+                <div style={{
+                  marginTop: '10px',
+                  paddingTop: '10px',
+                  borderTop: '1px solid rgba(139,92,246,0.25)'
+                }}>
+                  <div style={{ fontSize: '12px', color: 'rgba(196,181,253,0.95)', marginBottom: '4px', letterSpacing: '0.3px' }}>
+                    Working on
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '13px',
+                      color: '#ffffff',
+                      fontWeight: 700,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                    title={workingOnLabel}
+                  >
+                    {workingOnLabel}
+                  </div>
+                </div>
               </>
             ) : (
-              <div>Loading plan info...</div>
+              <div>{planInfoLoaded ? 'Plan info unavailable.' : 'Loading plan info...'}</div>
             )}
           </div>
 

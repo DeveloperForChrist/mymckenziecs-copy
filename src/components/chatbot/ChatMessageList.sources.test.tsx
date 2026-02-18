@@ -46,8 +46,6 @@ describe('ChatMessageList sources', () => {
         onFeedback={() => {}}
         loading={false}
         loadingLabel={null}
-        autoScroll={true}
-        onJumpToLatest={() => {}}
         messagesEndRef={createRef<HTMLDivElement>()}
         TypingIndicatorComponent={() => <div>typing...</div>}
       />

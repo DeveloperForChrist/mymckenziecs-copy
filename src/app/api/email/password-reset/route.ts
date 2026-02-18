@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { sendResendEmail } from '@/lib/email/resend';
+import { emailDailyRateLimiter, emailRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 import fs from 'fs';
 import path from 'path';
 
@@ -17,10 +18,23 @@ function renderTemplate(templateName: string, vars: Record<string, string>) {
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIp(request.headers);
+    const ipIdentifier = `email:reset:ip:${getIdentifier(undefined, ip)}`;
+    const ipLimit = await rateLimit(emailRateLimiter, ipIdentifier, 3, 10 * 60 * 1000);
+    if (!ipLimit.success) {
+      return rateLimitExceededResponse(ipLimit, 'Too many reset requests. Please try again shortly.');
+    }
+
     const body = await request.json();
     const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
     if (!email || !email.includes('@')) {
       return NextResponse.json({ error: 'Valid email is required' }, { status: 400 });
+    }
+
+    const accountDailyIdentifier = `email:reset:account:${email}`;
+    const accountDailyLimit = await rateLimit(emailDailyRateLimiter, accountDailyIdentifier, 5, 24 * 60 * 60 * 1000);
+    if (!accountDailyLimit.success) {
+      return rateLimitExceededResponse(accountDailyLimit, 'Too many reset attempts for this account. Try again later.');
     }
 
     const appUrl =

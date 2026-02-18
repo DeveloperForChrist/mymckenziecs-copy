@@ -3,6 +3,7 @@ import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { stripe } from '@/lib/payments/stripe';
 import { logApiUsage } from '@/lib/utils/api-usage-logger';
+import { billingIpRateLimiter, billingRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 
 function resolveAppSettingsUrl(request: NextRequest): string {
   if (process.env.NEXT_PUBLIC_APP_URL) {
@@ -41,6 +42,19 @@ export async function POST(request: NextRequest) {
 
     const authUid = authData.user.id;
     const userEmail = authData.user.email;
+    const ip = getClientIp(request.headers);
+
+    const userLimit = await rateLimit(billingRateLimiter, `billing:user:${getIdentifier(authUid, ip)}`, 10, 10 * 60 * 1000);
+    if (!userLimit.success) {
+      return rateLimitExceededResponse(userLimit, 'Too many billing requests. Please try again shortly.');
+    }
+
+    if (ip) {
+      const ipLimit = await rateLimit(billingIpRateLimiter, `billing:ip:${ip}`, 30, 10 * 60 * 1000);
+      if (!ipLimit.success) {
+        return rateLimitExceededResponse(ipLimit, 'Too many billing requests from this network. Please try again shortly.');
+      }
+    }
 
     const { planId, successUrl, cancelUrl } = await request.json();
     if (!planId) {

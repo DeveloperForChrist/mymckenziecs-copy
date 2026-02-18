@@ -22,46 +22,6 @@ type SearchCandidate = {
   fromQuery?: string
 }
 
-// Domain quality scoring for relevance ranking
-const QUALITY_DOMAINS: Record<string, number> = {
-  // Legal/Official sources
-  'legislation.gov.uk': 10,
-  'bailii.org': 10,
-  'caselaw.nationalarchives.gov.uk': 10,
-  'justice.gov.uk': 10,
-  'judiciary.uk': 10,
-  'supremecourt.uk': 10,
-  'parliament.uk': 9,
-  'gov.uk': 8,
-  'citizensadvice.org.uk': 8,
-  'advicenow.org.uk': 8,
-  'lawworks.org.uk': 8,
-  // Reputable legal/news sources
-  'bbc.com': 7,
-  'bbc.co.uk': 7,
-  'theguardian.com': 7,
-  'reuters.com': 7,
-  // Legal education/commentary
-  'lawsociety.org.uk': 8,
-  'barcouncil.org.uk': 8,
-  'wikipedia.org': 6,
-  'medium.com': 5,
-  'linkedin.com': 5
-}
-
-const AUTHORITATIVE_DOMAIN_MATCHERS = [
-  'legislation.gov.uk',
-  'justice.gov.uk',
-  'judiciary.uk',
-  'supremecourt.uk',
-  'parliament.uk',
-  'gov.uk',
-  'caselaw.nationalarchives.gov.uk',
-  'bailii.org',
-  'mib.org.uk',
-  'acas.org.uk',
-]
-
 const safeJsonParse = <T,>(value: string): T | null => {
   try {
     return JSON.parse(value) as T
@@ -76,7 +36,7 @@ const STOPWORDS = new Set([
   'what', 'how', 'when', 'where', 'which', 'with', 'about', 'from', 'under', 'over', 'into', 'your', 'their'
 ])
 
-type InfoNeed = 'definition' | 'procedure' | 'comparison' | 'examples' | 'authority' | 'code'
+type InfoNeed = 'definition' | 'procedure' | 'comparison' | 'examples' | 'code'
 
 const detectInfoNeeds = (text: string, mode: RetrievalMode): Set<InfoNeed> => {
   const needs = new Set<InfoNeed>()
@@ -92,14 +52,7 @@ const detectInfoNeeds = (text: string, mode: RetrievalMode): Set<InfoNeed> => {
 
   if (mode === 'education') needs.add('definition')
   if (mode === 'procedure') needs.add('procedure')
-  if (mode === 'document_review') needs.add('authority')
-  if (mode === 'case_specific') {
-    needs.add('authority')
-    needs.add('examples')
-  }
-
-  // This tool is legal-first, so keep at least one authority-focused search.
-  needs.add('authority')
+  if (mode === 'case_specific') needs.add('examples')
   return needs
 }
 
@@ -127,16 +80,13 @@ const extractSubIntents = (query: string): string[] => {
   return Array.from(new Set(fineParts)).slice(0, 3)
 }
 
-const buildNeedSuffix = (needs: Set<InfoNeed>, hasJurisdictionHint: boolean): string => {
+const buildNeedSuffix = (needs: Set<InfoNeed>): string => {
   const parts: string[] = []
   if (needs.has('definition')) parts.push('definition plain English')
   if (needs.has('procedure')) parts.push('step by step')
   if (needs.has('comparison')) parts.push('comparison')
   if (needs.has('examples')) parts.push('practical examples')
   if (needs.has('code')) parts.push('implementation example')
-  if (needs.has('authority')) {
-    parts.push(hasJurisdictionHint ? 'official legal sources gov.uk legislation' : 'England and Wales law official legal sources gov.uk legislation')
-  }
   return normalizeWhitespace(parts.join(' '))
 }
 
@@ -146,10 +96,9 @@ const buildSearchSubqueries = (query: string, mode: RetrievalMode): string[] => 
 
   const terms = tokenize(base).slice(0, 10)
   const compactTerms = terms.join(' ')
-  const hasJurisdictionHint = /\b(uk|england|wales|scotland|northern ireland|britain)\b/i.test(base)
   const subIntents = extractSubIntents(base)
   const baseNeeds = detectInfoNeeds(base, mode)
-  const baseSuffix = buildNeedSuffix(baseNeeds, hasJurisdictionHint)
+  const baseSuffix = buildNeedSuffix(baseNeeds)
 
   const candidates = [base]
   if (baseSuffix) {
@@ -159,7 +108,7 @@ const buildSearchSubqueries = (query: string, mode: RetrievalMode): string[] => 
   for (const subIntent of subIntents) {
     if (subIntent.toLowerCase() === base.toLowerCase()) continue
     const subNeeds = detectInfoNeeds(subIntent, mode)
-    const suffix = buildNeedSuffix(subNeeds, hasJurisdictionHint)
+    const suffix = buildNeedSuffix(subNeeds)
     candidates.push(suffix ? `${subIntent} ${suffix}` : subIntent)
   }
 
@@ -241,26 +190,8 @@ const getHost = (url: string): string => {
 const getDomainQuality = (url: string): number => {
   const host = getHost(url)
   if (!host) return 0
-  // Exact match first
-  if (QUALITY_DOMAINS[host]) return QUALITY_DOMAINS[host]
-  // Check base domain (e.g., gov.uk in www.gov.uk)
-  for (const [domain, score] of Object.entries(QUALITY_DOMAINS)) {
-    if (host.includes(domain)) return score
-  }
-  // Default for other sources
-  return 3
-}
-
-const isAuthoritativeSource = (url: string): boolean => {
-  const host = getHost(url)
-  if (!host) return false
-  return AUTHORITATIVE_DOMAIN_MATCHERS.some((domain) => host === domain || host.endsWith(`.${domain}`) || host.includes(domain))
-}
-
-const shouldRequireAuthoritativeSource = (query: string, mode: RetrievalMode): boolean => {
-  if (!query.trim()) return false
-  if (mode === 'document_review' || mode === 'procedure' || mode === 'case_specific') return true
-  return /\b(law|legal|court|claim|tribunal|cpr|act|statute|regulation|england|wales|uk)\b/i.test(query)
+  // Keep domain quality neutral so no source family is favored by host alone.
+  return 5
 }
 
 const tokenize = (value: string): string[] =>
@@ -498,7 +429,7 @@ const universalSearch = async (query: string): Promise<SearchCandidate[]> => {
 
 export class SearchTool extends Tool {
   name = "legal_search";
-  description = "Searches the internet for legal guidance, case law, and legal information from suitable sources. Prefers authoritative legal sources but searches across the entire internet.";
+  description = "Searches the internet for legal guidance, case law, and legal information from suitable sources.";
 
   async _call(input: string): Promise<string> {
     try {
@@ -557,7 +488,7 @@ export class SearchTool extends Tool {
         } as SearchToolOutput)
       }
 
-      // Fetch and process results, prioritizing by domain quality
+      // Fetch and process results using a neutral ranking blend.
       const fetched = await Promise.all(
         searchPool.slice(0, 10).map(async (result) => {
           const text = await fetchText(result.url)
@@ -593,7 +524,7 @@ export class SearchTool extends Tool {
         reviewed.map((entry) => entry.url).filter((url) => typeof url === 'string' && url.length > 0)
       ))
 
-      // Filter and sort by blended ranking score (relevance + recency + domain quality)
+      // Filter and sort by blended ranking score (relevance + recency + neutral domain factor)
       let rankedForPacket = reviewed
         .filter((value): value is NonNullable<typeof value> => Boolean(value))
         .sort((a, b) => b.score - a.score)
@@ -626,22 +557,6 @@ export class SearchTool extends Tool {
           })
           .sort((a, b) => b.score - a.score)
         rankedForPacket = fallback
-      }
-
-      if (shouldRequireAuthoritativeSource(query, mode) && !rankedForPacket.some((entry) => isAuthoritativeSource(entry.url))) {
-        const bestAuthoritative = reviewed
-          .filter((entry) => isAuthoritativeSource(entry.url))
-          .sort((a, b) => b.score - a.score)[0]
-
-        if (bestAuthoritative) {
-          const deduped = rankedForPacket.filter((entry) => entry.url !== bestAuthoritative.url)
-          if (deduped.length >= 8) {
-            deduped[deduped.length - 1] = bestAuthoritative
-            rankedForPacket = deduped
-          } else {
-            rankedForPacket = [...deduped, bestAuthoritative]
-          }
-        }
       }
 
       const packet = `${usedEngineResults ? 'Source mode: engine results.' : 'Source mode: fallback context only (no citation sources).'}\n` +

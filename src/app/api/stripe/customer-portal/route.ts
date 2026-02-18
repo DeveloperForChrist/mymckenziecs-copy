@@ -3,6 +3,7 @@ import { stripe } from '@/lib/payments/stripe';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { logApiUsage } from '@/lib/utils/api-usage-logger';
+import { billingIpRateLimiter, billingRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 
 function resolveReturnUrl(request: Request): string {
   if (process.env.NEXT_PUBLIC_APP_URL) {
@@ -29,6 +30,19 @@ export async function POST(req: Request) {
     }
 
     const authUid = authData.user.id;
+    const ip = getClientIp(req.headers);
+
+    const userLimit = await rateLimit(billingRateLimiter, `billing:portal:user:${getIdentifier(authUid, ip)}`, 10, 10 * 60 * 1000);
+    if (!userLimit.success) {
+      return rateLimitExceededResponse(userLimit, 'Too many billing portal requests. Please try again shortly.');
+    }
+
+    if (ip) {
+      const ipLimit = await rateLimit(billingIpRateLimiter, `billing:portal:ip:${ip}`, 30, 10 * 60 * 1000);
+      if (!ipLimit.success) {
+        return rateLimitExceededResponse(ipLimit, 'Too many billing portal requests from this network. Please try again shortly.');
+      }
+    }
 
     // Fetch the latest known Stripe customer ID for this user.
     const { data: subscription } = await supabaseAdmin

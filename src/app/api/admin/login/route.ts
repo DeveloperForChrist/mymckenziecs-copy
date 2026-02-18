@@ -4,12 +4,20 @@ import {
   createAdminSessionToken,
   getAdminCookieOptions
 } from '@/lib/auth/admin-session'
+import { authRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit'
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request.headers)
+    const identifier = `auth:admin:${getIdentifier(undefined, ip)}`
+    const limit = await rateLimit(authRateLimiter, identifier, 5, 5 * 60 * 1000)
+    if (!limit.success) {
+      return rateLimitExceededResponse(limit, 'Too many admin login attempts. Please try again later.')
+    }
+
     const { email, password } = await request.json()
 
     const adminEmail = process.env.ADMIN_EMAIL

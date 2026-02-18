@@ -5,6 +5,7 @@
 
 import { serve } from 'https://deno.land/std@0.201.0/http/server.ts';
 import { createClient } from 'npm:@supabase/supabase-js';
+import { ALERT_FAILURE_TEMPLATE, REMINDER_TEMPLATE } from './templates.ts';
 
 type CalendarEventRow = {
   id: string;
@@ -15,6 +16,31 @@ type CalendarEventRow = {
   date: string;
   category: string | null;
   priority: string | null;
+  completed: boolean;
+};
+
+type SendFailure = {
+  user_id: string;
+  email: string;
+  error: string;
+};
+
+type UserRow = {
+  id: string;
+  email: string | null;
+  name: string | null;
+};
+
+type ReminderJob = {
+  user: UserRow;
+  events: CalendarEventRow[];
+};
+
+type DeliveryClaim = {
+  should_send: boolean;
+  reason: string;
+  attempt_count: number;
+  status: string;
 };
 
 function escapeHtml(input: string) {
@@ -24,6 +50,121 @@ function escapeHtml(input: string) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+function renderTemplate(template: string, vars: Record<string, string | number>) {
+  let output = template;
+  for (const [key, value] of Object.entries(vars)) {
+    output = output.split(`{{${key}}}`).join(String(value));
+  }
+  return output;
+}
+
+function parseIntWithBounds(value: string | undefined, fallback: number, min: number, max: number) {
+  const parsed = Number.parseInt(value || '', 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(min, Math.min(max, parsed));
+}
+
+function parseReminderOffsets(value: string | undefined) {
+  const raw = (value || '')
+    .split(',')
+    .map((item) => Number.parseInt(item.trim(), 10))
+    .filter((item) => Number.isFinite(item) && item >= 0 && item <= 30);
+
+  if (raw.length === 0) return [];
+  const unique = Array.from(new Set(raw));
+  unique.sort((a, b) => b - a);
+  return unique;
+}
+
+function chunkArray<T>(items: T[], size: number) {
+  if (items.length === 0) return [];
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
+function hashString(input: string) {
+  let hash = 2166136261;
+  for (let i = 0; i < input.length; i += 1) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function userBucket(userId: string, bucketCount: number) {
+  if (bucketCount <= 1) return 0;
+  return hashString(userId) % bucketCount;
+}
+
+function formatLabel(input: string | null | undefined) {
+  if (!input) return '';
+  return input.charAt(0).toUpperCase() + input.slice(1);
+}
+
+function daysUntil(targetDate: Date) {
+  const now = new Date();
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const target = Date.UTC(targetDate.getUTCFullYear(), targetDate.getUTCMonth(), targetDate.getUTCDate());
+  return Math.max(0, Math.ceil((target - today) / msPerDay));
+}
+
+type UrgencyTheme = {
+  headerBg: string;
+  ctaBg: string;
+  panelBg: string;
+  panelBorder: string;
+  title: string;
+  intro: string;
+};
+
+function getUrgencyTheme(minDays: number): UrgencyTheme {
+  if (minDays <= 1) {
+    return {
+      headerBg: '#991b1b',
+      ctaBg: '#991b1b',
+      panelBg: '#fef2f2',
+      panelBorder: '#fecaca',
+      title: 'Deadline is tomorrow',
+      intro: 'At least one event is due within 1 day. Prioritize completion now.',
+    };
+  }
+
+  if (minDays <= 3) {
+    return {
+      headerBg: '#7c2d12',
+      ctaBg: '#9a3412',
+      panelBg: '#fff7ed',
+      panelBorder: '#fed7aa',
+      title: 'Deadline approaching',
+      intro: 'At least one event is due within 3 days. Please complete final checks.',
+    };
+  }
+
+  if (minDays <= 5) {
+    return {
+      headerBg: '#1f2937',
+      ctaBg: '#1f2937',
+      panelBg: '#f9fafb',
+      panelBorder: '#d1d5db',
+      title: 'Upcoming deadline',
+      intro: 'At least one event is due within 5 days. Keep your checklist moving.',
+    };
+  }
+
+  return {
+    headerBg: '#0f172a',
+    ctaBg: '#0f172a',
+    panelBg: '#f9fafb',
+    panelBorder: '#e5e7eb',
+    title: 'Deadline reminder',
+    intro: 'Here are your upcoming events for this reminder window.',
+  };
 }
 
 serve(async (req) => {
@@ -43,6 +184,11 @@ serve(async (req) => {
       env.get('RESEND_ALERT_FROM_NAME') ||
       env.get('RESEND_FROM_NAME') ||
       'MymckenzieCS';
+    const APP_URL = (env.get('NEXT_PUBLIC_APP_URL') || env.get('APP_URL') || 'https://mymckenziecs.com').replace(/\/$/, '');
+    const REMINDER_ALERT_EMAIL = env.get('REMINDER_ALERT_EMAIL') || env.get('ADMIN_EMAIL') || '';
+    const SEND_CONCURRENCY = parseIntWithBounds(env.get('REMINDER_SEND_CONCURRENCY') || undefined, 5, 1, 20);
+    const FETCH_PAGE_SIZE = parseIntWithBounds(env.get('REMINDER_FETCH_PAGE_SIZE') || undefined, 1000, 100, 5000);
+    const MAX_RETRY_ATTEMPTS = parseIntWithBounds(env.get('REMINDER_MAX_RETRY_ATTEMPTS') || undefined, 3, 1, 10);
     const RESEND_FROM = RESEND_FROM_RAW.includes('<')
       ? RESEND_FROM_RAW
       : `${RESEND_FROM_NAME} <${RESEND_FROM_RAW}>`;
@@ -57,76 +203,350 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, { auth: { persistSession: false } });
 
     const url = new URL(req.url);
-    const lookaheadDays = Math.min(Math.max(Number(url.searchParams.get('days') || 7), 1), 30);
+    const defaultOffsets = env.get('REMINDER_DAY_OFFSETS') || '21,14,7,5,3,1';
+    const reminderOffsets = parseReminderOffsets(url.searchParams.get('offset_days') || defaultOffsets);
+    if (reminderOffsets.length === 0) {
+      return new Response(JSON.stringify({ error: 'No valid reminder offsets configured' }), { status: 400 });
+    }
+    const reminderOffsetSet = new Set(reminderOffsets);
+    const maxReminderOffset = Math.max(...reminderOffsets);
+    const requestedLookahead = Number.parseInt(url.searchParams.get('days') || '', 10);
+    const fallbackLookahead = Math.max(7, maxReminderOffset);
+    const lookaheadDays = Math.min(
+      Math.max(Number.isFinite(requestedLookahead) ? requestedLookahead : fallbackLookahead, maxReminderOffset),
+      30,
+    );
+    const bucketCount = parseIntWithBounds(url.searchParams.get('bucket_count') || undefined, 1, 1, 48);
+    const bucketIndexRaw = url.searchParams.get('bucket_index') || '0';
+    const bucketIndex = Number.parseInt(bucketIndexRaw, 10);
+    if (!Number.isFinite(bucketIndex) || bucketIndex < 0 || bucketIndex >= bucketCount) {
+      return new Response(JSON.stringify({ error: `Invalid bucket_index ${bucketIndexRaw} for bucket_count ${bucketCount}` }), { status: 400 });
+    }
+    const maxUsersPerRun = parseIntWithBounds(url.searchParams.get('max_users') || undefined, 0, 0, 100000);
 
     const now = new Date();
-    const start = now.toISOString();
-    const end = new Date(now.getTime() + lookaheadDays * 24 * 60 * 60 * 1000).toISOString();
-
-    const { data: events, error: eventsError } = await supabase
-      .from('calendar_events')
-      .select('id, user_id, title, notes, time, date, category, priority')
-      .gte('date', start)
-      .lte('date', end)
-      .eq('category', 'deadline')
-      .order('date', { ascending: true });
-
-    if (eventsError) {
-      console.error('Failed to fetch events', eventsError);
-      return new Response(JSON.stringify({ error: 'Failed to fetch events' }), { status: 500 });
-    }
+    const runDate = now.toISOString().slice(0, 10);
+    const utcDayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const utcDayEndExclusive = new Date(utcDayStart.getTime() + (lookaheadDays + 1) * 24 * 60 * 60 * 1000);
+    const start = utcDayStart.toISOString();
+    const endExclusive = utcDayEndExclusive.toISOString();
 
     const byUser = new Map<string, CalendarEventRow[]>();
-    for (const ev of (events || []) as CalendarEventRow[]) {
-      if (!byUser.has(ev.user_id)) byUser.set(ev.user_id, []);
-      byUser.get(ev.user_id)!.push(ev);
+    let eventsCount = 0;
+    let pagesFetched = 0;
+    for (let page = 0; ; page += 1) {
+      const from = page * FETCH_PAGE_SIZE;
+      const to = from + FETCH_PAGE_SIZE - 1;
+      const { data: pageEvents, error: eventsError } = await supabase
+        .from('calendar_events')
+        .select('id, user_id, title, notes, time, date, category, priority, completed')
+        .gte('date', start)
+        .lt('date', endExclusive)
+        .eq('completed', false)
+        .order('date', { ascending: true })
+        .range(from, to);
+
+      if (eventsError) {
+        console.error('Failed to fetch events', eventsError);
+        return new Response(JSON.stringify({ error: 'Failed to fetch events' }), { status: 500 });
+      }
+
+      const rows = (pageEvents || []) as CalendarEventRow[];
+      pagesFetched += 1;
+      eventsCount += rows.length;
+      for (const ev of rows) {
+        if (!byUser.has(ev.user_id)) byUser.set(ev.user_id, []);
+        byUser.get(ev.user_id)!.push(ev);
+      }
+
+      if (rows.length < FETCH_PAGE_SIZE) break;
+      if (page >= 999) {
+        console.warn('Event fetch reached max page cap', { page, FETCH_PAGE_SIZE });
+        break;
+      }
     }
 
-    if (byUser.size === 0) return new Response(JSON.stringify({ ok: true, sent: 0 }), { status: 200 });
+    const filteredByUser = new Map<string, CalendarEventRow[]>();
+    let eligibleEventsCount = 0;
+    for (const [userId, events] of byUser.entries()) {
+      const eventsForToday = events.filter((ev) => reminderOffsetSet.has(daysUntil(new Date(ev.date))));
+      if (eventsForToday.length === 0) continue;
+      filteredByUser.set(userId, eventsForToday);
+      eligibleEventsCount += eventsForToday.length;
+    }
 
-    const userIds = Array.from(byUser.keys());
-    const { data: users } = await supabase.from('users').select('id, email, name').in('id', userIds);
+    if (filteredByUser.size === 0) {
+      return new Response(JSON.stringify({
+        ok: true,
+        sent: 0,
+        failed: 0,
+        users: 0,
+        events: eventsCount,
+        eligibleEvents: 0,
+        lookaheadDays,
+        reminderOffsets,
+        fetchPageSize: FETCH_PAGE_SIZE,
+        pagesFetched,
+        sendConcurrency: SEND_CONCURRENCY,
+        bucketCount,
+        bucketIndex,
+        maxUsersPerRun,
+        maxRetryAttempts: MAX_RETRY_ATTEMPTS,
+        runDate,
+      }), { status: 200 });
+    }
+
+    const userIds = Array.from(filteredByUser.keys());
+    const users: UserRow[] = [];
+    for (const userIdChunk of chunkArray(userIds, 1000)) {
+      const { data: usersChunk, error: usersError } = await supabase
+        .from('users')
+        .select('id, email, name')
+        .in('id', userIdChunk);
+
+      if (usersError) {
+        console.error('Failed to fetch users', usersError);
+        return new Response(JSON.stringify({ error: 'Failed to fetch users' }), { status: 500 });
+      }
+      users.push(...((usersChunk || []) as UserRow[]));
+    }
 
     // dynamic import of Resend in Edge Function (use npm: prefix for Deno bundler)
     const { Resend } = await import('npm:resend');
     const resend = new Resend(RESEND_API_KEY!);
 
     let sent = 0;
-    for (const user of users || []) {
-      const list = byUser.get(user.id) || [];
-      if (!user.email || list.length === 0) continue;
+    const failures: SendFailure[] = [];
+    const jobs: ReminderJob[] = (users || [])
+      .map((user) => ({ user, events: filteredByUser.get(user.id) || [] }))
+      .filter((job) => Boolean(job.user.email) && job.events.length > 0)
+      .sort((a, b) => a.user.id.localeCompare(b.user.id));
+
+    const jobsByUserId = new Map(jobs.map((job) => [job.user.id, job]));
+    const bucketedJobs = jobs.filter((job) => userBucket(job.user.id, bucketCount) === bucketIndex);
+    const retryJobs: ReminderJob[] = [];
+    if (bucketIndex > 0) {
+      const { data: failedStateRows, error: failedStateError } = await supabase
+        .from('reminder_delivery_state')
+        .select('user_id, last_attempt_bucket, attempt_count')
+        .eq('run_date', runDate)
+        .eq('status', 'failed')
+        .lt('attempt_count', MAX_RETRY_ATTEMPTS)
+        .limit(50000);
+
+      if (failedStateError) {
+        console.error('Failed to fetch retry candidates', failedStateError);
+        return new Response(JSON.stringify({ error: 'Failed to fetch retry candidates' }), { status: 500 });
+      }
+
+      for (const row of (failedStateRows || []) as any[]) {
+        const lastAttemptBucket = typeof row.last_attempt_bucket === 'number' ? row.last_attempt_bucket : -1;
+        if (lastAttemptBucket >= bucketIndex) continue;
+        const retryJob = jobsByUserId.get(row.user_id);
+        if (retryJob) retryJobs.push(retryJob);
+      }
+    }
+
+    const prioritizedJobs = [...retryJobs, ...bucketedJobs];
+    const dedupedSelectedJobs: ReminderJob[] = [];
+    const seenUserIds = new Set<string>();
+    for (const job of prioritizedJobs) {
+      if (seenUserIds.has(job.user.id)) continue;
+      seenUserIds.add(job.user.id);
+      dedupedSelectedJobs.push(job);
+    }
+    const selectedJobs = maxUsersPerRun > 0 ? dedupedSelectedJobs.slice(0, maxUsersPerRun) : dedupedSelectedJobs;
+
+    let skippedByClaim = 0;
+    let completionErrors = 0;
+    const processJob = async (job: ReminderJob) => {
+      const user = job.user;
+      const list = job.events;
+      const { data: claimData, error: claimError } = await supabase
+        .rpc('claim_reminder_delivery', {
+          p_user_id: user.id,
+          p_run_date: runDate,
+          p_lookahead_days: lookaheadDays,
+          p_bucket_index: bucketIndex,
+          p_max_attempts: MAX_RETRY_ATTEMPTS,
+        })
+        .single();
+
+      if (claimError) {
+        console.error('Failed to claim reminder delivery', { userId: user.id, error: claimError.message });
+        failures.push({ user_id: user.id, email: user.email as string, error: `Claim failed: ${claimError.message}` });
+        return;
+      }
+
+      const claim = (claimData || null) as DeliveryClaim | null;
+      if (!claim?.should_send) {
+        skippedByClaim += 1;
+        return;
+      }
+
+      const minDueDays = Math.min(...list.map((ev) => daysUntil(new Date(ev.date))));
+      const theme = getUrgencyTheme(minDueDays);
 
       const rowsHtml = list
         .map((ev) => {
           const d = new Date(ev.date);
           const dateLabel = d.toLocaleDateString('en-GB', { weekday: 'short', year: 'numeric', month: 'short', day: '2-digit' });
           const timeLabel = ev.time ? ` ${String(ev.time).slice(0, 5)}` : '';
+          const categoryLabel = formatLabel(ev.category);
+          const priorityLabel = formatLabel(ev.priority);
+          const dueInDays = daysUntil(d);
+          const dueLabel = dueInDays === 0 ? 'Today' : dueInDays === 1 ? 'Tomorrow' : `In ${dueInDays} days`;
+          const rowBg = dueInDays <= 1 ? '#fef2f2' : dueInDays <= 3 ? '#fff7ed' : '#f9fafb';
+          const rowBorder = dueInDays <= 1 ? '#fecaca' : dueInDays <= 3 ? '#fed7aa' : '#e5e7eb';
+          const dueBadgeBg = dueInDays <= 1 ? '#991b1b' : dueInDays <= 3 ? '#9a3412' : '#155e75';
           const notesHtml = ev.notes ? `<div style="color:#6b7280; font-size:12px; margin-top:4px;">${escapeHtml(ev.notes)}</div>` : '';
           return `
             <tr>
-              <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-                <div style="font-weight:700; color:#111827;">${escapeHtml(ev.title)}</div>
-                <div style="color:#374151; font-size:13px;">${dateLabel}${timeLabel}</div>
+              <td style="padding:14px 16px; border:1px solid ${rowBorder}; border-radius:10px; background:${rowBg};">
+                <div style="font-weight:700; color:#111827; font-size:15px;">${escapeHtml(ev.title)}</div>
+                <div style="margin-top:4px; color:#374151; font-size:13px;">${dateLabel}${timeLabel ? ` at${timeLabel}` : ''}</div>
+                <div style="margin-top:8px; font-size:12px; color:#4b5563;">
+                  ${categoryLabel ? `<span style="display:inline-block; background:#eef2ff; color:#1e3a8a; border-radius:999px; padding:3px 8px; margin-right:6px;">${escapeHtml(categoryLabel)}</span>` : ''}
+                  ${priorityLabel ? `<span style="display:inline-block; background:#fef3c7; color:#92400e; border-radius:999px; padding:3px 8px; margin-right:6px;">${escapeHtml(priorityLabel)} priority</span>` : ''}
+                  <span style="display:inline-block; background:${dueBadgeBg}; color:#ffffff; border-radius:999px; padding:3px 8px;">${dueLabel}</span>
+                </div>
                 ${notesHtml}
               </td>
             </tr>`;
         })
-        .join('');
+        .join('<tr><td style="height:10px;"></td></tr>');
 
-      const htmlBody = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color:#4c1d95;">Upcoming deadlines (next ${lookaheadDays} days)</h2>
-          <p>Hi${user.name ? ` ${escapeHtml(user.name)}` : ''},</p>
-          <p>Here are your upcoming deadlines:</p>
-          <table style="width:100%; border-collapse:collapse;">${rowsHtml}</table>
-          <p style="margin-top:18px; color:#6b7280; font-size:12px;">MymckenzieCS</p>
-        </div>`;
+      const calendarUrl = `${APP_URL}/dashboard/calendar`;
+      const htmlBody = renderTemplate(REMINDER_TEMPLATE, {
+        header_bg: theme.headerBg,
+        title: theme.title,
+        name_suffix: user.name ? ` ${escapeHtml(user.name)}` : '',
+        events_count: list.length,
+        events_plural: list.length === 1 ? '' : 's',
+        lookahead_days: lookaheadDays,
+        panel_border: theme.panelBorder,
+        panel_bg: theme.panelBg,
+        intro: theme.intro,
+        rows_html: rowsHtml,
+        cta_bg: theme.ctaBg,
+        calendar_url: calendarUrl,
+      });
 
-      await resend.emails.send({ from: RESEND_FROM, to: [user.email], subject: `Upcoming deadlines (next ${lookaheadDays} days)`, html: htmlBody });
-      sent += 1;
+      try {
+        await resend.emails.send({
+          from: RESEND_FROM,
+          to: [user.email as string],
+          subject: `Upcoming events (next ${lookaheadDays} days)`,
+          html: htmlBody,
+        });
+        const { error: completeError } = await supabase.rpc('complete_reminder_delivery', {
+          p_user_id: user.id,
+          p_run_date: runDate,
+          p_lookahead_days: lookaheadDays,
+          p_success: true,
+          p_error: null,
+        });
+        if (completeError) {
+          completionErrors += 1;
+          console.error('Failed to mark reminder delivery as sent', {
+            userId: user.id,
+            error: completeError.message,
+          });
+        }
+        sent += 1;
+      } catch (sendError) {
+        const message = sendError instanceof Error ? sendError.message : String(sendError);
+        console.error('Failed to send reminder email', { userId: user.id, email: user.email, error: message });
+        failures.push({ user_id: user.id, email: user.email as string, error: message });
+        const { error: completeError } = await supabase.rpc('complete_reminder_delivery', {
+          p_user_id: user.id,
+          p_run_date: runDate,
+          p_lookahead_days: lookaheadDays,
+          p_success: false,
+          p_error: message,
+        });
+        if (completeError) {
+          completionErrors += 1;
+          console.error('Failed to mark reminder delivery as failed', {
+            userId: user.id,
+            error: completeError.message,
+          });
+        }
+      }
+    };
+
+    let cursor = 0;
+    const workerCount = Math.max(1, Math.min(SEND_CONCURRENCY, selectedJobs.length));
+    const workers = Array.from({ length: workerCount }, async () => {
+      while (true) {
+        const currentIndex = cursor;
+        cursor += 1;
+        if (currentIndex >= selectedJobs.length) break;
+        await processJob(selectedJobs[currentIndex]);
+      }
+    });
+    await Promise.all(workers);
+
+    const summary = {
+      ok: failures.length === 0,
+      sent,
+      failed: failures.length,
+      users: selectedJobs.length,
+      eligibleUsers: jobs.length,
+      bucketUsers: bucketedJobs.length,
+      retryCandidates: retryJobs.length,
+      skippedByClaim,
+      completionErrors,
+      events: eventsCount,
+      eligibleEvents: eligibleEventsCount,
+      lookaheadDays,
+      reminderOffsets,
+      fetchPageSize: FETCH_PAGE_SIZE,
+      pagesFetched,
+      sendConcurrency: SEND_CONCURRENCY,
+      bucketCount,
+      bucketIndex,
+      maxUsersPerRun,
+      maxRetryAttempts: MAX_RETRY_ATTEMPTS,
+      runDate,
+    };
+
+    if (eventsCount > 0 && sent === 0) {
+      console.warn('Reminder run completed with events found but no sends', summary);
+    } else {
+      console.log('Reminder run summary', summary);
     }
 
-    return new Response(JSON.stringify({ ok: true, sent }), { status: 200 });
+    if (failures.length > 0) {
+      if (REMINDER_ALERT_EMAIL) {
+        const failuresList = failures
+          .slice(0, 20)
+          .map((f) => `<li style="margin-bottom:6px;"><strong>${escapeHtml(f.email)}</strong>: ${escapeHtml(f.error)}</li>`)
+          .join('');
+        const alertHtml = renderTemplate(ALERT_FAILURE_TEMPLATE, {
+          sent,
+          failed: failures.length,
+          users: selectedJobs.length,
+          events: eventsCount,
+          lookahead_days: lookaheadDays,
+          failures_list: failuresList,
+        });
+        try {
+          await resend.emails.send({
+            from: RESEND_FROM,
+            to: [REMINDER_ALERT_EMAIL],
+            subject: `Reminder cron partial failure (${failures.length} failed)`,
+            html: alertHtml,
+          });
+        } catch (alertError) {
+          console.error('Failed to send reminder alert email', alertError);
+        }
+      }
+
+      return new Response(JSON.stringify({ ...summary, failures }), { status: 207 });
+    }
+
+    return new Response(JSON.stringify(summary), { status: 200 });
   } catch (err) {
     console.error('Function error', err);
     return new Response(JSON.stringify({ error: String(err) }), { status: 500 });

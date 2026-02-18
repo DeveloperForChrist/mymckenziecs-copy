@@ -2,9 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import nodemailer from 'nodemailer';
+import { emailDailyRateLimiter, emailRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req.headers);
+    const ipIdentifier = `contact:ip:${getIdentifier(undefined, ip)}`;
+    const ipLimit = await rateLimit(emailRateLimiter, ipIdentifier, 3, 10 * 60 * 1000);
+    if (!ipLimit.success) {
+      return rateLimitExceededResponse(ipLimit, 'Too many contact requests. Please try again later.');
+    }
+
     const { email, subject, message } = await req.json();
 
     if (!email || !subject || !message?.trim()) {
@@ -12,6 +20,12 @@ export async function POST(req: NextRequest) {
         { error: 'Email, subject and message are required' },
         { status: 400 }
       );
+    }
+
+    const accountDailyIdentifier = `contact:account:${String(email).trim().toLowerCase()}`;
+    const accountDailyLimit = await rateLimit(emailDailyRateLimiter, accountDailyIdentifier, 10, 24 * 60 * 60 * 1000);
+    if (!accountDailyLimit.success) {
+      return rateLimitExceededResponse(accountDailyLimit, 'Contact message limit reached for today. Please try again tomorrow.');
     }
 
     // Use email from form, or try to get from auth

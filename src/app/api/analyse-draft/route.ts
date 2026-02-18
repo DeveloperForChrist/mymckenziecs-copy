@@ -1,8 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
+import { aiIpRateLimiter, aiRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req.headers);
+    const identifier = `ai:analyse-draft:${getIdentifier(undefined, ip)}`;
+    const userLimit = await rateLimit(aiRateLimiter, identifier, 10, 60 * 1000);
+    if (!userLimit.success) {
+      return rateLimitExceededResponse(userLimit, 'Too many draft analysis requests. Please try again later.');
+    }
+    if (ip) {
+      const ipLimit = await rateLimit(aiIpRateLimiter, `ai:analyse-draft:ip:${ip}`, 60, 10 * 60 * 1000);
+      if (!ipLimit.success) {
+        return rateLimitExceededResponse(ipLimit, 'Too many draft analysis requests from this network. Please try again later.');
+      }
+    }
+
     const { title, content } = await req.json();
 
     console.log('Analyse draft request:', { title, contentLength: content?.length, content: content?.substring(0, 100) });

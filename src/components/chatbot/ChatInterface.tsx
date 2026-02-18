@@ -839,9 +839,13 @@ export default function ChatInterface() {
   const prevLineCountRef = useRef<number>(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const lastScrollTopRef = useRef(0)
+  const lastWindowScrollYRef = useRef(0)
   const isNearBottomRef = useRef(true)
   const isProgrammaticScrollRef = useRef(false)
   const [autoScroll, setAutoScroll] = useState(true)
+  const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false)
+  const [showScrollToBottomButtonByWindow, setShowScrollToBottomButtonByWindow] = useState(false)
   const normalizedPlan = (plan || '').toLowerCase();
 
   // Cleanup guest data when component unmounts
@@ -877,10 +881,13 @@ export default function ChatInterface() {
     if (container) {
       isProgrammaticScrollRef.current = true
       container.scrollTo({ top: container.scrollHeight, behavior })
+      lastScrollTopRef.current = container.scrollHeight
     } else {
       messagesEndRef.current?.scrollIntoView({ behavior })
     }
     isNearBottomRef.current = true
+    setShowScrollToBottomButton(false)
+    setShowScrollToBottomButtonByWindow(false)
   }
 
   const handleScroll = () => {
@@ -888,19 +895,78 @@ export default function ChatInterface() {
     if (!container) {
       return
     }
+    const currentTop = container.scrollTop
     if (isProgrammaticScrollRef.current) {
       isProgrammaticScrollRef.current = false
+      lastScrollTopRef.current = currentTop
       return
     }
 
-    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight
-    const isNearBottom = distanceFromBottom < 80
+    const maxScrollable = container.scrollHeight - container.clientHeight
+    const distanceFromBottom = maxScrollable - container.scrollTop
+    const isNearBottom = maxScrollable <= 2 || distanceFromBottom <= 2
     isNearBottomRef.current = isNearBottom
 
     if (isNearBottom !== autoScroll) {
       setAutoScroll(isNearBottom)
     }
+    const isScrollingUp = currentTop < lastScrollTopRef.current - 1
+    const isScrollingDown = currentTop > lastScrollTopRef.current + 1
+    if (isNearBottom || messages.length === 0) {
+      setShowScrollToBottomButton(false)
+    } else if (isScrollingUp) {
+      setShowScrollToBottomButton(true)
+    } else if (isScrollingDown) {
+      setShowScrollToBottomButton(false)
+    }
+    lastScrollTopRef.current = currentTop
   }
+
+  const jumpToLatest = () => {
+    scrollToBottom('smooth')
+    setAutoScroll(true)
+    isNearBottomRef.current = true
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
+    }
+  }
+
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+    lastScrollTopRef.current = container.scrollTop
+    const maxScrollable = container.scrollHeight - container.clientHeight
+    const distanceFromBottom = maxScrollable - container.scrollTop
+    const isNearBottom = maxScrollable <= 2 || distanceFromBottom <= 2
+    isNearBottomRef.current = isNearBottom
+    setAutoScroll(isNearBottom)
+    setShowScrollToBottomButton(false)
+  }, [messages.length])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    lastWindowScrollYRef.current = window.scrollY
+    const onWindowScroll = () => {
+      const currentY = window.scrollY
+      const isScrollingUp = currentY < lastWindowScrollYRef.current - 1
+      const isScrollingDown = currentY > lastWindowScrollYRef.current + 1
+      const doc = document.documentElement
+      const nearPageBottom = currentY + window.innerHeight >= doc.scrollHeight - 2
+
+      if (nearPageBottom || messages.length === 0) {
+        setShowScrollToBottomButtonByWindow(false)
+      } else if (isScrollingUp) {
+        setShowScrollToBottomButtonByWindow(true)
+      } else if (isScrollingDown) {
+        setShowScrollToBottomButtonByWindow(false)
+      }
+
+      lastWindowScrollYRef.current = currentY
+    }
+
+    window.addEventListener('scroll', onWindowScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onWindowScroll)
+  }, [messages.length])
 
   const handleCopy = async (content: string) => {
     try {
@@ -1747,17 +1813,43 @@ export default function ChatInterface() {
               }}
               loading={loading}
               loadingLabel={loadingLabel}
-              autoScroll={autoScroll}
-              onJumpToLatest={() => {
-                scrollToBottom('smooth')
-                setAutoScroll(true)
-                isNearBottomRef.current = true
-              }}
               messagesEndRef={messagesEndRef}
               TypingIndicatorComponent={TypingIndicator}
             />
             </div>
           </div>
+          {(showScrollToBottomButton || showScrollToBottomButtonByWindow) && messages.length > 0 && (
+            <button
+              type="button"
+              onClick={jumpToLatest}
+              aria-label="Scroll to bottom"
+              title="Scroll to bottom"
+              style={{
+                position: 'fixed',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                bottom: '176px',
+                width: '38px',
+                height: '38px',
+                borderRadius: '999px',
+                border: '1px solid rgba(165,180,252,0.45)',
+                background: 'linear-gradient(135deg, #1e293b 0%, #312e81 100%)',
+                color: '#f4f4f5',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                zIndex: 120,
+                boxShadow: '0 8px 24px rgba(30, 41, 59, 0.45)',
+                backdropFilter: 'blur(4px)'
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 5v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <path d="m7 14 5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
         </div>
 
           <ChatComposer

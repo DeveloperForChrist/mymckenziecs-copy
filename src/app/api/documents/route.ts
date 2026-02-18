@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
+import { getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse, uploadIpRateLimiter, uploadRateLimiter } from '@/lib/utils/rate-limit'
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024
 
@@ -65,6 +66,17 @@ export async function POST(request: NextRequest) {
     const user = authData?.user
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const ip = getClientIp(request.headers)
+    const userLimit = await rateLimit(uploadRateLimiter, `upload:documents:user:${getIdentifier(user.id, ip)}`, 20, 10 * 60 * 1000)
+    if (!userLimit.success) {
+      return rateLimitExceededResponse(userLimit, 'Too many document upload requests. Please try again later.')
+    }
+    if (ip) {
+      const ipLimit = await rateLimit(uploadIpRateLimiter, `upload:documents:ip:${ip}`, 60, 10 * 60 * 1000)
+      if (!ipLimit.success) {
+        return rateLimitExceededResponse(ipLimit, 'Too many upload requests from this network. Please try again later.')
+      }
     }
 
     let formData: FormData

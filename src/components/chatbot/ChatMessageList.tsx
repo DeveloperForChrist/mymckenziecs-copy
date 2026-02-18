@@ -22,8 +22,6 @@ type ChatMessageListProps = {
   onFeedback: (index: number, type: 'like' | 'dislike' | 'report', content: string) => void
   loading: boolean
   loadingLabel: string | null
-  autoScroll: boolean
-  onJumpToLatest: () => void
   messagesEndRef: MutableRefObject<HTMLDivElement | null>
   TypingIndicatorComponent: TypingIndicatorComponentType
 }
@@ -44,8 +42,6 @@ export default function ChatMessageList({
   onFeedback,
   loading,
   loadingLabel,
-  autoScroll,
-  onJumpToLatest,
   messagesEndRef,
   TypingIndicatorComponent
 }: ChatMessageListProps) {
@@ -705,26 +701,6 @@ export default function ChatMessageList({
         </div>
       )}
 
-      {!autoScroll && (
-        <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
-          <button
-            type="button"
-            onClick={onJumpToLatest}
-            style={{
-              padding: '8px 18px',
-              borderRadius: '999px',
-              border: '1px solid rgba(255,255,255,0.4)',
-              background: 'rgba(255,255,255,0.12)',
-              color: '#ffffff',
-              fontSize: '16px',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            Jump to latest messages
-          </button>
-        </div>
-      )}
       <div ref={messagesEndRef} />
     </>
   )

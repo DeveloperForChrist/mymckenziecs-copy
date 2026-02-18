@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { OpenAI } from 'openai';
+import { aiIpRateLimiter, aiRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 
 export async function POST(request: Request) {
   try {
@@ -8,6 +9,18 @@ export async function POST(request: Request) {
     const { data: authData, error: authError } = await supabase.auth.getUser();
     if (authError || !authData?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const ip = getClientIp(request.headers);
+    const identifier = `ai:case-study-chat:${getIdentifier(authData.user.id, ip)}`;
+    const userLimit = await rateLimit(aiRateLimiter, identifier, 10, 60 * 1000);
+    if (!userLimit.success) {
+      return rateLimitExceededResponse(userLimit, 'Too many case-study chat requests. Please try again later.');
+    }
+    if (ip) {
+      const ipLimit = await rateLimit(aiIpRateLimiter, `ai:case-study-chat:ip:${ip}`, 60, 10 * 60 * 1000);
+      if (!ipLimit.success) {
+        return rateLimitExceededResponse(ipLimit, 'Too many case-study chat requests from this network. Please try again later.');
+      }
     }
 
     const body = await request.json();

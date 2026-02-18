@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
 import mammoth from 'mammoth';
 import { createRequire } from 'module';
+import { aiIpRateLimiter, aiRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 
 const nodeRequire = createRequire(import.meta.url);
 
@@ -32,6 +33,19 @@ async function extractPdfText(buffer: Buffer): Promise<string> {
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req.headers);
+    const identifier = `ai:analyse-doc:${getIdentifier(undefined, ip)}`;
+    const userLimit = await rateLimit(aiRateLimiter, identifier, 10, 60 * 1000);
+    if (!userLimit.success) {
+      return rateLimitExceededResponse(userLimit, 'Too many analyse requests. Please try again later.');
+    }
+    if (ip) {
+      const ipLimit = await rateLimit(aiIpRateLimiter, `ai:analyse-doc:ip:${ip}`, 60, 10 * 60 * 1000);
+      if (!ipLimit.success) {
+        return rateLimitExceededResponse(ipLimit, 'Too many analyse requests from this network. Please try again later.');
+      }
+    }
+
     const formData = await req.formData();
     const file = formData.get('file') as File;
 

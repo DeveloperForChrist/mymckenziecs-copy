@@ -2,10 +2,37 @@ Email templates and senders
 
 Placeholders in templates use {{key}} syntax (e.g. {{name}}, {{action_url}}).
 
+Production source of truth
+- Production reminder emails are sent by the Supabase Edge Function at `supabase/functions/cron-deadline-reminders/index.ts`.
+- The scheduled cron job calls the edge endpoint directly (`...functions.supabase.co/cron-deadline-reminders?...`).
+- The legacy Next.js cron route has been retired to keep one reminder path.
+- Production reminder templates now live with the edge function at `supabase/functions/cron-deadline-reminders/templates.ts`.
+- The HTML files under `src/emails/templates/deadline-*.html` are local/template assets and are not used by the live Supabase cron renderer.
+- If you need to change what production reminder emails look like, update and deploy the edge function.
+
 Env vars required:
 - RESEND_API_KEY
 - FROM_EMAIL (e.g. noreply@yourdomain)
 - RESEND_ALERT_FROM_EMAIL (e.g. alerts@yourdomain)
+
+Reminder edge function tuning (optional):
+- REMINDER_SEND_CONCURRENCY (default: 5, range: 1-20)
+- REMINDER_FETCH_PAGE_SIZE (default: 1000, range: 100-5000)
+- REMINDER_MAX_RETRY_ATTEMPTS (default: 3, range: 1-10)
+- REMINDER_ALERT_EMAIL (recipient for internal failure alerts)
+- REMINDER_DAY_OFFSETS (default: `21,14,7,5,3,1`)
+
+Reminder edge function sharding (optional query params):
+- `bucket_count` (default: 1) splits users into deterministic buckets.
+- `bucket_index` (default: 0) processes only one bucket in this run.
+- `max_users` (default: 0) caps sends per run after bucket selection.
+- Failed sends are eligible for retry in later buckets on the same `run_date` (via `reminder_delivery_state`).
+- Sent users are idempotent per `(user_id, run_date)` and skipped on reruns.
+- Example staggered schedule:
+  - `09:00`: `...?days=21&bucket_count=3&bucket_index=0&max_users=400`
+  - `11:00`: `...?days=21&bucket_count=3&bucket_index=1&max_users=400`
+  - `12:00`: `...?days=21&bucket_count=3&bucket_index=2&max_users=400`
+  - `15:00` catch-up: `...?days=21&bucket_count=1&bucket_index=0&max_users=400`
 
 Usage:
 - Load a template file and replace placeholders with values.
@@ -54,7 +81,7 @@ Automatic run
 - Use the Supabase scheduled function flow below for automated reminders.
 
 Supabase Scheduled Function
-- Use Supabase Functions scheduling. Create an Edge Function that performs the same logic as `src/app/api/cron/deadline-reminders/route.ts` and schedule it in the Supabase Dashboard.
+- Use Supabase Functions scheduling and schedule `supabase/functions/cron-deadline-reminders/index.ts` in the Supabase Dashboard.
 
 Quick steps:
 1. Install & login to Supabase CLI: `npm i -g supabase && supabase login`.
@@ -64,7 +91,7 @@ Quick steps:
 5. In the Supabase Dashboard go to Functions > Schedules and add a schedule (cron expression) pointing to the function. Set the schedule to run daily or as needed.
 
 Notes:
-- The provided function uses the Supabase service role key to read `calendar_events` and the Resend SDK to send emails. It sends the same consolidated per-user reminder that the server route produces.
+- The provided function uses the Supabase service role key to read `calendar_events` and the Resend SDK to send emails.
 - Using Supabase native scheduling keeps everything in one platform and avoids cross-service secrets.
 
 

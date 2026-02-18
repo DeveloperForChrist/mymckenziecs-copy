@@ -14,14 +14,6 @@ type DraftItem = {
   type: "letter" | "statement" | "motion" | "other";
 };
 
-// Fixed timestamps to avoid SSR/CSR hydration mismatches
-const sampleDrafts: DraftItem[] = [
-  { id: "d1", title: "Letter: Response to Claim", updatedAt: new Date("2025-11-25T11:00:00Z").getTime(), status: "in-progress", type: "letter" },
-  { id: "d2", title: "Statement: Witness Smith", updatedAt: new Date("2025-11-24T12:30:00Z").getTime(), status: "completed", type: "statement" },
-  { id: "d3", title: "Motion: Adjournment Request", updatedAt: new Date("2025-11-25T12:45:00Z").getTime(), status: "in-progress", type: "motion" },
-  { id: "d4", title: "Letter: Court Listing Query", updatedAt: new Date("2025-11-23T08:15:00Z").getTime(), status: "completed", type: "letter" },
-];
-
 export default function DraftsClient() {
   const router = useRouter();
   const [queryText, setQueryText] = useState("");
@@ -29,7 +21,7 @@ export default function DraftsClient() {
   const [typeFilter, setTypeFilter] = useState<"all" | DraftItem["type"]>("all");
   const [sort, setSort] = useState<"updated-desc" | "updated-asc" | "title-asc">("updated-desc");
   const [view, setView] = useState<"grid" | "list">("grid");
-  const [drafts, setDrafts] = useState<DraftItem[]>(sampleDrafts);
+  const [drafts, setDrafts] = useState<DraftItem[]>([]);
   const [hoverId, setHoverId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   interface UserLocal { id?: string; email?: string | null }
