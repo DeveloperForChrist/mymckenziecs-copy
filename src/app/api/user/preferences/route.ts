@@ -1,24 +1,19 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
+import { isPaidPlan } from '@/lib/plans/access';
 
 async function requirePaidPlan(userId: string) {
   const { data: activeSub } = await supabaseAdmin
     .from('subscriptions')
     .select('plan_type, status')
     .eq('user_id', userId)
-    .in('status', ['active', 'past_due', 'trialing'])
+    .in('status', ['active', 'past_due'])
     .order('updated_at', { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  const planLabel = (activeSub?.plan_type || '').toString().toLowerCase();
-  const isPaid =
-    planLabel.includes('standard') ||
-    planLabel.includes('essential') ||
-    planLabel.includes('plus') ||
-    planLabel.includes('premium') ||
-    planLabel.includes('pro');
+  const isPaid = isPaidPlan(activeSub?.plan_type || '');
 
   return isPaid;
 }

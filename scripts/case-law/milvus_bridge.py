@@ -88,8 +88,14 @@ def search_embedding(req: EmbeddingRequest):
     try:
         coll = connect_collection()
         search_params = {"metric_type": "COSINE", "params": {"nprobe": 10}}
+        schema_field_names = {f.name for f in (coll.schema.fields or [])}
+        preferred_fields = ["citation", "title", "url", "summary", "extracts"]
+        output_fields = [f for f in preferred_fields if f in schema_field_names]
         try:
-            res = coll.search([req.embedding], "embedding", param=search_params, limit=req.topk, output_fields=["citation", "title", "url", "extracts"]) or []
+            search_kwargs = {"param": search_params, "limit": req.topk}
+            if output_fields:
+                search_kwargs["output_fields"] = output_fields
+            res = coll.search([req.embedding], "embedding", **search_kwargs) or []
         except Exception as e:
             # Fallback: some collections may not have stored fields; retry without output_fields
             msg = str(e)

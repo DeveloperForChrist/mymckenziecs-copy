@@ -191,11 +191,11 @@ export async function POST(req: NextRequest) {
               if (!content) continue;
 
               // Summarize via OpenAI (short summary/extract)
-              const prompt = `Summarize the following court judgment into 2-3 concise extracts (each 2-4 sentences) suitable for teaching law students. Do not give legal advice.\n\n${content}`;
+              const prompt = `Summarize the following court judgment into 2-3 concise extracts (each 2-4 sentences) for a non-lawyer user. Use plain English, avoid jargon, and if a legal term is necessary, explain it in simple words. Do not give legal advice.\n\n${content}`;
               const completion = await openai.chat.completions.create({
                 model: 'gpt-3.5-turbo',
                 messages: [
-                  { role: 'system', content: 'You are a legal-document summarizer producing concise extracts for teaching.' },
+                  { role: 'system', content: 'You are a legal-document summarizer writing for laypeople. Keep language simple, clear, and practical.' },
                   { role: 'user', content: prompt }
                 ],
                 max_tokens: 400,

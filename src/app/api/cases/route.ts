@@ -12,6 +12,17 @@ const isFreemiumPlan = (planLabel: string) => {
   return planLabel.includes('free') || planLabel.includes('freemium') || planLabel.includes('guest');
 };
 
+const hasMeaningfulCaseProfile = (row: Record<string, unknown> | null | undefined): boolean => {
+  if (!row) return false;
+  const title = typeof row.title === 'string' ? row.title.trim() : '';
+  const externalId = typeof row.external_id === 'string' ? row.external_id.trim() : '';
+  const caseType = typeof row.case_type === 'string' ? row.case_type.trim() : '';
+  const description = typeof row.description === 'string' ? row.description.trim() : '';
+  const normalizedTitle = title.toLowerCase();
+  const hasTitle = Boolean(title) && normalizedTitle !== 'untitled case' && normalizedTitle !== 'case profile';
+  return hasTitle || Boolean(externalId) || Boolean(caseType) || Boolean(description);
+};
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteClient();
@@ -62,7 +73,7 @@ export async function GET(request: NextRequest) {
       .from('subscriptions')
       .select('plan_type')
       .eq('user_id', supabaseUserId)
-      .in('status', ['active', 'past_due', 'trialing'])
+      .in('status', ['active', 'past_due'])
       .maybeSingle();
 
     const rawPlan = activeSub?.plan_type || 'Free';
@@ -81,12 +92,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch cases', cases: [] }, { status: 500 });
     }
 
-    let cases = casesData || [];
+    let cases = (casesData || []).filter((row: Record<string, unknown>) => hasMeaningfulCaseProfile(row));
     if (freemium && cases.length > 1) {
       cases = cases.slice(0, 1);
     }
 
-    console.log(`✅ Found ${cases.length} cases for user ${userId}`);
+    const caseLabel = cases.length === 1 ? 'case' : 'cases';
+    console.log(`✅ Found ${cases.length} ${caseLabel} for user ${userId}`);
 
     return NextResponse.json({
       cases,

@@ -371,6 +371,85 @@
   color: var(--admin-muted);
 }
 
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 12, 20, 0.55);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modalCard {
+  width: min(460px, 96vw);
+  background: #fff;
+  border: 1px solid rgba(16, 22, 31, 0.12);
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(16, 22, 31, 0.25);
+  padding: 20px;
+}
+
+.modalTitle {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--admin-ink);
+}
+
+.modalBody {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: var(--admin-muted);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.modalPrimaryBtn,
+.modalCancelBtn,
+.modalDangerBtn {
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 9px 14px;
+}
+
+.modalPrimaryBtn {
+  border: none;
+  background: var(--admin-teal);
+  color: #fff;
+}
+
+.modalCancelBtn {
+  border: 1px solid rgba(16, 22, 31, 0.2);
+  background: #fff;
+  color: var(--admin-ink);
+}
+
+.modalDangerBtn {
+  border: 1px solid rgba(185, 28, 28, 0.45);
+  background: #dc2626;
+  color: #fff;
+}
+
+.modalSelect {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(16, 22, 31, 0.2);
+  background: white;
+  color: var(--admin-ink);
+  font-size: 14px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+}
+
 @keyframes floatIn {
   from {
     opacity: 0;

@@ -34,13 +34,19 @@ def main():
 
     connections.connect(host=host, port=port, secure=secure, **conn_kwargs)
     coll = Collection(coll_name)
+    schema_field_names = {f.name for f in (coll.schema.fields or [])}
+    preferred_fields = ["citation", "title", "url", "summary", "extracts"]
+    output_fields = [f for f in preferred_fields if f in schema_field_names]
 
     search_params = {"metric_type": "COSINE", "params": {"nprobe": 10}}
 
     results = []
     try:
         try:
-            res = coll.search([emb], "embedding", param=search_params, limit=topk, output_fields=["citation","title","url","extracts"]) or []
+            search_kwargs = {"param": search_params, "limit": topk}
+            if output_fields:
+                search_kwargs["output_fields"] = output_fields
+            res = coll.search([emb], "embedding", **search_kwargs) or []
         except Exception as e:
             # Fallback if some output fields don't exist
             msg = str(e)

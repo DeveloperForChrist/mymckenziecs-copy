@@ -134,6 +134,17 @@ const classifyIntent = (message: string, hasAttachments = false): string => {
   return 'question'
 }
 
+const hasMeaningfulCaseProfile = (row: Record<string, any> | null | undefined): boolean => {
+  if (!row) return false;
+  const title = typeof row.title === 'string' ? row.title.trim() : '';
+  const externalId = typeof row.external_id === 'string' ? row.external_id.trim() : '';
+  const caseType = typeof row.case_type === 'string' ? row.case_type.trim() : '';
+  const description = typeof row.description === 'string' ? row.description.trim() : '';
+  const normalizedTitle = title.toLowerCase();
+  const hasTitle = Boolean(title) && normalizedTitle !== 'untitled case' && normalizedTitle !== 'case profile';
+  return hasTitle || Boolean(externalId) || Boolean(caseType) || Boolean(description);
+}
+
 export class ChatManager {
   private userId: string;
   private activeCaseId?: string;
@@ -199,7 +210,9 @@ export class ChatManager {
       .from('subscriptions')
       .select('plan_type')
       .eq('user_id', supabaseUserId)
-      .in('status', ['active', 'past_due', 'trialing'])
+      .in('status', ['active', 'past_due'])
+      .order('updated_at', { ascending: false })
+      .limit(1)
       .maybeSingle();
 
     this.userPlan = activeSub?.plan_type || 'Free';
@@ -212,7 +225,7 @@ export class ChatManager {
       .is('deleted_at', null)
       .order('last_accessed', { ascending: false });
 
-    const cases = (casesData || []).map((c: any) => {
+    const cases = (casesData || []).filter((c: any) => hasMeaningfulCaseProfile(c)).map((c: any) => {
       return { id: c.id, ...c };
     });
 
@@ -394,18 +407,58 @@ export class ChatManager {
 
     const resolvedCaseId = caseIdOverride !== undefined ? caseIdOverride : this.activeCaseId || null;
 
-    // Store message in Supabase messages table - case_id is optional, allows generic chatbot usage
-    const { data: inserted, error } = await supabaseAdmin
+    const basePayload = {
+      case_id: resolvedCaseId,
+      conversation_id: this.conversationId,
+      role,
+      content: message,
+      timestamp: new Date().toISOString()
+    };
+    const metadataPayload = metadata && typeof metadata === 'object' ? metadata : {}
+    const insertPayload = { ...basePayload, metadata: metadataPayload }
+    const isMissingMetadataColumnError = (err: any) => {
+      const msg = String(err?.message || '').toLowerCase()
+      return msg.includes('column') && msg.includes('metadata') && msg.includes('does not exist')
+    }
+
+    // Store message in Supabase messages table - case_id is optional, allows generic chatbot usage.
+    // If case linkage is stale (FK fail), retry without case_id so thread counts and history remain intact.
+    let { data: inserted, error } = await supabaseAdmin
       .from('messages')
-      .insert({
-        case_id: resolvedCaseId,
-        conversation_id: this.conversationId,
-        role,
-        content: message,
-        timestamp: new Date().toISOString()
-      })
+      .insert(insertPayload)
       .select('id')
       .single();
+    if (error && isMissingMetadataColumnError(error)) {
+      const fallbackInsert = await supabaseAdmin
+        .from('messages')
+        .insert(basePayload)
+        .select('id')
+        .single()
+      inserted = fallbackInsert.data
+      error = fallbackInsert.error
+    }
+
+    if (error && resolvedCaseId) {
+      const retry = await supabaseAdmin
+        .from('messages')
+        .insert({ ...(isMissingMetadataColumnError(error) ? basePayload : insertPayload), case_id: null })
+        .select('id')
+        .single();
+      inserted = retry.data;
+      error = retry.error;
+      if (error && isMissingMetadataColumnError(error)) {
+        const retryNoMetadata = await supabaseAdmin
+          .from('messages')
+          .insert({ ...basePayload, case_id: null })
+          .select('id')
+          .single()
+        inserted = retryNoMetadata.data
+        error = retryNoMetadata.error
+      }
+      if (!error) {
+        this.activeCaseId = undefined;
+      }
+    }
 
     if (error) {
       console.error('Failed to store message:', error);

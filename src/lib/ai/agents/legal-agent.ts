@@ -4,6 +4,7 @@ import { supabaseAdmin } from '../../database/supabase-server';
 import { DocGeneratorTool } from '../tools/doc-generator-tool';
 import { SearchTool } from '../tools/search-tool';
 import { createDiscriminatorAgent } from './discriminator-agent';
+import { neutralizeLegalAdviceTone } from './legal-tone';
 
 // Simplified system prompt
 const SYSTEM_PROMPT: string = `You are MyMcKenzie Assistant, a UK support assistant for people representing themselves in the UK court, also known as litigant in Person.
@@ -28,6 +29,9 @@ TONE:
 - Use bullets (•) for lists.
 - Break complex steps into manageable pieces.
 - Ask clarifying questions rather than assume.
+- Provide legal information support, not legal advice.
+- Avoid definitive legal conclusions on the user's facts (use "may", "can", "generally").
+- Prefer neutral phrasing (e.g., "Drivers are generally required to..." rather than direct instructions).
 
 `;
 
@@ -48,11 +52,15 @@ PRESENTATION:
 TONE:
 - Warm, clear, and concise.
 - Ask a short clarifying question if needed.
+- Provide legal information support, not legal advice.
+- Avoid definitive legal conclusions on the user's facts (use "may", "can", "generally").
+- Prefer neutral phrasing instead of direct instructions.
 
 `;
 
 const MODEL = process.env.OPENAI_CHAT_MODEL || 'gpt-4o'
 const MAX_TOKENS = 1000
+const COMPREHENSIVE_TOKEN_BONUS = 0
 
 // =====================================================
 // SIMPLE HELPERS
@@ -108,7 +116,11 @@ function isDefinitionQuery(rawInput: string): boolean {
 // Detect greeting
 function isBasicGreeting(rawInput: string): boolean {
   if (!rawInput) return false
-  const input = rawInput.trim().toLowerCase()
+  const primaryLine = rawInput
+    .split('\n')
+    .map((line) => line.trim())
+    .find((line) => line.length > 0) || ''
+  const input = primaryLine.toLowerCase()
   if (!input) return false
   const greetingPattern = /^(hi|hello|hey|hiya|yo|good\s+morning|good\s+afternoon|good\s+evening|greetings|howdy)([!.,\s]*)$/i
   return greetingPattern.test(input)
@@ -209,7 +221,7 @@ function formatSourceTitle(url: string): string {
   return title.length > 50 ? title.substring(0, 50) + '...' : title
 }
 
-function formatSourcesFromUrls(urls: string[], max: number = 6): Array<{ number: number; title: string; url: string }> {
+function formatSourcesFromUrls(urls: string[], max: number = 24): Array<{ number: number; title: string; url: string }> {
   return urls.slice(0, max).map((url, idx) => ({
     number: idx + 1,
     title: formatSourceTitle(url),
@@ -222,11 +234,19 @@ function ensureCitationsForPremium(
   sourceUrls: string[],
   includeCitations: boolean
 ): { responseText: string; sources?: Array<{ number: number; title: string; url: string }> } {
-  if (!includeCitations || sourceUrls.length === 0) {
-    return { responseText, sources: undefined }
+  const dedupedSources = Array.from(new Set(
+    (sourceUrls || []).map((u) => (typeof u === 'string' ? u.trim() : '')).filter(Boolean)
+  ))
+
+  if (!includeCitations || dedupedSources.length === 0) {
+    const stripped = (responseText || '')
+      .replace(/\s*\[\d+\]/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim()
+    return { responseText: stripped, sources: undefined }
   }
 
-  const maxCitationNumber = Math.max(1, Math.min(sourceUrls.length, 8))
+  const maxCitationNumber = Math.max(1, dedupedSources.length)
   let citationCursor = 1
   const nextCitationTag = () => {
     const tag = `[${citationCursor}]`
@@ -277,14 +297,48 @@ function ensureCitationsForPremium(
     return annotated.join(' ')
   }
 
-  const finalText = (responseText || '')
+  let finalText = (responseText || '')
     .split('\n')
     .map(annotateLine)
     .join('\n')
     .trim()
 
-  const extracted = extractFormattedSources(finalText, sourceUrls)
-  const formattedSources = extracted && extracted.length > 0 ? extracted : undefined
+  // Final safeguard: if citations are required and sources exist, ensure at least one visible citation.
+  if (includeCitations && dedupedSources.length > 0 && !/\[\d+\]/.test(finalText)) {
+    const lines = finalText.split('\n')
+    let firstBodyIndex = -1
+    let summaryIndex = -1
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim()
+      if (!line) continue
+      if (/^in short\s*:/i.test(line)) {
+        summaryIndex = i
+        continue
+      }
+      if (!isHeadingLike(line) && firstBodyIndex === -1) {
+        firstBodyIndex = i
+      }
+    }
+
+    const appendCitation = (idx: number) => {
+      if (idx < 0 || idx >= lines.length) return
+      if (!/\[\d+\]/.test(lines[idx])) {
+        lines[idx] = `${lines[idx]} [1]`
+      }
+    }
+
+    appendCitation(firstBodyIndex)
+    appendCitation(summaryIndex)
+    finalText = lines.join('\n').trim()
+  }
+
+  // Always return the full list of source URLs used by search.
+  const extracted = extractFormattedSources(finalText, dedupedSources)
+  const formattedSources =
+    extracted && extracted.length > 0 && extracted.length >= dedupedSources.length
+      ? extracted
+      : formatSourcesFromUrls(dedupedSources, dedupedSources.length)
   return {
     responseText: finalText,
     sources: formattedSources,
@@ -315,7 +369,14 @@ async function callLLM(
       ]
     })
 
-    const rawResponse = completion.choices[0]?.message?.content || "I couldn't generate a response."
+    let rawResponse = completion.choices[0]?.message?.content || "I couldn't generate a response."
+    const finishReason = completion.choices[0]?.finish_reason
+
+    // Intentionally do not auto-continue on length; keep the response within this call's token cap.
+    if (finishReason === 'length') {
+      rawResponse = rawResponse.trim()
+    }
+
     return stripMarkdown(stripUrlsFromText(rawResponse))
   } catch (error: unknown) {
     console.error('OpenAI API Error:', error)
@@ -399,8 +460,9 @@ export async function createLegalAgent(
           const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
           const directPrompt = `${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. Output must be plain text only. Follow the presentation rules.`
           const directAnswer = await callLLM(directPrompt, systemPrompt, MODEL, MAX_TOKENS)
+          const neutralDirectAnswer = neutralizeLegalAdviceTone(directAnswer)
           return {
-            response: directAnswer,
+            response: neutralDirectAnswer,
             document_generated: false,
             guidance_provided: true,
             sources: undefined
@@ -424,29 +486,41 @@ export async function createLegalAgent(
         
         let sources: string[] = []
         let searchedInfo = ''
+        let sourceMode: 'engine' | 'fallback' | 'none' = 'none'
         try {
-          const parsed = JSON.parse(searchResult) as { sources?: unknown[]; packet?: string }
+          const parsed = JSON.parse(searchResult) as { sources?: unknown[]; packet?: string; sourceMode?: unknown }
           sources = Array.isArray(parsed.sources) ? parsed.sources.filter((u: unknown): u is string => typeof u === 'string') : []
           searchedInfo = typeof parsed.packet === 'string' ? parsed.packet : ''
+          if (parsed.sourceMode === 'engine' || parsed.sourceMode === 'fallback' || parsed.sourceMode === 'none') {
+            sourceMode = parsed.sourceMode
+          } else {
+            sourceMode = sources.length > 0 ? 'engine' : 'none'
+          }
         } catch {
           searchedInfo = searchResult
         }
+        const effectiveIncludeCitations = includeCitations && sourceMode === 'engine' && sources.length > 0
 
         // Generate comprehensive answer using ALL sources
         const sourceBlock = sources.length > 0
           ? `All available sources to reference:\n${sources.map((url, i) => `[${i + 1}] ${url}`).join('\n')}`
           : 'No sources available.'
 
-        const citationInstruction = includeCitations
+        const citationInstruction = effectiveIncludeCitations
           ? 'Include inline citations in square brackets that match the sources list above, like [1] or [2]. Use citations on factual statements.'
           : 'Do not include any source citations.'
-        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\nUser question: "${latestQuestion}"\n\nGenerate a thorough, detailed answer that comprehensively covers this topic using ALL relevant information from the sources. ${citationInstruction} Create a complete answer that covers all aspects and angles of the question. Output must be plain text only. No markdown. Use clear section titles as plain text lines ending with a colon (e.g., "Summary:"). Use short paragraphs and bullets (•) where needed.`
+        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\nUser question: "${latestQuestion}"\n\nGenerate a thorough, detailed answer that comprehensively covers this topic using ALL relevant information from the sources. ${citationInstruction} Create a complete answer that covers all aspects and angles of the question. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. No markdown. Use clear section titles as plain text lines ending with a colon (e.g., "Summary:"). Use short paragraphs and bullets (•) where needed.`
         
-        const comprehensiveAnswer = await callLLM(comprehensivePrompt, systemPrompt, MODEL, MAX_TOKENS + 400)
+        const comprehensiveAnswer = await callLLM(
+          comprehensivePrompt,
+          systemPrompt,
+          MODEL,
+          MAX_TOKENS + COMPREHENSIVE_TOKEN_BONUS
+        )
 
         // 5. DISCRIMINATOR: Critic/revise/verify the comprehensive answer for the user
         if (useDiscriminator) {
-          const discriminatorAgent = await createDiscriminatorAgent(trimmedHistory, caseKeywords, includeCitations)
+          const discriminatorAgent = await createDiscriminatorAgent(trimmedHistory, caseKeywords, effectiveIncludeCitations)
           const streamlined = await discriminatorAgent.invoke({
             input: latestQuestion,
             comprehensiveAnswer: comprehensiveAnswer,
@@ -454,9 +528,9 @@ export async function createLegalAgent(
           })
 
           const final = ensureCitationsForPremium(
-            streamlined.streamlinedAnswer,
+            neutralizeLegalAdviceTone(streamlined.streamlinedAnswer),
             sources,
-            includeCitations
+            effectiveIncludeCitations
           )
           const finalResponse = final.responseText
           const citedSources = final.sources || streamlined.citedSources
@@ -469,12 +543,16 @@ export async function createLegalAgent(
           }
         }
 
-        const final = ensureCitationsForPremium(comprehensiveAnswer, sources, includeCitations)
+        const finalNoEngineCitations = ensureCitationsForPremium(
+          neutralizeLegalAdviceTone(comprehensiveAnswer),
+          sources,
+          effectiveIncludeCitations
+        )
         return {
-          response: final.responseText,
+          response: finalNoEngineCitations.responseText,
           document_generated: false,
           guidance_provided: true,
-          sources: final.sources
+          sources: finalNoEngineCitations.sources
         }
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : ''

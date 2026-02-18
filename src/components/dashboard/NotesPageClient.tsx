@@ -32,6 +32,8 @@ export default function NotesPageClient() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [pendingDeleteNoteId, setPendingDeleteNoteId] = useState<string | null>(null);
 
   const fetchCases = useCallback(async () => {
     try {
@@ -178,14 +180,21 @@ export default function NotesPageClient() {
 
   const deletePage = () => {
     if (notesPages.length <= 1) return;
-    if (!confirm("Delete this note? This cannot be undone.")) return;
+    setPendingDeleteNoteId(activePageId);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDeletePage = () => {
+    if (!pendingDeleteNoteId) return;
     setNotesPages(prev => {
-      const idx = prev.findIndex(p => p.id === activePageId);
-      const next = prev.filter(p => p.id !== activePageId);
+      const idx = prev.findIndex(p => p.id === pendingDeleteNoteId);
+      const next = prev.filter(p => p.id !== pendingDeleteNoteId);
       const newActive = next[Math.max(0, idx - 1)]?.id || next[0]?.id;
       setActivePageId(newActive || "");
       return next;
     });
+    setDeleteModalOpen(false);
+    setPendingDeleteNoteId(null);
   };
 
   const formatDate = (dateStr?: string) => {
@@ -283,14 +292,8 @@ export default function NotesPageClient() {
                     onClick={(e) => {
                       e.stopPropagation();
                       if (notesPages.length <= 1) return;
-                      if (!confirm("Delete this note?")) return;
-                      setNotesPages(prev => {
-                        const next = prev.filter(p => p.id !== note.id);
-                        if (note.id === activePageId) {
-                          setActivePageId(next[0]?.id || "");
-                        }
-                        return next;
-                      });
+                      setPendingDeleteNoteId(note.id);
+                      setDeleteModalOpen(true);
                     }}
                     title="Delete note"
                   >
@@ -360,6 +363,30 @@ export default function NotesPageClient() {
           </div>
         )}
       </div>
+
+      {deleteModalOpen && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true">
+          <div className={styles.modalCard}>
+            <h3 className={styles.modalTitle}>Delete this note?</h3>
+            <p className={styles.modalBody}>This action cannot be undone.</p>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.modalButtonSecondary}
+                onClick={() => {
+                  setDeleteModalOpen(false);
+                  setPendingDeleteNoteId(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button type="button" className={styles.modalButtonDanger} onClick={confirmDeletePage}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

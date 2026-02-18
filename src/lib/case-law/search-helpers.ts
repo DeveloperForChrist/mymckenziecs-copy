@@ -322,30 +322,84 @@ function parseRSSFeed(rssText: string, query: string, limit: number, source: str
 async function enrichResultsWithSupabase(results: any[]) {
   if (!results || results.length === 0) return;
 
-  const toFetch = results.filter(r => !(r.title || r.citation || r.url)).map(r => r.id).filter(Boolean);
-  if (toFetch.length === 0) return;
+  const isUuid = (value: unknown) =>
+    typeof value === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
+  const needsMetadata = (r: any) => {
+    const hasExtracts = Array.isArray(r.extracts) ? r.extracts.length > 0 : Boolean(r.extracts);
+    return (
+      !r.title ||
+      !r.citation ||
+      !r.url ||
+      !r.summary ||
+      !hasExtracts ||
+      !r.year ||
+      !r.court ||
+      !r.outcome
+    );
+  };
+  const missingRows = results.filter(needsMetadata);
+  if (missingRows.length === 0) return;
+
+  const toFetchIds = Array.from(
+    new Set(
+      missingRows
+        .map((r) => r.id)
+        .filter((id): id is string => typeof id === 'string' && isUuid(id))
+    )
+  );
+
+  const toFetchCitations = Array.from(
+    new Set(
+      missingRows
+        .map((r) => (typeof r.citation === 'string' && r.citation.trim() ? r.citation.trim() : (typeof r.id === 'string' && !isUuid(r.id) ? r.id.trim() : null)))
+        .filter((citation): citation is string => Boolean(citation))
+    )
+  );
+
+  if (toFetchIds.length === 0 && toFetchCitations.length === 0) return;
 
   try {
-    const { data, error } = await supabaseAdmin
-      .from('case_law')
-      .select('id,citation,title,url,summary,extracts')
-      .in('id', toFetch)
-      .limit(100);
+    const mergedRows: any[] = [];
 
-    if (error) throw error;
+    if (toFetchIds.length > 0) {
+      const { data, error } = await supabaseAdmin
+        .from('case_law')
+        .select('id,citation,title,url,summary,extracts,year,court,outcome')
+        .in('id', toFetchIds)
+        .limit(100);
+      if (error) throw error;
+      if (Array.isArray(data)) mergedRows.push(...data);
+    }
+
+    if (toFetchCitations.length > 0) {
+      const { data, error } = await supabaseAdmin
+        .from('case_law')
+        .select('id,citation,title,url,summary,extracts,year,court,outcome')
+        .in('citation', toFetchCitations)
+        .limit(200);
+      if (error) throw error;
+      if (Array.isArray(data)) mergedRows.push(...data);
+    }
+
     const map = new Map<string, any>();
-    for (const row of data || []) {
+    for (const row of mergedRows) {
       if (row.id) map.set(String(row.id), row);
+      if (row.citation) map.set(String(row.citation), row);
     }
 
     for (const r of results) {
-      const m = map.get(String(r.id));
+      const m = map.get(String(r.id)) || (r.citation ? map.get(String(r.citation)) : undefined);
       if (!m) continue;
       r.citation = r.citation || m.citation || r.citation;
       r.title = r.title || m.title || r.title;
       r.url = r.url || m.url || r.url;
       r.summary = r.summary || m.summary || r.summary;
       r.extracts = r.extracts || m.extracts || r.extracts;
+      r.year = r.year || m.year || r.year;
+      r.court = r.court || m.court || r.court;
+      r.outcome = r.outcome || m.outcome || r.outcome;
     }
   } catch (err) {
     console.warn('enrichResultsWithSupabase error', err);
@@ -404,11 +458,11 @@ async function enrichResultsWithUrlSummaries(results: any[]) {
         const content = paragraphs.slice(0, 30).join('\n\n').slice(0, 14000);
         if (!content) continue;
 
-        const prompt = `Summarize the following court judgment into 2 concise extracts suitable for teaching law students. Do not give legal advice.\n\n${content}`;
+        const prompt = `Summarize the following court judgment into 2 concise extracts for a non-lawyer reader. Use plain English, avoid jargon, and explain any legal term in simple words. Do not give legal advice.\n\n${content}`;
         const completion = await openai.chat.completions.create({
           model: process.env.OPENAI_CHAT_MODEL || 'gpt-3.5-turbo',
           messages: [
-            { role: 'system', content: 'You are a legal-document summarizer producing concise extracts for teaching.' },
+            { role: 'system', content: 'You are a legal-document summarizer writing for laypeople. Keep language clear and simple.' },
             { role: 'user', content: prompt }
           ],
           max_tokens: 400,

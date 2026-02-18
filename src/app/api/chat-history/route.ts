@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
+import { isPaidPlan } from '@/lib/plans/access';
 
 function normalizeTimestamp(value: unknown): string {
   if (!value) {
@@ -28,26 +29,45 @@ function normalizeTimestamp(value: unknown): string {
   return Number.isNaN(parsed.getTime()) ? new Date(0).toISOString() : parsed.toISOString();
 }
 
-function normalizePlanLabel(value: unknown): string {
-  if (!value) return '';
-  return value.toString().trim().toLowerCase();
-}
+function buildConversationTitle(value: unknown): string {
+  const raw = typeof value === 'string' ? value : '';
+  if (!raw.trim()) return 'Conversation';
 
-function isPlanPremiumPro(plan: string): boolean {
-  if (!plan) return false;
-  const compact = plan.replace(/\s+/g, '');
-  return compact === 'premiumpro' || plan.includes('premium pro') || plan.includes('premium cheap');
-}
+  const cleaned = raw
+    .replace(/https?:\/\/\S+/gi, ' ')
+    .replace(/\[[0-9]+\]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-function isPlanPremium(plan: string): boolean {
-  if (!plan) return false;
-  if (isPlanPremiumPro(plan)) return false;
-  return plan.includes('premium') || plan.includes('essential');
-}
+  if (!cleaned) return 'Conversation';
 
-function isPlanStandard(plan: string): boolean {
-  if (!plan) return false;
-  return plan.includes('standard');
+  const firstSegment = cleaned
+    .split(/[.!?\n:]/)
+    .map((part) => part.trim())
+    .find((part) => part.length > 0) || cleaned;
+
+  const withoutLeadIn = firstSegment
+    .replace(/^(hi|hello|hey|hiya)\b[,\s-]*/i, '')
+    .replace(/^(can|could|would)\s+you\s+/i, '')
+    .replace(/^please\s+/i, '')
+    .replace(/^i\s+need\s+(help\s+)?(with\s+)?/i, '')
+    .trim();
+
+  const words = (withoutLeadIn || firstSegment)
+    .replace(/[^a-zA-Z0-9' -]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (words.length === 0) return 'Conversation';
+
+  const compact = words.slice(0, 9).join(' ');
+  const title = compact
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+    .trim();
+
+  return title || 'Conversation';
 }
 
 
@@ -64,15 +84,13 @@ export async function GET() {
       .from('subscriptions')
       .select('plan_type, status')
       .eq('user_id', authUid)
-      .in('status', ['active', 'past_due', 'trialing'])
+      .in('status', ['active', 'past_due'])
       .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    const rawPlan = activeSub?.plan_type || '';
-    const normalized = normalizePlanLabel(rawPlan);
-    const isPaidPlan = isPlanPremium(normalized) || isPlanPremiumPro(normalized) || isPlanStandard(normalized);
-    if (!isPaidPlan) {
+    const hasPaidPlan = isPaidPlan(activeSub?.plan_type || '');
+    if (!hasPaidPlan) {
       return NextResponse.json({ conversations: [], total: 0, limited: true }, { status: 403 });
     }
     const { data: userRow } = await supabaseAdmin
@@ -81,7 +99,7 @@ export async function GET() {
       .eq('id', authUid)
       .maybeSingle();
     const freemiumSince = userRow?.freemium_since ? new Date(userRow.freemium_since) : null;
-    const limited = !isPaidPlan;
+    const limited = !hasPaidPlan;
     const maxThreads = limited ? 5 : 60;
     const cutoffDate = process.env.FREEMIUM_CUTOFF_DATE ? new Date(process.env.FREEMIUM_CUTOFF_DATE) : null;
 
@@ -120,8 +138,7 @@ export async function GET() {
       const convId = msg.conversation_id;
       if (!convId) continue;
       if (!conversationsMap.has(convId)) {
-        const snippet = typeof msg.content === 'string' ? msg.content.trim() : '';
-        const title = snippet ? snippet.slice(0, 80) : 'Conversation';
+        const title = buildConversationTitle(msg.content);
         conversationsMap.set(convId, {
           id: convId,
           title,
@@ -131,8 +148,7 @@ export async function GET() {
       } else {
         const existing = conversationsMap.get(convId);
         if (existing && existing.title === 'Conversation' && msg.role === 'user') {
-          const snippet = typeof msg.content === 'string' ? msg.content.trim() : '';
-          if (snippet) existing.title = snippet.slice(0, 80);
+          existing.title = buildConversationTitle(msg.content);
         }
       }
     }
@@ -182,15 +198,13 @@ export async function POST(request: NextRequest) {
       .from('subscriptions')
       .select('plan_type, status')
       .eq('user_id', authUid)
-      .in('status', ['active', 'past_due', 'trialing'])
+      .in('status', ['active', 'past_due'])
       .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    const rawPlan = activeSub?.plan_type || '';
-    const normalized = normalizePlanLabel(rawPlan);
-    const isPaidPlan = isPlanPremium(normalized) || isPlanPremiumPro(normalized) || isPlanStandard(normalized);
-    if (!isPaidPlan) {
+    const hasPaidPlan = isPaidPlan(activeSub?.plan_type || '');
+    if (!hasPaidPlan) {
       return NextResponse.json({ messages: [], total: 0, limited: true }, { status: 403 });
     }
     const { data: userRow } = await supabaseAdmin
@@ -199,7 +213,7 @@ export async function POST(request: NextRequest) {
       .eq('id', authUid)
       .maybeSingle();
     const freemiumSince = userRow?.freemium_since ? new Date(userRow.freemium_since) : null;
-    const limited = !isPaidPlan;
+    const limited = !hasPaidPlan;
     const cutoffDate = process.env.FREEMIUM_CUTOFF_DATE ? new Date(process.env.FREEMIUM_CUTOFF_DATE) : null;
 
     const { caseId, conversationId, sessionId } = await request.json();
@@ -225,7 +239,7 @@ export async function POST(request: NextRequest) {
     // Fetch messages from Supabase using chosen filter
     let query = supabaseAdmin
       .from('messages')
-      .select('id, role, content, timestamp')
+      .select('id, role, content, timestamp, metadata')
       .order('timestamp', { ascending: true });
 
     if (resolvedConversationId) query = query.eq('conversation_id', resolvedConversationId);
@@ -289,7 +303,10 @@ export async function POST(request: NextRequest) {
       role: msg.role,
       message: msg.content || '',
       timestamp: msg.timestamp || new Date().toISOString(),
-      metadata: undefined
+      metadata:
+        msg.metadata && typeof msg.metadata === 'object' && !Array.isArray(msg.metadata)
+          ? msg.metadata
+          : undefined
     }));
 
     return NextResponse.json({

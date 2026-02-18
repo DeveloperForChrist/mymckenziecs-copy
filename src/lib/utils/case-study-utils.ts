@@ -29,24 +29,99 @@ export function paginateContent(content: string, wordsPerPage: number = 500): Pa
     return [];
   }
 
-  const words = content.split(/\s+/).filter(word => word.length > 0);
-  const totalPages = Math.ceil(words.length / wordsPerPage);
-  
-  const paginatedContent: PaginatedContent[] = [];
-  
-  for (let i = 0; i < totalPages; i++) {
-    const start = i * wordsPerPage;
-    const end = start + wordsPerPage;
-    const pageWords = words.slice(start, end);
-    
-    paginatedContent.push({
-      page: i + 1,
-      content: pageWords.join(' '),
-      totalPages: totalPages
-    });
+  const countWords = (text: string) => text.split(/\s+/).filter((word) => word.length > 0).length;
+
+  const splitLongParagraph = (paragraph: string): string[] => {
+    const maxChunkWords = Math.max(60, Math.floor(wordsPerPage * 0.75));
+    if (countWords(paragraph) <= maxChunkWords) return [paragraph];
+
+    const sentences = paragraph
+      .split(/(?<=[.!?])\s+(?=[A-Z0-9])/g)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    // Fallback if sentence splitting fails
+    if (sentences.length <= 1) {
+      const words = paragraph.split(/\s+/).filter(Boolean);
+      const chunks: string[] = [];
+      for (let i = 0; i < words.length; i += maxChunkWords) {
+        chunks.push(words.slice(i, i + maxChunkWords).join(' '));
+      }
+      return chunks;
+    }
+
+    const chunks: string[] = [];
+    let currentChunk: string[] = [];
+    let currentWords = 0;
+
+    for (const sentence of sentences) {
+      const sentenceWords = countWords(sentence);
+      if (currentWords > 0 && currentWords + sentenceWords > maxChunkWords) {
+        chunks.push(currentChunk.join(' ').trim());
+        currentChunk = [sentence];
+        currentWords = sentenceWords;
+      } else {
+        currentChunk.push(sentence);
+        currentWords += sentenceWords;
+      }
+    }
+
+    if (currentChunk.length > 0) {
+      chunks.push(currentChunk.join(' ').trim());
+    }
+
+    return chunks;
+  };
+
+  const paragraphs = content
+    .replace(/\r\n/g, '\n')
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  const blocks = paragraphs.flatMap((paragraph) => splitLongParagraph(paragraph));
+  const pages: string[] = [];
+  let currentBlocks: string[] = [];
+  let currentWordCount = 0;
+
+  for (const block of blocks) {
+    const blockWords = countWords(block);
+
+    if (currentWordCount > 0 && currentWordCount + blockWords > wordsPerPage) {
+      pages.push(currentBlocks.join('\n\n').trim());
+      currentBlocks = [block];
+      currentWordCount = blockWords;
+    } else {
+      currentBlocks.push(block);
+      currentWordCount += blockWords;
+    }
   }
-  
-  return paginatedContent;
+
+  if (currentBlocks.length > 0) {
+    pages.push(currentBlocks.join('\n\n').trim());
+  }
+
+  // Avoid tiny orphan last page by moving the last block from previous page.
+  if (pages.length >= 2) {
+    const lastPageWords = countWords(pages[pages.length - 1]);
+    const minLastPageWords = Math.floor(wordsPerPage * 0.35);
+    if (lastPageWords > 0 && lastPageWords < minLastPageWords) {
+      const prevBlocks = pages[pages.length - 2].split(/\n{2,}/).filter(Boolean);
+      if (prevBlocks.length > 1) {
+        const movedBlock = prevBlocks.pop() as string;
+        const newLast = `${movedBlock}\n\n${pages[pages.length - 1]}`.trim();
+        pages[pages.length - 2] = prevBlocks.join('\n\n').trim();
+        pages[pages.length - 1] = newLast;
+      }
+    }
+  }
+
+  const totalPages = pages.length;
+  return pages.map((pageContent, index) => ({
+    page: index + 1,
+    content: pageContent,
+    totalPages,
+  }));
 }
 
 /**

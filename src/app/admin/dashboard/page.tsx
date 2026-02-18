@@ -252,6 +252,7 @@ const distributionEntries = (record?: Record<string, number>, limit = 6) => {
 }
 
 export default function AdminDashboard() {
+  const PLAN_OPTIONS = ['free', 'standard', 'essential', 'plus', 'premium cheap', 'premium pro']
   const [activeTab, setActiveTab] = useState<AdminTab>('overview')
   const [users, setUsers] = useState<User[]>([])
   const [cases, setCases] = useState<Case[]>([])
@@ -282,6 +283,9 @@ export default function AdminDashboard() {
   const [filterStatus, setFilterStatus] = useState('')
   const [period, setPeriod] = useState<Period>('week')
   const [lastUpdated, setLastUpdated] = useState<string>('')
+  const [statusModal, setStatusModal] = useState<{ title: string; message: string } | null>(null)
+  const [deleteCaseIdPending, setDeleteCaseIdPending] = useState<string | null>(null)
+  const [planEditor, setPlanEditor] = useState<{ userId: string; currentPlan: string; nextPlan: string } | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -403,24 +407,32 @@ export default function AdminDashboard() {
       if (!response.ok) {
         const errorResult = await response.json().catch(() => ({ error: response.statusText }))
         const errorMsg = errorResult.error || errorResult.message || response.statusText
-        alert('Error: ' + errorMsg)
+        setStatusModal({ title: 'Action failed', message: errorMsg })
         return
       }
 
       const result = await response.json()
       if (result.success) {
-        alert(result.message)
+        setStatusModal({ title: 'Action completed', message: result.message || 'Action completed successfully.' })
         fetchData()
       } else {
-        alert('Error: ' + (result.error || result.message || 'Unknown error'))
+        setStatusModal({ title: 'Action failed', message: result.error || result.message || 'Unknown error' })
       }
     } catch (error: unknown) {
-      alert('Failed to perform action: ' + (error instanceof Error ? error.message : 'Unknown error'))
+      setStatusModal({
+        title: 'Action failed',
+        message: 'Failed to perform action: ' + (error instanceof Error ? error.message : 'Unknown error'),
+      })
     }
   }
 
   const handleDeleteCase = async (caseId: string) => {
-    if (!confirm('Are you sure you want to delete this case?')) return
+    setDeleteCaseIdPending(caseId)
+  }
+
+  const confirmDeleteCase = async () => {
+    if (!deleteCaseIdPending) return
+    const caseId = deleteCaseIdPending
 
     try {
       const response = await fetch('/api/admin/cases', {
@@ -434,14 +446,16 @@ export default function AdminDashboard() {
 
       const result = await response.json()
       if (result.success) {
-        alert(result.message)
+        setStatusModal({ title: 'Case deleted', message: result.message || 'Case deleted successfully.' })
         fetchData()
       } else {
-        alert('Error: ' + result.error)
+        setStatusModal({ title: 'Delete failed', message: result.error || 'Failed to delete case' })
       }
     } catch (error: unknown) {
       console.error('Delete failed:', error)
-      alert('Failed to delete case')
+      setStatusModal({ title: 'Delete failed', message: 'Failed to delete case' })
+    } finally {
+      setDeleteCaseIdPending(null)
     }
   }
 
@@ -1000,8 +1014,12 @@ export default function AdminDashboard() {
                               <button
                                 className={styles.actionButton}
                                 onClick={() => {
-                                  const newPlan = prompt('Enter new plan (free, standard, essential, plus, premium cheap, premium pro):', user.plan)
-                                  if (newPlan) handleUserAction(user.id, 'updatePlan', { plan: newPlan })
+                                  const normalizedCurrentPlan = normalizePlan(user.plan)
+                                  setPlanEditor({
+                                    userId: user.id,
+                                    currentPlan: normalizedCurrentPlan,
+                                    nextPlan: PLAN_OPTIONS.includes(normalizedCurrentPlan) ? normalizedCurrentPlan : 'plus',
+                                  })
                                 }}
                               >
                                 Change Plan
@@ -1210,7 +1228,10 @@ export default function AdminDashboard() {
                   <button className={styles.actionButton} onClick={refreshAll}>
                     Refresh Data
                   </button>
-                  <button className={styles.actionButtonSecondary} onClick={() => alert('Cache cleared successfully')}>
+                  <button
+                    className={styles.actionButtonSecondary}
+                    onClick={() => setStatusModal({ title: 'Cache', message: 'Cache cleared successfully.' })}
+                  >
                     Clear Cache
                   </button>
                   <button
@@ -1398,6 +1419,69 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </>
+          )}
+          {deleteCaseIdPending && (
+            <div className={styles.modalOverlay} role="dialog" aria-modal="true">
+              <div className={styles.modalCard}>
+                <h3 className={styles.modalTitle}>Delete this case?</h3>
+                <p className={styles.modalBody}>This action cannot be undone.</p>
+                <div className={styles.modalActions}>
+                  <button className={styles.modalCancelBtn} onClick={() => setDeleteCaseIdPending(null)}>
+                    Cancel
+                  </button>
+                  <button className={styles.modalDangerBtn} onClick={confirmDeleteCase}>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          {planEditor && (
+            <div className={styles.modalOverlay} role="dialog" aria-modal="true">
+              <div className={styles.modalCard}>
+                <h3 className={styles.modalTitle}>Change User Plan</h3>
+                <p className={styles.modalBody}>Select a new plan for this user.</p>
+                <select
+                  className={styles.modalSelect}
+                  value={planEditor.nextPlan}
+                  onChange={(e) => setPlanEditor((prev) => (prev ? { ...prev, nextPlan: e.target.value } : null))}
+                >
+                  {PLAN_OPTIONS.map((planOption) => (
+                    <option key={planOption} value={planOption}>
+                      {toTitleCase(planOption)}
+                    </option>
+                  ))}
+                </select>
+                <div className={styles.modalActions}>
+                  <button className={styles.modalCancelBtn} onClick={() => setPlanEditor(null)}>
+                    Cancel
+                  </button>
+                  <button
+                    className={styles.modalPrimaryBtn}
+                    onClick={() => {
+                      const target = planEditor
+                      setPlanEditor(null)
+                      void handleUserAction(target.userId, 'updatePlan', { plan: target.nextPlan })
+                    }}
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          {statusModal && (
+            <div className={styles.modalOverlay} role="dialog" aria-modal="true">
+              <div className={styles.modalCard}>
+                <h3 className={styles.modalTitle}>{statusModal.title}</h3>
+                <p className={styles.modalBody}>{statusModal.message}</p>
+                <div className={styles.modalActions}>
+                  <button className={styles.modalPrimaryBtn} onClick={() => setStatusModal(null)}>
+                    OK
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </main>
       </div>

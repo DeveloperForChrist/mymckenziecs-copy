@@ -79,14 +79,19 @@ export default function ResetPasswordClient() {
     setEmailLoading(true)
 
     try {
-      const supabase = getSupabaseBrowserClient()
-      const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '')
-      const redirectTo = baseUrl ? `${baseUrl}/auth/reset-password` : undefined
-      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
-      if (error) {
-        throw error
+      const res = await fetch('/api/email/password-reset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}))
+        throw new Error(json?.error || 'We could not send the reset email.')
       }
+
       setEmailSent(true)
       setEmailSuccess('Check your inbox for a link to set a new password. The link opens this page when clicked.')
     } catch (error: any) {

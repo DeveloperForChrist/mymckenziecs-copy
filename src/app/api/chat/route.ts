@@ -9,6 +9,7 @@ import { aiRateLimiter, aiGuestRateLimiter, aiIpRateLimiter, rateLimit, getIdent
 import { chatMessageSchema } from '@/validators/index'
 import { z } from 'zod'
 import { captureServerException } from '@/lib/monitoring/error-logger'
+import { isPaidPlan } from '@/lib/plans/access'
 
 type ChatAttachment = {
   name?: string
@@ -47,7 +48,19 @@ const chatRequestSchema = z.object({
 const nodeRequire = createRequire(import.meta.url)
 const GUEST_COOKIE_NAME = 'mm_guest_id'
 const GUEST_MESSAGE_LIMIT_24H = 5
+const ESSENTIAL_MESSAGE_LIMIT_PER_THREAD = 30
+const PLUS_MESSAGE_LIMIT_PER_THREAD = 50
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+const normalizePlanLabel = (value: unknown): string =>
+  typeof value === 'string' ? value.trim().toLowerCase() : ''
+
+const isPlusLikePlan = (planLabel: string): boolean =>
+  planLabel.includes('plus') ||
+  planLabel.includes('premium cheap')
+
+const threadLimitForPlan = (planLabel: string): number =>
+  isPlusLikePlan(planLabel) ? PLUS_MESSAGE_LIMIT_PER_THREAD : ESSENTIAL_MESSAGE_LIMIT_PER_THREAD
 
 const parseForwardedFor = (value: string | null) => {
   if (!value) return null
@@ -550,6 +563,54 @@ export async function POST(request: NextRequest) {
     const attachmentContext = hasAttachments && baseUrl ? await buildAttachmentContext(attachments, baseUrl) : ''
     const attachmentMetadata = hasAttachments && !attachmentContext ? buildAttachmentMetadata(attachments) : ''
 
+    let usePremiumAgents = false
+    let activePlanLabel = 'free'
+    if (authUserId) {
+      const { data: activeSub } = await supabaseAdmin
+        .from('subscriptions')
+        .select('id, plan_type')
+        .eq('user_id', authUserId)
+        .in('status', ['active', 'past_due'])
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      activePlanLabel = normalizePlanLabel(activeSub?.plan_type || '')
+      usePremiumAgents = isPaidPlan(activeSub?.plan_type || '')
+
+      // DB-backed thread cap enforcement for paid plans.
+      if (usePremiumAgents) {
+        const targetConversationId = sessionInfo.conversationId || conversationId || null
+        if (targetConversationId) {
+          const limit = threadLimitForPlan(activePlanLabel)
+          const { count: currentThreadUserCount, error: countError } = await supabaseAdmin
+            .from('messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('role', 'user')
+            .eq('conversation_id', targetConversationId)
+
+          if (countError) {
+            console.error('Failed to fetch thread message count', countError)
+          } else if ((currentThreadUserCount || 0) >= limit) {
+            return withCookie(
+              NextResponse.json(
+                {
+                  response: `You have reached this thread's ${limit}-message limit on your current plan. Start a new chat thread to continue.`,
+                  metadata: {
+                    limitType: 'thread',
+                    limitReached: true,
+                    threadMessageLimit: limit,
+                    currentThreadCount: currentThreadUserCount || 0,
+                    conversationId: targetConversationId,
+                  },
+                },
+                { status: 200 }
+              )
+            )
+          }
+        }
+      }
+    }
+
     const processingResult = await chatManager.processMessage(message, hasAttachments, {
       userAgent: request.headers.get('user-agent'),
       sessionMessageCount: typeof sessionMessageCount === 'number' ? sessionMessageCount : null,
@@ -621,23 +682,6 @@ export async function POST(request: NextRequest) {
     const messageForAgent = truncateText(rawMessageForAgent, 12000)
     const threadId = `thread_${Date.now()}_${userId}`
 
-    let usePremiumAgents = false
-    if (authUserId) {
-      const { data: activeSub } = await supabaseAdmin
-        .from('subscriptions')
-        .select('id, plan_type')
-        .eq('user_id', authUserId)
-        .in('status', ['active', 'past_due', 'trialing'])
-        .maybeSingle()
-      const planLabel = (activeSub?.plan_type || '').toString().toLowerCase()
-      usePremiumAgents =
-        planLabel.includes('standard') ||
-        planLabel.includes('essential') ||
-        planLabel.includes('plus') ||
-        planLabel.includes('premium') ||
-        planLabel.includes('pro')
-    }
-
     const agentResponse = usePremiumAgents
       ? await invokeLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
           useDiscriminator: true,
@@ -645,6 +689,10 @@ export async function POST(request: NextRequest) {
           includeCitations: true,
         })
       : await invokeFreeLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords)
+
+    const includeDebug = process.env.NODE_ENV !== 'production'
+    const sourceCount = Array.isArray(agentResponse.sources) ? agentResponse.sources.length : 0
+    const hasInlineCitationTags = /\[\d+\]/.test(agentResponse.response || '')
 
     if (!agentResponse.response || !agentResponse.response.trim()) {
       return withCookie(
@@ -720,6 +768,17 @@ export async function POST(request: NextRequest) {
             pendingCalendarEntries: (processingResult as any).pendingCalendarEntries || null,
             followUpQuestion,
             actionItems,
+            ...(includeDebug
+              ? {
+                  debug: {
+                    premiumFlow: usePremiumAgents,
+                    planLabel: activePlanLabel || 'free',
+                    sourceCount,
+                    hasInlineCitationTags,
+                    citationMode: usePremiumAgents ? 'search+citations' : 'free-no-search',
+                  },
+                }
+              : {}),
           },
         },
         { status: 200 }

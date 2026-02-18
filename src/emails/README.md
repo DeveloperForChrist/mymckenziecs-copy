@@ -50,20 +50,11 @@ Run daily with cron (example runs at 08:00 UTC every day):
 0 8 * * * cd /home/jcwiththelord/mymckenzie-nextjs2 && /usr/bin/env node src/emails/scheduler/sendDeadlineReminders.js >> /var/log/deadline-scheduler.log 2>&1
 ```
 
-Automatic server run via GitHub Actions
-- A GitHub Actions workflow is included at `.github/workflows/deadline-reminders-cron.yml` which calls the server endpoint daily at 08:00 UTC.
+Automatic run
+- Use the Supabase scheduled function flow below for automated reminders.
 
-Required repository secrets:
-- `SITE_URL` — the public base URL of your deployed site (e.g. `https://www.mymckenziecs.com`).
-- `CRON_SECRET` — secret string that matches `CRON_SECRET` env var used by the server (set in your deployment environment).
-
-To enable automatic reminders:
-1. Deploy your app and set `CRON_SECRET` in the deployment environment (same value in GitHub Actions secrets).
-2. Add `SITE_URL` and `CRON_SECRET` to the repository secrets.
-3. The workflow can be manually triggered from Actions or will run on schedule.
-
-Supabase Scheduled Function (recommended if you use Supabase)
-- Instead of GitHub Actions you can use Supabase Functions scheduling. Create an Edge Function that performs the same logic as `src/app/api/cron/deadline-reminders/route.ts` and schedule it in the Supabase Dashboard.
+Supabase Scheduled Function
+- Use Supabase Functions scheduling. Create an Edge Function that performs the same logic as `src/app/api/cron/deadline-reminders/route.ts` and schedule it in the Supabase Dashboard.
 
 Quick steps:
 1. Install & login to Supabase CLI: `npm i -g supabase && supabase login`.

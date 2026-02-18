@@ -1,9 +1,25 @@
 "use client"
-import { useState, useRef, useEffect, Fragment } from 'react';
-import Link from 'next/link';
-import type { CSSProperties, FormEvent } from 'react'
+import { useState, useRef, useEffect } from 'react';
+import type { CSSProperties, FormEvent, ChangeEvent, KeyboardEvent } from 'react'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
-import UserName from '@/components/user/UserName'
+import ChatEmptyState from '@/components/chatbot/ChatEmptyState'
+import ReportIssueModal from '@/components/chatbot/ReportIssueModal'
+import NoticeModal from '@/components/chatbot/NoticeModal'
+import ChatComposer from '@/components/chatbot/ChatComposer'
+import ChatMessageList from '@/components/chatbot/ChatMessageList'
+import { useChatAuthPlan } from '@/components/chatbot/hooks/useChatAuthPlan'
+import { useConversationBootstrap } from '@/components/chatbot/hooks/useConversationBootstrap'
+import { useFreemiumMessageState } from '@/components/chatbot/hooks/useFreemiumMessageState'
+import { useFreemiumSessionHistory } from '@/components/chatbot/hooks/useFreemiumSessionHistory'
+import type {
+  AssistantMetadata,
+  Message,
+  AttachmentDisplay,
+  DraftPromptStatus,
+  ParsedLine,
+  ParsedSection,
+  SourceReference
+} from '@/components/chatbot/chat-types'
 
 // Generate a proper UUID v4
 const generateUUID = () => {
@@ -147,25 +163,10 @@ const convertUrlsToLinks = (segment: string) => {
   return [...parts, ...urlParts]
 }
 
-const extractUrlsFromText = (text: string): string[] => {
-  if (!text) return []
-  const urlPattern = /https?:\/\/[^\s]+/g
-  const urls = new Set<string>()
-  let match
-  while ((match = urlPattern.exec(text)) !== null) {
-    const cleaned = stripTrailingUrlPunctuation(match[0])
-    if (cleaned) urls.add(cleaned)
-  }
-  return Array.from(urls)
-}
-
 const legislationLinkCache = new Map<string, string>()
 
 const buildLegislationSearchUrl = (title: string) =>
   `https://www.legislation.gov.uk/all?title=${encodeURIComponent(title)}`
-
-const buildJusticeSearchUrl = (query: string) =>
-  `https://www.justice.gov.uk/courts/procedure-rules/civil/search?query=${encodeURIComponent(query)}&profile=_default`
 
 const resolveCprPartUrl = (part: string) => {
   const numeric = part.match(/^\d{1,2}$/)
@@ -209,16 +210,6 @@ const buildReferenceSearchUrl = (refText: string) => {
 }
 
 const BULLET_PREFIX = '• '
-type ParsedLineKind = 'paragraph' | 'bullet' | 'subheading' | 'divider' | 'summary'
-type ParsedLine = {
-  text: string
-  kind: ParsedLineKind
-}
-
-type ParsedSection = {
-  heading: string | null
-  lines: ParsedLine[]
-}
 
 const hasBulletPrefix = (line: string) => /^(?:[\*\-•]\s+|\d+\.\s+)/.test(line)
 const hasNumberPrefix = (line: string) => /^\d+\.\s+/.test(line)
@@ -314,7 +305,7 @@ const parseAssistantResponse = (text: string, allowHeadings: boolean = true): Pa
       if (isNumberedHeadingLine(singleLine)) {
         return {
           heading: null,
-          lines: [{ text: singleLine.trim(), kind: 'subheading' as const }]
+          lines: [{ text: stripNumberPrefix(singleLine), kind: 'subheading' as const }]
         }
       }
       const single = stripLinePrefix(singleLine)
@@ -351,7 +342,7 @@ const parseAssistantResponse = (text: string, allowHeadings: boolean = true): Pa
         continue
       }
       if (allowHeadings && isNumberedHeadingLine(line)) {
-        lines.push({ text: line.trim(), kind: 'subheading' as const })
+        lines.push({ text: stripNumberPrefix(line), kind: 'subheading' as const })
         continue
       }
       if (allowHeadings && line.endsWith(':')) {
@@ -407,7 +398,11 @@ const stripAssistantSourcesBlock = (text: string) => {
   if (!text) return text
   const sourcesBlockRegex =
     /(\n{1,2}(?:Reviewed\s+\d+\s+sources[\s\S]*$|Sources\s+reviewed:[\s\S]*$|Verified\s+sources[\s\S]*$|Sources?:[\s\S]*$))/i
-  return text.replace(sourcesBlockRegex, '').trim()
+  const withoutSourcesBlock = text.replace(sourcesBlockRegex, '')
+  const withoutReferenceIndex = withoutSourcesBlock
+    .replace(/^\s*Reference\s+index:\s*[^\n]*$/gim, '')
+    .replace(/\n{3,}/g, '\n\n')
+  return withoutReferenceIndex.trim()
 }
 
 const LegislationLink = ({ refText, hrefOverride }: { refText: string; hrefOverride?: string }) => {
@@ -495,9 +490,14 @@ const findNextResourceMatch = (text: string, startIndex: number) => {
 }
 
 // Helper function to render numbered citations with hover tooltips
-const renderSourceCitations = (text: string | JSX.Element, sources?: Array<{ number: number; title: string; url: string }>): (string | JSX.Element)[] => {
-  if (typeof text !== 'string' || !sources || sources.length === 0) {
+const renderSourceCitations = (text: string | JSX.Element, sources?: SourceReference[]): (string | JSX.Element)[] => {
+  if (typeof text !== 'string') {
     return [text]
+  }
+
+  if (!sources || sources.length === 0) {
+    // Hide orphaned citation tags when no source metadata is available.
+    return [text.replace(/\s*\[\d+\]/g, '').trim()]
   }
   
   const citationPattern = /\[(\d+)\]/g
@@ -514,7 +514,7 @@ const renderSourceCitations = (text: string | JSX.Element, sources?: Array<{ num
     }
     
     if (source) {
-      parts.push(
+        parts.push(
         <a
           key={`citation-${citationNumber}-${match.index}`}
           href={source.url}
@@ -522,17 +522,17 @@ const renderSourceCitations = (text: string | JSX.Element, sources?: Array<{ num
           rel="noopener noreferrer"
           title={source.title}
           style={{
-            color: '#60a5fa',
+            color: '#ef4444',
             fontWeight: 700,
             textDecoration: 'none',
             cursor: 'pointer',
             padding: '0 2px'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.color = '#3b82f6'
+            e.currentTarget.style.color = '#ef4444'
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.color = '#60a5fa'
+            e.currentTarget.style.color = '#ef4444'
           }}
         >
           [{citationNumber}]
@@ -553,7 +553,7 @@ const renderSourceCitations = (text: string | JSX.Element, sources?: Array<{ num
 }
 
 // Comprehensive rendering function that processes citations and legal references
-const renderMessageContent = (text: string, sources?: Array<{ number: number; title: string; url: string }>): (string | JSX.Element)[] => {
+const renderMessageContent = (text: string, sources?: SourceReference[]): (string | JSX.Element)[] => {
   // Process citations first
   const citationProcessed = renderSourceCitations(text, sources)
   
@@ -686,31 +686,6 @@ const renderLegalReferences = (text: string) => {
   return parts.length > 0 ? parts : convertUrlsToLinks(text)
 }
 
-interface AssistantMetadata {
-  pendingCalendarEntries?: PendingCalendarEntriesMetadata;
-  documentGenerated?: boolean;
-  activeCaseId?: string;
-  sources?: Array<{ number: number; title: string; url: string }>;
-  [key: string]: unknown;
-}
-
-interface Message {
-  id?: string
-  role: 'user' | 'assistant'
-  content: string
-  timestamp: Date
-  isTyping?: boolean
-  metadata?: AssistantMetadata
-  attachments?: AttachmentDisplay[]
-}
-
-type StoredMessage = {
-  role: 'user' | 'assistant';
-  message: string;
-  timestamp: string;
-  metadata?: AssistantMetadata;
-};
-
 type UploadedAttachment = {
   name: string;
   downloadURL: string;
@@ -727,238 +702,37 @@ type CaseProfilePayload = {
   caseDescription?: string;
 };
 
-type AttachmentDisplay = {
-  name: string;
-  downloadURL?: string | null;
-  storagePath?: string | null;
-  size?: number;
-  mimeType?: string | null;
-  status?: 'uploading' | 'ready' | 'failed';
-};
-
-type TimelineEntry = {
-  description: string
-  date?: string
-  daysUntil?: number | null
-  note?: string
-}
-
-interface PendingCalendarEntriesMetadata {
-  caseId: string;
-  caseLabel?: string;
-  deadlines?: TimelineEntry[];
-  hearings?: TimelineEntry[];
-}
-
-
-type CalendarPromptStatus = 'idle' | 'saving' | 'saved' | 'error' | 'dismissed'
-type DraftPromptStatus = 'idle' | 'saving' | 'saved' | 'error' | 'dismissed'
-
-const formatDateDMY = (date: Date) => {
-  const day = String(date.getDate()).padStart(2, '0')
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const year = date.getFullYear()
-  return `${day}/${month}/${year}`
-}
-
-const parseRelativeDays = (text?: string) => {
-  if (!text) return null
-  const match =
-    text.match(/\bin\s+(\d{1,3})\s+days?\b/i) ||
-    text.match(/\b(\d{1,3})\s+days?\s+(?:away|from\s+now|remaining|left|to\s+go)\b/i)
-  if (!match) return null
-  const days = Number(match[1])
-  if (Number.isNaN(days) || days <= 0) return null
-  return days
-}
-
-const numberWordMap: Record<string, number> = {
-  one: 1,
-  two: 2,
-  three: 3,
-  four: 4,
-  five: 5,
-  six: 6,
-  seven: 7,
-  eight: 8,
-  nine: 9,
-  ten: 10,
-  eleven: 11,
-  twelve: 12
-}
-
-const parseNumberToken = (value: string) => {
-  const normalized = value.toLowerCase()
-  if (numberWordMap[normalized]) return numberWordMap[normalized]
-  const numeric = Number(normalized)
-  return Number.isFinite(numeric) ? numeric : null
-}
-
-const weekdayMap: Record<string, number> = {
-  sunday: 0,
-  monday: 1,
-  tuesday: 2,
-  wednesday: 3,
-  thursday: 4,
-  friday: 5,
-  saturday: 6
-}
-
-const parseRelativeDateFromText = (text?: string) => {
-  if (!text) return null
-  const lower = text.toLowerCase()
-
-  if (lower.includes('tomorrow')) {
-    const date = new Date()
-    date.setDate(date.getDate() + 1)
-    return date
-  }
-
-  if (lower.includes('day after tomorrow')) {
-    const date = new Date()
-    date.setDate(date.getDate() + 2)
-    return date
-  }
-
-  const inMatch = lower.match(/\bin\s+(\w+)\s+(day|days|week|weeks|month|months)\b/)
-  if (inMatch) {
-    const count = parseNumberToken(inMatch[1])
-    if (count && count > 0) {
-      const date = new Date()
-      if (inMatch[2].startsWith('day')) {
-        date.setDate(date.getDate() + count)
-      } else if (inMatch[2].startsWith('week')) {
-        date.setDate(date.getDate() + count * 7)
-      } else {
-        date.setMonth(date.getMonth() + count)
-      }
-      return date
-    }
-  }
-
-  const awayMatch = lower.match(/\b(\w+)\s+(day|days|week|weeks|month|months)\s+(?:away|from\s+now|remaining|left|to\s+go)\b/)
-  if (awayMatch) {
-    const count = parseNumberToken(awayMatch[1])
-    if (count && count > 0) {
-      const date = new Date()
-      if (awayMatch[2].startsWith('day')) {
-        date.setDate(date.getDate() + count)
-      } else if (awayMatch[2].startsWith('week')) {
-        date.setDate(date.getDate() + count * 7)
-      } else {
-        date.setMonth(date.getMonth() + count)
-      }
-      return date
-    }
-  }
-
-  const nextWeekday = lower.match(/\bnext\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/)
-  if (nextWeekday) {
-    const targetDay = weekdayMap[nextWeekday[1]]
-    if (typeof targetDay === 'number') {
-      const date = new Date()
-      const currentDay = date.getDay()
-      let diff = (targetDay - currentDay + 7) % 7
-      if (diff === 0) diff = 7
-      date.setDate(date.getDate() + diff)
-      return date
-    }
-  }
-
-  return null
-}
-
-const normalizeTimelineDateValue = (value?: string, daysUntil?: number | null, description?: string) => {
+const normalizeUserId = (value?: string | null) => {
   const trimmed = value?.trim()
-  if (trimmed) {
-    const parsed = new Date(trimmed)
-    if (!Number.isNaN(parsed.getTime())) {
-      return formatDateDMY(parsed)
-    }
-  }
-
-  const derivedDays = typeof daysUntil === 'number' && Number.isFinite(daysUntil)
-    ? daysUntil
-    : parseRelativeDays(description)
-  if (typeof derivedDays === 'number') {
-    const derivedDate = new Date()
-    derivedDate.setDate(derivedDate.getDate() + derivedDays)
-    return formatDateDMY(derivedDate)
-  }
-
-  const derivedDate = parseRelativeDateFromText(description)
-  if (derivedDate) {
-    return formatDateDMY(derivedDate)
-  }
-
-  return ''
+  if (!trimmed) return null
+  return trimmed.startsWith('anon_') ? trimmed : `anon_${trimmed}`
 }
 
-const formatTimelineDate = (value?: string, daysUntil?: number | null, description?: string) => {
-  const normalized = normalizeTimelineDateValue(value, daysUntil, description)
-  return normalized || 'DD/MM/YYYY'
+const getSessionHistoryKey = (userId: string) => `freemiumSessionHistory:${userId}`
+
+const clearSessionHistory = (userId?: string | null) => {
+  if (typeof window === 'undefined') return
+  if (!userId) return
+  sessionStorage.removeItem(getSessionHistoryKey(userId))
+  window.dispatchEvent(new CustomEvent('sessionHistoryCleared'))
 }
 
-const parseDMY = (value: string) => {
-  const match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
-  if (!match) return null
-  const day = Number(match[1])
-  const month = Number(match[2])
-  const year = Number(match[3])
-  const date = new Date(year, month - 1, day)
-  if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
-    date.getDate() !== day
-  ) {
-    return null
-  }
-  return date
-}
+const getSessionStartKey = (userId: string) => `chatSessionStart:${userId}`
 
-const parseYMD = (value: string) => {
-  const match = value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/)
-  if (!match) return null
-  const year = Number(match[1])
-  const month = Number(match[2])
-  const day = Number(match[3])
-  const date = new Date(year, month - 1, day)
-  if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
-    date.getDate() !== day
-  ) {
-    return null
-  }
-  return date
-}
-
-const normalizeManualDateInput = (value: string) => {
-  const trimmed = value.trim()
-  if (!trimmed) return { normalized: '', valid: true }
-  const date =
-    parseDMY(trimmed) ||
-    parseYMD(trimmed) ||
-    parseRelativeDateFromText(trimmed) ||
-    new Date(trimmed)
-  if (!date || Number.isNaN(date.getTime())) {
-    return { normalized: trimmed, valid: false }
-  }
-  return { normalized: formatDateDMY(date), valid: true }
+const getOrInitSessionStart = (userId: string) => {
+  if (typeof window === 'undefined') return new Date().toISOString()
+  const key = getSessionStartKey(userId)
+  const existing = sessionStorage.getItem(key)
+  if (existing) return existing
+  const now = new Date().toISOString()
+  sessionStorage.setItem(key, now)
+  return now
 }
 
 export default function ChatInterface() {
   const [caseId, setCaseId] = useState<string>("");
   const [caseProfileContext, setCaseProfileContext] = useState<CaseProfilePayload | null>(null);
-  const [supabaseUser, setSupabaseUser] = useState<any>(null);
   const supabase = getSupabaseBrowserClient();
-  const lastUserIdRef = useRef<string | null>(null);
-
-  const normalizeUserId = (value?: string | null) => {
-    const trimmed = value?.trim();
-    if (!trimmed) return null;
-    return trimmed.startsWith('anon_') ? trimmed : `anon_${trimmed}`;
-  };
 
   const normalizeCaseId = (value?: string | null) => {
     const trimmed = value?.trim();
@@ -968,25 +742,13 @@ export default function ChatInterface() {
     return uuidRegex.test(trimmed) ? trimmed : null;
   };
 
-  const getSessionHistoryKey = (userId: string) => `freemiumSessionHistory:${userId}`;
-
-  const clearSessionHistory = (userId?: string | null) => {
-    if (typeof window === 'undefined') return;
-    if (!userId) return;
-    sessionStorage.removeItem(getSessionHistoryKey(userId));
-    window.dispatchEvent(new CustomEvent('sessionHistoryCleared'));
-  };
-
-  const getSessionStartKey = (userId: string) => `chatSessionStart:${userId}`;
-  const getOrInitSessionStart = (userId: string) => {
-    if (typeof window === 'undefined') return new Date().toISOString();
-    const key = getSessionStartKey(userId);
-    const existing = sessionStorage.getItem(key);
-    if (existing) return existing;
-    const now = new Date().toISOString();
-    sessionStorage.setItem(key, now);
-    return now;
-  };
+  const {
+    supabaseUser,
+    plan,
+    planLoaded,
+    isAuthenticated,
+    authLoaded,
+  } = useChatAuthPlan({ supabase, clearSessionHistory })
 
   useEffect(() => {
     const stored = localStorage.getItem("selectedCaseId");
@@ -1064,14 +826,11 @@ export default function ChatInterface() {
   const [attachedFiles, setAttachedFiles] = useState<File[]>([])
   const [guestUploadWarning, setGuestUploadWarning] = useState<string | null>(null)
   const [showGuestSignupModal, setShowGuestSignupModal] = useState(false)
-  const [plan, setPlan] = useState<string | null>(null)
-  const [planLoaded, setPlanLoaded] = useState(true) // Default to loaded for faster UX
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [authLoaded, setAuthLoaded] = useState(false)
-  const [welcomeVariant, setWelcomeVariant] = useState<'new' | 'returning' | null>(null)
+  const [isConversationBootstrapping, setIsConversationBootstrapping] = useState(true)
   const [freemiumMessageCount, setFreemiumMessageCount] = useState(0)
   const [isGuestLimitReached, setIsGuestLimitReached] = useState(false)
   const [guestLimitNotified, setGuestLimitNotified] = useState(false)
+  const [noticeModal, setNoticeModal] = useState<{ title: string; message: string } | null>(null)
   
   const [draftPromptStates, setDraftPromptStates] = useState<Record<string, { status: DraftPromptStatus, error?: string }>>({})
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -1084,19 +843,6 @@ export default function ChatInterface() {
   const isProgrammaticScrollRef = useRef(false)
   const [autoScroll, setAutoScroll] = useState(true)
   const normalizedPlan = (plan || '').toLowerCase();
-
-  // Determine whether the assistant has already started producing output
-  const assistantHasStartedOutput = (() => {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const m = messages[i]
-      if (m.role === 'assistant') {
-        return (m.content || '').trim().length > 0
-      }
-    }
-    return false
-  })()
-
-  
 
   // Cleanup guest data when component unmounts
   useEffect(() => {
@@ -1113,11 +859,6 @@ export default function ChatInterface() {
       }
     }
   }, [isAuthenticated, conversationId])
-  const isPremiumProPlan =
-    normalizedPlan.replace(/\s+/g, '') === 'premiumpro' ||
-    normalizedPlan.includes('premium pro') ||
-    normalizedPlan.includes('premium cheap')
-  const isPremiumPlan = !isPremiumProPlan && normalizedPlan.includes('premium')
   const isFreemiumPlan =
     planLoaded &&
     isAuthenticated &&
@@ -1125,9 +866,6 @@ export default function ChatInterface() {
     (normalizedPlan.includes('free') ||
       normalizedPlan.includes('freemium') ||
       normalizedPlan.includes('guest'));
-  const uploadLimit = Infinity
-  const uploadLimitReached = false
-  const getFreemiumStorageKey = () => 'freemiumMessageCount:__global__';
   const remainingMessages = Math.max(FREEMIUM_MESSAGE_LIMIT - freemiumMessageCount, 0);
   const isNearLimit =
     isFreemiumPlan &&
@@ -1182,6 +920,31 @@ export default function ChatInterface() {
   }
 
   const isGuestFreePlan = planLoaded && plan === 'Free' && !supabaseUser
+
+  useFreemiumMessageState({
+    messages,
+    isGuestFreePlan,
+    isGuestLimitReached,
+    isFreemiumPlan,
+    planLoaded,
+    caseId,
+    guestMessageLimit: GUEST_MESSAGE_LIMIT,
+    freemiumMessageCount,
+    freemiumMessageLimit: FREEMIUM_MESSAGE_LIMIT,
+    setIsGuestLimitReached,
+    setGuestLimitNotified,
+    setFreemiumMessageCount,
+    setShowGuestSignupModal
+  })
+
+  useFreemiumSessionHistory({
+    messages,
+    setMessages,
+    isFreemiumPlan,
+    supabaseUserId: supabaseUser?.id,
+    clearSessionHistory,
+    getSessionHistoryKey
+  })
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
@@ -1296,162 +1059,9 @@ export default function ChatInterface() {
     }
   }
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data } = await supabase.auth.getUser()
-        const user = data?.user
-        setSupabaseUser(user)
-        setIsAuthenticated(Boolean(user))
-        lastUserIdRef.current = user?.id || null
-
-        if (!user) {
-          if (lastUserIdRef.current) {
-            clearSessionHistory(lastUserIdRef.current)
-            lastUserIdRef.current = null
-          }
-          setPlan('Free')
-          setWelcomeVariant(null)
-          return
-        }
-
-        if (typeof window !== 'undefined') {
-          const welcomeKey = `chatbotWelcomeSeen:${user.id}`
-          const hasSeen = localStorage.getItem(welcomeKey) === 'true'
-          setWelcomeVariant(hasSeen ? 'returning' : 'new')
-          if (!hasSeen) {
-            localStorage.setItem(welcomeKey, 'true')
-          }
-        } else {
-          setWelcomeVariant('returning')
-        }
-
-        // Load plan asynchronously without blocking UI
-        try {
-          const response = await fetch('/api/user/plan', { credentials: 'include' })
-          if (response.ok) {
-            const data = await response.json()
-            const fetchedPlan = (data.plan || 'Free').toString().trim()
-            setPlan(fetchedPlan)
-          } else {
-            setPlan('Free')
-          }
-        } catch (error: unknown) {
-          console.error('Failed to load subscription plan:', error)
-          setPlan('Free')
-        }
-        // Note: planLoaded already set to true in state initialization
-      } finally {
-        setAuthLoaded(true)
-      }
-    };
-
-    checkAuth()
-
-    const authListener = supabase.auth.onAuthStateChange((...args: any[]) => {
-      const session = args[1]
-      const nextUserId = session?.user?.id || null
-      const prevUserId = lastUserIdRef.current
-      if (prevUserId && prevUserId !== nextUserId) {
-        clearSessionHistory(prevUserId)
-      }
-      if (!nextUserId && prevUserId) {
-        clearSessionHistory(prevUserId)
-      }
-      lastUserIdRef.current = nextUserId
-      setSupabaseUser(session?.user || null)
-      setIsAuthenticated(Boolean(session?.user))
-      setAuthLoaded(true)
-    })
-    const { data: { subscription } } = authListener
-
-    return () => subscription.unsubscribe()
-  }, [supabase])
-
-  useEffect(() => {
-    if (isGuestFreePlan) {
-      const guestMessages = messages.filter(m => m.role === 'user').length;
-      setIsGuestLimitReached(guestMessages >= GUEST_MESSAGE_LIMIT);
-    } else {
-      setIsGuestLimitReached(false);
-    }
-  }, [messages, isGuestFreePlan]);
-
-  useEffect(() => {
-    if (!isGuestLimitReached || !isGuestFreePlan) {
-      setGuestLimitNotified(false);
-    }
-  }, [isGuestLimitReached, isGuestFreePlan]);
-
-  useEffect(() => {
-    if (!isFreemiumPlan || typeof window === 'undefined') {
-      return;
-    }
-    const storageKey = getFreemiumStorageKey();
-    const stored = localStorage.getItem(storageKey);
-    if (stored) {
-      const parsed = Number.parseInt(stored, 10);
-      if (!Number.isNaN(parsed)) {
-        setFreemiumMessageCount(Math.min(parsed, FREEMIUM_MESSAGE_LIMIT));
-        return;
-      }
-    }
-    setFreemiumMessageCount(0);
-  }, [caseId, isFreemiumPlan]);
-
-
-  useEffect(() => {
-    if (!isFreemiumPlan) {
-      setFreemiumMessageCount(0);
-    }
-  }, [isFreemiumPlan]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !planLoaded) return;
-    const storageKey = getFreemiumStorageKey();
-
-    if (!isFreemiumPlan) {
-      localStorage.removeItem(storageKey);
-      window.dispatchEvent(
-        new CustomEvent('freemiumMessageCountChanged', {
-          detail: { count: 0, limit: FREEMIUM_MESSAGE_LIMIT }
-        })
-      );
-      return;
-    }
-
-    const boundedCount = Math.min(freemiumMessageCount, FREEMIUM_MESSAGE_LIMIT);
-    localStorage.setItem(storageKey, String(boundedCount));
-    window.dispatchEvent(
-      new CustomEvent('freemiumMessageCountChanged', {
-        detail: { count: boundedCount, limit: FREEMIUM_MESSAGE_LIMIT }
-      })
-    );
-  }, [freemiumMessageCount, isFreemiumPlan, caseId, planLoaded]);
-
-  useEffect(() => {
-    if (!planLoaded) return;
-    if (!isFreemiumPlan && !isGuestFreePlan) return;
-    fetch('/api/message-count', { credentials: 'include' })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (typeof data?.count === 'number') {
-          if (isFreemiumPlan) {
-            setFreemiumMessageCount(Math.min(data.count, FREEMIUM_MESSAGE_LIMIT));
-          }
-        }
-        if (isGuestFreePlan && typeof data?.limit === 'number' && typeof data?.count === 'number') {
-          const reached = data.count >= data.limit;
-          setIsGuestLimitReached(reached);
-          if (reached) setShowGuestSignupModal(true);
-        }
-      })
-      .catch(() => undefined);
-  }, [planLoaded, isFreemiumPlan, isGuestFreePlan, caseId]);
-
   const handleSubmitReport = async () => {
     if (!reportIssue.trim() || !reportProblem.trim()) {
-      alert('Please fill in all fields')
+      setNoticeModal({ title: 'Missing details', message: 'Please fill in all report fields.' })
       return
     }
 
@@ -1478,11 +1088,23 @@ export default function ChatInterface() {
       setReportingMessageIndex(null)
       setReportingMessageContent('')
       
-      alert('Report submitted successfully. Thank you for your feedback!')
+      setNoticeModal({ title: 'Report submitted', message: 'Thank you for your feedback.' })
     } catch (error: unknown) {
       console.error('Failed to submit report:', error)
-      alert('Failed to submit report. Please try again.')
+      setNoticeModal({ title: 'Submit failed', message: 'Failed to submit report. Please try again.' })
     }
+  }
+
+  const handleCloseReportModal = () => {
+    setShowReportModal(false)
+    setReportIssue('')
+    setReportProblem('')
+    setReportingMessageIndex(null)
+    setReportingMessageContent('')
+  }
+
+  const handleDismissDraftPrompt = (draftKey: string) => {
+    setDraftPromptStates(prev => ({ ...prev, [draftKey]: { status: 'dismissed' } }))
   }
 
   const handleRegenerate = async (messageIndex: number) => {
@@ -1500,6 +1122,15 @@ export default function ChatInterface() {
     const sessionStart = getOrInitSessionStart(supabaseUser?.id || 'anonymous')
     const sessionUserMessageCount =
       messages.filter((msg) => msg.role === 'user').length + 1
+    let targetConversationId =
+      (conversationId || (typeof window !== 'undefined' ? localStorage.getItem('currentConversationId') : '') || '').trim()
+    if (!targetConversationId) {
+      targetConversationId = generateUUID()
+      setConversationId(targetConversationId)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('currentConversationId', targetConversationId)
+      }
+    }
 
     try {
       const regenAttachments = userMsg.attachments || []
@@ -1514,7 +1145,7 @@ export default function ChatInterface() {
           message: regenMessage, 
           history: messages.slice(0, messageIndex - 1),
           userId: userId,
-          conversationId: conversationId,
+          conversationId: targetConversationId,
           caseProfile: caseProfileContext || undefined,
           activeCaseId: normalizeCaseId(caseId) || undefined,
           attachments: regenAttachments,
@@ -1536,6 +1167,12 @@ export default function ChatInterface() {
           setCaseId(resolvedCaseId)
           localStorage.setItem('selectedCaseId', resolvedCaseId)
         }
+      }
+
+      if (targetConversationId) {
+        window.dispatchEvent(
+          new CustomEvent('premiumThreadMessageCountChanged', { detail: { conversationId: targetConversationId } })
+        )
       }
 
       const assistantText = stripAssistantSourcesBlock(String(data.response || ''))
@@ -1663,99 +1300,33 @@ export default function ChatInterface() {
 
   const typeMessageById = (fullText: string, messageId: string) => {
     runTypingAnimation(fullText, (prev, text, isDone) => {
+      const targetIndex = prev.findIndex((m) => m.id === messageId)
+      if (targetIndex < 0) return prev
+
+      const target = prev[targetIndex]
+      const nextIsTyping = !isDone
+      if (target.content === text && target.isTyping === nextIsTyping) return prev
+
       const updated = [...prev]
-      const targetIndex = updated.findIndex((m) => m.id === messageId)
-      if (targetIndex >= 0) {
-        updated[targetIndex] = {
-          ...updated[targetIndex],
-          content: text,
-          isTyping: !isDone
-        }
+      updated[targetIndex] = {
+        ...target,
+        content: text,
+        isTyping: nextIsTyping
       }
       return updated
     })
   }
 
-  // Load conversation history if conversationId is in URL
-  useEffect(() => {
-    const conversationStorageKey = 'currentConversationId'
-
-    const loadConversation = async () => {
-      const urlParams = new URLSearchParams(window.location.search)
-      const conversationId = urlParams.get('conversationId')
-      const isNew = urlParams.get('new')
-      
-      // Get or create userId
-      let storedUserId = localStorage.getItem('userId')
-      if (!storedUserId) {
-        storedUserId = `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        localStorage.setItem('userId', storedUserId)
-      } else {
-        const normalized = normalizeUserId(storedUserId)
-        if (normalized && normalized !== storedUserId) {
-          storedUserId = normalized
-          localStorage.setItem('userId', storedUserId)
-        }
-      }
-      setUserId(storedUserId)
-
-      setMessages([])
-
-      // Clear messages for new chat and generate new conversationId
-      if (isNew) {
-        setMessages([])
-        const newConversationId = generateUUID()
-        setConversationId(newConversationId)
-        localStorage.setItem(conversationStorageKey, newConversationId)
-        // Remove query params
-        window.history.replaceState({}, '', '/chatbot')
-        return
-      }
-
-      // Load previous conversation
-      if (conversationId) {
-        setConversationId(conversationId)
-        localStorage.setItem(conversationStorageKey, conversationId)
-        try {
-          const response = await fetch('/api/chat-history', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: storedUserId, sessionId: conversationId })
-          })
-          
-          const data = await response.json()
-          if (response.ok && Array.isArray(data.messages)) {
-            const loadedMessages: Message[] = data.messages.map((msg: StoredMessage) => ({
-              id: `msg_${msg.timestamp}_${Math.random().toString(36).slice(2, 6)}`,
-              role: msg.role,
-              content: msg.message,
-              timestamp: new Date(msg.timestamp),
-              metadata: msg.metadata
-            }))
-            setMessages(loadedMessages)
-            const userMessageCount = loadedMessages.filter(msg => msg.role === 'user').length
-            if (userMessageCount > 0) {
-              setFreemiumMessageCount(prev => Math.max(prev, Math.min(userMessageCount, FREEMIUM_MESSAGE_LIMIT)))
-            }
-          }
-        } catch (error: unknown) {
-          console.error('Failed to load conversation:', error)
-        }
-      } else {
-        // No conversationId in URL, check localStorage or create new
-        const storedConvId = localStorage.getItem(conversationStorageKey)
-        if (storedConvId) {
-          setConversationId(storedConvId)
-        } else {
-          const newConversationId = generateUUID()
-          setConversationId(newConversationId)
-          localStorage.setItem(conversationStorageKey, newConversationId)
-        }
-      }
-    }
-
-    loadConversation()
-  }, [])
+  useConversationBootstrap({
+    normalizeUserId,
+    generateUUID,
+    setUserId,
+    setMessages,
+    setConversationId,
+    setFreemiumMessageCount,
+    setIsConversationBootstrapping,
+    freemiumMessageLimit: FREEMIUM_MESSAGE_LIMIT
+  })
 
   // Broadcast conversation ID changes to siblings (like ChatbotNavbar) for per-thread message tracking
   useEffect(() => {
@@ -1765,61 +1336,59 @@ export default function ChatInterface() {
     }
   }, [conversationId]);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!isFreemiumPlan || !supabaseUser?.id) return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('new')) {
-      clearSessionHistory(supabaseUser.id);
-      return;
-    }
-    if (messages.length > 0) return;
-    const raw = sessionStorage.getItem(getSessionHistoryKey(supabaseUser.id));
-    if (!raw) return;
-    try {
-      const stored = JSON.parse(raw);
-      if (Array.isArray(stored)) {
-        const restored: Message[] = stored.map((msg: any) => ({
-          id: `msg_${msg.timestamp || Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-          role: msg.role === 'assistant' ? 'assistant' : 'user',
-          content: typeof msg.content === 'string' ? msg.content : '',
-          timestamp: new Date(msg.timestamp || Date.now())
-        }));
-        setMessages(restored);
-      }
-    } catch {
-      // ignore invalid storage
-    }
-  }, [isFreemiumPlan, supabaseUser?.id, messages.length]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!isFreemiumPlan || !supabaseUser?.id) return;
-    const payload = messages.map((m) => ({
-      role: m.role,
-      content: typeof m.content === 'string' ? m.content : '',
-      timestamp: m.timestamp instanceof Date ? m.timestamp.toISOString() : new Date(m.timestamp || Date.now()).toISOString()
-    }));
-    sessionStorage.setItem(getSessionHistoryKey(supabaseUser.id), JSON.stringify(payload));
-  }, [messages, isFreemiumPlan, supabaseUser?.id]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const payload = messages.map((m) => ({
-      role: m.role,
-      content: typeof m.content === 'string' ? m.content : '',
-      timestamp: m.timestamp instanceof Date ? m.timestamp.toISOString() : new Date(m.timestamp || Date.now()).toISOString()
-    }));
-    window.dispatchEvent(new CustomEvent('sessionHistoryUpdated', { detail: { messages: payload } }));
-  }, [messages]);
-
-
   // Reset textarea height when input is cleared
   useEffect(() => {
     if (textareaRef.current && input === '') {
       textareaRef.current.style.height = 'auto'
     }
   }, [input]);
+
+  const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value
+    const words = text.trim().split(/\s+/).filter(word => word.length > 0)
+    const count = words.length
+    if (count > 600) {
+      const truncated = words.slice(0, 600).join(' ')
+      setInput(truncated)
+      setShowWordLimitWarning(true)
+      return
+    }
+    setShowWordLimitWarning(false)
+    setInput(text)
+
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+    }
+  }
+
+  const handleInputKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    const canSubmit = input.trim().length > 0 || attachedFiles.length > 0
+    if (e.key === 'Enter' && !e.shiftKey && !loading && canSubmit && !isGuestLimitReached) {
+      e.preventDefault()
+      handleSubmit()
+    }
+  }
+
+  const handleStopGeneration = () => {
+    if (typingIntervalRef.current) {
+      clearInterval(typingIntervalRef.current)
+      typingIntervalRef.current = null
+    }
+    setMessages(prev => {
+      const updated = [...prev]
+      const lastIndex = updated.length - 1
+      if (lastIndex >= 0 && updated[lastIndex].role === 'assistant') {
+        updated[lastIndex] = {
+          ...updated[lastIndex],
+          isTyping: false
+        }
+      }
+      return updated
+    })
+    setLoading(false)
+    setLoadingLabel(null)
+  }
 
   const handleSubmit = async (e?: FormEvent<HTMLFormElement>) => {
     e?.preventDefault()
@@ -1875,6 +1444,20 @@ export default function ChatInterface() {
     }
 
     setMessages((prev) => [...prev, userMessage])
+    let targetConversationId =
+      (conversationId || (typeof window !== 'undefined' ? localStorage.getItem('currentConversationId') : '') || '').trim()
+    if (!targetConversationId) {
+      targetConversationId = generateUUID()
+      setConversationId(targetConversationId)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('currentConversationId', targetConversationId)
+      }
+    }
+    if (targetConversationId) {
+      window.dispatchEvent(
+        new CustomEvent('premiumThreadMessageCountChanged', { detail: { conversationId: targetConversationId, delta: 1 } })
+      )
+    }
     setInput('')
     setAttachedFiles([])
 
@@ -1885,8 +1468,13 @@ export default function ChatInterface() {
       } catch (error: unknown) {
         console.error('Attachment upload failed', error)
         const message = error instanceof Error ? error.message : 'Attachment upload failed. Please try again.'
-        alert(message)
+        setNoticeModal({ title: 'Attachment upload failed', message })
         setMessages((prev) => prev.filter((msg) => msg.id !== optimisticMessageId))
+        if (targetConversationId) {
+          window.dispatchEvent(
+            new CustomEvent('premiumThreadMessageCountChanged', { detail: { conversationId: targetConversationId, delta: -1 } })
+          )
+        }
         setInput(rawInput)
         setAttachedFiles(filesToUpload)
         setLoading(false)
@@ -1930,7 +1518,7 @@ export default function ChatInterface() {
           message: composedMessage, 
           history: messages,
           userId: userId,
-          conversationId: conversationId,
+          conversationId: targetConversationId,
           activeCaseId: normalizeCaseId(caseId) || undefined,
           caseProfile: caseProfileContext || undefined,
           attachments: uploadedAttachments,
@@ -1964,7 +1552,13 @@ export default function ChatInterface() {
         throw new Error('API 200: Invalid response payload')
       }
 
-      const assistantText = data.response
+      if (targetConversationId) {
+        window.dispatchEvent(
+          new CustomEvent('premiumThreadMessageCountChanged', { detail: { conversationId: targetConversationId } })
+        )
+      }
+
+      const assistantText = stripAssistantSourcesBlock(String(data.response || ''))
       const serverIndicatedLimitReached =
         Boolean((data as any)?.guestLimitReached) ||
         Boolean((data as any)?.metadata?.guestLimitReached) ||
@@ -1991,6 +1585,11 @@ export default function ChatInterface() {
       setMessages((prev) => [...prev, assistantMessage])
       typeMessageById(assistantText, assistantMessageId)
     } catch (error: unknown) {
+      if (targetConversationId) {
+        window.dispatchEvent(
+          new CustomEvent('premiumThreadMessageCountChanged', { detail: { conversationId: targetConversationId, delta: -1 } })
+        )
+      }
       const errorText = error instanceof Error && error.message
         ? error.message
         : 'MyMckenzie is unavailable to help right now. Please try again later.'
@@ -2023,21 +1622,9 @@ export default function ChatInterface() {
     flexDirection: 'column',
     gap: '0',
     color: '#f1f5f9',
+    fontFamily: 'inherit',
     minHeight: 'calc(100vh - 88px)',
     padding: '0'
-  }
-
-  const normalizedPlanForTier = (plan || '').toLowerCase()
-  const isPremiumPro =
-    normalizedPlanForTier.replace(/\s+/g, '') === 'premiumpro' ||
-    normalizedPlanForTier.includes('premium cheap')
-
-  const handleCalendarDismiss = (key: string) => {
-    // Calendar dismissed (feature removed) — no-op
-  }
-
-  const handleCalendarSave = async (_key: string, _payload: PendingCalendarEntriesMetadata) => {
-    // Calendar save removed — no-op
   }
 
   const buildDraftKey = (message: Message, index: number) => {
@@ -2134,1370 +1721,82 @@ export default function ChatInterface() {
               onScroll={handleScroll}
               style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingLeft: 0, paddingRight: 0 }}
             >
-            {messages.length === 0 && (
-              <div style={{ textAlign: 'center', marginTop: '30px', opacity: 0.85, color: '#ffffff', marginLeft: 0 }}>
-                {!authLoaded ? null : !supabaseUser ? (
-                  <div style={{ maxWidth: '700px', margin: '0 auto', lineHeight: 1.7, fontFamily: 'Google Sans, sans-serif', fontSize: '17px', fontWeight: 500 }}>
-                    <p style={{ fontSize: '17px', fontWeight: 500, marginBottom: '20px' }}>
-                      Welcome to MyMcKenzie Assistant.
-                    </p>
-                    <p style={{ marginBottom: '20px' }}>
-                      Ask your question to get clear procedural guidance.
-                    </p>
-                    <p style={{ fontWeight: 600 }}>
-                      MyMcKenzie Assistant can make mistakes and does not provide legal advice. Always confirm before relying on any response.
-                    </p>
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'flex-start',
-                      width: '100%',
-                      maxWidth: '700px',
-                      margin: '0 auto',
-                      lineHeight: 1.7,
-                      fontFamily: 'Google Sans, sans-serif',
-                      fontSize: '17px',
-                      fontWeight: 500,
-                      minHeight: '120px',
-                      marginTop: '8vh', // move greeting up by 8% of viewport height
-                    }}
-                  >
-                    <p style={{
-                      fontSize: '2.5rem',
-                      fontWeight: 500, // medium weight
-                      marginBottom: '36px',
-                      color: '#fff',
-                      letterSpacing: '0.02em', // disciplined letter spacing
-                      lineHeight: 1.1,
-                      textAlign: 'center',
-                      textShadow: '0 2px 12px rgba(39,4,39,0.18)'
-                    }}>
-                      I am MyMcKenzie Assistant, here to help you <span role="img" aria-label="waving hand">👋</span>
-                    </p>
-                  </div>
-                )}
-              </div>
+            {messages.length === 0 && !isConversationBootstrapping && (
+              <ChatEmptyState authLoaded={authLoaded} hasUser={Boolean(supabaseUser)} />
             )}
 
-            {messages.map((message, index) => {
-              const isAlert = message.content?.trim().startsWith('⚠️')
-              const isUser = message.role === 'user'
-              
-              const draftKey = !isUser && message.metadata?.documentGenerated
-                ? buildDraftKey(message, index)
-                : null
-              const draftState = draftKey ? draftPromptStates[draftKey]?.status || 'idle' : null
-              const draftError = draftKey ? draftPromptStates[draftKey]?.error : null
-              const isDraftPromptVisible = Boolean(draftKey && draftState !== 'dismissed')
-              const isDraftSaving = draftState === 'saving'
-              const isDraftSaved = draftState === 'saved'
-
-              if (isAlert) {
-                return (
-                  <div key={index} style={{ marginBottom: '18px', textAlign: 'center' }}>
-                    <div
-                      style={{
-                        display: 'inline-flex',
-                        padding: '10px 16px',
-                        borderRadius: '999px',
-                        border: '1px solid rgba(251,191,36,0.4)',
-                        background: 'rgba(251,191,36,0.08)',
-                        color: '#fbbf24',
-                        fontSize: '13px',
-                      }}
-                    >
-                      <p className="whitespace-pre-wrap" style={{ lineHeight: 1.6 }}>{message.content}</p>
-                    </div>
-                  </div>
-                )
-              }
-
-              return (
-                <div
-                  key={index}
-                  className="message-container"
-                  style={{
-                    display: 'flex',
-                    width: '100%',
-                    boxSizing: 'border-box',
-                    flexDirection: 'column',
-                    alignItems: isUser ? 'flex-end' : 'flex-start',
-                    marginBottom: '20px',
-                    paddingLeft: '0',
-                    paddingRight: '0'
-                  }}
-                >
-                  <style jsx>{`
-                    .message-container .user-copy-button {
-                      opacity: 0;
-                      transition: opacity 0.2s;
-                    }
-                    .message-container:hover .user-copy-button {
-                      opacity: 1;
-                    }
-                    .message-container .assistant-action-button {
-                      transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
-                    }
-                    .message-container .assistant-action-button:hover {
-                      transform: translateY(-1px);
-                      border-color: rgba(255,255,255,0.7);
-                      color: #ffffff;
-                      box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-                    }
-                    /* Inherit dark purple styling for user message bubble content */
-                    .user-message-bubble table {
-                      background: rgba(40, 20, 60, 0.3);
-                      border-collapse: collapse;
-                      width: 100%;
-                    }
-                    .user-message-bubble table thead {
-                      background: rgba(60, 30, 90, 0.4);
-                    }
-                    .user-message-bubble table th,
-                    .user-message-bubble table td {
-                      border: 1px solid rgba(168, 85, 247, 0.15);
-                      padding: 10px 12px;
-                      text-align: left;
-                      color: #f8fafc;
-                    }
-                    .user-message-bubble table th {
-                      font-weight: 700;
-                      background: rgba(60, 30, 90, 0.4);
-                      color: #f0f0ff;
-                    }
-                    .user-message-bubble table tbody tr:hover {
-                      background: rgba(60, 30, 90, 0.3);
-                    }
-                    .message-container .assistant-message {
-                      width: 100%;
-                      background: transparent;
-                      border: none;
-                      border-radius: 0;
-                      padding: 4px 0;
-                      box-shadow: none;
-                      backdrop-filter: none;
-                    }
-                    .message-container .assistant-section {
-                      display: flex;
-                      flex-direction: column;
-                      gap: 8px;
-                    }
-                    .message-container .assistant-heading {
-                      font-family: 'Google Sans, sans-serif';
-                      font-size: 17px;
-                      font-weight: 600;
-                      letter-spacing: 0.01em;
-                      color: #f8fafc;
-                      margin: 0 0 8px 0;
-                      padding-bottom: 0;
-                      border-bottom: none;
-                      text-transform: uppercase;
-                      text-decoration: underline;
-                      text-decoration-thickness: 2px;
-                      text-underline-offset: 6px;
-                    }
-                    .message-container .assistant-subheading {
-                      font-family: 'Google Sans, sans-serif';
-                      font-size: 16px;
-                      font-weight: 600;
-                      line-height: 1.6;
-                      margin: 6px 0 4px 0;
-                      color: #f1f5f9;
-                      text-transform: uppercase;
-                      text-decoration: none;
-                    }
-                    .message-container .assistant-summary {
-                      font-family: 'Google Sans, sans-serif';
-                      font-size: 16px;
-                      font-weight: 600;
-                      line-height: 1.65;
-                      margin: 10px 0 4px 0;
-                      color: #f8fafc;
-                    }
-                    .message-container .assistant-paragraph {
-                      font-family: 'Google Sans, sans-serif';
-                      font-size: 16px;
-                      font-weight: 500;
-                      line-height: 1.65;
-                      margin: 0 0 8px 0;
-                      color: #e2e8f0;
-                    }
-                    .message-container .assistant-list {
-                      margin: 0 0 8px 0;
-                      padding-left: 18px;
-                      list-style-position: outside;
-                      list-style-type: disc;
-                      color: #e2e8f0;
-                    }
-                    .message-container .assistant-list-item {
-                      font-family: 'Google Sans, sans-serif';
-                      font-size: 16px;
-                      font-weight: 500;
-                      line-height: 1.65;
-                      margin: 0 0 6px 0;
-                      color: #e2e8f0;
-                    }
-                    .message-container .assistant-divider {
-                      margin: 10px 0 8px 0;
-                      width: 100%;
-                      border-top: 1px solid rgba(148, 163, 184, 0.4);
-                    }
-                    @media (max-width: 720px) {
-                      .message-container .assistant-message {
-                        padding: 2px 0;
-                        border-radius: 0;
-                      }
-                      .message-container .assistant-heading {
-                        font-size: 16px;
-                      }
-                      .message-container .assistant-subheading {
-                        font-size: 15px;
-                      }
-                      .message-container .assistant-summary {
-                        font-size: 15px;
-                      }
-                      .message-container .assistant-paragraph,
-                      .message-container .assistant-list-item {
-                        font-size: 15px;
-                      }
-                    }
-                  `}</style>
-                  <div
-                    style={{
-                      padding: isUser ? '6px 14px 6px 10px' : '0 0 0 26px',
-                      borderRadius: isUser ? '12px' : '0',
-                      maxWidth: isUser ? 'min(60%, 420px)' : '96%',
-                      width: isUser ? 'fit-content' : '100%',
-                      boxSizing: 'border-box',
-                      lineHeight: 1.65,
-                      fontFamily: 'Google Sans, sans-serif',
-                      fontSize: '16px',
-                      fontWeight: 500,
-                      background: isUser
-                        ? `rgba(168, 85, 247, 0.08)`
-                        : 'transparent',
-                      color: isUser ? '#ffffff' : 'inherit',
-                      border: isUser ? '1px solid rgba(168, 85, 247, 0.15)' : 'none',
-                      boxShadow: isUser
-                        ? 'none'
-                        : 'none',
-                      backdropFilter: isUser ? 'blur(4px)' : 'none',
-                      overflow: isUser ? 'hidden' : 'visible',
-                      textShadow: isUser ? 'none' : 'none',
-                      transform: isUser ? 'translateZ(0)' : 'none',
-                      alignSelf: isUser ? 'flex-end' : 'flex-start',
-                      marginRight: isUser ? '18px' : '0'
-                    }}
-                    className={isUser ? 'user-message-bubble' : ''}
-                  >
-                    {isUser ? (
-                      <>
-                        {message.attachments && message.attachments.length > 0 && (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '8px' }}>
-                            {message.attachments.map((file, idx) => (
-                              file.downloadURL ? (
-                                <a
-                                  key={`${file.storagePath || file.name}-${idx}`}
-                                  href={file.downloadURL}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    padding: '6px 10px',
-                                    borderRadius: '999px',
-                                    background: 'rgba(255,255,255,0.12)',
-                                    color: '#f8fafc',
-                                    fontSize: '13px',
-                                    textDecoration: 'none',
-                                    border: '1px solid rgba(255,255,255,0.18)'
-                                  }}
-                                >
-                                  📎 {file.name}
-                                </a>
-                              ) : (
-                                <div
-                                  key={`${file.storagePath || file.name}-${idx}`}
-                                  style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    padding: '6px 10px',
-                                    borderRadius: '999px',
-                                    background: 'rgba(255,255,255,0.08)',
-                                    color: '#e2e8f0',
-                                    fontSize: '13px',
-                                    border: '1px dashed rgba(255,255,255,0.2)'
-                                  }}
-                                >
-                                  📎 {file.name} <span style={{ opacity: 0.8 }}>Uploading...</span>
-                                </div>
-                              )
-                            ))}
-                          </div>
-                        )}
-                        <p className="whitespace-pre-wrap assistant-paragraph">
-                          {renderMessageContent(message.content)}
-                        </p>
-                      </>
-                    ) : (
-                      <div className="assistant-message">
-                        {message.attachments && message.attachments.length > 0 && (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
-                            {message.attachments.map((file, idx) => (
-                              file.downloadURL ? (
-                                <a
-                                  key={`${file.storagePath || file.name}-${idx}`}
-                                  href={file.downloadURL}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    padding: '6px 10px',
-                                    borderRadius: '999px',
-                                    background: 'rgba(255,255,255,0.12)',
-                                    color: '#f8fafc',
-                                    fontSize: '13px',
-                                    textDecoration: 'none',
-                                    border: '1px solid rgba(255,255,255,0.18)'
-                                  }}
-                                >
-                                  📎 {file.name}
-                                </a>
-                              ) : (
-                                <div
-                                  key={`${file.storagePath || file.name}-${idx}`}
-                                  style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    padding: '6px 10px',
-                                    borderRadius: '999px',
-                                    background: 'rgba(255,255,255,0.08)',
-                                    color: '#e2e8f0',
-                                    fontSize: '13px',
-                                    border: '1px dashed rgba(255,255,255,0.2)'
-                                  }}
-                                >
-                                  📎 {file.name} <span style={{ opacity: 0.8 }}>Uploading...</span>
-                                </div>
-                              )
-                            ))}
-                          </div>
-                        )}
-                        {(() => {
-                          const sections = parseAssistantResponse(message.content, !message.isTyping)
-                          const sources = message.metadata?.sources
-                          return (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                              {sections.map((section, sectionIndex) => (
-                                <Fragment key={`section-${sectionIndex}`}>
-                                  <div className="assistant-section">
-                                    {section.heading && (
-                                      <p className="assistant-heading whitespace-pre-wrap">
-                                        {renderMessageContent(section.heading, sources)}
-                                      </p>
-                                    )}
-                                    {(() => {
-                                      const elements: JSX.Element[] = []
-                                      let listBuffer: Array<{ line: ParsedLine; lineIndex: number }> = []
-
-                                      const flushList = () => {
-                                        if (!listBuffer.length) return
-                                        const first = listBuffer[0]
-                                        elements.push(
-                                          <ul key={`section-${sectionIndex}-list-${first.lineIndex}`} className="assistant-list">
-                                            {listBuffer.map(({ line, lineIndex }) => (
-                                              <li key={`section-${sectionIndex}-li-${lineIndex}`} className="assistant-list-item whitespace-pre-wrap">
-                                                {renderMessageContent(line.text, sources)}
-                                              </li>
-                                            ))}
-                                          </ul>
-                                        )
-                                        listBuffer = []
-                                      }
-
-                                      section.lines.forEach((line, lineIndex) => {
-                                        if (!line.text.trim()) return
-                                        if (line.kind === 'bullet') {
-                                          listBuffer.push({ line, lineIndex })
-                                          return
-                                        }
-
-                                        flushList()
-                                        if (line.kind === 'divider') {
-                                          elements.push(
-                                            <div key={`section-${sectionIndex}-div-${lineIndex}`} aria-hidden="true" className="assistant-divider" />
-                                          )
-                                        } else if (line.kind === 'summary') {
-                                          elements.push(
-                                            <p key={`section-${sectionIndex}-sum-${lineIndex}`} className="assistant-summary whitespace-pre-wrap">
-                                              {renderMessageContent(line.text, sources)}
-                                            </p>
-                                          )
-                                        } else if (line.kind === 'subheading') {
-                                          elements.push(
-                                            <p key={`section-${sectionIndex}-sh-${lineIndex}`} className="assistant-subheading whitespace-pre-wrap">
-                                              {renderMessageContent(line.text, sources)}
-                                            </p>
-                                          )
-                                        } else {
-                                          elements.push(
-                                            <p key={`section-${sectionIndex}-p-${lineIndex}`} className="assistant-paragraph whitespace-pre-wrap">
-                                              {renderMessageContent(line.text, sources)}
-                                            </p>
-                                          )
-                                        }
-                                      })
-
-                                      flushList()
-                                      return elements
-                                    })()}
-                                  </div>
-                                </Fragment>
-                              ))}
-                              {Array.isArray(sources) && sources.length > 0 && (
-                                <div
-                                  style={{
-                                    marginTop: '4px',
-                                    padding: '10px 12px',
-                                    borderRadius: '12px',
-                                    border: '1px solid rgba(255,255,255,0.12)',
-                                    background: 'rgba(15,23,42,0.35)',
-                                    display: 'flex',
-                                    flexWrap: 'wrap',
-                                    gap: '8px',
-                                    alignItems: 'center'
-                                  }}
-                                >
-                                  <span style={{ fontSize: '12px', color: 'rgba(226,232,240,0.8)', fontWeight: 600 }}>
-                                    Sources
-                                  </span>
-                                  {sources.map((source) => (
-                                    <a
-                                      key={`source-${source.number}-${source.url}`}
-                                      href={source.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      style={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                        padding: '4px 8px',
-                                        borderRadius: '999px',
-                                        background: 'rgba(59,130,246,0.18)',
-                                        color: '#bfdbfe',
-                                        fontSize: '12px',
-                                        fontWeight: 600,
-                                        textDecoration: 'none',
-                                        border: '1px solid rgba(59,130,246,0.35)'
-                                      }}
-                                      title={source.title}
-                                    >
-                                      [{source.number}]
-                                    </a>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          )
-                        })()}
-                      </div>
-                    )}
-
-                  </div>
-                  {/* Show feedback/copy/regenerate buttons only under assistant (bot) messages */}
-                  {!isUser && message.content && (
-                    <div className="user-copy-button" style={{ display: 'flex', gap: '10px', marginTop: '8px', alignItems: 'center', justifyContent: 'flex-start', marginLeft: '12px' }}>
-                      {/* Copy button */}
-                      <button
-                        onClick={() => handleCopy(formatAssistantResponse(message.content))}
-                        className="assistant-action-button"
-                        style={{
-                          background: 'transparent',
-                          border: '1.2px solid rgba(255,255,255,0.3)',
-                          color: 'rgba(255,255,255,0.8)',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          padding: '4px 8px',
-                          borderRadius: '6px',
-                          transition: 'all 0.2s',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}
-                        title="Copy"
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                      </button>
-
-                      {/* Regenerate button */}
-                      <button
-                        onClick={() => handleRegenerate(index)}
-                        className="assistant-action-button"
-                        style={{
-                          background: 'transparent',
-                          border: '1.2px solid rgba(255,255,255,0.3)',
-                          color: 'rgba(255,255,255,0.8)',
-                          cursor: 'pointer',
-                          fontSize: '16px',
-                          padding: '4px 8px',
-                          borderRadius: '6px',
-                          transition: 'all 0.2s',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}
-                        title="Regenerate"
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="23 4 23 10 17 10"></polyline>
-                          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                        </svg>
-                      </button>
-
-                      {/* Like button */}
-                      <button
-                        onClick={() => handleFeedback(index, 'like', message.content)}
-                        className="assistant-action-button"
-                        style={{
-                          background: 'transparent',
-                          border: feedbackState[index] === 'like' ? '1.2px solid #22c55e' : '1.2px solid rgba(255,255,255,0.3)',
-                          color: feedbackState[index] === 'like' ? '#22c55e' : 'rgba(255,255,255,0.8)',
-                          cursor: 'pointer',
-                          fontSize: '16px',
-                          padding: '4px 8px',
-                          borderRadius: '6px',
-                          transition: 'all 0.2s',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}
-                        title="Like"
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-                        </svg>
-                      </button>
-
-                      {/* Dislike button */}
-                      <button
-                        onClick={() => handleFeedback(index, 'dislike', message.content)}
-                        className="assistant-action-button"
-                        style={{
-                          background: 'transparent',
-                          border: feedbackState[index] === 'dislike' ? '1.2px solid #ef4444' : '1.2px solid rgba(255,255,255,0.3)',
-                          color: feedbackState[index] === 'dislike' ? '#ef4444' : 'rgba(255,255,255,0.8)',
-                          cursor: 'pointer',
-                          fontSize: '16px',
-                          padding: '4px 8px',
-                          borderRadius: '6px',
-                          transition: 'all 0.2s',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}
-                        title="Dislike"
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
-                        </svg>
-                      </button>
-
-                      {/* Report button */}
-                      <button
-                        onClick={() => handleFeedback(index, 'report', message.content)}
-                        className="assistant-action-button"
-                        style={{
-                          background: 'transparent',
-                          border: '1.2px solid rgba(255,255,255,0.3)',
-                          color: 'rgba(255,255,255,0.8)',
-                          cursor: 'pointer',
-                          fontSize: '16px',
-                          padding: '4px 8px',
-                          borderRadius: '6px',
-                          transition: 'all 0.2s',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}
-                        title="Report"
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
-                          <line x1="4" y1="22" x2="4" y2="15"></line>
-                        </svg>
-                      </button>
-                    </div>
-                  )}
-                  
-                  {!isUser && isDraftPromptVisible && draftKey && (
-                    <div
-                      style={{
-                        marginTop: '14px',
-                        width: '100%',
-                        maxWidth: '700px',
-                        background: 'rgba(15,23,42,0.65)',
-                        border: '1px solid rgba(148,163,184,0.3)',
-                        borderRadius: '18px',
-                        padding: '18px',
-                        color: '#e2e8f0',
-                        boxShadow: '0 8px 24px rgba(15,15,35,0.25)'
-                      }}
-                    >
-                      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                        <div
-                          style={{
-                            width: '36px',
-                            height: '36px',
-                            borderRadius: '50%',
-                            background: 'rgba(139,92,246,0.18)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '16px'
-                          }}
-                        >
-                          📝
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <p style={{ fontFamily: 'Google Sans, sans-serif', fontSize: '16px', fontWeight: 500, margin: 0 }}>
-                            Save this draft to MyFiles
-                          </p>
-                          <p style={{ fontSize: '16px', color: '#cbd5f5', marginTop: '4px', marginBottom: '8px' }}>
-                            Keep this document in your case files so you can edit, export, or print it later.
-                          </p>
-                        </div>
-                      </div>
-                      {draftError && (
-                        <p style={{ color: '#f87171', fontSize: '13px', marginTop: '12px' }}>{draftError}</p>
-                      )}
-                      {!supabaseUser && draftState !== 'saved' && (
-                        <p style={{ color: '#fbbf24', fontSize: '13px', marginTop: '12px' }}>
-                          Sign in to keep drafts synced across your devices.
-                        </p>
-                      )}
-                      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '14px' }}>
-                        <button
-                          type="button"
-                          onClick={() => handleDraftSave(draftKey, message.content, message.metadata?.activeCaseId as string | undefined)}
-                          disabled={isDraftSaving || isDraftSaved}
-                          style={{
-                            padding: '10px 18px',
-                            borderRadius: '999px',
-                            border: 'none',
-                            background: isDraftSaved ? '#22c55e' : '#8b5cf6',
-                            color: '#fff',
-                            fontWeight: 600,
-                            cursor: isDraftSaving || isDraftSaved ? 'default' : 'pointer',
-                            opacity: isDraftSaving ? 0.8 : 1,
-                            transition: 'all 0.2s'
-                          }}
-                        >
-                          {isDraftSaved ? 'Saved to MyFiles' : isDraftSaving ? 'Saving…' : 'Save draft to MyFiles'}
-                        </button>
-                        {!isDraftSaved && (
-                          <button
-                            type="button"
-                            onClick={() => setDraftPromptStates(prev => ({ ...prev, [draftKey]: { status: 'dismissed' } }))}
-                            style={{
-                              padding: '10px 16px',
-                              borderRadius: '999px',
-                              border: '1px solid rgba(148,163,184,0.5)',
-                              background: 'transparent',
-                              color: '#e2e8f0',
-                              fontWeight: 500,
-                              cursor: 'pointer'
-                            }}
-                          >
-                            Not now
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-
-            {loading && (
-              <div style={{ margin: '10px 0 6px', display: 'flex', justifyContent: 'flex-start', marginLeft: '8px' }}>
-                <TypingIndicator label={(loadingLabel || 'Working').replace(/\.+$/, '')} compact />
-              </div>
-            )}
-
-            {!autoScroll && (
-              <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    scrollToBottom('smooth')
-                    setAutoScroll(true)
-                    isNearBottomRef.current = true
-                  }}
-                  style={{
-                    padding: '8px 18px',
-                    borderRadius: '999px',
-                    border: '1px solid rgba(255,255,255,0.4)',
-                    background: 'rgba(255,255,255,0.12)',
-                    color: '#ffffff',
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Jump to latest messages
-                </button>
-              </div>
-            )}
-              <div ref={messagesEndRef} />
+            <ChatMessageList
+              messages={messages}
+              feedbackState={feedbackState}
+              draftPromptStates={draftPromptStates}
+              hasSupabaseUser={Boolean(supabaseUser)}
+              parseAssistantResponse={parseAssistantResponse}
+              renderMessageContent={renderMessageContent}
+              buildDraftKey={buildDraftKey}
+              onDraftSave={(key, content, caseIdValue) => {
+                void handleDraftSave(key, content, caseIdValue)
+              }}
+              onDismissDraftPrompt={handleDismissDraftPrompt}
+              onCopyMessage={handleCopy}
+              formatAssistantResponse={formatAssistantResponse}
+              onRegenerate={(messageIndex) => {
+                void handleRegenerate(messageIndex)
+              }}
+              onFeedback={(messageIndex, type, content) => {
+                void handleFeedback(messageIndex, type, content)
+              }}
+              loading={loading}
+              loadingLabel={loadingLabel}
+              autoScroll={autoScroll}
+              onJumpToLatest={() => {
+                scrollToBottom('smooth')
+                setAutoScroll(true)
+                isNearBottomRef.current = true
+              }}
+              messagesEndRef={messagesEndRef}
+              TypingIndicatorComponent={TypingIndicator}
+            />
             </div>
           </div>
         </div>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0px', position: 'relative', alignItems: 'center' }}>
-          {showGuestSignupModal && (
-            <div
-              style={{
-                position: 'fixed',
-                inset: 0,
-                zIndex: 70,
-                background: 'linear-gradient(120deg, rgba(15,3,20,0.86), rgba(46,7,55,0.88))',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '24px'
-              }}
-              onClick={() => setShowGuestSignupModal(false)}
-            >
-              <div
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  width: '100%',
-                  maxWidth: '520px',
-                  background: 'rgba(20, 6, 26, 0.98)',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  borderRadius: '16px',
-                  padding: '28px',
-                  color: '#fff',
-                  boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
-                }}
-              >
-                <div style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '10px' }}>
-                  Sign up to attach documents
-                </div>
-                <div style={{ opacity: 0.85, lineHeight: 1.6, marginBottom: '20px' }}>
-                  File uploads are available to registered users. Create a free account to upload documents and keep them with your case.
-                </div>
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowGuestSignupModal(false)}
-                    style={{
-                      padding: '10px 16px',
-                      borderRadius: '10px',
-                      border: '1px solid rgba(255,255,255,0.18)',
-                      background: 'transparent',
-                      color: '#fff',
-                      fontWeight: 600,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Maybe later
-                  </button>
-                  <Link
-                    href="/auth/signin"
-                    style={{
-                      padding: '10px 16px',
-                      borderRadius: '10px',
-                      border: '1px solid rgba(255,255,255,0.18)',
-                      background: 'rgba(255,255,255,0.08)',
-                      color: '#fff',
-                      fontWeight: 700,
-                      textDecoration: 'none'
-                    }}
-                  >
-                    Sign in
-                  </Link>
-                  <Link
-                    href="/auth/signup"
-                    style={{
-                      padding: '10px 16px',
-                      borderRadius: '10px',
-                      background: '#8b5cf6',
-                      color: '#fff',
-                      fontWeight: 700,
-                      textDecoration: 'none'
-                    }}
-                  >
-                    Create free account
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
-          {showLimitModal && (
-            <div
-              style={{
-                position: 'fixed',
-                inset: 0,
-                zIndex: 60,
-                background: 'linear-gradient(120deg, rgba(15,3,20,0.86), rgba(46,7,55,0.88))',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '24px'
-              }}
-            >
-              <div
-                style={{
-                  width: '100%',
-                  maxWidth: '700px',
-                  borderRadius: '28px',
-                  padding: '36px',
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.9))',
-                  boxShadow: '0 24px 60px rgba(0,0,0,0.35)',
-                  border: '1px solid rgba(255,255,255,0.6)',
-                  color: '#1a1a1a'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-                  <div
-                    style={{
-                      width: '54px',
-                      height: '54px',
-                      borderRadius: '16px',
-                      background: '#4a4a4a',
-                      color: '#fff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '24px'
-                    }}
-                  >
-                    ⚡
-                  </div>
-                  <div>
-                    <p style={{ fontSize: '21px', fontWeight: 700, margin: 0 }}>Message limit reached</p>
-                    <p style={{ fontSize: '17px', margin: 0, color: '#6b7280' }}>
-                      Free plan 24-hour limit reached
-                    </p>
-                  </div>
-                </div>
-                <p style={{ fontFamily: 'Google Sans, sans-serif', fontSize: '17px', fontWeight: 500, lineHeight: 1.7, margin: '10px 0 20px' }}>
-                  You&apos;ve used {FREEMIUM_MESSAGE_LIMIT} messages in the last 24 hours. The limit resets on a rolling basis. Upgrade to continue,
-                  or start a new case to keep working.
-                </p>
-                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowLimitModal(false)}
-                    style={{
-                      padding: '10px 16px',
-                      borderRadius: '999px',
-                      border: '1px solid rgba(0,0,0,0.1)',
-                      background: '#f3f4f6',
-                      fontWeight: 600,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Close
-                  </button>
-                  <a
-                    href="/pricing"
-                    style={{
-                      padding: '10px 18px',
-                      borderRadius: '999px',
-                      background: '#4a4a4a',
-                      color: '#fff',
-                      fontWeight: 700,
-                      textDecoration: 'none'
-                    }}
-                  >
-                    Upgrade
-                  </a>
-                </div>
-              </div>
-            </div>
-          )}
-          <div
-            style={{
-              position: 'fixed',
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  width: '100%',
-                  padding: '0 24px 12px 24px',
-                  pointerEvents: 'auto',
-                  zIndex: 50,
-                  background: 'transparent',
-            }}
-          >
-            <div style={{ width: '100%', maxWidth: '760px', margin: '0 auto', position: 'relative', pointerEvents: 'auto', display: 'flex', justifyContent: 'center' }}>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0', width: '100%', alignItems: 'center' }}>
-              {isNearLimit && (
-                <div
-                  style={{
-                    marginBottom: '10px',
-                    padding: '10px 16px',
-                    borderRadius: '999px',
-                    background: 'rgba(250, 204, 21, 0.15)',
-                    border: '1px solid rgba(250, 204, 21, 0.45)',
-                    color: '#fbbf24',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    textAlign: 'center'
-                  }}
-                >
-                  {remainingMessages} messages left in your 24-hour window.
-                </div>
-              )}
-              {/* Chatbar container with rounded corners and padding */}
-              <div
-                style={{
-                  width: '100%',
-                  maxWidth: '700px',
-                  margin: '0 auto',
-                  borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #2a0726 0%, #4b1b4f 60%, rgba(43,11,42,0.95) 100%)',
-                  backdropFilter: 'blur(6px)',
-                  WebkitBackdropFilter: 'blur(6px)',
-                  border: '1px solid rgba(236,72,153,0.18)',
-                  boxShadow: '0 10px 30px rgba(25,6,30,0.6), inset 0 1px 0 rgba(255,255,255,0.02)',
-                  padding: '12px 16px',
-                  transition: 'background 0.25s, box-shadow 0.25s, transform 0.15s',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  overflow: 'hidden'
-                }}
-              >
-                {/* Attached files preview */}
-                {attachedFiles.length > 0 && (
-                  <div style={{ marginBottom: '12px', width: '100%' }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'flex-start' }}>
-                      {attachedFiles.map((file, index) => (
-                        <div
-                          key={index}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            padding: '6px 12px',
-                            background: '#ffffff',
-                            border: '1px solid rgba(255,255,255,0.85)',
-                            boxShadow: '0 6px 16px rgba(0,0,0,0.18)',
-                            borderRadius: '8px',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            color: '#1a1a1a'
-                          }}
-                        >
-                          <span>📎 {file.name}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveFile(index)}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              cursor: 'pointer',
-                              fontSize: '16px',
-                              color: '#ef4444',
-                              padding: '0',
-                              lineHeight: 1
-                            }}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {guestUploadWarning && (
-                  <p style={{ color: '#dc2626', fontSize: '13px', margin: '0 0 12px' }}>
-                    {guestUploadWarning}
-                  </p>
-                )}
-                {/* Textarea with auto-expand */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px', paddingTop: '0px', width: '100%', justifyContent: 'flex-start' }}>
-                  <textarea
-                    ref={textareaRef}
-                    value={input}
-                    onChange={(e) => {
-                      const text = e.target.value
-                      const words = text.trim().split(/\s+/).filter(word => word.length > 0)
-                      const count = words.length
-                      if (count > 600) {
-                        const truncated = words.slice(0, 600).join(' ')
-                        setInput(truncated)
-                        setShowWordLimitWarning(true)
-                        return
-                      }
-                      setShowWordLimitWarning(false)
-                      setInput(text)
-                      
-                      // Auto-expand textarea
-                      if (textareaRef.current) {
-                        textareaRef.current.style.height = 'auto'
-                        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      const canSubmit = input.trim().length > 0 || attachedFiles.length > 0
-                      if (e.key === 'Enter' && !e.shiftKey && !loading && canSubmit && !isGuestLimitReached) {
-                        e.preventDefault()
-                        handleSubmit()
-                      }
-                    }}
-                    placeholder="Talk about your issue, ask for explanations, or request procedural guidance..."
-                    disabled={loading || isGuestLimitReached}
-                    style={{
-                      flex: 1,
-                      border: 'none',
-                      background: 'transparent',
-                      fontFamily: 'Google Sans, sans-serif',
-                      fontSize: '16px',
-                      fontWeight: 500,
-                      color: '#F3F1FA',
-                      outline: 'none',
-                      resize: 'none',
-                      overflow: 'auto',
-                      minHeight: '40px',
-                      maxHeight: '200px',
-                      lineHeight: '1.3',
-                      padding: '4px 0',
-                      verticalAlign: 'top'
-                    }}
-                    className="custom-placeholder auto-expand-textarea"
-                  />
-                  <style jsx>{`
-                    .custom-placeholder::placeholder {
-                      color: #A39BC6;
-                      opacity: 1;
-                      font-size: 16px;
-                    }
-                    .auto-expand-textarea {
-                      overflow-y: auto !important;
-                      scrollbar-width: none; /* Firefox */
-                      -ms-overflow-style: none; /* IE 10+ */
-                    }
-                    .auto-expand-textarea::-webkit-scrollbar {
-                      display: none; /* Chrome, Safari, Opera */
-                    }
-                  `}</style>
-                </div>
+          <ChatComposer
+            onSubmit={handleSubmit}
+            showGuestSignupModal={showGuestSignupModal}
+            onCloseGuestSignupModal={() => setShowGuestSignupModal(false)}
+            showLimitModal={showLimitModal}
+            onCloseLimitModal={() => setShowLimitModal(false)}
+            freemiumMessageLimit={FREEMIUM_MESSAGE_LIMIT}
+            isNearLimit={isNearLimit}
+            remainingMessages={remainingMessages}
+            attachedFiles={attachedFiles}
+            onRemoveFile={handleRemoveFile}
+            guestUploadWarning={guestUploadWarning}
+            textareaRef={textareaRef}
+            input={input}
+            onInputChange={handleInputChange}
+            onInputKeyDown={handleInputKeyDown}
+            loading={loading}
+            isGuestLimitReached={isGuestLimitReached}
+            fileInputRef={fileInputRef}
+            onFileChange={handleFileChange}
+            onAttachClick={handleAttachClick}
+            hasSupabaseUser={Boolean(supabaseUser)}
+            onStopGeneration={handleStopGeneration}
+            canSubmit={input.trim().length > 0 || attachedFiles.length > 0}
+            showWordLimitWarning={showWordLimitWarning}
+          />
 
-                {/* Divider removed to blend chatbar with page */}
-
-                {/* Chatbar buttons row with attach button absolutely positioned bottom left */}
-                <div style={{ position: 'relative', width: '100%' }}>
-                  {/* Attach button absolutely positioned bottom left */}
-                  {/* Attach button moved to the right-side controls (renders next to Send) */}
-                  {/* Other buttons row, right aligned */}
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'flex-end', flex: 1 }}>
-                    {/* File input + attach button (left of send) */}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      multiple
-                      accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-                      onChange={handleFileChange}
-                      style={{ display: 'none' }}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAttachClick}
-                      aria-label="Add attachment"
-                      className="attach-btn"
-                      style={{
-                          width: '28px',
-                          height: '28px',
-                          borderRadius: '50%',
-                          background: '#3b1f44',
-                          color: '#F3F1FA',
-                          border: '1px solid rgba(236,72,153,0.12)',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '12px',
-                          cursor: supabaseUser ? 'pointer' : 'not-allowed',
-                          flexShrink: 0,
-                          lineHeight: 0,
-                          transition: 'all 0.2s ease',
-                          opacity: supabaseUser ? 1 : 0.5
-                        }}
-                      disabled={!supabaseUser}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path
-                          d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
-                          stroke="#F3F1FA"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
-                    <style jsx>{`
-                      .attach-btn:hover {
-                        background: #5b2f6b;
-                        border-color: rgba(236,72,153,0.22);
-                        box-shadow: 0 2px 8px rgba(92,40,110,0.22);
-                        color: #fff;
-                      }
-                    `}</style>
-
-                    {loading ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (typingIntervalRef.current) {
-                            clearInterval(typingIntervalRef.current)
-                            typingIntervalRef.current = null
-                          }
-                          // Mark the last message as no longer typing
-                          setMessages(prev => {
-                            const updated = [...prev]
-                            const lastIndex = updated.length - 1
-                            if (lastIndex >= 0 && updated[lastIndex].role === 'assistant') {
-                              updated[lastIndex] = {
-                                ...updated[lastIndex],
-                                isTyping: false
-                              }
-                            }
-                            return updated
-                          })
-                          setLoading(false)
-                          setLoadingLabel(null)
-                        }}
-                        aria-label="Stop generation"
-                        style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '50%',
-                            background: '#8b5a8c',
-                            color: '#F3F1FA',
-                            border: '1px solid rgba(236,72,153,0.18)',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '16px',
-                            cursor: 'pointer',
-                            flexShrink: 0,
-                            lineHeight: 0,
-                            transition: 'all 0.2s ease'
-                          }}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <rect x="6" y="6" width="12" height="12" rx="2" fill="#F3F1FA" />
-                        </svg>
-                      </button>
-                    ) : (
-                      <button
-                        type="submit"
-                        aria-label="Send message"
-                        disabled={!(input.trim().length > 0 || attachedFiles.length > 0) || isGuestLimitReached}
-                          style={{
-                          width: '28px',
-                          height: '28px',
-                          borderRadius: '50%',
-                          background: '#6b3a84',
-                          color: '#F3F1FA',
-                          border: '1px solid rgba(236,72,153,0.18)',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '16px',
-                          cursor: (input.trim().length > 0 || attachedFiles.length > 0) && !isGuestLimitReached ? 'pointer' : 'not-allowed',
-                          flexShrink: 0,
-                          lineHeight: 0,
-                          transition: 'all 0.2s ease',
-                          opacity: (input.trim().length > 0 || attachedFiles.length > 0) && !isGuestLimitReached ? 1 : 0.5
-                        }}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path
-                            d="M4 12h16m-7-7l7 7-7 7"
-                            stroke="#F3F1FA"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  width: '100%',
-                  maxWidth: '700px',
-                  margin: '10px auto 0',
-                  textAlign: 'center',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  color: 'rgba(255,255,255,0.78)',
-                  lineHeight: 1.4,
-                }}
-              >
-                Informational support only — MyMcKenzie Assistant is not a substitute for legal advice.
-              </div>
-
-              {/* Word limit warning */}
-              {showWordLimitWarning && (
-                <div style={{ textAlign: 'center', marginTop: '12px' }}>
-                  <p style={{ 
-                    fontSize: '16px', 
-                    color: '#ff4444',
-                    fontWeight: '600',
-                    margin: 0
-                  }}>
-                    ⚠️ You have reached the word limit (600 words maximum)
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-
-
-          <div style={{ height: '2px' }} />
-        </div>
-        </form>
-
-        {/* Report Modal */}
-        {showReportModal && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.7)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px'
-          }}>
-            <div style={{
-              background: '#1a1a1a',
-              borderRadius: '16px',
-              padding: '32px',
-              maxWidth: '500px',
-              width: '100%',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.8)',
-              border: '1px solid rgba(255,255,255,0.1)'
-            }}>
-              <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', color: '#ffffff' }}>
-                Report Issue
-              </h2>
-              <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.8)', marginBottom: '24px' }}>
-                Help us improve by describing the issue with this response
-              </p>
-
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '16px', fontWeight: '600', marginBottom: '8px', color: '#ffffff' }}>
-                  What&apos;s the issue? *
-                </label>
-                <input
-                  type="text"
-                  value={reportIssue}
-                  onChange={(e) => setReportIssue(e.target.value)}
-                  placeholder="e.g., Incorrect information, Unhelpful response..."
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    fontSize: '16px',
-                    background: 'rgba(255,255,255,0.9)',
-                    color: '#1a1a1a',
-                    outline: 'none'
-                  }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', fontSize: '16px', fontWeight: '600', marginBottom: '8px', color: '#ffffff' }}>
-                  Describe the problem *
-                </label>
-                <textarea
-                  value={reportProblem}
-                  onChange={(e) => setReportProblem(e.target.value)}
-                  placeholder="Please provide details about what went wrong..."
-                  rows={4}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    fontSize: '16px',
-                    background: 'rgba(255,255,255,0.9)',
-                    color: '#1a1a1a',
-                    outline: 'none',
-                    resize: 'vertical',
-                    fontFamily: 'inherit'
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                <button
-                  onClick={() => {
-                    setShowReportModal(false)
-                    setReportIssue('')
-                    setReportProblem('')
-                    setReportingMessageIndex(null)
-                    setReportingMessageContent('')
-                  }}
-                  style={{
-                    padding: '10px 20px',
-                    borderRadius: '8px',
-                    border: '2px solid rgba(255,255,255,0.5)',
-                    background: 'transparent',
-                    color: '#ffffff',
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSubmitReport}
-                  style={{
-                    padding: '10px 20px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: '#ffffff',
-                    color: '#1a1a1a',
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  Submit Report
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ReportIssueModal
+          isOpen={showReportModal}
+          issue={reportIssue}
+          problem={reportProblem}
+          onIssueChange={setReportIssue}
+          onProblemChange={setReportProblem}
+          onCancel={handleCloseReportModal}
+          onSubmit={handleSubmitReport}
+        />
+        <NoticeModal notice={noticeModal} onClose={() => setNoticeModal(null)} />
         </div>
       </div>
     </>

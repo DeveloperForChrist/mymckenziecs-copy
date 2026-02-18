@@ -3,17 +3,16 @@ import { stripe } from '@/lib/payments/stripe';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { PLAN_PRICES } from '@/constants';
-import { sendResendEmail } from '@/lib/email/resend';
 
 function normalizePlanTypeFromPrice(priceId?: string | null): string {
-  if (!priceId) return 'free';
+  if (!priceId) return 'Free';
   const match = PLAN_PRICES.find((plan) => plan.priceId === priceId);
   const name = (match?.name || '').toLowerCase();
-  if (name.includes('premium cheap')) return 'premium cheap';
-  if (name.includes('plus')) return 'premium pro';
-  if (name.includes('essential')) return 'premium';
-  if (name.includes('standard')) return 'standard';
-  return 'free';
+  if (name.includes('premium cheap')) return 'Premium Cheap';
+  if (name.includes('plus') || name.includes('premium pro')) return 'Plus';
+  if (name.includes('essential') || name.includes('premium')) return 'Essential';
+  if (name.includes('standard')) return 'Standard';
+  return 'Free';
 }
 
 function normalizeSubscriptionStatus(status?: string | null): string {
@@ -24,14 +23,12 @@ function normalizeSubscriptionStatus(status?: string | null): string {
 
 function isPaidSubscriptionStatus(status?: string | null): boolean {
   const normalized = normalizeSubscriptionStatus(status);
-  return normalized === 'active' || normalized === 'past_due' || normalized === 'trialing';
+  return normalized === 'active' || normalized === 'past_due';
 }
 
 async function upsertSubscriptionForUser(
   userId: string,
-  userEmail: string | null | undefined,
-  subscription: any,
-  checkoutEmail?: string | null
+  subscription: any
 ) {
   const customerId =
     typeof subscription.customer === 'string'
@@ -92,27 +89,6 @@ async function upsertSubscriptionForUser(
     (existing.plan_type || '').toLowerCase() !== planType ||
     (existing.status || '').toLowerCase() !== status;
 
-  const recipientEmail = userEmail || checkoutEmail || null;
-  if (planChanged && recipientEmail && isPaidSubscriptionStatus(status)) {
-    try {
-      await sendResendEmail({
-        to: recipientEmail,
-        subject: 'Your MymckenzieCS plan is now active',
-        htmlBody: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #4c1d95;">Plan activated</h2>
-            <p>Hi${recipientEmail ? ` ${recipientEmail}` : ''},</p>
-            <p>Your paid plan is now active in MymckenzieCS.</p>
-            <p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MymckenzieCS</p>
-          </div>
-        `,
-        tag: 'billing-plan-activated',
-      });
-    } catch (emailError) {
-      console.error('Checkout sync: failed to send activation email', emailError);
-    }
-  }
-
   return { planType, status };
 }
 
@@ -158,7 +134,7 @@ export async function POST(request: NextRequest) {
           ? await stripe.subscriptions.retrieve(subscriptionId)
           : session.subscription;
 
-      const result = await upsertSubscriptionForUser(userId, userEmail, subscription, checkoutEmail);
+      const result = await upsertSubscriptionForUser(userId, subscription);
       return NextResponse.json({ ok: true, ...result });
     }
 
@@ -187,7 +163,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, synced: false, reason: 'no-paid-subscription' });
     }
 
-    const result = await upsertSubscriptionForUser(userId, userEmail, paidSub, userEmail);
+    const result = await upsertSubscriptionForUser(userId, paidSub);
     return NextResponse.json({ ok: true, synced: true, ...result });
   } catch (error: any) {
     console.error('Checkout sync error:', error);

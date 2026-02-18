@@ -49,6 +49,7 @@ export default function DocumentsClient() {
   const [newFolderName, setNewFolderName] = useState('');
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{ kind: 'document' | 'folder'; id: string } | null>(null);
 
   const readApiJson = async (res: Response) => {
     const contentType = res.headers.get('content-type') || '';
@@ -207,7 +208,10 @@ export default function DocumentsClient() {
   };
 
   const deleteDocument = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this document?')) return;
+    setDeleteModal({ kind: 'document', id });
+  };
+
+  const confirmDeleteDocument = async (id: string) => {
     try {
       const res = await fetch(`/api/documents/${encodeURIComponent(id)}`, { method: 'DELETE', credentials: 'include' });
       const data: any = await readApiJson(res);
@@ -225,12 +229,14 @@ export default function DocumentsClient() {
 
   const deleteFolder = (folderId: string) => {
     if (caseFolders.some((folder) => folder.id === folderId)) return;
-    if (confirm('Are you sure you want to delete this folder?')) {
-      setCustomFolders(p => p.filter(f => f.id !== folderId));
-      if (activeFolder === folderId) {
-        setActiveFolder(null);
-        try { router.replace('/dashboard/documents'); } catch(e){}
-      }
+    setDeleteModal({ kind: 'folder', id: folderId });
+  };
+
+  const confirmDeleteFolder = (folderId: string) => {
+    setCustomFolders(p => p.filter(f => f.id !== folderId));
+    if (activeFolder === folderId) {
+      setActiveFolder(null);
+      try { router.replace('/dashboard/documents'); } catch(e){}
     }
   };
 
@@ -556,6 +562,45 @@ export default function DocumentsClient() {
         onClose={() => setShowFolderModal(false)}
         onCreate={handleCreateFolder}
       />
+
+      {deleteModal && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true">
+          <div className={styles.modalCard}>
+            <h3 className={styles.modalTitle}>
+              {deleteModal.kind === 'document' ? 'Delete this document?' : 'Delete this folder?'}
+            </h3>
+            <p className={styles.modalBody}>
+              {deleteModal.kind === 'document'
+                ? 'This action cannot be undone.'
+                : 'This will remove the folder. Documents remain available in All Documents.'}
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.modalButtonSecondary}
+                onClick={() => setDeleteModal(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={styles.modalButtonDanger}
+                onClick={() => {
+                  const target = deleteModal;
+                  setDeleteModal(null);
+                  if (target.kind === 'document') {
+                    void confirmDeleteDocument(target.id);
+                    return;
+                  }
+                  confirmDeleteFolder(target.id);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

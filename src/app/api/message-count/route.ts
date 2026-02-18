@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
+import { isPaidPlan } from '@/lib/plans/access';
 
 const GUEST_COOKIE_NAME = 'mm_guest_id';
 const GUEST_MESSAGE_LIMIT_24H = 5;
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
     if (conversationId) {
       // Only allow conversation/case level stats for authenticated users.
       if (!authUserId) {
-        return NextResponse.json({ count: 0 }, { status: 200 });
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
       const { count: c } = await supabaseAdmin
         .from('messages')
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
     } else if (caseId) {
       // Case-level count
       if (!authUserId) {
-        return NextResponse.json({ count: 0 }, { status: 200 });
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
       const { count: c } = await supabaseAdmin
         .from('messages')
@@ -53,18 +54,12 @@ export async function GET(request: NextRequest) {
         .from('subscriptions')
         .select('plan_type, status')
         .eq('user_id', authUserId)
-        .in('status', ['active', 'past_due', 'trialing'])
+        .in('status', ['active', 'past_due'])
         .order('updated_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      const planLabel = (activeSub?.plan_type || '').toString().toLowerCase();
-      const isPaid =
-        planLabel.includes('standard') ||
-        planLabel.includes('essential') ||
-        planLabel.includes('plus') ||
-        planLabel.includes('premium') ||
-        planLabel.includes('pro');
+      const isPaid = isPaidPlan(activeSub?.plan_type || '');
 
       if (!isPaid) {
         const { data: userRow } = await supabaseAdmin

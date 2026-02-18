@@ -2,6 +2,17 @@ import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 
+const hasMeaningfulCaseProfile = (row: Record<string, unknown> | null | undefined): boolean => {
+  if (!row) return false
+  const title = typeof row.title === 'string' ? row.title.trim() : ''
+  const externalId = typeof row.external_id === 'string' ? row.external_id.trim() : ''
+  const caseType = typeof row.case_type === 'string' ? row.case_type.trim() : ''
+  const description = typeof row.description === 'string' ? row.description.trim() : ''
+  const normalizedTitle = title.toLowerCase()
+  const hasTitle = Boolean(title) && normalizedTitle !== 'untitled case' && normalizedTitle !== 'case profile'
+  return hasTitle || Boolean(externalId) || Boolean(caseType) || Boolean(description)
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = await createSupabaseRouteClient()
@@ -17,12 +28,18 @@ export async function POST(request: Request) {
     const externalId = typeof caseId === 'string' ? caseId.trim() : null
     const nextTitle = typeof caseTitle === 'string' && caseTitle.trim()
       ? caseTitle.trim()
-      : (typeof caseDescription === 'string' ? caseDescription.slice(0, 80).trim() : 'Untitled case')
+      : (typeof caseDescription === 'string' && caseDescription.trim()
+        ? caseDescription.slice(0, 80).trim()
+        : 'Case profile')
     const nextCaseType = typeof caseType === 'string' && caseType.trim() ? caseType.trim() : null
     const nextDescription = typeof caseDescription === 'string' && caseDescription.trim() ? caseDescription.trim() : null
 
-    if (!nextTitle && !nextDescription) {
-      return NextResponse.json({ error: 'Missing caseTitle or caseDescription' }, { status: 400 })
+    const rawTitle = typeof caseTitle === 'string' ? caseTitle.trim() : ''
+    const rawDescription = typeof caseDescription === 'string' ? caseDescription.trim() : ''
+    const rawCaseType = typeof caseType === 'string' ? caseType.trim() : ''
+    const hasAnyInput = Boolean(rawTitle) || Boolean(rawDescription) || Boolean(rawCaseType) || Boolean(externalId)
+    if (!hasAnyInput) {
+      return NextResponse.json({ error: 'Fill at least one case profile field before saving.' }, { status: 400 })
     }
 
     let existingCase: { id: string } | null = null
@@ -109,14 +126,14 @@ export async function GET(request: Request) {
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
-      .limit(1);
+      .limit(10);
 
     if (error) {
       console.error('supabase query error', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const found = Array.isArray(data) && data.length > 0 ? data[0] : null;
+    const found = Array.isArray(data) ? data.find((row) => hasMeaningfulCaseProfile(row)) || null : null;
     return NextResponse.json({ ok: true, case: found });
   } catch (err: any) {
     console.error(err);
@@ -156,26 +173,17 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ ok: true, cleared: false })
     }
 
-    const { data: updated, error: updateError } = await supabaseAdmin
+    const { error: deleteError } = await supabaseAdmin
       .from('cases')
-      .update({
-        title: 'Untitled case',
-        case_type: null,
-        description: null,
-        external_id: null,
-        updated_at: new Date().toISOString(),
-      })
+      .delete()
       .eq('id', targetCaseId)
       .eq('user_id', userId)
-      .select()
-      .limit(1)
 
-    if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 })
+    if (deleteError) {
+      return NextResponse.json({ error: deleteError.message }, { status: 500 })
     }
 
-    const clearedCase = Array.isArray(updated) ? updated[0] : updated
-    return NextResponse.json({ ok: true, cleared: true, case: clearedCase })
+    return NextResponse.json({ ok: true, cleared: true })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Unknown error' }, { status: 500 })
   }

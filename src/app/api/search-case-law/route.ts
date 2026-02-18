@@ -7,6 +7,7 @@ import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { z } from 'zod';
 import { applyFilters, enrichResultsWithSupabase, enrichResultsWithUrlSummaries } from '@/lib/case-law/search-helpers';
 import { captureServerException } from '@/lib/monitoring/error-logger';
+import { hasCaseLawAccess } from '@/lib/plans/access';
 
 const caseLawRequestSchema = z.object({
   query: z.string(),
@@ -39,19 +40,12 @@ export async function POST(request: NextRequest) {
       .from('subscriptions')
       .select('plan_type, status')
       .eq('user_id', userId)
-      .in('status', ['active', 'past_due', 'trialing'])
+      .in('status', ['active', 'past_due'])
       .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    const planLabel = (activeSub?.plan_type || '').toString().toLowerCase();
-    const isPlus =
-      planLabel.includes('plus') ||
-      planLabel.includes('pro') ||
-      planLabel.includes('premium cheap');
-    const isEssential = planLabel.includes('essential') || planLabel.includes('premium');
-
-    if (!isPlus && !isEssential) {
+    if (!hasCaseLawAccess(activeSub?.plan_type || '')) {
       return NextResponse.json(
         { error: 'Case law search is available on Essential and Plus plans.' },
         { status: 403 }
@@ -122,11 +116,14 @@ export async function POST(request: NextRequest) {
       console.warn('Supabase enrichment failed:', e);
     }
 
-    // For results with a URL but missing summary, fetch and summarize (cache to Supabase)
-    try {
-      await enrichResultsWithUrlSummaries(vectorResults);
-    } catch (e) {
-      console.warn('URL summarization enrichment failed:', e);
+    // Optional heavy enrichment: fetch external URLs + summarize.
+    // Disabled by default for faster search response times.
+    if (process.env.CASELAW_URL_ENRICH === '1') {
+      try {
+        await enrichResultsWithUrlSummaries(vectorResults);
+      } catch (e) {
+        console.warn('URL summarization enrichment failed:', e);
+      }
     }
 
     const filteredResults = applyFilters(vectorResults, filters).slice(0, limit);

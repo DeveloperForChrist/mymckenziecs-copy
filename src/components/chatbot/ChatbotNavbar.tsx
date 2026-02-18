@@ -1,9 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import AppTopbar from '@/components/layout/AppTopbar'
+import ChatConversationHistory from '@/components/chatbot/ChatConversationHistory'
+import DeleteConversationModal from '@/components/chatbot/DeleteConversationModal'
 
 interface Conversation {
   id: string;
@@ -39,10 +41,22 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
   const [activeCaseId, setActiveCaseId] = useState<string | null>(null)
   const [uid, setUid] = useState<string | null>(null)
   const [sessionMessages, setSessionMessages] = useState<{ role: string; content: string; timestamp: string }[]>([])
+  const [deleteTargetConversationId, setDeleteTargetConversationId] = useState<string | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isDeletingConversation, setIsDeletingConversation] = useState(false)
+  const [deleteConversationError, setDeleteConversationError] = useState<string | null>(null)
+  const premiumThreadCountRef = useRef(0)
+  const premiumThreadCountCacheRef = useRef<Record<string, number>>({})
+  const currentConversationIdRef = useRef<string | null>(null)
+  useEffect(() => {
+    premiumThreadCountRef.current = premiumThreadMessageCount
+  }, [premiumThreadMessageCount])
+  useEffect(() => {
+    currentConversationIdRef.current = currentConversationId
+  }, [currentConversationId])
   // Fetch plan info on mount
     useEffect(() => {
-      // Fetch plan info
-      fetch('/api/user/plan')
+      fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' })
         .then(res => res.ok ? res.json() : null)
         .then(data => setPlanInfo(data))
         .catch(() => setPlanInfo(null));
@@ -98,7 +112,7 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
     const supabase = getSupabaseBrowserClient();
     let cancelled = false;
 
-    const loadPlan = async (accessToken: string | null, userId: string | null) => {
+    const loadPlan = async (userId: string | null) => {
       if (!userId) {
         setIsLoggedIn(false);
         setPlan('Free');
@@ -109,7 +123,8 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
       setIsLoggedIn(true);
       try {
         const response = await fetch('/api/user/plan', {
-          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined
+          credentials: 'include',
+          cache: 'no-store'
         });
         if (!response.ok) {
           throw new Error('Failed to fetch plan');
@@ -132,17 +147,19 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
     supabase.auth.getSession().then((res: any) => {
       if (cancelled) return;
       const session = res?.data?.session;
-      const accessToken = session?.access_token || null;
       const userId = session?.user?.id || null;
-      loadPlan(accessToken, userId);
+      loadPlan(userId);
     });
 
     const listener = supabase.auth.onAuthStateChange((...args: any[]) => {
       if (cancelled) return;
+      const authEvent = String(args[0] || '');
       const session = args[1];
-      const accessToken = session?.access_token || null;
       const userId = session?.user?.id || null;
-      loadPlan(accessToken, userId);
+      if (!userId && authEvent !== 'SIGNED_OUT') {
+        return;
+      }
+      loadPlan(userId);
     });
 
     return () => {
@@ -165,14 +182,45 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
   const shouldShowHistory = planLoaded && isLoggedIn && !isFreemiumPlan;
   const shouldShowSessionHistory = planLoaded && isLoggedIn && isFreemiumPlan;
 
-  const getUtcDayKey = () => {
+  const getUtcDayKey = useCallback(() => {
     const now = new Date();
     const y = now.getUTCFullYear();
     const m = String(now.getUTCMonth() + 1).padStart(2, '0');
     const d = String(now.getUTCDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
-  };
-  const buildFreemiumStorageKey = () => `freemiumMessageCount:${getUtcDayKey()}`;
+  }, []);
+  const buildFreemiumStorageKey = useCallback(
+    () => `freemiumMessageCount:${getUtcDayKey()}`,
+    [getUtcDayKey]
+  );
+  const buildPremiumThreadCountStorageKey = useCallback(
+    (conversationId: string) => `premiumThreadCount:${conversationId}`,
+    []
+  );
+  const readPersistedPremiumThreadCount = useCallback((conversationId: string): number | null => {
+    if (typeof window === 'undefined' || !conversationId) return null;
+    const raw = localStorage.getItem(buildPremiumThreadCountStorageKey(conversationId));
+    if (!raw) return null;
+    const parsed = Number.parseInt(raw, 10);
+    return Number.isNaN(parsed) ? null : Math.max(parsed, 0);
+  }, [buildPremiumThreadCountStorageKey]);
+  const writePersistedPremiumThreadCount = useCallback((conversationId: string, count: number) => {
+    if (typeof window === 'undefined' || !conversationId) return;
+    const bounded = Math.max(0, Math.min(count, threadMessageLimit));
+    localStorage.setItem(buildPremiumThreadCountStorageKey(conversationId), String(bounded));
+  }, [buildPremiumThreadCountStorageKey, threadMessageLimit]);
+  const readKnownPremiumThreadCount = useCallback((conversationId: string): number | null => {
+    if (!conversationId) return null;
+    const hasMemory = Object.prototype.hasOwnProperty.call(premiumThreadCountCacheRef.current, conversationId);
+    const memoryValue = hasMemory ? premiumThreadCountCacheRef.current[conversationId] : null;
+    const persistedValue = readPersistedPremiumThreadCount(conversationId);
+    if (typeof memoryValue === 'number' && typeof persistedValue === 'number') {
+      return Math.max(memoryValue, persistedValue);
+    }
+    if (typeof memoryValue === 'number') return memoryValue;
+    if (typeof persistedValue === 'number') return persistedValue;
+    return null;
+  }, [readPersistedPremiumThreadCount]);
 
   const updateFreemiumCounter = useCallback((countOverride?: number | null) => {
     if (typeof window === 'undefined') return;
@@ -187,7 +235,7 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
     const parsed = stored ? Number.parseInt(stored, 10) : 0;
     const safeValue = Number.isNaN(parsed) ? 0 : parsed;
     setFreemiumMessageCount(Math.min(Math.max(safeValue, 0), FREE_USER_MESSAGE_LIMIT_24H));
-  }, []);
+  }, [buildFreemiumStorageKey]);
 
   // On mount, restore counter from localStorage immediately (before API call)
   useEffect(() => {
@@ -198,7 +246,7 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
     const safeValue = Number.isNaN(parsed) ? 0 : parsed;
     // Restore immediately from localStorage (no 0 flash)
     setFreemiumMessageCount(Math.min(Math.max(safeValue, 0), FREE_USER_MESSAGE_LIMIT_24H));
-  }, []);
+  }, [buildFreemiumStorageKey]);
 
   useEffect(() => {
     updateFreemiumCounter();
@@ -272,7 +320,7 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
       if (!userId) return;
       localStorage.setItem('userId', userId);
       const params = new URLSearchParams({ userId });
-      fetch(`/api/message-count?${params.toString()}`)
+      fetch(`/api/message-count?${params.toString()}`, { cache: 'no-store' })
         .then((res) => res.ok ? res.json() : null)
         .then((data) => {
           if (typeof data?.count === 'number') {
@@ -285,37 +333,159 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
     fetchMessageCount();
   }, [planLoaded, isFreemiumPlan]);
 
-  // Fetch premium per-thread message count when conversation changes
-  useEffect(() => {
-    if (!planLoaded || isFreemiumPlan || !currentConversationId) return;
-    
-    const fetchPremiumThreadMessageCount = async () => {
-      try {
-        const response = await fetch(`/api/message-count?conversationId=${encodeURIComponent(currentConversationId)}`);
-        if (response.ok) {
-          const data = await response.json();
-          if (typeof data?.count === 'number') {
-            setPremiumThreadMessageCount(Math.min(data.count, threadMessageLimit));
+  const fetchPremiumThreadMessageCount = useCallback(async (
+    conversationIdOverride?: string | null,
+    options?: { minimumCount?: number }
+  ) => {
+    const targetConversationId = (conversationIdOverride || currentConversationId || '').trim();
+    if (!planLoaded || isFreemiumPlan || !targetConversationId) return;
+    try {
+      const response = await fetch(
+        `/api/message-count?conversationId=${encodeURIComponent(targetConversationId)}`,
+        { credentials: 'include', cache: 'no-store' }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (typeof data?.count === 'number') {
+          const boundedServerCount = Math.min(data.count, threadMessageLimit);
+          const cached = readKnownPremiumThreadCount(targetConversationId);
+          const providedMinimum =
+            typeof options?.minimumCount === 'number'
+              ? Math.min(Math.max(options.minimumCount, 0), threadMessageLimit)
+              : null;
+          const boundedMinimum = Math.max(cached ?? 0, providedMinimum ?? 0);
+          const resolvedCount = Math.max(boundedServerCount, boundedMinimum);
+          premiumThreadCountCacheRef.current[targetConversationId] = resolvedCount;
+          writePersistedPremiumThreadCount(targetConversationId, resolvedCount);
+          if ((currentConversationIdRef.current || '').trim() === targetConversationId) {
+            setPremiumThreadMessageCount(resolvedCount);
           }
         }
-      } catch (error) {
-        console.error('Failed to fetch premium thread message count:', error);
       }
+    } catch (error) {
+      console.error('Failed to fetch premium thread message count:', error);
+    }
+  }, [
+    planLoaded,
+    isFreemiumPlan,
+    currentConversationId,
+    threadMessageLimit,
+    readKnownPremiumThreadCount,
+    writePersistedPremiumThreadCount
+  ]);
+
+  // Fetch premium per-thread message count when conversation changes or plan state becomes ready.
+  useEffect(() => {
+    const targetConversationId = (currentConversationId || '').trim();
+    if (!targetConversationId) return;
+    const cached = readKnownPremiumThreadCount(targetConversationId);
+    if (cached !== null) {
+      setPremiumThreadMessageCount(Math.max(0, Math.min(cached, threadMessageLimit)));
+    }
+    void fetchPremiumThreadMessageCount(targetConversationId, {
+      minimumCount: cached ?? 0
+    });
+  }, [fetchPremiumThreadMessageCount, currentConversationId, threadMessageLimit, readKnownPremiumThreadCount]);
+
+  // Listen for explicit refresh signals from ChatInterface after sends/regenerations.
+  useEffect(() => {
+    const handleCounterRefresh = (event: Event) => {
+      const detail = (event as CustomEvent<{ conversationId?: string; delta?: number; count?: number }>).detail;
+      const nextConversationId = (detail?.conversationId || '').trim();
+      const delta = typeof detail?.delta === 'number' ? detail.delta : 0;
+      const absoluteCount = typeof detail?.count === 'number' ? detail.count : null;
+
+      if (absoluteCount !== null) {
+        const cacheKey = (nextConversationId || currentConversationId || '').trim();
+        const bounded = Math.max(0, Math.min(absoluteCount, threadMessageLimit));
+        const cached = cacheKey ? readKnownPremiumThreadCount(cacheKey) : null;
+        const resolved = Math.max(bounded, cached ?? 0);
+        if (nextConversationId) {
+          setCurrentConversationId(nextConversationId);
+        }
+        if (cacheKey) {
+          premiumThreadCountCacheRef.current[cacheKey] = resolved;
+          writePersistedPremiumThreadCount(cacheKey, resolved);
+        }
+        if (
+          !cacheKey ||
+          cacheKey === (currentConversationIdRef.current || '').trim() ||
+          cacheKey === nextConversationId
+        ) {
+          setPremiumThreadMessageCount(resolved);
+        }
+        return;
+      }
+
+      if (delta !== 0) {
+        const cacheKey = (nextConversationId || currentConversationId || '').trim();
+        if (!cacheKey) return;
+        const currentKey = (currentConversationIdRef.current || '').trim();
+        const baseline =
+          cacheKey === currentKey
+            ? premiumThreadCountRef.current
+            : (readKnownPremiumThreadCount(cacheKey) ?? 0);
+        const bounded = Math.max(0, Math.min(baseline + delta, threadMessageLimit));
+        premiumThreadCountCacheRef.current[cacheKey] = bounded;
+        writePersistedPremiumThreadCount(cacheKey, bounded);
+        setPremiumThreadMessageCount(bounded);
+        if (nextConversationId) {
+          setCurrentConversationId(nextConversationId);
+        }
+        return;
+      }
+
+      if (nextConversationId) {
+        setCurrentConversationId(nextConversationId);
+        const minimumCount = readKnownPremiumThreadCount(nextConversationId) ?? 0;
+        window.setTimeout(() => {
+          void fetchPremiumThreadMessageCount(nextConversationId, { minimumCount });
+        }, 450);
+        return;
+      }
+      void fetchPremiumThreadMessageCount();
     };
 
-    fetchPremiumThreadMessageCount();
-  }, [planLoaded, isFreemiumPlan, currentConversationId, threadMessageLimit]);
+    window.addEventListener('premiumThreadMessageCountChanged', handleCounterRefresh as EventListener);
+    return () => window.removeEventListener('premiumThreadMessageCountChanged', handleCounterRefresh as EventListener);
+  }, [
+    fetchPremiumThreadMessageCount,
+    currentConversationId,
+    readKnownPremiumThreadCount,
+    threadMessageLimit,
+    writePersistedPremiumThreadCount
+  ]);
 
   // Listen for conversation ID changes from ChatInterface
   useEffect(() => {
     const handleConversationChange = (event: Event) => {
       const conversationId = (event as CustomEvent<string>).detail;
       setCurrentConversationId(conversationId);
+      const cached = readKnownPremiumThreadCount(conversationId);
+      if (cached !== null) {
+        setPremiumThreadMessageCount(Math.max(0, Math.min(cached, threadMessageLimit)));
+      }
     };
 
     window.addEventListener('currentConversationIdChanged', handleConversationChange as EventListener);
     return () => window.removeEventListener('currentConversationIdChanged', handleConversationChange as EventListener);
-  }, []);
+  }, [threadMessageLimit, readKnownPremiumThreadCount]);
+
+  // Bootstrap conversation ID in case navbar mounts after the initial broadcast event.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get('conversationId');
+    const fromStorage = localStorage.getItem('currentConversationId');
+    const initialConversationId = (fromUrl || fromStorage || '').trim();
+    if (initialConversationId) {
+      setCurrentConversationId(initialConversationId);
+      const cached = readKnownPremiumThreadCount(initialConversationId);
+      if (cached !== null) {
+        setPremiumThreadMessageCount(Math.max(0, Math.min(cached, threadMessageLimit)));
+      }
+    }
+  }, [threadMessageLimit, readKnownPremiumThreadCount]);
 
   const displayedMessageCount = Math.min(freemiumMessageCount, FREE_USER_MESSAGE_LIMIT_24H);
   const remainingMessages = Math.max(FREE_USER_MESSAGE_LIMIT_24H - displayedMessageCount, 0);
@@ -349,16 +519,10 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
 
   const formatDate = (isoDate: string) => {
     const date = new Date(isoDate);
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-    
-    if (diffInHours < 24) {
-      return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-    } else if (diffInHours < 48) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
-    }
+    if (Number.isNaN(date.getTime())) return 'Unknown date';
+    const day = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    const time = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    return `${day} ${time}`;
   };
 
   const splitConversationsByPlan = () => {
@@ -379,29 +543,49 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
     return { paid, free };
   };
 
-  const handleDeleteConversation = async (conversationId: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent opening the conversation
-    
-    if (!confirm('Are you sure you want to delete this conversation?')) {
-      return;
-    }
+  const { paid: paidConversations, free: freeConversations } = splitConversationsByPlan();
 
+  const openConversation = (conversationId: string) => {
+    window.location.href = `/chatbot?conversationId=${conversationId}`;
+  };
+
+  const closeDeleteModal = () => {
+    if (isDeletingConversation) return;
+    setIsDeleteModalOpen(false);
+    setDeleteTargetConversationId(null);
+    setDeleteConversationError(null);
+  };
+
+  const handleDeleteConversation = (conversationId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent opening the conversation
+    setDeleteTargetConversationId(conversationId);
+    setDeleteConversationError(null);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteConversation = async () => {
+    if (!deleteTargetConversationId || isDeletingConversation) return;
+    setIsDeletingConversation(true);
+    setDeleteConversationError(null);
     try {
       const response = await fetch('/api/chat-history', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversationId })
+        body: JSON.stringify({ conversationId: deleteTargetConversationId })
       });
 
       if (response.ok) {
-        // Remove from local state
-        setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+        setConversations(prev => prev.filter(conv => conv.id !== deleteTargetConversationId));
+        setIsDeleteModalOpen(false);
+        setDeleteTargetConversationId(null);
       } else {
-        alert('Failed to delete conversation');
+        setDeleteConversationError('Failed to delete conversation. Please try again.');
       }
     } catch (error) {
       console.error('Delete failed:', error);
-      alert('Failed to delete conversation');
+      setDeleteConversationError('Failed to delete conversation. Please try again.');
+    } finally {
+      setIsDeletingConversation(false);
     }
   };
 
@@ -409,7 +593,7 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
     <>
       <AppTopbar
         left={(
-          !isLoggedIn ? (
+          !planLoaded ? null : !isLoggedIn ? (
             <div
               style={{
                 display: 'flex',
@@ -519,7 +703,7 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}>
-                  Thread:
+                  Messages:
                 </span>
                 <span style={{
                   fontSize: '13px',
@@ -608,6 +792,53 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
           left: 0;
           right: 0;
           z-index: 1000;
+        }
+
+        .session-scroll {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(233, 196, 255, 0.75) rgba(255, 255, 255, 0.05);
+          scrollbar-gutter: stable;
+        }
+
+        .session-scroll::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+
+        .session-scroll::-webkit-scrollbar-track {
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(15, 23, 42, 0.22));
+          border-radius: 999px;
+          border: 1px solid rgba(236, 72, 153, 0.18);
+          margin: 4px 0;
+        }
+
+        .session-scroll::-webkit-scrollbar-thumb {
+          background: linear-gradient(
+            180deg,
+            rgba(255, 226, 246, 0.94) 0%,
+            rgba(240, 171, 252, 0.9) 45%,
+            rgba(217, 70, 239, 0.78) 100%
+          );
+          border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          box-shadow: inset 0 0 0 1px rgba(36, 8, 47, 0.28), 0 1px 7px rgba(236, 72, 153, 0.28);
+          min-height: 26px;
+        }
+
+        .session-scroll::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(
+            180deg,
+            rgba(255, 238, 250, 0.98) 0%,
+            rgba(244, 190, 255, 0.95) 40%,
+            rgba(232, 121, 249, 0.88) 100%
+          );
+          box-shadow: inset 0 0 0 1px rgba(36, 8, 47, 0.22), 0 2px 10px rgba(232, 121, 249, 0.34);
+        }
+
+        .session-scroll::-webkit-scrollbar-button {
+          display: none;
+          width: 0;
+          height: 0;
         }
       `}</style>
 
@@ -870,83 +1101,17 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
           )}
 
           {shouldShowHistory && (
-            <div style={{
-              marginTop: '18px',
-              padding: '16px',
-              background: 'rgba(17,24,39,0.45)',
-              borderRadius: '12px',
-              border: '1px solid rgba(255,255,255,0.12)'
-            }}>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginBottom: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-                Conversation history
-              </div>
-              {historyLimited && (
-                <div style={{ fontSize: '12px', color: 'rgba(251,191,36,0.9)', marginBottom: '10px', fontWeight: 600 }}>
-                  {historyLimitedSince
-                    ? 'Free plan shows your next 5 threads. Older paid chats are still available.'
-                    : 'Free plan shows your last 5 threads. Upgrade to unlock full history.'}
-                </div>
-              )}
-              {loadingHistory ? (
-                <div style={{ fontSize: '12px', color: 'rgba(226,232,240,0.7)' }}>Loading history…</div>
-              ) : conversations.length === 0 ? (
-                <div style={{ fontSize: '12px', color: 'rgba(226,232,240,0.7)' }}>No conversations yet.</div>
-              ) : (
-                (() => {
-                  const { paid, free } = splitConversationsByPlan();
-                  const renderList = (items: Conversation[]) => (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {items.map((conv) => (
-                        <button
-                          key={conv.id}
-                          onClick={() => {
-                            window.location.href = `/chatbot?conversationId=${conv.id}`;
-                          }}
-                          style={{
-                            textAlign: 'left',
-                            border: '1px solid rgba(255,255,255,0.12)',
-                            background: 'rgba(15,23,42,0.35)',
-                            color: '#e2e8f0',
-                            padding: '10px 12px',
-                            borderRadius: '10px',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
-                            {conv.title || 'Conversation'}
-                          </div>
-                          <div style={{ fontSize: '11px', color: 'rgba(226,232,240,0.6)' }}>
-                            {formatDate(conv.timestamp)}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  );
-
-                  return (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '260px', overflowY: 'auto' }}>
-                      {historyLimitedSince && paid.length > 0 && (
-                        <div>
-                          <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.4px', color: 'rgba(226,232,240,0.6)', marginBottom: '6px' }}>
-                            Paid plan history
-                          </div>
-                          {renderList(paid)}
-                        </div>
-                      )}
-                      {historyLimitedSince && free.length > 0 && (
-                        <div>
-                          <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.4px', color: 'rgba(226,232,240,0.6)', marginBottom: '6px' }}>
-                            Freemium history
-                          </div>
-                          {renderList(free)}
-                        </div>
-                      )}
-                      {!historyLimitedSince && renderList(conversations)}
-                    </div>
-                  );
-                })()
-              )}
-            </div>
+            <ChatConversationHistory
+              historyLimited={historyLimited}
+              historyLimitedSince={historyLimitedSince}
+              loadingHistory={loadingHistory}
+              conversations={conversations}
+              paidConversations={paidConversations}
+              freeConversations={freeConversations}
+              formatDate={formatDate}
+              onOpenConversation={openConversation}
+              onDeleteConversation={handleDeleteConversation}
+            />
           )}
           {shouldShowSessionHistory && (
             <div style={{
@@ -965,7 +1130,7 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
               {sessionMessages.length === 0 ? (
                 <div style={{ fontSize: '12px', color: 'rgba(226,232,240,0.7)' }}>No messages yet.</div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto' }}>
+                <div className="session-scroll" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto', paddingRight: '4px' }}>
                   {sessionMessages.slice(-12).map((msg, idx) => (
                     <div
                       key={`${msg.timestamp}-${idx}`}
@@ -984,7 +1149,7 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
                         {msg.content ? msg.content.slice(0, 120) : 'Message'}
                       </div>
                       <div style={{ fontSize: '11px', color: 'rgba(226,232,240,0.6)' }}>
-                        {new Date(msg.timestamp).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                        {formatDate(msg.timestamp)}
                       </div>
                     </div>
                   ))}
@@ -1010,6 +1175,14 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
           }}
         />
       )}
+
+      <DeleteConversationModal
+        isOpen={isDeleteModalOpen}
+        isDeleting={isDeletingConversation}
+        error={deleteConversationError}
+        onCancel={closeDeleteModal}
+        onConfirm={confirmDeleteConversation}
+      />
     </>
   )
 }

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { Search, Filter, ExternalLink, Scale, Calendar, Building2, ArrowLeft, Lock, BookOpen, Loader2, ChevronLeft, ChevronRight, MessageCircle, Send } from 'lucide-react';
-import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
+import { hasCaseLawAccess } from '@/lib/plans/access';
 
 interface CaseLawResult {
   id: string;
@@ -27,6 +27,166 @@ interface SearchFilters {
   outcome?: string;
 }
 
+const normalizeExtracts = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+  }
+  if (typeof value === 'string') {
+    return value
+      .split(/\n{2,}|\n-+|•|\r\n/)
+      .map((part) => part.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+const formatStudyContent = (content: string): Array<{ text: string; kind: 'heading' | 'paragraph' | 'bullet' }> => {
+  const headingLabels = [
+    'CASE SUMMARY',
+    'BACKGROUND AND CONTEXT',
+    'CASE OVERVIEW',
+    'LEGAL PRINCIPLES EXPLAINED',
+    'PARTY ANALYSIS - CLAIMANT/PETITIONER',
+    'PARTY ANALYSIS - DEFENDANT/RESPONDENT',
+    "COURT'S REASONING",
+    'LEARNING POINTS FOR LITIGANTS IN PERSON',
+    'BROADER IMPLICATIONS'
+  ];
+
+  const headingMatcher = new RegExp(`(${headingLabels.map((h) => h.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g');
+  const sanitizeInlineMarkdown = (text: string) =>
+    text
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/__([^_]+)__/g, '$1')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/\s+\d+\.$/, '')
+      .trim();
+
+  const normalized = content
+    .replace(/\r\n/g, '\n')
+    .replace(headingMatcher, '\n\n$1\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  const chunks = normalized
+    .split(/\n{2,}/)
+    .map((chunk) => chunk.trim())
+    .filter(Boolean);
+
+  const parsed: Array<{ text: string; kind: 'heading' | 'paragraph' | 'bullet' }> = [];
+
+  const splitLongParagraph = (text: string) => {
+    const sentenceBoundary =
+      /(?<=[.!?])\s+(?=(?!Ltd\b|Limited\b|PLC\b|LLP\b|Inc\b|Corp\b|Co\b|No\b|Mr\b|Mrs\b|Ms\b|Dr\b)[A-Z][a-z]{2,})/g;
+    const sentences = text
+      .split(sentenceBoundary)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (sentences.length <= 3) return [text.trim()];
+    const grouped: string[] = [];
+    for (let i = 0; i < sentences.length; i += 2) {
+      grouped.push(sentences.slice(i, i + 2).join(' '));
+    }
+    return grouped;
+  };
+
+  for (const chunk of chunks) {
+    const lines = chunk
+      .split('\n')
+      .map((line) => sanitizeInlineMarkdown(line))
+      .filter(Boolean);
+    if (lines.length === 0) continue;
+
+    // Skip orphan numbering lines like "6." that can appear before headings.
+    if (lines.length === 1 && /^\d+\.$/.test(lines[0])) {
+      continue;
+    }
+
+    const firstLine = lines[0];
+
+    if (/^(\d+\.\s+[A-Z][A-Za-z0-9\s\-()']{2,}|[A-Z][A-Z\s\-()']{3,})$/.test(firstLine)) {
+      parsed.push({ text: firstLine, kind: 'heading' });
+      const body = lines.slice(1).join(' ').trim();
+      if (body) {
+        for (const p of splitLongParagraph(body)) {
+          parsed.push({ text: p, kind: 'paragraph' });
+        }
+      }
+      continue;
+    }
+
+    const inlineHeading = firstLine.match(/^(\d+\.\s+[A-Z][A-Za-z0-9\s\-()']{2,}|[A-Z][A-Z\s\-()']{3,})\s+(.+)$/);
+    if (inlineHeading) {
+      parsed.push({ text: inlineHeading[1], kind: 'heading' });
+      const inlineBody = `${inlineHeading[2]} ${lines.slice(1).join(' ')}`.trim();
+      for (const p of splitLongParagraph(inlineBody)) {
+        parsed.push({ text: p, kind: 'paragraph' });
+      }
+      continue;
+    }
+
+    // Handle markdown-style numbered headings like:
+    // 1. **Heading Text** - explanation...
+    const markdownHeading = firstLine.match(/^(\d+)\.\s+(.+?)\s*-\s*(.+)$/);
+    if (markdownHeading) {
+      const headingText = sanitizeInlineMarkdown(markdownHeading[2]).replace(/[:\-–—]\s*$/, '');
+      const explanation = sanitizeInlineMarkdown(
+        `${markdownHeading[3]} ${lines.slice(1).join(' ')}`
+      );
+      if (headingText) {
+        parsed.push({ text: headingText, kind: 'heading' });
+      }
+      if (explanation) {
+        for (const p of splitLongParagraph(explanation)) {
+          parsed.push({ text: p, kind: 'paragraph' });
+        }
+      }
+      continue;
+    }
+
+    for (const line of lines) {
+      if (/^[-•]\s+/.test(line)) {
+        parsed.push({ text: sanitizeInlineMarkdown(line.replace(/^[-•]\s+/, '')), kind: 'bullet' });
+      } else {
+        for (const p of splitLongParagraph(sanitizeInlineMarkdown(line))) {
+          parsed.push({ text: p, kind: 'paragraph' });
+        }
+      }
+    }
+  }
+
+  return parsed;
+};
+
+const groupStudySections = (
+  lines: Array<{ text: string; kind: 'heading' | 'paragraph' | 'bullet' }>
+): Array<{ heading: string | null; items: Array<{ text: string; kind: 'paragraph' | 'bullet' }> }> => {
+  const sections: Array<{ heading: string | null; items: Array<{ text: string; kind: 'paragraph' | 'bullet' }> }> = [];
+  let current: { heading: string | null; items: Array<{ text: string; kind: 'paragraph' | 'bullet' }> } = {
+    heading: null,
+    items: []
+  };
+
+  for (const line of lines) {
+    if (line.kind === 'heading') {
+      const cleanHeading = line.text.replace(/^\d+\.\s*/, '').trim();
+      if (!cleanHeading) continue;
+      if (current.heading || current.items.length) {
+        sections.push(current);
+      }
+      current = { heading: cleanHeading, items: [] };
+      continue;
+    }
+    current.items.push({ text: line.text, kind: line.kind });
+  }
+
+  if (current.heading || current.items.length) {
+    sections.push(current);
+  }
+
+  return sections;
+};
+
 export default function CaseLawSearchPage() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<CaseLawResult[]>([]);
@@ -47,28 +207,27 @@ export default function CaseLawSearchPage() {
   const [studyChatLoading, setStudyChatLoading] = useState(false);
   const [studyChatError, setStudyChatError] = useState<string | null>(null);
   const [showStudyModal, setShowStudyModal] = useState(false);
+  const [searchErrorModal, setSearchErrorModal] = useState<string | null>(null);
   const [paginatedContent, setPaginatedContent] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const searchAbortRef = useRef<AbortController | null>(null);
+  const searchRequestSeqRef = useRef(0);
+  const currentStudyPageContent = paginatedContent[currentPage - 1]?.content || caseStudy || '';
+  const formattedStudyContent = formatStudyContent(currentStudyPageContent);
+  const studySections = groupStudySections(formattedStudyContent);
 
   // Check user's plan on component mount
   useEffect(() => {
     const checkUserPlan = async () => {
       try {
-        const supabase = getSupabaseBrowserClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('plan')
-            .eq('id', user.id)
-            .single();
-          
-          setUserPlan(profile?.plan || 'freemium');
-        } else {
+        const res = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' });
+        if (!res.ok) {
           setUserPlan('freemium');
+          return;
         }
+        const data = await res.json();
+        setUserPlan((data?.plan || 'freemium').toString());
       } catch (error) {
         console.error('Error checking user plan:', error);
         setUserPlan('freemium');
@@ -87,6 +246,12 @@ export default function CaseLawSearchPage() {
     }
 
     setLoading(true);
+    const requestSeq = ++searchRequestSeqRef.current;
+    if (searchAbortRef.current) {
+      searchAbortRef.current.abort();
+    }
+    const controller = new AbortController();
+    searchAbortRef.current = controller;
     try {
       console.log('🔍 Searching for:', searchQuery);
       const response = await fetch('/api/search-case-law', {
@@ -97,6 +262,7 @@ export default function CaseLawSearchPage() {
           filters: filters.case_type === 'all' ? {} : filters,
           limit: 15,
         }),
+        signal: controller.signal,
       });
 
       console.log('📡 Response status:', response.status);
@@ -110,28 +276,21 @@ export default function CaseLawSearchPage() {
       const data = await response.json();
       console.log('✅ Results received:', data.results?.length || 0, 'cases');
       console.log('📊 Full response:', data);
-      setResults(data.results || []);
-    } catch (error) {
+      if (requestSeq === searchRequestSeqRef.current) {
+        setResults(data.results || []);
+      }
+    } catch (error: any) {
+      if (error?.name === 'AbortError') {
+        return;
+      }
       console.error('🚨 Search error:', error);
-      // Show error to user for debugging
-      alert(`Search error: ${error instanceof Error ? error.message : 'Unknown error'}. Check browser console for details.`);
+      setSearchErrorModal(`Search error: ${error instanceof Error ? error.message : 'Unknown error'}. Check browser console for details.`);
     } finally {
-      setLoading(false);
+      if (requestSeq === searchRequestSeqRef.current) {
+        setLoading(false);
+      }
     }
   }, [filters]);
-
-  // Auto-search with debouncing as user types
-  useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      if (query.trim()) {
-        handleSearch(query);
-      } else {
-        setResults([]);
-      }
-    }, 500); // Wait 500ms after user stops typing
-
-    return () => clearTimeout(debounceTimer);
-  }, [query, handleSearch]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -343,7 +502,7 @@ export default function CaseLawSearchPage() {
   if (!planChecked) {
     return (
       <div style={{
-        background: 'radial-gradient(circle at 20% 20%, rgba(99,102,241,0.22), transparent 28%), radial-gradient(circle at 82% 8%, rgba(236,72,153,0.2), transparent 25%), linear-gradient(135deg, #0f1027 0%, #120c2f 48%, #0b0c1c 100%)',
+        background: '#270427',
         minHeight: '100vh',
         padding: '24px'
       }}>
@@ -359,13 +518,12 @@ export default function CaseLawSearchPage() {
     );
   }
 
-  const normalizedPlan = (userPlan || '').toString().toLowerCase();
-  const hasPlanAccess = normalizedPlan.includes('premium') || normalizedPlan.includes('essential') || normalizedPlan.includes('plus') || normalizedPlan.includes('pro');
+  const hasPlanAccess = hasCaseLawAccess(userPlan || '');
 
   if (!hasPlanAccess) {
     return (
       <div style={{
-        background: 'linear-gradient(135deg, #270427 0%, #2d0f47 50%, #1a0420 100%)',
+        background: '#270427',
         minHeight: '100vh',
         padding: '24px'
       }}>
@@ -421,7 +579,7 @@ export default function CaseLawSearchPage() {
 
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #270427 0%, #2d0f47 50%, #1a0420 100%)',
+      background: '#270427',
       minHeight: '100vh',
       padding: '24px'
     }}>
@@ -442,7 +600,7 @@ export default function CaseLawSearchPage() {
             </Link>
           </div>
           <p className="text-indigo-100/90">
-            Search through 760 UK Supreme Court cases using AI-powered semantic search. Results appear as you type.
+            Search through 760 UK Supreme Court cases using AI-powered semantic search.
           </p>
         </div>
 
@@ -685,7 +843,10 @@ export default function CaseLawSearchPage() {
                 ].map((example) => (
                   <button
                     key={example}
-                    onClick={() => setQuery(example)}
+                    onClick={() => {
+                      setQuery(example);
+                      handleSearch(example);
+                    }}
                     className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
                   >
                     {example}
@@ -737,12 +898,12 @@ export default function CaseLawSearchPage() {
                 </div>
               )}
 
-              {selectedCase.extracts && selectedCase.extracts.length > 0 && (
+              {normalizeExtracts(selectedCase.extracts).length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Key Extracts</h3>
                   <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
                     <ul className="list-disc pl-5 space-y-2">
-                      {selectedCase.extracts.map((extract, index) => (
+                      {normalizeExtracts(selectedCase.extracts).map((extract, index) => (
                         <li key={`${selectedCase.id}-extract-${index}`}>{extract}</li>
                       ))}
                     </ul>
@@ -761,17 +922,6 @@ export default function CaseLawSearchPage() {
                   >
                     Open Full Case
                     <ExternalLink className="w-4 h-4" />
-                  </button>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      window.open(selectedCase.url, '_blank', 'noopener');
-                      setSelectedCase(null);
-                    }}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-white text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50"
-                  >
-                    Open and Close
                   </button>
                 </div>
               )}
@@ -882,8 +1032,35 @@ export default function CaseLawSearchPage() {
                   )}
 
                   {/* Current Page Content */}
-                  <div className="whitespace-pre-wrap text-gray-800 leading-relaxed text-sm">
-                    {paginatedContent[currentPage - 1]?.content || caseStudy}
+                  <div className="rounded-xl border border-gray-200 bg-white p-6 sm:p-8">
+                    <div className="space-y-8 text-[17px] leading-8 text-gray-800">
+                      {studySections.map((section, sectionIndex) => (
+                        <section key={`study-section-${sectionIndex}`} className="space-y-4">
+                          {section.heading && (
+                            <h3 className="border-b border-gray-300 pb-2 text-xl font-semibold tracking-tight text-gray-900">
+                              {section.heading}
+                            </h3>
+                          )}
+                          <div className="space-y-4">
+                            {section.items.map((item, itemIndex) => {
+                              if (item.kind === 'bullet') {
+                                return (
+                                  <div key={`study-item-${sectionIndex}-${itemIndex}`} className="flex gap-3">
+                                    <span className="mt-2 h-2 w-2 rounded-full bg-indigo-500" />
+                                    <p>{item.text}</p>
+                                  </div>
+                                );
+                              }
+                              return (
+                                <p key={`study-item-${sectionIndex}-${itemIndex}`} className="text-gray-800">
+                                  {item.text}
+                                </p>
+                              );
+                            })}
+                          </div>
+                        </section>
+                      ))}
+                    </div>
                   </div>
 
                   {/* Study Chat */}
@@ -949,6 +1126,23 @@ export default function CaseLawSearchPage() {
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        )}
+
+        {searchErrorModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+            <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+              <h3 className="mb-2 text-lg font-semibold text-gray-900">Search Error</h3>
+              <p className="mb-4 text-sm text-gray-700">{searchErrorModal}</p>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setSearchErrorModal(null)}
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         )}

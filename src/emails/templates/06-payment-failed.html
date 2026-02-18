@@ -6,9 +6,9 @@
   <head><meta charset="utf-8"/><title>Payment failed</title></head>
   <body>
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-    <h1>Payment Failed</h1>
-    <p>We were unable to process your recent payment.</p>
-    <p>We couldn't process payment for invoice {{invoice_id}}.</p>
+    <h1>Payment attempt failed</h1>
+    <p>We attempted to take your subscription payment, but the payment did not go through.</p>
+    <p>This affected invoice {{invoice_id}}.</p>
     <p>We’ll retry your payment on {{next_retry_date}}.</p>
     <p>If payment isn’t completed by {{grace_end_date}}, your account moves to the Free plan.</p>
     <p>Retry now: <a href="{{retry_url}}">Retry payment</a></p>

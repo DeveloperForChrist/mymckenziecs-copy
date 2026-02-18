@@ -1,7 +1,9 @@
 import claudeLegalClient from '../providers/claude-legal-client'
 import { logClaudeUsage } from '@/lib/utils/claude-usage'
+import { neutralizeLegalAdviceTone } from './legal-tone'
 
 const DISCRIMINATOR_MODEL = process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101'
+const DISCRIMINATOR_MAX_TOKENS = 800
 
 const stripMarkdown = (text: string): string => {
   return text
@@ -46,6 +48,9 @@ async function streamlineAnswerForUser(
   const citationRule = includeCitations
     ? 'Keep any inline citations like [1], [2] and add them where factual claims are made if missing.'
     : 'Do not include source citations like [1], [2], [3].'
+  const citationTaskRule = includeCitations
+    ? 'Preserve and improve source citations like [1], [2], [3] so factual claims are attributable.'
+    : 'Remove any source citations like [1], [2], [3].'
   const streamlinePrompt = `You are the discriminator agent (critic, reviser, verifier) reviewing the assistant's answer. Your goal is to decide if the answer is genuinely helpful to the user based on their specific question and the conversation history. If it is missing anything important, add it. If it is too long or unfocused, streamline it.
 
 UNDERSTAND THE USER'S ACTUAL NEED:
@@ -71,6 +76,8 @@ You will receive a long, detailed legal answer. Your job is to:
 14. ${citationRule}
 14. Keep any page references (e.g., "Page 4") if present
 15. Dont allow any line of legal advice in its answer - if there is, word it in a way that is like support and guidance to the user.
+16. Avoid definitive conclusions on the user's exact facts. Use neutral language like "may", "can", and "generally".
+17. Keep the final answer concise; target roughly 500-650 tokens.
 
 All Available Sources (for your internal review only):
 ${sourcesList}
@@ -84,7 +91,7 @@ Your task:
 3. Streamline for clarity and relevance
 2. Add missing useful details if needed
 3. Streamline for clarity and relevance
-4. Remove any source citations like [1], [2], [3]
+4. ${citationTaskRule}
 5. Make it perfectly tailored to the user's question and history
 6. Improve the format,presentation and structure of the answer - so when it is outputted it is well structured and easy to read for the user.
 7. Always finish with "In short: ..." as a one-sentence compression layer.
@@ -101,7 +108,7 @@ Provide ONLY the final streamlined answer. No explanations needed.`
   try {
     completion = await claudeLegalClient.messages.create({
       model: DISCRIMINATOR_MODEL,
-      max_tokens: 1000,
+      max_tokens: DISCRIMINATOR_MAX_TOKENS,
       temperature: 0.5,
       system: systemPrompt,
       messages: [
@@ -128,6 +135,7 @@ Provide ONLY the final streamlined answer. No explanations needed.`
 
   const streamed = completion.content[0]?.type === 'text' ? completion.content[0].text : comprehensiveAnswer
   let streamlinedAnswer = stripMarkdown(streamed)
+  streamlinedAnswer = neutralizeLegalAdviceTone(streamlinedAnswer)
   if (!includeCitations) {
     // Remove any leftover [1] style citations.
     streamlinedAnswer = streamlinedAnswer.replace(/\s*\[\d+\]/g, '')

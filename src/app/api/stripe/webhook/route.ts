@@ -26,6 +26,22 @@ function renderTemplate(templateName: string, vars: Record<string, string>) {
   return html;
 }
 
+function formatAmount(amountMinor?: number | null, currency?: string | null) {
+  if (typeof amountMinor !== 'number') return '—';
+  const code = (currency || 'GBP').toUpperCase();
+  return `${(amountMinor / 100).toFixed(2)} ${code}`;
+}
+
+function resolvePlanDetailsFromPriceId(priceId?: string | null) {
+  const plan = PLAN_PRICES.find((p) => p.priceId === priceId);
+  const name = plan?.name || 'Your new plan';
+  const limitLine =
+    plan?.features?.find((f) => /message per thread/i.test(f)) ||
+    plan?.features?.find((f) => /document storage/i.test(f)) ||
+    'Updated access limits apply immediately.';
+  return { name, limits: limitLine };
+}
+
 function parseTimestamp(value: any): number | null {
   if (!value) return null;
   try {
@@ -79,7 +95,7 @@ async function markSubscriptionPastDue(customerId: string | null, graceDays: num
 
   const { data: existing } = await supabaseAdmin
     .from('subscriptions')
-    .select('status, past_due_since, grace_period_end, grace_day3_sent_at, grace_day6_sent_at')
+    .select('status, past_due_since, grace_period_end, grace_day3_sent_at, grace_day6_sent_at, grace_reminder_days_sent')
     .eq('stripe_customer_id', customerId)
     .maybeSingle();
 
@@ -107,6 +123,7 @@ async function markSubscriptionPastDue(customerId: string | null, graceDays: num
   if (!alreadyPastDue) {
     updatePayload.grace_day3_sent_at = null;
     updatePayload.grace_day6_sent_at = null;
+    updatePayload.grace_reminder_days_sent = [];
   }
 
   const { error } = await supabaseAdmin
@@ -132,6 +149,7 @@ async function clearSubscriptionGrace(customerId: string | null, status: 'active
       next_retry_at: null,
       grace_day3_sent_at: null,
       grace_day6_sent_at: null,
+      grace_reminder_days_sent: [],
       updated_at: now.toISOString(),
     })
     .eq('stripe_customer_id', customerId);
@@ -194,15 +212,21 @@ function daysUntilInLondon(target: Date) {
   return Math.ceil((targetDay.getTime() - nowDay.getTime()) / (24 * 60 * 60 * 1000));
 }
 
+function getConfiguredGraceDays(): number {
+  const parsed = Number.parseInt(process.env.BILLING_GRACE_DAYS || '', 10);
+  if (!Number.isFinite(parsed)) return 7;
+  return Math.max(1, Math.min(30, parsed));
+}
+
 function normalizePlanTypeFromPrice(priceId?: string | null): string {
-  if (!priceId) return 'free';
+  if (!priceId) return 'Free';
   const match = PLAN_PRICES.find((plan) => plan.priceId === priceId);
   const name = (match?.name || '').toLowerCase();
-  if (name.includes('premium cheap')) return 'premium cheap';
-  if (name.includes('plus')) return 'premium pro';
-  if (name.includes('essential')) return 'premium';
-  if (name.includes('standard')) return 'standard';
-  return 'free';
+  if (name.includes('premium cheap')) return 'Premium Cheap';
+  if (name.includes('plus') || name.includes('premium pro')) return 'Plus';
+  if (name.includes('essential') || name.includes('premium')) return 'Essential';
+  if (name.includes('standard')) return 'Standard';
+  return 'Free';
 }
 
 function displayPlanName(planType?: string | null): string {
@@ -371,17 +395,21 @@ export async function POST(request: Request) {
       const recipientEmail = user?.email || checkoutEmail;
 
       if (recipientEmail && planId) {
+        const { name: planName, limits } = resolvePlanDetailsFromPriceId(planId);
+        const invoicePdfUrl =
+          (session?.invoice && typeof session.invoice === 'object' ? session.invoice.invoice_pdf : null) ||
+          (process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/settings` : 'http://localhost:3000/settings');
+        const htmlBody = renderTemplate('04-plan-upgrade-receipt.html', {
+          name: user?.name || checkoutName || recipientEmail,
+          txn_id: String(session?.payment_intent || session?.id || '—'),
+          amount: formatAmount(session?.amount_total, session?.currency),
+          new_limits: `${planName}: ${limits}`,
+          invoice_pdf_url: String(invoicePdfUrl),
+        });
         await sendResendEmail({
           to: recipientEmail,
           subject: 'Your MymckenzieCS plan is being activated',
-          htmlBody: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #4c1d95;">Plan upgrade received</h2>
-              <p>Hi${user?.name ? ` ${user.name}` : checkoutName ? ` ${checkoutName}` : ''},</p>
-              <p>We received your plan upgrade request. Your subscription will be active shortly.</p>
-              <p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MymckenzieCS</p>
-            </div>
-          `,
+          htmlBody,
           tag: 'billing-plan-upgrade',
         });
       } else {
@@ -450,7 +478,7 @@ export async function POST(request: Request) {
       });
     } else if (event.type === 'invoice.payment_failed') {
       const invoice = event.data.object as any;
-      const graceDays = 7;
+      const graceDays = getConfiguredGraceDays();
       const nextRetryAt = invoice?.next_payment_attempt ? new Date(invoice.next_payment_attempt * 1000) : null;
       const graceEnd = await markSubscriptionPastDue(invoice.customer as string | null, graceDays, nextRetryAt);
       const nextRetryLabel = formatDateLabel(nextRetryAt);
@@ -530,17 +558,17 @@ export async function POST(request: Request) {
       const user = await getUserByStripeCustomerId(subscription.customer as string | null);
 
       if (user) {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const htmlBody = renderTemplate('13-cancellation-confirmation.html', {
+          cancel_date: formatDateShort(new Date()) || 'today',
+          retention_days: '30',
+          reactivate_url: `${appUrl}/pricing`,
+          policy_url: `${appUrl}/privacy-policy`,
+        });
         await sendResendEmail({
           to: user.email,
           subject: 'Your subscription has been canceled',
-          htmlBody: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #4c1d95;">Subscription canceled</h2>
-              <p>Hi${user.name ? ` ${user.name}` : ''},</p>
-              <p>Your subscription has been canceled. You can resubscribe at any time from your settings page.</p>
-              <p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MymckenzieCS</p>
-            </div>
-          `,
+          htmlBody,
           tag: 'billing-subscription-canceled',
         });
       }

@@ -29,12 +29,12 @@ export interface CaseStudyError extends Error {
 
 // Case Study System Prompt - Educational Focus
 const CASE_STUDY_SYSTEM_PROMPT: string = `
-You are a Law Professor providing detailed educational case studies to help litigants in person understand UK case law.
+You are a legal educator writing for litigants in person with no legal training.
 
 Your role is to TEACH and EXPLAIN, not to give legal advice. You are helping users learn from past cases to understand legal principles, court reasoning, and how legal arguments are structured.
 
 EDUCATIONAL APPROACH:
-1. Explain the case in detail as if teaching a law student
+1. Explain the case in detail as if teaching a complete beginner
 2. Analyze strengths and weaknesses of both parties' positions
 3. Break down the court's reasoning and legal principles applied
 4. Discuss what each party did well and what they could have done better
@@ -54,6 +54,7 @@ CONTENT REQUIREMENTS:
 - Total Content: Minimum 3000 words
 - Be comprehensive and detailed in analysis
 - Provide thorough educational content
+- Use simple, plain-English wording suitable for a non-lawyer reader
 
 STRUCTURE YOUR RESPONSE:
 
@@ -113,9 +114,21 @@ Provide a comprehensive narrative of the case including:
    - Impact on legal practice and procedure
 
 IMPORTANT GUIDELINES:
-- Use clear, accessible language but maintain legal accuracy
-- Explain legal terms in simple English
+- Use clear, accessible language while maintaining legal accuracy
+- Explain legal terms immediately in plain English when first used
+- Keep sentences short and direct
+- Avoid legal jargon where possible; if unavoidable, define it in one line
+- Include short practical examples to make concepts easier to understand
+- Use explicit reasoning chains: state the point, explain why, then explain how it affected the decision
+- Never stop at a conclusion sentence. For each key claim, add at least one "because..." explanation and one "this mattered because..." explanation
+- When discussing what the court weighed (for example, nature of business, timing, intent, evidence quality), explain:
+  1) what the factor was,
+  2) why it was legally relevant,
+  3) how it changed the outcome in this case
 - Focus on educational value, not specific advice
+- DO NOT give legal advice, recommendations, or instructions for the user's own case
+- DO NOT tell the user what they should, must, or need to do
+- Use neutral educational phrasing such as "This case shows...", "Courts considered...", "A common legal principle is..."
 - Provide detailed, comprehensive explanations
 - Use examples to illustrate legal concepts
 - Emphasize learning and understanding
@@ -125,6 +138,29 @@ IMPORTANT GUIDELINES:
 
 Your goal is to help users become better educated about legal processes and reasoning through detailed case insights.
 `;
+
+const enforceEducationalOnlyLanguage = (text: string): string => {
+  return text
+    .replace(/\b(I|we)\s+recommend\b/gi, 'A common approach in similar cases is')
+    .replace(/\byou\s+should\b/gi, 'it may be useful to understand that')
+    .replace(/\byou\s+must\b/gi, 'courts generally require that')
+    .replace(/\byou\s+need\s+to\b/gi, 'it is important to understand that')
+    .replace(/\bthe\s+best\s+course\s+of\s+action\s+is\b/gi, 'an educational takeaway is')
+    .replace(/\bmy\s+advice\s+is\b/gi, 'an educational point is')
+    .replace(/\bI\s+advise\b/gi, 'this case indicates')
+    .replace(/\bseek\s+professional\s+legal\s+advice\b/gi, 'consulting a qualified professional may provide case-specific guidance')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+};
+
+const EDUCATIONAL_FOOTER = 'Educational information only — not legal advice.';
+
+const appendEducationalFooter = (text: string): string => {
+  const trimmed = text.trim();
+  if (!trimmed) return EDUCATIONAL_FOOTER;
+  if (trimmed.toLowerCase().includes('not legal advice')) return trimmed;
+  return `${trimmed}\n\n${EDUCATIONAL_FOOTER}`;
+};
 
 // Case Study Agent Class
 export class CaseStudyAgent {
@@ -182,7 +218,8 @@ export class CaseStudyAgent {
           timeoutPromise
         ]);
 
-        const studyContent = response.choices[0]?.message?.content || '';
+        const rawStudyContent = response.choices[0]?.message?.content || '';
+        const studyContent = appendEducationalFooter(enforceEducationalOnlyLanguage(rawStudyContent));
         
         if (!studyContent.trim()) {
           const error = new Error('Empty response from AI model') as CaseStudyError;
@@ -348,7 +385,7 @@ Make this extremely detailed and comprehensive - think of it as a university-lev
       ? `\n\nKEY EXTRACTS:\n${caseData.extracts.slice(0, 2).join('\n\n')}` 
       : '';
 
-    return `
+    return appendEducationalFooter(enforceEducationalOnlyLanguage(`
 CASE STUDY: ${caseData.title}
 
 NOTE: This is a basic overview generated from available data. For a comprehensive analysis, please try again or view the full case judgment.
@@ -376,7 +413,7 @@ Case law provides crucial guidance for litigants in person by:
 
 4. HOW TO STUDY THIS CASE EFFECTIVELY
 
-To get maximum educational benefit from this case:
+Readers can get educational value from this case by:
 
 a) Read the Full Judgment
    - Access the complete case at: ${caseData.url || 'the court website'}
@@ -406,23 +443,21 @@ d) Extract Practical Lessons
 - Every case is unique - precedents guide but don't dictate outcomes
 - Focus on understanding legal reasoning, not just outcomes
 - Good preparation and clear evidence presentation matter greatly
-- Consider seeking legal advice for complex matters
 - Courts expect proper procedure and respectful conduct
 - Document everything and meet all deadlines
 
-6. NEXT STEPS
+6. EDUCATIONAL NEXT STEPS
 
-After studying this case:
+After studying this case, useful educational follow-up includes:
 1. Review the full judgment carefully
 2. Note any similarities to your situation
 3. Research any legal principles or statutes mentioned
-4. Consider how the lessons might apply to your case
-5. Seek professional legal advice if needed
+4. Consider how courts reasoned about evidence and legal tests
 
-REMEMBER: This is educational material only, not legal advice. Always verify legal principles with current law and seek professional guidance for your specific situation.
+REMEMBER: This is educational material only and not legal advice.
 
 For the complete case insights, visit: ${caseData.url || 'the relevant court database'}
-`;
+`));
   }
 }
 

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import Link from 'next/link';
+import { isPaidPlan } from '@/lib/plans/access';
 
 export default function DashboardPage() {
   const [uid, setUid] = useState<string | null>(null);
@@ -27,7 +28,7 @@ export default function DashboardPage() {
     let cancelled = false;
     const loadPlan = async () => {
       try {
-        const res = await fetch('/api/user/plan');
+        const res = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' });
         const data = await res.json();
         if (cancelled) return;
         setPlan((data?.plan || 'free').toString());
@@ -63,12 +64,7 @@ export default function DashboardPage() {
     };
   }, [uid]);
 
-  const normalizedPlan = plan.toString().toLowerCase();
-  const hasPlanAccess =
-    normalizedPlan.includes('premium') ||
-    normalizedPlan.includes('essential') ||
-    normalizedPlan.includes('plus') ||
-    normalizedPlan.includes('pro');
+  const hasPlanAccess = isPaidPlan(plan);
   const features: Array<{
     icon: string;
     title: string;
@@ -127,6 +123,18 @@ export default function DashboardPage() {
     }
     return true;
   });
+
+  if (!planLoaded) {
+    return (
+      <div style={{ background: 'linear-gradient(135deg, #240724 0%, #240724 50%, #240724 100%)', minHeight: '100vh' }}>
+        <main style={{ minHeight: '100vh', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center', opacity: 0.85 }}>
+            <div style={{ marginBottom: 10 }}>Loading your workspace...</div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div style={{ background: 'linear-gradient(135deg, #240724 0%, #240724 50%, #240724 100%)', minHeight: '100vh' }}>

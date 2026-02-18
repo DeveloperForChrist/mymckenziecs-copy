@@ -1,17 +1,65 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { sendResendEmail } from '@/lib/email/resend';
+import fs from 'fs';
+import path from 'path';
 
 type CalendarEventRow = {
   id: string;
   user_id: string;
   title: string;
-  notes: string | null;
-  time: string | null;
   date: string;
-  category: string | null;
-  priority: string | null;
+  completed?: boolean;
 };
+
+const TEMPLATE_DIR = path.join(process.cwd(), 'src', 'emails', 'templates');
+const TEMPLATE_BY_DAY: Record<number, string> = {
+  21: 'deadline-3weeks.html',
+  14: 'deadline-2weeks.html',
+  7: 'deadline-1week.html',
+  5: 'deadline-5days.html',
+  3: 'deadline-3days.html',
+  1: 'deadline-1day.html',
+};
+
+function renderTemplate(templateName: string, vars: Record<string, string>) {
+  const templatePath = path.join(TEMPLATE_DIR, templateName);
+  let html = fs.readFileSync(templatePath, 'utf8');
+  for (const [k, v] of Object.entries(vars)) {
+    html = html.split(`{{${k}}}`).join(v);
+  }
+  return html;
+}
+
+function datePartsInLondon(date: Date) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/London',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value || '';
+  return { y: get('year'), m: get('month'), d: get('day') };
+}
+
+function daysUntilInLondon(target: Date) {
+  const t = datePartsInLondon(target);
+  const n = datePartsInLondon(new Date());
+  const targetDay = new Date(`${t.y}-${t.m}-${t.d}T00:00:00Z`);
+  const nowDay = new Date(`${n.y}-${n.m}-${n.d}T00:00:00Z`);
+  return Math.ceil((targetDay.getTime() - nowDay.getTime()) / (24 * 60 * 60 * 1000));
+}
+
+function formatDateLabel(value: string) {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString('en-GB', {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  });
+}
 
 export async function GET(request: Request) {
   try {
@@ -23,23 +71,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const lookaheadDays = Math.min(
-      Math.max(parseInt(searchParams.get('days') || '7', 10) || 7, 1),
-      30
-    );
-
     const now = new Date();
-    const start = new Date(now);
     const end = new Date(now);
-    end.setDate(end.getDate() + lookaheadDays);
+    end.setDate(end.getDate() + 21);
 
     const { data: events, error: eventsError } = await supabaseAdmin
       .from('calendar_events')
-      .select('id, user_id, title, notes, time, date, category, priority')
-      .gte('date', start.toISOString())
+      .select('id, user_id, title, date, completed')
+      .gte('date', now.toISOString())
       .lte('date', end.toISOString())
-      .eq('category', 'deadline')
+      .eq('completed', false)
       .order('date', { ascending: true });
 
     if (eventsError) {
@@ -47,13 +88,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Failed to fetch events' }, { status: 500 });
     }
 
-    const byUser = new Map<string, CalendarEventRow[]>();
+    const eventsByUser = new Map<string, CalendarEventRow[]>();
     for (const ev of (events || []) as CalendarEventRow[]) {
-      if (!byUser.has(ev.user_id)) byUser.set(ev.user_id, []);
-      byUser.get(ev.user_id)!.push(ev);
+      const daysLeft = daysUntilInLondon(new Date(ev.date));
+      if (!TEMPLATE_BY_DAY[daysLeft]) continue;
+      if (!eventsByUser.has(ev.user_id)) eventsByUser.set(ev.user_id, []);
+      eventsByUser.get(ev.user_id)!.push(ev);
     }
 
-    const userIds = Array.from(byUser.keys());
+    const userIds = Array.from(eventsByUser.keys());
     if (userIds.length === 0) {
       return NextResponse.json({ ok: true, sent: 0, users: 0, events: 0 });
     }
@@ -87,64 +130,42 @@ export async function GET(request: Request) {
       });
     }
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     let sent = 0;
+
     for (const user of (users || []) as any[]) {
-      const list = byUser.get(user.id) || [];
-      if (!user.email || list.length === 0) continue;
+      const userEvents = eventsByUser.get(user.id) || [];
+      if (!user.email || userEvents.length === 0) continue;
 
       const pref = prefsByUser.get(user.id) || {
         email_notifications: true,
         deadline_reminders: true,
       };
-
       if (!pref.email_notifications || !pref.deadline_reminders) continue;
 
-      const rowsHtml = list
-        .map((ev) => {
-          const d = new Date(ev.date);
-          const dateLabel = d.toLocaleDateString('en-GB', {
-            weekday: 'short',
-            year: 'numeric',
-            month: 'short',
-            day: '2-digit',
-          });
-          const timeLabel = ev.time ? ` ${String(ev.time).slice(0, 5)}` : '';
-          const categoryLabel = ev.category || 'deadline';
-          const priorityLabel = ev.priority || 'medium';
-          const notesHtml = ev.notes ? `<div style="color:#6b7280; font-size: 12px; margin-top: 4px;">${escapeHtml(ev.notes)}</div>` : '';
-          return `
-            <tr>
-              <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-                <div style="font-weight: 700; color: #111827;">${escapeHtml(ev.title)}</div>
-                <div style="color: #374151; font-size: 13px;">${dateLabel}${timeLabel} · ${escapeHtml(categoryLabel)} · ${escapeHtml(priorityLabel)}</div>
-                ${notesHtml}
-              </td>
-            </tr>
-          `;
-        })
-        .join('');
+      for (const ev of userEvents) {
+        const daysLeft = daysUntilInLondon(new Date(ev.date));
+        const templateName = TEMPLATE_BY_DAY[daysLeft];
+        if (!templateName) continue;
 
-      const htmlBody = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #4c1d95;">Upcoming deadlines (next ${lookaheadDays} days)</h2>
-          <p>Hi${user.name ? ` ${escapeHtml(user.name)}` : ''},</p>
-          <p>Here are your upcoming deadlines from MyCalendar:</p>
-          <table style="width: 100%; border-collapse: collapse;">
-            ${rowsHtml}
-          </table>
-          <p style="margin-top: 18px; color: #6b7280; font-size: 12px;">MymckenzieCS</p>
-        </div>
-      `;
+        const htmlBody = renderTemplate(templateName, {
+          name: user.name || user.email.split('@')[0] || 'there',
+          deadline_title: ev.title,
+          deadline_date: formatDateLabel(ev.date),
+          days_left: String(daysLeft),
+          action_url: `${appUrl}/dashboard/calendar`,
+        });
 
-      await sendResendEmail({
-        from: process.env.RESEND_ALERT_FROM_EMAIL || 'alerts@mymckenziecs.com',
-        to: user.email,
-        subject: `Upcoming deadlines (next ${lookaheadDays} days)`,
-        htmlBody,
-        tag: 'calendar-deadline-reminders',
-      });
+        await sendResendEmail({
+          from: process.env.RESEND_ALERT_FROM_EMAIL || 'alerts@mymckenziecs.com',
+          to: user.email,
+          subject: `${daysLeft} day${daysLeft === 1 ? '' : 's'} until event: ${ev.title}`,
+          htmlBody,
+          tag: `deadline-${daysLeft}d-reminder`,
+        });
 
-      sent += 1;
+        sent += 1;
+      }
     }
 
     return NextResponse.json({ ok: true, sent, users: userIds.length, events: (events || []).length });
@@ -152,13 +173,4 @@ export async function GET(request: Request) {
     console.error('Deadline reminders cron failed', error);
     return NextResponse.json({ error: error?.message || 'Internal server error' }, { status: 500 });
   }
-}
-
-function escapeHtml(input: string): string {
-  return input
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
 }

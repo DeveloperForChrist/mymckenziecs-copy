@@ -27,6 +27,7 @@ export default function AccountSection() {
   const [showDeleteFinalConfirm, setShowDeleteFinalConfirm] = useState(false);
   const [deleteAcknowledged, setDeleteAcknowledged] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [statusModal, setStatusModal] = useState<{ title: string; message: string } | null>(null);
   
   // User data
   const [firstName, setFirstName] = useState('');
@@ -113,14 +114,14 @@ export default function AccountSection() {
       }
     } catch (error) {
       console.error('Sign out error:', error);
-      alert('Failed to sign out. Please try again.');
+      setStatusModal({ title: 'Sign out failed', message: 'Failed to sign out. Please try again.' });
       setSigningOut(false);
     }
   };
 
   const handleSaveChanges = async () => {
     if (!userId) {
-      alert('You must be signed in to update your profile.');
+      setStatusModal({ title: 'Update unavailable', message: 'You must be signed in to update your profile.' });
       return;
     }
 
@@ -140,10 +141,10 @@ export default function AccountSection() {
 
       if (!response.ok) throw new Error('Failed to save changes');
 
-      alert('Changes saved successfully!');
+      setStatusModal({ title: 'Changes saved', message: 'Your profile changes were saved successfully.' });
     } catch (error) {
       console.error('Error saving changes:', error);
-      alert('Failed to save changes. Please try again.');
+      setStatusModal({ title: 'Save failed', message: 'Failed to save changes. Please try again.' });
     } finally {
       setSaving(false);
     }
@@ -179,7 +180,7 @@ export default function AccountSection() {
       }
     } catch (error) {
       console.error('Delete account error:', error);
-      alert('Failed to delete account. Please try again.');
+      setStatusModal({ title: 'Delete failed', message: 'Failed to delete account. Please try again.' });
       setDeletingAccount(false);
       setShowDeleteConfirm(false);
       setShowDeleteFinalConfirm(false);
@@ -354,6 +355,19 @@ export default function AccountSection() {
                 disabled={deletingAccount || !deleteAcknowledged}
               >
                 {deletingAccount ? 'Deleting...' : 'Yes, delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {statusModal && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true">
+          <div className={styles.modalCard}>
+            <h3 className={styles.modalTitle}>{statusModal.title}</h3>
+            <p className={styles.modalBody}>{statusModal.message}</p>
+            <div className={styles.modalActions}>
+              <button type="button" className={styles.primaryBtn} onClick={() => setStatusModal(null)}>
+                OK
               </button>
             </div>
           </div>

@@ -67,7 +67,11 @@ export default function BillingSection() {
   }, []);
 
   useEffect(() => {
-    if (!uid || !idToken) {
+    if (!authResolved) {
+      return;
+    }
+
+    if (!uid) {
       setLoading(false);
       setPlanData(null);
       return;
@@ -76,11 +80,7 @@ export default function BillingSection() {
     setError(null);
     
     // Fetch plan from server-side API
-    fetch('/api/user/plan', {
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-      },
-    })
+    fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' })
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch plan');
         return res.json();
@@ -93,10 +93,10 @@ export default function BillingSection() {
         setError(err.message);
         setLoading(false);
       });
-  }, [uid, idToken]);
+  }, [uid, authResolved]);
 
   useEffect(() => {
-    if (!uid || !idToken || checkoutSynced) {
+    if (!authResolved || !uid || checkoutSynced) {
       return;
     }
     const params = new URLSearchParams(window.location.search);
@@ -114,17 +114,13 @@ export default function BillingSection() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${idToken}`,
           },
+          credentials: 'include',
           body: JSON.stringify({ sessionId }),
         });
 
         if (!cancelled) {
-          const res = await fetch('/api/user/plan', {
-            headers: {
-              'Authorization': `Bearer ${idToken}`,
-            },
-          });
+          const res = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' });
           if (res.ok) {
             const data = await res.json();
             setPlanData(data);
@@ -148,10 +144,10 @@ export default function BillingSection() {
     return () => {
       cancelled = true;
     };
-  }, [uid, idToken, checkoutSynced]);
+  }, [uid, authResolved, checkoutSynced]);
 
   useEffect(() => {
-    if (!uid || !idToken || billingBackfillChecked || loading) {
+    if (!authResolved || !uid || billingBackfillChecked || loading) {
       return;
     }
 
@@ -170,17 +166,13 @@ export default function BillingSection() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${idToken}`,
           },
+          credentials: 'include',
           body: JSON.stringify({}),
         });
 
         if (!cancelled) {
-          const res = await fetch('/api/user/plan', {
-            headers: {
-              'Authorization': `Bearer ${idToken}`,
-            },
-          });
+          const res = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' });
           if (res.ok) {
             const data = await res.json();
             setPlanData(data);
@@ -200,10 +192,10 @@ export default function BillingSection() {
     return () => {
       cancelled = true;
     };
-  }, [uid, idToken, billingBackfillChecked, loading, planData?.plan]);
+  }, [uid, authResolved, billingBackfillChecked, loading, planData?.plan]);
 
   useEffect(() => {
-    if (!uid || isFreemiumPlan || !planData?.hasStripeCustomer) {
+    if (!authResolved || !uid || isFreemiumPlan || !planData?.hasStripeCustomer) {
       setPaymentMethod(null);
       setPaymentLoading(false);
       setPaymentError(null);
@@ -213,11 +205,7 @@ export default function BillingSection() {
     setPaymentLoading(true);
     setPaymentError(null);
 
-    fetch('/api/stripe/payment-method', {
-      headers: {
-        'Authorization': idToken ? `Bearer ${idToken}` : '',
-      },
-    })
+    fetch('/api/stripe/payment-method', { credentials: 'include', cache: 'no-store' })
       .then(async (res) => {
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
@@ -233,7 +221,7 @@ export default function BillingSection() {
         setPaymentError(err.message);
         setPaymentLoading(false);
       });
-  }, [uid, idToken, isFreemiumPlan, planData?.hasStripeCustomer]);
+  }, [uid, authResolved, isFreemiumPlan, planData?.hasStripeCustomer]);
 
   function formatNextBillingDate(value: any): string {
     if (!value) return '—';

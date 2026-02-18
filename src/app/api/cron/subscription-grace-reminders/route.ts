@@ -27,6 +27,29 @@ function formatDateLabel(value?: Date | number | null) {
   });
 }
 
+function getReminderDays(): number[] {
+  const raw = (process.env.BILLING_GRACE_REMINDER_DAYS || '1,3,5,6').trim();
+  const parsed = raw
+    .split(',')
+    .map((value) => Number.parseInt(value.trim(), 10))
+    .filter((value) => Number.isFinite(value))
+    .map((value) => Math.max(1, Math.min(30, value)));
+
+  const uniqueSorted = Array.from(new Set(parsed)).sort((a, b) => a - b);
+  return uniqueSorted.length > 0 ? uniqueSorted : [1, 3, 5, 6];
+}
+
+function parseSentReminderDays(value: unknown): Set<number> {
+  const sent = new Set<number>();
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      const num = Number.parseInt(String(entry), 10);
+      if (Number.isFinite(num) && num > 0) sent.add(num);
+    }
+  }
+  return sent;
+}
+
 export async function GET(request: Request) {
   try {
     const cronSecret = process.env.CRON_SECRET;
@@ -39,13 +62,15 @@ export async function GET(request: Request) {
 
     const now = new Date();
     const dayMs = 24 * 60 * 60 * 1000;
+    const reminderDays = getReminderDays();
+    const highestReminderDay = reminderDays[reminderDays.length - 1];
     const manageUrl = process.env.NEXT_PUBLIC_APP_URL
       ? `${process.env.NEXT_PUBLIC_APP_URL}/settings`
       : 'http://localhost:3000/settings';
 
     const { data: subs, error } = await supabaseAdmin
       .from('subscriptions')
-      .select('id, user_id, past_due_since, grace_period_end, next_retry_at, grace_day3_sent_at, grace_day6_sent_at')
+      .select('id, user_id, past_due_since, grace_period_end, next_retry_at, grace_day3_sent_at, grace_day6_sent_at, grace_reminder_days_sent')
       .eq('status', 'past_due');
 
     if (error) {
@@ -79,40 +104,54 @@ export async function GET(request: Request) {
 
       const pastDueDate = new Date(sub.past_due_since);
       const daysSince = Math.floor((now.getTime() - pastDueDate.getTime()) / dayMs);
+      const sentDays = parseSentReminderDays((sub as any).grace_reminder_days_sent);
+      if (sub.grace_day3_sent_at) sentDays.add(3);
+      if (sub.grace_day6_sent_at) sentDays.add(6);
 
-      const shouldSendDay3 = daysSince >= 3 && !sub.grace_day3_sent_at;
-      const shouldSendDay6 = daysSince >= 6 && !sub.grace_day6_sent_at;
+      const dueUnsentDays = reminderDays.filter((day) => day <= daysSince && !sentDays.has(day));
+      if (dueUnsentDays.length === 0) continue;
 
-      if (!shouldSendDay3 && !shouldSendDay6) continue;
+      const selectedDay = dueUnsentDays[dueUnsentDays.length - 1];
+      const isFinalReminder = selectedDay >= highestReminderDay;
 
       const nextRetryLabel = formatDateLabel(sub.next_retry_at ? new Date(sub.next_retry_at) : null);
       const graceEndLabel = formatDateLabel(new Date(sub.grace_period_end));
 
-      const htmlBody = renderTemplate('06-payment-failed-reminder.html', {
+      const templateName = isFinalReminder
+        ? '06-payment-failed-reminder-final.html'
+        : '06-payment-failed-reminder.html';
+      const htmlBody = renderTemplate(templateName, {
         name: user.name || '',
         next_retry_date: nextRetryLabel,
         grace_end_date: graceEndLabel,
         manage_url: manageUrl,
       });
 
-      const subject = shouldSendDay6 ? 'Final payment reminder' : 'Payment reminder';
+      const subject = isFinalReminder ? 'Final payment reminder' : 'Payment reminder';
 
       await sendResendEmail({
         from: process.env.RESEND_ALERT_FROM_EMAIL || 'alerts@mymckenziecs.com',
         to: user.email,
         subject,
         htmlBody,
-        tag: shouldSendDay6 ? 'billing-payment-reminder-final' : 'billing-payment-reminder',
+        tag: isFinalReminder ? 'billing-payment-reminder-final' : `billing-payment-reminder-day-${selectedDay}`,
       });
 
       const updates: Record<string, string> = {};
-      if (shouldSendDay3) updates.grace_day3_sent_at = now.toISOString();
-      if (shouldSendDay6) updates.grace_day6_sent_at = now.toISOString();
+      for (const day of dueUnsentDays) sentDays.add(day);
+      if (sentDays.has(3)) updates.grace_day3_sent_at = now.toISOString();
+      if (sentDays.has(6)) updates.grace_day6_sent_at = now.toISOString();
 
-      if (Object.keys(updates).length > 0) {
+      const payload: Record<string, unknown> = {
+        ...updates,
+        grace_reminder_days_sent: Array.from(sentDays).sort((a, b) => a - b),
+        updated_at: now.toISOString(),
+      };
+
+      if (Object.keys(payload).length > 0) {
         const { error: updateError } = await supabaseAdmin
           .from('subscriptions')
-          .update({ ...updates, updated_at: now.toISOString() })
+          .update(payload)
           .eq('id', sub.id);
         if (updateError) {
           console.error('Grace reminders: failed to update sent flags', updateError);

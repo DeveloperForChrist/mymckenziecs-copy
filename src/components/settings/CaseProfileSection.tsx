@@ -14,6 +14,7 @@ export default function CaseProfileSection() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteConfirmed, setDeleteConfirmed] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [statusModal, setStatusModal] = useState<{ title: string; message: string } | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -61,14 +62,14 @@ export default function CaseProfileSection() {
       const data = await res.json()
       if (res.ok && data.case?.id) {
         setCaseId(data.case.id)
-        alert('Case profile saved')
+        setStatusModal({ title: 'Case profile saved', message: 'Your case profile details were saved successfully.' })
       } else {
         console.error('save failed', data)
-        alert('Failed to save case profile')
+        setStatusModal({ title: 'Save failed', message: 'Failed to save case profile.' })
       }
     } catch (err) {
       console.error(err)
-      alert('Failed to save case profile')
+      setStatusModal({ title: 'Save failed', message: 'Failed to save case profile.' })
     } finally {
       setSaving(false)
     }
@@ -93,12 +94,12 @@ export default function CaseProfileSection() {
         setCaseSummary('')
         setShowDeleteModal(false)
         setDeleteConfirmed(false)
-        alert('Case profile cleared')
+        setStatusModal({ title: 'Case profile cleared', message: 'Your case profile has been removed.' })
       } else {
-        alert(data?.error || 'Failed to clear case profile')
+        setStatusModal({ title: 'Delete failed', message: data?.error || 'Failed to clear case profile' })
       }
     } catch {
-      alert('Failed to clear case profile')
+      setStatusModal({ title: 'Delete failed', message: 'Failed to clear case profile' })
     } finally {
       setDeleting(false)
     }
@@ -219,6 +220,20 @@ export default function CaseProfileSection() {
                 disabled={!deleteConfirmed || deleting}
               >
                 {deleting ? 'Deleting…' : 'Yes, Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {statusModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalCard}>
+            <h3 className={styles.modalTitle}>{statusModal.title}</h3>
+            <p className={styles.modalBody}>{statusModal.message}</p>
+            <div className={styles.modalActions}>
+              <button className={styles.primaryBtn} onClick={() => setStatusModal(null)}>
+                OK
               </button>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
+import { planPriceForLabel } from '@/lib/plans/access';
 
 export async function GET() {
   try {
@@ -34,18 +35,13 @@ export async function GET() {
       .from('subscriptions')
       .select('plan_type, status, current_period_end, stripe_subscription_id')
       .eq('user_id', userRow.id)
-      .in('status', ['active', 'past_due', 'trialing'])
+      .in('status', ['active', 'past_due'])
       .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
     const rawPlan = activeSub?.plan_type || 'Free';
-    const normalizedPlan = rawPlan.toString().toLowerCase().replace(/_/g, ' ');
-    const isPremiumCheap = normalizedPlan.includes('premium cheap');
-    const isPro = isPremiumCheap || normalizedPlan.includes('premium pro') || normalizedPlan.includes('plus');
-    const isPremium = normalizedPlan.includes('premium') || normalizedPlan.includes('essential');
-    const isStandard = normalizedPlan.includes('standard');
-    const planPrice = activeSub ? (isPremiumCheap ? '1' : isPro ? '45' : isPremium ? '25' : isStandard ? '15' : '0') : '0';
+    const planPrice = activeSub ? planPriceForLabel(rawPlan) : '0';
 
     const planData = {
       plan: rawPlan,

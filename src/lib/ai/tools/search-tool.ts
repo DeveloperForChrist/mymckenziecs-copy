@@ -13,6 +13,13 @@ export type SearchToolOutput = {
   reviewedCount: number
   sources: string[]
   packet: string
+  sourceMode?: 'engine' | 'fallback' | 'none'
+}
+
+type SearchCandidate = {
+  url: string
+  title: string
+  fromQuery?: string
 }
 
 // Domain quality scoring for relevance ranking
@@ -42,6 +49,19 @@ const QUALITY_DOMAINS: Record<string, number> = {
   'linkedin.com': 5
 }
 
+const AUTHORITATIVE_DOMAIN_MATCHERS = [
+  'legislation.gov.uk',
+  'justice.gov.uk',
+  'judiciary.uk',
+  'supremecourt.uk',
+  'parliament.uk',
+  'gov.uk',
+  'caselaw.nationalarchives.gov.uk',
+  'bailii.org',
+  'mib.org.uk',
+  'acas.org.uk',
+]
+
 const safeJsonParse = <T,>(value: string): T | null => {
   try {
     return JSON.parse(value) as T
@@ -55,6 +75,141 @@ const STOPWORDS = new Set([
   'the', 'a', 'an', 'and', 'or', 'to', 'of', 'for', 'in', 'on', 'at', 'by', 'is', 'are', 'was', 'were',
   'what', 'how', 'when', 'where', 'which', 'with', 'about', 'from', 'under', 'over', 'into', 'your', 'their'
 ])
+
+type InfoNeed = 'definition' | 'procedure' | 'comparison' | 'examples' | 'authority' | 'code'
+
+const detectInfoNeeds = (text: string, mode: RetrievalMode): Set<InfoNeed> => {
+  const needs = new Set<InfoNeed>()
+  const lower = text.toLowerCase()
+
+  if (/\b(what is|what's|define|definition|meaning)\b/.test(lower)) needs.add('definition')
+  if (/\b(how to|how do|how can|steps|process|procedure|implement|apply|file|start)\b/.test(lower)) {
+    needs.add('procedure')
+  }
+  if (/\b(compare|comparison|difference|versus|vs)\b/.test(lower)) needs.add('comparison')
+  if (/\b(example|examples|scenario|sample)\b/.test(lower)) needs.add('examples')
+  if (/\b(typescript|javascript|node|react|python|java|c#|golang|go|sql)\b/.test(lower)) needs.add('code')
+
+  if (mode === 'education') needs.add('definition')
+  if (mode === 'procedure') needs.add('procedure')
+  if (mode === 'document_review') needs.add('authority')
+  if (mode === 'case_specific') {
+    needs.add('authority')
+    needs.add('examples')
+  }
+
+  // This tool is legal-first, so keep at least one authority-focused search.
+  needs.add('authority')
+  return needs
+}
+
+const splitOnSubIntentJoiners = (segment: string): string[] => {
+  const cleaned = normalizeWhitespace(segment)
+  const matcher = /\band\b\s+(what|how|why|when|where|whether|can|should|do|does|is|are)\b/i
+  const match = matcher.exec(cleaned)
+  if (!match || match.index < 14) return [cleaned]
+  const left = normalizeWhitespace(cleaned.slice(0, match.index))
+  const right = normalizeWhitespace(cleaned.slice(match.index + 4))
+  const out = [left, right].filter((value) => value.length >= 8)
+  return out.length > 1 ? out : [cleaned]
+}
+
+const extractSubIntents = (query: string): string[] => {
+  const normalized = normalizeWhitespace(query)
+  if (!normalized) return []
+
+  const coarseParts = normalized
+    .split(/\?+|;|\s+\bthen\b\s+|\s+\balso\b\s+/i)
+    .map((part) => normalizeWhitespace(part))
+    .filter((part) => part.length >= 8)
+
+  const fineParts = coarseParts.flatMap((part) => splitOnSubIntentJoiners(part))
+  return Array.from(new Set(fineParts)).slice(0, 3)
+}
+
+const buildNeedSuffix = (needs: Set<InfoNeed>, hasJurisdictionHint: boolean): string => {
+  const parts: string[] = []
+  if (needs.has('definition')) parts.push('definition plain English')
+  if (needs.has('procedure')) parts.push('step by step')
+  if (needs.has('comparison')) parts.push('comparison')
+  if (needs.has('examples')) parts.push('practical examples')
+  if (needs.has('code')) parts.push('implementation example')
+  if (needs.has('authority')) {
+    parts.push(hasJurisdictionHint ? 'official legal sources gov.uk legislation' : 'England and Wales law official legal sources gov.uk legislation')
+  }
+  return normalizeWhitespace(parts.join(' '))
+}
+
+const buildSearchSubqueries = (query: string, mode: RetrievalMode): string[] => {
+  const base = normalizeWhitespace(query).slice(0, 260)
+  if (!base) return []
+
+  const terms = tokenize(base).slice(0, 10)
+  const compactTerms = terms.join(' ')
+  const hasJurisdictionHint = /\b(uk|england|wales|scotland|northern ireland|britain)\b/i.test(base)
+  const subIntents = extractSubIntents(base)
+  const baseNeeds = detectInfoNeeds(base, mode)
+  const baseSuffix = buildNeedSuffix(baseNeeds, hasJurisdictionHint)
+
+  const candidates = [base]
+  if (baseSuffix) {
+    candidates.push(`${base} ${baseSuffix}`)
+  }
+
+  for (const subIntent of subIntents) {
+    if (subIntent.toLowerCase() === base.toLowerCase()) continue
+    const subNeeds = detectInfoNeeds(subIntent, mode)
+    const suffix = buildNeedSuffix(subNeeds, hasJurisdictionHint)
+    candidates.push(suffix ? `${subIntent} ${suffix}` : subIntent)
+  }
+
+  if (compactTerms) {
+    candidates.push(baseSuffix ? `${compactTerms} ${baseSuffix}` : compactTerms)
+  }
+
+  const unique = Array.from(
+    new Set(
+      candidates
+        .map((item) => normalizeWhitespace(item).slice(0, 260))
+        .filter((item) => item.length > 0)
+    )
+  )
+
+  // Keep search fan-out small to control latency and provider limits.
+  return unique.slice(0, 3)
+}
+
+const BASE_CURATED_SOURCES: SearchCandidate[] = [
+  { url: 'https://www.legislation.gov.uk/', title: 'UK Legislation' },
+  { url: 'https://www.justice.gov.uk/courts/procedure-rules/civil', title: 'Civil Procedure Rules' },
+  { url: 'https://www.gov.uk/browse/justice', title: 'GOV.UK Justice and Law' },
+  { url: 'https://www.citizensadvice.org.uk/', title: 'Citizens Advice' },
+]
+
+const TOPIC_CURATED_SOURCES: Array<{ pattern: RegExp; sources: SearchCandidate[] }> = [
+  {
+    pattern: /\b(car|vehicle|driver|road|traffic|accident|collision|mib|motor insurers|hit\s*-?\s*and\s*-?\s*run|registration|plate)\b/i,
+    sources: [
+      { url: 'https://www.legislation.gov.uk/ukpga/1988/52/section/170', title: 'Road Traffic Act 1988 section 170' },
+      { url: 'https://www.mib.org.uk/', title: 'Motor Insurers Bureau' },
+      { url: 'https://www.gov.uk/vehicle-insurance/uninsured-drivers', title: 'GOV.UK uninsured drivers guidance' },
+    ],
+  },
+  {
+    pattern: /\b(small\s+claim|money\s+claim|county\s+court|mcOL|court\s+fee)\b/i,
+    sources: [
+      { url: 'https://www.gov.uk/make-court-claim-for-money', title: 'Make a court claim for money' },
+      { url: 'https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part07', title: 'CPR Part 7' },
+    ],
+  },
+  {
+    pattern: /\b(employment|dismissal|redundancy|tribunal|acas)\b/i,
+    sources: [
+      { url: 'https://www.acas.org.uk/', title: 'ACAS' },
+      { url: 'https://www.gov.uk/employment-tribunals', title: 'Employment tribunals' },
+    ],
+  },
+]
 
 const stripHtml = (html: string) => {
   const withoutScripts = html
@@ -94,6 +249,18 @@ const getDomainQuality = (url: string): number => {
   }
   // Default for other sources
   return 3
+}
+
+const isAuthoritativeSource = (url: string): boolean => {
+  const host = getHost(url)
+  if (!host) return false
+  return AUTHORITATIVE_DOMAIN_MATCHERS.some((domain) => host === domain || host.endsWith(`.${domain}`) || host.includes(domain))
+}
+
+const shouldRequireAuthoritativeSource = (query: string, mode: RetrievalMode): boolean => {
+  if (!query.trim()) return false
+  if (mode === 'document_review' || mode === 'procedure' || mode === 'case_specific') return true
+  return /\b(law|legal|court|claim|tribunal|cpr|act|statute|regulation|england|wales|uk)\b/i.test(query)
 }
 
 const tokenize = (value: string): string[] =>
@@ -146,11 +313,16 @@ const computeRecencyScore = (title: string, url: string, excerpt: string): numbe
   return 3.5
 }
 
-const fetchWithTimeout = async (url: string, timeoutMs: number): Promise<Response> => {
+const fetchWithTimeout = async (url: string, timeoutMs: number, init?: RequestInit): Promise<Response> => {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), timeoutMs)
   try {
-    return await fetch(url, { method: 'GET', redirect: 'follow', signal: controller.signal })
+    return await fetch(url, {
+      method: 'GET',
+      redirect: 'follow',
+      ...(init || {}),
+      signal: controller.signal
+    })
   } finally {
     clearTimeout(timeout)
   }
@@ -186,63 +358,140 @@ const buildExcerpt = (text: string, query: string, maxChars: number) => {
   return `${prefix}${cleaned.slice(start, end)}${suffix}`
 }
 
-// Google Custom Search API
-const searchViaGoogle = async (query: string): Promise<Array<{ url: string; title: string }>> => {
-  const apiKey = process.env.GOOGLE_SEARCH_API_KEY
-  const engineId = process.env.GOOGLE_SEARCH_ENGINE_ID
-  
-  if (!apiKey || !engineId) {
-    return []
+const getCuratedFallbackSources = (query: string, mode: RetrievalMode): SearchCandidate[] => {
+  const picked: SearchCandidate[] = []
+
+  for (const topic of TOPIC_CURATED_SOURCES) {
+    if (topic.pattern.test(query)) {
+      picked.push(...topic.sources)
+    }
   }
-  
-  try {
-    const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&key=${apiKey}&cx=${engineId}&num=10`
-    const response = await fetchWithTimeout(url, 15000)
-    if (!response.ok) return []
-    
-    const data = await response.json() as any
-    return (data.items || []).map((item: any) => ({
-      url: item.link,
-      title: item.title
-    }))
-  } catch {
-    return []
+
+  if (mode === 'procedure') {
+    picked.push({ url: 'https://www.justice.gov.uk/courts/procedure-rules/civil', title: 'Civil Procedure Rules' })
   }
+
+  picked.push(...BASE_CURATED_SOURCES)
+
+  const seen = new Set<string>()
+  return picked.filter((entry) => {
+    if (!entry.url || seen.has(entry.url)) return false
+    seen.add(entry.url)
+    return true
+  }).slice(0, 10)
 }
 
-// Fallback: DuckDuckGo search
-const searchViaDuckDuckGo = async (query: string): Promise<Array<{ url: string; title: string }>> => {
+const searchViaBraveApi = async (query: string): Promise<SearchCandidate[]> => {
+  const apiKey = process.env.BRAVE_SEARCH_API_KEY
+  if (!apiKey) return []
+
   try {
     const encoded = encodeURIComponent(query)
-    const url = `https://html.duckduckgo.com/?q=${encoded}&t=mymckenzie`
-    const response = await fetchWithTimeout(url, 15000)
-    if (!response.ok) return []
-    
-    const html = await response.text()
-    const results: Array<{ url: string; title: string }> = []
-    
-    // Simple HTML parsing to extract result links
-    const linkPattern = /<a\s+class="[^"]*result__a[^"]*"\s+href="([^"]+)"[^>]*>([^<]+)<\/a>/gi
-    let match
-    while ((match = linkPattern.exec(html)) !== null && results.length < 10) {
-      const href = match[1]
-      const title = match[2]
-      if (href && title && (href.startsWith('http://') || href.startsWith('https://'))) {
-        results.push({ url: href, title: stripHtml(title) })
+    const url = `https://api.search.brave.com/res/v1/web/search?q=${encoded}&count=12&country=GB&search_lang=en`
+    const response = await fetchWithTimeout(url, 15000, {
+      headers: {
+        'Accept': 'application/json',
+        'Accept-Language': 'en-GB,en;q=0.9',
+        'X-Subscription-Token': apiKey
       }
+    })
+    if (!response.ok) return []
+
+    const data = await response.json() as any
+    const rawResults = Array.isArray(data?.web?.results) ? data.web.results : []
+    const results: SearchCandidate[] = []
+    const seen = new Set<string>()
+
+    for (const entry of rawResults) {
+      const href = typeof entry?.url === 'string'
+        ? entry.url.trim()
+        : typeof entry?.profile?.url === 'string'
+          ? entry.profile.url.trim()
+          : ''
+      const title = typeof entry?.title === 'string'
+        ? stripHtml(entry.title)
+        : typeof entry?.meta_title === 'string'
+          ? stripHtml(entry.meta_title)
+          : ''
+      if (!href || (!href.startsWith('http://') && !href.startsWith('https://'))) continue
+      if (seen.has(href)) continue
+      seen.add(href)
+      results.push({
+        url: href,
+        title: title || getHost(href)
+      })
+      if (results.length >= 12) break
     }
-    
+
     return results
   } catch {
     return []
   }
 }
 
-// Universal search - tries Google first, falls back to DuckDuckGo
-const universalSearch = async (query: string): Promise<Array<{ url: string; title: string }>> => {
-  let results = await searchViaGoogle(query)
+// Fallback: Brave search HTML
+const searchViaBraveHtml = async (query: string): Promise<SearchCandidate[]> => {
+  try {
+    const encoded = encodeURIComponent(query)
+    const url = `https://search.brave.com/search?q=${encoded}&source=web&country=GB&lang=en_gb`
+    const response = await fetchWithTimeout(url, 15000, {
+      headers: {
+        'Accept-Language': 'en-GB,en;q=0.9'
+      }
+    })
+    if (!response.ok) return []
+
+    const html = await response.text()
+    const linkPattern = /<a[^>]+href="(https?:\/\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi
+    const blockedHosts = new Set([
+      'search.brave.com',
+      'cdn.search.brave.com',
+      'imgs.search.brave.com',
+      'tiles.search.brave.com'
+    ])
+    const blockedExtensions = ['.css', '.js', '.svg', '.png', '.jpg', '.jpeg', '.gif', '.ico', '.woff', '.woff2', '.webmanifest']
+
+    const results: SearchCandidate[] = []
+    const seen = new Set<string>()
+    let match: RegExpExecArray | null
+
+    while ((match = linkPattern.exec(html)) !== null && results.length < 12) {
+      const href = (match[1] || '').replace(/&amp;/g, '&').trim()
+      const rawTitle = stripHtml(match[2] || '')
+      if (!href.startsWith('http://') && !href.startsWith('https://')) continue
+      if (seen.has(href)) continue
+
+      let host = ''
+      let pathname = ''
+      try {
+        const parsed = new URL(href)
+        host = parsed.host.toLowerCase()
+        pathname = parsed.pathname.toLowerCase()
+      } catch {
+        continue
+      }
+
+      if (blockedHosts.has(host)) continue
+      if (blockedExtensions.some((ext) => pathname.endsWith(ext))) continue
+
+      seen.add(href)
+      results.push({
+        url: href,
+        title: rawTitle || host
+      })
+    }
+
+    return results
+  } catch {
+    return []
+  }
+}
+
+// Universal search - tries Brave API first, then Brave HTML.
+const universalSearch = async (query: string): Promise<SearchCandidate[]> => {
+  let results = await searchViaBraveApi(query)
   if (results.length === 0) {
-    results = await searchViaDuckDuckGo(query)
+    results = await searchViaBraveHtml(query)
   }
   return results
 }
@@ -259,34 +508,75 @@ export class SearchTool extends Tool {
       const query = (parsed?.query || input || '').trim()
       const mode: RetrievalMode = parsed?.mode || 'general'
 
-      // Perform universal internet search
-      const searchResults = await universalSearch(query)
+      const subQueries = buildSearchSubqueries(query, mode)
+      const searchRuns = await Promise.all(
+        subQueries.map(async (subQuery) => {
+          const results = await universalSearch(subQuery)
+          return {
+            subQuery,
+            results: results.map((result) => ({ ...result, fromQuery: subQuery })),
+          }
+        })
+      )
 
-      if (searchResults.length === 0) {
+      const mergedByUrl = new Map<string, SearchCandidate>()
+      for (const run of searchRuns) {
+        for (const result of run.results) {
+          if (!result.url) continue
+          const existing = mergedByUrl.get(result.url)
+          if (!existing) {
+            mergedByUrl.set(result.url, result)
+            continue
+          }
+          // Prefer entries with stronger titles or direct base-query match.
+          const existingTitleLen = (existing.title || '').length
+          const candidateTitleLen = (result.title || '').length
+          const resultIsBase = result.fromQuery === subQueries[0]
+          const existingIsBase = existing.fromQuery === subQueries[0]
+          if ((resultIsBase && !existingIsBase) || candidateTitleLen > existingTitleLen) {
+            mergedByUrl.set(result.url, result)
+          }
+        }
+      }
+
+      const mergedSearchResults = Array.from(mergedByUrl.values())
+      const usedEngineResults = mergedSearchResults.length > 0
+      const searchPool: SearchCandidate[] =
+        usedEngineResults
+          ? mergedSearchResults
+          : getCuratedFallbackSources(query, mode).map((entry) => ({ ...entry, fromQuery: 'curated' }))
+
+      if (searchPool.length === 0) {
         return JSON.stringify({
           query,
           mode,
           reviewedCount: 0,
           sources: [],
-          packet: 'No search results found. Please try a different query.'
+          packet: 'No search results found. Please try a different query.',
+          sourceMode: 'none'
         } as SearchToolOutput)
       }
 
       // Fetch and process results, prioritizing by domain quality
       const fetched = await Promise.all(
-        searchResults.slice(0, 10).map(async (result) => {
+        searchPool.slice(0, 10).map(async (result) => {
           const text = await fetchText(result.url)
-          if (!text) return null
-          const excerpt = buildExcerpt(text.text, query, 900)
-          if (!excerpt || excerpt.length < 120) return null
+          const excerpt = text
+            ? (buildExcerpt(text.text, query, 900) || 'Content extracted but excerpt was minimal.')
+            : 'Unable to fetch full page text at the moment; source retained for citation mapping.'
           const quality = getDomainQuality(result.url)
-          const title = result.title || text.title || ''
-          const relevance = computeRelevanceScore(query, title, excerpt)
+          const title = result.title || text?.title || ''
+          const relevance = computeRelevanceScore(
+            `${query} ${result.fromQuery || ''}`,
+            title,
+            excerpt
+          )
           const recency = computeRecencyScore(title, result.url, excerpt)
           const score = Number((relevance * 0.5 + recency * 0.2 + quality * 0.3).toFixed(2))
           return {
             url: result.url,
             title,
+            fromQuery: result.fromQuery,
             quality,
             relevance,
             recency,
@@ -296,24 +586,86 @@ export class SearchTool extends Tool {
         })
       )
 
+      const reviewed = fetched.filter((value): value is NonNullable<typeof value> => Boolean(value))
+
+      // Keep all pages successfully read as citation candidates.
+      const citationSources = Array.from(new Set(
+        reviewed.map((entry) => entry.url).filter((url) => typeof url === 'string' && url.length > 0)
+      ))
+
       // Filter and sort by blended ranking score (relevance + recency + domain quality)
-      const sources = fetched
+      let rankedForPacket = reviewed
         .filter((value): value is NonNullable<typeof value> => Boolean(value))
         .sort((a, b) => b.score - a.score)
         .slice(0, 8)
 
-      const packet = `Reviewed ${sources.length} sources from across the internet.\n\n` +
-        sources.map((s, idx) => {
+      // Fallback: if content extraction was too sparse, still provide ranked URLs
+      // so citation-capable tiers can attach source links.
+      if (rankedForPacket.length === 0) {
+        const fallback = searchPool
+          .slice(0, 8)
+          .map((result) => {
+            const quality = getDomainQuality(result.url)
+            const relevance = computeRelevanceScore(
+              `${query} ${result.fromQuery || ''}`,
+              result.title || '',
+              ''
+            )
+            const recency = computeRecencyScore(result.title || '', result.url, '')
+            const score = Number((relevance * 0.5 + recency * 0.2 + quality * 0.3).toFixed(2))
+            return {
+              url: result.url,
+              title: result.title || '',
+              fromQuery: result.fromQuery,
+              quality,
+              relevance,
+              recency,
+              score,
+              excerpt: 'Search result summary not available; source retained for citation mapping.'
+            }
+          })
+          .sort((a, b) => b.score - a.score)
+        rankedForPacket = fallback
+      }
+
+      if (shouldRequireAuthoritativeSource(query, mode) && !rankedForPacket.some((entry) => isAuthoritativeSource(entry.url))) {
+        const bestAuthoritative = reviewed
+          .filter((entry) => isAuthoritativeSource(entry.url))
+          .sort((a, b) => b.score - a.score)[0]
+
+        if (bestAuthoritative) {
+          const deduped = rankedForPacket.filter((entry) => entry.url !== bestAuthoritative.url)
+          if (deduped.length >= 8) {
+            deduped[deduped.length - 1] = bestAuthoritative
+            rankedForPacket = deduped
+          } else {
+            rankedForPacket = [...deduped, bestAuthoritative]
+          }
+        }
+      }
+
+      const packet = `${usedEngineResults ? 'Source mode: engine results.' : 'Source mode: fallback context only (no citation sources).'}\n` +
+        `Executed searches: ${subQueries.join(' | ')}\n` +
+        `Reviewed ${Math.max(reviewed.length, rankedForPacket.length)} sources from across the internet.\n\n` +
+        rankedForPacket.map((s, idx) => {
           const titleLine = s.title ? `Title: ${s.title}\n` : ''
-          return `SOURCE ${idx + 1} (Score: ${s.score}/10 | Relevance: ${s.relevance}/10 | Recency: ${s.recency}/10 | Domain quality: ${s.quality}/10):\n${titleLine}URL: ${s.url}\nEXTRACT: ${s.excerpt}`
+          const queryLine = s.fromQuery ? `Matched query: ${s.fromQuery}\n` : ''
+          return `SOURCE ${idx + 1} (Score: ${s.score}/10 | Relevance: ${s.relevance}/10 | Recency: ${s.recency}/10 | Domain quality: ${s.quality}/10):\n${queryLine}${titleLine}URL: ${s.url}\nEXTRACT: ${s.excerpt}`
         }).join('\n\n')
 
       const output: SearchToolOutput = {
         query,
         mode,
-        reviewedCount: sources.length,
-        sources: sources.map((s) => s.url),
-        packet: packet.slice(0, 7000)
+        reviewedCount: Math.max(reviewed.length, rankedForPacket.length),
+        sources: usedEngineResults
+          ? (
+              citationSources.length > 0
+                ? citationSources
+                : rankedForPacket.map((s) => s.url)
+            )
+          : [],
+        packet: packet.slice(0, 7000),
+        sourceMode: usedEngineResults ? 'engine' : 'fallback'
       }
 
       return JSON.stringify(output)
@@ -324,7 +676,8 @@ export class SearchTool extends Tool {
           mode: 'general',
           reviewedCount: 0,
           sources: [],
-          packet: "Rate limit exceeded. Please wait a moment and try again."
+          packet: "Rate limit exceeded. Please wait a moment and try again.",
+          sourceMode: 'none'
         } as SearchToolOutput)
       }
       console.error('Search tool error:', error);

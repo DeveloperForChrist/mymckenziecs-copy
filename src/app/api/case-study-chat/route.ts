@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       messages: [
         {
           role: 'system',
-          content: 'You are an educational legal study assistant for UK case law. Answer the user question clearly and concisely, in plain English. Use plain text only (no markdown, no bullets). Do not provide legal advice or recommendations. If the question is outside the case details provided, say you do not have enough information.'
+          content: 'You are an educational legal study assistant for UK case law writing for non-lawyers. Answer clearly and concisely in plain English, assuming the user has no legal background. Explain legal terms in simple words when used. Use plain text only (no markdown, no bullets). Do not provide legal advice, recommendations, or instructions. Do not tell the user what they should, must, or need to do in their own case. Keep answers educational and case-explanatory only. If the question is outside the case details provided, say you do not have enough information.'
         },
         {
           role: 'user',
@@ -82,8 +82,30 @@ export async function POST(request: Request) {
         .replace(/^\s*\d+\.\s+/gm, '')
         .trim();
 
+    const enforceEducationalOnlyLanguage = (text: string) =>
+      text
+        .replace(/\b(I|we)\s+recommend\b/gi, 'A common approach in similar cases is')
+        .replace(/\byou\s+should\b/gi, 'it may be useful to understand that')
+        .replace(/\byou\s+must\b/gi, 'courts generally require that')
+        .replace(/\byou\s+need\s+to\b/gi, 'it is important to understand that')
+        .replace(/\bmy\s+advice\s+is\b/gi, 'an educational point is')
+        .replace(/\bI\s+advise\b/gi, 'this case indicates')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+
+    const EDUCATIONAL_FOOTER = 'Educational information only — not legal advice.';
+
+    const appendEducationalFooter = (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed) return EDUCATIONAL_FOOTER;
+      if (trimmed.toLowerCase().includes('not legal advice')) return trimmed;
+      return `${trimmed}\n\n${EDUCATIONAL_FOOTER}`;
+    };
+
     const rawAnswer = completion.choices?.[0]?.message?.content?.trim() || '';
-    const answer = rawAnswer ? sanitizePlainText(rawAnswer) : 'Sorry, I could not generate an answer.';
+    const answer = rawAnswer
+      ? appendEducationalFooter(enforceEducationalOnlyLanguage(sanitizePlainText(rawAnswer)))
+      : 'Sorry, I could not generate an answer.';
     return NextResponse.json({ answer });
   } catch (error: any) {
     console.error('Case study chat error:', error);

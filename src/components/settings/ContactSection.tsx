@@ -33,7 +33,7 @@ export default function ContactSection() {
   useEffect(() => {
     const fetchPlan = async () => {
       try {
-        const res = await fetch('/api/user/plan');
+        const res = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
         setUserPlan((data?.plan || 'Free').toString());
