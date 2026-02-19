@@ -90,13 +90,6 @@ mymckenzie-nextjs2/
    # OpenAI
    OPENAI_API_KEY=your_openai_api_key
 
-   # Google Generative AI
-   GOOGLE_GENERATIVE_AI_API_KEY=your_google_ai_api_key
-
-   # Pinecone (optional)
-   PINECONE_API_KEY=your_pinecone_api_key
-   PINECONE_ENVIRONMENT=your_pinecone_environment
-   PINECONE_INDEX_NAME=your_pinecone_index_name
    ```
 
 4. **Run the development server**:

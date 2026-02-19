@@ -58,7 +58,6 @@ export async function middleware(request: NextRequest) {
     '/api/case-summary',
     '/api/drafts',
     '/api/evidence-bundle',
-    '/api/court-bundle',
     '/api/doc-review',
     '/api/calendar',
     '/api/chat-history',
