@@ -47,25 +47,41 @@ export default function CaseProfileSection() {
   const handleSave = async () => {
     setSaving(true)
     try {
-      const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null
+      const hasAnyInput = Boolean(caseNumber.trim() || hearingDate.trim() || caseTitle.trim() || caseSummary.trim())
+      if (!hasAnyInput) {
+        setStatusModal({ title: 'Save failed', message: 'Fill at least one case profile field before saving.' })
+        return
+      }
+
       const res = await fetch('/api/user/case-details', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           caseId: caseNumber || null,
           caseType: hearingDate || null,
           caseTitle: caseTitle || null,
           caseDescription: caseSummary || null,
-          userId,
         }),
       })
-      const data = await res.json()
+      const raw = await res.text()
+      let data: any = {}
+      try {
+        data = raw ? JSON.parse(raw) : {}
+      } catch {
+        data = {}
+      }
+
       if (res.ok && data.case?.id) {
         setCaseId(data.case.id)
         setStatusModal({ title: 'Case profile saved', message: 'Your case profile details were saved successfully.' })
       } else {
-        console.error('save failed', data)
-        setStatusModal({ title: 'Save failed', message: 'Failed to save case profile.' })
+        const errorMessage =
+          (typeof data?.error === 'string' && data.error.trim()) ||
+          (typeof data?.message === 'string' && data.message.trim()) ||
+          (res.status === 401 ? 'Please sign in again and retry.' : '') ||
+          'Failed to save case profile.'
+        setStatusModal({ title: 'Save failed', message: errorMessage })
       }
     } catch (err) {
       console.error(err)
@@ -94,7 +110,7 @@ export default function CaseProfileSection() {
         setCaseSummary('')
         setShowDeleteModal(false)
         setDeleteConfirmed(false)
-        setStatusModal({ title: 'Case profile cleared', message: 'Your case profile has been removed.' })
+        setStatusModal({ title: 'Case profile cleared', message: 'Your case profile has been removed. Your chatbot conversation history was preserved.' })
       } else {
         setStatusModal({ title: 'Delete failed', message: data?.error || 'Failed to clear case profile' })
       }
@@ -194,7 +210,7 @@ export default function CaseProfileSection() {
             <h3 className={styles.modalTitle}>Delete case profile?</h3>
             <p className={styles.modalBody}>
               This will clear your case title, case number, hearing date, and case summary used to personalise MyMcKenzie Assistant.
-              Your chatbot responses may become less tailored until you fill in a new case profile.
+              Your chatbot responses may become less tailored until you fill in a new case profile, but your chatbot conversations will be kept.
             </p>
             <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px', fontSize: '0.9rem' }}>
               <input

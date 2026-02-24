@@ -115,7 +115,7 @@ export async function POST(request: Request) {
 
       case 'updatePlan': {
         // Validate plan
-        const validPlans = ['free', 'standard', 'essential', 'plus', 'premium cheap', 'premium pro'];
+        const validPlans = ['free', 'basic', 'premium', 'premium +', 'premium plus', 'essential', 'plus', 'premium cheap', 'premium pro'];
         if (!data?.plan || !validPlans.includes(data.plan.toLowerCase())) {
           console.error('❌ Invalid plan:', data?.plan);
           return NextResponse.json({ 
@@ -127,11 +127,15 @@ export async function POST(request: Request) {
         
         const requestedPlan = data.plan.toLowerCase();
         const planToSet =
-          requestedPlan === 'plus'
-            ? 'premium pro'
-            : requestedPlan === 'essential'
-              ? 'premium'
-              : requestedPlan;
+          requestedPlan === 'premium +' || requestedPlan === 'premium plus' || requestedPlan === 'plus' || requestedPlan === 'premium pro'
+            ? 'Premium +'
+            : requestedPlan === 'premium'
+              ? 'Premium'
+              : requestedPlan === 'basic' || requestedPlan === 'essential' || requestedPlan === 'premium cheap'
+                ? 'Basic'
+                : requestedPlan === 'free'
+                  ? 'Free'
+                  : requestedPlan;
 
         console.log(`🔄 Updating plan for user ${userId} to ${planToSet}`);
 

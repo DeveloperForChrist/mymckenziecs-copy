@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/database/supabase-server'
 
 /**
  * DELETE /api/chat/cleanup
- * 
- * Deletes all messages for a guest session (conversation with no case_id)
- * Called when guest user closes the chat or leaves
+ *
+ * Chat messages are now treated as durable conversation history.
+ * Cleanup is intentionally disabled to prevent accidental loss.
  */
 export async function DELETE(request: NextRequest) {
   try {
@@ -18,23 +17,8 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    // Delete all messages for this conversation that have no case_id (guest messages only)
-    const { error } = await supabaseAdmin
-      .from('messages')
-      .delete()
-      .eq('conversation_id', conversationId)
-      .is('case_id', null) // Only delete guest messages (case_id is NULL)
-
-    if (error) {
-      console.error('Failed to cleanup guest messages:', error)
-      return NextResponse.json(
-        { error: 'Cleanup failed', details: error.message },
-        { status: 500 }
-      )
-    }
-
     return NextResponse.json(
-      { success: true, message: 'Guest session cleaned up' },
+      { success: true, preserved: true, message: 'Cleanup disabled: conversation history is preserved.' },
       { status: 200 }
     )
   } catch (error) {

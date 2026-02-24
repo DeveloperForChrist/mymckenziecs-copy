@@ -252,7 +252,7 @@ const distributionEntries = (record?: Record<string, number>, limit = 6) => {
 }
 
 export default function AdminDashboard() {
-  const PLAN_OPTIONS = ['free', 'standard', 'essential', 'plus', 'premium cheap', 'premium pro']
+  const PLAN_OPTIONS = ['free', 'basic', 'premium', 'premium +', 'premium plus', 'plus', 'premium pro', 'essential', 'premium cheap']
   const [activeTab, setActiveTab] = useState<AdminTab>('overview')
   const [users, setUsers] = useState<User[]>([])
   const [cases, setCases] = useState<Case[]>([])
@@ -961,10 +961,10 @@ export default function AdminDashboard() {
                   <select className={styles.select} value={filterPlan} onChange={(e) => setFilterPlan(e.target.value)}>
                     <option value="">All plans</option>
                     <option value="free">Free</option>
-                    <option value="standard">Standard</option>
+                    <option value="basic">Basic</option>
                     <option value="premium">Premium</option>
-                    <option value="premium cheap">Premium Cheap</option>
-                    <option value="premium pro">Premium Pro</option>
+                    <option value="premium +">Premium +</option>
+                    <option value="premium plus">Premium Plus (legacy)</option>
                   </select>
                 </div>
               </div>
@@ -1018,7 +1018,7 @@ export default function AdminDashboard() {
                                   setPlanEditor({
                                     userId: user.id,
                                     currentPlan: normalizedCurrentPlan,
-                                    nextPlan: PLAN_OPTIONS.includes(normalizedCurrentPlan) ? normalizedCurrentPlan : 'plus',
+                                    nextPlan: PLAN_OPTIONS.includes(normalizedCurrentPlan) ? normalizedCurrentPlan : 'premium +',
                                   })
                                 }}
                               >
@@ -1288,15 +1288,19 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {feedback.map((item) => (
-                        <tr key={item.id}>
-                          <td>{toTitleCase(item.feedbackType)}</td>
-                          <td>{item.userId.slice(0, 12)}...</td>
-                          <td>{item.messageContent.slice(0, 80)}...</td>
-                          <td>{formatDate(item.createdAt)}</td>
-                          <td>{item.status || 'received'}</td>
-                        </tr>
-                      ))}
+                      {feedback.map((item) => {
+                        const safeUserId = typeof item.userId === 'string' ? item.userId : String(item.userId ?? 'unknown');
+                        const safeMessage = typeof item.messageContent === 'string' ? item.messageContent : String(item.messageContent ?? '');
+                        return (
+                          <tr key={item.id}>
+                            <td>{toTitleCase(item.feedbackType)}</td>
+                            <td>{safeUserId.slice(0, 12)}...</td>
+                            <td>{safeMessage.slice(0, 80)}...</td>
+                            <td>{formatDate(item.createdAt)}</td>
+                            <td>{item.status || 'received'}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -1329,16 +1333,21 @@ export default function AdminDashboard() {
                   <tbody>
                     {feedback
                       .filter((item) => item.feedbackType === 'report')
-                      .map((item) => (
-                        <tr key={item.id}>
-                          <td>{item.status === 'pending' ? 'Pending' : 'Reviewed'}</td>
-                          <td>{item.reportIssue || 'N/A'}</td>
-                          <td>{item.reportProblem || 'No description'}</td>
-                          <td>{item.messageContent.slice(0, 60)}...</td>
-                          <td>{item.userId.slice(0, 10)}...</td>
-                          <td>{new Date(item.createdAt).toLocaleString()}</td>
-                        </tr>
-                      ))}
+                      .map((item) => {
+                        const safeUserId = typeof item.userId === 'string' ? item.userId : String(item.userId ?? 'unknown');
+                        const safeMessage = typeof item.messageContent === 'string' ? item.messageContent : String(item.messageContent ?? '');
+                        const safeDate = item.createdAt ? new Date(item.createdAt).toLocaleString() : 'N/A';
+                        return (
+                          <tr key={item.id}>
+                            <td>{item.status === 'pending' ? 'Pending' : 'Reviewed'}</td>
+                            <td>{item.reportIssue || 'N/A'}</td>
+                            <td>{item.reportProblem || 'No description'}</td>
+                            <td>{safeMessage.slice(0, 60)}...</td>
+                            <td>{safeUserId.slice(0, 10)}...</td>
+                            <td>{safeDate}</td>
+                          </tr>
+                        );
+                      })}
                   </tbody>
                 </table>
               </div>

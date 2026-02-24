@@ -24,7 +24,7 @@ export default function SignInPage() {
                 </div>
                 <div className={styles.heroListItem}>
                   <span>03</span>
-                  <div>Ready to scale up? Explore Standard, Essential, and Plus plans.</div>
+                  <div>Ready to scale up? Explore Basic, Premium, and Premium + plans.</div>
                 </div>
               </div>
             </div>
@@ -45,8 +45,8 @@ export default function SignInPage() {
             <SignInForm />
             <p className={styles.footnote}>
               Don&apos;t have an account?{' '}
-              <a href="/auth/signup" className={styles.inlineLink}>
-                Start free
+              <a href="/pricing" className={styles.inlineLink}>
+                Register
               </a>
             </p>
           </section>

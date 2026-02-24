@@ -9,13 +9,10 @@ import ChatComposer from '@/components/chatbot/ChatComposer'
 import ChatMessageList from '@/components/chatbot/ChatMessageList'
 import { useChatAuthPlan } from '@/components/chatbot/hooks/useChatAuthPlan'
 import { useConversationBootstrap } from '@/components/chatbot/hooks/useConversationBootstrap'
-import { useFreemiumMessageState } from '@/components/chatbot/hooks/useFreemiumMessageState'
-import { useFreemiumSessionHistory } from '@/components/chatbot/hooks/useFreemiumSessionHistory'
 import type {
   AssistantMetadata,
   Message,
   AttachmentDisplay,
-  DraftPromptStatus,
   ParsedLine,
   ParsedSection,
   SourceReference
@@ -82,8 +79,8 @@ const TypingIndicator = ({ label = 'Working', compact = false }: { label?: strin
   )
 }
 
-const FREEMIUM_MESSAGE_LIMIT = 20;
-const GUEST_MESSAGE_LIMIT = 5;
+const GUEST_MESSAGE_LIMIT = 10;
+const GUEST_LIMIT_TRIGGERED_KEY = 'guestLimitTriggered'
 
  const stripTrailingUrlPunctuation = (url: string) => {
    let cleaned = url.trim()
@@ -700,6 +697,7 @@ type CaseProfilePayload = {
   caseNumber?: string;
   caseType?: string;
   caseDescription?: string;
+  caseStage?: string;
 };
 
 const normalizeUserId = (value?: string | null) => {
@@ -708,7 +706,7 @@ const normalizeUserId = (value?: string | null) => {
   return trimmed.startsWith('anon_') ? trimmed : `anon_${trimmed}`
 }
 
-const getSessionHistoryKey = (userId: string) => `freemiumSessionHistory:${userId}`
+const getSessionHistoryKey = (userId: string) => `chatSessionHistory:${userId}`
 
 const clearSessionHistory = (userId?: string | null) => {
   if (typeof window === 'undefined') return
@@ -795,6 +793,12 @@ export default function ChatInterface() {
           caseNumber: active.external_id || undefined,
           caseType: active.case_type || undefined,
           caseDescription: active.description || undefined,
+          caseStage:
+            (active?.checklist_procedural &&
+            typeof active.checklist_procedural === 'object' &&
+            typeof active.checklist_procedural.currentStage === 'string')
+              ? active.checklist_procedural.currentStage
+              : undefined,
         };
 
         if (!cancelled) setCaseProfileContext(mapped);
@@ -818,7 +822,6 @@ export default function ChatInterface() {
   const [showWordLimitWarning, setShowWordLimitWarning] = useState(false)
   const [feedbackState, setFeedbackState] = useState<{[key: number]: 'like' | 'dislike' | null}>({})
   const [showReportModal, setShowReportModal] = useState(false)
-  const [showLimitModal, setShowLimitModal] = useState(false)
   const [reportIssue, setReportIssue] = useState('')
   const [reportProblem, setReportProblem] = useState('')
   const [reportingMessageIndex, setReportingMessageIndex] = useState<number | null>(null)
@@ -827,12 +830,10 @@ export default function ChatInterface() {
   const [guestUploadWarning, setGuestUploadWarning] = useState<string | null>(null)
   const [showGuestSignupModal, setShowGuestSignupModal] = useState(false)
   const [isConversationBootstrapping, setIsConversationBootstrapping] = useState(true)
-  const [freemiumMessageCount, setFreemiumMessageCount] = useState(0)
   const [isGuestLimitReached, setIsGuestLimitReached] = useState(false)
   const [guestLimitNotified, setGuestLimitNotified] = useState(false)
   const [noticeModal, setNoticeModal] = useState<{ title: string; message: string } | null>(null)
   
-  const [draftPromptStates, setDraftPromptStates] = useState<Record<string, { status: DraftPromptStatus, error?: string }>>({})
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -846,35 +847,6 @@ export default function ChatInterface() {
   const [autoScroll, setAutoScroll] = useState(true)
   const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false)
   const [showScrollToBottomButtonByWindow, setShowScrollToBottomButtonByWindow] = useState(false)
-  const normalizedPlan = (plan || '').toLowerCase();
-
-  // Cleanup guest data when component unmounts
-  useEffect(() => {
-    return () => {
-      // Only cleanup if user is not authenticated (guest user) and has a conversation ID
-      if (!isAuthenticated && conversationId && conversationId.trim()) {
-        fetch('/api/chat/cleanup', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ conversationId })
-        }).catch((error) => {
-          console.warn('Failed to cleanup guest session:', error)
-        })
-      }
-    }
-  }, [isAuthenticated, conversationId])
-  const isFreemiumPlan =
-    planLoaded &&
-    isAuthenticated &&
-    normalizedPlan.length > 0 &&
-    (normalizedPlan.includes('free') ||
-      normalizedPlan.includes('freemium') ||
-      normalizedPlan.includes('guest'));
-  const remainingMessages = Math.max(FREEMIUM_MESSAGE_LIMIT - freemiumMessageCount, 0);
-  const isNearLimit =
-    isFreemiumPlan &&
-    remainingMessages > 0 &&
-    remainingMessages <= 5;
 
   const scrollToBottom = (behavior: 'auto' | 'smooth' = 'smooth') => {
     const container = scrollContainerRef.current
@@ -987,30 +959,45 @@ export default function ChatInterface() {
 
   const isGuestFreePlan = planLoaded && plan === 'Free' && !supabaseUser
 
-  useFreemiumMessageState({
-    messages,
-    isGuestFreePlan,
-    isGuestLimitReached,
-    isFreemiumPlan,
-    planLoaded,
-    caseId,
-    guestMessageLimit: GUEST_MESSAGE_LIMIT,
-    freemiumMessageCount,
-    freemiumMessageLimit: FREEMIUM_MESSAGE_LIMIT,
-    setIsGuestLimitReached,
-    setGuestLimitNotified,
-    setFreemiumMessageCount,
-    setShowGuestSignupModal
-  })
+  useEffect(() => {
+    if (isGuestFreePlan) {
+      const guestMessages = messages.filter((m) => m.role === 'user').length
+      if (guestMessages < GUEST_MESSAGE_LIMIT) {
+        setIsGuestLimitReached(false)
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(GUEST_LIMIT_TRIGGERED_KEY)
+        }
+      }
+    } else {
+      setIsGuestLimitReached(false)
+    }
+  }, [messages, isGuestFreePlan])
 
-  useFreemiumSessionHistory({
-    messages,
-    setMessages,
-    isFreemiumPlan,
-    supabaseUserId: supabaseUser?.id,
-    clearSessionHistory,
-    getSessionHistoryKey
-  })
+  useEffect(() => {
+    if (!isGuestLimitReached || !isGuestFreePlan) {
+      setGuestLimitNotified(false)
+    }
+  }, [isGuestLimitReached, isGuestFreePlan])
+
+  useEffect(() => {
+    if (!planLoaded || !isGuestFreePlan) return
+    fetch('/api/message-count', { credentials: 'include' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (isGuestFreePlan && typeof data?.limit === 'number' && typeof data?.count === 'number') {
+          const reached = data.count >= data.limit
+          const hasTriggered =
+            typeof window !== 'undefined' &&
+            localStorage.getItem(GUEST_LIMIT_TRIGGERED_KEY) === '1'
+          setIsGuestLimitReached(Boolean(reached && hasTriggered))
+          if (reached && hasTriggered) setShowGuestSignupModal(true)
+          if (!reached && typeof window !== 'undefined') {
+            localStorage.removeItem(GUEST_LIMIT_TRIGGERED_KEY)
+          }
+        }
+      })
+      .catch(() => undefined)
+  }, [planLoaded, isGuestFreePlan])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
@@ -1167,10 +1154,6 @@ export default function ChatInterface() {
     setReportProblem('')
     setReportingMessageIndex(null)
     setReportingMessageContent('')
-  }
-
-  const handleDismissDraftPrompt = (draftKey: string) => {
-    setDraftPromptStates(prev => ({ ...prev, [draftKey]: { status: 'dismissed' } }))
   }
 
   const handleRegenerate = async (messageIndex: number) => {
@@ -1389,9 +1372,7 @@ export default function ChatInterface() {
     setUserId,
     setMessages,
     setConversationId,
-    setFreemiumMessageCount,
-    setIsConversationBootstrapping,
-    freemiumMessageLimit: FREEMIUM_MESSAGE_LIMIT
+    setIsConversationBootstrapping
   })
 
   // Broadcast conversation ID changes to siblings (like ChatbotNavbar) for per-thread message tracking
@@ -1463,6 +1444,9 @@ export default function ChatInterface() {
     const guestMessagesCount = messages.filter((m) => m.role === 'user').length
     if ((!hasText && !hasAttachments) || loading) return
     if (isGuestFreePlan && guestMessagesCount >= GUEST_MESSAGE_LIMIT) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(GUEST_LIMIT_TRIGGERED_KEY, '1')
+      }
       setIsGuestLimitReached(true)
       if (!guestLimitNotified) {
         setGuestLimitNotified(true)
@@ -1471,16 +1455,12 @@ export default function ChatInterface() {
           {
             id: `assistant_limit_${Date.now()}`,
             role: 'assistant',
-            content: `Hi, you have reached your ${GUEST_MESSAGE_LIMIT}-message guest limit. Please sign up to continue.`,
+            content: `Hi, you have reached your ${GUEST_MESSAGE_LIMIT}-message guest limit. Please sign up, or return in 24 hours to continue as a guest.`,
             timestamp: new Date()
           }
         ])
       }
       setShowGuestSignupModal(true)
-      return
-    }
-    if (isFreemiumPlan && freemiumMessageCount >= FREEMIUM_MESSAGE_LIMIT) {
-      setShowLimitModal(true)
       return
     }
     if (hasAttachments && !supabaseUser) {
@@ -1635,8 +1615,25 @@ export default function ChatInterface() {
         /sign\s*up|sign\s+in|continue/i.test(assistantText)
 
       if (serverIndicatedLimitReached || looksLikeGuestLimitMessage) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(GUEST_LIMIT_TRIGGERED_KEY, '1')
+        }
         setIsGuestLimitReached(true)
         setShowGuestSignupModal(true)
+        setLoading(false)
+        setLoadingLabel(null)
+
+        const limitMessage: Message = {
+          id: `assistant_limit_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          role: 'assistant',
+          content: assistantText,
+          timestamp: new Date(),
+          isTyping: false,
+          metadata: data.metadata as AssistantMetadata | undefined
+        }
+
+        setMessages((prev) => [...prev, limitMessage])
+        return
       }
       const assistantMessageId = `assistant_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
       const assistantMessage: Message = {
@@ -1693,73 +1690,6 @@ export default function ChatInterface() {
     padding: '0'
   }
 
-  const buildDraftKey = (message: Message, index: number) => {
-    return `${message.id || 'draft'}-${message.timestamp?.getTime?.() || index}`
-  }
-
-  const handleDraftSave = async (key: string, content: string, targetCaseId?: string) => {
-    if (!content.trim()) {
-      setDraftPromptStates(prev => ({
-        ...prev,
-        [key]: { status: 'error', error: 'Draft content is empty.' }
-      }))
-      return
-    }
-
-    if (!supabaseUser) {
-      setDraftPromptStates(prev => ({
-        ...prev,
-        [key]: { status: 'error', error: 'Sign in to save drafts to MyFiles.' }
-      }))
-      return
-    }
-
-    setDraftPromptStates(prev => ({
-      ...prev,
-      [key]: { status: 'saving' }
-    }))
-
-    try {
-      const resolvedCaseId = targetCaseId || caseId || localStorage.getItem('selectedCaseId') || ''
-      if (!resolvedCaseId) {
-        throw new Error('No active case found to save the draft.')
-      }
-
-      const titleLine = content.split('\n').find(line => line.trim()) || 'Draft document'
-      // Get token from Supabase session
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token || '';
-
-      const response = await fetch('/api/drafts/save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          caseId: resolvedCaseId,
-          title: titleLine.trim().slice(0, 120),
-          content
-        })
-      })
-
-      const data = await response.json()
-      if (!response.ok || !data?.success) {
-        throw new Error(data?.error || 'Failed to save draft')
-      }
-
-      setDraftPromptStates(prev => ({
-        ...prev,
-        [key]: { status: 'saved' }
-      }))
-    } catch (error: any) {
-      setDraftPromptStates(prev => ({
-        ...prev,
-        [key]: { status: 'error', error: error?.message || 'Failed to save draft' }
-      }))
-    }
-  }
-
   return (
     <>
       <div style={containerStyle}>
@@ -1794,15 +1724,8 @@ export default function ChatInterface() {
             <ChatMessageList
               messages={messages}
               feedbackState={feedbackState}
-              draftPromptStates={draftPromptStates}
-              hasSupabaseUser={Boolean(supabaseUser)}
               parseAssistantResponse={parseAssistantResponse}
               renderMessageContent={renderMessageContent}
-              buildDraftKey={buildDraftKey}
-              onDraftSave={(key, content, caseIdValue) => {
-                void handleDraftSave(key, content, caseIdValue)
-              }}
-              onDismissDraftPrompt={handleDismissDraftPrompt}
               onCopyMessage={handleCopy}
               formatAssistantResponse={formatAssistantResponse}
               onRegenerate={(messageIndex) => {
@@ -1856,11 +1779,6 @@ export default function ChatInterface() {
             onSubmit={handleSubmit}
             showGuestSignupModal={showGuestSignupModal}
             onCloseGuestSignupModal={() => setShowGuestSignupModal(false)}
-            showLimitModal={showLimitModal}
-            onCloseLimitModal={() => setShowLimitModal(false)}
-            freemiumMessageLimit={FREEMIUM_MESSAGE_LIMIT}
-            isNearLimit={isNearLimit}
-            remainingMessages={remainingMessages}
             attachedFiles={attachedFiles}
             onRemoveFile={handleRemoveFile}
             guestUploadWarning={guestUploadWarning}
@@ -1872,12 +1790,13 @@ export default function ChatInterface() {
             isGuestLimitReached={isGuestLimitReached}
             fileInputRef={fileInputRef}
             onFileChange={handleFileChange}
-            onAttachClick={handleAttachClick}
-            hasSupabaseUser={Boolean(supabaseUser)}
-            onStopGeneration={handleStopGeneration}
-            canSubmit={input.trim().length > 0 || attachedFiles.length > 0}
-            showWordLimitWarning={showWordLimitWarning}
-          />
+          onAttachClick={handleAttachClick}
+          hasSupabaseUser={Boolean(supabaseUser)}
+          onOpenGuestSignupModal={() => setShowGuestSignupModal(true)}
+          onStopGeneration={handleStopGeneration}
+          canSubmit={input.trim().length > 0 || attachedFiles.length > 0}
+          showWordLimitWarning={showWordLimitWarning}
+        />
 
         <ReportIssueModal
           isOpen={showReportModal}

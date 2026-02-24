@@ -9,24 +9,16 @@ type Conversation = {
 }
 
 type ChatConversationHistoryProps = {
-  historyLimited: boolean
-  historyLimitedSince: string | null
   loadingHistory: boolean
   conversations: Conversation[]
-  paidConversations: Conversation[]
-  freeConversations: Conversation[]
   formatDate: (isoDate: string) => string
   onOpenConversation: (conversationId: string) => void
   onDeleteConversation: (conversationId: string, e: MouseEvent) => void
 }
 
 export default function ChatConversationHistory({
-  historyLimited,
-  historyLimitedSince,
   loadingHistory,
   conversations,
-  paidConversations,
-  freeConversations,
   formatDate,
   onOpenConversation,
   onDeleteConversation,
@@ -99,13 +91,6 @@ export default function ChatConversationHistory({
         <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginBottom: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
           Conversation history
         </div>
-        {historyLimited && (
-          <div style={{ fontSize: '12px', color: 'rgba(251,191,36,0.9)', marginBottom: '10px', fontWeight: 600 }}>
-            {historyLimitedSince
-              ? 'Free plan shows your next 5 threads. Older paid chats are still available.'
-              : 'Free plan shows your last 5 threads. Upgrade to unlock full history.'}
-          </div>
-        )}
         {loadingHistory ? (
           <div style={{ fontSize: '12px', color: 'rgba(226,232,240,0.7)' }}>Loading history…</div>
         ) : conversations.length === 0 ? (
@@ -125,23 +110,7 @@ export default function ChatConversationHistory({
               scrollbarGutter: 'stable'
             }}
           >
-            {historyLimitedSince && paidConversations.length > 0 && (
-              <div>
-                <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.4px', color: 'rgba(226,232,240,0.6)', marginBottom: '6px' }}>
-                  Paid plan history
-                </div>
-                {renderList(paidConversations)}
-              </div>
-            )}
-            {historyLimitedSince && freeConversations.length > 0 && (
-              <div>
-                <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.4px', color: 'rgba(226,232,240,0.6)', marginBottom: '6px' }}>
-                  Freemium history
-                </div>
-                {renderList(freeConversations)}
-              </div>
-            )}
-            {!historyLimitedSince && renderList(conversations)}
+            {renderList(conversations)}
           </div>
         )}
       </div>

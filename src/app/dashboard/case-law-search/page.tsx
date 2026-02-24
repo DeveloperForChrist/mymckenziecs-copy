@@ -196,7 +196,7 @@ export default function CaseLawSearchPage() {
   const [filters, setFilters] = useState<SearchFilters>({
     case_type: 'all',
   });
-  const [userPlan, setUserPlan] = useState<string>('freemium');
+  const [userPlan, setUserPlan] = useState<string>('guest');
   const [planChecked, setPlanChecked] = useState(false);
   const [studyingCase, setStudyingCase] = useState<string | null>(null);
   const [caseStudy, setCaseStudy] = useState<string | null>(null);
@@ -223,14 +223,14 @@ export default function CaseLawSearchPage() {
       try {
         const res = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' });
         if (!res.ok) {
-          setUserPlan('freemium');
+          setUserPlan('guest');
           return;
         }
         const data = await res.json();
-        setUserPlan((data?.plan || 'freemium').toString());
+        setUserPlan((data?.plan || 'guest').toString());
       } catch (error) {
         console.error('Error checking user plan:', error);
-        setUserPlan('freemium');
+        setUserPlan('guest');
       } finally {
         setPlanChecked(true);
       }
@@ -536,10 +536,10 @@ export default function CaseLawSearchPage() {
               </h1>
               <Link
                 href="/dashboard"
-                className="flex items-center gap-2 px-4 py-2 text-white hover:text-gray-200 hover:bg-white/10 rounded-lg transition-colors border border-white/20"
+                className="app-button-secondary"
               >
                 <ArrowLeft className="w-5 h-5" />
-                Back to Dashboard
+                Go to Dashboard
               </Link>
             </div>
           </div>
@@ -551,7 +551,7 @@ export default function CaseLawSearchPage() {
               </div>
               <div>
                 <h2 className="text-xl font-semibold">Plan required</h2>
-                <p className="text-indigo-100/80">Case Law Search is available on Essential and Plus plans.</p>
+                <p className="text-indigo-100/80">Case Law Search is available on Premium + plans.</p>
               </div>
             </div>
             <p className="text-indigo-100/80 mb-6">
@@ -593,10 +593,10 @@ export default function CaseLawSearchPage() {
             </h1>
             <Link
               href="/dashboard"
-              className="flex items-center gap-2 px-4 py-2 text-white hover:text-gray-200 hover:bg-white/10 rounded-lg transition-colors border border-white/20"
+              className="app-button-secondary"
             >
               <ArrowLeft className="w-5 h-5" />
-              Back to Dashboard
+              Go to Dashboard
             </Link>
           </div>
           <p className="text-indigo-100/90">

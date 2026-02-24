@@ -1,6 +1,10 @@
 import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
+import { supabaseAdmin } from '@/lib/database/supabase-server';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const VALID_CATEGORIES = ['deadline', 'hearing', 'meeting', 'reminder', 'other'] as const;
 const VALID_PRIORITIES = ['low', 'medium', 'high'] as const;
@@ -32,6 +36,16 @@ function parseDate(input: unknown, field: string): { value?: Date; error?: strin
   if (typeof input !== 'string' || !input.trim()) {
     return { error: `${field} is required` };
   }
+
+  // Prefer YYYY-MM-DD parsing so calendar dates stay stable across timezones.
+  const dateOnlyMatch = input.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dateOnlyMatch) {
+    const year = Number(dateOnlyMatch[1]);
+    const month = Number(dateOnlyMatch[2]);
+    const day = Number(dateOnlyMatch[3]);
+    return { value: new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0)) };
+  }
+
   const parsed = new Date(input);
   if (Number.isNaN(parsed.getTime())) {
     return { error: `${field} must be a valid date` };
@@ -169,6 +183,7 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = authData.user.id;
+    const authEmail = (authData.user.email || '').trim();
     const { searchParams } = new URL(request.url);
 
     const start = normalizeDateFilter(searchParams.get('startDate'), 'startDate');
@@ -180,7 +195,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: end.error }, { status: 400 });
     }
 
-    let query = supabase.from('calendar_events').select('*').eq('user_id', userId).order('date', { ascending: true });
+    const candidateUserIds = new Set<string>([userId]);
+    if (authEmail) {
+      const { data: profileRows, error: profileError } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .ilike('email', authEmail);
+      if (!profileError && Array.isArray(profileRows)) {
+        for (const row of profileRows) {
+          if (row?.id) candidateUserIds.add(String(row.id));
+        }
+      }
+    }
+
+    let query = supabaseAdmin
+      .from('calendar_events')
+      .select('*')
+      .in('user_id', Array.from(candidateUserIds))
+      .order('date', { ascending: true });
     if (start.value) query = query.gte('date', start.value);
     if (end.value) query = query.lte('date', end.value);
 
@@ -190,10 +222,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch events' }, { status: 500 });
     }
 
-    return NextResponse.json({
-      events: events || [],
-      count: events?.length || 0,
-    });
+    return NextResponse.json(
+      {
+        events: events || [],
+        count: events?.length || 0,
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store',
+        },
+      }
+    );
   } catch (error) {
     console.error('Calendar GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

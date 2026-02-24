@@ -1,5 +1,5 @@
 import { createRef } from 'react'
-import { render, screen } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import ChatMessageList from '@/components/chatbot/ChatMessageList'
 import type { Message, ParsedSection, SourceReference } from '@/components/chatbot/chat-types'
@@ -29,17 +29,12 @@ describe('ChatMessageList sources', () => {
       },
     ]
 
-    render(
+    const { getByRole } = render(
       <ChatMessageList
         messages={messages}
         feedbackState={{}}
-        draftPromptStates={{}}
-        hasSupabaseUser={true}
         parseAssistantResponse={parseAssistantResponse}
         renderMessageContent={(content) => [content]}
-        buildDraftKey={() => 'draft-key'}
-        onDraftSave={() => {}}
-        onDismissDraftPrompt={() => {}}
         onCopyMessage={() => {}}
         formatAssistantResponse={(text) => text}
         onRegenerate={() => {}}
@@ -51,8 +46,8 @@ describe('ChatMessageList sources', () => {
       />
     )
 
-    const sourceOne = screen.getByRole('link', { name: '[1]' })
-    const sourceTwo = screen.getByRole('link', { name: '[2]' })
+    const sourceOne = getByRole('link', { name: '[1]' })
+    const sourceTwo = getByRole('link', { name: '[2]' })
 
     expect(sourceOne).toHaveAttribute('href', sources[0].url)
     expect(sourceTwo).toHaveAttribute('href', sources[1].url)

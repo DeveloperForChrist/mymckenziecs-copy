@@ -3,37 +3,54 @@ export function normalizePlanLabel(value: unknown): string {
   return value.toString().trim().toLowerCase();
 }
 
-export function isPaidPlan(plan: unknown): boolean {
+export function isBasicPlan(plan: unknown): boolean {
   const label = normalizePlanLabel(plan);
   return (
-    label.includes('standard') ||
+    label.includes('basic') ||
     label.includes('essential') ||
-    label.includes('plus') ||
-    label.includes('premium') ||
-    label.includes('pro')
+    label.includes('premium cheap')
   );
 }
 
-export function isFreemiumPlan(plan: unknown): boolean {
-  return !isPaidPlan(plan);
+export function isPaidPlan(plan: unknown): boolean {
+  const label = normalizePlanLabel(plan);
+  return (
+    isBasicPlan(label) ||
+    label.includes('premium') ||
+    label.includes('premium +') ||
+    label.includes('premium plus') ||
+    label.includes('plus') ||
+    label.includes('pro') ||
+    label.includes('premium cheap')
+  );
 }
 
-export function hasCaseLawAccess(plan: unknown): boolean {
+export function isPremiumPlusPlan(plan: unknown): boolean {
   const label = normalizePlanLabel(plan);
-  if (!label) return false;
   return (
-    label.includes('essential') ||
+    label.includes('premium +') ||
+    label.includes('premium plus') ||
     label.includes('plus') ||
-    label.includes('premium cheap') ||
     label.includes('premium pro')
   );
 }
 
+export function hasCaseLawAccess(plan: unknown): boolean {
+  return isPremiumPlusPlan(plan);
+}
+
+export function hasCaseProfileAccess(plan: unknown): boolean {
+  return isPaidPlan(plan) && !isBasicPlan(plan);
+}
+
+export function hasReminderAccess(plan: unknown): boolean {
+  return isPaidPlan(plan) && !isBasicPlan(plan);
+}
+
 export function planPriceForLabel(plan: unknown): string {
   const label = normalizePlanLabel(plan).replace(/_/g, ' ');
-  if (label.includes('premium cheap')) return '1';
-  if (label.includes('plus') || label.includes('premium pro')) return '45';
-  if (label.includes('essential') || label.includes('premium')) return '25';
-  if (label.includes('standard')) return '15';
+  if (label.includes('basic') || label.includes('essential') || label.includes('premium cheap')) return '18';
+  if (label.includes('premium +') || label.includes('premium plus') || label.includes('plus') || label.includes('premium pro')) return '199';
+  if (label.includes('premium')) return '32';
   return '0';
 }

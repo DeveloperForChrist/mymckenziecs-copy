@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { requireAdminSession } from '@/lib/auth/admin-guard';
+import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
+import { apiRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
+import { z } from 'zod';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -18,27 +21,81 @@ type FeedbackItem = {
   [key: string]: unknown
 }
 
+const feedbackPayloadSchema = z
+  .object({
+    conversationId: z.string().max(160).optional(),
+    messageIndex: z.number().int().min(0).max(100000).nullable().optional(),
+    feedbackType: z.enum(['like', 'dislike', 'report']),
+    messageContent: z.string().min(1).max(5000),
+    timestamp: z.string().optional(),
+    reportIssue: z.string().max(240).optional(),
+    reportProblem: z.string().max(2000).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.feedbackType === 'report') {
+      if (!value.reportIssue || value.reportIssue.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['reportIssue'],
+          message: 'reportIssue is required for report feedback',
+        });
+      }
+      if (!value.reportProblem || value.reportProblem.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['reportProblem'],
+          message: 'reportProblem is required for report feedback',
+        });
+      }
+    }
+  });
+
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { userId, conversationId, messageIndex, feedbackType, messageContent, timestamp, reportIssue, reportProblem } = body;
+    const supabase = await createSupabaseRouteClient();
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData?.user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    const ip = getClientIp(request.headers);
+    const identifier = `feedback:${getIdentifier(authData.user.id, ip)}`;
+    const limit = await rateLimit(apiRateLimiter, identifier, 12, 60 * 1000);
+    if (!limit.success) {
+      return rateLimitExceededResponse(limit, 'Too many feedback submissions. Please try again later.');
+    }
+
+    const parsed = feedbackPayloadSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid feedback payload', details: parsed.error.issues }, { status: 400 });
+    }
+
+    const {
+      conversationId,
+      messageIndex,
+      feedbackType,
+      messageContent,
+      timestamp,
+      reportIssue,
+      reportProblem,
+    } = parsed.data;
 
     // Store feedback in audit_log table (or a dedicated feedback table if exists)
     const { error } = await supabaseAdmin
       .from('audit_log')
       .insert({
         action: `feedback_${feedbackType}`,
-        details: JSON.stringify({
-          userId,
+        details: {
+          userId: authData.user.id,
           conversationId,
-          messageIndex,
+          messageIndex: messageIndex ?? null,
           feedbackType,
           messageContent,
-          timestamp,
-          reportIssue,
-          reportProblem
-        })
+          timestamp: timestamp || new Date().toISOString(),
+          reportIssue: reportIssue || null,
+          reportProblem: reportProblem || null,
+        },
       });
 
     if (error) {
@@ -70,7 +127,8 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const type = searchParams.get('type');
-    const limit = parseInt(searchParams.get('limit') || '100');
+    const parsedLimit = Number.parseInt(searchParams.get('limit') || '100', 10);
+    const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 500) : 100;
 
     let query = supabaseAdmin
       .from('audit_log')

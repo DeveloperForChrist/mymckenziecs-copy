@@ -3,6 +3,26 @@ import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { isPaidPlan } from '@/lib/plans/access';
 
+type ConversationSummary = {
+  id: string;
+  title: string;
+  timestamp: string;
+  caseId?: string;
+};
+
+type ConversationMessageRow = {
+  id?: string;
+  conversation_id: string | null;
+  case_id: string | null;
+  role: string;
+  content: string | null;
+  timestamp: string | null;
+  metadata?: unknown;
+};
+
+const BILLING_ACTIVE_STATUSES = ['active', 'past_due'];
+const MAX_THREADS = 60;
+
 function normalizeTimestamp(value: unknown): string {
   if (!value) {
     return new Date(0).toISOString();
@@ -70,6 +90,213 @@ function buildConversationTitle(value: unknown): string {
   return title || 'Conversation';
 }
 
+const dedupe = <T,>(items: T[]): T[] => Array.from(new Set(items.filter(Boolean) as T[]));
+
+async function resolveUserIdsByEmail(email: string | null): Promise<string[]> {
+  if (!email) return [];
+  const normalizedEmail = email.trim();
+  if (!normalizedEmail) return [];
+
+  const { data } = await supabaseAdmin
+    .from('users')
+    .select('id')
+    .ilike('email', normalizedEmail);
+
+  return dedupe((data || []).map((row: any) => row.id).filter(Boolean));
+}
+
+async function hasPaidPlanAccess(authUid: string, authEmail: string | null): Promise<boolean> {
+  const hasPaidForUserIds = async (userIds: string[]) => {
+    if (userIds.length === 0) return false;
+
+    const { data: activeSub } = await supabaseAdmin
+      .from('subscriptions')
+      .select('plan_type')
+      .in('user_id', userIds)
+      .in('status', BILLING_ACTIVE_STATUSES)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (isPaidPlan(activeSub?.plan_type || '')) return true;
+
+    const { data: latestSub } = await supabaseAdmin
+      .from('subscriptions')
+      .select('plan_type')
+      .in('user_id', userIds)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    return isPaidPlan(latestSub?.plan_type || '');
+  };
+
+  if (await hasPaidForUserIds([authUid])) return true;
+
+  const emailUserIds = await resolveUserIdsByEmail(authEmail);
+  if (emailUserIds.length === 0) return false;
+  return hasPaidForUserIds(emailUserIds);
+}
+
+async function getOwnedCaseIds(authUid: string, authEmail: string | null): Promise<string[]> {
+  const emailUserIds = await resolveUserIdsByEmail(authEmail);
+  const userIds = dedupe([authUid, ...emailUserIds]);
+  if (userIds.length === 0) return [];
+
+  const { data } = await supabaseAdmin
+    .from('cases')
+    .select('id')
+    .in('user_id', userIds)
+    .is('deleted_at', null);
+
+  return dedupe((data || []).map((row: any) => row.id).filter(Boolean));
+}
+
+function chunkArray<T>(items: T[], size: number): T[][] {
+  if (size <= 0) return [items];
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
+async function fetchMessagesByConversationIds(
+  conversationIds: string[],
+  maxRows = 1200
+): Promise<ConversationMessageRow[]> {
+  if (conversationIds.length === 0) return [];
+
+  const chunks = chunkArray(dedupe(conversationIds), 80);
+  const perChunkLimit = Math.max(80, Math.ceil(maxRows / Math.max(1, chunks.length)));
+  const rows: ConversationMessageRow[] = [];
+
+  for (const chunk of chunks) {
+    const { data, error } = await supabaseAdmin
+      .from('messages')
+      .select('id, conversation_id, case_id, role, content, timestamp, metadata')
+      .in('conversation_id', chunk)
+      .order('timestamp', { ascending: false })
+      .limit(perChunkLimit);
+
+    if (error) {
+      console.error('Failed to fetch conversation messages', error);
+      continue;
+    }
+
+    rows.push(...((data || []) as ConversationMessageRow[]));
+  }
+
+  return rows;
+}
+
+async function fetchMessagesByCaseIds(caseIds: string[], maxRows = 1200): Promise<ConversationMessageRow[]> {
+  if (caseIds.length === 0) return [];
+
+  const { data, error } = await supabaseAdmin
+    .from('messages')
+    .select('id, conversation_id, case_id, role, content, timestamp, metadata')
+    .in('case_id', caseIds)
+    .order('timestamp', { ascending: false })
+    .limit(maxRows);
+
+  if (error) {
+    console.error('Failed to fetch case-linked messages', error);
+    return [];
+  }
+
+  return (data || []) as ConversationMessageRow[];
+}
+
+async function canAccessConversation(
+  authUid: string,
+  conversationId: string,
+  caseIds: string[]
+): Promise<boolean> {
+  const { data: memoryRow } = await supabaseAdmin
+    .from('chat_memory')
+    .select('conversation_id')
+    .eq('user_id', authUid)
+    .eq('conversation_id', conversationId)
+    .limit(1)
+    .maybeSingle();
+
+  if (memoryRow?.conversation_id) return true;
+
+  const { data: actionRow } = await supabaseAdmin
+    .from('chat_action_items')
+    .select('id')
+    .eq('user_id', authUid)
+    .eq('conversation_id', conversationId)
+    .limit(1)
+    .maybeSingle();
+
+  if (actionRow?.id) return true;
+
+  if (caseIds.length > 0) {
+    const { data: messageRow } = await supabaseAdmin
+      .from('messages')
+      .select('id')
+      .eq('conversation_id', conversationId)
+      .in('case_id', caseIds)
+      .limit(1)
+      .maybeSingle();
+
+    if (messageRow?.id) return true;
+  }
+
+  return false;
+}
+
+function mergeConversations(
+  memoryRows: Array<{ conversation_id: string | null; memory_summary: string | null; updated_at: string | null; case_id: string | null }>,
+  messageRows: ConversationMessageRow[]
+): ConversationSummary[] {
+  const map = new Map<string, ConversationSummary>();
+
+  for (const row of memoryRows) {
+    const conversationId = row.conversation_id;
+    if (!conversationId) continue;
+    map.set(conversationId, {
+      id: conversationId,
+      title: buildConversationTitle(row.memory_summary || ''),
+      timestamp: normalizeTimestamp(row.updated_at),
+      caseId: row.case_id || undefined,
+    });
+  }
+
+  for (const msg of messageRows) {
+    const conversationId = msg.conversation_id;
+    if (!conversationId) continue;
+
+    const msgTimestamp = normalizeTimestamp(msg.timestamp);
+    const existing = map.get(conversationId);
+    const msgTitle = buildConversationTitle(msg.content || '');
+
+    if (!existing) {
+      map.set(conversationId, {
+        id: conversationId,
+        title: msgTitle,
+        timestamp: msgTimestamp,
+        caseId: msg.case_id || undefined,
+      });
+      continue;
+    }
+
+    if (new Date(msgTimestamp).getTime() > new Date(existing.timestamp).getTime()) {
+      existing.timestamp = msgTimestamp;
+      if (msg.case_id) existing.caseId = msg.case_id;
+    }
+
+    if ((existing.title === 'Conversation' || !existing.title) && msg.role === 'user') {
+      existing.title = msgTitle;
+    }
+  }
+
+  return Array.from(map.values())
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, MAX_THREADS);
+}
 
 export async function GET() {
   try {
@@ -80,103 +307,46 @@ export async function GET() {
     }
 
     const authUid = authData.user.id;
-    const { data: activeSub } = await supabaseAdmin
-      .from('subscriptions')
-      .select('plan_type, status')
-      .eq('user_id', authUid)
-      .in('status', ['active', 'past_due'])
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const hasPaidPlan = isPaidPlan(activeSub?.plan_type || '');
+    const authEmail = authData.user.email || null;
+    const hasPaidPlan = await hasPaidPlanAccess(authUid, authEmail);
     if (!hasPaidPlan) {
       return NextResponse.json({ conversations: [], total: 0, limited: true }, { status: 403 });
     }
-    const { data: userRow } = await supabaseAdmin
-      .from('users')
-      .select('freemium_since')
-      .eq('id', authUid)
-      .maybeSingle();
-    const freemiumSince = userRow?.freemium_since ? new Date(userRow.freemium_since) : null;
-    const limited = !hasPaidPlan;
-    const maxThreads = limited ? 5 : 60;
-    const cutoffDate = process.env.FREEMIUM_CUTOFF_DATE ? new Date(process.env.FREEMIUM_CUTOFF_DATE) : null;
 
-    const { data: casesData } = await supabaseAdmin
-      .from('cases')
-      .select('id')
+    const limited = false;
+    const caseIds = await getOwnedCaseIds(authUid, authEmail);
+
+    const { data: memoryRowsData, error: memoryError } = await supabaseAdmin
+      .from('chat_memory')
+      .select('conversation_id, memory_summary, updated_at, case_id')
       .eq('user_id', authUid)
-      .is('deleted_at', null);
+      .not('conversation_id', 'is', null)
+      .order('updated_at', { ascending: false })
+      .limit(500);
 
-    const caseIds = (casesData || []).map((c) => c.id).filter(Boolean);
-    if (caseIds.length === 0) {
-      return NextResponse.json({ conversations: [], total: 0, limited });
+    if (memoryError) {
+      console.error('Failed to load chat memory rows for history', memoryError);
     }
 
-    let messageQuery = supabaseAdmin
-      .from('messages')
-      .select('conversation_id, case_id, role, content, timestamp')
-      .in('case_id', caseIds)
-      .order('timestamp', { ascending: false })
-      .limit(600);
+    const memoryRows = (memoryRowsData || []) as Array<{
+      conversation_id: string | null;
+      memory_summary: string | null;
+      updated_at: string | null;
+      case_id: string | null;
+    }>;
 
-    if (limited && cutoffDate && !freemiumSince) {
-      messageQuery = messageQuery.gte('timestamp', cutoffDate.toISOString());
-    }
+    const memoryConversationIds = dedupe(memoryRows.map((row) => row.conversation_id).filter(Boolean) as string[]);
+    const caseMessageRows = await fetchMessagesByCaseIds(caseIds);
+    const caseConversationIds = dedupe(caseMessageRows.map((row) => row.conversation_id).filter(Boolean) as string[]);
+    const ownedConversationIds = dedupe([...memoryConversationIds, ...caseConversationIds]);
+    const ownedConversationMessageRows = await fetchMessagesByConversationIds(ownedConversationIds);
 
-    const { data: messagesData, error: messagesError } = await messageQuery;
-
-    if (messagesError) {
-      console.error('Failed to load conversations', messagesError);
-      return NextResponse.json({ error: 'Failed to load conversations' }, { status: 500 });
-    }
-
-    const conversationsMap = new Map<string, { id: string; title: string; timestamp: string; caseId?: string }>();
-
-    for (const msg of messagesData || []) {
-      const convId = msg.conversation_id;
-      if (!convId) continue;
-      if (!conversationsMap.has(convId)) {
-        const title = buildConversationTitle(msg.content);
-        conversationsMap.set(convId, {
-          id: convId,
-          title,
-          timestamp: normalizeTimestamp(msg.timestamp),
-          caseId: msg.case_id || undefined
-        });
-      } else {
-        const existing = conversationsMap.get(convId);
-        if (existing && existing.title === 'Conversation' && msg.role === 'user') {
-          existing.title = buildConversationTitle(msg.content);
-        }
-      }
-    }
-
-    const sortedConversations = Array.from(conversationsMap.values())
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
-    let conversations = sortedConversations;
-    if (limited && freemiumSince) {
-      const legacy = sortedConversations.filter((c) => new Date(c.timestamp) < freemiumSince);
-      const recent = sortedConversations
-        .filter((c) => new Date(c.timestamp) >= freemiumSince)
-        .slice(0, maxThreads);
-      conversations = [...legacy, ...recent]
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    } else if (limited && cutoffDate) {
-      conversations = sortedConversations
-        .filter((c) => new Date(c.timestamp) >= cutoffDate)
-        .slice(0, maxThreads);
-    } else {
-      conversations = sortedConversations.slice(0, maxThreads);
-    }
+    const conversations = mergeConversations(memoryRows, ownedConversationMessageRows);
 
     return NextResponse.json({
       conversations,
       total: conversations.length,
       limited,
-      freemiumSince: freemiumSince ? freemiumSince.toISOString() : null
     });
   } catch (error: unknown) {
     console.error('Chat history GET error:', error);
@@ -184,7 +354,6 @@ export async function GET() {
   }
 }
 
-// Get messages for a specific conversation/case
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteClient();
@@ -194,111 +363,47 @@ export async function POST(request: NextRequest) {
     }
 
     const authUid = authData.user.id;
-    const { data: activeSub } = await supabaseAdmin
-      .from('subscriptions')
-      .select('plan_type, status')
-      .eq('user_id', authUid)
-      .in('status', ['active', 'past_due'])
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const hasPaidPlan = isPaidPlan(activeSub?.plan_type || '');
+    const authEmail = authData.user.email || null;
+    const hasPaidPlan = await hasPaidPlanAccess(authUid, authEmail);
     if (!hasPaidPlan) {
       return NextResponse.json({ messages: [], total: 0, limited: true }, { status: 403 });
     }
-    const { data: userRow } = await supabaseAdmin
-      .from('users')
-      .select('freemium_since')
-      .eq('id', authUid)
-      .maybeSingle();
-    const freemiumSince = userRow?.freemium_since ? new Date(userRow.freemium_since) : null;
-    const limited = !hasPaidPlan;
-    const cutoffDate = process.env.FREEMIUM_CUTOFF_DATE ? new Date(process.env.FREEMIUM_CUTOFF_DATE) : null;
 
+    const limited = false;
     const { caseId, conversationId, sessionId } = await request.json();
     const resolvedConversationId = conversationId || sessionId;
 
-    // If no context is provided, return empty result with limited flag so callers handle missing case context gracefully
     if (!caseId && !resolvedConversationId) {
       return NextResponse.json({ messages: [], total: 0, limited });
     }
 
-    console.log('💬 Fetching messages for', { caseId, conversationId: resolvedConversationId, userId: authUid });
+    const caseIds = await getOwnedCaseIds(authUid, authEmail);
 
-    const { data: casesData } = await supabaseAdmin
-      .from('cases')
-      .select('id')
-      .eq('user_id', authUid)
-      .is('deleted_at', null);
-    const caseIds = (casesData || []).map((c) => c.id).filter(Boolean);
-    if (caseIds.length === 0) {
-      return NextResponse.json({ messages: [], total: 0, limited });
-    }
-
-    // Fetch messages from Supabase using chosen filter
     let query = supabaseAdmin
       .from('messages')
       .select('id, role, content, timestamp, metadata')
       .order('timestamp', { ascending: true });
 
-    if (resolvedConversationId) query = query.eq('conversation_id', resolvedConversationId);
-    else if (caseId) query = query.eq('case_id', caseId);
-
-    query = query.in('case_id', caseIds);
-    if (limited && cutoffDate && !freemiumSince) {
-      query = query.gte('timestamp', cutoffDate.toISOString());
-    }
-
-    if (limited && freemiumSince && resolvedConversationId) {
-      // Allow all conversations that started before downgrade.
-      const { data: latestRow } = await supabaseAdmin
-        .from('messages')
-        .select('timestamp')
-        .eq('conversation_id', resolvedConversationId)
-        .in('case_id', caseIds)
-        .order('timestamp', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const latestTs = latestRow?.timestamp ? new Date(latestRow.timestamp) : null;
-      const isLegacyConversation = latestTs ? latestTs < freemiumSince : false;
-
-      if (!isLegacyConversation) {
-        // Only allow the latest 5 free-era conversations.
-        const { data: recentMessages } = await supabaseAdmin
-          .from('messages')
-          .select('conversation_id, timestamp')
-          .in('case_id', caseIds)
-          .gte('timestamp', freemiumSince.toISOString())
-          .order('timestamp', { ascending: false })
-          .limit(600);
-
-        const recentMap = new Map<string, string>();
-        for (const msg of recentMessages || []) {
-          const cid = msg.conversation_id;
-          if (!cid || recentMap.has(cid)) continue;
-          recentMap.set(cid, msg.timestamp);
-        }
-        const allowedRecent = Array.from(recentMap.entries())
-          .sort((a, b) => new Date(b[1]).getTime() - new Date(a[1]).getTime())
-          .slice(0, 5)
-          .map(([id]) => id);
-
-        if (!allowedRecent.includes(resolvedConversationId)) {
-          return NextResponse.json({ messages: [], total: 0, limited, freemiumSince: freemiumSince.toISOString() });
-        }
+    if (resolvedConversationId) {
+      const allowed = await canAccessConversation(authUid, resolvedConversationId, caseIds);
+      if (!allowed) {
+        return NextResponse.json({ messages: [], total: 0, limited });
       }
+      query = query.eq('conversation_id', resolvedConversationId);
+    } else if (caseId) {
+      if (!caseIds.includes(caseId)) {
+        return NextResponse.json({ messages: [], total: 0, limited });
+      }
+      query = query.eq('case_id', caseId);
     }
 
     const { data: messagesData, error: messagesError } = await query;
-
     if (messagesError) {
       console.error('Error fetching messages:', messagesError);
       return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
     }
 
-    const messageEntries = (messagesData || []).map((msg) => ({
+    const messageEntries = (messagesData || []).map((msg: any) => ({
       id: msg.id,
       role: msg.role,
       message: msg.content || '',
@@ -306,13 +411,13 @@ export async function POST(request: NextRequest) {
       metadata:
         msg.metadata && typeof msg.metadata === 'object' && !Array.isArray(msg.metadata)
           ? msg.metadata
-          : undefined
+          : undefined,
     }));
 
     return NextResponse.json({
       messages: messageEntries,
+      total: messageEntries.length,
       limited,
-      freemiumSince: freemiumSince ? freemiumSince.toISOString() : null
     });
   } catch (error: unknown) {
     console.error('Error fetching messages:', error);
@@ -332,36 +437,36 @@ export async function DELETE(request: NextRequest) {
     }
 
     const authUid = authData.user.id;
+    const authEmail = authData.user.email || null;
+    const { conversationId } = await request.json();
 
-    const { caseId, conversationId } = await request.json();
-
-    if (!caseId && !conversationId) {
-      return NextResponse.json({ error: 'Either caseId or conversationId is required' }, { status: 400 });
+    if (!conversationId || typeof conversationId !== 'string') {
+      return NextResponse.json(
+        { error: 'conversationId is required. Deletion by case/profile is not allowed.' },
+        { status: 400 }
+      );
     }
 
-    const { data: casesData } = await supabaseAdmin
-      .from('cases')
-      .select('id')
-      .eq('user_id', authUid)
-      .is('deleted_at', null);
-    const caseIds = (casesData || []).map((c) => c.id).filter(Boolean);
-    if (caseIds.length === 0) {
-      return NextResponse.json({ success: true });
+    const caseIds = await getOwnedCaseIds(authUid, authEmail);
+    const allowed = await canAccessConversation(authUid, conversationId, caseIds);
+    if (!allowed) {
+      return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
     }
 
-    const query = supabaseAdmin.from('messages').delete();
-    if (conversationId) query.eq('conversation_id', conversationId);
-    else query.eq('case_id', caseId);
-    query.in('case_id', caseIds);
-
-    const { error: deleteError } = await query;
+    const { error: deleteError } = await supabaseAdmin
+      .from('messages')
+      .delete()
+      .eq('conversation_id', conversationId);
 
     if (deleteError) {
       console.error('Delete messages error:', deleteError);
       return NextResponse.json({ error: 'Failed to delete messages' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    await supabaseAdmin.from('chat_action_items').delete().eq('user_id', authUid).eq('conversation_id', conversationId);
+    await supabaseAdmin.from('chat_memory').delete().eq('user_id', authUid).eq('conversation_id', conversationId);
+
+    return NextResponse.json({ success: true, deletedConversationId: conversationId });
   } catch (error: unknown) {
     console.error('Delete conversation error:', error);
     return NextResponse.json(

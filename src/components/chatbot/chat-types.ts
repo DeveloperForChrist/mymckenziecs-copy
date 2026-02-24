@@ -13,7 +13,6 @@ export interface PendingCalendarEntriesMetadata {
 
 export interface AssistantMetadata {
   pendingCalendarEntries?: PendingCalendarEntriesMetadata
-  documentGenerated?: boolean
   activeCaseId?: string
   sources?: SourceReference[]
   [key: string]: unknown
@@ -44,8 +43,6 @@ export type TimelineEntry = {
   daysUntil?: number | null
   note?: string
 }
-
-export type DraftPromptStatus = 'idle' | 'saving' | 'saved' | 'error' | 'dismissed'
 
 export type ParsedLineKind = 'paragraph' | 'bullet' | 'subheading' | 'divider' | 'summary'
 

@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
 
     if (!hasCaseLawAccess(activeSub?.plan_type || '')) {
       return NextResponse.json(
-        { error: 'Case law search is available on Essential and Plus plans.' },
+        { error: 'Case law search is available on Premium + plans.' },
         { status: 403 }
       );
     }

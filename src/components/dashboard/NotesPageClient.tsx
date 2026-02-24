@@ -12,6 +12,21 @@ interface NotePage {
   updatedAt?: string;
 }
 
+interface NoteSummary {
+  summary: string;
+  actionItems: string[];
+  keyRisks: string[];
+}
+
+interface ExtractedCalendarEvent {
+  title: string;
+  date: string;
+  time: string | null;
+  category: "deadline" | "hearing" | "meeting" | "reminder" | "other";
+  priority: "low" | "medium" | "high";
+  notes: string | null;
+}
+
 export default function NotesPageClient() {
   const [authUid, setAuthUid] = useState<string | null>(null);
   const [availableCases, setAvailableCases] = useState<any[]>([]);
@@ -34,6 +49,13 @@ export default function NotesPageClient() {
   const [isSearching, setIsSearching] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [pendingDeleteNoteId, setPendingDeleteNoteId] = useState<string | null>(null);
+  const [isSummarising, setIsSummarising] = useState(false);
+  const [summaryResult, setSummaryResult] = useState<NoteSummary | null>(null);
+  const [summaryStatus, setSummaryStatus] = useState<string | null>(null);
+  const [isExtractingDates, setIsExtractingDates] = useState(false);
+  const [extractStatus, setExtractStatus] = useState<string | null>(null);
+  const [extractedEvents, setExtractedEvents] = useState<ExtractedCalendarEvent[]>([]);
+  const [isSavingExtractedEvents, setIsSavingExtractedEvents] = useState(false);
 
   const fetchCases = useCallback(async () => {
     try {
@@ -150,19 +172,35 @@ export default function NotesPageClient() {
     };
   }, [authUid, selectedCaseId, notesPages, activePageId]);
 
-  const onChangeTitle = (val: string) => {
+  const onChangeTitle = useCallback((val: string) => {
     setSaving("saving");
     setNotesPages(prev => prev.map(p => 
       p.id === activePageId ? { ...p, title: val, updatedAt: new Date().toISOString() } : p
     ));
-  };
+  }, [activePageId]);
 
-  const onChangeContent = (val: string) => {
+  const onChangeContent = useCallback((val: string) => {
     setSaving("saving");
     setNotesPages(prev => prev.map(p => 
       p.id === activePageId ? { ...p, content: val, updatedAt: new Date().toISOString() } : p
     ));
-  };
+  }, [activePageId]);
+
+  const appendToActiveNote = useCallback((snippet: string) => {
+    const cleanSnippet = snippet.trim();
+    if (!cleanSnippet) return;
+
+    setSaving("saving");
+    setNotesPages(prev => prev.map(page => {
+      if (page.id !== activePageId) return page;
+      const currentContent = page.content.trimEnd();
+      return {
+        ...page,
+        content: currentContent ? `${currentContent}\n${cleanSnippet}` : cleanSnippet,
+        updatedAt: new Date().toISOString(),
+      };
+    }));
+  }, [activePageId]);
 
   const addPage = () => {
     const id = `p${Date.now()}`;
@@ -197,6 +235,183 @@ export default function NotesPageClient() {
     setPendingDeleteNoteId(null);
   };
 
+  const summariseActiveNote = useCallback(async () => {
+    if (!activePage) return;
+    if (!activePage.content.trim()) {
+      setSummaryStatus("Add some note content first, then run summary.");
+      return;
+    }
+
+    try {
+      setIsSummarising(true);
+      setSummaryStatus(null);
+      const response = await fetch("/api/notes-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "summary",
+          noteTitle: activePage.title,
+          noteContent: activePage.content,
+        }),
+      });
+      const data = await response.json().catch(() => ({} as Record<string, unknown>));
+      if (!response.ok) {
+        const errorMessage = typeof data.error === "string" ? data.error : "Failed to summarise note.";
+        throw new Error(errorMessage);
+      }
+
+      setSummaryResult({
+        summary: typeof data.summary === "string" ? data.summary : "",
+        actionItems: Array.isArray(data.actionItems)
+          ? data.actionItems.filter((item: unknown): item is string => typeof item === "string")
+          : [],
+        keyRisks: Array.isArray(data.keyRisks)
+          ? data.keyRisks.filter((item: unknown): item is string => typeof item === "string")
+          : [],
+      });
+      setSummaryStatus("Summary ready.");
+    } catch (error) {
+      console.error("Summary failed", error);
+      setSummaryStatus(error instanceof Error ? error.message : "Failed to summarise note.");
+    } finally {
+      setIsSummarising(false);
+    }
+  }, [activePage]);
+
+  const addSummaryToNote = useCallback(() => {
+    if (!summaryResult) return;
+    const sections: string[] = [
+      "",
+      "AI summary",
+      summaryResult.summary,
+    ];
+    if (summaryResult.actionItems.length > 0) {
+      sections.push("", "Next actions:");
+      summaryResult.actionItems.forEach((item, index) => {
+        sections.push(`${index + 1}. ${item}`);
+      });
+    }
+    if (summaryResult.keyRisks.length > 0) {
+      sections.push("", "Watch-outs:");
+      summaryResult.keyRisks.forEach((risk, index) => {
+        sections.push(`${index + 1}. ${risk}`);
+      });
+    }
+    appendToActiveNote(sections.join("\n"));
+    setSummaryStatus("Summary inserted into your note.");
+  }, [appendToActiveNote, summaryResult]);
+
+  const extractDatesFromNote = useCallback(async () => {
+    if (!activePage) return;
+    if (!activePage.content.trim()) {
+      setExtractStatus("Add note content first, then extract dates.");
+      return;
+    }
+
+    try {
+      setIsExtractingDates(true);
+      setExtractStatus(null);
+      const response = await fetch("/api/notes-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "calendar_extract",
+          noteTitle: activePage.title,
+          noteContent: activePage.content,
+        }),
+      });
+      const data = await response.json().catch(() => ({} as Record<string, unknown>));
+      if (!response.ok) {
+        const errorMessage = typeof data.error === "string" ? data.error : "Failed to extract dates.";
+        throw new Error(errorMessage);
+      }
+
+      const events = Array.isArray(data.events) ? (data.events as unknown[]) : [];
+      const parsedEvents: ExtractedCalendarEvent[] = events
+        .map((event: unknown) => {
+          const item = event as Record<string, unknown>;
+          const category: ExtractedCalendarEvent["category"] =
+            item.category === "hearing" || item.category === "meeting" || item.category === "reminder" || item.category === "other"
+              ? item.category
+              : "deadline";
+          const priority: ExtractedCalendarEvent["priority"] =
+            item.priority === "low" || item.priority === "high" ? item.priority : "medium";
+          return {
+            title: typeof item.title === "string" ? item.title : "",
+            date: typeof item.date === "string" ? item.date : "",
+            time: typeof item.time === "string" ? item.time : null,
+            category,
+            priority,
+            notes: typeof item.notes === "string" ? item.notes : null,
+          };
+        })
+        .filter((event: ExtractedCalendarEvent) => Boolean(event.title) && /^\d{4}-\d{2}-\d{2}$/.test(event.date));
+
+      setExtractedEvents(parsedEvents);
+      if (parsedEvents.length === 0) {
+        setExtractStatus("No clear calendar dates found in this note yet.");
+      } else {
+        setExtractStatus(`Found ${parsedEvents.length} date${parsedEvents.length === 1 ? "" : "s"} to review.`);
+      }
+    } catch (error) {
+      console.error("Date extraction failed", error);
+      setExtractStatus(error instanceof Error ? error.message : "Failed to extract dates.");
+    } finally {
+      setIsExtractingDates(false);
+    }
+  }, [activePage]);
+
+  const saveExtractedEvents = useCallback(async () => {
+    if (extractedEvents.length === 0) return;
+    try {
+      setIsSavingExtractedEvents(true);
+      const results = await Promise.all(extractedEvents.map(async (event) => {
+        try {
+          const response = await fetch("/api/calendar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: event.title,
+              notes: event.notes,
+              date: event.date,
+              time: event.time,
+              category: event.category,
+              priority: event.priority,
+              type: "notes_extracted",
+              repeat: "none",
+            }),
+          });
+          const payload = await response.json().catch(() => ({} as Record<string, unknown>));
+          if (!response.ok) {
+            const errorMessage = typeof payload.error === "string" ? payload.error : "Failed to create calendar event";
+            return { ok: false, error: errorMessage };
+          }
+          return { ok: true as const };
+        } catch {
+          return { ok: false, error: "Network error while saving calendar event" };
+        }
+      }));
+
+      const failedIndexes = results
+        .map((result, index) => (result.ok ? -1 : index))
+        .filter((index) => index >= 0);
+      const successCount = results.length - failedIndexes.length;
+      if (successCount > 0) {
+        setExtractedEvents(prev => prev.filter((_, index) => failedIndexes.includes(index)));
+      }
+
+      if (successCount > 0 && failedIndexes.length === 0) {
+        setExtractStatus(`Added ${successCount} calendar event${successCount === 1 ? "" : "s"}.`);
+      } else if (successCount > 0) {
+        setExtractStatus(`Added ${successCount} event${successCount === 1 ? "" : "s"}, ${failedIndexes.length} still need saving.`);
+      } else {
+        setExtractStatus("No events were saved. Please try again.");
+      }
+    } finally {
+      setIsSavingExtractedEvents(false);
+    }
+  }, [extractedEvents]);
+
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
@@ -229,6 +444,11 @@ export default function NotesPageClient() {
   }, [notesPages, searchQuery]);
 
   const selectedCase = availableCases.find(c => c.id === selectedCaseId);
+  const caseLabel = selectedCase?.title
+    ? `Saving to: ${selectedCase.title}`
+    : hasCase
+    ? "No case selected. Notes stay local until you choose a case."
+    : "No case profile yet. Notes remain available on this page.";
 
   return (
     <div className={styles.notesApp}>
@@ -326,7 +546,28 @@ export default function NotesPageClient() {
         {activePage ? (
           <>
             <div className={styles.editorHeader}>
-              <h1 className={styles.editorTitle}>MyNotes</h1>
+              <div className={styles.editorHeaderCopy}>
+                <h1 className={styles.editorTitle}>MyNotes</h1>
+                <p className={styles.editorContext}>{caseLabel}</p>
+              </div>
+              <div className={styles.editorActions}>
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  onClick={summariseActiveNote}
+                  disabled={isSummarising}
+                >
+                  {isSummarising ? "Summarising..." : "Summarise"}
+                </button>
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  onClick={extractDatesFromNote}
+                  disabled={isExtractingDates}
+                >
+                  {isExtractingDates ? "Extracting..." : "Extract Dates"}
+                </button>
+              </div>
             </div>
 
             <div className={styles.editorContent}>
@@ -344,9 +585,93 @@ export default function NotesPageClient() {
                 onChange={(e) => onChangeContent(e.target.value)}
                 placeholder="Start writing your note..."
               />
+
+              {summaryResult && (
+                <div className={styles.helperCard}>
+                  <div className={styles.helperCardTitle}>
+                    <i className="bx bx-align-left" />
+                    <span>AI Summary</span>
+                  </div>
+                  <p className={styles.helperCardText}>{summaryResult.summary}</p>
+                  {summaryResult.actionItems.length > 0 && (
+                    <div>
+                      <p className={styles.helperSubheading}>Next actions</p>
+                      <ul className={styles.helperList}>
+                        {summaryResult.actionItems.map((item, index) => (
+                          <li key={`summary-action-${index}`}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {summaryResult.keyRisks.length > 0 && (
+                    <div>
+                      <p className={styles.helperSubheading}>Watch-outs</p>
+                      <ul className={styles.helperList}>
+                        {summaryResult.keyRisks.map((risk, index) => (
+                          <li key={`summary-risk-${index}`}>{risk}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  <div className={styles.helperActions}>
+                    <button type="button" className={styles.secondaryButton} onClick={addSummaryToNote}>
+                      Add to Note
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {extractedEvents.length > 0 && (
+                <div className={styles.helperCard}>
+                  <div className={styles.helperCardTitle}>
+                    <i className="bx bx-calendar-event" />
+                    <span>Extracted Dates</span>
+                  </div>
+                  <ul className={styles.eventList}>
+                    {extractedEvents.map((event, index) => (
+                      <li key={`${event.date}-${event.title}-${index}`} className={styles.eventListItem}>
+                        <div>
+                          <p className={styles.eventTitle}>{event.title}</p>
+                          <p className={styles.eventMeta}>
+                            {event.date}
+                            {event.time ? ` at ${event.time}` : ""}
+                            {" · "}
+                            {event.category}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          className={styles.eventRemoveButton}
+                          onClick={() => {
+                            setExtractedEvents((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
+                          }}
+                          aria-label="Remove extracted date"
+                          title="Remove"
+                        >
+                          <i className="bx bx-x" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className={styles.helperActions}>
+                    <button
+                      type="button"
+                      className={styles.secondaryButton}
+                      onClick={saveExtractedEvents}
+                      disabled={isSavingExtractedEvents}
+                    >
+                      {isSavingExtractedEvents ? "Saving..." : "Save to Calendar"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className={styles.editorFooter}>
+              <div className={styles.aiStatus}>
+                {summaryStatus && <p className={styles.aiStatusText}>{summaryStatus}</p>}
+                {extractStatus && <p className={styles.aiStatusText}>{extractStatus}</p>}
+              </div>
               <div className={styles.saveStatus}>
                 <span 
                   className={`${styles.saveStatusDot} ${saving === 'saving' ? styles.saving : ''} ${saving === 'error' ? styles.error : ''}`}

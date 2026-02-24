@@ -31,6 +31,18 @@ type UserRow = {
   name: string | null;
 };
 
+type UserPreferenceRow = {
+  user_id: string;
+  deadline_reminders: boolean | null;
+};
+
+type SubscriptionRow = {
+  user_id: string;
+  plan_type: string | null;
+  status: string | null;
+  updated_at: string | null;
+};
+
 type ReminderJob = {
   user: UserRow;
   events: CalendarEventRow[];
@@ -104,6 +116,19 @@ function userBucket(userId: string, bucketCount: number) {
 function formatLabel(input: string | null | undefined) {
   if (!input) return '';
   return input.charAt(0).toUpperCase() + input.slice(1);
+}
+
+function isReminderEligiblePlan(planType: string | null | undefined) {
+  const label = (planType || '').toLowerCase().trim();
+  if (!label) return false;
+  if (label.includes('basic') || label.includes('essential') || label.includes('premium cheap')) return false;
+  return (
+    label.includes('premium') ||
+    label.includes('premium +') ||
+    label.includes('premium plus') ||
+    label.includes('plus') ||
+    label.includes('pro')
+  );
 }
 
 function daysUntil(targetDate: Date) {
@@ -311,15 +336,71 @@ serve(async (req) => {
       users.push(...((usersChunk || []) as UserRow[]));
     }
 
+    const remindersEnabledByUser = new Map<string, boolean>();
+    const reminderPlanEligibleByUser = new Map<string, boolean>();
+    for (const userIdChunk of chunkArray(userIds, 1000)) {
+      const { data: prefsChunk, error: prefsError } = await supabase
+        .from('user_preferences')
+        .select('user_id, deadline_reminders')
+        .in('user_id', userIdChunk);
+
+      if (prefsError) {
+        console.error('Failed to fetch reminder preferences', prefsError);
+        return new Response(JSON.stringify({ error: 'Failed to fetch reminder preferences' }), { status: 500 });
+      }
+
+      // Default is disabled unless explicitly enabled by user.
+      for (const userId of userIdChunk) {
+        remindersEnabledByUser.set(userId, false);
+      }
+      for (const pref of (prefsChunk || []) as UserPreferenceRow[]) {
+        remindersEnabledByUser.set(pref.user_id, pref.deadline_reminders === true);
+      }
+
+      const { data: subsChunk, error: subsError } = await supabase
+        .from('subscriptions')
+        .select('user_id, plan_type, status, updated_at')
+        .in('user_id', userIdChunk)
+        .in('status', ['active', 'past_due'])
+        .order('updated_at', { ascending: false });
+
+      if (subsError) {
+        console.error('Failed to fetch subscription plans', subsError);
+        return new Response(JSON.stringify({ error: 'Failed to fetch subscription plans' }), { status: 500 });
+      }
+
+      for (const userId of userIdChunk) {
+        reminderPlanEligibleByUser.set(userId, false);
+      }
+      for (const sub of (subsChunk || []) as SubscriptionRow[]) {
+        if (reminderPlanEligibleByUser.get(sub.user_id)) continue;
+        reminderPlanEligibleByUser.set(sub.user_id, isReminderEligiblePlan(sub.plan_type));
+      }
+    }
+
     // dynamic import of Resend in Edge Function (use npm: prefix for Deno bundler)
     const { Resend } = await import('npm:resend');
     const resend = new Resend(RESEND_API_KEY!);
 
     let sent = 0;
     const failures: SendFailure[] = [];
+    let disabledByPreference = 0;
+    let disabledByPlan = 0;
     const jobs: ReminderJob[] = (users || [])
       .map((user) => ({ user, events: filteredByUser.get(user.id) || [] }))
-      .filter((job) => Boolean(job.user.email) && job.events.length > 0)
+      .filter((job) => {
+        const hasAddress = Boolean(job.user.email);
+        const hasEvents = job.events.length > 0;
+        const remindersEnabled = remindersEnabledByUser.get(job.user.id) === true;
+        const planEligible = reminderPlanEligibleByUser.get(job.user.id) === true;
+        if (hasAddress && hasEvents && !remindersEnabled) {
+          disabledByPreference += 1;
+        }
+        if (hasAddress && hasEvents && remindersEnabled && !planEligible) {
+          disabledByPlan += 1;
+        }
+        return hasAddress && hasEvents && remindersEnabled && planEligible;
+      })
       .sort((a, b) => a.user.id.localeCompare(b.user.id));
 
     const jobsByUserId = new Map(jobs.map((job) => [job.user.id, job]));
@@ -496,6 +577,8 @@ serve(async (req) => {
       bucketUsers: bucketedJobs.length,
       retryCandidates: retryJobs.length,
       skippedByClaim,
+      disabledByPreference,
+      disabledByPlan,
       completionErrors,
       events: eventsCount,
       eligibleEvents: eligibleEventsCount,

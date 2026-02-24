@@ -19,7 +19,7 @@ export default function ChatEmptyState({ authLoaded, hasUser }: ChatEmptyStatePr
             Ask your question to get clear procedural guidance.
           </p>
           <p style={{ fontWeight: 600 }}>
-            MyMcKenzie Assistant can make mistakes and does not provide legal advice. Always confirm before relying on any response.
+            MyMcKenzie Assistant is for informational support only and is not a substitute for legal advice.
           </p>
         </div>
       ) : (

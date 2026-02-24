@@ -14,9 +14,9 @@ if (!stripeKey) {
 const stripe = new Stripe(stripeKey, { apiVersion: '2024-11-20.acacia' });
 
 const PLANS = [
-  { slug: 'standard', label: 'Standard', amount: 1500, interval: 'month', currency: 'gbp' },
-  { slug: 'essential', label: 'Essential', amount: 2500, interval: 'month', currency: 'gbp' },
-  { slug: 'plus', label: 'Plus', amount: 4500, interval: 'month', currency: 'gbp' },
+  { slug: 'basic', label: 'Basic', amount: 1800, interval: 'month', currency: 'gbp' },
+  { slug: 'premium', label: 'Premium', amount: 3200, interval: 'month', currency: 'gbp' },
+  { slug: 'premium-plus', label: 'Premium +', amount: 19900, interval: 'month', currency: 'gbp' },
 ];
 
 async function findProductBySlug(slug) {

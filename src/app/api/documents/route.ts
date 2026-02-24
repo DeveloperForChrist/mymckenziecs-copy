@@ -110,42 +110,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Forbidden caseId' }, { status: 403 })
       }
     }
-    if (!caseId) {
-      const { data: cases, error: caseError } = await supabase
-        .from('cases')
-        .select('id')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-
-      if (caseError) {
-        return NextResponse.json({ error: caseError.message }, { status: 500 })
-      }
-      caseId = cases?.[0]?.id || null
-    }
-
-    if (!caseId) {
-      const { data: created, error: createError } = await supabase
-        .from('cases')
-        .insert({
-          title: 'General uploads',
-          case_type: null,
-          description: 'Auto-created case for document uploads.',
-          user_id: user.id
-        })
-        .select('id')
-        .single()
-
-      if (createError) {
-        return NextResponse.json({ error: createError.message }, { status: 500 })
-      }
-      caseId = created?.id || null
-    }
-
-    if (!caseId) {
-      return NextResponse.json({ error: 'Unable to create a case for uploads.' }, { status: 500 })
-    }
-
     const results: any[] = []
 
     for (const file of files) {

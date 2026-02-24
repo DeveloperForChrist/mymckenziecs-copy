@@ -2,20 +2,15 @@
 
 import { Fragment } from 'react'
 import type { MutableRefObject } from 'react'
-import type { Message, DraftPromptStatus, ParsedLine, ParsedSection, SourceReference } from '@/components/chatbot/chat-types'
+import type { Message, ParsedLine, ParsedSection, SourceReference } from '@/components/chatbot/chat-types'
 
 type TypingIndicatorComponentType = (props: { label?: string; compact?: boolean }) => JSX.Element
 
 type ChatMessageListProps = {
   messages: Message[]
   feedbackState: { [key: number]: 'like' | 'dislike' | null }
-  draftPromptStates: Record<string, { status: DraftPromptStatus, error?: string }>
-  hasSupabaseUser: boolean
   parseAssistantResponse: (text: string, allowHeadings?: boolean) => ParsedSection[]
   renderMessageContent: (content: string, sources?: SourceReference[]) => (string | JSX.Element)[]
-  buildDraftKey: (message: Message, index: number) => string
-  onDraftSave: (key: string, content: string, caseId?: string) => void
-  onDismissDraftPrompt: (key: string) => void
   onCopyMessage: (content: string) => void
   formatAssistantResponse: (text: string) => string
   onRegenerate: (index: number) => void
@@ -29,13 +24,8 @@ type ChatMessageListProps = {
 export default function ChatMessageList({
   messages,
   feedbackState,
-  draftPromptStates,
-  hasSupabaseUser,
   parseAssistantResponse,
   renderMessageContent,
-  buildDraftKey,
-  onDraftSave,
-  onDismissDraftPrompt,
   onCopyMessage,
   formatAssistantResponse,
   onRegenerate,
@@ -65,15 +55,6 @@ export default function ChatMessageList({
         const visibleSources = message.isTyping ? [] : messageSources
         const renderAssistantText = (text: string) =>
           message.isTyping ? [text] : renderMessageContent(text, visibleSources)
-
-        const draftKey = !isUser && message.metadata?.documentGenerated
-          ? buildDraftKey(message, index)
-          : null
-        const draftState = draftKey ? draftPromptStates[draftKey]?.status || 'idle' : null
-        const draftError = draftKey ? draftPromptStates[draftKey]?.error : null
-        const isDraftPromptVisible = Boolean(draftKey && draftState !== 'dismissed')
-        const isDraftSaving = draftState === 'saving'
-        const isDraftSaved = draftState === 'saved'
 
         if (isAlert) {
           return (
@@ -604,92 +585,6 @@ export default function ChatMessageList({
                 </button>
                 </div>
               </>
-            )}
-
-            {!isUser && isDraftPromptVisible && draftKey && (
-              <div
-                style={{
-                  marginTop: '14px',
-                  width: '100%',
-                  maxWidth: '700px',
-                  background: 'rgba(15,23,42,0.65)',
-                  border: '1px solid rgba(148,163,184,0.3)',
-                  borderRadius: '18px',
-                  padding: '18px',
-                  color: '#e2e8f0',
-                  boxShadow: '0 8px 24px rgba(15,15,35,0.25)'
-                }}
-              >
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <div
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '50%',
-                      background: 'rgba(139,92,246,0.18)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '16px'
-                    }}
-                  >
-                    📝
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, margin: 0 }}>
-                      Save this draft to MyFiles
-                    </p>
-                    <p style={{ fontSize: '16px', color: '#cbd5f5', marginTop: '4px', marginBottom: '8px' }}>
-                      Keep this document in your case files so you can edit, export, or print it later.
-                    </p>
-                  </div>
-                </div>
-                {draftError && (
-                  <p style={{ color: '#f87171', fontSize: '13px', marginTop: '12px' }}>{draftError}</p>
-                )}
-                {!hasSupabaseUser && draftState !== 'saved' && (
-                  <p style={{ color: '#fbbf24', fontSize: '13px', marginTop: '12px' }}>
-                    Sign in to keep drafts synced across your devices.
-                  </p>
-                )}
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '14px' }}>
-                  <button
-                    type="button"
-                    onClick={() => onDraftSave(draftKey, message.content, message.metadata?.activeCaseId as string | undefined)}
-                    disabled={isDraftSaving || isDraftSaved}
-                    style={{
-                      padding: '10px 18px',
-                      borderRadius: '999px',
-                      border: 'none',
-                      background: isDraftSaved ? '#22c55e' : '#8b5cf6',
-                      color: '#fff',
-                      fontWeight: 600,
-                      cursor: isDraftSaving || isDraftSaved ? 'default' : 'pointer',
-                      opacity: isDraftSaving ? 0.8 : 1,
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    {isDraftSaved ? 'Saved to MyFiles' : isDraftSaving ? 'Saving…' : 'Save draft to MyFiles'}
-                  </button>
-                  {!isDraftSaved && (
-                    <button
-                      type="button"
-                      onClick={() => onDismissDraftPrompt(draftKey)}
-                      style={{
-                        padding: '10px 16px',
-                        borderRadius: '999px',
-                        border: '1px solid rgba(148,163,184,0.5)',
-                        background: 'transparent',
-                        color: '#e2e8f0',
-                        fontWeight: 500,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Not now
-                    </button>
-                  )}
-                </div>
-              </div>
             )}
           </div>
         )

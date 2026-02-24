@@ -7,11 +7,6 @@ type ChatComposerProps = {
   onSubmit: (e?: FormEvent<HTMLFormElement>) => void
   showGuestSignupModal: boolean
   onCloseGuestSignupModal: () => void
-  showLimitModal: boolean
-  onCloseLimitModal: () => void
-  freemiumMessageLimit: number
-  isNearLimit: boolean
-  remainingMessages: number
   attachedFiles: File[]
   onRemoveFile: (index: number) => void
   guestUploadWarning: string | null
@@ -25,6 +20,7 @@ type ChatComposerProps = {
   onFileChange: (e: ChangeEvent<HTMLInputElement>) => void
   onAttachClick: () => void
   hasSupabaseUser: boolean
+  onOpenGuestSignupModal: () => void
   onStopGeneration: () => void
   canSubmit: boolean
   showWordLimitWarning: boolean
@@ -34,11 +30,6 @@ export default function ChatComposer({
   onSubmit,
   showGuestSignupModal,
   onCloseGuestSignupModal,
-  showLimitModal,
-  onCloseLimitModal,
-  freemiumMessageLimit,
-  isNearLimit,
-  remainingMessages,
   attachedFiles,
   onRemoveFile,
   guestUploadWarning,
@@ -52,6 +43,7 @@ export default function ChatComposer({
   onFileChange,
   onAttachClick,
   hasSupabaseUser,
+  onOpenGuestSignupModal,
   onStopGeneration,
   canSubmit,
   showWordLimitWarning,
@@ -86,10 +78,12 @@ export default function ChatComposer({
             }}
           >
             <div style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '10px' }}>
-              Sign up to attach documents
+              {isGuestLimitReached ? 'Guest limit reached' : 'Sign up to attach documents'}
             </div>
             <div style={{ opacity: 0.85, lineHeight: 1.6, marginBottom: '20px' }}>
-              File uploads are available to registered users. Create a free account to upload documents and keep them with your case.
+              {isGuestLimitReached
+                ? 'You have reached your guest message limit. Sign up or sign in to continue now, or return in 24 hours to keep using guest mode.'
+                : 'File uploads are available to registered users. Create a free account to upload documents and keep them with your case.'}
             </div>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
               <button
@@ -138,90 +132,6 @@ export default function ChatComposer({
           </div>
         </div>
       )}
-      {showLimitModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 60,
-            background: 'linear-gradient(120deg, rgba(15,3,20,0.86), rgba(46,7,55,0.88))',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '24px'
-          }}
-        >
-          <div
-            style={{
-              width: '100%',
-              maxWidth: '700px',
-              borderRadius: '28px',
-              padding: '36px',
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.9))',
-              boxShadow: '0 24px 60px rgba(0,0,0,0.35)',
-              border: '1px solid rgba(255,255,255,0.6)',
-              color: '#1a1a1a'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-              <div
-                style={{
-                  width: '54px',
-                  height: '54px',
-                  borderRadius: '16px',
-                  background: '#4a4a4a',
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '24px'
-                }}
-              >
-                ⚡
-              </div>
-              <div>
-                <p style={{ fontSize: '21px', fontWeight: 700, margin: 0 }}>Message limit reached</p>
-                <p style={{ fontSize: '17px', margin: 0, color: '#6b7280' }}>
-                  Free plan 24-hour limit reached
-                </p>
-              </div>
-            </div>
-            <p style={{ fontFamily: 'inherit', fontSize: '17px', fontWeight: 500, lineHeight: 1.7, margin: '10px 0 20px' }}>
-              You&apos;ve used {freemiumMessageLimit} messages in the last 24 hours. The limit resets on a rolling basis. Upgrade to continue,
-              or start a new case to keep working.
-            </p>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              <button
-                type="button"
-                onClick={onCloseLimitModal}
-                style={{
-                  padding: '10px 16px',
-                  borderRadius: '999px',
-                  border: '1px solid rgba(0,0,0,0.1)',
-                  background: '#f3f4f6',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Close
-              </button>
-              <a
-                href="/pricing"
-                style={{
-                  padding: '10px 18px',
-                  borderRadius: '999px',
-                  background: '#4a4a4a',
-                  color: '#fff',
-                  fontWeight: 700,
-                  textDecoration: 'none'
-                }}
-              >
-                Upgrade
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
       <div
         style={{
           position: 'fixed',
@@ -237,23 +147,6 @@ export default function ChatComposer({
       >
         <div style={{ width: '100%', maxWidth: '760px', margin: '0 auto', position: 'relative', pointerEvents: 'auto', display: 'flex', justifyContent: 'center' }}>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0', width: '100%', alignItems: 'center' }}>
-            {isNearLimit && (
-              <div
-                style={{
-                  marginBottom: '10px',
-                  padding: '10px 16px',
-                  borderRadius: '999px',
-                  background: 'rgba(250, 204, 21, 0.15)',
-                  border: '1px solid rgba(250, 204, 21, 0.45)',
-                  color: '#fbbf24',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  textAlign: 'center'
-                }}
-              >
-                {remainingMessages} messages left in your 24-hour window.
-              </div>
-            )}
             <div
               style={{
                 width: '100%',
@@ -319,13 +212,55 @@ export default function ChatComposer({
                   {guestUploadWarning}
                 </p>
               )}
+              {isGuestLimitReached && (
+                <div
+                  style={{
+                    width: '100%',
+                    marginBottom: '10px',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(236,72,153,0.35)',
+                    background: 'rgba(76, 10, 62, 0.35)',
+                    color: '#fbcfe8',
+                    fontSize: '13px',
+                    lineHeight: 1.45,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px'
+                  }}
+                >
+                  <span>Guest limit reached. Sign up or sign in to continue chatting.</span>
+                  <button
+                    type="button"
+                    onClick={onOpenGuestSignupModal}
+                    style={{
+                      borderRadius: '999px',
+                      border: '1px solid rgba(255,255,255,0.25)',
+                      background: 'rgba(255,255,255,0.1)',
+                      color: '#fff',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      padding: '6px 10px',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Continue
+                  </button>
+                </div>
+              )}
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px', paddingTop: '0px', width: '100%', justifyContent: 'flex-start' }}>
                 <textarea
                   ref={textareaRef}
                   value={input}
                   onChange={onInputChange}
                   onKeyDown={onInputKeyDown}
-                  placeholder="Talk about your issue, ask for explanations, or request procedural guidance..."
+                  placeholder={
+                    isGuestLimitReached
+                      ? 'Guest limit reached. Sign up to continue messaging.'
+                      : 'Talk about your issue, ask for explanations, or request procedural guidance...'
+                  }
                   disabled={loading || isGuestLimitReached}
                   style={{
                     flex: 1,
@@ -443,38 +378,73 @@ export default function ChatComposer({
                       </svg>
                     </button>
                   ) : (
-                    <button
-                      type="submit"
-                      aria-label="Send message"
-                      disabled={!canSubmit || isGuestLimitReached}
-                      style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '50%',
-                        background: '#6b3a84',
-                        color: '#F3F1FA',
-                        border: '1px solid rgba(236,72,153,0.18)',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '16px',
-                        cursor: canSubmit && !isGuestLimitReached ? 'pointer' : 'not-allowed',
-                        flexShrink: 0,
-                        lineHeight: 0,
-                        transition: 'all 0.2s ease',
-                        opacity: canSubmit && !isGuestLimitReached ? 1 : 0.5
-                      }}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path
-                          d="M4 12h16m-7-7l7 7-7 7"
-                          stroke="#F3F1FA"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
+                    isGuestLimitReached ? (
+                      <button
+                        type="button"
+                        onClick={onOpenGuestSignupModal}
+                        aria-label="Sign up to continue"
+                        style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '50%',
+                          background: '#6b3a84',
+                          color: '#F3F1FA',
+                          border: '1px solid rgba(236,72,153,0.18)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '16px',
+                          cursor: 'pointer',
+                          flexShrink: 0,
+                          lineHeight: 0,
+                          transition: 'all 0.2s ease',
+                          opacity: 1
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path
+                            d="M4 12h16m-7-7l7 7-7 7"
+                            stroke="#F3F1FA"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        aria-label="Send message"
+                        disabled={!canSubmit}
+                        style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '50%',
+                          background: '#6b3a84',
+                          color: '#F3F1FA',
+                          border: '1px solid rgba(236,72,153,0.18)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '16px',
+                          cursor: canSubmit ? 'pointer' : 'not-allowed',
+                          flexShrink: 0,
+                          lineHeight: 0,
+                          transition: 'all 0.2s ease',
+                          opacity: canSubmit ? 1 : 0.5
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path
+                            d="M4 12h16m-7-7l7 7-7 7"
+                            stroke="#F3F1FA"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                    )
                   )}
                 </div>
               </div>

@@ -9,10 +9,9 @@ function normalizePlanTypeFromPrice(priceId?: string | null): string {
   if (!priceId) return 'Free';
   const match = PLAN_PRICES.find((plan) => plan.priceId === priceId);
   const name = (match?.name || '').toLowerCase();
-  if (name.includes('premium cheap')) return 'Premium Cheap';
-  if (name.includes('plus') || name.includes('premium pro')) return 'Plus';
-  if (name.includes('essential') || name.includes('premium')) return 'Essential';
-  if (name.includes('standard')) return 'Standard';
+  if (name.includes('basic') || name.includes('essential') || name.includes('premium cheap')) return 'Basic';
+  if (name.includes('premium +') || name.includes('premium plus') || name.includes('plus') || name.includes('premium pro')) return 'Premium +';
+  if (name.includes('premium')) return 'Premium';
   return 'Free';
 }
 
@@ -62,16 +61,6 @@ async function upsertSubscriptionForUser(
   if (upsertError) {
     console.error('Checkout sync: failed to upsert subscription', upsertError);
     throw new Error('Failed to sync subscription');
-  }
-
-  if (isBillingActiveStripeStatus(status)) {
-    const { error: userError } = await supabaseAdmin
-      .from('users')
-      .update({ freemium_since: null })
-      .eq('id', userId);
-    if (userError) {
-      console.error('Checkout sync: failed to clear freemium_since', userError);
-    }
   }
 
   const planChanged =

@@ -221,13 +221,52 @@ export function getIdentifier(userId?: string, ip?: string): string {
   return userId || ip || 'anonymous'
 }
 
+const normalizeIp = (raw?: string | null): string | undefined => {
+  if (!raw) return undefined
+  let candidate = raw.trim()
+  if (!candidate) return undefined
+
+  // Strip brackets around IPv6 literals, e.g. [::1]
+  candidate = candidate.replace(/^\[|\]$/g, '')
+
+  // Strip :port for IPv4 values.
+  if (/^\d{1,3}(?:\.\d{1,3}){3}:\d+$/.test(candidate)) {
+    candidate = candidate.split(':')[0] || candidate
+  }
+
+  if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(candidate)) {
+    const octets = candidate.split('.').map((part) => Number.parseInt(part, 10))
+    if (octets.every((value) => Number.isInteger(value) && value >= 0 && value <= 255)) {
+      return candidate
+    }
+    return undefined
+  }
+
+  // Loose IPv6 validation (sufficient for rate-limit keying).
+  if (candidate.includes(':') && /^[0-9a-fA-F:.]+$/.test(candidate)) {
+    return candidate.toLowerCase()
+  }
+
+  return undefined
+}
+
 /**
  * Extract client IP from common forwarding headers
  */
 export function getClientIp(headers: Headers): string | undefined {
-  const raw = headers.get('x-forwarded-for') || headers.get('x-real-ip') || ''
-  const ip = raw.split(',')[0]?.trim()
-  return ip || undefined
+  const forwardedFor = headers.get('x-forwarded-for')
+  const candidates = [
+    headers.get('cf-connecting-ip'),
+    headers.get('x-real-ip'),
+    headers.get('x-client-ip'),
+    forwardedFor ? forwardedFor.split(',')[0] : null,
+  ]
+
+  for (const candidate of candidates) {
+    const normalized = normalizeIp(candidate)
+    if (normalized) return normalized
+  }
+  return undefined
 }
 
 /**

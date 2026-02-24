@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import type { AssistantMetadata, Message } from '@/components/chatbot/chat-types'
+import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 
 type StoredMessage = {
   role: 'user' | 'assistant'
@@ -17,9 +18,7 @@ type UseConversationBootstrapArgs = {
   setUserId: Dispatch<SetStateAction<string>>
   setMessages: Dispatch<SetStateAction<Message[]>>
   setConversationId: Dispatch<SetStateAction<string>>
-  setFreemiumMessageCount: Dispatch<SetStateAction<number>>
   setIsConversationBootstrapping: Dispatch<SetStateAction<boolean>>
-  freemiumMessageLimit: number
 }
 
 export function useConversationBootstrap({
@@ -28,9 +27,7 @@ export function useConversationBootstrap({
   setUserId,
   setMessages,
   setConversationId,
-  setFreemiumMessageCount,
-  setIsConversationBootstrapping,
-  freemiumMessageLimit
+  setIsConversationBootstrapping
 }: UseConversationBootstrapArgs) {
   useEffect(() => {
     const conversationStorageKey = 'currentConversationId'
@@ -62,9 +59,6 @@ export function useConversationBootstrap({
               })
             )
           }
-          if (userMessageCount > 0) {
-            setFreemiumMessageCount((prev) => Math.max(prev, Math.min(userMessageCount, freemiumMessageLimit)))
-          }
         }
       } catch (error: unknown) {
         console.error('Failed to load conversation:', error)
@@ -75,9 +69,32 @@ export function useConversationBootstrap({
       const urlParams = new URLSearchParams(window.location.search)
       const conversationId = urlParams.get('conversationId')
       const isNew = urlParams.get('new')
+      const supabase = getSupabaseBrowserClient()
+      const { data: authData } = await supabase.auth.getUser()
+      const authUserId = authData?.user?.id || null
 
       let storedUserId = localStorage.getItem('userId')
-      if (!storedUserId) {
+      if (authUserId) {
+        const previousUserId = storedUserId
+        storedUserId = authUserId
+        localStorage.setItem('userId', storedUserId)
+        setUserId(storedUserId)
+
+        // Prevent guest thread/counter carry-over after sign-in unless a specific conversation is requested.
+        const switchedFromGuest = Boolean(previousUserId && previousUserId.startsWith('anon_') && previousUserId !== storedUserId)
+        if (!conversationId && !isNew && switchedFromGuest) {
+          setMessages([])
+          const newConversationId = generateUUID()
+          setConversationId(newConversationId)
+          localStorage.setItem(conversationStorageKey, newConversationId)
+          window.dispatchEvent(
+            new CustomEvent('premiumThreadMessageCountChanged', {
+              detail: { conversationId: newConversationId, count: 0 }
+            })
+          )
+          return
+        }
+      } else if (!storedUserId) {
         storedUserId = `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
         localStorage.setItem('userId', storedUserId)
       } else {
@@ -137,8 +154,6 @@ export function useConversationBootstrap({
     setUserId,
     setMessages,
     setConversationId,
-    setFreemiumMessageCount,
-    setIsConversationBootstrapping,
-    freemiumMessageLimit
+    setIsConversationBootstrapping
   ])
 }

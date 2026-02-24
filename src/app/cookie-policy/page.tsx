@@ -72,7 +72,7 @@ export default function CookiePolicyPage() {
               </ul>
               <p className="mt-1">...to keep track of:</p>
               <ul className="list-disc pl-6 mt-1">
-                <li>Drafts you’re working on</li>
+                <li>Documents you’re working on</li>
                 <li>Chat session continuity</li>
                 <li>Temporary case-preparation data</li>
               </ul>

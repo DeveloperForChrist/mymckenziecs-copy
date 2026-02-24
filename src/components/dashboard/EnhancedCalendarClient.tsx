@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
+import { hasReminderAccess as planHasReminderAccess } from '@/lib/plans/access'
 import styles from './calendar-new.module.css'
 
 type CalendarEvent = {
@@ -21,8 +22,8 @@ type CalendarEvent = {
 }
 
 type EventsByDate = Record<string, CalendarEvent[]>
-type RepeatPattern = 'none' | 'weekly' | 'biweekly' | 'monthly'
 type EventStatus = 'done' | 'overdue' | 'today' | 'upcoming' | 'future'
+type EventListItem = CalendarEvent & { keyDate: string }
 
 type DayCell = {
   date: Date
@@ -48,20 +49,19 @@ function addMonths(date: Date, months: number) {
   return d
 }
 
-function addRecurringDate(date: Date, repeat: RepeatPattern, index: number) {
-  const d = new Date(date)
-  if (repeat === 'weekly') d.setDate(d.getDate() + index * 7)
-  if (repeat === 'biweekly') d.setDate(d.getDate() + index * 14)
-  if (repeat === 'monthly') d.setMonth(d.getMonth() + index)
-  return d
-}
-
 function pad2(n: number) {
   return n < 10 ? `0${n}` : `${n}`
 }
 
 function dateKey(date: Date) {
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
+}
+
+function dateKeyFromUnknown(input: unknown): string | null {
+  if (typeof input !== 'string') return null
+  const match = input.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (!match) return null
+  return `${match[1]}-${match[2]}-${match[3]}`
 }
 
 function parseEventDate(value?: string | Date | null) {
@@ -72,9 +72,8 @@ function parseEventDate(value?: string | Date | null) {
     const year = Number(match[1])
     const month = Number(match[2])
     const day = Number(match[3])
-    if (!value.includes('T') || /T00:00:00(\.000)?Z$/.test(value)) {
-      return new Date(year, month - 1, day)
-    }
+    // Calendar treats stored values as date-only labels; avoid timezone day-shifts.
+    return new Date(year, month - 1, day)
   }
   const parsed = new Date(value)
   return Number.isNaN(parsed.getTime()) ? new Date() : parsed
@@ -133,90 +132,112 @@ export default function EnhancedCalendarClient() {
   const [newNotes, setNewNotes] = useState('')
   const [newCategory, setNewCategory] = useState<CalendarEvent['category']>('deadline')
   const [newPriority, setNewPriority] = useState<CalendarEvent['priority']>('medium')
-  const [newRepeat, setNewRepeat] = useState<RepeatPattern>('none')
-  const [newOccurrences, setNewOccurrences] = useState(4)
   const [uid, setUid] = useState<string | null>(null)
-  const [isPaidPlan, setIsPaidPlan] = useState(false)
-  const [remindersEnabled, setRemindersEnabled] = useState(true)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [authChecked, setAuthChecked] = useState(false)
+  const [hasReminderAccess, setHasReminderAccess] = useState(false)
+  const [remindersEnabled, setRemindersEnabled] = useState(false)
   const [prefsLoading, setPrefsLoading] = useState(false)
   const [prefsSaving, setPrefsSaving] = useState(false)
   const [prefsError, setPrefsError] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
   const [isSavingEvent, setIsSavingEvent] = useState(false)
+  const [calendarLoadError, setCalendarLoadError] = useState<string | null>(null)
+  const [eventsPanelMode, setEventsPanelMode] = useState<'view' | 'add'>('view')
+
+  const mapEventsToDateMap = (rows: any[]): EventsByDate => {
+    const map: EventsByDate = {}
+    ;(rows || []).forEach((ev: any) => {
+      const jsDate = parseEventDate(ev.date)
+      const key = dateKeyFromUnknown(ev.date) || dateKey(jsDate)
+      const event: CalendarEvent = {
+        id: ev.id,
+        docId: ev.id,
+        title: ev.title ?? 'Untitled',
+        notes: ev.notes,
+        time: ev.time,
+        type: ev.type,
+        source: ev.source,
+        dateValue: jsDate,
+        daysUntil: getDaysUntil(jsDate),
+        priority: ev.priority || 'medium',
+        category: ev.category || 'deadline',
+        completed: Boolean(ev.completed),
+      }
+      if (!map[key]) map[key] = []
+      map[key].push(event)
+    })
+    return map
+  }
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient()
     supabase.auth.getUser().then(({ data }) => {
       setUid(data?.user?.id || null)
+      setUserEmail(data?.user?.email || null)
+      setAuthChecked(true)
     })
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUid(session?.user?.id || null)
+      setUserEmail(session?.user?.email || null)
+      setAuthChecked(true)
     })
     return () => subscription.unsubscribe()
   }, [])
 
   useEffect(() => {
-    if (uid) return
+    if (!authChecked || uid) return
     try {
       const raw = localStorage.getItem('calendarEvents:v2')
       if (raw) {
         setEventsByDate(JSON.parse(raw))
       }
     } catch (_) {}
-  }, [uid])
+  }, [authChecked, uid])
 
   useEffect(() => {
-    if (uid) return
+    if (!authChecked || uid) return
     try {
       localStorage.setItem('calendarEvents:v2', JSON.stringify(eventsByDate))
     } catch (_) {}
-  }, [eventsByDate, uid])
+  }, [authChecked, eventsByDate, uid])
 
   useEffect(() => {
-    if (!uid) return
-    const controller = new AbortController()
+    if (!authChecked) return
     const fetchEvents = async () => {
       try {
-        const response = await fetch('/api/calendar', { credentials: 'include', signal: controller.signal })
-        if (response.ok) {
-          const data = await response.json()
-          const map: EventsByDate = {}
-          ;(data.events || []).forEach((ev: any) => {
-            const jsDate = parseEventDate(ev.date)
-            const key = dateKey(jsDate)
-            const event: CalendarEvent = {
-              id: ev.id,
-              docId: ev.id,
-              title: ev.title ?? 'Untitled',
-              notes: ev.notes,
-              time: ev.time,
-              type: ev.type,
-              source: ev.source,
-              dateValue: jsDate,
-              daysUntil: getDaysUntil(jsDate),
-              priority: ev.priority || 'medium',
-              category: ev.category || 'deadline',
-              completed: Boolean(ev.completed),
-            }
-            if (!map[key]) map[key] = []
-            map[key].push(event)
-          })
-          setEventsByDate(map)
+        const browserSupabase = getSupabaseBrowserClient()
+        if (!uid) {
+          setCalendarLoadError(null)
+          return
         }
+
+        const { data: directRows, error: directError } = await browserSupabase
+          .from('calendar_events')
+          .select('id, title, notes, time, date, category, priority, type, source, completed')
+          .eq('user_id', uid)
+          .order('date', { ascending: true })
+
+        if (directError) {
+          setCalendarLoadError(directError.message || 'Unable to load calendar events.')
+          return
+        }
+
+        setEventsByDate(mapEventsToDateMap(Array.isArray(directRows) ? directRows : []))
+        setCalendarLoadError(null)
       } catch (error: any) {
-        if (error?.name === 'AbortError') return
         console.error('Failed to fetch calendar events:', error)
+        setCalendarLoadError('Unable to load calendar events. Please refresh and try again.')
       }
     }
     fetchEvents()
-    return () => controller.abort()
-  }, [uid])
+  }, [authChecked, uid])
 
   useEffect(() => {
     if (!uid) {
-      setIsPaidPlan(false)
+      setHasReminderAccess(false)
       return
     }
     const loadPlanAndPrefs = async () => {
@@ -226,20 +247,16 @@ export default function EnhancedCalendarClient() {
         const planRes = await fetch('/api/user/plan', { credentials: 'include' })
         if (!planRes.ok) throw new Error('Failed to load plan')
         const planData = await planRes.json()
-        const planLabel = String(planData?.plan || '').toLowerCase()
-        const paid =
-          planLabel.includes('standard') ||
-          planLabel.includes('essential') ||
-          planLabel.includes('plus') ||
-          planLabel.includes('premium') ||
-          planLabel.includes('pro')
-        setIsPaidPlan(paid)
+        const canUseReminders = planHasReminderAccess(planData?.plan || '')
+        setHasReminderAccess(canUseReminders)
 
-        if (paid) {
+        if (canUseReminders) {
           const prefRes = await fetch('/api/user/preferences', { credentials: 'include' })
           if (!prefRes.ok) throw new Error('Failed to load preferences')
           const prefData = await prefRes.json()
-          setRemindersEnabled(prefData.deadline_reminders !== false)
+          setRemindersEnabled(prefData.deadline_reminders === true)
+        } else {
+          setRemindersEnabled(false)
         }
       } catch (error) {
         console.error('Failed to load plan/preferences', error)
@@ -252,7 +269,7 @@ export default function EnhancedCalendarClient() {
   }, [uid])
 
   const toggleReminderEmails = async () => {
-    if (!uid || !isPaidPlan) return
+    if (!uid || !hasReminderAccess) return
     const nextValue = !remindersEnabled
     setRemindersEnabled(nextValue)
     setPrefsSaving(true)
@@ -280,8 +297,6 @@ export default function EnhancedCalendarClient() {
     setNewTitle('')
     setNewTime('')
     setNewNotes('')
-    setNewRepeat('none')
-    setNewOccurrences(4)
     setFormError(null)
   }
 
@@ -300,48 +315,46 @@ export default function EnhancedCalendarClient() {
       setFormError('Notes cannot be more than 2000 characters.')
       return
     }
-    if (newRepeat !== 'none' && (newOccurrences < 2 || newOccurrences > 24)) {
-      setFormError('For recurring events, occurrences must be between 2 and 24.')
-      return
-    }
-
     setFormError(null)
     setIsSavingEvent(true)
 
     const normalizedSelected = startOfDay(selectedDate)
-    const occurrences = newRepeat === 'none' ? 1 : newOccurrences
 
     if (uid) {
+      const browserSupabase = getSupabaseBrowserClient()
+      let saveTimeoutId: number | null = null
       try {
-        const response = await fetch('/api/calendar', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const insertPromise = browserSupabase
+          .from('calendar_events')
+          .insert({
+            user_id: uid,
             title,
             notes: newNotes.trim() || null,
             time: newTime || null,
-            date: normalizedSelected.toISOString(),
+            date: new Date(`${dateKey(normalizedSelected)}T00:00:00.000Z`).toISOString(),
             category: newCategory,
             priority: newPriority,
+            type: 'user_created',
             completed: false,
-            repeat: newRepeat,
-            occurrences,
-          }),
+          })
+          .select('*')
+
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          saveTimeoutId = window.setTimeout(() => reject(new Error('SAVE_TIMEOUT')), 12000)
         })
 
-        const data = await response.json().catch(() => ({}))
-        if (!response.ok) {
-          setFormError(data?.error || 'Failed to save event.')
+        const result = (await Promise.race([insertPromise, timeoutPromise])) as Awaited<typeof insertPromise>
+        if (saveTimeoutId) {
+          window.clearTimeout(saveTimeoutId)
+          saveTimeoutId = null
+        }
+        const insertedEvents = Array.isArray(result?.data) ? result.data : []
+        const directError = result?.error
+
+        if (directError) {
+          setFormError(directError.message || 'Failed to save event.')
           return
         }
-
-        const insertedEvents: any[] = Array.isArray(data?.events)
-          ? data.events
-          : data?.event
-          ? [data.event]
-          : []
-
         if (insertedEvents.length === 0) {
           setFormError('No events were created.')
           return
@@ -351,7 +364,7 @@ export default function EnhancedCalendarClient() {
           const next = { ...prev }
           insertedEvents.forEach((ev) => {
             const jsDate = parseEventDate(ev.date)
-            const key = dateKey(jsDate)
+            const key = dateKeyFromUnknown(ev.date) || dateKey(jsDate)
             const mappedEvent: CalendarEvent = {
               id: ev.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
               docId: ev.id,
@@ -373,9 +386,13 @@ export default function EnhancedCalendarClient() {
 
         resetForm()
       } catch (error) {
-        console.error('Failed to add event:', error)
-        setFormError('Failed to save event. Please try again.')
+        const errorMessage =
+          error instanceof Error && error.message === 'SAVE_TIMEOUT'
+            ? 'Save timed out. Please try again.'
+            : 'Failed to save event. Please try again.'
+        setFormError(errorMessage)
       } finally {
+        if (saveTimeoutId) window.clearTimeout(saveTimeoutId)
         setIsSavingEvent(false)
       }
       return
@@ -383,23 +400,19 @@ export default function EnhancedCalendarClient() {
 
     setEventsByDate((prev) => {
       const next = { ...prev }
-      for (let i = 0; i < occurrences; i++) {
-        const nextDate = addRecurringDate(normalizedSelected, newRepeat, i)
-        const key = dateKey(nextDate)
-        const ev: CalendarEvent = {
-          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${i}`,
-          title,
-          time: newTime || undefined,
-          notes: newNotes.trim() || undefined,
-          dateValue: nextDate,
-          daysUntil: getDaysUntil(nextDate),
-          category: newCategory,
-          priority: newPriority,
-          completed: false,
-          source: newRepeat === 'none' ? undefined : `recurring:${newRepeat}`,
-        }
-        next[key] = [...(next[key] || []), ev]
+      const key = dateKey(normalizedSelected)
+      const ev: CalendarEvent = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        title,
+        time: newTime || undefined,
+        notes: newNotes.trim() || undefined,
+        dateValue: normalizedSelected,
+        daysUntil: getDaysUntil(normalizedSelected),
+        category: newCategory,
+        priority: newPriority,
+        completed: false,
       }
+      next[key] = [...(next[key] || []), ev]
       return next
     })
 
@@ -412,10 +425,14 @@ export default function EnhancedCalendarClient() {
       const ev = (eventsByDate[key] || []).find((e) => e.docId === id || e.id === id)
       if (ev?.docId) {
         try {
-          const response = await fetch(`/api/calendar?id=${ev.docId}`, { method: 'DELETE', credentials: 'include' })
-          if (!response.ok) {
-            const data = await response.json().catch(() => ({}))
-            setFormError(data?.error || 'Failed to delete event.')
+          const browserSupabase = getSupabaseBrowserClient()
+          const { error } = await browserSupabase
+            .from('calendar_events')
+            .delete()
+            .eq('id', ev.docId)
+            .eq('user_id', uid)
+          if (error) {
+            setFormError(error.message || 'Failed to delete event.')
             return
           }
         } catch (error) {
@@ -449,15 +466,13 @@ export default function EnhancedCalendarClient() {
 
     if (uid && target.docId) {
       try {
-        const response = await fetch('/api/calendar', {
-          method: 'PUT',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: target.docId, completed: nextCompleted }),
-        })
-        if (!response.ok) {
-          throw new Error('Failed to update event')
-        }
+        const browserSupabase = getSupabaseBrowserClient()
+        const { error } = await browserSupabase
+          .from('calendar_events')
+          .update({ completed: nextCompleted })
+          .eq('id', target.docId)
+          .eq('user_id', uid)
+        if (error) throw error
       } catch (error) {
         console.error('Failed to update event:', error)
         setEventsByDate((prev) => ({
@@ -494,15 +509,26 @@ export default function EnhancedCalendarClient() {
   }, [visibleMonth, selectedDate, today])
 
   const selectedKey = selectedDate ? dateKey(selectedDate) : dateKey(today)
-  const selectedEvents = useMemo(() => {
-    return [...(eventsByDate[selectedKey] || [])].sort((a, b) => {
+  const allEventsList = useMemo<EventListItem[]>(() => {
+    const all: EventListItem[] = []
+    Object.entries(eventsByDate).forEach(([key, list]) => {
+      list.forEach((event) => {
+        all.push({ ...event, keyDate: key })
+      })
+    })
+
+    return all.sort((a, b) => {
+      const aDate = a.dateValue ? parseEventDate(a.dateValue) : parseEventDate(`${a.keyDate}T00:00:00Z`)
+      const bDate = b.dateValue ? parseEventDate(b.dateValue) : parseEventDate(`${b.keyDate}T00:00:00Z`)
+      const dateDiff = aDate.getTime() - bDate.getTime()
+      if (dateDiff !== 0) return dateDiff
       const statusDiff = statusRank(getEventStatus(a)) - statusRank(getEventStatus(b))
       if (statusDiff !== 0) return statusDiff
       const timeDiff = (a.time || '').localeCompare(b.time || '')
       if (timeDiff !== 0) return timeDiff
       return (a.title || '').localeCompare(b.title || '')
     })
-  }, [eventsByDate, selectedKey])
+  }, [eventsByDate])
 
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   const categoryClass = (category?: CalendarEvent['category']) => {
@@ -548,7 +574,7 @@ export default function EnhancedCalendarClient() {
       <div className={styles.header}>
         <div className={styles.headerTitle}>
           <h1>MyCalendar</h1>
-          <p>Track deadlines, hearings, and case milestones in one place.</p>
+          <p>Track events, hearings, and case milestones in one place.</p>
         </div>
         <div className={styles.headerActions}>
           <button className={styles.navButton} onClick={() => setVisibleMonth(addMonths(visibleMonth, -1))}>
@@ -568,6 +594,7 @@ export default function EnhancedCalendarClient() {
           <div className={styles.monthHeader}>
             <div className={styles.monthTitle}>{monthName}</div>
           </div>
+          {calendarLoadError && <div className={styles.formError}>{calendarLoadError}</div>}
           <div className={styles.monthGrid}>
             {dayNames.map((day) => (
               <div key={day} className={styles.dayHeader}>
@@ -586,6 +613,7 @@ export default function EnhancedCalendarClient() {
                   } ${cell.isSelected ? styles.dayCellActive : ''}`}
                 >
                   <div className={styles.dayNumber}>{cell.date.getDate()}</div>
+                  {events.length > 0 && <div className={styles.dayEventCount}>{events.length}</div>}
                   {events.slice(0, 2).map((event) => {
                     const status = getEventStatus(event)
                     return (
@@ -608,53 +636,139 @@ export default function EnhancedCalendarClient() {
 
         <div className={styles.sidebarColumn}>
           <div className={`${styles.card} ${styles.sidebar}`}>
-            <div>
-              <div className={styles.sidebarTitle}>Selected Date</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 700, marginTop: 6 }}>
-                {selectedDate?.toLocaleDateString('en-GB', { weekday: 'long', month: 'long', day: 'numeric' })}
+            <div className={styles.eventsPanelHeader}>
+              <div className={styles.sidebarTitle}>Events</div>
+              <div className={styles.eventsModeSwitch}>
+                <button
+                  type="button"
+                  className={`${styles.eventsModeButton} ${eventsPanelMode === 'view' ? styles.eventsModeButtonActive : ''}`}
+                  onClick={() => setEventsPanelMode('view')}
+                >
+                  Events Set
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.eventsModeButton} ${eventsPanelMode === 'add' ? styles.eventsModeButtonActive : ''}`}
+                  onClick={() => setEventsPanelMode('add')}
+                >
+                  Add Event
+                </button>
               </div>
             </div>
 
-            <div>
-              <div className={styles.sidebarTitle}>Events</div>
-              <div className={styles.eventList}>
-                {selectedEvents.length === 0 && (
-                  <div className={styles.emptyState}>No events for this date. Add a deadline to get started.</div>
-                )}
-                {selectedEvents.map((event) => {
-                  const status = getEventStatus(event)
-                  return (
-                    <div key={event.id} className={`${styles.eventItem} ${categoryItemClass(event.category)}`}>
-                      <div className={styles.eventItemHeader}>
-                        <div className={styles.eventTitle} style={{ textDecoration: event.completed ? 'line-through' : 'none' }}>
-                          {event.title}
-                        </div>
-                        <span className={`${styles.badge} ${event.priority === 'high' ? styles.badgeHigh : ''}`}>
-                          {event.priority}
-                        </span>
-                      </div>
-                      <div className={styles.eventMeta}>
-                        {event.time ? `${event.time} · ` : ''}
-                        {event.category}
-                      </div>
-                      <div className={`${styles.eventStatus} ${statusClass(status)}`}>{statusLabel(event)}</div>
-                      {event.notes && <div className={styles.eventMeta}>{event.notes}</div>}
-                      <div className={styles.eventActions}>
-                        <button className={styles.inlineButton} onClick={() => toggleCompleted(selectedKey, event.id)}>
-                          {event.completed ? 'Unmark' : 'Mark done'}
-                        </button>
-                        <button className={styles.inlineButton} onClick={() => deleteEvent(selectedKey, event.id)}>
-                          Delete
-                        </button>
-                      </div>
+            {eventsPanelMode === 'view' ? (
+              <>
+                <div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 700, marginTop: 6 }}>
+                    {allEventsList.length} total
+                  </div>
+                  {userEmail && (
+                    <div className={styles.eventMeta} style={{ marginTop: 4 }}>
+                      Signed in as {userEmail}
                     </div>
-                  )
-                })}
-              </div>
-            </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className={styles.sidebarTitle}>Events</div>
+                  <div className={styles.eventList}>
+                    {allEventsList.length === 0 && (
+                      <div className={styles.emptyState}>No events set yet. Add an event to get started.</div>
+                    )}
+                    {allEventsList.map((event) => {
+                      const status = getEventStatus(event)
+                      const dueDate = event.dateValue
+                        ? parseEventDate(event.dateValue)
+                        : parseEventDate(`${event.keyDate}T00:00:00Z`)
+                      return (
+                        <div key={event.id} className={`${styles.eventItem} ${categoryItemClass(event.category)}`}>
+                          <div className={styles.eventItemHeader}>
+                            <div className={styles.eventTitle} style={{ textDecoration: event.completed ? 'line-through' : 'none' }}>
+                              {event.title}
+                            </div>
+                            <span className={`${styles.badge} ${event.priority === 'high' ? styles.badgeHigh : ''}`}>
+                              {event.priority}
+                            </span>
+                          </div>
+                          <div className={styles.eventMeta}>
+                            Due {dueDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
+                            {event.time ? ` · ${event.time}` : ''}
+                            {event.category ? ` · ${event.category}` : ''}
+                          </div>
+                          <div className={`${styles.eventStatus} ${statusClass(status)}`}>{statusLabel(event)}</div>
+                          {event.notes && <div className={styles.eventMeta}>{event.notes}</div>}
+                          <div className={styles.eventActions}>
+                            <button className={styles.inlineButton} onClick={() => toggleCompleted(event.keyDate, event.id)}>
+                              {event.completed ? 'Unmark' : 'Mark done'}
+                            </button>
+                            <button className={styles.inlineButton} onClick={() => deleteEvent(event.keyDate, event.id)}>
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className={styles.formGroup}>
+                  <label>Title</label>
+                  <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Event title" />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Date</label>
+                  <input
+                    type="date"
+                    value={selectedDate ? dateKey(selectedDate) : dateKey(today)}
+                    onChange={(e) => {
+                      const [year, month, day] = e.target.value.split('-').map(Number)
+                      if (!year || !month || !day) return
+                      setSelectedDate(new Date(year, month - 1, day))
+                    }}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Time</label>
+                  <input type="time" value={newTime} onChange={(e) => setNewTime(e.target.value)} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Category</label>
+                  <select value={newCategory} onChange={(e) => setNewCategory(e.target.value as CalendarEvent['category'])}>
+                    <option value="deadline">Deadline</option>
+                    <option value="hearing">Hearing</option>
+                    <option value="meeting">Meeting</option>
+                    <option value="reminder">Reminder</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Priority</label>
+                  <select value={newPriority} onChange={(e) => setNewPriority(e.target.value as CalendarEvent['priority'])}>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Notes</label>
+                  <textarea rows={3} value={newNotes} onChange={(e) => setNewNotes(e.target.value)} />
+                </div>
+                <div className={styles.modalActions}>
+                  <button className={styles.navButton} onClick={resetForm}>
+                    Clear
+                  </button>
+                  <button className={styles.primaryButton} onClick={addEvent} disabled={isSavingEvent}>
+                    {isSavingEvent ? 'Saving...' : 'Save event'}
+                  </button>
+                </div>
+              </>
+            )}
+            {formError && <div className={styles.formError}>{formError}</div>}
           </div>
 
-          {isPaidPlan && (
+          {hasReminderAccess && (
             <div className={`${styles.card} ${styles.preferenceCard}`}>
               <div className={styles.sidebarTitle}>Email Reminders</div>
               <div className={styles.preferenceRow}>
@@ -675,81 +789,6 @@ export default function EnhancedCalendarClient() {
             </div>
           )}
 
-          <div className={`${styles.card} ${styles.addCard}`}>
-            <div className={styles.sidebarTitle}>Add Deadline</div>
-            <div className={styles.formGroup}>
-              <label>Title</label>
-              <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Deadline title" />
-            </div>
-            <div className={styles.formGroup}>
-              <label>Date</label>
-              <input
-                type="date"
-                value={selectedDate ? dateKey(selectedDate) : dateKey(today)}
-                onChange={(e) => {
-                  const [year, month, day] = e.target.value.split('-').map(Number)
-                  if (!year || !month || !day) return
-                  setSelectedDate(new Date(year, month - 1, day))
-                }}
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label>Time</label>
-              <input type="time" value={newTime} onChange={(e) => setNewTime(e.target.value)} />
-            </div>
-            <div className={styles.formGroup}>
-              <label>Category</label>
-              <select value={newCategory} onChange={(e) => setNewCategory(e.target.value as CalendarEvent['category'])}>
-                <option value="deadline">Deadline</option>
-                <option value="hearing">Hearing</option>
-                <option value="meeting">Meeting</option>
-                <option value="reminder">Reminder</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div className={styles.formGroup}>
-              <label>Priority</label>
-              <select value={newPriority} onChange={(e) => setNewPriority(e.target.value as CalendarEvent['priority'])}>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-            </div>
-            <div className={styles.formGroup}>
-              <label>Repeat</label>
-              <select value={newRepeat} onChange={(e) => setNewRepeat(e.target.value as RepeatPattern)}>
-                <option value="none">Does not repeat</option>
-                <option value="weekly">Weekly</option>
-                <option value="biweekly">Every 2 weeks</option>
-                <option value="monthly">Monthly</option>
-              </select>
-            </div>
-            {newRepeat !== 'none' && (
-              <div className={styles.formGroup}>
-                <label>Occurrences</label>
-                <input
-                  type="number"
-                  min={2}
-                  max={24}
-                  value={newOccurrences}
-                  onChange={(e) => setNewOccurrences(Number(e.target.value || 4))}
-                />
-              </div>
-            )}
-            <div className={styles.formGroup}>
-              <label>Notes</label>
-              <textarea rows={3} value={newNotes} onChange={(e) => setNewNotes(e.target.value)} />
-            </div>
-            {formError && <div className={styles.formError}>{formError}</div>}
-            <div className={styles.modalActions}>
-              <button className={styles.navButton} onClick={resetForm}>
-                Clear
-              </button>
-              <button className={styles.primaryButton} onClick={addEvent} disabled={isSavingEvent}>
-                {isSavingEvent ? 'Saving...' : 'Save deadline'}
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

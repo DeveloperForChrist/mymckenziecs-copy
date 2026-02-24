@@ -58,7 +58,9 @@ TONE:
 
 `;
 
-const MODEL = process.env.OPENAI_CHAT_MODEL || 'gpt-4o'
+const OPENAI_MODEL = process.env.OPENAI_CHAT_MODEL || 'gpt-4o'
+const GROQ_MODEL = process.env.GROQ_CHAT_MODEL || 'meta-llama/llama-4-maverick-17b-128e-instruct'
+const GROQ_FALLBACK_MODEL = process.env.GROQ_CHAT_FALLBACK_MODEL || 'llama-3.3-70b-versatile'
 const MAX_TOKENS = 1000
 const COMPREHENSIVE_TOKEN_BONUS = 0
 
@@ -67,6 +69,14 @@ const COMPREHENSIVE_TOKEN_BONUS = 0
 // =====================================================
 
 type RetrievalMode = 'education' | 'general'
+type LlmProvider = 'openai' | 'groq'
+type LegalAgentOptions = {
+  useDiscriminator?: boolean
+  useSearch?: boolean
+  systemPrompt?: string
+  includeCitations?: boolean
+  provider?: LlmProvider
+}
 
 // Sanitize history
 function sanitizeConversationHistory(
@@ -349,15 +359,73 @@ function ensureCitationsForPremium(
 async function callLLM(
   prompt: string,
   systemPrompt: string = SYSTEM_PROMPT,
-  model: string = MODEL,
-  maxTokens: number = MAX_TOKENS
+  model: string = OPENAI_MODEL,
+  maxTokens: number = MAX_TOKENS,
+  provider: LlmProvider = 'openai'
 ): Promise<string> {
+  if (provider === 'groq') {
+    const groqApiKey = process.env.GROQ_API_KEY
+    if (!groqApiKey) {
+      console.error('GROQ_API_KEY is not set for Groq provider request')
+      return "I'm unable to respond right now because the free-tier model is unavailable. Please try again shortly."
+    }
+
+    try {
+      const runGroq = async (modelName: string) => {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${groqApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: modelName,
+            max_tokens: maxTokens,
+            temperature: 0.7,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: prompt },
+            ],
+          }),
+        })
+
+        if (!response.ok) {
+          const details = await response.text().catch(() => '')
+          throw new Error(`Groq model ${modelName} failed (${response.status}): ${details}`)
+        }
+
+        const completion = await response.json() as {
+          choices?: Array<{ message?: { content?: string | null }, finish_reason?: string | null }>
+        }
+
+        let rawResponse = completion.choices?.[0]?.message?.content || "I couldn't generate a response."
+        const finishReason = completion.choices?.[0]?.finish_reason
+        if (finishReason === 'length') {
+          rawResponse = rawResponse.trim()
+        }
+        return stripMarkdown(stripUrlsFromText(rawResponse))
+      }
+
+      try {
+        return await runGroq(model)
+      } catch (primaryError) {
+        if (model !== GROQ_FALLBACK_MODEL) {
+          console.error('Groq primary model failed, trying fallback', primaryError)
+          return await runGroq(GROQ_FALLBACK_MODEL)
+        }
+        throw primaryError
+      }
+    } catch (error: unknown) {
+      console.error('Groq API Error:', error)
+      return "I'm unable to respond right now because the free-tier model is unavailable. Please try again shortly."
+    }
+  }
+
   try {
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
       throw new Error('OPENAI_API_KEY is not set in the environment')
     }
-
     const openai = new OpenAI({ apiKey })
     const completion = await openai.chat.completions.create({
       model,
@@ -392,7 +460,7 @@ export async function createLegalAgent(
   conversationHistory: Array<{ role: string; content: string }> = [],
   caseKeywords?: string,
   caseId?: string,
-  options?: { useDiscriminator?: boolean; useSearch?: boolean; systemPrompt?: string; includeCitations?: boolean }
+  options?: LegalAgentOptions
 ) {
   let fullHistory = conversationHistory
 
@@ -411,7 +479,7 @@ export async function createLegalAgent(
           content: msg.content || ''
         }))
       }
-    } catch (err) {
+    } catch {
       // fallback to provided conversationHistory
     }
   }
@@ -459,7 +527,9 @@ export async function createLegalAgent(
           const historyContext = buildHistoryContext(trimmedHistory)
           const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
           const directPrompt = `${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. Output must be plain text only. Follow the presentation rules.`
-          const directAnswer = await callLLM(directPrompt, systemPrompt, MODEL, MAX_TOKENS)
+          const llmProvider: LlmProvider = options?.provider || 'openai'
+          const modelForProvider = llmProvider === 'groq' ? GROQ_MODEL : OPENAI_MODEL
+          const directAnswer = await callLLM(directPrompt, systemPrompt, modelForProvider, MAX_TOKENS, llmProvider)
           const neutralDirectAnswer = neutralizeLegalAdviceTone(directAnswer)
           return {
             response: neutralDirectAnswer,
@@ -472,21 +542,22 @@ export async function createLegalAgent(
         // 4. LEGAL AGENT: Comprehensive web search and answer generation
         const isDefinition = isDefinitionQuery(latestQuestion)
         const mode: RetrievalMode = isDefinition ? 'education' : 'general'
-        
-        // Build search query with case context if available
+
+        // Build search query with case context if available.
         let searchQuery = latestQuestion
         if (caseKeywords && caseKeywords.trim()) {
           searchQuery = `${latestQuestion} | Case context: ${caseKeywords}`
         }
-        
-        // Perform comprehensive search for all relevant information
+
+        // Perform comprehensive search for all relevant information.
         const searchTool = new SearchTool()
         const searchPayload = JSON.stringify({ query: searchQuery, mode })
         const searchResult = await searchTool._call(searchPayload)
-        
+
         let sources: string[] = []
         let searchedInfo = ''
         let sourceMode: 'engine' | 'fallback' | 'none' = 'none'
+
         try {
           const parsed = JSON.parse(searchResult) as { sources?: unknown[]; packet?: string; sourceMode?: unknown }
           sources = Array.isArray(parsed.sources) ? parsed.sources.filter((u: unknown): u is string => typeof u === 'string') : []
@@ -499,6 +570,7 @@ export async function createLegalAgent(
         } catch {
           searchedInfo = searchResult
         }
+
         const effectiveIncludeCitations = includeCitations && sourceMode === 'engine' && sources.length > 0
 
         // Generate comprehensive answer using ALL sources
@@ -514,8 +586,9 @@ export async function createLegalAgent(
         const comprehensiveAnswer = await callLLM(
           comprehensivePrompt,
           systemPrompt,
-          MODEL,
-          MAX_TOKENS + COMPREHENSIVE_TOKEN_BONUS
+          OPENAI_MODEL,
+          MAX_TOKENS + COMPREHENSIVE_TOKEN_BONUS,
+          'openai'
         )
 
         // 5. DISCRIMINATOR: Critic/revise/verify the comprehensive answer for the user
@@ -606,7 +679,8 @@ export async function invokeFreeLegalAgent(
   const agent = await createLegalAgent(conversationHistory, caseKeywords, undefined, {
     useDiscriminator: false,
     useSearch: false,
-    systemPrompt: SYSTEM_PROMPT_FREE
+    systemPrompt: SYSTEM_PROMPT_FREE,
+    provider: 'groq'
   })
   const response = await agent.invoke({ input: message })
   return {

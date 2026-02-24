@@ -154,18 +154,6 @@ async function clearSubscriptionGrace(customerId: string | null, status: 'active
     console.error('Failed to clear subscription grace fields', error);
   }
 
-  if (status === 'cancelled' || status === 'expired') {
-    const userId = await resolveUserIdForCustomer(customerId);
-    if (userId) {
-      const { error: userError } = await supabaseAdmin
-        .from('users')
-        .update({ freemium_since: now.toISOString() })
-        .eq('id', userId);
-      if (userError) {
-        console.error('Failed to set freemium_since after downgrade', userError);
-      }
-    }
-  }
 }
 
 function formatDateLabel(value?: Date | number | null) {
@@ -218,19 +206,17 @@ function normalizePlanTypeFromPrice(priceId?: string | null): string {
   if (!priceId) return 'Free';
   const match = PLAN_PRICES.find((plan) => plan.priceId === priceId);
   const name = (match?.name || '').toLowerCase();
-  if (name.includes('premium cheap')) return 'Premium Cheap';
-  if (name.includes('plus') || name.includes('premium pro')) return 'Plus';
-  if (name.includes('essential') || name.includes('premium')) return 'Essential';
-  if (name.includes('standard')) return 'Standard';
+  if (name.includes('basic') || name.includes('essential') || name.includes('premium cheap')) return 'Basic';
+  if (name.includes('premium +') || name.includes('premium plus') || name.includes('plus') || name.includes('premium pro')) return 'Premium +';
+  if (name.includes('premium')) return 'Premium';
   return 'Free';
 }
 
 function displayPlanName(planType?: string | null): string {
   const raw = (planType || '').toLowerCase();
-  if (raw.includes('premium cheap')) return 'Premium Cheap';
-  if (raw.includes('premium pro') || raw.includes('plus')) return 'Plus';
-  if (raw.includes('premium') || raw.includes('essential')) return 'Essential';
-  if (raw.includes('standard')) return 'Standard';
+  if (raw.includes('basic') || raw.includes('essential') || raw.includes('premium cheap')) return 'Basic';
+  if (raw.includes('premium +') || raw.includes('premium plus') || raw.includes('premium pro') || raw.includes('plus')) return 'Premium +';
+  if (raw.includes('premium')) return 'Premium';
   if (!raw || raw.includes('free')) return 'Free';
   return planType || 'Plan';
 }
@@ -304,16 +290,6 @@ async function upsertSubscriptionFromStripe(subscription: any) {
     console.error('Failed to upsert subscription from Stripe', error);
   }
 
-  if (isBillingActiveStripeStatus(status)) {
-    const { error: userError } = await supabaseAdmin
-      .from('users')
-      .update({ freemium_since: null })
-      .eq('id', userId);
-    if (userError) {
-      console.error('Failed to clear freemium_since on active subscription', userError);
-    }
-  }
-
   if (existing?.plan_type && existing.plan_type !== planType) {
     const user = await getUserEmail(userId);
     if (user) {
@@ -321,9 +297,9 @@ async function upsertSubscriptionFromStripe(subscription: any) {
       const newName = displayPlanName(planType);
       const rank = (name: string) => {
         const n = name.toLowerCase();
-        if (n.includes('premium cheap')) return 2;
-        if (n.includes('plus') || n.includes('premium pro')) return 2;
-        if (n.includes('essential') || n.includes('premium')) return 1;
+        if (n.includes('premium +') || n.includes('premium plus') || n.includes('plus') || n.includes('premium pro')) return 3;
+        if (n.includes('premium')) return 2;
+        if (n.includes('basic') || n.includes('essential') || n.includes('premium cheap')) return 1;
         return 0;
       };
       const changeType = rank(newName) > rank(oldName) ? 'upgraded' : 'downgraded';

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
+import { hasCaseProfileAccess } from '@/lib/plans/access'
+
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 const hasMeaningfulCaseProfile = (row: Record<string, unknown> | null | undefined): boolean => {
   if (!row) return false
@@ -13,16 +16,45 @@ const hasMeaningfulCaseProfile = (row: Record<string, unknown> | null | undefine
   return hasTitle || Boolean(externalId) || Boolean(caseType) || Boolean(description)
 }
 
+const isMissingColumnError = (error: any, columnName: string): boolean => {
+  if (!error || typeof error !== 'object') return false
+  const code = typeof error.code === 'string' ? error.code : ''
+  const message = typeof error.message === 'string' ? error.message.toLowerCase() : ''
+  return code === 'PGRST204' && message.includes(`'${columnName.toLowerCase()}'`)
+}
+
+const requireCaseProfileAccess = async (userId: string): Promise<boolean> => {
+  const { data: activeSub } = await supabaseAdmin
+    .from('subscriptions')
+    .select('plan_type, status')
+    .eq('user_id', userId)
+    .in('status', ['active', 'past_due'])
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  return hasCaseProfileAccess(activeSub?.plan_type || '')
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = await createSupabaseRouteClient()
     const { data: authData } = await supabase.auth.getUser()
     const body = await request.json()
     const { caseId, caseType, caseTitle, caseDescription, userId } = body || {}
-    const ownerId = authData?.user?.id || (typeof userId === 'string' ? userId : null)
+    const fallbackUserId =
+      typeof userId === 'string' && uuidRegex.test(userId.trim())
+        ? userId.trim()
+        : null
+    const ownerId = authData?.user?.id || fallbackUserId
 
     if (!ownerId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const hasAccess = await requireCaseProfileAccess(ownerId)
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Premium or Premium + plan required' }, { status: 403 })
     }
 
     const externalId = typeof caseId === 'string' ? caseId.trim() : null
@@ -42,9 +74,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Fill at least one case profile field before saving.' }, { status: 400 })
     }
 
+    let supportsExternalId = true
     let existingCase: { id: string } | null = null
     if (externalId) {
-      const { data } = await supabaseAdmin
+      const { data, error } = await supabaseAdmin
         .from('cases')
         .select('id')
         .eq('user_id', ownerId)
@@ -52,8 +85,27 @@ export async function POST(request: Request) {
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
-      existingCase = data || null
+      if (error) {
+        if (isMissingColumnError(error, 'external_id')) {
+          supportsExternalId = false
+        } else {
+          return NextResponse.json({ error: error.message }, { status: 500 })
+        }
+      } else {
+        existingCase = data || null
+      }
     } else {
+      const { data } = await supabaseAdmin
+        .from('cases')
+        .select('id')
+        .eq('user_id', ownerId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      existingCase = data || null
+    }
+
+    if (externalId && !existingCase && !supportsExternalId) {
       const { data } = await supabaseAdmin
         .from('cases')
         .select('id')
@@ -68,18 +120,34 @@ export async function POST(request: Request) {
       title: nextTitle,
       case_type: nextCaseType,
       description: nextDescription,
-      external_id: externalId,
       user_id: ownerId
+    }
+    if (supportsExternalId) {
+      payload.external_id = externalId
     }
 
     if (existingCase?.id) {
-      const { data, error } = await supabaseAdmin
+      let { data, error } = await supabaseAdmin
         .from('cases')
         .update({ ...payload, updated_at: new Date().toISOString() })
         .eq('id', existingCase.id)
         .eq('user_id', ownerId)
         .select()
         .limit(1)
+
+      if (error && supportsExternalId && isMissingColumnError(error, 'external_id')) {
+        const fallbackPayload = { ...payload, updated_at: new Date().toISOString() }
+        delete (fallbackPayload as any).external_id
+        const fallbackResult = await supabaseAdmin
+          .from('cases')
+          .update(fallbackPayload)
+          .eq('id', existingCase.id)
+          .eq('user_id', ownerId)
+          .select()
+          .limit(1)
+        data = fallbackResult.data
+        error = fallbackResult.error
+      }
 
       if (error) {
         console.error('supabase update error', error)
@@ -90,11 +158,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, case: updated })
     }
 
-    const { data, error } = await supabaseAdmin
+    let { data, error } = await supabaseAdmin
       .from('cases')
       .insert(payload)
       .select()
       .limit(1)
+
+    if (error && supportsExternalId && isMissingColumnError(error, 'external_id')) {
+      const fallbackPayload = { ...payload }
+      delete (fallbackPayload as any).external_id
+      const fallbackResult = await supabaseAdmin
+        .from('cases')
+        .insert(fallbackPayload)
+        .select()
+        .limit(1)
+      data = fallbackResult.data
+      error = fallbackResult.error
+    }
 
     if (error) {
       console.error('supabase insert error', error)
@@ -119,6 +199,11 @@ export async function GET(request: Request) {
 
     if (!userId) {
       return NextResponse.json({ ok: true, case: null });
+    }
+
+    const hasAccess = await requireCaseProfileAccess(userId)
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Premium or Premium + plan required' }, { status: 403 })
     }
 
     const { data, error } = await supabaseAdmin
@@ -153,6 +238,11 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const hasAccess = await requireCaseProfileAccess(userId)
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Premium or Premium + plan required' }, { status: 403 })
+    }
+
     let targetCaseId = requestedCaseId
     if (!targetCaseId) {
       const { data: latestCase, error: latestError } = await supabaseAdmin
@@ -171,6 +261,43 @@ export async function DELETE(request: Request) {
 
     if (!targetCaseId) {
       return NextResponse.json({ ok: true, cleared: false })
+    }
+
+    const { error: reassignDocumentsError } = await supabaseAdmin
+      .from('documents')
+      .update({ case_id: null })
+      .eq('case_id', targetCaseId)
+
+    if (reassignDocumentsError) {
+      return NextResponse.json({ error: reassignDocumentsError.message }, { status: 500 })
+    }
+
+    // Preserve chatbot history when a case profile is cleared.
+    const { error: detachMessagesError } = await supabaseAdmin
+      .from('messages')
+      .update({ case_id: null })
+      .eq('case_id', targetCaseId)
+
+    if (detachMessagesError) {
+      return NextResponse.json({ error: detachMessagesError.message }, { status: 500 })
+    }
+
+    const { error: detachMemoryError } = await supabaseAdmin
+      .from('chat_memory')
+      .update({ case_id: null })
+      .eq('case_id', targetCaseId)
+
+    if (detachMemoryError) {
+      return NextResponse.json({ error: detachMemoryError.message }, { status: 500 })
+    }
+
+    const { error: detachActionItemsError } = await supabaseAdmin
+      .from('chat_action_items')
+      .update({ case_id: null })
+      .eq('case_id', targetCaseId)
+
+    if (detachActionItemsError) {
+      return NextResponse.json({ error: detachActionItemsError.message }, { status: 500 })
     }
 
     const { error: deleteError } = await supabaseAdmin

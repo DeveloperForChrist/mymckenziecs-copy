@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { AuthApiError } from '@supabase/supabase-js'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import styles from '@/app/auth/auth.module.css'
@@ -20,8 +20,28 @@ function mapSupabaseError(error: AuthApiError) {
   return error.message || 'We could not sign you in. Please try again.'
 }
 
+function hasPaidPlan(plan: unknown) {
+  const label = String(plan || '').toLowerCase()
+  return (
+    label.includes('basic') ||
+    label.includes('essential') ||
+    label.includes('premium') ||
+    label.includes('premium +') ||
+    label.includes('premium plus') ||
+    label.includes('plus') ||
+    label.includes('pro') ||
+    label.includes('premium cheap')
+  )
+}
+
 export default function SignInForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const verifyState = (searchParams?.get('verify') || '').trim().toLowerCase()
+  const verifiedState = (searchParams?.get('verified') || '').trim().toLowerCase()
+  const redirectParam = (searchParams?.get('redirect') || '').trim()
+  const hasExplicitRedirect = redirectParam.startsWith('/')
+  const nextPath = hasExplicitRedirect ? redirectParam : '/dashboard'
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -29,10 +49,13 @@ export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [resendLoading, setResendLoading] = useState(false)
+  const [resendMessage, setResendMessage] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setResendMessage('')
     setLoading(true)
 
     try {
@@ -46,7 +69,26 @@ export default function SignInForm() {
         throw error
       }
 
-      router.push('/dashboard')
+      if (hasExplicitRedirect) {
+        router.push(nextPath)
+        router.refresh()
+        return
+      }
+
+      let destination = '/pricing'
+      try {
+        const planRes = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' })
+        if (planRes.ok) {
+          const planData = await planRes.json().catch(() => ({}))
+          if (hasPaidPlan(planData?.plan)) {
+            destination = '/dashboard'
+          }
+        }
+      } catch {
+        destination = '/pricing'
+      }
+
+      router.push(destination)
       router.refresh()
     } catch (err: unknown) {
       if (err instanceof AuthApiError) {
@@ -61,11 +103,69 @@ export default function SignInForm() {
     }
   }
 
+  const showResendVerification =
+    verifiedState === 'expired' ||
+    verifiedState === 'invalid' ||
+    verifyState === 'sent' ||
+    error.toLowerCase().includes('confirm your email')
+
+  const handleResendVerification = async () => {
+    setResendMessage('')
+    setError('')
+    const email = formData.email.trim()
+    if (!email) {
+      setError('Enter your email first, then click resend verification.')
+      return
+    }
+
+    setResendLoading(true)
+    try {
+      await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          redirect: nextPath,
+        }),
+      })
+      setResendMessage('If an unverified account exists for this email, a new verification link has been sent.')
+    } catch {
+      setResendMessage('If an unverified account exists for this email, a new verification link has been sent.')
+    } finally {
+      setResendLoading(false)
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
+      {verifyState === 'sent' && (
+        <div className={styles.successBox}>
+          Verification email sent. Please check your inbox before signing in.
+        </div>
+      )}
+      {verifiedState === 'success' && (
+        <div className={styles.successBox}>
+          Email verified. You can now sign in.
+        </div>
+      )}
+      {verifiedState === 'expired' && (
+        <div className={styles.errorBox}>
+          Your verification link expired. Enter your email below and resend verification.
+        </div>
+      )}
+      {verifiedState === 'invalid' && (
+        <div className={styles.errorBox}>
+          Verification link is invalid. Enter your email below and resend verification.
+        </div>
+      )}
       {error && (
         <div className={styles.errorBox}>
           {error}
+        </div>
+      )}
+      {resendMessage && (
+        <div className={styles.successBox}>
+          {resendMessage}
         </div>
       )}
 
@@ -120,6 +220,17 @@ export default function SignInForm() {
       >
         {loading ? 'Signing in...' : 'Sign In'}
       </button>
+
+      {showResendVerification && (
+        <button
+          type="button"
+          disabled={resendLoading}
+          className={styles.outlineButton}
+          onClick={handleResendVerification}
+        >
+          {resendLoading ? 'Sending verification...' : 'Resend verification email'}
+        </button>
+      )}
     </form>
   )
 }

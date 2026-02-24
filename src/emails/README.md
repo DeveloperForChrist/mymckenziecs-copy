@@ -97,5 +97,5 @@ Notes:
 
 Install helpers (example):
 ```bash
-npm install resend postmark
+npm install resend
 ```

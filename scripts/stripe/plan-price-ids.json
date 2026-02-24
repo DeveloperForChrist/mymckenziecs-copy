@@ -1,17 +1,17 @@
 [
   {
-    "slug": "standard",
-    "productId": "prod_TxPLFKp6lRZDYO",
-    "priceId": "price_1SzUXCF1Ztd0SoyJWvgmgPMV"
+    "slug": "basic",
+    "productId": "prod_U1M5ZsVqIrWuLZ",
+    "priceId": "price_1T3JNWF1Ztd0SoyJmU6F84sA"
   },
   {
-    "slug": "essential",
-    "productId": "prod_TxPLhqOI5iQRPT",
-    "priceId": "price_1SzUXDF1Ztd0SoyJlHd0r3XI"
+    "slug": "premium",
+    "productId": "prod_U10Mf4Hb6wkU6M",
+    "priceId": "price_1T3JNXF1Ztd0SoyJZIOSwuiP"
   },
   {
-    "slug": "plus",
-    "productId": "prod_TxPLQqML22jB4z",
-    "priceId": "price_1SzUXFF1Ztd0SoyJAsugL3W5"
+    "slug": "premium-plus",
+    "productId": "prod_U10MHby4ybyVR5",
+    "priceId": "price_1T3JNZF1Ztd0SoyJ82XncUEU"
   }
 ]

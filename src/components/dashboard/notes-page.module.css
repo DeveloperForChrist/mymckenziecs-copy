@@ -272,6 +272,65 @@
   letter-spacing: -0.02em;
 }
 
+.editorHeaderCopy {
+  min-width: 0;
+}
+
+.editorContext {
+  margin: 6px 0 0;
+  font-size: 0.84rem;
+  color: rgba(226, 232, 240, 0.74);
+}
+
+.editorActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.micButton,
+.actionButton {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(248, 250, 252, 0.96);
+  cursor: pointer;
+}
+
+.micButton {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.45);
+  font-size: 1.15rem;
+}
+
+.micButtonLive {
+  background: rgba(220, 38, 38, 0.24);
+  border-color: rgba(248, 113, 113, 0.7);
+  color: #fecaca;
+}
+
+.actionButton {
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.42);
+  font-size: 0.86rem;
+  font-weight: 680;
+}
+
+.actionButton:hover:not(:disabled),
+.secondaryButton:hover:not(:disabled) {
+  background: rgba(124, 58, 237, 0.36);
+}
+
+.actionButton:disabled,
+.secondaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
 .editorContent {
   flex: 1;
   padding: 18px 6px 0;
@@ -314,11 +373,132 @@
   color: rgba(226, 232, 240, 0.52);
 }
 
+.helperCard {
+  margin-top: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(15, 23, 42, 0.34);
+  padding: 12px 14px;
+}
+
+.helperCardTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: rgba(248, 250, 252, 0.95);
+}
+
+.helperCardText {
+  margin: 8px 0 0;
+  color: rgba(226, 232, 240, 0.86);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.helperTranscript {
+  margin: 8px 0 0;
+  color: rgba(196, 181, 253, 0.95);
+  font-size: 0.88rem;
+  font-style: italic;
+}
+
+.helperSubheading {
+  margin: 10px 0 6px;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.75);
+}
+
+.helperList {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  color: rgba(226, 232, 240, 0.9);
+  font-size: 0.89rem;
+}
+
+.helperActions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.secondaryButton {
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(15, 23, 42, 0.42);
+  color: rgba(248, 250, 252, 0.95);
+  font-size: 0.84rem;
+  font-weight: 680;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.eventList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.eventListItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(2, 6, 23, 0.25);
+}
+
+.eventTitle {
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 680;
+  color: rgba(248, 250, 252, 0.95);
+}
+
+.eventMeta {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  color: rgba(226, 232, 240, 0.74);
+}
+
+.eventRemoveButton {
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(226, 232, 240, 0.84);
+  cursor: pointer;
+}
+
 .editorFooter {
   margin-top: 14px;
   padding: 12px 4px 0;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.aiStatus {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.aiStatusText {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(196, 181, 253, 0.92);
 }
 
 .saveStatus {
@@ -477,5 +657,14 @@
 
   .noteEditor {
     padding: 20px;
+  }
+
+  .editorActions {
+    width: 100%;
+  }
+
+  .actionButton {
+    flex: 1;
+    min-width: 130px;
   }
 }

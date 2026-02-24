@@ -35,11 +35,8 @@ export default function BillingSection() {
   const [checkoutSynced, setCheckoutSynced] = useState(false);
   const [billingBackfillChecked, setBillingBackfillChecked] = useState(false);
 
-  const normalizedPlan = (planData?.plan || 'free').toString().toLowerCase();
-  const isFreemiumPlan =
-    normalizedPlan.includes('free') ||
-    normalizedPlan.includes('freemium') ||
-    normalizedPlan.includes('basic');
+  const normalizedPlan = (planData?.plan || '').toString().toLowerCase();
+  const hasNoPaidPlan = normalizedPlan.includes('free');
 
   useEffect(() => {
     let mounted = true
@@ -109,8 +106,9 @@ export default function BillingSection() {
     let cancelled = false;
 
     const syncCheckout = async () => {
+      let syncSucceeded = false;
       try {
-        await fetch('/api/stripe/checkout-sync', {
+        const syncRes = await fetch('/api/stripe/checkout-sync', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -118,6 +116,7 @@ export default function BillingSection() {
           credentials: 'include',
           body: JSON.stringify({ sessionId }),
         });
+        syncSucceeded = syncRes.ok;
 
         if (!cancelled) {
           const res = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' });
@@ -135,6 +134,9 @@ export default function BillingSection() {
           cleanUrl.searchParams.delete('session_id');
           window.history.replaceState({}, '', `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
           setCheckoutSynced(true);
+          if (syncSucceeded) {
+            window.location.replace('/dashboard');
+          }
         }
       }
     };
@@ -152,7 +154,7 @@ export default function BillingSection() {
     }
 
     const planLabel = (planData?.plan || '').toString().toLowerCase();
-    const looksFree = !planLabel || planLabel.includes('free') || planLabel.includes('freemium');
+    const looksFree = !planLabel || planLabel.includes('free');
     if (!looksFree) {
       setBillingBackfillChecked(true);
       return;
@@ -195,7 +197,7 @@ export default function BillingSection() {
   }, [uid, authResolved, billingBackfillChecked, loading, planData?.plan]);
 
   useEffect(() => {
-    if (!authResolved || !uid || isFreemiumPlan || !planData?.hasStripeCustomer) {
+    if (!authResolved || !uid || hasNoPaidPlan || !planData?.hasStripeCustomer) {
       setPaymentMethod(null);
       setPaymentLoading(false);
       setPaymentError(null);
@@ -221,7 +223,7 @@ export default function BillingSection() {
         setPaymentError(err.message);
         setPaymentLoading(false);
       });
-  }, [uid, authResolved, isFreemiumPlan, planData?.hasStripeCustomer]);
+  }, [uid, authResolved, hasNoPaidPlan, planData?.hasStripeCustomer]);
 
   function formatNextBillingDate(value: any): string {
     if (!value) return '—';
@@ -276,7 +278,7 @@ export default function BillingSection() {
                 <span className={styles.planStatusBadge}>
                   {(planData?.planStatus || 'Active').slice(0, 1).toUpperCase() + (planData?.planStatus || 'Active').slice(1)}
                 </span>
-                <h3 className={styles.planTitle}>{planData?.plan || 'Free Plan'}</h3>
+                <h3 className={styles.planTitle}>{planData?.plan || 'No active plan'}</h3>
                 {planData?.planPrice && planData?.planPrice !== '0' && planData?.planPrice !== 0 && (
                   <p className={styles.planPriceLarge}>£{planData?.planPrice}/month</p>
                 )}
@@ -312,7 +314,7 @@ export default function BillingSection() {
 
       <section className={styles.settingsSection}>
         <h2 className={styles.sectionHeading}>Payment Methods</h2>
-        {isFreemiumPlan ? (
+        {hasNoPaidPlan ? (
           <div className={styles.paymentCard}>
             <div className={styles.cardInfo}>
               <div>
@@ -361,7 +363,7 @@ export default function BillingSection() {
             </div>
           </div>
         )}
-        {uid && !isFreemiumPlan && (
+        {uid && !hasNoPaidPlan && (
           <div className={styles.bottomActions}>
             {planData?.hasStripeCustomer ? (
               <button type="button" className={styles.primaryBtn} disabled={portalPending} onClick={openCustomerPortal}>

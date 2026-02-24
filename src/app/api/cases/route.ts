@@ -2,16 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 
-const normalizePlanLabel = (value: unknown): string => {
-  if (!value) return '';
-  return value.toString().trim().toLowerCase();
-};
-
-const isFreemiumPlan = (planLabel: string) => {
-  if (!planLabel) return true;
-  return planLabel.includes('free') || planLabel.includes('freemium') || planLabel.includes('guest');
-};
-
 const hasMeaningfulCaseProfile = (row: Record<string, unknown> | null | undefined): boolean => {
   if (!row) return false;
   const title = typeof row.title === 'string' ? row.title.trim() : '';
@@ -68,18 +58,6 @@ export async function GET(request: NextRequest) {
       supabaseUserId = inserted.id;
     }
 
-    // Determine plan from active or grace-period subscription (default freemium)
-    const { data: activeSub } = await supabaseAdmin
-      .from('subscriptions')
-      .select('plan_type')
-      .eq('user_id', supabaseUserId)
-      .in('status', ['active', 'past_due'])
-      .maybeSingle();
-
-    const rawPlan = activeSub?.plan_type || 'Free';
-    const normalizedPlan = normalizePlanLabel(rawPlan);
-    const freemium = isFreemiumPlan(normalizedPlan);
-
     // Fetch cases for this user ordered by last_accessed/updated_at
     const { data: casesData, error: casesError } = await supabaseAdmin
       .from('cases')
@@ -92,10 +70,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch cases', cases: [] }, { status: 500 });
     }
 
-    let cases = (casesData || []).filter((row: Record<string, unknown>) => hasMeaningfulCaseProfile(row));
-    if (freemium && cases.length > 1) {
-      cases = cases.slice(0, 1);
-    }
+    const cases = (casesData || []).filter((row: Record<string, unknown>) => hasMeaningfulCaseProfile(row));
 
     const caseLabel = cases.length === 1 ? 'case' : 'cases';
     console.log(`✅ Found ${cases.length} ${caseLabel} for user ${userId}`);
@@ -103,8 +78,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       cases,
       total: cases.length,
-      plan: rawPlan || null,
-      freeCaseLimit: freemium ? 1 : null
+      plan: null,
+      freeCaseLimit: null
     });
   } catch (error: any) {
     console.error('Error fetching cases:', error);
@@ -144,7 +119,38 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
-    // Cascading deletes will remove messages, documents, message_usage
+    // Preserve chatbot history: detach all case-linked chat records before removing the case row.
+    const { error: detachMessagesError } = await supabaseAdmin
+      .from('messages')
+      .update({ case_id: null })
+      .eq('case_id', caseId)
+
+    if (detachMessagesError) {
+      console.error('Failed to detach chat messages from case', detachMessagesError);
+      return NextResponse.json({ error: 'Failed to preserve chat history' }, { status: 500 });
+    }
+
+    const { error: detachMemoryError } = await supabaseAdmin
+      .from('chat_memory')
+      .update({ case_id: null })
+      .eq('case_id', caseId)
+
+    if (detachMemoryError) {
+      console.error('Failed to detach chat memory from case', detachMemoryError);
+      return NextResponse.json({ error: 'Failed to preserve chat history' }, { status: 500 });
+    }
+
+    const { error: detachActionItemsError } = await supabaseAdmin
+      .from('chat_action_items')
+      .update({ case_id: null })
+      .eq('case_id', caseId)
+
+    if (detachActionItemsError) {
+      console.error('Failed to detach chat action items from case', detachActionItemsError);
+      return NextResponse.json({ error: 'Failed to preserve chat history' }, { status: 500 });
+    }
+
+    // Documents are detached (case_id -> NULL) by migration/foreign key constraints.
     const { error: deleteError } = await supabaseAdmin
       .from('cases')
       .delete()

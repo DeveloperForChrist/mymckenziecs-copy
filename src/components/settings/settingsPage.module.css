@@ -114,7 +114,7 @@
 .caseProfileLayout { display:grid; grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr); gap:24px; }
 .caseProfileCard { border:1px solid rgba(255, 255, 255, 0.12); border-radius:18px; padding:24px; background:rgba(255, 255, 255, 0.05); box-shadow:0 18px 60px rgba(0,0,0,0.22); backdrop-filter:blur(18px); }
 .caseProfileRow { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:24px; }
-.caseProfileActions { display:flex; justify-content:flex-end; }
+.caseProfileActions { display:flex; justify-content:flex-end; gap:12px; flex-wrap:wrap; }
 .caseProfileHint { font-size:0.8rem; color:rgba(226, 232, 240, 0.72); margin:6px 0 0; }
 .caseProfileSidebar { display:flex; flex-direction:column; gap:18px; }
 .caseProfileSidebarCard { border:1px solid rgba(255, 255, 255, 0.12); border-radius:18px; padding:18px; background:rgba(15, 23, 42, 0.28); box-shadow:0 18px 60px rgba(0,0,0,0.2); backdrop-filter:blur(18px); }

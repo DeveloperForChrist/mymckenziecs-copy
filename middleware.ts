@@ -1,6 +1,33 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+function hasPaidPlan(plan: unknown): boolean {
+  const label = String(plan || '').toLowerCase()
+  return (
+    label.includes('basic') ||
+    label.includes('essential') ||
+    label.includes('premium') ||
+    label.includes('premium +') ||
+    label.includes('premium plus') ||
+    label.includes('plus') ||
+    label.includes('pro') ||
+    label.includes('premium cheap')
+  )
+}
+
+function hasCaseProfileAccess(plan: unknown): boolean {
+  const label = String(plan || '').toLowerCase()
+  if (!label) return false
+  if (label.includes('basic') || label.includes('essential') || label.includes('premium cheap')) return false
+  return (
+    label.includes('premium') ||
+    label.includes('premium +') ||
+    label.includes('premium plus') ||
+    label.includes('plus') ||
+    label.includes('premium pro')
+  )
+}
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
@@ -82,6 +109,32 @@ export async function middleware(request: NextRequest) {
     const redirectUrl = new URL('/auth/signin', request.url)
     redirectUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(redirectUrl)
+  }
+
+  if (pathname.startsWith('/dashboard') && user) {
+    const { data: activeSub, error: subError } = await supabase
+      .from('subscriptions')
+      .select('plan_type')
+      .eq('user_id', user.id)
+      .in('status', ['active', 'past_due'])
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (subError) {
+      console.error('Error checking subscription status in middleware:', subError)
+    }
+
+    if (!hasPaidPlan(activeSub?.plan_type)) {
+      const redirectTarget = `${request.nextUrl.pathname}${request.nextUrl.search}`
+      const pricingUrl = new URL('/pricing', request.url)
+      pricingUrl.searchParams.set('redirect', redirectTarget)
+      return NextResponse.redirect(pricingUrl)
+    }
+
+    if (pathname.startsWith('/dashboard/case-profile') && !hasCaseProfileAccess(activeSub?.plan_type)) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
   }
 
   if (requiresAdmin && user) {

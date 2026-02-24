@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { BILLING_ACTIVE_STATUSES } from '@/lib/payments/subscription-status';
-import { isPaidPlan, planPriceForLabel } from '@/lib/plans/access';
+import { planPriceForLabel } from '@/lib/plans/access';
 
 export async function GET() {
   try {
@@ -25,20 +25,7 @@ export async function GET() {
       .limit(1)
       .maybeSingle();
 
-    // Fallback for legacy rows where status may be stale but plan is still paid.
     let resolvedSub = activeSub;
-    if (!resolvedSub) {
-      const { data: latestSub } = await supabaseAdmin
-        .from('subscriptions')
-        .select('plan_type, status, current_period_end, stripe_subscription_id, stripe_customer_id')
-        .eq('user_id', authUid)
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (latestSub && isPaidPlan(latestSub.plan_type)) {
-        resolvedSub = latestSub;
-      }
-    }
 
     // Extra fallback: handle environments where subscriptions are linked to a
     // legacy/mismatched user_id by resolving through the same auth email.
@@ -61,18 +48,6 @@ export async function GET() {
 
         if (emailActiveSub) {
           resolvedSub = emailActiveSub;
-        } else {
-          const { data: emailLatestSub } = await supabaseAdmin
-            .from('subscriptions')
-            .select('plan_type, status, current_period_end, stripe_subscription_id, stripe_customer_id')
-            .in('user_id', emailUserIds)
-            .order('updated_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          if (emailLatestSub && isPaidPlan(emailLatestSub.plan_type)) {
-            resolvedSub = emailLatestSub;
-          }
         }
       }
     }

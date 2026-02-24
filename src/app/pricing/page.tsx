@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import { PLAN_PRICES } from '@/constants';
 
 export default function PricingPage() {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const autoCheckoutStartedRef = useRef(false);
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -41,7 +42,8 @@ export default function PricingPage() {
     const session = (await supabase.auth.getSession()).data.session;
     const idToken = session?.access_token;
     if (!idToken) {
-      window.location.href = '/auth/signin';
+      const redirectTo = `/pricing?checkout=${encodeURIComponent(priceId)}`;
+      window.location.href = `/auth/signup?planId=${encodeURIComponent(priceId)}&redirect=${encodeURIComponent(redirectTo)}`;
       return;
     }
     try {
@@ -67,10 +69,25 @@ export default function PricingPage() {
     }
   }
 
-  const standardPriceId = PLAN_PRICES.find((plan) => plan.name === 'Standard')?.priceId || '';
-  const essentialPriceId = PLAN_PRICES.find((plan) => plan.name === 'Essential')?.priceId || '';
-  const premiumCheapPriceId = PLAN_PRICES.find((plan) => plan.name === 'Premium Cheap')?.priceId || '';
-  const plusPriceId = PLAN_PRICES.find((plan) => plan.name === 'Plus')?.priceId || '';
+  const basicPriceId = PLAN_PRICES.find((plan) => plan.name === 'Basic')?.priceId || '';
+  const premiumPriceId = PLAN_PRICES.find((plan) => plan.name === 'Premium')?.priceId || '';
+  const premiumPlusPriceId = PLAN_PRICES.find((plan) => plan.name === 'Premium +')?.priceId || '';
+
+  useEffect(() => {
+    if (!authChecked || !isSignedIn || autoCheckoutStartedRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const checkoutPlanId = params.get('checkout');
+    if (!checkoutPlanId) return;
+
+    const isKnownPlan = PLAN_PRICES.some((plan) => plan.priceId && plan.priceId === checkoutPlanId);
+    if (!isKnownPlan) {
+      setCheckoutError('Selected plan is unavailable. Please choose a plan below.');
+      return;
+    }
+
+    autoCheckoutStartedRef.current = true;
+    void handleSubscribe(checkoutPlanId);
+  }, [authChecked, isSignedIn]);
 
   return (
     <>
@@ -186,147 +203,82 @@ export default function PricingPage() {
             }}>
               <h2 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '0.5rem' }}>Plan at a glance</h2>
               <p style={{ color: '#cbd5f5', marginBottom: '1rem' }}>Pick the tier that matches your workload and urgency.</p>
-              <div style={{ display: 'grid', gap: '0.8rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
-                  <span>Basic</span>
-                  <span style={{ color: '#f8a76f' }}>£0</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
-                  <span>Standard</span>
-                  <span style={{ color: '#a5b4fc' }}>£15 / mo</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
-                  <span>Essential</span>
-                  <span style={{ color: '#7bd4c9' }}>£25 / mo</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
-                  <span>Premium Cheap</span>
-                  <span style={{ color: '#93c5fd' }}>£1 / mo</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
-                  <span>Plus</span>
-                  <span style={{ color: '#f8a76f' }}>£45 / mo</span>
+                <div style={{ display: 'grid', gap: '0.8rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
+                    <span>Basic</span>
+                    <span style={{ color: '#9cc8ff' }}>£18 / mo</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
+                    <span>Premium</span>
+                    <span style={{ color: '#7bd4c9' }}>£32 / mo</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
+                    <span>Premium +</span>
+                    <span style={{ color: '#f8a76f' }}>£199 / mo</span>
+                  </div>
                 </div>
               </div>
-            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Basic Plan */}
             <div className="p-8 text-center relative transition-all duration-300 hover:-translate-y-2" style={{
-              background: 'linear-gradient(160deg, rgba(15, 15, 25, 0.95), rgba(23, 23, 35, 0.9))',
+              background: 'linear-gradient(160deg, rgba(17, 24, 39, 0.98), rgba(30, 41, 59, 0.92))',
               borderRadius: '26px',
               border: '1px solid rgba(248, 250, 252, 0.12)',
-              boxShadow: '0 16px 40px rgba(0, 0, 0, 0.35)'
+              boxShadow: '0 20px 45px rgba(0, 0, 0, 0.4)'
             }}>
-              <h3 className="text-2xl font-bold text-white mb-4">Basic</h3>
-              <div className="text-5xl font-bold mb-6" style={{ color: '#f8a76f' }}>Free</div>
-              <ul className="space-y-3 mb-8 text-left">
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> MyMcKenzie Assistant (basic)
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> 20 messages per day
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> 5 document storage
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> Session-only chat history (clears on logout/tab close)
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#dc2626' }}>✗</span> Case Law Search
-                </li>
-                <li className="flex items-start text-white">
-                  {/* Removed: Saved Chat History & Case Memory */}
-                </li>
-              </ul>
-              <a href="/auth/signin" className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1" style={{
-                background: 'linear-gradient(135deg, #f8a76f, #f26a3d)',
-                border: '2px solid transparent'
-              }}>
-                Choose Basic
-              </a>
-            </div>
-
-            {/* Standard Plan */}
-            <div className="p-8 text-center relative transition-all duration-300 hover:-translate-y-2" style={{
-              background: 'linear-gradient(160deg, rgba(18, 22, 34, 0.95), rgba(22, 26, 38, 0.9))',
-              borderRadius: '26px',
-              border: '1px solid rgba(148, 163, 184, 0.2)',
-              boxShadow: '0 16px 40px rgba(0, 0, 0, 0.35)'
-            }}>
-              <h3 className="text-3xl font-bold text-white mb-4">Standard</h3>
-              <div className="text-5xl font-bold mb-6" style={{ color: '#a5b4fc' }}>
-                £15<span className="text-2xl">/Month</span>
+              <h3 className="text-3xl font-bold text-white mb-4">Basic</h3>
+              <div className="text-5xl font-bold mb-6" style={{ color: '#9cc8ff' }}>
+                £18<span className="text-2xl">/Month</span>
               </div>
               <ul className="space-y-3 mb-8 text-left">
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#a5b4fc' }}>✓</span> MyMcKenzie Smart Assistant
+                  <span className="mr-2 font-bold" style={{ color: '#9cc8ff' }}>✓</span> MyMcKenzie Basic Assistant for procedural support
                 </li>
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#a5b4fc' }}>✓</span> Unlimited conversations with a 30‑message per thread limit
+                  <span className="mr-2 font-bold" style={{ color: '#9cc8ff' }}>✓</span> 10 document storage
                 </li>
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#a5b4fc' }}>✓</span> 15 document storage
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#a5b4fc' }}>✓</span> Conversation history included
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#a5b4fc' }}>✓</span> Deadline reminder emails
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#dc2626' }}>✗</span> Case Law Search
+                  <span className="mr-2 font-bold" style={{ color: '#9cc8ff' }}>✓</span> Conversation history included
                 </li>
               </ul>
               <button
                 className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
-                style={{ background: 'linear-gradient(135deg, #a5b4fc, #6366f1)', border: '2px solid transparent' }}
-                onClick={() => handleSubscribe(standardPriceId)}
-                disabled={!standardPriceId || checkoutLoading === standardPriceId}
+                style={{ background: 'linear-gradient(135deg, #93c5fd, #3b82f6)', border: '2px solid transparent' }}
+                onClick={() => handleSubscribe(basicPriceId)}
+                disabled={!basicPriceId || checkoutLoading === basicPriceId}
               >
-                {!standardPriceId ? 'Configure price ID' : (checkoutLoading === standardPriceId ? 'Redirecting…' : (isSignedIn ? 'Subscribe' : 'Sign in to Subscribe'))}
+                {!basicPriceId ? 'Configure price ID' : (checkoutLoading === basicPriceId ? 'Redirecting…' : 'Launch your workspace')}
               </button>
-              {checkoutError && checkoutLoading === standardPriceId && (
+              {checkoutError && checkoutLoading === basicPriceId && (
                 <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>
               )}
             </div>
 
-            {/* Essential Plan */}
-            <div className="p-8 text-center relative transition-all duration-300 hover:-translate-y-2 scale-105" style={{
+            {/* Premium Plan */}
+            <div className="p-8 text-center relative transition-all duration-300 hover:-translate-y-2" style={{
               background: 'linear-gradient(160deg, rgba(20, 20, 30, 0.98), rgba(24, 32, 40, 0.92))',
-              borderRadius: '28px',
-              border: '2px solid rgba(123, 212, 201, 0.6)',
+              borderRadius: '26px',
+              border: '1px solid rgba(248, 250, 252, 0.12)',
               boxShadow: '0 20px 45px rgba(0, 0, 0, 0.4)'
             }}>
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-[30px] text-white text-sm font-bold uppercase" style={{
-                background: '#7bd4c9'
-              }}>
-                Most Popular
-              </div>
-              <h3 className="text-3xl font-bold text-white mb-4 mt-2">Essential</h3>
+              <h3 className="text-3xl font-bold text-white mb-4">Premium</h3>
               <div className="text-5xl font-bold mb-6" style={{ color: '#7bd4c9' }}>
-                £25<span className="text-2xl">/Month</span>
+                £32<span className="text-2xl">/Month</span>
               </div>
               <ul className="space-y-3 mb-8 text-left">
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> Everything included in Basic
+                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> MyMckenzieCS Smart Assistant (OpenAI + web search)
                 </li>
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> MyMcKenzie Smart Assistant — finds information and reviews responses for correctness and safety
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> Unlimited conversations with a 40‑message per thread limit
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> 20 document storage
+                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> 25 document storage
                 </li>
                 <li className="flex items-start text-white">
                   <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> Conversation history included
                 </li>
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> Case Law Search + MyMckenzie Case Study
+                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> OpenAI + web search support
                 </li>
                 <li className="flex items-start text-white">
                   <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> Deadline reminder emails
@@ -335,112 +287,53 @@ export default function PricingPage() {
               <button
                 className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
                 style={{ background: 'linear-gradient(135deg, #7bd4c9, #3aa79d)', border: '2px solid transparent' }}
-                onClick={() => handleSubscribe(essentialPriceId)}
-                disabled={!essentialPriceId || checkoutLoading === essentialPriceId}
+                onClick={() => handleSubscribe(premiumPriceId)}
+                disabled={!premiumPriceId || checkoutLoading === premiumPriceId}
               >
-                {!essentialPriceId ? 'Configure price ID' : (checkoutLoading === essentialPriceId ? 'Redirecting…' : (isSignedIn ? 'Subscribe' : 'Sign in to Subscribe'))}
+                {!premiumPriceId ? 'Configure price ID' : (checkoutLoading === premiumPriceId ? 'Redirecting…' : 'Launch your workspace')}
               </button>
-              {checkoutError && checkoutLoading === essentialPriceId && (
+              {checkoutError && checkoutLoading === premiumPriceId && (
                 <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>
               )}
             </div>
 
-            {/* Premium Cheap Plan */}
-            <div className="p-8 text-center relative transition-all duration-300 hover:-translate-y-2" style={{
-              background: 'linear-gradient(160deg, rgba(20, 26, 45, 0.95), rgba(12, 16, 34, 0.9))',
-              borderRadius: '26px',
-              border: '1px solid rgba(147, 197, 253, 0.35)',
-              boxShadow: '0 16px 40px rgba(0, 0, 0, 0.35)'
-            }}>
-              <h3 className="text-3xl font-bold text-white mb-4">Premium Cheap</h3>
-              <div className="text-5xl font-bold mb-6" style={{ color: '#93c5fd' }}>
-                £1<span className="text-2xl">/Month</span>
-              </div>
-              <ul className="space-y-3 mb-8 text-left">
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#93c5fd' }}>✓</span> Everything included in Essential
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#93c5fd' }}>✓</span> Unlimited conversations with a 50‑message per thread limit
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#93c5fd' }}>✓</span> 30 document storage
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#93c5fd' }}>✓</span> Persistent chat history
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#93c5fd' }}>✓</span> Case Law Search + MyMckenzie Case Study
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#93c5fd' }}>✓</span> Deadline reminder emails
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#93c5fd' }}>✓</span> Priority support (reply within 24 hours)
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#93c5fd' }}>✓</span> Early access to new features
-                </li>
-              </ul>
-              <button
-                className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
-                style={{ background: 'linear-gradient(135deg, #93c5fd, #3b82f6)', border: '2px solid transparent' }}
-                onClick={() => handleSubscribe(premiumCheapPriceId)}
-                disabled={!premiumCheapPriceId || checkoutLoading === premiumCheapPriceId}
-              >
-                {!premiumCheapPriceId ? 'Configure price ID' : (checkoutLoading === premiumCheapPriceId ? 'Redirecting…' : (isSignedIn ? 'Subscribe' : 'Sign in to Subscribe'))}
-              </button>
-              {checkoutError && checkoutLoading === premiumCheapPriceId && (
-                <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>
-              )}
-            </div>
-
-            {/* Plus Plan */}
+            {/* Premium + Plan */}
             <div className="p-8 text-center relative transition-all duration-300 hover:-translate-y-2" style={{
               background: 'linear-gradient(160deg, rgba(15, 15, 25, 0.95), rgba(30, 20, 18, 0.9))',
               borderRadius: '26px',
               border: '1px solid rgba(248, 250, 252, 0.12)',
               boxShadow: '0 16px 40px rgba(0, 0, 0, 0.35)'
             }}>
-              <h3 className="text-3xl font-bold text-white mb-4">Plus</h3>
+              <h3 className="text-3xl font-bold text-white mb-4">Premium +</h3>
               <div className="text-5xl font-bold mb-6" style={{ color: '#f8a76f' }}>
-                £45<span className="text-2xl">/Month</span>
+                £199<span className="text-2xl">/Month</span>
               </div>
               <ul className="space-y-3 mb-8 text-left">
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> Everything included in Essential
+                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> MyMckenzieCS Intelligent Assistant
                 </li>
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> Unlimited conversations with a 50‑message per thread limit
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> 30 document storage
+                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> 150+ document storage
                 </li>
                 <li className="flex items-start text-white">
                   <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> Persistent chat history
                 </li>
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> Case Law Search + MyMckenzie Case Study
+                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> Advanced case law retrieval and study
                 </li>
                 <li className="flex items-start text-white">
                   <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> Deadline reminder emails
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> Priority support (reply within 24 hours)
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> Early access to new features
                 </li>
               </ul>
               <button
                 className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
                 style={{ background: 'linear-gradient(135deg, #f8a76f, #f26a3d)', border: '2px solid transparent' }}
-                onClick={() => handleSubscribe(plusPriceId)}
-                disabled={!plusPriceId || checkoutLoading === plusPriceId}
+                onClick={() => handleSubscribe(premiumPlusPriceId)}
+                disabled={!premiumPlusPriceId || checkoutLoading === premiumPlusPriceId}
               >
-                {!plusPriceId ? 'Configure price ID' : (checkoutLoading === plusPriceId ? 'Redirecting…' : (isSignedIn ? 'Subscribe' : 'Sign in to Subscribe'))}
+                {!premiumPlusPriceId ? 'Configure price ID' : (checkoutLoading === premiumPlusPriceId ? 'Redirecting…' : 'Launch your workspace')}
               </button>
-              {checkoutError && checkoutLoading === plusPriceId && (
+              {checkoutError && checkoutLoading === premiumPlusPriceId && (
                 <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>
               )}
             </div>

@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
-import { isPaidPlan } from '@/lib/plans/access';
 
 const GUEST_COOKIE_NAME = 'mm_guest_id';
-const GUEST_MESSAGE_LIMIT_24H = 5;
-const FREE_USER_MESSAGE_LIMIT_24H = 20;
+const GUEST_MESSAGE_LIMIT_24H = 10;
+const AUTH_MESSAGE_LIMIT_24H = 25;
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function GET(request: NextRequest) {
@@ -50,36 +49,6 @@ export async function GET(request: NextRequest) {
         .eq('case_id', caseId);
       count = c || 0;
     } else if (authUserId) {
-      const { data: activeSub } = await supabaseAdmin
-        .from('subscriptions')
-        .select('plan_type, status')
-        .eq('user_id', authUserId)
-        .in('status', ['active', 'past_due'])
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const isPaid = isPaidPlan(activeSub?.plan_type || '');
-
-      if (!isPaid) {
-        const { data: userRow } = await supabaseAdmin
-          .from('users')
-          .select('freemium_message_count, freemium_message_window_start')
-          .eq('id', authUserId)
-          .maybeSingle();
-
-        const count = typeof userRow?.freemium_message_count === 'number' ? userRow.freemium_message_count : 0;
-        const windowStart = userRow?.freemium_message_window_start ? new Date(userRow.freemium_message_window_start) : null;
-        if (count >= FREE_USER_MESSAGE_LIMIT_24H && windowStart) {
-          const canMessageAgainAt = new Date(windowStart.getTime() + 24 * 60 * 60 * 1000);
-          return NextResponse.json(
-            { count, limit: FREE_USER_MESSAGE_LIMIT_24H, canMessageAgainAt: canMessageAgainAt.toISOString() },
-            { status: 200 }
-          );
-        }
-        return NextResponse.json({ count, limit: FREE_USER_MESSAGE_LIMIT_24H }, { status: 200 });
-      }
-
       const twentyFourHoursAgo = new Date();
       twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
       
@@ -103,16 +72,16 @@ export async function GET(request: NextRequest) {
         count = c || 0;
         
         // If at limit, return when they can message again (oldest message + 24h)
-        if (count >= FREE_USER_MESSAGE_LIMIT_24H && messages && messages.length > 0) {
+        if (count >= AUTH_MESSAGE_LIMIT_24H && messages && messages.length > 0) {
           const oldestMessageTime = new Date(messages[0].timestamp);
           const canMessageAgainAt = new Date(oldestMessageTime.getTime() + 24 * 60 * 60 * 1000);
           return NextResponse.json(
-            { count, limit: FREE_USER_MESSAGE_LIMIT_24H, canMessageAgainAt: canMessageAgainAt.toISOString() },
+            { count, limit: AUTH_MESSAGE_LIMIT_24H, canMessageAgainAt: canMessageAgainAt.toISOString() },
             { status: 200 }
           );
         }
       }
-      return NextResponse.json({ count, limit: FREE_USER_MESSAGE_LIMIT_24H }, { status: 200 });
+      return NextResponse.json({ count, limit: AUTH_MESSAGE_LIMIT_24H }, { status: 200 });
     } else if (guestId) {
       const { data: guestRow } = await supabaseAdmin
         .from('guest_message_usage')

@@ -1,9 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { AuthApiError } from '@supabase/supabase-js'
-import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
+import { useRouter, useSearchParams } from 'next/navigation'
 import styles from '@/app/auth/auth.module.css'
 
 function parseName(fullName: string) {
@@ -16,22 +14,29 @@ function parseName(fullName: string) {
   }
 }
 
-function mapSupabaseError(error: AuthApiError) {
-  const message = (error.message || '').toLowerCase()
-  if (message.includes('already') && message.includes('registered')) {
-    return 'An account with this email already exists.'
+function mapApiError(message: string) {
+  const normalized = (message || '').toLowerCase()
+  if (normalized.includes('already') && normalized.includes('exists')) {
+    return 'An account with this email already exists. Go to Sign In and use "Resend verification email".'
   }
-  if (message.includes('password') && message.includes('short')) {
+  if (normalized.includes('password') && normalized.includes('stronger')) {
     return 'Please choose a stronger password.'
   }
-  if (message.includes('email') && message.includes('invalid')) {
+  if (normalized.includes('email') && normalized.includes('valid')) {
     return 'That email address looks invalid. Double-check and try again.'
   }
-  return error.message || 'We could not create your account right now. Please try again.'
+  if (normalized.includes('verification email')) {
+    return 'We could not send a verification email right now. Please try again.'
+  }
+  if (normalized.includes('already') && normalized.includes('registered')) {
+    return 'An account with this email already exists. Go to Sign In and use "Resend verification email".'
+  }
+  return message || 'We could not create your account right now. Please try again.'
 }
 
 export default function SignUpForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -43,6 +48,16 @@ export default function SignUpForm() {
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const selectedPlanId = (searchParams?.get('planId') || '').trim()
+  const redirectParam = (searchParams?.get('redirect') || '').trim()
+  const fallbackRedirect = selectedPlanId
+    ? `/pricing?checkout=${encodeURIComponent(selectedPlanId)}`
+    : '/pricing'
+  const nextRedirect =
+    redirectParam.startsWith('/')
+      ? redirectParam
+      : fallbackRedirect
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,46 +86,29 @@ export default function SignUpForm() {
     try {
       const { normalized, firstName, lastName } = parseName(trimmedName)
 
-      const supabase = getSupabaseBrowserClient()
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: normalized,
-            first_name: firstName,
-            last_name: lastName,
-            display_name: normalized
-          }
-        }
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email.trim(),
+          password: formData.password,
+          fullName: normalized,
+          firstName,
+          lastName,
+          redirect: nextRedirect,
+        }),
       })
 
-      if (error) {
-        throw error
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(mapApiError(payload?.message || payload?.error || 'Sign up failed'))
       }
 
-      try {
-        await fetch('/api/user', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            fullName: normalized,
-            firstName,
-            lastName,
-            email: data.user?.email || formData.email
-          })
-        })
-      } catch {
-        // no-op
-      }
-
-      router.push('/dashboard')
+      const signInParams = new URLSearchParams({ verify: 'sent', redirect: nextRedirect })
+      router.push(`/auth/signin?${signInParams.toString()}`)
       router.refresh()
     } catch (err: unknown) {
-      if (err instanceof AuthApiError) {
-        setError(mapSupabaseError(err))
-      } else if (err instanceof Error) {
+      if (err instanceof Error) {
         setError(err.message || 'An error occurred during sign up')
       } else {
         setError('An unexpected error occurred during sign up')

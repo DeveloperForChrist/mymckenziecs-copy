@@ -39,7 +39,7 @@ CREATE TABLE cases (
 -- Messages table
 CREATE TABLE messages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  case_id UUID REFERENCES cases(id) ON DELETE CASCADE,  -- Nullable for guest/anonymous users
+  case_id UUID REFERENCES cases(id) ON DELETE SET NULL,  -- Nullable for guest/anonymous users; preserve history if case is deleted
   conversation_id UUID,  -- Tracks which thread/conversation within a case
   role TEXT NOT NULL,  -- 'user', 'assistant', 'system'
   content TEXT NOT NULL,
@@ -81,12 +81,12 @@ CREATE INDEX idx_document_analyses_analyzed_at ON document_analyses(analyzed_at 
 -- BILLING TABLES
 -- =====================================================
 
--- Subscriptions table (Premium, Premium Pro)
+-- Subscriptions table (Basic, Premium, Premium +)
 CREATE TABLE subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   stripe_subscription_id TEXT UNIQUE,
-  plan_type TEXT NOT NULL,  -- 'premium', 'premium_pro'
+  plan_type TEXT NOT NULL,  -- 'Basic', 'Premium', 'Premium +'
   status TEXT NOT NULL,  -- 'active', 'cancelled', 'expired', 'past_due'
   current_period_start TIMESTAMPTZ,
   current_period_end TIMESTAMPTZ,
@@ -107,7 +107,7 @@ CREATE TABLE user_passes (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Message usage tracking (freemium limits)
+-- Message usage tracking (legacy case-level quotas)
 CREATE TABLE message_usage (
   case_id UUID PRIMARY KEY REFERENCES cases(id) ON DELETE CASCADE,
   free_messages_used INTEGER DEFAULT 0,
@@ -259,7 +259,7 @@ ALTER TABLE messages ADD CONSTRAINT valid_role
 
 -- Subscriptions constraints
 ALTER TABLE subscriptions ADD CONSTRAINT valid_plan_type 
-  CHECK (plan_type IN ('premium', 'premium_pro'));
+  CHECK (plan_type IN ('Basic', 'Premium', 'Premium +'));
 ALTER TABLE subscriptions ADD CONSTRAINT valid_subscription_status 
   CHECK (status IN ('active', 'cancelled', 'expired', 'past_due'));
 
@@ -466,10 +466,12 @@ CREATE POLICY subscriptions_select_own ON subscriptions
 CREATE POLICY passes_select_own ON user_passes
   FOR SELECT USING (user_id = auth.uid());
 
--- Cache: Public read (shared across all users)
-CREATE POLICY cache_select_all ON cache FOR SELECT TO authenticated USING (true);
-CREATE POLICY cache_insert_all ON cache FOR INSERT TO authenticated WITH CHECK (true);
-CREATE POLICY cache_update_all ON cache FOR UPDATE TO authenticated USING (true);
+-- Cache: server-only access (service_role) to prevent cross-user leakage/poisoning.
+CREATE POLICY cache_service_role_all ON cache
+  FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
 
 -- User preferences: Can only access their own preferences
 CREATE POLICY preferences_all_own ON user_preferences
@@ -572,7 +574,7 @@ RETURNS TABLE (
   has_pass BOOLEAN,
   pass_type TEXT,
   pass_case_id UUID,
-  is_freemium BOOLEAN,
+  has_no_paid_access BOOLEAN,
   case_count INTEGER,
   can_create_case BOOLEAN
 ) AS $$
@@ -609,12 +611,12 @@ BEGIN
     user_rec.has_pass_active AS has_pass,
     user_rec.pass_type_val AS pass_type,
     user_rec.case_id AS pass_case_id,
-    user_rec.is_free AS is_freemium,
+    user_rec.is_free AS has_no_paid_access,
     active_case_count AS case_count,
     CASE 
       -- Subscribers: unlimited cases
       WHEN user_rec.has_sub THEN true
-      -- Freemium: only 1 case allowed
+      -- No paid access: only 1 case allowed
       WHEN user_rec.is_free AND active_case_count < 1 THEN true
       -- Pass holders: can create case if buying new pass
       WHEN user_rec.has_pass_active THEN false  -- Already have active pass
@@ -654,7 +656,7 @@ COMMENT ON TABLE messages IS 'Chat messages within cases - tracks conversation h
 COMMENT ON TABLE documents IS 'User-uploaded documents linked to cases';
 COMMENT ON TABLE subscriptions IS 'Premium and Premium Pro subscriptions';
 COMMENT ON TABLE user_passes IS 'Time-limited passes (3-30 days) for individual cases';
-COMMENT ON TABLE message_usage IS 'Tracks freemium message limits (15 messages per case)';
+COMMENT ON TABLE message_usage IS 'Tracks legacy case-level message limits (15 messages per case)';
 COMMENT ON TABLE audit_log IS 'Complete audit trail for legal compliance - tracks all data changes';
 COMMENT ON TABLE cache IS 'Shared cache for LLM responses and search results - 30-50% cost savings';
 
@@ -662,7 +664,7 @@ COMMENT ON TABLE cache IS 'Shared cache for LLM responses and search results - 3
 -- BUSINESS RULES SUMMARY
 -- =====================================================
 
--- Freemium Users:
+-- Users without paid access:
 --   - 1 case maximum (try before you buy)
 --   - 15 messages per case
 --   - To create more cases: buy Premium subscription or individual passes

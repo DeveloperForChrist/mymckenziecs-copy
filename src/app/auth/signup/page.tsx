@@ -25,12 +25,12 @@ export default function SignUpPage() {
                 </div>
                 <div className={styles.heroListItem}>
                   <span>03</span>
-                  <div>Upgrade anytime to Standard, Essential, or Plus.</div>
+                  <div>Upgrade anytime to Basic, Premium, or Premium +.</div>
                 </div>
               </div>
             </div>
             <div className={styles.heroFooter}>
-              <span className={styles.pill}>Freemium: 20 messages per day</span>
+              <span className={styles.pill}>Guest chat is free. Paid plans unlock full workspace tools.</span>
               <a href="/pricing">Plans</a>
               <a href="/faq">Plan FAQ</a>
             </div>
@@ -38,7 +38,7 @@ export default function SignUpPage() {
 
           <section className={styles.formPanel}>
             <div>
-              <h2 className={styles.formTitle}>Start free</h2>
+              <h2 className={styles.formTitle}>Create your account</h2>
               <p className={styles.formSubtitle}>
                 Create your account, then answer a few quick questions to seed your first case.
               </p>

@@ -41,7 +41,7 @@ export default function TermsPage() {
             <li><b>Document Review:</b> AI analysis of uploaded case files, highlighting missing information or inconsistencies</li>
             <li><b>Case Dashboard:</b> Evidence organisation, timeline building, note-taking, progress tracking</li>
             <li><b>Research Tools:</b> Explanations of legislation, case management guidance, plain-English interpretations</li>
-            <li><b>Subscription Services:</b> Free tier, Premium, Premium Pro, One-off consultation/drafting payments</li>
+            <li><b>Subscription Services:</b> Free tier, Basic, Premium, Premium +, One-off consultation/drafting payments</li>
           </ul>
         </li>
         <li>

@@ -7,7 +7,12 @@ export async function GET(request: Request) {
     const headerSecret = (request.headers.get('x-cron-secret') || request.headers.get('authorization') || '')
       .replace(/^Bearer\s+/i, '');
 
-    if (cronSecret && headerSecret !== cronSecret) {
+    if (!cronSecret) {
+      console.error('CRON_SECRET is not configured for subscription-grace-expiry cron route');
+      return NextResponse.json({ error: 'Cron not configured' }, { status: 503 });
+    }
+
+    if (headerSecret !== cronSecret) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

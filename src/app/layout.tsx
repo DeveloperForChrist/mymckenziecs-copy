@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import ClientErrorReporter from '@/components/monitoring/ClientErrorReporter'
+import RouteTitleManager from '@/components/seo/RouteTitleManager'
 
 export const metadata: Metadata = {
-  title: 'MymckenzieCS',
+  title: 'MyMcKenzieCS',
   description: 'Legal assistance platform for litigants in person',
   icons: {
     icon: '/assets/mymckenzie-high-resolution-logo (7) 1.svg',
@@ -31,6 +32,7 @@ export default function RootLayout({
       </head>
       <body>
         <ClientErrorReporter />
+        <RouteTitleManager />
         {children}
       </body>
     </html>

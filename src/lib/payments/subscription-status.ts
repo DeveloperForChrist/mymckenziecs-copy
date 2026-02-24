@@ -1,4 +1,6 @@
-export const BILLING_ACTIVE_STATUSES = ['active', 'past_due', 'unpaid', 'incomplete'] as const;
+// These statuses unlock paid workspace access.
+// `incomplete`/`unpaid` do not count as active access.
+export const BILLING_ACTIVE_STATUSES = ['active', 'past_due'] as const;
 
 export type BillingActiveStatus = (typeof BILLING_ACTIVE_STATUSES)[number];
 

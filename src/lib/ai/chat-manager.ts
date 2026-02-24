@@ -1,15 +1,4 @@
 import { supabaseAdmin } from '../database/supabase-server';
-import { getPlanFeatures } from '@/lib/featureGating';
-
-// Free/Freemium user limits
-const FREE_USER_MESSAGE_LIMIT_24H = 20;
-
-export class MessageLimitError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'MessageLimitError';
-  }
-}
 
 // IntentResult interface removed - intent detection no longer used for message storage qualification
 
@@ -250,18 +239,12 @@ export class ChatManager {
     };
   }
 
-  // Plan checking methods for free user limits
-  private isFreeTier(): boolean {
-    const normalized = (this.userPlan || '').toString().trim().toLowerCase();
-    return !normalized || normalized === 'free' || normalized === 'freemium' || normalized === 'guest';
-  }
-
   private isGuestUser(): boolean {
     return typeof this.userId === 'string' && this.userId.startsWith('anon_');
   }
 
   public shouldPersistMessages(): boolean {
-    return !this.isFreeTier() && !this.isGuestUser();
+    return !this.isGuestUser();
   }
 
   private parseUserAgent(ua: string | null | undefined) {
@@ -290,7 +273,7 @@ export class ChatManager {
     context: AnalyticsContext = {}
   ): Promise<void> {
     try {
-      const planLabel = (this.userPlan || 'Free').toString();
+      const planLabel = (this.userPlan || 'Unknown').toString();
       const isGuest = this.isGuestUser() || planLabel.toLowerCase().includes('guest');
       const userId = this.shouldPersistMessages() ? this.userId : null;
       const { deviceType, os, browser } = this.parseUserAgent(context.userAgent);
@@ -335,56 +318,9 @@ export class ChatManager {
   }
 
   /**
-   * Check if free user has exceeded 24-hour message limit and update counter
-   */
-  private async checkFreeUserLimit(): Promise<void> {
-    if (!this.isFreeTier()) {
-      return; // Premium users have no limits
-    }
-
-    const { data: userRow } = await supabaseAdmin
-      .from('users')
-      .select('id, freemium_message_count, freemium_message_window_start')
-      .eq('id', this.userId)
-      .maybeSingle();
-
-    if (!userRow) return;
-
-    const now = new Date();
-    const windowStart = userRow.freemium_message_window_start
-      ? new Date(userRow.freemium_message_window_start)
-      : null;
-    const windowMs = 24 * 60 * 60 * 1000;
-    const windowExpired = !windowStart || (now.getTime() - windowStart.getTime() >= windowMs);
-    let count = typeof userRow.freemium_message_count === 'number' ? userRow.freemium_message_count : 0;
-    let nextWindowStart = windowStart;
-
-    if (windowExpired) {
-      count = 0;
-      nextWindowStart = now;
-    }
-
-    if (count >= FREE_USER_MESSAGE_LIMIT_24H) {
-      throw new MessageLimitError(
-        `Free users are limited to ${FREE_USER_MESSAGE_LIMIT_24H} messages per rolling 24 hours. Upgrade to Standard, Essential, or Plus for more.`
-      );
-    }
-
-    const updatedCount = count + 1;
-    await supabaseAdmin
-      .from('users')
-      .update({
-        freemium_message_count: updatedCount,
-        freemium_message_window_start: nextWindowStart ? nextWindowStart.toISOString() : now.toISOString(),
-      })
-      .eq('id', userRow.id);
-  }
-
-  /**
    * Step 2: Store raw conversation message
    * All messages (user and assistant) are stored directly to the database with full content
-   * Free/Freemium users: 15 messages per 24 hours
-   * Premium users: Unlimited messages
+   * Guest limits are enforced at API layer before this class is called.
    * Case ID is optional - if user has set up case profile in settings, messages are personalized
    */
   async storeRawMessage(
@@ -399,9 +335,6 @@ export class ChatManager {
     }
 
     if (!this.shouldPersistMessages()) {
-      if (role === 'user') {
-        await this.checkFreeUserLimit();
-      }
       return null;
     }
 

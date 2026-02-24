@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
-import { isPaidPlan } from '@/lib/plans/access';
+import { hasReminderAccess } from '@/lib/plans/access';
 
-async function requirePaidPlan(userId: string) {
+async function requireReminderPlan(userId: string) {
   const { data: activeSub } = await supabaseAdmin
     .from('subscriptions')
     .select('plan_type, status')
@@ -13,9 +13,9 @@ async function requirePaidPlan(userId: string) {
     .limit(1)
     .maybeSingle();
 
-  const isPaid = isPaidPlan(activeSub?.plan_type || '');
+  const isEligible = hasReminderAccess(activeSub?.plan_type || '');
 
-  return isPaid;
+  return isEligible;
 }
 
 export async function GET() {
@@ -27,9 +27,9 @@ export async function GET() {
     }
 
     const userId = data.user.id;
-    const isPaid = await requirePaidPlan(userId);
-    if (!isPaid) {
-      return NextResponse.json({ error: 'Paid plan required' }, { status: 403 });
+    const isEligible = await requireReminderPlan(userId);
+    if (!isEligible) {
+      return NextResponse.json({ error: 'Premium plan required' }, { status: 403 });
     }
 
     const { data: prefs } = await supabaseAdmin
@@ -40,7 +40,7 @@ export async function GET() {
 
     return NextResponse.json({
       email_notifications: prefs?.email_notifications !== false,
-      deadline_reminders: prefs?.deadline_reminders !== false,
+      deadline_reminders: prefs?.deadline_reminders === true,
     });
   } catch (error: any) {
     console.error('Preferences GET error:', error);
@@ -57,9 +57,9 @@ export async function PUT(request: Request) {
     }
 
     const userId = data.user.id;
-    const isPaid = await requirePaidPlan(userId);
-    if (!isPaid) {
-      return NextResponse.json({ error: 'Paid plan required' }, { status: 403 });
+    const isEligible = await requireReminderPlan(userId);
+    if (!isEligible) {
+      return NextResponse.json({ error: 'Premium plan required' }, { status: 403 });
     }
 
     const body = await request.json();

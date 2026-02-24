@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 
 // Dynamic imports for better performance
 const SettingsSidebar = dynamic(() => import('../../components/settings/SettingsSidebar'), {
@@ -11,11 +12,6 @@ const SettingsSidebar = dynamic(() => import('../../components/settings/Settings
 const AccountSection = dynamic(() => import('../../components/settings/AccountSection'), {
   ssr: false,
   loading: () => <div style={{padding: '20px'}}>Loading account settings...</div>
-});
-
-const CaseProfileSection = dynamic(() => import('../../components/settings/CaseProfileSection'), {
-  ssr: false,
-  loading: () => <div style={{padding: '20px'}}>Loading case profile...</div>
 });
 
 const BillingSection = dynamic(() => import('../../components/settings/BillingSection'), {
@@ -40,9 +36,9 @@ export default function SettingsPage() {
             <SettingsSidebar active={active} onSelect={setActive} />
             <main className={styles.mainContent}>
               <div className={styles.topActions}>
-                <a href="/dashboard" className={`${styles.primaryBtn} ${styles.topActionBtn}`}>
+                <Link href="/dashboard" className="app-button-secondary">
                   Go to Dashboard
-                </a>
+                </Link>
               </div>
               {active === 'account' && (
                 <>
@@ -56,13 +52,6 @@ export default function SettingsPage() {
                   <h1 className={styles.heading}>Billing & Plans</h1>
                   <p className={styles.desc}>Review your current subscription and payment methods</p>
                   <BillingSection />
-                </>
-              )}
-              {active === 'case-profile' && (
-                <>
-                  <h1 className={styles.heading}>Case Profile</h1>
-                  <p className={styles.desc}>Fill your case profile so MyMcKenzie Assistant can personalise guidance for you.</p>
-                  <CaseProfileSection />
                 </>
               )}
               {active === 'contact' && (

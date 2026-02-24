@@ -6,7 +6,7 @@ export default function HelpPage() {
     <LegalPageLayout
       title="Help"
       subtitle="Support for account access, billing, documents, and everyday questions."
-      meta="Reply times: within 1-2 business days (Priority support replies within 24 hours)"
+      meta="Reply times: within 1-2 business days"
     >
       <div className="space-y-8 text-base md:text-lg">
         <section>

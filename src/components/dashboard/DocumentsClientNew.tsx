@@ -339,8 +339,63 @@ export default function DocumentsClient() {
       .filter(line => line.length > 0);
   };
 
+  const sanitizePreviewHtml = (html: string) => {
+    if (!html || typeof window === 'undefined') return html;
+
+    const allowedTags = new Set([
+      'p', 'br', 'strong', 'em', 'b', 'i', 'u', 'ul', 'ol', 'li',
+      'div', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table',
+      'thead', 'tbody', 'tr', 'td', 'th', 'blockquote', 'pre', 'code', 'a'
+    ]);
+    const allowedAttrsByTag: Record<string, Set<string>> = {
+      a: new Set(['href', 'title']),
+    };
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const elements = Array.from(doc.body.querySelectorAll('*'));
+
+    for (const element of elements) {
+      const tag = element.tagName.toLowerCase();
+      if (!allowedTags.has(tag)) {
+        const text = doc.createTextNode(element.textContent || '');
+        element.replaceWith(text);
+        continue;
+      }
+
+      const allowedAttrs = allowedAttrsByTag[tag] || new Set<string>();
+      for (const attr of Array.from(element.attributes)) {
+        const attrName = attr.name.toLowerCase();
+        if (!allowedAttrs.has(attrName)) {
+          element.removeAttribute(attr.name);
+          continue;
+        }
+
+        if (tag === 'a' && attrName === 'href') {
+          const href = attr.value.trim();
+          const safeHref =
+            href.startsWith('/') ||
+            href.startsWith('#') ||
+            /^https?:\/\//i.test(href) ||
+            /^mailto:/i.test(href);
+
+          if (!safeHref || /^javascript:/i.test(href) || /^data:/i.test(href)) {
+            element.removeAttribute('href');
+          } else {
+            element.setAttribute('target', '_blank');
+            element.setAttribute('rel', 'noopener noreferrer');
+          }
+        }
+      }
+    }
+
+    return doc.body.innerHTML;
+  };
+
   const buildHighlightedHtml = (html: string, issues: string[]) => {
-    if (!html || !issues.length || typeof window === 'undefined') return html;
+    const safeHtml = sanitizePreviewHtml(html);
+    if (!safeHtml || typeof window === 'undefined') return safeHtml;
+    if (!issues.length) return safeHtml;
     const stopwords = new Set(['with', 'this', 'that', 'from', 'into', 'your', 'have', 'need', 'must', 'should', 'could', 'would', 'might', 'there', 'their', 'they', 'them', 'then', 'than']);
     const keywords = new Set<string>();
     issues.forEach(issue => {
@@ -348,10 +403,10 @@ export default function DocumentsClient() {
         if (word.length > 4 && !stopwords.has(word)) keywords.add(word);
       });
     });
-    if (!keywords.size) return html;
+    if (!keywords.size) return safeHtml;
 
     const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
+    const doc = parser.parseFromString(safeHtml, 'text/html');
     const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
     const terms = Array.from(keywords).sort((a, b) => b.length - a.length);
 
