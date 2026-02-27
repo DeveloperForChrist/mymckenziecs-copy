@@ -1,7 +1,22 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
+import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { OpenAI } from 'openai';
 import { aiIpRateLimiter, aiRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
+import { hasCaseLawAccess } from '@/lib/plans/access';
+
+async function resolveActivePlan(userId: string): Promise<string> {
+  const { data } = await supabaseAdmin
+    .from('subscriptions')
+    .select('plan_type, status')
+    .eq('user_id', userId)
+    .in('status', ['active', 'past_due'])
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return String(data?.plan_type || '');
+}
 
 export async function POST(request: Request) {
   try {
@@ -9,6 +24,19 @@ export async function POST(request: Request) {
     const { data: authData, error: authError } = await supabase.auth.getUser();
     if (authError || !authData?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const planLabel = await resolveActivePlan(authData.user.id);
+    if (!planLabel) {
+      return NextResponse.json(
+        { error: 'Plan paused: case law chat is locked. Resume your plan to continue.' },
+        { status: 402 }
+      );
+    }
+    if (!hasCaseLawAccess(planLabel)) {
+      return NextResponse.json(
+        { error: 'Case law study chat is available on Premium + plans.' },
+        { status: 403 }
+      );
     }
     const ip = getClientIp(request.headers);
     const identifier = `ai:case-study-chat:${getIdentifier(authData.user.id, ip)}`;

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import styles from '@/app/auth/auth.module.css'
 
 function parseName(fullName: string) {
@@ -52,7 +53,7 @@ export default function SignUpForm() {
   const selectedPlanId = (searchParams?.get('planId') || '').trim()
   const redirectParam = (searchParams?.get('redirect') || '').trim()
   const fallbackRedirect = selectedPlanId
-    ? `/pricing?checkout=${encodeURIComponent(selectedPlanId)}`
+    ? `/pricing?plan=${encodeURIComponent(selectedPlanId)}`
     : '/pricing'
   const nextRedirect =
     redirectParam.startsWith('/')
@@ -102,6 +103,37 @@ export default function SignUpForm() {
       const payload = await response.json().catch(() => ({}))
       if (!response.ok) {
         throw new Error(mapApiError(payload?.message || payload?.error || 'Sign up failed'))
+      }
+
+      if (selectedPlanId) {
+        const supabase = getSupabaseBrowserClient()
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email.trim(),
+          password: formData.password,
+        })
+
+        if (signInError) {
+          throw new Error('Account created, but we could not start payment. Please sign in and continue from pricing.')
+        }
+
+        const checkoutResponse = await fetch('/api/stripe/plan-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            planId: selectedPlanId,
+            successUrl: '/checkout/success',
+            cancelUrl: '/pricing?checkout_status=cancelled',
+          }),
+        })
+
+        const checkoutPayload = await checkoutResponse.json().catch(() => ({}))
+        if (!checkoutResponse.ok || !checkoutPayload?.url) {
+          throw new Error(checkoutPayload?.error || 'Unable to start secure checkout. Please try again.')
+        }
+
+        window.location.assign(checkoutPayload.url)
+        return
       }
 
       const signInParams = new URLSearchParams({ verify: 'sent', redirect: nextRedirect })
@@ -232,7 +264,9 @@ export default function SignUpForm() {
         disabled={loading || !acceptedTerms}
         className={styles.primaryButton}
       >
-        {loading ? 'Creating account...' : 'Sign Up'}
+        {loading
+          ? (selectedPlanId ? 'Preparing checkout...' : 'Creating account...')
+          : (selectedPlanId ? 'Continue to payment' : 'Sign Up')}
       </button>
     </form>
   )

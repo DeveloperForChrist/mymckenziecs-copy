@@ -27,6 +27,20 @@ type CreateEventInput = {
   occurrences: number;
 };
 
+async function hasPaidAccess(userId: string): Promise<boolean> {
+  const { data } = await supabaseAdmin
+    .from('subscriptions')
+    .select('plan_type, status')
+    .eq('user_id', userId)
+    .in('status', ['active', 'past_due'])
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const label = String(data?.plan_type || '').toLowerCase();
+  return Boolean(label && (label.includes('basic') || label.includes('premium')));
+}
+
 function asObject(input: unknown): Record<string, unknown> | null {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
   return input as Record<string, unknown>;
@@ -249,6 +263,13 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = authData.user.id;
+    const paid = await hasPaidAccess(userId);
+    if (!paid) {
+      return NextResponse.json(
+        { error: 'Read-only mode: resume plan to manage calendar events.' },
+        { status: 402 }
+      );
+    }
     const rawBody = asObject(await request.json());
     if (!rawBody) {
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
@@ -316,6 +337,13 @@ export async function PUT(request: NextRequest) {
     }
 
     const userId = authData.user.id;
+    const paid = await hasPaidAccess(userId);
+    if (!paid) {
+      return NextResponse.json(
+        { error: 'Read-only mode: resume plan to manage calendar events.' },
+        { status: 402 }
+      );
+    }
     const body = asObject(await request.json());
     if (!body) {
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
@@ -439,6 +467,13 @@ export async function DELETE(request: NextRequest) {
     }
 
     const userId = authData.user.id;
+    const paid = await hasPaidAccess(userId);
+    if (!paid) {
+      return NextResponse.json(
+        { error: 'Read-only mode: resume plan to manage calendar events.' },
+        { status: 402 }
+      );
+    }
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 

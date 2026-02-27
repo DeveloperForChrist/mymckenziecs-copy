@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styles from "../documents-page-new.module.css";
 import type { Document } from "./types";
 
@@ -37,6 +37,8 @@ export default function DocumentsViewerModal({
   getPreviewKind,
   onClose,
 }: DocumentsViewerModalProps) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   if (!document) return null;
 
   const issues: string[] = [];
@@ -49,13 +51,27 @@ export default function DocumentsViewerModal({
 
   return (
     <div className={styles.modal} onClick={onClose}>
-      <div className={styles.viewerModal} onClick={(event) => event.stopPropagation()}>
+      <div
+        className={`${styles.viewerModal} ${isFullscreen ? styles.viewerModalFullscreen : ""}`}
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className={styles.modalHeader}>
           <div>
             <h3>{document.title}</h3>
             <p>{document.type} • {formatDate(document.createdAt)}</p>
           </div>
-          <button onClick={onClose} className={styles.closeBtn} type="button">×</button>
+          <div className={styles.modalHeaderActions}>
+            <button
+              onClick={() => setIsFullscreen((prev) => !prev)}
+              className={styles.closeBtn}
+              type="button"
+              aria-label={isFullscreen ? "Exit full screen" : "Enter full screen"}
+              title={isFullscreen ? "Exit full screen" : "Full screen"}
+            >
+              <i className={`bx ${isFullscreen ? "bx-exit-fullscreen" : "bx-fullscreen"}`} />
+            </button>
+            <button onClick={onClose} className={styles.closeBtn} type="button" aria-label="Close preview">×</button>
+          </div>
         </div>
         <div className={styles.viewerBody}>
           <div className={styles.viewerPane}>

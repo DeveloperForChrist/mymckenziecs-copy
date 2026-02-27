@@ -5,23 +5,39 @@ import { stripe } from '@/lib/payments/stripe';
 import { logApiUsage } from '@/lib/utils/api-usage-logger';
 import { billingIpRateLimiter, billingRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 
-function resolveAppSettingsUrl(request: NextRequest): string {
+function resolveAppCheckoutSuccessUrl(request: NextRequest): string {
   if (process.env.NEXT_PUBLIC_APP_URL) {
-    return `${process.env.NEXT_PUBLIC_APP_URL}/settings`;
+    return `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success`;
   }
 
   const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
   const protocol = request.headers.get('x-forwarded-proto') || 'https';
 
   if (host) {
-    return `${protocol}://${host}/settings`;
+    return `${protocol}://${host}/checkout/success`;
   }
 
-  return 'http://localhost:3000/settings';
+  return 'http://localhost:3000/checkout/success';
+}
+
+function resolveAppPricingUrl(request: NextRequest): string {
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return `${process.env.NEXT_PUBLIC_APP_URL}/pricing`;
+  }
+
+  const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+  const protocol = request.headers.get('x-forwarded-proto') || 'https';
+
+  if (host) {
+    return `${protocol}://${host}/pricing`;
+  }
+
+  return 'http://localhost:3000/pricing';
 }
 
 function withCheckoutParams(url: string, status: 'success' | 'cancelled') {
   const parsed = new URL(url);
+  parsed.searchParams.set('checkout_status', status);
   parsed.searchParams.set('checkout', status);
   if (status === 'success') {
     parsed.searchParams.set('session_id', '{CHECKOUT_SESSION_ID}');
@@ -31,9 +47,10 @@ function withCheckoutParams(url: string, status: 'success' | 'cancelled') {
 
 export async function POST(request: NextRequest) {
   try {
-    const baseSettingsUrl = resolveAppSettingsUrl(request);
-    const defaultSuccessUrl = withCheckoutParams(baseSettingsUrl, 'success');
-    const defaultCancelUrl = withCheckoutParams(baseSettingsUrl, 'cancelled');
+    const baseCheckoutSuccessUrl = resolveAppCheckoutSuccessUrl(request);
+    const basePricingUrl = resolveAppPricingUrl(request);
+    const defaultSuccessUrl = withCheckoutParams(baseCheckoutSuccessUrl, 'success');
+    const defaultCancelUrl = withCheckoutParams(basePricingUrl, 'cancelled');
     const supabase = await createSupabaseRouteClient();
     const { data: authData, error: authError } = await supabase.auth.getUser();
     if (authError || !authData?.user) {

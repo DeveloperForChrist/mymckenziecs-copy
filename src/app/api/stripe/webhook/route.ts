@@ -4,6 +4,7 @@ import { stripe } from '@/lib/payments/stripe';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { sendResendEmail } from '@/lib/email/resend';
 import { isBillingActiveStripeStatus, normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
+import { buildLifecycleSchedule, getLifecycleArchiveDays, getLifecycleDeleteDays } from '@/lib/payments/subscription-lifecycle';
 import fs from 'fs';
 import path from 'path';
 import { PLAN_PRICES } from '@/constants';
@@ -133,21 +134,89 @@ async function markSubscriptionPastDue(customerId: string | null, graceDays: num
   return graceEnd;
 }
 
+async function markSubscriptionLapsed(customerId: string | null, status: 'cancelled' | 'expired') {
+  if (!customerId) return null;
+  const now = new Date();
+
+  const { data: existing } = await supabaseAdmin
+    .from('subscriptions')
+    .select(
+      'lifecycle_lapsed_at, lifecycle_archive_at, lifecycle_delete_at, lifecycle_archived_at, lifecycle_deleted_at, lifecycle_archive_notice_sent_at, lifecycle_delete_notice_sent_at, lifecycle_reminder_days_sent, lifecycle_archive_warning_days_sent, lifecycle_delete_warning_days_sent'
+    )
+    .eq('stripe_customer_id', customerId)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const alreadyScheduled = Boolean(existing?.lifecycle_lapsed_at);
+  const schedule = existing?.lifecycle_lapsed_at
+    ? {
+        lapsedAt: new Date(existing.lifecycle_lapsed_at),
+        archiveAt: existing.lifecycle_archive_at ? new Date(existing.lifecycle_archive_at) : buildLifecycleSchedule(existing.lifecycle_lapsed_at).archiveAt,
+        deleteAt: existing.lifecycle_delete_at ? new Date(existing.lifecycle_delete_at) : buildLifecycleSchedule(existing.lifecycle_lapsed_at).deleteAt,
+      }
+    : buildLifecycleSchedule(now);
+
+  const payload: Record<string, unknown> = {
+    status,
+    lifecycle_lapsed_at: schedule.lapsedAt.toISOString(),
+    lifecycle_archive_at: schedule.archiveAt.toISOString(),
+    lifecycle_delete_at: schedule.deleteAt.toISOString(),
+    updated_at: now.toISOString(),
+  };
+
+  if (!alreadyScheduled) {
+    payload.lifecycle_archived_at = null;
+    payload.lifecycle_deleted_at = null;
+    payload.lifecycle_archive_notice_sent_at = null;
+    payload.lifecycle_delete_notice_sent_at = null;
+    payload.lifecycle_archive_warning_days_sent = [];
+    payload.lifecycle_delete_warning_days_sent = [];
+    payload.lifecycle_reminder_days_sent = [];
+  }
+
+  const { error } = await supabaseAdmin
+    .from('subscriptions')
+    .update(payload)
+    .eq('stripe_customer_id', customerId);
+
+  if (error) {
+    console.error('Failed to mark subscription lapsed', error);
+  }
+
+  return schedule;
+}
+
 async function clearSubscriptionGrace(customerId: string | null, status: 'active' | 'cancelled' | 'expired' = 'active') {
   if (!customerId) return;
   const now = new Date();
+  const payload: Record<string, unknown> = {
+    status,
+    past_due_since: null,
+    grace_period_end: null,
+    next_retry_at: null,
+    grace_day3_sent_at: null,
+    grace_day6_sent_at: null,
+    grace_reminder_days_sent: [],
+    updated_at: now.toISOString(),
+  };
+
+  if (status === 'active') {
+    payload.lifecycle_lapsed_at = null;
+    payload.lifecycle_archive_at = null;
+    payload.lifecycle_delete_at = null;
+    payload.lifecycle_archived_at = null;
+    payload.lifecycle_deleted_at = null;
+    payload.lifecycle_archive_notice_sent_at = null;
+    payload.lifecycle_delete_notice_sent_at = null;
+    payload.lifecycle_archive_warning_days_sent = [];
+    payload.lifecycle_delete_warning_days_sent = [];
+    payload.lifecycle_reminder_days_sent = [];
+  }
+
   const { error } = await supabaseAdmin
     .from('subscriptions')
-    .update({
-      status,
-      past_due_since: null,
-      grace_period_end: null,
-      next_retry_at: null,
-      grace_day3_sent_at: null,
-      grace_day6_sent_at: null,
-      grace_reminder_days_sent: [],
-      updated_at: now.toISOString(),
-    })
+    .update(payload)
     .eq('stripe_customer_id', customerId);
 
   if (error) {
@@ -283,11 +352,29 @@ async function upsertSubscriptionFromStripe(subscription: any) {
       current_period_start: currentPeriodStart,
       current_period_end: currentPeriodEnd,
       cancel_at_period_end: Boolean(subscription?.cancel_at_period_end),
+      ...(isBillingActiveStripeStatus(status)
+        ? {
+            lifecycle_lapsed_at: null,
+            lifecycle_archive_at: null,
+            lifecycle_delete_at: null,
+            lifecycle_archived_at: null,
+            lifecycle_deleted_at: null,
+            lifecycle_archive_notice_sent_at: null,
+            lifecycle_delete_notice_sent_at: null,
+            lifecycle_archive_warning_days_sent: [],
+            lifecycle_delete_warning_days_sent: [],
+            lifecycle_reminder_days_sent: [],
+          }
+        : {}),
       updated_at: nowIso,
     }, { onConflict: 'stripe_subscription_id' });
 
   if (error) {
     console.error('Failed to upsert subscription from Stripe', error);
+  }
+
+  if (status === 'cancelled' || status === 'expired') {
+    await markSubscriptionLapsed(customerId, status);
   }
 
   if (existing?.plan_type && existing.plan_type !== planType) {
@@ -374,7 +461,7 @@ export async function POST(request: Request) {
         });
         await sendResendEmail({
           to: recipientEmail,
-          subject: 'Your MymckenzieCS plan is being activated',
+          subject: 'Your MyMcKenzieCS plan is being activated',
           htmlBody,
           tag: 'billing-plan-upgrade',
         });
@@ -476,17 +563,18 @@ export async function POST(request: Request) {
       }
     } else if (event.type === 'invoice.payment_succeeded') {
       const invoice = event.data.object as any;
+      await clearSubscriptionGrace(invoice.customer as string | null, 'active');
+      if (invoice?.subscription) {
+        try {
+          const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+          await upsertSubscriptionFromStripe(subscription);
+        } catch (error) {
+          console.error('Failed to refresh subscription after payment', error);
+        }
+      }
+
       const billingReason = invoice?.billing_reason;
       if (billingReason === 'subscription_cycle') {
-        await clearSubscriptionGrace(invoice.customer as string | null, 'active');
-        if (invoice?.subscription) {
-          try {
-            const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
-            await upsertSubscriptionFromStripe(subscription);
-          } catch (error) {
-            console.error('Failed to refresh subscription after payment', error);
-          }
-        }
         const user = await getUserByStripeCustomerId(invoice.customer as string | null);
         if (user) {
           await sendResendEmail({
@@ -497,7 +585,7 @@ export async function POST(request: Request) {
                 <h2 style="color: #4c1d95;">Subscription renewed</h2>
                 <p>Hi${user.name ? ` ${user.name}` : ''},</p>
                 <p>Your subscription has renewed successfully. Thank you for staying with us.</p>
-                <p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MymckenzieCS</p>
+                <p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MyMcKenzieCS</p>
               </div>
             `,
             tag: 'billing-renewal-confirmed',
@@ -506,7 +594,7 @@ export async function POST(request: Request) {
       }
     } else if (event.type === 'customer.subscription.deleted') {
       const subscription = event.data.object as any;
-      await clearSubscriptionGrace(subscription.customer as string | null, 'cancelled');
+      const lapsedSchedule = await markSubscriptionLapsed(subscription.customer as string | null, 'cancelled');
       try {
         const nowIso = new Date().toISOString();
         await supabaseAdmin
@@ -524,9 +612,14 @@ export async function POST(request: Request) {
 
       if (user) {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const archiveDate = formatDateShort(lapsedSchedule?.archiveAt || null) || 'soon';
+        const deleteDate = formatDateShort(lapsedSchedule?.deleteAt || null) || 'soon';
         const htmlBody = renderTemplate('13-cancellation-confirmation.html', {
           cancel_date: formatDateShort(new Date()) || 'today',
-          retention_days: '30',
+          retention_days: String(getLifecycleArchiveDays()),
+          delete_days: String(getLifecycleDeleteDays()),
+          archive_date: archiveDate,
+          delete_date: deleteDate,
           reactivate_url: `${appUrl}/pricing`,
           policy_url: `${appUrl}/privacy-policy`,
         });

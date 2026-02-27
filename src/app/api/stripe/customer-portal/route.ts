@@ -23,6 +23,9 @@ function resolveReturnUrl(request: Request): string {
 
 export async function POST(req: Request) {
   try {
+    const body = await req.json().catch(() => ({}));
+    const mode = body?.mode === 'payment_method_update' ? 'payment_method_update' : 'manage';
+
     const supabase = await createSupabaseRouteClient();
     const { data: authData, error: authError } = await supabase.auth.getUser();
     if (authError || !authData?.user) {
@@ -63,10 +66,22 @@ export async function POST(req: Request) {
     const sessionStart = Date.now();
     let session;
     try {
-      session = await stripe.billingPortal.sessions.create({
+      const createParams: any = {
         customer: customerId,
         return_url: returnUrl,
-      });
+      };
+
+      if (mode === 'payment_method_update') {
+        createParams.flow_data = {
+          type: 'payment_method_update',
+          after_completion: {
+            type: 'redirect',
+            redirect: { return_url: returnUrl },
+          },
+        };
+      }
+
+      session = await stripe.billingPortal.sessions.create(createParams);
       void logApiUsage({
         provider: 'stripe',
         endpoint: 'billingPortal.sessions.create',

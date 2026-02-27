@@ -53,7 +53,8 @@ export async function POST(request: NextRequest) {
     const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      email_confirm: false,
+      // Verification is handled by our custom link, but access is not blocked.
+      email_confirm: true,
       user_metadata: metadata,
     })
 
@@ -111,19 +112,23 @@ export async function POST(request: NextRequest) {
       </div>
     `
 
+    let verificationEmailSent = true
     try {
       await sendResendEmail({
         to: email,
-        subject: 'Verify your MymckenzieCS email',
+        subject: 'Verify your MyMcKenzieCS email',
         htmlBody,
         tag: 'verify-email',
       })
-    } catch {
-      await supabaseAdmin.auth.admin.deleteUser(userId)
-      return NextResponse.json({ message: 'Could not send verification email. Please try again.' }, { status: 500 })
+    } catch (sendError) {
+      verificationEmailSent = false
+      console.error('Sign-up verification email send failed:', sendError)
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({
+      success: true,
+      verificationEmailSent,
+    })
   } catch (error: any) {
     return NextResponse.json(
       { message: error.message || 'Sign up failed' },

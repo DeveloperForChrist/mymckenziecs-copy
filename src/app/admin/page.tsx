@@ -130,7 +130,7 @@ export default function AdminLoginPage() {
     <div style={containerStyle}>
       <div style={cardStyle}>
         <h1 style={titleStyle}>Admin Panel</h1>
-        <p style={subtitleStyle}>MymckenzieCS Administration</p>
+        <p style={subtitleStyle}>MyMcKenzieCS Administration</p>
 
         {error && <div style={errorStyle}>{error}</div>}
 

@@ -161,7 +161,7 @@ export async function DELETE(request: NextRequest) {
         })
         await sendResendEmail({
           to: userEmail,
-          subject: 'Your MymckenzieCS account was deleted',
+          subject: 'Your MyMcKenzieCS account was deleted',
           htmlBody,
           tag: 'account-deleted-confirmation',
         })

@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="260" viewBox="0 0 1000 260" role="img" aria-label="MyMckenzie FriendLegalHub logo">
-  <title>MyMckenzie FriendLegalHub</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="260" viewBox="0 0 1000 260" role="img" aria-label="MyMcKenzieCS FriendLegalHub logo">
+  <title>MyMcKenzieCS FriendLegalHub</title>
   <defs>
     <style>
       .brand-text {
@@ -12,12 +12,12 @@
   <!-- Transparent background to blend with navbar -->
   <rect x="0" y="0" width="1000" height="260" fill="none" />
 
-  <!-- Top line: MyMckenzie (mixed case, centered with fixed width) -->
-  <text class="brand-text" x="500" y="112" font-size="112" text-anchor="middle" textLength="595" lengthAdjust="spacingAndGlyphs">MyMckenzie</text>
+  <!-- Top line: MyMcKenzieCS (mixed case, centered with fixed width) -->
+  <text class="brand-text" x="500" y="112" font-size="112" text-anchor="middle" textLength="595" lengthAdjust="spacingAndGlyphs">MyMcKenzieCS</text>
 
-  <!-- Underline aligned exactly from the leading 'M' to the final 'e' of MyMckenzie -->
+  <!-- Underline aligned exactly from the leading 'M' to the final 'e' of MyMcKenzieCS -->
   <rect x="220" y="129" width="560" height="12" rx="6" fill="#ffffff" />
 
-  <!-- Bottom line: FriendLegalHub (centered, slightly wider to extend beyond MyMckenzie) -->
+  <!-- Bottom line: FriendLegalHub (centered, slightly wider to extend beyond MyMcKenzieCS) -->
   <text class="brand-text" x="500" y="240" font-size="110" text-anchor="middle" textLength="830" lengthAdjust="spacingAndGlyphs">FRIENDLEGALHUB</text>
 </svg>

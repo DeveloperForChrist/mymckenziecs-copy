@@ -28,6 +28,7 @@ const titleByPath: Record<string, string> = {
   '/auth/signin': 'Sign In',
   '/auth/signup': 'Create Account',
   '/auth/reset-password': 'Reset Password',
+  '/checkout/success': 'Checkout Success',
   '/admin': 'Admin Login',
   '/admin/dashboard': 'Admin Dashboard',
   '/jesusistheadmin': 'Admin Login',

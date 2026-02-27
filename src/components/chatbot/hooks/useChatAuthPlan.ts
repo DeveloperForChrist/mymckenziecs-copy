@@ -25,6 +25,8 @@ type UseChatAuthPlanArgs = {
 export function useChatAuthPlan({ supabase, clearSessionHistory }: UseChatAuthPlanArgs) {
   const [supabaseUser, setSupabaseUser] = useState<any>(null)
   const [plan, setPlan] = useState<string | null>(null)
+  const [planStatus, setPlanStatus] = useState<string | null>(null)
+  const [paidAccess, setPaidAccess] = useState(false)
   const [planLoaded, setPlanLoaded] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authLoaded, setAuthLoaded] = useState(false)
@@ -38,6 +40,8 @@ export function useChatAuthPlan({ supabase, clearSessionHistory }: UseChatAuthPl
       if (!nextUserId) {
         if (cancelled) return
         setPlan('Free')
+        setPlanStatus('guest')
+        setPaidAccess(false)
         setPlanLoaded(true)
         return
       }
@@ -48,10 +52,14 @@ export function useChatAuthPlan({ supabase, clearSessionHistory }: UseChatAuthPl
         if (cancelled) return
         const fetchedPlan = (data?.plan || 'Free').toString().trim()
         setPlan(fetchedPlan)
+        setPlanStatus((data?.planStatus || 'free').toString().trim().toLowerCase())
+        setPaidAccess(Boolean(data?.paidAccess))
       } catch (error: unknown) {
         if (!cancelled) {
           console.error('Failed to load subscription plan:', error)
           setPlan('Free')
+          setPlanStatus('free')
+          setPaidAccess(false)
         }
       } finally {
         if (!cancelled) {
@@ -96,6 +104,8 @@ export function useChatAuthPlan({ supabase, clearSessionHistory }: UseChatAuthPl
         if (!cancelled) {
           console.error('Failed to resolve auth state:', error)
           setPlan('Free')
+          setPlanStatus('free')
+          setPaidAccess(false)
           setPlanLoaded(true)
         }
       } finally {
@@ -135,6 +145,8 @@ export function useChatAuthPlan({ supabase, clearSessionHistory }: UseChatAuthPl
   return {
     supabaseUser,
     plan,
+    planStatus,
+    paidAccess,
     planLoaded,
     isAuthenticated,
     authLoaded,

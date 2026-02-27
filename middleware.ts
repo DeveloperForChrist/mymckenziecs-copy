@@ -5,27 +5,15 @@ function hasPaidPlan(plan: unknown): boolean {
   const label = String(plan || '').toLowerCase()
   return (
     label.includes('basic') ||
-    label.includes('essential') ||
-    label.includes('premium') ||
-    label.includes('premium +') ||
-    label.includes('premium plus') ||
-    label.includes('plus') ||
-    label.includes('pro') ||
-    label.includes('premium cheap')
+    label.includes('premium')
   )
 }
 
 function hasCaseProfileAccess(plan: unknown): boolean {
   const label = String(plan || '').toLowerCase()
   if (!label) return false
-  if (label.includes('basic') || label.includes('essential') || label.includes('premium cheap')) return false
-  return (
-    label.includes('premium') ||
-    label.includes('premium +') ||
-    label.includes('premium plus') ||
-    label.includes('plus') ||
-    label.includes('premium pro')
-  )
+  if (label.includes('basic')) return false
+  return label.includes('premium')
 }
 
 export async function middleware(request: NextRequest) {
@@ -81,6 +69,8 @@ export async function middleware(request: NextRequest) {
     '/api/analyse-doc',
     '/api/search-case-law',
     '/api/cases',
+    '/api/case-study',
+    '/api/case-study-chat',
     '/api/case-analysis',
     '/api/case-summary',
     '/api/drafts',
@@ -92,6 +82,25 @@ export async function middleware(request: NextRequest) {
     '/api/message-count',
     '/api/passes',
     '/api/user',
+  ]
+  const paidPlanPaths = [
+    '/api/chat',
+    '/api/analyze-document',
+    '/api/analyse-doc',
+    '/api/search-case-law',
+    '/api/cases',
+    '/api/case-study',
+    '/api/case-study-chat',
+    '/api/case-analysis',
+    '/api/case-summary',
+    '/api/drafts',
+    '/api/evidence-bundle',
+    '/api/doc-review',
+    '/api/calendar',
+    '/api/chat-history',
+    '/api/chat-upload',
+    '/api/message-count',
+    '/api/passes',
   ]
 
   // Admin routes - require admin role
@@ -111,7 +120,34 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  if (pathname.startsWith('/dashboard') && user) {
+  const softSuspendedPaths = ['/dashboard', '/chatbot', '/settings']
+  const isSoftSuspendedPath = softSuspendedPaths.some((path) => pathname.startsWith(path))
+
+  if (user && isSoftSuspendedPath) {
+    const { data: latestSub } = await supabase
+      .from('subscriptions')
+      .select('plan_type, status, lifecycle_archived_at')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    const status = String(latestSub?.status || '').toLowerCase()
+    const hardLocked =
+      hasPaidPlan(latestSub?.plan_type) &&
+      (status === 'expired' || status === 'cancelled') &&
+      Boolean(latestSub?.lifecycle_archived_at)
+
+    if (hardLocked) {
+      const pricingUrl = new URL('/pricing', request.url)
+      pricingUrl.searchParams.set('hard_lock', '1')
+      return NextResponse.redirect(pricingUrl)
+    }
+  }
+
+  const requiresPaidPlan = paidPlanPaths.some((path) => pathname.startsWith(path)) && user
+
+  if (requiresPaidPlan && user) {
     const { data: activeSub, error: subError } = await supabase
       .from('subscriptions')
       .select('plan_type')
@@ -126,13 +162,19 @@ export async function middleware(request: NextRequest) {
     }
 
     if (!hasPaidPlan(activeSub?.plan_type)) {
-      const redirectTarget = `${request.nextUrl.pathname}${request.nextUrl.search}`
-      const pricingUrl = new URL('/pricing', request.url)
-      pricingUrl.searchParams.set('redirect', redirectTarget)
-      return NextResponse.redirect(pricingUrl)
+      if (pathname.startsWith('/api/')) {
+        const method = request.method.toUpperCase()
+        const isReadOnlyAllowed =
+          method === 'GET' &&
+          (pathname.startsWith('/api/cases') || pathname.startsWith('/api/chat-history'))
+        if (isReadOnlyAllowed) {
+          return response
+        }
+        return NextResponse.json({ error: 'Payment required' }, { status: 402 })
+      }
     }
 
-    if (pathname.startsWith('/dashboard/case-profile') && !hasCaseProfileAccess(activeSub?.plan_type)) {
+    if (pathname.startsWith('/dashboard/case-profile') && activeSub && !hasCaseProfileAccess(activeSub?.plan_type)) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }

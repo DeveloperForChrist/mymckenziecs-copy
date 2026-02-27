@@ -51,14 +51,6 @@ export function useConversationBootstrap({
             metadata: msg.metadata
           }))
           setMessages(loadedMessages)
-          const userMessageCount = loadedMessages.filter((msg) => msg.role === 'user').length
-          if (targetConversationId && userMessageCount > 0 && typeof window !== 'undefined') {
-            window.dispatchEvent(
-              new CustomEvent('premiumThreadMessageCountChanged', {
-                detail: { conversationId: targetConversationId, count: userMessageCount }
-              })
-            )
-          }
         }
       } catch (error: unknown) {
         console.error('Failed to load conversation:', error)
@@ -87,11 +79,6 @@ export function useConversationBootstrap({
           const newConversationId = generateUUID()
           setConversationId(newConversationId)
           localStorage.setItem(conversationStorageKey, newConversationId)
-          window.dispatchEvent(
-            new CustomEvent('premiumThreadMessageCountChanged', {
-              detail: { conversationId: newConversationId, count: 0 }
-            })
-          )
           return
         }
       } else if (!storedUserId) {

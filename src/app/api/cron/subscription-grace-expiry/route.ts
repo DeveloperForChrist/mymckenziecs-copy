@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
+import { buildLifecycleSchedule } from '@/lib/payments/subscription-lifecycle';
 
 export async function GET(request: Request) {
   try {
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
 
     const { data: overdue, error } = await supabaseAdmin
       .from('subscriptions')
-      .select('id, user_id, grace_period_end')
+      .select('id, user_id, grace_period_end, lifecycle_lapsed_at, lifecycle_archive_at, lifecycle_delete_at')
       .eq('status', 'past_due')
       .lte('grace_period_end', nowIso);
 
@@ -33,20 +34,42 @@ export async function GET(request: Request) {
       return NextResponse.json({ ok: true, expired: 0 });
     }
 
-    const { error: updateError } = await supabaseAdmin
-      .from('subscriptions')
-      .update({
-        status: 'expired',
-        updated_at: nowIso,
-      })
-      .in('id', overdue.map((row) => row.id));
+    let expired = 0;
+    for (const row of overdue) {
+      const schedule = row.lifecycle_lapsed_at
+        ? {
+            lapsedAt: new Date(row.lifecycle_lapsed_at),
+            archiveAt: row.lifecycle_archive_at ? new Date(row.lifecycle_archive_at) : buildLifecycleSchedule(row.lifecycle_lapsed_at).archiveAt,
+            deleteAt: row.lifecycle_delete_at ? new Date(row.lifecycle_delete_at) : buildLifecycleSchedule(row.lifecycle_lapsed_at).deleteAt,
+          }
+        : buildLifecycleSchedule(new Date());
 
-    if (updateError) {
-      console.error('Grace expiry cron: failed to update subscriptions', updateError);
-      return NextResponse.json({ error: 'Failed to update subscriptions' }, { status: 500 });
+      const { error: updateError } = await supabaseAdmin
+        .from('subscriptions')
+        .update({
+          status: 'expired',
+          lifecycle_lapsed_at: schedule.lapsedAt.toISOString(),
+          lifecycle_archive_at: schedule.archiveAt.toISOString(),
+          lifecycle_delete_at: schedule.deleteAt.toISOString(),
+          lifecycle_archived_at: null,
+          lifecycle_deleted_at: null,
+          lifecycle_archive_notice_sent_at: null,
+          lifecycle_delete_notice_sent_at: null,
+          lifecycle_archive_warning_days_sent: [],
+          lifecycle_delete_warning_days_sent: [],
+          lifecycle_reminder_days_sent: [],
+          updated_at: nowIso,
+        })
+        .eq('id', row.id);
+
+      if (updateError) {
+        console.error('Grace expiry cron: failed to update subscription', row.id, updateError);
+        continue;
+      }
+      expired += 1;
     }
 
-    return NextResponse.json({ ok: true, expired: overdue.length });
+    return NextResponse.json({ ok: true, expired });
   } catch (error: any) {
     console.error('Grace expiry cron failed', error);
     return NextResponse.json({ error: error?.message || 'Internal server error' }, { status: 500 });

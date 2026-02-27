@@ -3,7 +3,6 @@ import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 
 const GUEST_COOKIE_NAME = 'mm_guest_id';
-const GUEST_MESSAGE_LIMIT_24H = 10;
 const AUTH_MESSAGE_LIMIT_24H = 25;
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -18,7 +17,7 @@ export async function GET(request: NextRequest) {
     const { data: authData } = await supabase.auth.getUser();
     const authUserId = authData?.user?.id || null;
 
-    // Guest identity (cookie-based) for guest message limit display/enforcement.
+    // Guest identity (cookie-based) for optional guest usage metrics.
     const guestCookie = request.cookies.get(GUEST_COOKIE_NAME)?.value || null;
     const guestId = guestCookie && uuidRegex.test(guestCookie) ? guestCookie : null;
 
@@ -85,20 +84,12 @@ export async function GET(request: NextRequest) {
     } else if (guestId) {
       const { data: guestRow } = await supabaseAdmin
         .from('guest_message_usage')
-        .select('message_count, window_start')
+        .select('message_count')
         .eq('guest_id', guestId)
         .maybeSingle();
 
       const count = typeof guestRow?.message_count === 'number' ? guestRow.message_count : 0;
-      const windowStart = guestRow?.window_start ? new Date(guestRow.window_start) : null;
-      if (count >= GUEST_MESSAGE_LIMIT_24H && windowStart) {
-        const canMessageAgainAt = new Date(windowStart.getTime() + 24 * 60 * 60 * 1000);
-        return NextResponse.json(
-          { count, limit: GUEST_MESSAGE_LIMIT_24H, canMessageAgainAt: canMessageAgainAt.toISOString(), guest: true },
-          { status: 200 }
-        );
-      }
-      return NextResponse.json({ count, limit: GUEST_MESSAGE_LIMIT_24H, guest: true }, { status: 200 });
+      return NextResponse.json({ count, guest: true }, { status: 200 });
     }
 
     // No auth and no guest cookie: return zero.

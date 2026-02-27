@@ -50,6 +50,8 @@ export default function DocumentsClient() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ kind: 'document' | 'folder'; id: string } | null>(null);
+  const [canUpload, setCanUpload] = useState(true);
+  const [planLoaded, setPlanLoaded] = useState(false);
 
   const readApiJson = async (res: Response) => {
     const contentType = res.headers.get('content-type') || '';
@@ -72,6 +74,35 @@ export default function DocumentsClient() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadPlan = async () => {
+      if (!uid) return;
+      try {
+        const res = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await readApiJson(res);
+        if (cancelled) return;
+        setCanUpload(Boolean(data?.paidAccess));
+      } catch {
+        if (!cancelled) {
+          setCanUpload(true);
+        }
+      } finally {
+        if (!cancelled) {
+          setPlanLoaded(true);
+        }
+      }
+    };
+
+    void loadPlan();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [uid]);
 
   useEffect(() => {
     try {
@@ -166,6 +197,11 @@ export default function DocumentsClient() {
   }, [searchParams]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!canUpload) {
+      setUploadError('Read-only mode: resume plan to upload documents. Existing documents remain safe.');
+      e.target.value = '';
+      return;
+    }
     if (!e.target.files) return;
     setUploadError(null);
     setUploading(true);
@@ -194,6 +230,7 @@ export default function DocumentsClient() {
       setUploadError(err?.message || 'Upload failed');
     } finally {
       setUploading(false);
+      e.target.value = '';
     }
   };
 
@@ -208,6 +245,10 @@ export default function DocumentsClient() {
   };
 
   const deleteDocument = async (id: string) => {
+    if (!canUpload) {
+      setUploadError('Read-only mode: resume plan to manage documents. Existing documents remain safe.');
+      return;
+    }
     setDeleteModal({ kind: 'document', id });
   };
 
@@ -535,6 +576,27 @@ export default function DocumentsClient() {
     setViewingDocument(doc);
   };
 
+  const handleDownloadDocument = async (doc: Document) => {
+    try {
+      const res = await fetch(`/api/documents/${doc.id}/signed`, { credentials: 'include' });
+      const data: any = await readApiJson(res);
+      if (!res.ok || !data?.url) {
+        throw new Error(data?.error || 'Unable to prepare download');
+      }
+
+      const anchor = document.createElement('a');
+      anchor.href = data.url;
+      anchor.download = doc.title || 'document';
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+    } catch (err: any) {
+      setUploadError(err?.message || 'Failed to download document');
+    }
+  };
+
   return (
     <div className={styles.container}>
       <DocumentsSidebar
@@ -562,8 +624,14 @@ export default function DocumentsClient() {
           uploadFolderId={uploadFolderId}
           onUploadFolderChange={setUploadFolderId}
           uploading={uploading}
+          canUpload={canUpload}
           onUpload={handleUpload}
         />
+        {!canUpload && planLoaded && (
+          <p className={styles.readOnlyNotice}>
+            Read-only mode: viewing and downloading are available. Resume plan to upload or delete documents.
+          </p>
+        )}
         {uploadError && (
           <p style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '-8px' }}>{uploadError}</p>
         )}
@@ -585,7 +653,9 @@ export default function DocumentsClient() {
               formatDate={fmt}
               formatSize={fmtSize}
               onView={handleViewDocument}
+              onDownload={handleDownloadDocument}
               onToggleStar={toggleStar}
+              canDelete={canUpload}
               onDelete={deleteDocument}
               onFolderChange={handleFolderAssignment}
             />

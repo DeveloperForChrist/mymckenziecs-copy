@@ -15,5 +15,24 @@ describe('neutralizeLegalAdviceTone', () => {
     expect(output).toContain('you may wish to report this now')
     expect(output).toContain('the rules generally require that you send the form today')
   })
-})
 
+  it('rewrites deterministic predictions and absolute legal conclusions', () => {
+    const input = [
+      'You will win.',
+      'This is unlawful.',
+      'The judge must strike out the claim.',
+    ].join(' ')
+
+    const output = neutralizeLegalAdviceTone(input)
+
+    expect(output).toContain('outcomes depend on the facts, evidence, and procedure')
+    expect(output).toContain('this may be unlawful')
+    expect(output).toContain('judges may, depending on the facts and procedure')
+  })
+
+  it('adds uncertainty framing when legal analysis has no hedge language', () => {
+    const input = 'The court decides liability based on evidence.'
+    const output = neutralizeLegalAdviceTone(input)
+    expect(output.toLowerCase()).toContain('in general, this depends on the specific facts, evidence, and procedure.')
+  })
+})

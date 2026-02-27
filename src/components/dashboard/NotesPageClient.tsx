@@ -27,12 +27,31 @@ interface ExtractedCalendarEvent {
   notes: string | null;
 }
 
+interface LocalDraftPayload {
+  notesPages: NotePage[];
+  activePageId: string;
+  savedAt: string;
+}
+
+interface GlobalLocalDraftPayload extends LocalDraftPayload {
+  selectedCaseId: string;
+}
+
+interface ServerNotesPayload {
+  notesPages: NotePage[];
+  activePageId: string;
+  selectedCaseId: string;
+  updatedAt?: string;
+}
+
+const NOTES_READ_ONLY_MESSAGE = "Read-only mode: resume plan to edit notes. Existing notes remain safe.";
+
 export default function NotesPageClient() {
   const [authUid, setAuthUid] = useState<string | null>(null);
-  const [availableCases, setAvailableCases] = useState<any[]>([]);
   const [selectedCaseId, setSelectedCaseId] = useState("");
-  const [loadingCases, setLoadingCases] = useState(true);
-  const [hasCase, setHasCase] = useState(false);
+  const [loadingNotes, setLoadingNotes] = useState(true);
+  const [readOnlyMode, setReadOnlyMode] = useState(false);
+  const [readOnlyMessage, setReadOnlyMessage] = useState<string | null>(null);
 
   const [notesPages, setNotesPages] = useState<NotePage[]>([
     { id: "p1", title: "Overview", content: "Key facts and timeline...", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
@@ -44,6 +63,17 @@ export default function NotesPageClient() {
   const [saving, setSaving] = useState<"saved" | "saving" | "error">("saved");
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedRef = useRef<string>("");
+  const latestDraftRef = useRef<{
+    authUid: string | null;
+    selectedCaseId: string;
+    notesPages: NotePage[];
+    activePageId: string;
+  }>({
+    authUid: null,
+    selectedCaseId: "",
+    notesPages: [],
+    activePageId: "",
+  });
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -57,36 +87,97 @@ export default function NotesPageClient() {
   const [extractedEvents, setExtractedEvents] = useState<ExtractedCalendarEvent[]>([]);
   const [isSavingExtractedEvents, setIsSavingExtractedEvents] = useState(false);
 
-  const fetchCases = useCallback(async () => {
+  const globalDraftStorageKey = useCallback((uid: string) => `mynotes-draft:${uid}:local`, []);
+  const normalizeDraftPages = useCallback(
+    (pages: unknown[]): NotePage[] =>
+      pages.map((note: any) => ({
+        ...note,
+        createdAt: note.createdAt || new Date().toISOString(),
+        updatedAt: note.updatedAt || new Date().toISOString(),
+      })),
+    []
+  );
+
+  const saveNotesToServer = useCallback(
+    async (
+      pages: NotePage[],
+      activeId: string,
+      selectedCaseIdForSave: string,
+      payload: string,
+      options?: { keepalive?: boolean; updateStatus?: boolean }
+    ) => {
+      const updateStatus = options?.updateStatus !== false;
+      try {
+        const response = await fetch("/api/notes", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          keepalive: options?.keepalive,
+          body: JSON.stringify({
+            notesPages: pages,
+            activePageId: activeId,
+            selectedCaseId: selectedCaseIdForSave,
+          }),
+        });
+
+        if (response.status === 402) {
+          const data = await response.json().catch(() => ({} as Record<string, unknown>));
+          const lockedMessage =
+            typeof data.error === "string" && data.error.trim().length > 0
+              ? data.error
+              : NOTES_READ_ONLY_MESSAGE;
+          setReadOnlyMode(true);
+          setReadOnlyMessage(lockedMessage);
+          if (updateStatus) {
+            setSaving("saved");
+          }
+          return false;
+        }
+
+        if (!response.ok) {
+          throw new Error(`Save failed with status ${response.status}`);
+        }
+
+        lastSavedRef.current = payload;
+        if (updateStatus) {
+          setSaving("saved");
+        }
+        return true;
+      } catch (error) {
+        console.error("Failed to save notes", error);
+        if (updateStatus) {
+          setSaving("error");
+        }
+        return false;
+      }
+    },
+    []
+  );
+
+  const loadNotesFromServer = useCallback(async (): Promise<ServerNotesPayload | null> => {
     try {
-      if (!authUid) {
-        setAvailableCases([]);
-        setHasCase(false);
-        setLoadingCases(false);
-        return;
-      }
-      setLoadingCases(true);
-      const response = await fetch('/api/cases');
+      const response = await fetch("/api/notes", { cache: "no-store" });
       if (!response.ok) {
-        throw new Error('Failed to fetch cases');
+        return null;
       }
-      const data = await response.json();
-      const cases = data.cases || [];
-
-      setAvailableCases(cases);
-      setHasCase(cases.length > 0);
-
-      // Do not auto-select a case. Let the user choose or rely on a saved case profile.
-      if (cases.length === 0) {
-        setSelectedCaseId('');
+      const data = (await response.json()) as Partial<ServerNotesPayload>;
+      if (!Array.isArray(data?.notesPages) || data.notesPages.length === 0 || typeof data.activePageId !== "string") {
+        return null;
       }
+      const normalizedPages = normalizeDraftPages(data.notesPages);
+      const normalizedActivePageId = normalizedPages.some((page) => page.id === data.activePageId)
+        ? data.activePageId
+        : normalizedPages[0].id;
+      return {
+        notesPages: normalizedPages,
+        activePageId: normalizedActivePageId,
+        selectedCaseId: typeof data.selectedCaseId === "string" ? data.selectedCaseId : "",
+        updatedAt: typeof data.updatedAt === "string" ? data.updatedAt : undefined,
+      };
     } catch (error) {
-      console.error('Error fetching cases:', error);
-      setHasCase(false);
-    } finally {
-      setLoadingCases(false);
+      console.error("Failed to load notes from server", error);
+      return null;
     }
-  }, [authUid]);
+  }, [normalizeDraftPages]);
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -100,42 +191,144 @@ export default function NotesPageClient() {
   }, []);
 
   useEffect(() => {
-    void fetchCases();
-  }, [authUid, fetchCases]);
+    latestDraftRef.current = {
+      authUid,
+      selectedCaseId,
+      notesPages,
+      activePageId,
+    };
+  }, [authUid, selectedCaseId, notesPages, activePageId]);
 
   useEffect(() => {
-    const selected = availableCases.find(c => c.id === selectedCaseId);
-    if (selected) {
-      const storedNotes = Array.isArray(selected.notesPages) ? selected.notesPages : null;
-      const storedActive = typeof selected.notesActiveId === 'string' ? selected.notesActiveId : null;
-      if (storedNotes && storedNotes.length > 0) {
-        setNotesPages(storedNotes.map((note: any) => ({
-          ...note,
-          createdAt: note.createdAt || new Date().toISOString(),
-          updatedAt: note.updatedAt || new Date().toISOString()
-        })));
-        if (storedActive && storedNotes.find((page: any) => page.id === storedActive)) {
-          setActivePageId(storedActive);
-        } else {
-          setActivePageId(storedNotes[0].id);
+    let cancelled = false;
+
+    const loadNotes = async () => {
+      if (!authUid || typeof window === "undefined") {
+        if (!cancelled) {
+          setLoadingNotes(false);
         }
+        return;
+      }
+
+      setLoadingNotes(true);
+
+      let localDraft: GlobalLocalDraftPayload | null = null;
+      try {
+        const draftRaw = window.localStorage.getItem(globalDraftStorageKey(authUid));
+        if (draftRaw) {
+          const parsed = JSON.parse(draftRaw) as GlobalLocalDraftPayload;
+          if (Array.isArray(parsed?.notesPages) && parsed.notesPages.length > 0 && typeof parsed.activePageId === "string") {
+            localDraft = parsed;
+          }
+        }
+      } catch (error) {
+        console.error("Failed to restore local notes", error);
+      }
+
+      const serverDraft = await loadNotesFromServer();
+      if (cancelled) return;
+
+      const localSavedAt = localDraft?.savedAt ? new Date(localDraft.savedAt).getTime() : 0;
+      const serverSavedAt = serverDraft?.updatedAt ? new Date(serverDraft.updatedAt).getTime() : 0;
+      const shouldUseLocal = Boolean(localDraft) && (!serverDraft || localSavedAt >= serverSavedAt);
+      const sourceDraft = shouldUseLocal ? localDraft : serverDraft;
+
+      if (sourceDraft && Array.isArray(sourceDraft.notesPages) && sourceDraft.notesPages.length > 0) {
+        const normalizedDraftNotes = normalizeDraftPages(sourceDraft.notesPages);
+        const normalizedActivePageId = normalizedDraftNotes.some((page: any) => page.id === sourceDraft.activePageId)
+          ? sourceDraft.activePageId
+          : normalizedDraftNotes[0].id;
+
+        setNotesPages(normalizedDraftNotes);
+        setActivePageId(normalizedActivePageId);
+        setSelectedCaseId(typeof sourceDraft.selectedCaseId === "string" ? sourceDraft.selectedCaseId : "");
         lastSavedRef.current = JSON.stringify({
-          notesPages: storedNotes,
-          activePageId: storedActive && storedNotes.find((page: any) => page.id === storedActive)
-            ? storedActive
-            : storedNotes[0].id
+          notesPages: normalizedDraftNotes,
+          activePageId: normalizedActivePageId,
+          selectedCaseId: typeof sourceDraft.selectedCaseId === "string" ? sourceDraft.selectedCaseId : "",
         });
       }
-    }
-  }, [selectedCaseId, availableCases]);
+
+      setSaving("saved");
+      setLoadingNotes(false);
+    };
+
+    void loadNotes();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authUid, globalDraftStorageKey, loadNotesFromServer, normalizeDraftPages]);
 
   useEffect(() => {
-    // Only auto-save when we have an authenticated user and a selected case.
-    if (!authUid || !selectedCaseId) return;
-    if (!notesPages.length || !activePageId) return;
+    if (!authUid || !notesPages.length || !activePageId || typeof window === "undefined") return;
+    try {
+      const localDraft: GlobalLocalDraftPayload = {
+        notesPages,
+        activePageId,
+        selectedCaseId,
+        savedAt: new Date().toISOString(),
+      };
+      window.localStorage.setItem(globalDraftStorageKey(authUid), JSON.stringify(localDraft));
+    } catch (error) {
+      console.error("Failed to persist local notes", error);
+    }
+  }, [authUid, notesPages, activePageId, selectedCaseId, globalDraftStorageKey]);
 
-    const payload = JSON.stringify({ notesPages, activePageId });
-    if (payload === lastSavedRef.current) return;
+  useEffect(() => {
+    let cancelled = false;
+    if (!authUid) {
+      setReadOnlyMode(false);
+      setReadOnlyMessage(null);
+      return;
+    }
+
+    const loadPlanAccess = async () => {
+      try {
+        const response = await fetch("/api/user/plan", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = (await response.json()) as { paidAccess?: boolean };
+        if (cancelled) return;
+        if (data?.paidAccess === false) {
+          setReadOnlyMode(true);
+          setReadOnlyMessage(NOTES_READ_ONLY_MESSAGE);
+          return;
+        }
+        setReadOnlyMode(false);
+        setReadOnlyMessage(null);
+      } catch {
+        // Keep existing mode if plan check fails.
+      }
+    };
+
+    void loadPlanAccess();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authUid]);
+
+  useEffect(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+
+    if (!authUid || !notesPages.length || !activePageId) return;
+    if (readOnlyMode) {
+      if (saving !== "saved") {
+        setSaving("saved");
+      }
+      return;
+    }
+
+    const payload = JSON.stringify({ notesPages, activePageId, selectedCaseId });
+    if (payload === lastSavedRef.current) {
+      if (saving !== "saved") {
+        setSaving("saved");
+      }
+      return;
+    }
 
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
@@ -143,50 +336,75 @@ export default function NotesPageClient() {
 
     setSaving("saving");
     saveTimeoutRef.current = setTimeout(async () => {
-      try {
-        await fetch('/api/cases', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            caseId: selectedCaseId,
-            updates: {
-              notesPages,
-              notesActiveId: activePageId,
-              notesUpdatedAt: new Date().toISOString()
-            }
-          })
-        });
-        
-        lastSavedRef.current = payload;
-        setSaving("saved");
-      } catch (error) {
-        console.error('Failed to save notes', error);
-        setSaving("error");
-      }
-    }, 600);
+      await saveNotesToServer(notesPages, activePageId, selectedCaseId, payload, {
+        keepalive: true,
+      });
+    }, 250);
+  }, [authUid, selectedCaseId, notesPages, activePageId, readOnlyMode, saving, saveNotesToServer]);
 
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const flushPendingSave = () => {
+      if (!saveTimeoutRef.current) return;
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+
+      const snapshot = latestDraftRef.current;
+      if (!snapshot.authUid || !snapshot.notesPages.length || !snapshot.activePageId || readOnlyMode) {
+        return;
+      }
+
+      const payload = JSON.stringify({
+        notesPages: snapshot.notesPages,
+        activePageId: snapshot.activePageId,
+        selectedCaseId: snapshot.selectedCaseId,
+      });
+      if (payload === lastSavedRef.current) return;
+
+      void saveNotesToServer(
+        snapshot.notesPages,
+        snapshot.activePageId,
+        snapshot.selectedCaseId,
+        payload,
+        { keepalive: true, updateStatus: false }
+      );
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        flushPendingSave();
       }
     };
-  }, [authUid, selectedCaseId, notesPages, activePageId]);
+
+    window.addEventListener("pagehide", flushPendingSave);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pagehide", flushPendingSave);
+      flushPendingSave();
+    };
+  }, [readOnlyMode, saveNotesToServer]);
 
   const onChangeTitle = useCallback((val: string) => {
+    if (readOnlyMode) return;
     setSaving("saving");
     setNotesPages(prev => prev.map(p => 
       p.id === activePageId ? { ...p, title: val, updatedAt: new Date().toISOString() } : p
     ));
-  }, [activePageId]);
+  }, [activePageId, readOnlyMode]);
 
   const onChangeContent = useCallback((val: string) => {
+    if (readOnlyMode) return;
     setSaving("saving");
     setNotesPages(prev => prev.map(p => 
       p.id === activePageId ? { ...p, content: val, updatedAt: new Date().toISOString() } : p
     ));
-  }, [activePageId]);
+  }, [activePageId, readOnlyMode]);
 
   const appendToActiveNote = useCallback((snippet: string) => {
+    if (readOnlyMode) return;
     const cleanSnippet = snippet.trim();
     if (!cleanSnippet) return;
 
@@ -200,9 +418,10 @@ export default function NotesPageClient() {
         updatedAt: new Date().toISOString(),
       };
     }));
-  }, [activePageId]);
+  }, [activePageId, readOnlyMode]);
 
   const addPage = () => {
+    if (readOnlyMode) return;
     const id = `p${Date.now()}`;
     const now = new Date().toISOString();
     const page: NotePage = { 
@@ -217,12 +436,14 @@ export default function NotesPageClient() {
   };
 
   const deletePage = () => {
+    if (readOnlyMode) return;
     if (notesPages.length <= 1) return;
     setPendingDeleteNoteId(activePageId);
     setDeleteModalOpen(true);
   };
 
   const confirmDeletePage = () => {
+    if (readOnlyMode) return;
     if (!pendingDeleteNoteId) return;
     setNotesPages(prev => {
       const idx = prev.findIndex(p => p.id === pendingDeleteNoteId);
@@ -443,12 +664,7 @@ export default function NotesPageClient() {
     );
   }, [notesPages, searchQuery]);
 
-  const selectedCase = availableCases.find(c => c.id === selectedCaseId);
-  const caseLabel = selectedCase?.title
-    ? `Saving to: ${selectedCase.title}`
-    : hasCase
-    ? "No case selected. Notes stay local until you choose a case."
-    : "No case profile yet. Notes remain available on this page.";
+  const caseLabel = "Saved to your account.";
 
   return (
     <div className={styles.notesApp}>
@@ -474,7 +690,7 @@ export default function NotesPageClient() {
               <span>Search</span>
             )}
           </div>
-          <button className={styles.newNoteBtn} onClick={addPage}>
+          <button className={styles.newNoteBtn} onClick={addPage} disabled={readOnlyMode}>
             <i className="bx bx-plus" />
             <span>New Note</span>
           </button>
@@ -485,7 +701,7 @@ export default function NotesPageClient() {
         </div>
 
         <div className={styles.notesListContent}>
-          {loadingCases ? (
+          {loadingNotes ? (
             <div className={styles.emptyState}>
               <i className="bx bx-loader-alt bx-spin" />
               <p>Loading notes...</p>
@@ -493,8 +709,8 @@ export default function NotesPageClient() {
           ) : filteredNotes.length === 0 ? (
             <div className={styles.emptyState}>
               <i className="bx bx-note" />
-              <h3>No case notes yet</h3>
-              <p>Click &quot;New Note&quot; to start documenting your case</p>
+              <h3>No notes yet</h3>
+              <p>Click &quot;New Note&quot; to start writing.</p>
             </div>
           ) : (
             filteredNotes.map(note => (
@@ -509,8 +725,10 @@ export default function NotesPageClient() {
                   </div>
                   <button 
                     className={styles.noteDeleteBtn}
+                    disabled={readOnlyMode}
                     onClick={(e) => {
                       e.stopPropagation();
+                      if (readOnlyMode) return;
                       if (notesPages.length <= 1) return;
                       setPendingDeleteNoteId(note.id);
                       setDeleteModalOpen(true);
@@ -549,6 +767,9 @@ export default function NotesPageClient() {
               <div className={styles.editorHeaderCopy}>
                 <h1 className={styles.editorTitle}>MyNotes</h1>
                 <p className={styles.editorContext}>{caseLabel}</p>
+                {readOnlyMode && (
+                  <p className={styles.readOnlyBanner}>{readOnlyMessage || NOTES_READ_ONLY_MESSAGE}</p>
+                )}
               </div>
               <div className={styles.editorActions}>
                 <button
@@ -575,6 +796,7 @@ export default function NotesPageClient() {
                 type="text"
                 className={styles.noteTitle}
                 value={activePage.title}
+                readOnly={readOnlyMode}
                 onChange={(e) => onChangeTitle(e.target.value)}
                 placeholder="Note title"
               />
@@ -582,15 +804,30 @@ export default function NotesPageClient() {
               <textarea
                 className={styles.noteBody}
                 value={activePage.content}
+                readOnly={readOnlyMode}
                 onChange={(e) => onChangeContent(e.target.value)}
                 placeholder="Start writing your note..."
               />
 
               {summaryResult && (
                 <div className={styles.helperCard}>
-                  <div className={styles.helperCardTitle}>
-                    <i className="bx bx-align-left" />
-                    <span>AI Summary</span>
+                  <div className={styles.helperCardHeader}>
+                    <div className={styles.helperCardTitle}>
+                      <i className="bx bx-align-left" />
+                      <span>AI Summary</span>
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.helperCloseButton}
+                      onClick={() => {
+                        setSummaryResult(null);
+                        setSummaryStatus(null);
+                      }}
+                      aria-label="Close AI summary"
+                      title="Close summary"
+                    >
+                      <i className="bx bx-x" />
+                    </button>
                   </div>
                   <p className={styles.helperCardText}>{summaryResult.summary}</p>
                   {summaryResult.actionItems.length > 0 && (
@@ -614,7 +851,12 @@ export default function NotesPageClient() {
                     </div>
                   )}
                   <div className={styles.helperActions}>
-                    <button type="button" className={styles.secondaryButton} onClick={addSummaryToNote}>
+                    <button
+                      type="button"
+                      className={styles.secondaryButton}
+                      onClick={addSummaryToNote}
+                      disabled={readOnlyMode}
+                    >
                       Add to Note
                     </button>
                   </div>
@@ -658,7 +900,7 @@ export default function NotesPageClient() {
                       type="button"
                       className={styles.secondaryButton}
                       onClick={saveExtractedEvents}
-                      disabled={isSavingExtractedEvents}
+                      disabled={isSavingExtractedEvents || readOnlyMode}
                     >
                       {isSavingExtractedEvents ? "Saving..." : "Save to Calendar"}
                     </button>
@@ -676,7 +918,13 @@ export default function NotesPageClient() {
                 <span 
                   className={`${styles.saveStatusDot} ${saving === 'saving' ? styles.saving : ''} ${saving === 'error' ? styles.error : ''}`}
                 />
-                {saving === "saving" ? "Saving..." : saving === "error" ? "Save failed" : "All changes saved"}
+                {readOnlyMode
+                  ? "Read-only mode"
+                  : saving === "saving"
+                  ? "Saving..."
+                  : saving === "error"
+                  ? "Save failed"
+                  : "All changes saved"}
               </div>
             </div>
           </>

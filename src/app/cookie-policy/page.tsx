@@ -6,12 +6,12 @@ export default function CookiePolicyPage() {
     <LegalPageLayout
       title="Cookie Policy"
       subtitle="How we use cookies and local storage to keep the platform secure."
-      meta="Owned by MyMckenzie Ltd • Last Updated: February 10, 2026"
+      meta="Owned by MyMcKenzieCS Ltd • Last Updated: February 10, 2026"
     >
       <ol className="list-decimal pl-6 space-y-6 text-base md:text-lg">
         <li>
           <b>Introduction</b>
-          <p className="mt-2">This Cookie Policy explains how MymckenzieCS (&quot;The Platform&quot;, &quot;We&quot;, &quot;Us&quot;) uses cookies and similar technologies on our website and web application.</p>
+          <p className="mt-2">This Cookie Policy explains how MyMcKenzieCS (&quot;The Platform&quot;, &quot;We&quot;, &quot;Us&quot;) uses cookies and similar technologies on our website and web application.</p>
           <p>By using the Platform, you agree to the use of cookies as described in this policy.</p>
         </li>
         <li>
@@ -115,7 +115,7 @@ export default function CookiePolicyPage() {
         </li>
         <li>
           <b>Contact Information</b>
-          <p className="mt-2">MyMckenzie Ltd<br/>Email: support@mymckenziecs.com<br/>Registered Office: [Insert]</p>
+          <p className="mt-2">MyMcKenzieCS Ltd<br/>Email: support@mymckenziecs.com<br/>Registered Office: [Insert]</p>
         </li>
       </ol>
     </LegalPageLayout>

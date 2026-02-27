@@ -90,7 +90,7 @@ export default function ContactSection() {
     <div className={styles.sectionWrapper}>
       <section className={styles.settingsSection}>
         <h2 className={styles.sectionHeading}>Contact Us</h2>
-        <p className={styles.desc}>Get in touch with the MyMcKenzie team for help and support.</p>
+        <p className={styles.desc}>Get in touch with the MyMcKenzieCS team for help and support.</p>
         <form className={styles.formGrid} onSubmit={handleSubmit}>
           <div className={styles.formGroup}> 
             <label className={styles.formLabel}>Subject</label>

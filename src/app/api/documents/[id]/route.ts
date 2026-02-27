@@ -1,5 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
+import { supabaseAdmin } from '@/lib/database/supabase-server'
+
+async function hasPaidAccess(userId: string): Promise<boolean> {
+  const { data } = await supabaseAdmin
+    .from('subscriptions')
+    .select('plan_type, status')
+    .eq('user_id', userId)
+    .in('status', ['active', 'past_due'])
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const label = String(data?.plan_type || '').toLowerCase()
+  return Boolean(label && (label.includes('basic') || label.includes('premium')))
+}
 
 export async function DELETE(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
@@ -7,6 +22,13 @@ export async function DELETE(_request: NextRequest, context: { params: Promise<{
     const { data: authData, error: authErr } = await supabase.auth.getUser()
     if (authErr || !authData?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const paid = await hasPaidAccess(authData.user.id)
+    if (!paid) {
+      return NextResponse.json(
+        { error: 'Read-only mode: resume plan to manage documents. Your files remain safe.' },
+        { status: 402 }
+      )
     }
 
     const { id } = await context.params

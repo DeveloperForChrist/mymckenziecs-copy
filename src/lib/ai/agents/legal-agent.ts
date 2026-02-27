@@ -19,6 +19,7 @@ PRESENTATION:
 - Use short paragraphs (1 idea, 1-3 sentences, 2-4 lines) with blank lines between sections.
 - Use numbered lists (1., 2., 3.) for ordered steps or hierarchy.
 - Use bullets (•) for parallel ideas.
+- When using court abbreviations in case references (for example UKSC, EWCA, EWHC), explain them in plain English on first mention.
 - Do not output tables.
 - Use divider lines only when shifting mode (e.g., explanation → examples, law → practical). Divider line must be exactly: ---
 - Always end with a one-sentence compression line starting with "In short:".
@@ -46,6 +47,7 @@ PRESENTATION:
 - Use short paragraphs (1 idea, 1-3 sentences, 2-4 lines).
 - Use numbered lists (1., 2., 3.) for ordered steps or hierarchy.
 - Use bullets (•) for parallel ideas.
+- When using court abbreviations in case references (for example UKSC, EWCA, EWHC), explain them in plain English on first mention.
 - Do not output tables.
 - Always end with a one-sentence compression line starting with "In short:".
 
@@ -76,6 +78,7 @@ type LegalAgentOptions = {
   systemPrompt?: string
   includeCitations?: boolean
   provider?: LlmProvider
+  openaiModel?: string
 }
 
 // Sanitize history
@@ -427,15 +430,42 @@ async function callLLM(
       throw new Error('OPENAI_API_KEY is not set in the environment')
     }
     const openai = new OpenAI({ apiKey })
-    const completion = await openai.chat.completions.create({
-      model,
-      max_tokens: maxTokens,
-      temperature: 0.7,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: prompt }
-      ]
-    })
+    const normalizedModel = model.trim().toLowerCase()
+    const shouldUseMaxCompletionTokens = normalizedModel.startsWith('o')
+    const messages = [
+      { role: 'system' as const, content: systemPrompt },
+      { role: 'user' as const, content: prompt }
+    ]
+    const buildPayload = (useMaxCompletionTokens: boolean) => {
+      const basePayload: Record<string, unknown> = {
+        model,
+        messages,
+      }
+
+      if (useMaxCompletionTokens) {
+        basePayload.max_completion_tokens = maxTokens
+      } else {
+        basePayload.max_tokens = maxTokens
+        basePayload.temperature = 0.7
+      }
+
+      return basePayload
+    }
+
+    let completion: any
+    try {
+      completion = await openai.chat.completions.create(
+        buildPayload(shouldUseMaxCompletionTokens) as any
+      )
+    } catch (error: any) {
+      const unsupportedTokenParam =
+        error?.code === 'unsupported_parameter' &&
+        (error?.param === 'max_tokens' || error?.param === 'max_completion_tokens')
+      if (!unsupportedTokenParam) throw error
+      completion = await openai.chat.completions.create(
+        buildPayload(!shouldUseMaxCompletionTokens) as any
+      )
+    }
 
     let rawResponse = completion.choices[0]?.message?.content || "I couldn't generate a response."
     const finishReason = completion.choices[0]?.finish_reason
@@ -490,6 +520,7 @@ export async function createLegalAgent(
   const useDiscriminator = options?.useDiscriminator !== false
   const useSearch = options?.useSearch !== false
   const includeCitations = options?.includeCitations === true
+  const openaiModel = options?.openaiModel || OPENAI_MODEL
   return {
     tools,
     systemPrompt,
@@ -503,7 +534,7 @@ export async function createLegalAgent(
         // 1. Check greeting
         if (isBasicGreeting(latestQuestion)) {
           return {
-            response: "Hello! I'm MymckenzieCS. How can I help with your legal question?",
+            response: "Hello! I'm MyMcKenzieCS. How can I help with your legal question?",
             document_generated: false,
             guidance_provided: true,
             sources: undefined
@@ -528,7 +559,7 @@ export async function createLegalAgent(
           const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
           const directPrompt = `${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. Output must be plain text only. Follow the presentation rules.`
           const llmProvider: LlmProvider = options?.provider || 'openai'
-          const modelForProvider = llmProvider === 'groq' ? GROQ_MODEL : OPENAI_MODEL
+          const modelForProvider = llmProvider === 'groq' ? GROQ_MODEL : openaiModel
           const directAnswer = await callLLM(directPrompt, systemPrompt, modelForProvider, MAX_TOKENS, llmProvider)
           const neutralDirectAnswer = neutralizeLegalAdviceTone(directAnswer)
           return {
@@ -586,7 +617,7 @@ export async function createLegalAgent(
         const comprehensiveAnswer = await callLLM(
           comprehensivePrompt,
           systemPrompt,
-          OPENAI_MODEL,
+          openaiModel,
           MAX_TOKENS + COMPREHENSIVE_TOKEN_BONUS,
           'openai'
         )
@@ -656,7 +687,7 @@ export async function invokeLegalAgent(
   userId?: string,
   conversationHistory: Array<{ role: string; content: string }> = [],
   caseKeywords?: string,
-  options?: { useDiscriminator?: boolean; useSearch?: boolean; includeCitations?: boolean }
+  options?: { useDiscriminator?: boolean; useSearch?: boolean; includeCitations?: boolean; openaiModel?: string }
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
   const agent = await createLegalAgent(conversationHistory, caseKeywords, undefined, options)
   const response = await agent.invoke({ input: message })

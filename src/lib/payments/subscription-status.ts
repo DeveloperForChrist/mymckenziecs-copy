@@ -6,7 +6,7 @@ export type BillingActiveStatus = (typeof BILLING_ACTIVE_STATUSES)[number];
 
 export function normalizeStripeSubscriptionStatus(status?: string | null): string {
   const raw = (status || '').toLowerCase().trim();
-  if (!raw) return 'active';
+  if (!raw) return 'incomplete';
   if (raw === 'canceled') return 'cancelled';
   return raw;
 }

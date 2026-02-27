@@ -6,14 +6,14 @@ export default function TermsPage() {
     <LegalPageLayout
       title="Terms & Conditions"
       subtitle="Clear rules for using the platform and keeping your case data safe."
-      meta="Owned by MyMckenzie Ltd • Last Updated: February 10, 2026"
+      meta="Owned by MyMcKenzieCS Ltd • Last Updated: February 10, 2026"
     >
       <ol className="list-decimal pl-6 space-y-6 text-base md:text-lg">
         <li>
           <b>Introduction</b>
-          <p className="mt-2">These Terms and Conditions (&quot;Terms&quot;) govern your access to and use of MymckenzieCS (&quot;The Platform&quot;), owned and operated by MyMckenzie Ltd (&quot;We&quot;, &quot;Us&quot;, &quot;Our&quot;).</p>
+          <p className="mt-2">These Terms and Conditions (&quot;Terms&quot;) govern your access to and use of MyMcKenzieCS (&quot;The Platform&quot;), owned and operated by MyMcKenzieCS Ltd (&quot;We&quot;, &quot;Us&quot;, &quot;Our&quot;).</p>
           <p>By registering an account, using the Platform, or purchasing any service, you agree to these Terms. If you do not agree, you must stop using the Platform immediately.</p>
-          <p>MymckenzieCS is a digital tool for Litigants in Person, providing AI-powered guidance, drafting assistance, and case-support tools. We are not a law firm and do not provide legal advice.</p>
+          <p>MyMcKenzieCS is a digital tool for Litigants in Person, providing AI-powered guidance, drafting assistance, and case-support tools. We are not a law firm and do not provide legal advice.</p>
         </li>
         <li>
           <b>Nature of Service (Important Disclaimer)</b>
@@ -95,7 +95,7 @@ export default function TermsPage() {
         <li>
           <b>Intellectual Property</b>
           <ol className="list-decimal pl-6 mt-2 space-y-1">
-            <li>The Platform, branding, design, algorithms, and AI workflows belong to MyMckenzie Ltd.</li>
+            <li>The Platform, branding, design, algorithms, and AI workflows belong to MyMcKenzieCS Ltd.</li>
             <li>You retain ownership of documents and data you upload.</li>
             <li>Generated drafts belong to you once created, but you grant us a licence to process them for quality improvement and system functioning.</li>
             <li>You may not:
@@ -141,6 +141,7 @@ export default function TermsPage() {
             <li>Fraudulent payment activity</li>
             <li>Violations of these Terms</li>
           </ul>
+          <p className="mt-2">If a paid subscription lapses, account features may be restricted and retention timelines (archive/deletion) may apply after final notice emails.</p>
           <p className="mt-2">You may delete your account at any time.</p>
         </li>
         <li>
@@ -163,7 +164,7 @@ export default function TermsPage() {
         </li>
         <li>
           <b>Contact Information</b>
-          <p className="mt-2">MyMckenzie Ltd<br/>Email: support@mymckenziecs.com<br/>Registered Office: [Insert]</p>
+          <p className="mt-2">MyMcKenzieCS Ltd<br/>Email: support@mymckenziecs.com<br/>Registered Office: [Insert]</p>
         </li>
         <li>
           <b>Agreement</b>

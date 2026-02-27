@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
     try {
       await sendResendEmail({
         to: email,
-        subject: 'Welcome to MymckenzieCS',
+        subject: 'Welcome to MyMcKenzieCS',
         htmlBody,
         tag: 'welcome-signup',
       });

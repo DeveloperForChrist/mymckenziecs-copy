@@ -26,7 +26,7 @@ async function main() {
   const env = loadEnv(path.join(__dirname, '..', '..', '.env.local'));
   const RESEND_KEY = process.env.RESEND_API_KEY || env.RESEND_API_KEY;
   const RAW_FROM = process.env.RESEND_FROM_EMAIL || env.RESEND_FROM_EMAIL || 'noreply@mymckenziecs.com';
-  const FROM_NAME = process.env.RESEND_FROM_NAME || env.RESEND_FROM_NAME || 'MymckenzieCS';
+  const FROM_NAME = process.env.RESEND_FROM_NAME || env.RESEND_FROM_NAME || 'MyMcKenzieCS';
   const FROM = RAW_FROM.includes('<') ? RAW_FROM : `${FROM_NAME} <${RAW_FROM}>`;
   if (!RESEND_KEY) { console.error('RESEND_API_KEY missing'); process.exit(2); }
 

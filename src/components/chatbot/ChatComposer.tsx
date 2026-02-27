@@ -15,15 +15,15 @@ type ChatComposerProps = {
   onInputChange: (e: ChangeEvent<HTMLTextAreaElement>) => void
   onInputKeyDown: (e: KeyboardEvent<HTMLTextAreaElement>) => void
   loading: boolean
-  isGuestLimitReached: boolean
   fileInputRef: MutableRefObject<HTMLInputElement | null>
   onFileChange: (e: ChangeEvent<HTMLInputElement>) => void
   onAttachClick: () => void
   hasSupabaseUser: boolean
-  onOpenGuestSignupModal: () => void
   onStopGeneration: () => void
   canSubmit: boolean
   showWordLimitWarning: boolean
+  isPlanLocked: boolean
+  planLockMessage?: string
 }
 
 export default function ChatComposer({
@@ -38,15 +38,15 @@ export default function ChatComposer({
   onInputChange,
   onInputKeyDown,
   loading,
-  isGuestLimitReached,
   fileInputRef,
   onFileChange,
   onAttachClick,
   hasSupabaseUser,
-  onOpenGuestSignupModal,
   onStopGeneration,
   canSubmit,
   showWordLimitWarning,
+  isPlanLocked,
+  planLockMessage,
 }: ChatComposerProps) {
   return (
     <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0px', position: 'relative', alignItems: 'center' }}>
@@ -78,12 +78,10 @@ export default function ChatComposer({
             }}
           >
             <div style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '10px' }}>
-              {isGuestLimitReached ? 'Guest limit reached' : 'Sign up to attach documents'}
+              Sign up to attach documents
             </div>
             <div style={{ opacity: 0.85, lineHeight: 1.6, marginBottom: '20px' }}>
-              {isGuestLimitReached
-                ? 'You have reached your guest message limit. Sign up or sign in to continue now, or return in 24 hours to keep using guest mode.'
-                : 'File uploads are available to registered users. Create a free account to upload documents and keep them with your case.'}
+              File uploads are available to registered users. Create a free account to upload documents and keep them with your case.
             </div>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
               <button
@@ -212,42 +210,21 @@ export default function ChatComposer({
                   {guestUploadWarning}
                 </p>
               )}
-              {isGuestLimitReached && (
+              {isPlanLocked && (
                 <div
                   style={{
                     width: '100%',
                     marginBottom: '10px',
                     padding: '10px 12px',
                     borderRadius: '10px',
-                    border: '1px solid rgba(236,72,153,0.35)',
-                    background: 'rgba(76, 10, 62, 0.35)',
-                    color: '#fbcfe8',
+                    border: '1px solid rgba(251, 191, 36, 0.45)',
+                    background: 'rgba(92, 53, 10, 0.35)',
+                    color: '#fde68a',
                     fontSize: '13px',
                     lineHeight: 1.45,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '10px'
                   }}
                 >
-                  <span>Guest limit reached. Sign up or sign in to continue chatting.</span>
-                  <button
-                    type="button"
-                    onClick={onOpenGuestSignupModal}
-                    style={{
-                      borderRadius: '999px',
-                      border: '1px solid rgba(255,255,255,0.25)',
-                      background: 'rgba(255,255,255,0.1)',
-                      color: '#fff',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      padding: '6px 10px',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Continue
-                  </button>
+                  {planLockMessage || 'Your plan is currently paused. Chat is locked until billing is resumed.'}
                 </div>
               )}
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px', paddingTop: '0px', width: '100%', justifyContent: 'flex-start' }}>
@@ -257,11 +234,11 @@ export default function ChatComposer({
                   onChange={onInputChange}
                   onKeyDown={onInputKeyDown}
                   placeholder={
-                    isGuestLimitReached
-                      ? 'Guest limit reached. Sign up to continue messaging.'
+                    isPlanLocked
+                      ? 'Chat is locked while your plan is paused. Resume your plan to continue.'
                       : 'Talk about your issue, ask for explanations, or request procedural guidance...'
                   }
-                  disabled={loading || isGuestLimitReached}
+                  disabled={loading || isPlanLocked}
                   style={{
                     flex: 1,
                     border: 'none',
@@ -300,110 +277,43 @@ export default function ChatComposer({
 
               <div style={{ position: 'relative', width: '100%' }}>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'flex-end', flex: 1 }}>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-                    onChange={onFileChange}
-                    style={{ display: 'none' }}
-                  />
-                  <button
-                    type="button"
-                    onClick={onAttachClick}
-                    aria-label="Add attachment"
-                    className="attach-btn"
-                    style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      background: '#3b1f44',
-                      color: '#F3F1FA',
-                      border: '1px solid rgba(236,72,153,0.12)',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '12px',
-                      cursor: hasSupabaseUser ? 'pointer' : 'not-allowed',
-                      flexShrink: 0,
-                      lineHeight: 0,
-                      transition: 'all 0.2s ease',
-                      opacity: hasSupabaseUser ? 1 : 0.5
-                    }}
-                    disabled={!hasSupabaseUser}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path
-                        d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
-                        stroke="#F3F1FA"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+                  {!isPlanLocked && (
+                    <>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                        onChange={onFileChange}
+                        style={{ display: 'none' }}
                       />
-                    </svg>
-                  </button>
-                  <style jsx>{`
-                    .attach-btn:hover {
-                      background: #5b2f6b;
-                      border-color: rgba(236,72,153,0.22);
-                      box-shadow: 0 2px 8px rgba(92,40,110,0.22);
-                      color: #fff;
-                    }
-                  `}</style>
-
-                  {loading ? (
-                    <button
-                      type="button"
-                      onClick={onStopGeneration}
-                      aria-label="Stop generation"
-                      style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '50%',
-                        background: '#8b5a8c',
-                        color: '#F3F1FA',
-                        border: '1px solid rgba(236,72,153,0.18)',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '16px',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                        lineHeight: 0,
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <rect x="6" y="6" width="12" height="12" rx="2" fill="#F3F1FA" />
-                      </svg>
-                    </button>
-                  ) : (
-                    isGuestLimitReached ? (
                       <button
                         type="button"
-                        onClick={onOpenGuestSignupModal}
-                        aria-label="Sign up to continue"
+                        onClick={onAttachClick}
+                        aria-label="Add attachment"
+                        className="attach-btn"
                         style={{
                           width: '28px',
                           height: '28px',
                           borderRadius: '50%',
-                          background: '#6b3a84',
+                          background: '#3b1f44',
                           color: '#F3F1FA',
-                          border: '1px solid rgba(236,72,153,0.18)',
+                          border: '1px solid rgba(236,72,153,0.12)',
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: '16px',
-                          cursor: 'pointer',
+                          fontSize: '12px',
+                          cursor: hasSupabaseUser ? 'pointer' : 'not-allowed',
                           flexShrink: 0,
                           lineHeight: 0,
                           transition: 'all 0.2s ease',
-                          opacity: 1
+                          opacity: hasSupabaseUser ? 1 : 0.5
                         }}
+                        disabled={!hasSupabaseUser}
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                           <path
-                            d="M4 12h16m-7-7l7 7-7 7"
+                            d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
                             stroke="#F3F1FA"
                             strokeWidth="2"
                             strokeLinecap="round"
@@ -411,40 +321,76 @@ export default function ChatComposer({
                           />
                         </svg>
                       </button>
-                    ) : (
-                      <button
-                        type="submit"
-                        aria-label="Send message"
-                        disabled={!canSubmit}
-                        style={{
-                          width: '28px',
-                          height: '28px',
-                          borderRadius: '50%',
-                          background: '#6b3a84',
-                          color: '#F3F1FA',
-                          border: '1px solid rgba(236,72,153,0.18)',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '16px',
-                          cursor: canSubmit ? 'pointer' : 'not-allowed',
-                          flexShrink: 0,
-                          lineHeight: 0,
-                          transition: 'all 0.2s ease',
-                          opacity: canSubmit ? 1 : 0.5
-                        }}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path
-                            d="M4 12h16m-7-7l7 7-7 7"
-                            stroke="#F3F1FA"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </button>
-                    )
+                      <style jsx>{`
+                        .attach-btn:hover {
+                          background: #5b2f6b;
+                          border-color: rgba(236,72,153,0.22);
+                          box-shadow: 0 2px 8px rgba(92,40,110,0.22);
+                          color: #fff;
+                        }
+                      `}</style>
+
+                      {loading ? (
+                        <button
+                          type="button"
+                          onClick={onStopGeneration}
+                          aria-label="Stop generation"
+                          style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '50%',
+                            background: '#8b5a8c',
+                            color: '#F3F1FA',
+                            border: '1px solid rgba(236,72,153,0.18)',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '16px',
+                            cursor: 'pointer',
+                            flexShrink: 0,
+                            lineHeight: 0,
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <rect x="6" y="6" width="12" height="12" rx="2" fill="#F3F1FA" />
+                          </svg>
+                        </button>
+                      ) : (
+                        <button
+                          type="submit"
+                          aria-label="Send message"
+                          disabled={!canSubmit}
+                          style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '50%',
+                            background: '#6b3a84',
+                            color: '#F3F1FA',
+                            border: '1px solid rgba(236,72,153,0.18)',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '16px',
+                            cursor: canSubmit ? 'pointer' : 'not-allowed',
+                            flexShrink: 0,
+                            lineHeight: 0,
+                            transition: 'all 0.2s ease',
+                            opacity: canSubmit ? 1 : 0.5
+                          }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path
+                              d="M4 12h16m-7-7l7 7-7 7"
+                              stroke="#F3F1FA"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -462,7 +408,7 @@ export default function ChatComposer({
                 lineHeight: 1.4,
               }}
             >
-              Informational support only - MyMcKenzie Assistant is not a substitute for legal advice.
+              Informational support only - MyMcKenzieCS Assistant is not a substitute for legal advice.
             </div>
 
             {showWordLimitWarning && (

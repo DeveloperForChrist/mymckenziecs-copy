@@ -347,6 +347,12 @@
   background: #6631d4;
 }
 
+.primaryBtnDisabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+  background: #5b21b6;
+}
+
 .secondaryBtn {
   background: rgba(255, 255, 255, 0.08);
   color: rgba(248, 250, 252, 0.96);
@@ -489,6 +495,12 @@
   color: rgba(248, 250, 252, 0.98);
 }
 
+.actionIcon:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .starActive {
   color: #fcd34d;
 }
@@ -496,6 +508,23 @@
 .deleteBtn:hover {
   background: rgba(239, 68, 68, 0.2);
   color: #fecaca;
+}
+
+.folderSelect:disabled,
+.folderInlineSelect:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.readOnlyNotice {
+  margin: -4px 0 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(251, 191, 36, 0.38);
+  background: rgba(120, 53, 15, 0.3);
+  color: rgba(254, 240, 138, 0.96);
+  font-size: 0.8rem;
+  line-height: 1.4;
 }
 
 .modal {
@@ -533,6 +562,12 @@
   align-items: flex-start;
   gap: 12px;
   margin-bottom: 14px;
+}
+
+.modalHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .modalHeader h3 {
@@ -591,7 +626,7 @@
 
 .viewerBody {
   display: grid;
-  grid-template-columns: 1.45fr 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
 }
 
@@ -643,6 +678,33 @@
   border: none;
   border-radius: 12px;
   background: #fff;
+}
+
+.viewerModalFullscreen {
+  width: min(1320px, 98vw);
+  max-height: 96vh;
+  min-height: 96vh;
+}
+
+.viewerModalFullscreen .viewerBody {
+  height: calc(96vh - 108px);
+}
+
+.viewerModalFullscreen .viewerPane {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.viewerModalFullscreen .viewerFrame {
+  min-height: 0;
+  height: 100%;
+}
+
+.viewerModalFullscreen .viewerText,
+.viewerModalFullscreen .viewerHtml {
+  max-height: 100%;
+  overflow: auto;
 }
 
 .viewerHtml {

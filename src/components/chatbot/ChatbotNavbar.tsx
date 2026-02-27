@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import type { MouseEvent } from 'react'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import AppTopbar from '@/components/layout/AppTopbar'
@@ -15,23 +15,20 @@ interface Conversation {
   caseId?: string
 }
 
-const GUEST_MESSAGE_LIMIT = 10
-const PREMIUM_MESSAGE_LIMIT_PER_THREAD = 25
-const PREMIUM_PLUS_MESSAGE_LIMIT_PER_THREAD = 30
-
-const threadLimitForPlan = (normalizedPlan: string): number => {
-  if (
-    normalizedPlan.includes('premium +') ||
-    normalizedPlan.includes('premium plus') ||
-    normalizedPlan.includes('plus') ||
-    normalizedPlan.includes('premium pro')
-  ) {
-    return PREMIUM_PLUS_MESSAGE_LIMIT_PER_THREAD
+const resolveUserDisplayName = (user: any): string => {
+  const metadata = user?.user_metadata || {}
+  const fullName = typeof metadata.full_name === 'string' ? metadata.full_name.trim() : ''
+  if (fullName) return fullName
+  const displayName = typeof metadata.display_name === 'string' ? metadata.display_name.trim() : ''
+  if (displayName) return displayName
+  const firstName = typeof metadata.first_name === 'string' ? metadata.first_name.trim() : ''
+  const lastName = typeof metadata.last_name === 'string' ? metadata.last_name.trim() : ''
+  const combined = [firstName, lastName].filter(Boolean).join(' ').trim()
+  if (combined) return combined
+  if (typeof user?.email === 'string' && user.email.includes('@')) {
+    return user.email.split('@')[0]
   }
-  if (normalizedPlan.includes('basic') || normalizedPlan.includes('essential') || normalizedPlan.includes('premium cheap')) {
-    return 20
-  }
-  return PREMIUM_MESSAGE_LIMIT_PER_THREAD
+  return 'Account'
 }
 
 export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded: boolean) => void } = {}) {
@@ -42,30 +39,16 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [plan, setPlan] = useState<string | null>(null)
   const [planLoaded, setPlanLoaded] = useState(false)
-  const [threadMessageCount, setThreadMessageCount] = useState(0)
-  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
   const [planInfo, setPlanInfo] = useState<any>(null)
   const [planInfoLoaded, setPlanInfoLoaded] = useState(false)
   const [cases, setCases] = useState<any[]>([])
   const [activeCaseId, setActiveCaseId] = useState<string | null>(null)
   const [uid, setUid] = useState<string | null>(null)
-  const [guestMessageCount, setGuestMessageCount] = useState(0)
+  const [userDisplayName, setUserDisplayName] = useState('Account')
   const [deleteTargetConversationId, setDeleteTargetConversationId] = useState<string | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isDeletingConversation, setIsDeletingConversation] = useState(false)
   const [deleteConversationError, setDeleteConversationError] = useState<string | null>(null)
-
-  const threadCountRef = useRef(0)
-  const threadCountCacheRef = useRef<Record<string, number>>({})
-  const currentConversationIdRef = useRef<string | null>(null)
-
-  useEffect(() => {
-    threadCountRef.current = threadMessageCount
-  }, [threadMessageCount])
-
-  useEffect(() => {
-    currentConversationIdRef.current = currentConversationId
-  }, [currentConversationId])
 
   useEffect(() => {
     setPlanInfoLoaded(false)
@@ -79,10 +62,14 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
   useEffect(() => {
     const supabase = getSupabaseBrowserClient()
     supabase.auth.getUser().then(({ data }) => {
-      setUid(data?.user?.id || null)
+      const user = data?.user || null
+      setUid(user?.id || null)
+      setUserDisplayName(resolveUserDisplayName(user))
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUid(session?.user?.id || null)
+      const user = session?.user || null
+      setUid(user?.id || null)
+      setUserDisplayName(resolveUserDisplayName(user))
     })
     return () => subscription.unsubscribe()
   }, [])
@@ -179,205 +166,7 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
     }
   }, [onPlanLoaded])
 
-  const normalizedPlan = (plan || '').toLowerCase()
-  const threadMessageLimit = threadLimitForPlan(normalizedPlan)
   const shouldShowHistory = planLoaded && isLoggedIn
-
-  const buildThreadCountStorageKey = useCallback(
-    (conversationId: string) => `threadCount:${conversationId}`,
-    []
-  )
-
-  const readPersistedThreadCount = useCallback((conversationId: string): number | null => {
-    if (typeof window === 'undefined' || !conversationId) return null
-    const raw = localStorage.getItem(buildThreadCountStorageKey(conversationId))
-    if (!raw) return null
-    const parsed = Number.parseInt(raw, 10)
-    return Number.isNaN(parsed) ? null : Math.max(parsed, 0)
-  }, [buildThreadCountStorageKey])
-
-  const writePersistedThreadCount = useCallback((conversationId: string, count: number) => {
-    if (typeof window === 'undefined' || !conversationId) return
-    const bounded = Math.max(0, Math.min(count, threadMessageLimit))
-    localStorage.setItem(buildThreadCountStorageKey(conversationId), String(bounded))
-  }, [buildThreadCountStorageKey, threadMessageLimit])
-
-  const readKnownThreadCount = useCallback((conversationId: string): number | null => {
-    if (!conversationId) return null
-    const hasMemory = Object.prototype.hasOwnProperty.call(threadCountCacheRef.current, conversationId)
-    const memoryValue = hasMemory ? threadCountCacheRef.current[conversationId] : null
-    const persistedValue = readPersistedThreadCount(conversationId)
-    if (typeof memoryValue === 'number' && typeof persistedValue === 'number') {
-      return Math.max(memoryValue, persistedValue)
-    }
-    if (typeof memoryValue === 'number') return memoryValue
-    if (typeof persistedValue === 'number') return persistedValue
-    return null
-  }, [readPersistedThreadCount])
-
-  const fetchThreadMessageCount = useCallback(async (
-    conversationIdOverride?: string | null,
-    options?: { minimumCount?: number }
-  ) => {
-    const targetConversationId = (conversationIdOverride || currentConversationId || '').trim()
-    if (!planLoaded || !targetConversationId) return
-    try {
-      const response = await fetch(
-        `/api/message-count?conversationId=${encodeURIComponent(targetConversationId)}`,
-        { credentials: 'include', cache: 'no-store' }
-      )
-      if (response.ok) {
-        const data = await response.json()
-        if (typeof data?.count === 'number') {
-          const boundedServerCount = Math.min(data.count, threadMessageLimit)
-          const cached = readKnownThreadCount(targetConversationId)
-          const providedMinimum =
-            typeof options?.minimumCount === 'number'
-              ? Math.min(Math.max(options.minimumCount, 0), threadMessageLimit)
-              : null
-          const boundedMinimum = Math.max(cached ?? 0, providedMinimum ?? 0)
-          const resolvedCount = Math.max(boundedServerCount, boundedMinimum)
-          threadCountCacheRef.current[targetConversationId] = resolvedCount
-          writePersistedThreadCount(targetConversationId, resolvedCount)
-          if ((currentConversationIdRef.current || '').trim() === targetConversationId) {
-            setThreadMessageCount(resolvedCount)
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Failed to fetch thread message count:', error)
-    }
-  }, [
-    planLoaded,
-    currentConversationId,
-    threadMessageLimit,
-    readKnownThreadCount,
-    writePersistedThreadCount
-  ])
-
-  useEffect(() => {
-    const targetConversationId = (currentConversationId || '').trim()
-    if (!targetConversationId) return
-    const cached = readKnownThreadCount(targetConversationId)
-    if (cached !== null) {
-      setThreadMessageCount(Math.max(0, Math.min(cached, threadMessageLimit)))
-    }
-    void fetchThreadMessageCount(targetConversationId, {
-      minimumCount: cached ?? 0
-    })
-  }, [fetchThreadMessageCount, currentConversationId, threadMessageLimit, readKnownThreadCount])
-
-  useEffect(() => {
-    const handleCounterRefresh = (event: Event) => {
-      const detail = (event as CustomEvent<{ conversationId?: string; delta?: number; count?: number }>).detail
-      const nextConversationId = (detail?.conversationId || '').trim()
-      const delta = typeof detail?.delta === 'number' ? detail.delta : 0
-      const absoluteCount = typeof detail?.count === 'number' ? detail.count : null
-
-      if (!isLoggedIn) {
-        if (absoluteCount !== null) {
-          setGuestMessageCount(Math.max(0, Math.min(absoluteCount, GUEST_MESSAGE_LIMIT)))
-        } else if (delta !== 0) {
-          setGuestMessageCount((prev) => Math.max(0, Math.min(prev + delta, GUEST_MESSAGE_LIMIT)))
-        }
-        return
-      }
-
-      if (absoluteCount !== null) {
-        const cacheKey = (nextConversationId || currentConversationId || '').trim()
-        const bounded = Math.max(0, Math.min(absoluteCount, threadMessageLimit))
-        const cached = cacheKey ? readKnownThreadCount(cacheKey) : null
-        const resolved = Math.max(bounded, cached ?? 0)
-        if (nextConversationId) setCurrentConversationId(nextConversationId)
-        if (cacheKey) {
-          threadCountCacheRef.current[cacheKey] = resolved
-          writePersistedThreadCount(cacheKey, resolved)
-        }
-        if (!cacheKey || cacheKey === (currentConversationIdRef.current || '').trim() || cacheKey === nextConversationId) {
-          setThreadMessageCount(resolved)
-        }
-        return
-      }
-
-      if (delta !== 0) {
-        const cacheKey = (nextConversationId || currentConversationId || '').trim()
-        if (!cacheKey) return
-        const currentKey = (currentConversationIdRef.current || '').trim()
-        const baseline = cacheKey === currentKey ? threadCountRef.current : (readKnownThreadCount(cacheKey) ?? 0)
-        const bounded = Math.max(0, Math.min(baseline + delta, threadMessageLimit))
-        threadCountCacheRef.current[cacheKey] = bounded
-        writePersistedThreadCount(cacheKey, bounded)
-        setThreadMessageCount(bounded)
-        if (nextConversationId) setCurrentConversationId(nextConversationId)
-        return
-      }
-
-      if (nextConversationId) {
-        setCurrentConversationId(nextConversationId)
-        const minimumCount = readKnownThreadCount(nextConversationId) ?? 0
-        window.setTimeout(() => {
-          void fetchThreadMessageCount(nextConversationId, { minimumCount })
-        }, 450)
-        return
-      }
-      void fetchThreadMessageCount()
-    }
-
-    // Event name kept for compatibility with ChatInterface dispatcher.
-    window.addEventListener('premiumThreadMessageCountChanged', handleCounterRefresh as EventListener)
-    return () => window.removeEventListener('premiumThreadMessageCountChanged', handleCounterRefresh as EventListener)
-  }, [
-    fetchThreadMessageCount,
-    currentConversationId,
-    threadMessageLimit,
-    readKnownThreadCount,
-    writePersistedThreadCount,
-    isLoggedIn
-  ])
-
-  useEffect(() => {
-    const handleConversationChange = (event: Event) => {
-      const conversationId = (event as CustomEvent<string>).detail
-      setCurrentConversationId(conversationId)
-      const cached = readKnownThreadCount(conversationId)
-      if (cached !== null) {
-        setThreadMessageCount(Math.max(0, Math.min(cached, threadMessageLimit)))
-      } else {
-        setThreadMessageCount(0)
-      }
-    }
-    window.addEventListener('currentConversationIdChanged', handleConversationChange as EventListener)
-    return () => window.removeEventListener('currentConversationIdChanged', handleConversationChange as EventListener)
-  }, [threadMessageLimit, readKnownThreadCount])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const params = new URLSearchParams(window.location.search)
-    const fromUrl = params.get('conversationId')
-    const fromStorage = localStorage.getItem('currentConversationId')
-    const initialConversationId = (fromUrl || fromStorage || '').trim()
-    if (initialConversationId) {
-      setCurrentConversationId(initialConversationId)
-      const cached = readKnownThreadCount(initialConversationId)
-      if (cached !== null) {
-        setThreadMessageCount(Math.max(0, Math.min(cached, threadMessageLimit)))
-      } else {
-        setThreadMessageCount(0)
-      }
-    }
-  }, [threadMessageLimit, readKnownThreadCount])
-
-  useEffect(() => {
-    if (isLoggedIn) return
-    fetch('/api/message-count', { credentials: 'include', cache: 'no-store' })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (typeof data?.count === 'number') {
-          setGuestMessageCount(Math.max(0, Math.min(data.count, GUEST_MESSAGE_LIMIT)))
-        }
-      })
-      .catch(() => undefined)
-  }, [isLoggedIn])
 
   const loadChatHistory = async () => {
     setLoadingHistory(true)
@@ -456,64 +245,29 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
     <>
       <AppTopbar
         left={(
-          !planLoaded ? null : !isLoggedIn ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingLeft: '8px' }}>
-              <div
+          planLoaded && isLoggedIn ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                paddingLeft: '8px',
+                minWidth: 0,
+              }}
+            >
+              <span
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: 'rgba(236, 72, 153, 0.12)',
-                  paddingLeft: '10px',
-                  paddingRight: '12px',
-                  paddingTop: '6px',
-                  paddingBottom: '6px',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(236, 72, 153, 0.25)'
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '220px',
                 }}
+                title={userDisplayName}
               >
-                <span style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Guest:
-                </span>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: guestMessageCount >= GUEST_MESSAGE_LIMIT ? '#ef4444' : '#ec4899' }}>
-                  {guestMessageCount}/{GUEST_MESSAGE_LIMIT}
-                </span>
-              </div>
-            </div>
-          ) : planLoaded && isLoggedIn && currentConversationId ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingLeft: '8px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: 'rgba(139, 92, 246, 0.15)',
-                  paddingLeft: '10px',
-                  paddingRight: '12px',
-                  paddingTop: '6px',
-                  paddingBottom: '6px',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(139, 92, 246, 0.3)'
-                }}
-              >
-                <span style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Messages:
-                </span>
-                <span
-                  style={{
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    color:
-                      threadMessageCount >= threadMessageLimit
-                        ? '#ef4444'
-                        : threadMessageCount >= threadMessageLimit * 0.8
-                          ? '#f97316'
-                          : '#8b5cf6'
-                  }}
-                >
-                  {threadMessageCount}/{threadMessageLimit}
-                </span>
-              </div>
+                {userDisplayName}
+              </span>
             </div>
           ) : null
         )}

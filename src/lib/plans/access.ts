@@ -5,34 +5,17 @@ export function normalizePlanLabel(value: unknown): string {
 
 export function isBasicPlan(plan: unknown): boolean {
   const label = normalizePlanLabel(plan);
-  return (
-    label.includes('basic') ||
-    label.includes('essential') ||
-    label.includes('premium cheap')
-  );
+  return label.includes('basic');
 }
 
 export function isPaidPlan(plan: unknown): boolean {
   const label = normalizePlanLabel(plan);
-  return (
-    isBasicPlan(label) ||
-    label.includes('premium') ||
-    label.includes('premium +') ||
-    label.includes('premium plus') ||
-    label.includes('plus') ||
-    label.includes('pro') ||
-    label.includes('premium cheap')
-  );
+  return isBasicPlan(label) || label.includes('premium') || label.includes('premium +');
 }
 
 export function isPremiumPlusPlan(plan: unknown): boolean {
   const label = normalizePlanLabel(plan);
-  return (
-    label.includes('premium +') ||
-    label.includes('premium plus') ||
-    label.includes('plus') ||
-    label.includes('premium pro')
-  );
+  return label.includes('premium +');
 }
 
 export function hasCaseLawAccess(plan: unknown): boolean {
@@ -49,8 +32,8 @@ export function hasReminderAccess(plan: unknown): boolean {
 
 export function planPriceForLabel(plan: unknown): string {
   const label = normalizePlanLabel(plan).replace(/_/g, ' ');
-  if (label.includes('basic') || label.includes('essential') || label.includes('premium cheap')) return '18';
-  if (label.includes('premium +') || label.includes('premium plus') || label.includes('plus') || label.includes('premium pro')) return '199';
+  if (label.includes('basic')) return '18';
+  if (label.includes('premium +')) return '199';
   if (label.includes('premium')) return '32';
   return '0';
 }

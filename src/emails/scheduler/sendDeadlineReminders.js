@@ -6,7 +6,7 @@ const path = require('path');
 const RESEND_API = 'https://api.resend.com/emails';
 const RESEND_KEY = process.env.RESEND_API_KEY || '';
 const RAW_FROM = process.env.RESEND_ALERT_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || process.env.FROM_EMAIL || 'alerts@mymckenziecs.com';
-const FROM_NAME = process.env.RESEND_ALERT_FROM_NAME || process.env.RESEND_FROM_NAME || 'MymckenzieCS';
+const FROM_NAME = process.env.RESEND_ALERT_FROM_NAME || process.env.RESEND_FROM_NAME || 'MyMcKenzieCS';
 const FROM = RAW_FROM.includes('<') ? RAW_FROM : `${FROM_NAME} <${RAW_FROM}>`;
 
 const templatesDir = path.join(__dirname, '..', 'templates');

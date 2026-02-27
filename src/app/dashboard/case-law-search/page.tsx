@@ -27,6 +27,113 @@ interface SearchFilters {
   outcome?: string;
 }
 
+interface SearchHistoryItem {
+  query: string;
+  searchedAt: string;
+  resultsCount: number;
+}
+
+interface ViewedCaseHistoryItem {
+  id: string;
+  citation: string;
+  title: string;
+  court?: string;
+  year?: number;
+  viewedAt: string;
+  case_type?: string;
+  summary?: string;
+  similarity: number;
+  outcome?: string;
+  url?: string;
+  extracts?: string[];
+}
+
+const SEARCH_HISTORY_KEY = 'case-law-search-history:v1';
+const VIEWED_HISTORY_KEY = 'case-law-viewed-history:v1';
+const SEARCH_HISTORY_LIMIT = 10;
+const VIEWED_HISTORY_LIMIT = 12;
+const HISTORY_SYNC_DELAY_MS = 500;
+
+const toIsoOrNow = (value: unknown): string => {
+  if (typeof value !== 'string') return new Date().toISOString();
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+};
+
+const normalizeSearchHistoryItems = (value: unknown): SearchHistoryItem[] => {
+  if (!Array.isArray(value)) return [];
+  const normalized = value
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null;
+      const raw = item as Record<string, unknown>;
+      if (typeof raw.query !== 'string') return null;
+      const query = raw.query.trim();
+      if (!query) return null;
+      return {
+        query,
+        searchedAt: toIsoOrNow(raw.searchedAt),
+        resultsCount: Number.isFinite(raw.resultsCount) ? Math.max(0, Math.floor(Number(raw.resultsCount))) : 0,
+      };
+    })
+    .filter((item): item is SearchHistoryItem => Boolean(item))
+    .sort((a, b) => new Date(b.searchedAt).getTime() - new Date(a.searchedAt).getTime());
+
+  const deduped: SearchHistoryItem[] = [];
+  const seen = new Set<string>();
+  for (const item of normalized) {
+    const key = item.query.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(item);
+    if (deduped.length >= SEARCH_HISTORY_LIMIT) break;
+  }
+  return deduped;
+};
+
+const normalizeViewedHistoryItems = (value: unknown): ViewedCaseHistoryItem[] => {
+  if (!Array.isArray(value)) return [];
+  const normalized: ViewedCaseHistoryItem[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== 'object') continue;
+    const raw = item as Record<string, unknown>;
+    if (typeof raw.id !== 'string' || typeof raw.citation !== 'string' || typeof raw.title !== 'string') continue;
+    const id = raw.id.trim();
+    const citation = raw.citation.trim();
+    const title = raw.title.trim();
+    if (!id || !citation || !title) continue;
+
+    const normalizedItem: ViewedCaseHistoryItem = {
+      id,
+      citation,
+      title,
+      viewedAt: toIsoOrNow(raw.viewedAt),
+      similarity: Number.isFinite(raw.similarity) ? Number(raw.similarity) : 0,
+    };
+    if (typeof raw.court === 'string') normalizedItem.court = raw.court;
+    if (Number.isFinite(raw.year)) normalizedItem.year = Math.floor(Number(raw.year));
+    if (typeof raw.case_type === 'string') normalizedItem.case_type = raw.case_type;
+    if (typeof raw.summary === 'string') normalizedItem.summary = raw.summary;
+    if (typeof raw.outcome === 'string') normalizedItem.outcome = raw.outcome;
+    if (typeof raw.url === 'string') normalizedItem.url = raw.url;
+    if (Array.isArray(raw.extracts)) {
+      normalizedItem.extracts = raw.extracts.filter((extract): extract is string => typeof extract === 'string');
+    }
+    normalized.push(normalizedItem);
+  }
+
+  normalized.sort((a, b) => new Date(b.viewedAt).getTime() - new Date(a.viewedAt).getTime());
+
+  const deduped: ViewedCaseHistoryItem[] = [];
+  const seen = new Set<string>();
+  for (const item of normalized) {
+    if (seen.has(item.id)) continue;
+    seen.add(item.id);
+    deduped.push(item);
+    if (deduped.length >= VIEWED_HISTORY_LIMIT) break;
+  }
+  return deduped;
+};
+
 const normalizeExtracts = (value: unknown): string[] => {
   if (Array.isArray(value)) {
     return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
@@ -190,6 +297,10 @@ const groupStudySections = (
 export default function CaseLawSearchPage() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<CaseLawResult[]>([]);
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
+  const [viewedHistory, setViewedHistory] = useState<ViewedCaseHistoryItem[]>([]);
+  const [historyHydrated, setHistoryHydrated] = useState(false);
+  const [showHistoryPanel, setShowHistoryPanel] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCase, setSelectedCase] = useState<CaseLawResult | null>(null);
@@ -197,6 +308,7 @@ export default function CaseLawSearchPage() {
     case_type: 'all',
   });
   const [userPlan, setUserPlan] = useState<string>('guest');
+  const [hasPaidAccess, setHasPaidAccess] = useState(false);
   const [planChecked, setPlanChecked] = useState(false);
   const [studyingCase, setStudyingCase] = useState<string | null>(null);
   const [caseStudy, setCaseStudy] = useState<string | null>(null);
@@ -212,6 +324,7 @@ export default function CaseLawSearchPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const searchAbortRef = useRef<AbortController | null>(null);
+  const historySyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const searchRequestSeqRef = useRef(0);
   const currentStudyPageContent = paginatedContent[currentPage - 1]?.content || caseStudy || '';
   const formattedStudyContent = formatStudyContent(currentStudyPageContent);
@@ -224,13 +337,16 @@ export default function CaseLawSearchPage() {
         const res = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' });
         if (!res.ok) {
           setUserPlan('guest');
+          setHasPaidAccess(false);
           return;
         }
         const data = await res.json();
         setUserPlan((data?.plan || 'guest').toString());
+        setHasPaidAccess(Boolean(data?.paidAccess));
       } catch (error) {
         console.error('Error checking user plan:', error);
         setUserPlan('guest');
+        setHasPaidAccess(false);
       } finally {
         setPlanChecked(true);
       }
@@ -239,7 +355,132 @@ export default function CaseLawSearchPage() {
     checkUserPlan();
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadHistory = async () => {
+      if (typeof window === 'undefined') {
+        setHistoryHydrated(true);
+        return;
+      }
+
+      let localSearchHistory: SearchHistoryItem[] = [];
+      let localViewedHistory: ViewedCaseHistoryItem[] = [];
+
+      try {
+        const rawSearchHistory = window.localStorage.getItem(SEARCH_HISTORY_KEY);
+        localSearchHistory = normalizeSearchHistoryItems(rawSearchHistory ? JSON.parse(rawSearchHistory) : []);
+      } catch (error) {
+        console.error('Failed to load case law search history', error);
+      }
+
+      try {
+        const rawViewedHistory = window.localStorage.getItem(VIEWED_HISTORY_KEY);
+        localViewedHistory = normalizeViewedHistoryItems(rawViewedHistory ? JSON.parse(rawViewedHistory) : []);
+      } catch (error) {
+        console.error('Failed to load viewed case law history', error);
+      }
+
+      let serverSearchHistory: SearchHistoryItem[] = [];
+      let serverViewedHistory: ViewedCaseHistoryItem[] = [];
+      try {
+        const response = await fetch('/api/case-law-history', { credentials: 'include', cache: 'no-store' });
+        if (response.ok) {
+          const payload = await response.json();
+          serverSearchHistory = normalizeSearchHistoryItems(payload?.searchHistory);
+          serverViewedHistory = normalizeViewedHistoryItems(payload?.viewedHistory);
+        }
+      } catch (error) {
+        console.error('Failed to load synced case law history', error);
+      }
+
+      if (cancelled) return;
+
+      setSearchHistory(normalizeSearchHistoryItems([...serverSearchHistory, ...localSearchHistory]));
+      setViewedHistory(normalizeViewedHistoryItems([...serverViewedHistory, ...localViewedHistory]));
+      setHistoryHydrated(true);
+    };
+
+    void loadHistory();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!historyHydrated || typeof window === 'undefined') return;
+    window.localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(searchHistory));
+  }, [historyHydrated, searchHistory]);
+
+  useEffect(() => {
+    if (!historyHydrated || typeof window === 'undefined') return;
+    window.localStorage.setItem(VIEWED_HISTORY_KEY, JSON.stringify(viewedHistory));
+  }, [historyHydrated, viewedHistory]);
+
+  useEffect(() => {
+    if (!historyHydrated) return;
+
+    if (historySyncTimeoutRef.current) {
+      clearTimeout(historySyncTimeoutRef.current);
+      historySyncTimeoutRef.current = null;
+    }
+
+    historySyncTimeoutRef.current = setTimeout(async () => {
+      try {
+        await fetch('/api/case-law-history', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ searchHistory, viewedHistory }),
+        });
+      } catch (error) {
+        console.error('Failed to sync case law history', error);
+      }
+    }, HISTORY_SYNC_DELAY_MS);
+
+    return () => {
+      if (historySyncTimeoutRef.current) {
+        clearTimeout(historySyncTimeoutRef.current);
+      }
+    };
+  }, [historyHydrated, searchHistory, viewedHistory]);
+
+  const addSearchToHistory = useCallback((searchQuery: string, resultsCount: number) => {
+    const cleanedQuery = searchQuery.trim();
+    if (!cleanedQuery) return;
+    setSearchHistory((prev) => {
+      const deduped = prev.filter((item) => item.query.toLowerCase() !== cleanedQuery.toLowerCase());
+      return [
+        { query: cleanedQuery, searchedAt: new Date().toISOString(), resultsCount },
+        ...deduped
+      ].slice(0, SEARCH_HISTORY_LIMIT);
+    });
+  }, []);
+
+  const addViewedCaseToHistory = useCallback((caseResult: CaseLawResult) => {
+    setViewedHistory((prev) => {
+      const deduped = prev.filter((item) => item.id !== caseResult.id);
+      return [
+        {
+          ...caseResult,
+          viewedAt: new Date().toISOString(),
+        },
+        ...deduped
+      ].slice(0, VIEWED_HISTORY_LIMIT);
+    });
+  }, []);
+
+  const openCaseDetails = useCallback((caseResult: CaseLawResult) => {
+    setSelectedCase(caseResult);
+    addViewedCaseToHistory(caseResult);
+  }, [addViewedCaseToHistory]);
+
   const handleSearch = useCallback(async (searchQuery: string) => {
+    if (!hasPaidAccess) {
+      setSearchErrorModal('Plan paused: case law search is locked. Resume your plan to continue.');
+      return;
+    }
     if (!searchQuery.trim()) {
       setResults([]);
       return;
@@ -278,6 +519,7 @@ export default function CaseLawSearchPage() {
       console.log('📊 Full response:', data);
       if (requestSeq === searchRequestSeqRef.current) {
         setResults(data.results || []);
+        addSearchToHistory(searchQuery, Array.isArray(data.results) ? data.results.length : 0);
       }
     } catch (error: any) {
       if (error?.name === 'AbortError') {
@@ -290,9 +532,10 @@ export default function CaseLawSearchPage() {
         setLoading(false);
       }
     }
-  }, [filters]);
+  }, [filters, hasPaidAccess, addSearchToHistory]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (!hasPaidAccess) return;
     if (e.key === 'Enter') {
       handleSearch(query);
     }
@@ -300,6 +543,11 @@ export default function CaseLawSearchPage() {
 
   // Handle case study generation with improved error handling
   const handleStudyCase = async (caseResult: CaseLawResult) => {
+    if (!hasPaidAccess) {
+      setStudyError('Plan paused: case law study is locked. Resume your plan to continue.');
+      setShowStudyModal(true);
+      return;
+    }
     // Validate required fields
     if (!caseResult.title || !caseResult.citation) {
       setStudyError('Missing required case information (title or citation)');
@@ -437,6 +685,10 @@ export default function CaseLawSearchPage() {
   };
 
   const askStudyQuestion = async () => {
+    if (!hasPaidAccess) {
+      setStudyChatError('Plan paused: case law chat is locked. Resume your plan to continue.');
+      return;
+    }
     const question = studyChatInput.trim();
     if (!question || studyChatLoading) return;
 
@@ -602,6 +854,11 @@ export default function CaseLawSearchPage() {
           <p className="text-indigo-100/90">
             Search through 760 UK Supreme Court cases using AI-powered semantic search.
           </p>
+          {!hasPaidAccess && (
+            <p className="mt-2 text-sm text-amber-200">
+              Plan paused: search and study chat are read-only locked until billing is resumed.
+            </p>
+          )}
         </div>
 
         {/* Search Bar */}
@@ -614,7 +871,8 @@ export default function CaseLawSearchPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Search case law by name, citation, or legal issue…"
+                placeholder={hasPaidAccess ? "Search case law by name, citation, or legal issue…" : "Resume plan to search case law"}
+                disabled={!hasPaidAccess}
                 className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               {loading && (
@@ -632,7 +890,7 @@ export default function CaseLawSearchPage() {
             </button>
             <button
               onClick={() => handleSearch(query)}
-              disabled={loading || !query.trim()}
+              disabled={loading || !query.trim() || !hasPaidAccess}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
             >
               {loading ? (
@@ -643,6 +901,12 @@ export default function CaseLawSearchPage() {
               ) : (
                 'Search Now'
               )}
+            </button>
+            <button
+              onClick={() => setShowHistoryPanel((value) => !value)}
+              className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium text-gray-700"
+            >
+              {showHistoryPanel ? 'Hide history' : 'View history'}
             </button>
           </div>
 
@@ -711,6 +975,90 @@ export default function CaseLawSearchPage() {
           )}
         </div>
 
+        {(showHistoryPanel || searchHistory.length > 0 || viewedHistory.length > 0) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            <div className="bg-white rounded-lg shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-gray-900">Recent searches</h3>
+                {searchHistory.length > 0 && (
+                  <button
+                    onClick={() => setSearchHistory([])}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              {searchHistory.length === 0 ? (
+                <p className="text-sm text-gray-500">No recent searches yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  {searchHistory.map((item) => (
+                    <button
+                      key={`${item.query}-${item.searchedAt}`}
+                      onClick={() => {
+                        setQuery(item.query);
+                        handleSearch(item.query);
+                      }}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-left hover:bg-gray-50"
+                    >
+                      <div className="text-sm font-medium text-gray-900 truncate">{item.query}</div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {item.resultsCount} result{item.resultsCount === 1 ? '' : 's'} • {new Date(item.searchedAt).toLocaleString('en-GB')}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-gray-900">Recently viewed</h3>
+                {viewedHistory.length > 0 && (
+                  <button
+                    onClick={() => setViewedHistory([])}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              {viewedHistory.length === 0 ? (
+                <p className="text-sm text-gray-500">No viewed cases yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  {viewedHistory.map((item) => (
+                    <button
+                      key={`${item.id}-${item.viewedAt}`}
+                      onClick={() => {
+                        openCaseDetails({
+                          id: item.id,
+                          citation: item.citation,
+                          title: item.title,
+                          court: item.court,
+                          year: item.year,
+                          case_type: item.case_type || 'general',
+                          outcome: item.outcome,
+                          similarity: item.similarity || 0,
+                          summary: item.summary,
+                          url: item.url,
+                          extracts: item.extracts,
+                        });
+                      }}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-left hover:bg-gray-50"
+                    >
+                      <div className="text-xs font-medium text-blue-700">{item.citation}</div>
+                      <div className="text-sm text-gray-900 truncate">{item.title}</div>
+                      <div className="text-xs text-gray-500 mt-1">{new Date(item.viewedAt).toLocaleString('en-GB')}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Results */}
         {results.length > 0 && (
           <div className="space-y-4">
@@ -722,7 +1070,7 @@ export default function CaseLawSearchPage() {
               <div
                 key={result.id}
                 className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => setSelectedCase(result)}
+                onClick={() => openCaseDetails(result)}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
@@ -777,7 +1125,10 @@ export default function CaseLawSearchPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addViewedCaseToHistory(result);
+                      }}
                     >
                       View Full Case
                       <ExternalLink className="w-4 h-4" />
@@ -786,6 +1137,7 @@ export default function CaseLawSearchPage() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      addViewedCaseToHistory(result);
                       handleStudyCase(result);
                     }}
                     disabled={studyingCase === result.id}
@@ -916,6 +1268,7 @@ export default function CaseLawSearchPage() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      addViewedCaseToHistory(selectedCase);
                       window.open(selectedCase.url, '_blank', 'noopener');
                     }}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -1109,14 +1462,15 @@ export default function CaseLawSearchPage() {
                           value={studyChatInput}
                           onChange={(e) => setStudyChatInput(e.target.value)}
                           onKeyDown={handleStudyChatKeyDown}
-                          placeholder="Ask about the facts, reasoning, or outcome..."
+                          placeholder={hasPaidAccess ? "Ask about the facts, reasoning, or outcome..." : "Resume plan to ask case-law study questions"}
+                          disabled={!hasPaidAccess}
                           className="w-full resize-none rounded-lg border border-gray-300 p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                           rows={2}
                         />
                       </div>
                       <button
                         onClick={askStudyQuestion}
-                        disabled={studyChatLoading || !studyChatInput.trim()}
+                        disabled={studyChatLoading || !studyChatInput.trim() || !hasPaidAccess}
                         className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
                       >
                         <Send className="w-4 h-4" />

@@ -6,7 +6,7 @@ import { DocGeneratorTool } from '../tools/doc-generator-tool';
 import { SearchTool } from '../tools/search-tool';
 
 // Simplified system prompt
-const SYSTEM_PROMPT: string = `You are MymckenzieCS, a UK legal guide for people representing themselves in court.
+const SYSTEM_PROMPT: string = `You are MyMcKenzieCS, a UK legal guide for people representing themselves in court.
 
 CRITICAL:
 - You are NOT a lawyer. You explain processes and procedures in plain English.
@@ -342,7 +342,7 @@ export async function createLegalAgent(
         // 1. Check greeting
         if (isBasicGreeting(latestQuestion)) {
           return {
-            response: "Hello! I'm MymckenzieCS. How can I help with your legal question?",
+            response: "Hello! I'm MyMcKenzieCS. How can I help with your legal question?",
             document_generated: false,
             guidance_provided: true,
             sources: undefined

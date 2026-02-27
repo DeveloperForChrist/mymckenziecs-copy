@@ -23,7 +23,12 @@ const isMissingColumnError = (error: any, columnName: string): boolean => {
   return code === 'PGRST204' && message.includes(`'${columnName.toLowerCase()}'`)
 }
 
-const requireCaseProfileAccess = async (userId: string): Promise<boolean> => {
+type CaseProfileAccessState = {
+  canView: boolean
+  canEdit: boolean
+}
+
+const resolveCaseProfileAccess = async (userId: string): Promise<CaseProfileAccessState> => {
   const { data: activeSub } = await supabaseAdmin
     .from('subscriptions')
     .select('plan_type, status')
@@ -33,7 +38,53 @@ const requireCaseProfileAccess = async (userId: string): Promise<boolean> => {
     .limit(1)
     .maybeSingle()
 
-  return hasCaseProfileAccess(activeSub?.plan_type || '')
+  if (hasCaseProfileAccess(activeSub?.plan_type || '')) {
+    return { canView: true, canEdit: true }
+  }
+
+  const { data: latestSub } = await supabaseAdmin
+    .from('subscriptions')
+    .select('plan_type')
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (hasCaseProfileAccess(latestSub?.plan_type || '')) {
+    return { canView: true, canEdit: false }
+  }
+
+  return { canView: false, canEdit: false }
+}
+
+const detachCaseLinkedRecords = async (caseIds: string[]) => {
+  if (caseIds.length === 0) return null
+
+  const { error: reassignDocumentsError } = await supabaseAdmin
+    .from('documents')
+    .update({ case_id: null })
+    .in('case_id', caseIds)
+  if (reassignDocumentsError) return reassignDocumentsError
+
+  const { error: detachMessagesError } = await supabaseAdmin
+    .from('messages')
+    .update({ case_id: null })
+    .in('case_id', caseIds)
+  if (detachMessagesError) return detachMessagesError
+
+  const { error: detachMemoryError } = await supabaseAdmin
+    .from('chat_memory')
+    .update({ case_id: null })
+    .in('case_id', caseIds)
+  if (detachMemoryError) return detachMemoryError
+
+  const { error: detachActionItemsError } = await supabaseAdmin
+    .from('chat_action_items')
+    .update({ case_id: null })
+    .in('case_id', caseIds)
+  if (detachActionItemsError) return detachActionItemsError
+
+  return null
 }
 
 export async function POST(request: Request) {
@@ -52,9 +103,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const hasAccess = await requireCaseProfileAccess(ownerId)
-    if (!hasAccess) {
+    const access = await resolveCaseProfileAccess(ownerId)
+    if (!access.canView) {
       return NextResponse.json({ error: 'Premium or Premium + plan required' }, { status: 403 })
+    }
+    if (!access.canEdit) {
+      return NextResponse.json({ error: 'Read-only mode: resume plan to edit case profile.' }, { status: 402 })
     }
 
     const externalId = typeof caseId === 'string' ? caseId.trim() : null
@@ -75,46 +129,39 @@ export async function POST(request: Request) {
     }
 
     let supportsExternalId = true
-    let existingCase: { id: string } | null = null
-    if (externalId) {
-      const { data, error } = await supabaseAdmin
+    let existingCases: Array<{ id: string; external_id?: string | null; created_at?: string | null }> = []
+    {
+      const queryWithExternal = await supabaseAdmin
         .from('cases')
-        .select('id')
+        .select('id, external_id, created_at')
         .eq('user_id', ownerId)
-        .eq('external_id', externalId)
         .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      if (error) {
-        if (isMissingColumnError(error, 'external_id')) {
+        .limit(25)
+      if (queryWithExternal.error) {
+        if (isMissingColumnError(queryWithExternal.error, 'external_id')) {
           supportsExternalId = false
+          const fallbackQuery = await supabaseAdmin
+            .from('cases')
+            .select('id, created_at')
+            .eq('user_id', ownerId)
+            .order('created_at', { ascending: false })
+            .limit(25)
+          if (fallbackQuery.error) {
+            return NextResponse.json({ error: fallbackQuery.error.message }, { status: 500 })
+          }
+          existingCases = (fallbackQuery.data || []) as Array<{ id: string; created_at?: string | null }>
         } else {
-          return NextResponse.json({ error: error.message }, { status: 500 })
+          return NextResponse.json({ error: queryWithExternal.error.message }, { status: 500 })
         }
       } else {
-        existingCase = data || null
+        existingCases = (queryWithExternal.data || []) as Array<{ id: string; external_id?: string | null; created_at?: string | null }>
       }
-    } else {
-      const { data } = await supabaseAdmin
-        .from('cases')
-        .select('id')
-        .eq('user_id', ownerId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      existingCase = data || null
     }
 
-    if (externalId && !existingCase && !supportsExternalId) {
-      const { data } = await supabaseAdmin
-        .from('cases')
-        .select('id')
-        .eq('user_id', ownerId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      existingCase = data || null
-    }
+    const existingByExternalId = externalId && supportsExternalId
+      ? existingCases.find((row) => typeof row.external_id === 'string' && row.external_id.trim() === externalId) || null
+      : null
+    const targetCaseId = existingByExternalId?.id || existingCases[0]?.id || null
 
     const payload: Record<string, unknown> = {
       title: nextTitle,
@@ -126,11 +173,12 @@ export async function POST(request: Request) {
       payload.external_id = externalId
     }
 
-    if (existingCase?.id) {
+    let savedCase: any = null
+    if (targetCaseId) {
       let { data, error } = await supabaseAdmin
         .from('cases')
         .update({ ...payload, updated_at: new Date().toISOString() })
-        .eq('id', existingCase.id)
+        .eq('id', targetCaseId)
         .eq('user_id', ownerId)
         .select()
         .limit(1)
@@ -141,7 +189,7 @@ export async function POST(request: Request) {
         const fallbackResult = await supabaseAdmin
           .from('cases')
           .update(fallbackPayload)
-          .eq('id', existingCase.id)
+          .eq('id', targetCaseId)
           .eq('user_id', ownerId)
           .select()
           .limit(1)
@@ -154,35 +202,58 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 })
       }
 
-      const updated = Array.isArray(data) ? data[0] : data
-      return NextResponse.json({ ok: true, case: updated })
-    }
-
-    let { data, error } = await supabaseAdmin
-      .from('cases')
-      .insert(payload)
-      .select()
-      .limit(1)
-
-    if (error && supportsExternalId && isMissingColumnError(error, 'external_id')) {
-      const fallbackPayload = { ...payload }
-      delete (fallbackPayload as any).external_id
-      const fallbackResult = await supabaseAdmin
+      savedCase = Array.isArray(data) ? data[0] : data
+    } else {
+      let { data, error } = await supabaseAdmin
         .from('cases')
-        .insert(fallbackPayload)
+        .insert(payload)
         .select()
         .limit(1)
-      data = fallbackResult.data
-      error = fallbackResult.error
+
+      if (error && supportsExternalId && isMissingColumnError(error, 'external_id')) {
+        const fallbackPayload = { ...payload }
+        delete (fallbackPayload as any).external_id
+        const fallbackResult = await supabaseAdmin
+          .from('cases')
+          .insert(fallbackPayload)
+          .select()
+          .limit(1)
+        data = fallbackResult.data
+        error = fallbackResult.error
+      }
+
+      if (error) {
+        console.error('supabase insert error', error)
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+
+      savedCase = Array.isArray(data) ? data[0] : data
     }
 
-    if (error) {
-      console.error('supabase insert error', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    const keepCaseId = typeof savedCase?.id === 'string' ? savedCase.id : null
+    if (keepCaseId) {
+      const duplicateCaseIds = existingCases
+        .map((row) => row.id)
+        .filter((id) => id && id !== keepCaseId)
+
+      if (duplicateCaseIds.length > 0) {
+        const detachError = await detachCaseLinkedRecords(duplicateCaseIds)
+        if (detachError) {
+          return NextResponse.json({ error: detachError.message }, { status: 500 })
+        }
+
+        const { error: deleteDuplicatesError } = await supabaseAdmin
+          .from('cases')
+          .delete()
+          .in('id', duplicateCaseIds)
+          .eq('user_id', ownerId)
+        if (deleteDuplicatesError) {
+          return NextResponse.json({ error: deleteDuplicatesError.message }, { status: 500 })
+        }
+      }
     }
 
-    const created = Array.isArray(data) ? data[0] : data
-    return NextResponse.json({ ok: true, case: created })
+    return NextResponse.json({ ok: true, case: savedCase })
   } catch (err: any) {
     console.error(err)
     return NextResponse.json({ error: err?.message || 'Unknown error' }, { status: 500 })
@@ -201,8 +272,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ ok: true, case: null });
     }
 
-    const hasAccess = await requireCaseProfileAccess(userId)
-    if (!hasAccess) {
+    const access = await resolveCaseProfileAccess(userId)
+    if (!access.canView) {
       return NextResponse.json({ error: 'Premium or Premium + plan required' }, { status: 403 })
     }
 
@@ -226,84 +297,51 @@ export async function GET(request: Request) {
   }
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(_request: Request) {
   try {
     const supabase = await createSupabaseRouteClient()
     const { data: authData } = await supabase.auth.getUser()
-    const body = await request.json().catch(() => ({}))
-    const requestedCaseId = typeof body?.caseId === 'string' ? body.caseId.trim() : null
     const userId = authData?.user?.id
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const hasAccess = await requireCaseProfileAccess(userId)
-    if (!hasAccess) {
+    const access = await resolveCaseProfileAccess(userId)
+    if (!access.canView) {
       return NextResponse.json({ error: 'Premium or Premium + plan required' }, { status: 403 })
     }
-
-    let targetCaseId = requestedCaseId
-    if (!targetCaseId) {
-      const { data: latestCase, error: latestError } = await supabaseAdmin
-        .from('cases')
-        .select('id')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-
-      if (latestError) {
-        return NextResponse.json({ error: latestError.message }, { status: 500 })
-      }
-      targetCaseId = latestCase?.id || null
+    if (!access.canEdit) {
+      return NextResponse.json({ error: 'Read-only mode: resume plan to edit case profile.' }, { status: 402 })
     }
 
-    if (!targetCaseId) {
+    const { data: caseRows, error: caseRowsError } = await supabaseAdmin
+      .from('cases')
+      .select('id')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(25)
+
+    if (caseRowsError) {
+      return NextResponse.json({ error: caseRowsError.message }, { status: 500 })
+    }
+
+    const allCaseIds = (caseRows || []).map((row: any) => row.id).filter((id: unknown): id is string => typeof id === 'string')
+    const targetCaseIds = allCaseIds
+
+    if (targetCaseIds.length === 0) {
       return NextResponse.json({ ok: true, cleared: false })
     }
 
-    const { error: reassignDocumentsError } = await supabaseAdmin
-      .from('documents')
-      .update({ case_id: null })
-      .eq('case_id', targetCaseId)
-
-    if (reassignDocumentsError) {
-      return NextResponse.json({ error: reassignDocumentsError.message }, { status: 500 })
-    }
-
-    // Preserve chatbot history when a case profile is cleared.
-    const { error: detachMessagesError } = await supabaseAdmin
-      .from('messages')
-      .update({ case_id: null })
-      .eq('case_id', targetCaseId)
-
-    if (detachMessagesError) {
-      return NextResponse.json({ error: detachMessagesError.message }, { status: 500 })
-    }
-
-    const { error: detachMemoryError } = await supabaseAdmin
-      .from('chat_memory')
-      .update({ case_id: null })
-      .eq('case_id', targetCaseId)
-
-    if (detachMemoryError) {
-      return NextResponse.json({ error: detachMemoryError.message }, { status: 500 })
-    }
-
-    const { error: detachActionItemsError } = await supabaseAdmin
-      .from('chat_action_items')
-      .update({ case_id: null })
-      .eq('case_id', targetCaseId)
-
-    if (detachActionItemsError) {
-      return NextResponse.json({ error: detachActionItemsError.message }, { status: 500 })
+    const detachError = await detachCaseLinkedRecords(targetCaseIds)
+    if (detachError) {
+      return NextResponse.json({ error: detachError.message }, { status: 500 })
     }
 
     const { error: deleteError } = await supabaseAdmin
       .from('cases')
       .delete()
-      .eq('id', targetCaseId)
+      .in('id', targetCaseIds)
       .eq('user_id', userId)
 
     if (deleteError) {

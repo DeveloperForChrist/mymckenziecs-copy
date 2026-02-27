@@ -8,7 +8,9 @@ type DocumentsTableProps = {
   formatDate: (value: string) => string;
   formatSize: (value: number) => string;
   onView: (doc: Document) => void;
+  onDownload: (doc: Document) => void;
   onToggleStar: (id: string) => void;
+  canDelete: boolean;
   onDelete: (id: string) => void;
   onFolderChange: (docId: string, folderId: string) => void;
 };
@@ -19,7 +21,9 @@ export default function DocumentsTable({
   formatDate,
   formatSize,
   onView,
+  onDownload,
   onToggleStar,
+  canDelete,
   onDelete,
   onFolderChange,
 }: DocumentsTableProps) {
@@ -71,6 +75,14 @@ export default function DocumentsTable({
                   <i className="bx bx-show"></i>
                 </button>
                 <button
+                  className={styles.actionIcon}
+                  onClick={() => onDownload(doc)}
+                  title="Download"
+                  type="button"
+                >
+                  <i className="bx bx-download"></i>
+                </button>
+                <button
                   className={`${styles.actionIcon} ${doc.starred ? styles.starActive : ""}`}
                   onClick={() => onToggleStar(doc.id)}
                   title="Star"
@@ -80,8 +92,12 @@ export default function DocumentsTable({
                 </button>
                 <button
                   className={`${styles.actionIcon} ${styles.deleteBtn}`}
-                  onClick={() => onDelete(doc.id)}
-                  title="Delete"
+                  onClick={() => {
+                    if (!canDelete) return;
+                    onDelete(doc.id);
+                  }}
+                  title={canDelete ? "Delete" : "Resume plan to delete"}
+                  disabled={!canDelete}
                   type="button"
                 >
                   <i className="bx bx-trash"></i>

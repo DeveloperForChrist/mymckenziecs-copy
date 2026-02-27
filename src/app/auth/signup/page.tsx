@@ -40,7 +40,7 @@ export default function SignUpPage() {
             <div>
               <h2 className={styles.formTitle}>Create your account</h2>
               <p className={styles.formSubtitle}>
-                Create your account, then answer a few quick questions to seed your first case.
+                Enter your details to create your account. If you selected a plan, payment is collected immediately after this step.
               </p>
             </div>
             <SignUpForm />

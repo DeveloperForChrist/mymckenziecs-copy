@@ -1,13 +1,44 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import { PLAN_PRICES } from '@/constants';
 
 export default function PricingPage() {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const [hasPaidPlan, setHasPaidPlan] = useState(false);
+  const [planStatus, setPlanStatus] = useState('free');
+  const [planChecked, setPlanChecked] = useState(false);
   const autoCheckoutStartedRef = useRef(false);
+  const searchParams = useSearchParams();
+  const planParam = (searchParams?.get('plan') || '').trim();
+  const legacyCheckoutParam = (searchParams?.get('checkout') || '').trim();
+  const knownLegacyPlan = PLAN_PRICES.some((plan) => plan.priceId && plan.priceId === legacyCheckoutParam);
+  const checkoutPlanId = planParam || (knownLegacyPlan ? legacyCheckoutParam : '');
+  const checkoutStatus =
+    (searchParams?.get('checkout_status') || '').trim() ||
+    ((legacyCheckoutParam === 'success' || legacyCheckoutParam === 'cancelled') ? legacyCheckoutParam : '');
+  const hardLock = (searchParams?.get('hard_lock') || '').trim() === '1';
+  const redirectPath = (searchParams?.get('redirect') || '').trim();
+  const isCheckoutFlow = checkoutPlanId.length > 0;
+  const navHref = redirectPath.startsWith('/') ? redirectPath : '/settings';
+  const navLabel = navHref.startsWith('/settings')
+    ? 'Return to Billing'
+    : navHref.startsWith('/dashboard')
+      ? 'Return to Dashboard'
+      : 'Manage account';
+  const isLapsedStatus = planStatus === 'expired' || planStatus === 'cancelled';
+
+  function userHasPaidPlan(plan: unknown) {
+    const label = String(plan || '').toLowerCase();
+    return (
+      label.includes('basic') ||
+      label.includes('premium') ||
+      label.includes('premium +')
+    );
+  }
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -42,7 +73,7 @@ export default function PricingPage() {
     const session = (await supabase.auth.getSession()).data.session;
     const idToken = session?.access_token;
     if (!idToken) {
-      const redirectTo = `/pricing?checkout=${encodeURIComponent(priceId)}`;
+      const redirectTo = `/pricing?plan=${encodeURIComponent(priceId)}`;
       window.location.href = `/auth/signup?planId=${encodeURIComponent(priceId)}&redirect=${encodeURIComponent(redirectTo)}`;
       return;
     }
@@ -75,8 +106,6 @@ export default function PricingPage() {
 
   useEffect(() => {
     if (!authChecked || !isSignedIn || autoCheckoutStartedRef.current) return;
-    const params = new URLSearchParams(window.location.search);
-    const checkoutPlanId = params.get('checkout');
     if (!checkoutPlanId) return;
 
     const isKnownPlan = PLAN_PRICES.some((plan) => plan.priceId && plan.priceId === checkoutPlanId);
@@ -87,48 +116,157 @@ export default function PricingPage() {
 
     autoCheckoutStartedRef.current = true;
     void handleSubscribe(checkoutPlanId);
+  }, [authChecked, isSignedIn, checkoutPlanId]);
+
+  useEffect(() => {
+    if (checkoutStatus !== 'cancelled') return;
+    setCheckoutError('Checkout was cancelled. Choose a plan when you are ready.');
+  }, [checkoutStatus]);
+
+  useEffect(() => {
+    if (!authChecked) return;
+    if (!isSignedIn) {
+      setHasPaidPlan(false);
+      setPlanChecked(true);
+      return;
+    }
+
+    let cancelled = false;
+    setPlanChecked(false);
+
+    fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' })
+      .then(async (res) => {
+        if (!res.ok) return null;
+        return res.json().catch(() => null);
+      })
+      .then((data) => {
+        if (cancelled) return;
+        const status = String(data?.planStatus || '').toLowerCase();
+        setPlanStatus(status || 'free');
+        setHasPaidPlan(Boolean(data?.paidAccess) || (userHasPaidPlan(data?.plan) && (status === 'active' || status === 'past_due')));
+        setPlanChecked(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setHasPaidPlan(false);
+        setPlanStatus('free');
+        setPlanChecked(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [authChecked, isSignedIn]);
 
   return (
     <>
-      {/* Navigation */}
-      <header>
-        <nav className="navbar" style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '1rem 2rem',
-          background: 'rgba(39, 4, 39, 0.9)',
-          position: 'fixed',
-          top: 0,
-          width: '100%',
-          zIndex: 1000
-        }}>
-          <a href="/" style={{ textDecoration: 'none' }}>
-            <h2 style={{
-              color: '#ffffff',
-              fontSize: '2.6rem',
-              fontWeight: 700,
-              margin: 0,
-              letterSpacing: '0.5px'
-            }}>MymckenzieCS</h2>
-          </a>
-          <ul style={{ listStyle: 'none', display: 'flex', margin: 0, padding: 0 }}>
-            <li>
+      <main style={{
+        paddingTop: '1rem',
+        minHeight: '100vh',
+        paddingBottom: '5rem',
+        paddingLeft: '1rem',
+        paddingRight: '1rem',
+        background: 'radial-gradient(circle at 18% 14%, rgba(147, 51, 234, 0.2), transparent 48%), radial-gradient(circle at 86% 10%, rgba(236, 72, 153, 0.14), transparent 44%), linear-gradient(180deg, #270427 0%, #1d0326 48%, #13021a 100%)',
+        color: '#f8fafc',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          position: 'absolute',
+          top: '140px',
+          right: '-120px',
+          width: '360px',
+          height: '360px',
+          background: 'radial-gradient(circle, rgba(168, 85, 247, 0.24), transparent 70%)',
+          filter: 'blur(20px)',
+          opacity: 0.7
+        }} />
+        <div style={{
+          position: 'absolute',
+          bottom: '-120px',
+          left: '-80px',
+          width: '320px',
+          height: '320px',
+          background: 'radial-gradient(circle, rgba(217, 70, 239, 0.18), transparent 70%)',
+          filter: 'blur(24px)',
+          opacity: 0.7
+        }} />
+        <div className="max-w-6xl mx-auto" style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 30,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            minHeight: '88px',
+            padding: '1rem 0',
+            background: 'transparent',
+            borderBottom: 'none',
+            marginBottom: '1.25rem'
+          }}>
+            <a href="/" style={{ textDecoration: 'none' }}>
+              <h2 style={{
+                color: '#ffffff',
+                fontSize: '2.6rem',
+                fontWeight: 700,
+                margin: 0,
+                letterSpacing: '0.5px'
+              }}>MyMcKenzieCS</h2>
+            </a>
+            <div>
               {authChecked && isSignedIn ? (
-                <a
-                  href="/settings"
-                  style={{
-                    color: '#ffffff',
-                    textDecoration: 'none',
-                    padding: '0.5rem 1rem',
-                    transition: 'color 0.3s ease',
-                    fontSize: '1.1rem',
-                    fontWeight: 600
-                  }}
-                >
-                  Return to Billing
-                </a>
+                isCheckoutFlow ? (
+                  <span
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      textDecoration: 'none',
+                      padding: '0.5rem 1rem',
+                      fontSize: '1.1rem',
+                      fontWeight: 600
+                    }}
+                  >
+                    Secure checkout
+                  </span>
+                ) : !planChecked ? (
+                  <span
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      textDecoration: 'none',
+                      padding: '0.5rem 1rem',
+                      fontSize: '1.1rem',
+                      fontWeight: 600
+                    }}
+                  >
+                    Loading account
+                  </span>
+                ) : !hasPaidPlan ? (
+                  <span
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.85)',
+                      textDecoration: 'none',
+                      padding: '0.5rem 1rem',
+                      fontSize: '1.1rem',
+                      fontWeight: 600
+                    }}
+                  >
+                    {isLapsedStatus ? 'Resume subscription' : 'Complete registration'}
+                  </span>
+                ) : (
+                  <a
+                    href={navHref}
+                    style={{
+                      color: '#ffffff',
+                      textDecoration: 'none',
+                      padding: '0.5rem 1rem',
+                      transition: 'color 0.3s ease',
+                      fontSize: '1.1rem',
+                      fontWeight: 600
+                    }}
+                  >
+                    {navLabel}
+                  </a>
+                )
               ) : (
                 <a
                   href="/auth/signin"
@@ -144,43 +282,40 @@ export default function PricingPage() {
                   Sign in
                 </a>
               )}
-            </li>
-          </ul>
-        </nav>
-      </header>
+            </div>
+          </div>
 
-      <main style={{
-        paddingTop: '110px',
-        minHeight: '100vh',
-        paddingBottom: '5rem',
-        paddingLeft: '1rem',
-        paddingRight: '1rem',
-        background: 'radial-gradient(circle at 15% 20%, rgba(255, 214, 170, 0.35), transparent 45%), radial-gradient(circle at 85% 10%, rgba(135, 224, 216, 0.3), transparent 40%), linear-gradient(180deg, #0d0c12 0%, #141322 40%, #0f0f16 100%)',
-        color: '#f8fafc',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        <div style={{
-          position: 'absolute',
-          top: '140px',
-          right: '-120px',
-          width: '360px',
-          height: '360px',
-          background: 'radial-gradient(circle, rgba(255, 127, 80, 0.3), transparent 70%)',
-          filter: 'blur(20px)',
-          opacity: 0.7
-        }} />
-        <div style={{
-          position: 'absolute',
-          bottom: '-120px',
-          left: '-80px',
-          width: '320px',
-          height: '320px',
-          background: 'radial-gradient(circle, rgba(88, 198, 188, 0.35), transparent 70%)',
-          filter: 'blur(24px)',
-          opacity: 0.7
-        }} />
-        <div className="max-w-6xl mx-auto" style={{ position: 'relative', zIndex: 1 }}>
+          {authChecked && isSignedIn && planChecked && !hasPaidPlan && isLapsedStatus && (
+            <div
+              style={{
+                borderRadius: '16px',
+                border: '1px solid rgba(248, 113, 113, 0.35)',
+                background: 'linear-gradient(135deg, rgba(127, 29, 29, 0.35), rgba(55, 24, 24, 0.28))',
+                padding: '14px 16px',
+                marginBottom: '1.5rem',
+              }}
+            >
+              <p style={{ margin: 0, color: '#fee2e2', fontWeight: 600 }}>
+                Your paid access is paused. Choose a plan to resume full dashboard access.
+              </p>
+            </div>
+          )}
+          {hardLock && (
+            <div
+              style={{
+                borderRadius: '16px',
+                border: '1px solid rgba(251, 191, 36, 0.35)',
+                background: 'linear-gradient(135deg, rgba(92, 53, 10, 0.35), rgba(59, 34, 6, 0.28))',
+                padding: '14px 16px',
+                marginBottom: '1.5rem',
+              }}
+            >
+              <p style={{ margin: 0, color: '#fde68a', fontWeight: 600 }}>
+                Your account is in hard lock. Resume a plan to restore full workspace access.
+              </p>
+            </div>
+          )}
+
           <div style={{ display: 'grid', gap: '2.5rem', alignItems: 'center', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', marginBottom: '3.5rem' }}>
             <div>
               <p style={{ textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.75rem', color: '#f8a76f', fontWeight: 600 }}>Pricing</p>
@@ -222,7 +357,7 @@ export default function PricingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Basic Plan */}
-            <div className="p-8 text-center relative transition-all duration-300 hover:-translate-y-2" style={{
+            <div className="p-8 text-center relative transition-all duration-300 hover:-translate-y-2 flex flex-col" style={{
               background: 'linear-gradient(160deg, rgba(17, 24, 39, 0.98), rgba(30, 41, 59, 0.92))',
               borderRadius: '26px',
               border: '1px solid rgba(248, 250, 252, 0.12)',
@@ -232,9 +367,9 @@ export default function PricingPage() {
               <div className="text-5xl font-bold mb-6" style={{ color: '#9cc8ff' }}>
                 £18<span className="text-2xl">/Month</span>
               </div>
-              <ul className="space-y-3 mb-8 text-left">
+              <ul className="space-y-3 mb-8 text-left flex-grow">
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#9cc8ff' }}>✓</span> MyMcKenzie Basic Assistant for procedural support
+                  <span className="mr-2 font-bold" style={{ color: '#9cc8ff' }}>✓</span> MyMcKenzieCS Basic Assistant
                 </li>
                 <li className="flex items-start text-white">
                   <span className="mr-2 font-bold" style={{ color: '#9cc8ff' }}>✓</span> 10 document storage
@@ -257,7 +392,7 @@ export default function PricingPage() {
             </div>
 
             {/* Premium Plan */}
-            <div className="p-8 text-center relative transition-all duration-300 hover:-translate-y-2" style={{
+            <div className="p-8 text-center relative transition-all duration-300 hover:-translate-y-2 flex flex-col" style={{
               background: 'linear-gradient(160deg, rgba(20, 20, 30, 0.98), rgba(24, 32, 40, 0.92))',
               borderRadius: '26px',
               border: '1px solid rgba(248, 250, 252, 0.12)',
@@ -267,9 +402,9 @@ export default function PricingPage() {
               <div className="text-5xl font-bold mb-6" style={{ color: '#7bd4c9' }}>
                 £32<span className="text-2xl">/Month</span>
               </div>
-              <ul className="space-y-3 mb-8 text-left">
+              <ul className="space-y-3 mb-8 text-left flex-grow">
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> MyMckenzieCS Smart Assistant (OpenAI + web search)
+                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> MyMcKenzieCS Smart Assistant
                 </li>
                 <li className="flex items-start text-white">
                   <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> 25 document storage
@@ -278,7 +413,7 @@ export default function PricingPage() {
                   <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> Conversation history included
                 </li>
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> OpenAI + web search support
+                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> Enhanced research support
                 </li>
                 <li className="flex items-start text-white">
                   <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> Deadline reminder emails
@@ -298,7 +433,7 @@ export default function PricingPage() {
             </div>
 
             {/* Premium + Plan */}
-            <div className="p-8 text-center relative transition-all duration-300 hover:-translate-y-2" style={{
+            <div className="p-8 text-center relative transition-all duration-300 hover:-translate-y-2 flex flex-col" style={{
               background: 'linear-gradient(160deg, rgba(15, 15, 25, 0.95), rgba(30, 20, 18, 0.9))',
               borderRadius: '26px',
               border: '1px solid rgba(248, 250, 252, 0.12)',
@@ -308,9 +443,9 @@ export default function PricingPage() {
               <div className="text-5xl font-bold mb-6" style={{ color: '#f8a76f' }}>
                 £199<span className="text-2xl">/Month</span>
               </div>
-              <ul className="space-y-3 mb-8 text-left">
+              <ul className="space-y-3 mb-8 text-left flex-grow">
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> MyMckenzieCS Intelligent Assistant
+                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> MyMcKenzieCS Intelligent Assistant
                 </li>
                 <li className="flex items-start text-white">
                   <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> 150+ document storage

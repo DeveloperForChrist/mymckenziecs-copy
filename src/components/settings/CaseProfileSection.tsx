@@ -2,8 +2,15 @@
 
 import React, { useEffect, useState } from 'react'
 import styles from './settingsPage.module.css'
+import { hasCaseProfileAccess } from '@/lib/plans/access'
 
-export default function CaseProfileSection() {
+type CaseProfileSectionProps = {
+  enforceReadOnlyOnPlanPause?: boolean
+}
+
+const READ_ONLY_MESSAGE = 'Read-only mode: resume plan to edit case profile.'
+
+export default function CaseProfileSection({ enforceReadOnlyOnPlanPause = false }: CaseProfileSectionProps) {
   const [caseId, setCaseId] = useState<string | null>(null)
   const [caseTitle, setCaseTitle] = useState('')
   const [caseNumber, setCaseNumber] = useState('')
@@ -14,15 +21,36 @@ export default function CaseProfileSection() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteConfirmed, setDeleteConfirmed] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [readOnlyMode, setReadOnlyMode] = useState(false)
+  const [readOnlyMessage, setReadOnlyMessage] = useState<string | null>(null)
   const [statusModal, setStatusModal] = useState<{ title: string; message: string } | null>(null)
 
   useEffect(() => {
     let cancelled = false
     const loadCaseProfile = async () => {
       try {
+        if (enforceReadOnlyOnPlanPause) {
+          const planResponse = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' })
+          const planData = await planResponse.json().catch(() => ({} as Record<string, unknown>))
+          if (!cancelled) {
+            const hasCaseProfileFeature = hasCaseProfileAccess(planData?.plan || '')
+            const isReadOnly = hasCaseProfileFeature && planData?.paidAccess === false
+            setReadOnlyMode(isReadOnly)
+            setReadOnlyMessage(isReadOnly ? READ_ONLY_MESSAGE : null)
+          }
+        }
+
         const response = await fetch('/api/user/case-details', { credentials: 'include' })
         const data = await response.json()
-        if (!response.ok || cancelled) return
+        if (cancelled) return
+        if (!response.ok) {
+          if (response.status === 402) {
+            const message = typeof data?.error === 'string' ? data.error : READ_ONLY_MESSAGE
+            setReadOnlyMode(true)
+            setReadOnlyMessage(message)
+          }
+          return
+        }
         const item = data?.case
         if (!item) return
 
@@ -42,9 +70,13 @@ export default function CaseProfileSection() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [enforceReadOnlyOnPlanPause])
 
   const handleSave = async () => {
+    if (readOnlyMode) {
+      setStatusModal({ title: 'Read-only mode', message: readOnlyMessage || READ_ONLY_MESSAGE })
+      return
+    }
     setSaving(true)
     try {
       const hasAnyInput = Boolean(caseNumber.trim() || hearingDate.trim() || caseTitle.trim() || caseSummary.trim())
@@ -75,6 +107,11 @@ export default function CaseProfileSection() {
       if (res.ok && data.case?.id) {
         setCaseId(data.case.id)
         setStatusModal({ title: 'Case profile saved', message: 'Your case profile details were saved successfully.' })
+      } else if (res.status === 402) {
+        const message = (typeof data?.error === 'string' && data.error.trim()) || READ_ONLY_MESSAGE
+        setReadOnlyMode(true)
+        setReadOnlyMessage(message)
+        setStatusModal({ title: 'Read-only mode', message })
       } else {
         const errorMessage =
           (typeof data?.error === 'string' && data.error.trim()) ||
@@ -93,6 +130,10 @@ export default function CaseProfileSection() {
 
   const handleDeleteProfile = async () => {
     if (!deleteConfirmed || deleting) return
+    if (readOnlyMode) {
+      setStatusModal({ title: 'Read-only mode', message: readOnlyMessage || READ_ONLY_MESSAGE })
+      return
+    }
 
     setDeleting(true)
     try {
@@ -111,6 +152,11 @@ export default function CaseProfileSection() {
         setShowDeleteModal(false)
         setDeleteConfirmed(false)
         setStatusModal({ title: 'Case profile cleared', message: 'Your case profile has been removed. Your chatbot conversation history was preserved.' })
+      } else if (res.status === 402) {
+        const message = (typeof data?.error === 'string' && data.error.trim()) || READ_ONLY_MESSAGE
+        setReadOnlyMode(true)
+        setReadOnlyMessage(message)
+        setStatusModal({ title: 'Read-only mode', message })
       } else {
         setStatusModal({ title: 'Delete failed', message: data?.error || 'Failed to clear case profile' })
       }
@@ -124,7 +170,8 @@ export default function CaseProfileSection() {
   return (
     <section className={styles.settingsSection}>
       <h2 className={styles.sectionHeading}>Case Profile</h2>
-      <p className={styles.desc}>Fill case profile to make MyMcKenzie Assistant more personalised for you.</p>
+      <p className={styles.desc}>Fill case profile to make MyMcKenzieCS Assistant more personalised for you.</p>
+      {readOnlyMode && <div className={styles.readOnlyNotice}>{readOnlyMessage || READ_ONLY_MESSAGE}</div>}
 
       <div className={styles.caseProfileLayout}>
         <div className={styles.caseProfileCard}>
@@ -132,7 +179,12 @@ export default function CaseProfileSection() {
             <div className={styles.caseProfileRow}>
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>By Case Number</label>
-                <input className={styles.textInput} value={caseNumber} onChange={(e) => setCaseNumber(e.target.value)} />
+                <input
+                  className={styles.textInput}
+                  value={caseNumber}
+                  onChange={(e) => setCaseNumber(e.target.value)}
+                  disabled={readOnlyMode}
+                />
                 <p className={styles.caseProfileHint}>The case number for the case needs to be entered in the following format.</p>
               </div>
             </div>
@@ -140,7 +192,12 @@ export default function CaseProfileSection() {
             <div className={styles.caseProfileRow}>
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>By Title</label>
-                <input className={styles.textInput} value={caseTitle} onChange={(e) => setCaseTitle(e.target.value)} />
+                <input
+                  className={styles.textInput}
+                  value={caseTitle}
+                  onChange={(e) => setCaseTitle(e.target.value)}
+                  disabled={readOnlyMode}
+                />
                 <p className={styles.caseProfileHint}>For example, in the case of Smith & Co v Jones, either &quot;Smith&quot; or &quot;Jones&quot; as placeholder.</p>
               </div>
 
@@ -151,6 +208,7 @@ export default function CaseProfileSection() {
                   placeholder="15-Jan-09"
                   value={hearingDate}
                   onChange={(e) => setHearingDate(e.target.value)}
+                  disabled={readOnlyMode}
                 />
                 <p className={styles.caseProfileHint}>A date of hearing can be entered in the following format DD-MMM-YY, e.g. 15-Jan-09.</p>
               </div>
@@ -163,18 +221,19 @@ export default function CaseProfileSection() {
                 rows={7}
                 value={caseSummary}
                 onChange={(e) => setCaseSummary(e.target.value)}
+                disabled={readOnlyMode}
               />
               <p className={styles.caseProfileHint}>Summarise the dispute, key dates, and what outcome you want.</p>
             </div>
 
             <div className={styles.caseProfileActions}>
-              <button className={styles.primaryBtn} onClick={handleSave} disabled={saving}>
+              <button className={styles.primaryBtn} onClick={handleSave} disabled={saving || readOnlyMode}>
                 {saving ? 'Saving…' : 'Save Case Profile'}
               </button>
               <button
                 className={styles.dangerOutlineBtn}
                 onClick={() => setShowDeleteModal(true)}
-                disabled={loadingProfile || deleting}
+                disabled={loadingProfile || deleting || readOnlyMode}
               >
                 Delete Case Profile
               </button>
@@ -209,7 +268,7 @@ export default function CaseProfileSection() {
           <div className={styles.modalCard}>
             <h3 className={styles.modalTitle}>Delete case profile?</h3>
             <p className={styles.modalBody}>
-              This will clear your case title, case number, hearing date, and case summary used to personalise MyMcKenzie Assistant.
+              This will clear your case title, case number, hearing date, and case summary used to personalise MyMcKenzieCS Assistant.
               Your chatbot responses may become less tailored until you fill in a new case profile, but your chatbot conversations will be kept.
             </p>
             <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px', fontSize: '0.9rem' }}>

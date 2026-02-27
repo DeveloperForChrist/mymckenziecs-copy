@@ -13,13 +13,13 @@ export default function ChatEmptyState({ authLoaded, hasUser }: ChatEmptyStatePr
       {!hasUser ? (
         <div style={{ maxWidth: '700px', margin: '0 auto', lineHeight: 1.7, fontFamily: 'inherit', fontSize: '17px', fontWeight: 500 }}>
           <p style={{ fontSize: '17px', fontWeight: 500, marginBottom: '20px' }}>
-            Welcome to MyMcKenzie Assistant.
+            Welcome to MyMcKenzieCS Assistant.
           </p>
           <p style={{ marginBottom: '20px' }}>
             Ask your question to get clear procedural guidance.
           </p>
           <p style={{ fontWeight: 600 }}>
-            MyMcKenzie Assistant is for informational support only and is not a substitute for legal advice.
+            MyMcKenzieCS Assistant is for informational support only and is not a substitute for legal advice.
           </p>
         </div>
       ) : (
@@ -50,7 +50,7 @@ export default function ChatEmptyState({ authLoaded, hasUser }: ChatEmptyStatePr
             textAlign: 'center',
             textShadow: '0 2px 12px rgba(39,4,39,0.18)'
           }}>
-            I am MyMcKenzie Assistant, here to help you <span role="img" aria-label="waving hand">👋</span>
+            I am MyMcKenzieCS Assistant, here to help you <span role="img" aria-label="waving hand">👋</span>
           </p>
         </div>
       )}

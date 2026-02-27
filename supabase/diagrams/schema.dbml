@@ -113,6 +113,23 @@ Table user_preferences {
   updated_at timestamptz
 }
 
+Table user_notes {
+  user_id uuid [pk, ref: > users.id]
+  notes_pages jsonb
+  active_page_id text
+  selected_case_id text
+  created_at timestamptz
+  updated_at timestamptz
+}
+
+Table user_case_law_history {
+  user_id uuid [pk, ref: > users.id]
+  search_history jsonb
+  viewed_history jsonb
+  created_at timestamptz
+  updated_at timestamptz
+}
+
 Table cache {
   key text [pk]
   value jsonb
@@ -169,5 +186,7 @@ Ref: message_usage.pass_id > user_passes.id
 Ref: message_usage.subscription_id > subscriptions.id
 Ref: audit_log.user_id > users.id
 Ref: user_preferences.user_id > users.id
+Ref: user_notes.user_id > users.id
+Ref: user_case_law_history.user_id > users.id
 Ref: api_usage.user_id > users.id
 Ref: calendar_events.user_id > users.id

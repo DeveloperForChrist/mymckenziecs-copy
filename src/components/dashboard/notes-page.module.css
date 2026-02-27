@@ -86,6 +86,12 @@
   background: #6631d4;
 }
 
+.newNoteBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+  background: #5b21b6;
+}
+
 .newNoteBtn i {
   font-size: 1.1rem;
 }
@@ -190,6 +196,11 @@
   color: #fecaca;
 }
 
+.noteDeleteBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .noteCardPreview {
   color: rgba(226, 232, 240, 0.74);
   font-size: 0.86rem;
@@ -282,6 +293,17 @@
   color: rgba(226, 232, 240, 0.74);
 }
 
+.readOnlyBanner {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(251, 191, 36, 0.38);
+  background: rgba(120, 53, 15, 0.3);
+  color: rgba(254, 240, 138, 0.96);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
 .editorActions {
   display: inline-flex;
   align-items: center;
@@ -354,6 +376,11 @@
   color: rgba(226, 232, 240, 0.58);
 }
 
+.noteTitle:read-only {
+  opacity: 0.86;
+  cursor: not-allowed;
+}
+
 .noteBody {
   width: 100%;
   min-height: 340px;
@@ -373,6 +400,11 @@
   color: rgba(226, 232, 240, 0.52);
 }
 
+.noteBody:read-only {
+  opacity: 0.86;
+  cursor: not-allowed;
+}
+
 .helperCard {
   margin-top: 14px;
   border-radius: 14px;
@@ -388,6 +420,31 @@
   font-size: 0.9rem;
   font-weight: 700;
   color: rgba(248, 250, 252, 0.95);
+}
+
+.helperCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.helperCloseButton {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(226, 232, 240, 0.88);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.helperCloseButton:hover {
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .helperCardText {

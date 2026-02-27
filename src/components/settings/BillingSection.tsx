@@ -9,6 +9,10 @@ type UserPlan = {
   planPrice?: string | number;
   nextBillingDate?: any;
   hasStripeCustomer?: boolean;
+  paidAccess?: boolean;
+  canResume?: boolean;
+  archiveAt?: string | null;
+  deleteAt?: string | null;
 };
 
 type PaymentMethodSummary = {
@@ -35,8 +39,9 @@ export default function BillingSection() {
   const [checkoutSynced, setCheckoutSynced] = useState(false);
   const [billingBackfillChecked, setBillingBackfillChecked] = useState(false);
 
-  const normalizedPlan = (planData?.plan || '').toString().toLowerCase();
-  const hasNoPaidPlan = normalizedPlan.includes('free');
+  const hasNoPaidPlan = !planData?.paidAccess;
+  const normalizedStatus = (planData?.planStatus || '').toString().toLowerCase();
+  const isLapsedStatus = normalizedStatus === 'expired' || normalizedStatus === 'cancelled';
 
   useEffect(() => {
     let mounted = true
@@ -97,7 +102,7 @@ export default function BillingSection() {
       return;
     }
     const params = new URLSearchParams(window.location.search);
-    const checkout = params.get('checkout');
+    const checkout = params.get('checkout') || params.get('checkout_status');
     const sessionId = params.get('session_id');
     if (checkout !== 'success' || !sessionId) {
       return;
@@ -131,6 +136,7 @@ export default function BillingSection() {
         if (!cancelled) {
           const cleanUrl = new URL(window.location.href);
           cleanUrl.searchParams.delete('checkout');
+          cleanUrl.searchParams.delete('checkout_status');
           cleanUrl.searchParams.delete('session_id');
           window.history.replaceState({}, '', `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
           setCheckoutSynced(true);
@@ -197,7 +203,7 @@ export default function BillingSection() {
   }, [uid, authResolved, billingBackfillChecked, loading, planData?.plan]);
 
   useEffect(() => {
-    if (!authResolved || !uid || hasNoPaidPlan || !planData?.hasStripeCustomer) {
+    if (!authResolved || !uid || !planData?.hasStripeCustomer) {
       setPaymentMethod(null);
       setPaymentLoading(false);
       setPaymentError(null);
@@ -223,7 +229,7 @@ export default function BillingSection() {
         setPaymentError(err.message);
         setPaymentLoading(false);
       });
-  }, [uid, authResolved, hasNoPaidPlan, planData?.hasStripeCustomer]);
+  }, [uid, authResolved, planData?.hasStripeCustomer]);
 
   function formatNextBillingDate(value: any): string {
     if (!value) return '—';
@@ -239,14 +245,14 @@ export default function BillingSection() {
     return String(value);
   }
 
-  const openCustomerPortal = () => {
+  const openCustomerPortal = (mode: 'manage' | 'payment_method_update' = 'manage') => {
     setPortalError(null);
     startPortal(async () => {
       try {
         const res = await fetch('/api/stripe/customer-portal', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uid }),
+          body: JSON.stringify({ uid, mode }),
         });
         const json = await res.json();
         if (!res.ok || !json.url) {
@@ -285,6 +291,12 @@ export default function BillingSection() {
                 <p className={styles.planHint}>
                   Next billing: {formatNextBillingDate(planData?.nextBillingDate)}
                 </p>
+                {isLapsedStatus && (
+                  <p className={styles.planHint} style={{ color: '#fca5a5' }}>
+                    Paid access is paused. Archive date: {formatNextBillingDate(planData?.archiveAt)} · Deletion date:{' '}
+                    {formatNextBillingDate(planData?.deleteAt)}
+                  </p>
+                )}
               </div>
             </div>
             <div className={styles.planCardActions}>
@@ -295,7 +307,7 @@ export default function BillingSection() {
                     type="button"
                     disabled={portalPending}
                     onClick={() => {
-                      openCustomerPortal();
+                      openCustomerPortal('manage');
                     }}
                     className={styles.primaryBtn}
                     style={{ background: '#4c1d95' }}
@@ -314,7 +326,7 @@ export default function BillingSection() {
 
       <section className={styles.settingsSection}>
         <h2 className={styles.sectionHeading}>Payment Methods</h2>
-        {hasNoPaidPlan ? (
+        {hasNoPaidPlan && !planData?.hasStripeCustomer ? (
           <div className={styles.paymentCard}>
             <div className={styles.cardInfo}>
               <div>
@@ -363,15 +375,26 @@ export default function BillingSection() {
             </div>
           </div>
         )}
-        {uid && !hasNoPaidPlan && (
+        {uid && !loading && (
           <div className={styles.bottomActions}>
             {planData?.hasStripeCustomer ? (
-              <button type="button" className={styles.primaryBtn} disabled={portalPending} onClick={openCustomerPortal}>
-                {portalPending ? 'Opening…' : paymentMethod ? 'Update payment method' : 'Add payment method'}
+              <button
+                type="button"
+                className={styles.primaryBtn}
+                disabled={portalPending}
+                onClick={() => openCustomerPortal(hasNoPaidPlan ? 'manage' : 'payment_method_update')}
+              >
+                {portalPending
+                  ? 'Opening…'
+                  : hasNoPaidPlan
+                    ? 'Resume in billing portal'
+                    : paymentMethod
+                      ? 'Update payment method'
+                      : 'Add payment method'}
               </button>
             ) : (
               <a href="/pricing" className={styles.primaryBtn} style={{ textDecoration: 'none' }}>
-                Choose a plan
+                {isLapsedStatus ? 'Resume plan' : 'Choose a plan'}
               </a>
             )}
           </div>

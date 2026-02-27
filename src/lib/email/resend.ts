@@ -32,7 +32,7 @@ export async function sendResendEmail(params: ResendSendEmailParams) {
     process.env.SUPPORT_EMAIL ||
     process.env.GMAIL_USER ||
     'noreply@mymckenziecs.com';
-  const fromName = process.env.RESEND_FROM_NAME || 'MymckenzieCS';
+  const fromName = process.env.RESEND_FROM_NAME || 'MyMcKenzieCS';
   const from = formatFromAddress(rawFrom, fromName);
 
   if (!from) {

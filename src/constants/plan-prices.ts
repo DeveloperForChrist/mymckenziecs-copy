@@ -8,8 +8,9 @@ export const PLAN_PRICES = [
       '',
     display: '£18/Month',
     features: [
+      'MyMcKenzieCS Basic Assistant',
       '10 document storage',
-      'Persistent chat history',
+      'Conversation history included',
     ],
   },
   {
@@ -19,10 +20,10 @@ export const PLAN_PRICES = [
       '',
     display: '£32/Month',
     features: [
-      'MyMckenzieCS Smart Assistant',
+      'MyMcKenzieCS Smart Assistant',
       '25 document storage',
-      'Persistent chat history',
-      'OpenAI + web search support',
+      'Conversation history included',
+      'Enhanced research support',
       'Deadline reminder emails',
     ],
   },
@@ -34,8 +35,7 @@ export const PLAN_PRICES = [
       '',
     display: '£199/Month',
     features: [
-      'Everything included in Premium',
-      'MyMckenzieCS Intelligent Assistant',
+      'MyMcKenzieCS Intelligent Assistant',
       '150+ document storage',
       'Persistent chat history',
       'Advanced case law retrieval and study',

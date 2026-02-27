@@ -13,6 +13,20 @@ const hasMeaningfulCaseProfile = (row: Record<string, unknown> | null | undefine
   return hasTitle || Boolean(externalId) || Boolean(caseType) || Boolean(description);
 };
 
+const hasPaidAccess = async (userId: string): Promise<boolean> => {
+  const { data } = await supabaseAdmin
+    .from('subscriptions')
+    .select('plan_type, status')
+    .eq('user_id', userId)
+    .in('status', ['active', 'past_due'])
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const label = String(data?.plan_type || '').toLowerCase();
+  return Boolean(label && (label.includes('basic') || label.includes('premium')));
+};
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteClient();
@@ -106,6 +120,13 @@ export async function DELETE(request: NextRequest) {
       );
     }
     const userId = authData.user.id;
+    const paid = await hasPaidAccess(userId);
+    if (!paid) {
+      return NextResponse.json(
+        { error: 'Read-only mode: resume plan to edit or delete case profiles.' },
+        { status: 402 }
+      );
+    }
 
     // Ensure the case belongs to this user
     const { data: caseRow } = await supabaseAdmin
@@ -185,6 +206,13 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'caseId and updates are required' }, { status: 400 });
     }
     const userId = authData.user.id;
+    const paid = await hasPaidAccess(userId);
+    if (!paid) {
+      return NextResponse.json(
+        { error: 'Read-only mode: resume plan to edit case profiles.' },
+        { status: 402 }
+      );
+    }
 
     // Ensure the case belongs to this user
     const { data: caseRow, error: caseError } = await supabaseAdmin

@@ -8,7 +8,7 @@ import { SearchTool } from '../tools/search-tool';
 import { CaseContextExtractor, BackgroundCaseIntelligence, PrincipleExtractor, formatIntelligenceContext } from '../../search/case-matching-engine';
 
 // Prompt template
-const SYSTEM_PROMPT: string = `You are MymckenzieCS, a UK legal guide for people representing themselves in court.
+const SYSTEM_PROMPT: string = `You are MyMcKenzieCS, a UK legal guide for people representing themselves in court.
 
 CRITICAL:
 - You are NOT a lawyer. You explain processes and procedures in plain English.
@@ -989,7 +989,7 @@ async function callLLM(
       error: error instanceof Error ? error.message : String(error),
     });
     console.error('Claude API Error:', error);
-    return "Hello! I'm MymckenzieCS, but I am currently having a problem. Please try again later.";
+    return "Hello! I'm MyMcKenzieCS, but I am currently having a problem. Please try again later.";
   }
 }
 
@@ -1061,7 +1061,7 @@ export async function createLegalAgent(
         const isGreeting = isBasicGreeting(latestQuestion)
         if (isGreeting) {
           return {
-            response: "Hello! I'm MymckenzieCS. How can I help with your legal question today?",
+            response: "Hello! I'm MyMcKenzieCS. How can I help with your legal question today?",
             document_generated: false,
             guidance_provided: true,
             sources: undefined

@@ -218,15 +218,15 @@ export class ChatManager {
       return { id: c.id, ...c };
     });
 
-    // If multiple cases exist and no active case set, return cases for selection
-    if (cases.length > 1 && !this.activeCaseId) {
-      return {
-        requiresCaseSelection: true,
-        cases: cases
-      };
+    const activeCaseStillExists = this.activeCaseId
+      ? cases.some((caseRow: any) => caseRow.id === this.activeCaseId)
+      : false;
+
+    // Single-profile mode: ignore stale case ids and default to the latest profile.
+    if (!activeCaseStillExists) {
+      this.activeCaseId = undefined;
     }
 
-    // Set active case to most recent if exists
     if (cases.length > 0 && !this.activeCaseId) {
       this.activeCaseId = cases[0].id;
     }
@@ -320,7 +320,7 @@ export class ChatManager {
   /**
    * Step 2: Store raw conversation message
    * All messages (user and assistant) are stored directly to the database with full content
-   * Guest limits are enforced at API layer before this class is called.
+   * Access controls are enforced at API layer before this class is called.
    * Case ID is optional - if user has set up case profile in settings, messages are personalized
    */
   async storeRawMessage(

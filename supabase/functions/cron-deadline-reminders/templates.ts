@@ -3,7 +3,7 @@ export const REMINDER_TEMPLATE = `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px; margin:0 auto; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
     <tr>
       <td style="padding:20px 24px; background:{{header_bg}}; color:#ffffff;">
-        <div style="font-size:12px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.85;">MymckenzieCS</div>
+        <div style="font-size:12px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.85;">MyMcKenzieCS</div>
         <h2 style="margin:8px 0 0; font-size:24px; line-height:1.3; color:#ffffff;">{{title}}</h2>
       </td>
     </tr>

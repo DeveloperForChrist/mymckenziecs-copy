@@ -31,7 +31,7 @@ export default function LegalPageLayout({ title, subtitle, meta, children }: Leg
             }}
           >
             <p style={{ textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.75rem', color: '#c4b5fd' }}>
-              MymckenzieCS
+              MyMcKenzieCS
             </p>
             <h1 style={{ fontSize: '2.4rem', lineHeight: 1.1, marginTop: '0.75rem' }}>{title}</h1>
             {subtitle && (

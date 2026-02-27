@@ -28,7 +28,7 @@ function formatDateLabel(value?: Date | number | null) {
 }
 
 function getReminderDays(): number[] {
-  const raw = (process.env.BILLING_GRACE_REMINDER_DAYS || '1,3,5,6').trim();
+  const raw = (process.env.BILLING_GRACE_REMINDER_DAYS || '1,2,3,5,6').trim();
   const parsed = raw
     .split(',')
     .map((value) => Number.parseInt(value.trim(), 10))
@@ -36,7 +36,7 @@ function getReminderDays(): number[] {
     .map((value) => Math.max(1, Math.min(30, value)));
 
   const uniqueSorted = Array.from(new Set(parsed)).sort((a, b) => a - b);
-  return uniqueSorted.length > 0 ? uniqueSorted : [1, 3, 5, 6];
+  return uniqueSorted.length > 0 ? uniqueSorted : [1, 2, 3, 5, 6];
 }
 
 function parseSentReminderDays(value: unknown): Set<number> {

@@ -53,6 +53,20 @@ async function upsertSubscriptionForUser(
         current_period_start: currentPeriodStart,
         current_period_end: currentPeriodEnd,
         cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
+        ...(isBillingActiveStripeStatus(status)
+          ? {
+              lifecycle_lapsed_at: null,
+              lifecycle_archive_at: null,
+              lifecycle_delete_at: null,
+              lifecycle_archived_at: null,
+              lifecycle_deleted_at: null,
+              lifecycle_archive_notice_sent_at: null,
+              lifecycle_delete_notice_sent_at: null,
+              lifecycle_archive_warning_days_sent: [],
+              lifecycle_delete_warning_days_sent: [],
+              lifecycle_reminder_days_sent: [],
+            }
+          : {}),
         updated_at: nowIso,
       },
       { onConflict: 'stripe_subscription_id' }

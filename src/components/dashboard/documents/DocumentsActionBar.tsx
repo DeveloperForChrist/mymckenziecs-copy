@@ -9,6 +9,7 @@ type DocumentsActionBarProps = {
   uploadFolderId: string;
   onUploadFolderChange: (value: string) => void;
   uploading: boolean;
+  canUpload: boolean;
   onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
@@ -19,6 +20,7 @@ export default function DocumentsActionBar({
   uploadFolderId,
   onUploadFolderChange,
   uploading,
+  canUpload,
   onUpload,
 }: DocumentsActionBarProps) {
   return (
@@ -41,6 +43,7 @@ export default function DocumentsActionBar({
             <select
               className={styles.folderSelect}
               value={uploadFolderId}
+              disabled={!canUpload || uploading}
               onChange={(event) => onUploadFolderChange(event.target.value)}
             >
               <option value="">No folder</option>
@@ -50,9 +53,12 @@ export default function DocumentsActionBar({
                 </option>
               ))}
             </select>
-            <label className={styles.primaryBtn}>
-              {uploading ? "Uploading…" : "Upload +"}
-              <input type="file" multiple hidden onChange={onUpload} />
+            <label
+              className={`${styles.primaryBtn} ${!canUpload ? styles.primaryBtnDisabled : ""}`}
+              aria-disabled={!canUpload}
+            >
+              {canUpload ? (uploading ? "Uploading…" : "Upload +") : "Upload locked"}
+              <input type="file" multiple hidden onChange={onUpload} disabled={!canUpload || uploading} />
             </label>
           </div>
         </div>

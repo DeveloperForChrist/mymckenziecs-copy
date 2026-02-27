@@ -7,6 +7,7 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   });
 }
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
+import { flushNotesDraftNow } from '@/lib/notes/flush-notes-draft';
 import type { User } from '@supabase/supabase-js';
 import styles from './settingsPage.module.css';
 
@@ -105,6 +106,8 @@ export default function AccountSection() {
     setSigningOut(true);
     try {
       const supabase = getSupabaseBrowserClient();
+      const authUserId = userId || (await supabase.auth.getUser()).data.user?.id || null;
+      await flushNotesDraftNow(authUserId, { timeoutMs: 2500 });
       await supabase.auth.signOut();
       if (typeof window !== 'undefined') {
         localStorage.removeItem('userId');
@@ -171,6 +174,8 @@ export default function AccountSection() {
       }
 
       const supabase = getSupabaseBrowserClient();
+      const authUserId = userId || (await supabase.auth.getUser()).data.user?.id || null;
+      await flushNotesDraftNow(authUserId, { timeoutMs: 2500 });
       await supabase.auth.signOut();
       if (typeof window !== 'undefined') {
         localStorage.removeItem('userId');

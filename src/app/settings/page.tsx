@@ -57,7 +57,7 @@ export default function SettingsPage() {
               {active === 'contact' && (
                 <>
                   <h1 className={styles.heading}>Contact Us</h1>
-                  <p className={styles.desc}>Reach the MyMcKenzie team for help and support</p>
+                  <p className={styles.desc}>Reach the MyMcKenzieCS team for help and support</p>
                   <ContactSection />
                 </>
               )}

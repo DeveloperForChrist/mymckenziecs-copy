@@ -20,25 +20,12 @@ function mapSupabaseError(error: AuthApiError) {
   return error.message || 'We could not sign you in. Please try again.'
 }
 
-function hasPaidPlan(plan: unknown) {
-  const label = String(plan || '').toLowerCase()
-  return (
-    label.includes('basic') ||
-    label.includes('essential') ||
-    label.includes('premium') ||
-    label.includes('premium +') ||
-    label.includes('premium plus') ||
-    label.includes('plus') ||
-    label.includes('pro') ||
-    label.includes('premium cheap')
-  )
-}
-
 export default function SignInForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const verifyState = (searchParams?.get('verify') || '').trim().toLowerCase()
   const verifiedState = (searchParams?.get('verified') || '').trim().toLowerCase()
+  const billingOptOutState = (searchParams?.get('billing_opt_out') || '').trim().toLowerCase()
   const redirectParam = (searchParams?.get('redirect') || '').trim()
   const hasExplicitRedirect = redirectParam.startsWith('/')
   const nextPath = hasExplicitRedirect ? redirectParam : '/dashboard'
@@ -75,20 +62,7 @@ export default function SignInForm() {
         return
       }
 
-      let destination = '/pricing'
-      try {
-        const planRes = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' })
-        if (planRes.ok) {
-          const planData = await planRes.json().catch(() => ({}))
-          if (hasPaidPlan(planData?.plan)) {
-            destination = '/dashboard'
-          }
-        }
-      } catch {
-        destination = '/pricing'
-      }
-
-      router.push(destination)
+      router.push('/dashboard')
       router.refresh()
     } catch (err: unknown) {
       if (err instanceof AuthApiError) {
@@ -156,6 +130,16 @@ export default function SignInForm() {
       {verifiedState === 'invalid' && (
         <div className={styles.errorBox}>
           Verification link is invalid. Enter your email below and resend verification.
+        </div>
+      )}
+      {billingOptOutState === 'success' && (
+        <div className={styles.successBox}>
+          Billing recovery reminders are now turned off for this account.
+        </div>
+      )}
+      {billingOptOutState === 'invalid' && (
+        <div className={styles.errorBox}>
+          That opt-out link is invalid or expired.
         </div>
       )}
       {error && (

@@ -93,7 +93,7 @@ export default function CaseProfilePage() {
             Go to Dashboard
           </Link>
         </div>
-        <CaseProfileSection />
+        <CaseProfileSection enforceReadOnlyOnPlanPause />
       </div>
     </div>
   );

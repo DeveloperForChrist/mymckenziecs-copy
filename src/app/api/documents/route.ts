@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
+import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse, uploadIpRateLimiter, uploadRateLimiter } from '@/lib/utils/rate-limit'
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024
@@ -10,6 +11,20 @@ const sanitizeFilename = (name: string) =>
 const getExtension = (name: string) => {
   const parts = name.split('.')
   return parts.length > 1 ? parts[parts.length - 1].toUpperCase() : 'Document'
+}
+
+async function hasPaidAccess(userId: string): Promise<boolean> {
+  const { data } = await supabaseAdmin
+    .from('subscriptions')
+    .select('plan_type, status')
+    .eq('user_id', userId)
+    .in('status', ['active', 'past_due'])
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const label = String(data?.plan_type || '').toLowerCase()
+  return Boolean(label && (label.includes('basic') || label.includes('premium')))
 }
 
 export async function GET() {
@@ -66,6 +81,13 @@ export async function POST(request: NextRequest) {
     const user = authData?.user
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const paid = await hasPaidAccess(user.id)
+    if (!paid) {
+      return NextResponse.json(
+        { error: 'Read-only mode: resume plan to upload documents. Existing documents remain safe.' },
+        { status: 402 }
+      )
     }
     const ip = getClientIp(request.headers)
     const userLimit = await rateLimit(uploadRateLimiter, `upload:documents:user:${getIdentifier(user.id, ip)}`, 20, 10 * 60 * 1000)

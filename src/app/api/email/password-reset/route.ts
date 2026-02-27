@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     await sendResendEmail({
       to: email,
-      subject: 'Reset your MymckenzieCS password',
+      subject: 'Reset your MyMcKenzieCS password',
       htmlBody,
       tag: 'password-reset',
     });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { caseStudyAgent, type CaseData } from '@/lib/ai/agents/case-study-agent';
 import { searchByText } from '@/lib/vector/milvus';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
+import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { aiRateLimiter, rateLimit, getIdentifier } from '@/lib/utils/rate-limit';
 import OpenAI from 'openai';
 import { 
@@ -13,6 +14,7 @@ import {
 import { caseStudyCache } from '@/lib/cache/case-study-cache';
 import { z } from 'zod';
 import { captureServerException } from '@/lib/monitoring/error-logger';
+import { hasCaseLawAccess } from '@/lib/plans/access';
 
 // Input validation schema with better validation rules
 const caseStudySchema = z.object({
@@ -30,9 +32,38 @@ export async function POST(req: NextRequest) {
   const startTime = Date.now();
   
   try {
+    const supabase = await createSupabaseRouteClient();
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { data: activeSub } = await supabaseAdmin
+      .from('subscriptions')
+      .select('plan_type, status')
+      .eq('user_id', authData.user.id)
+      .in('status', ['active', 'past_due'])
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const planLabel = String(activeSub?.plan_type || '');
+    if (!planLabel) {
+      return NextResponse.json(
+        { error: 'Plan paused: case law study is locked. Resume your plan to continue.' },
+        { status: 402 }
+      );
+    }
+    if (!hasCaseLawAccess(planLabel)) {
+      return NextResponse.json(
+        { error: 'Case law study is available on Premium + plans.' },
+        { status: 403 }
+      );
+    }
+
     // Rate limiting - 5 requests per minute
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip');
-    const identifier = getIdentifier(undefined, ip || undefined);
+    const identifier = getIdentifier(authData.user.id, ip || undefined);
     const rateLimitResult = await rateLimit(aiRateLimiter, identifier, 5, 60000);
     if (!rateLimitResult.success) {
       return NextResponse.json(

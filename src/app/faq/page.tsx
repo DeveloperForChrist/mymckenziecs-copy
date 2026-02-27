@@ -20,7 +20,7 @@ export default function FaqPage() {
           <article className={styles.card}>
             <h3>What does Basic include?</h3>
             <p>
-              Basic gives you the MyMcKenzie Basic Assistant, unlimited conversations with a 20-message per thread limit,
+              Basic gives you the MyMcKenzieCS Basic Assistant, unlimited conversations with a 20-message per thread limit,
               and document storage.
             </p>
           </article>
@@ -33,7 +33,7 @@ export default function FaqPage() {
           <article className={styles.card}>
             <h3>What does Premium + add?</h3>
             <p>
-              Premium + is built for high-volume cases with the MyMckenzieCS Intelligent Assistant, the largest storage allowance, and advanced case law tools.
+              Premium + is built for high-volume cases with the MyMcKenzieCS Intelligent Assistant, the largest storage allowance, and advanced case law tools.
             </p>
           </article>
           <article className={styles.card}>

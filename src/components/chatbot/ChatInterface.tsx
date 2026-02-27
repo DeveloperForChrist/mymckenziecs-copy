@@ -79,9 +79,6 @@ const TypingIndicator = ({ label = 'Working', compact = false }: { label?: strin
   )
 }
 
-const GUEST_MESSAGE_LIMIT = 10;
-const GUEST_LIMIT_TRIGGERED_KEY = 'guestLimitTriggered'
-
  const stripTrailingUrlPunctuation = (url: string) => {
    let cleaned = url.trim()
    while (cleaned.length > 0 && /[)\].,;:!]/.test(cleaned[cleaned.length - 1])) {
@@ -742,7 +739,7 @@ export default function ChatInterface() {
 
   const {
     supabaseUser,
-    plan,
+    paidAccess,
     planLoaded,
     isAuthenticated,
     authLoaded,
@@ -830,9 +827,8 @@ export default function ChatInterface() {
   const [guestUploadWarning, setGuestUploadWarning] = useState<string | null>(null)
   const [showGuestSignupModal, setShowGuestSignupModal] = useState(false)
   const [isConversationBootstrapping, setIsConversationBootstrapping] = useState(true)
-  const [isGuestLimitReached, setIsGuestLimitReached] = useState(false)
-  const [guestLimitNotified, setGuestLimitNotified] = useState(false)
   const [noticeModal, setNoticeModal] = useState<{ title: string; message: string } | null>(null)
+  const isSignedInPlanLocked = Boolean(supabaseUser) && planLoaded && !paidAccess
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -956,48 +952,6 @@ export default function ChatInterface() {
     }
     fileInputRef.current?.click()
   }
-
-  const isGuestFreePlan = planLoaded && plan === 'Free' && !supabaseUser
-
-  useEffect(() => {
-    if (isGuestFreePlan) {
-      const guestMessages = messages.filter((m) => m.role === 'user').length
-      if (guestMessages < GUEST_MESSAGE_LIMIT) {
-        setIsGuestLimitReached(false)
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem(GUEST_LIMIT_TRIGGERED_KEY)
-        }
-      }
-    } else {
-      setIsGuestLimitReached(false)
-    }
-  }, [messages, isGuestFreePlan])
-
-  useEffect(() => {
-    if (!isGuestLimitReached || !isGuestFreePlan) {
-      setGuestLimitNotified(false)
-    }
-  }, [isGuestLimitReached, isGuestFreePlan])
-
-  useEffect(() => {
-    if (!planLoaded || !isGuestFreePlan) return
-    fetch('/api/message-count', { credentials: 'include' })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (isGuestFreePlan && typeof data?.limit === 'number' && typeof data?.count === 'number') {
-          const reached = data.count >= data.limit
-          const hasTriggered =
-            typeof window !== 'undefined' &&
-            localStorage.getItem(GUEST_LIMIT_TRIGGERED_KEY) === '1'
-          setIsGuestLimitReached(Boolean(reached && hasTriggered))
-          if (reached && hasTriggered) setShowGuestSignupModal(true)
-          if (!reached && typeof window !== 'undefined') {
-            localStorage.removeItem(GUEST_LIMIT_TRIGGERED_KEY)
-          }
-        }
-      })
-      .catch(() => undefined)
-  }, [planLoaded, isGuestFreePlan])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
@@ -1207,7 +1161,12 @@ export default function ChatInterface() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to get response')
+        const message =
+          (typeof data?.response === 'string' && data.response.trim()) ||
+          (typeof data?.message === 'string' && data.message.trim()) ||
+          (typeof data?.error === 'string' && data.error.trim()) ||
+          'Failed to get response'
+        throw new Error(message)
       }
 
       if (data?.metadata?.activeCaseId) {
@@ -1216,12 +1175,6 @@ export default function ChatInterface() {
           setCaseId(resolvedCaseId)
           localStorage.setItem('selectedCaseId', resolvedCaseId)
         }
-      }
-
-      if (targetConversationId) {
-        window.dispatchEvent(
-          new CustomEvent('premiumThreadMessageCountChanged', { detail: { conversationId: targetConversationId } })
-        )
       }
 
       const assistantText = stripAssistantSourcesBlock(String(data.response || ''))
@@ -1239,7 +1192,7 @@ export default function ChatInterface() {
 
       typeMessageById(assistantText, assistantMessageId)
     } catch (error: unknown) {
-      const errorText = 'MyMckenzie is unavailable to help right now. Please try again later.'
+      const errorText = 'MyMcKenzieCS is unavailable to help right now. Please try again later.'
       const errorMessageId = `assistant_regen_error_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
       const errorMessage: Message = {
         id: errorMessageId,
@@ -1375,14 +1328,6 @@ export default function ChatInterface() {
     setIsConversationBootstrapping
   })
 
-  // Broadcast conversation ID changes to siblings (like ChatbotNavbar) for per-thread message tracking
-  useEffect(() => {
-    if (conversationId) {
-      const event = new CustomEvent('currentConversationIdChanged', { detail: conversationId });
-      window.dispatchEvent(event);
-    }
-  }, [conversationId]);
-
   // Reset textarea height when input is cleared
   useEffect(() => {
     if (textareaRef.current && input === '') {
@@ -1411,7 +1356,10 @@ export default function ChatInterface() {
 
   const handleInputKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     const canSubmit = input.trim().length > 0 || attachedFiles.length > 0
-    if (e.key === 'Enter' && !e.shiftKey && !loading && canSubmit && !isGuestLimitReached) {
+    if (isSignedInPlanLocked) {
+      return
+    }
+    if (e.key === 'Enter' && !e.shiftKey && !loading && canSubmit) {
       e.preventDefault()
       handleSubmit()
     }
@@ -1441,26 +1389,12 @@ export default function ChatInterface() {
     e?.preventDefault()
     const hasText = input.trim().length > 0
     const hasAttachments = attachedFiles.length > 0
-    const guestMessagesCount = messages.filter((m) => m.role === 'user').length
     if ((!hasText && !hasAttachments) || loading) return
-    if (isGuestFreePlan && guestMessagesCount >= GUEST_MESSAGE_LIMIT) {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(GUEST_LIMIT_TRIGGERED_KEY, '1')
-      }
-      setIsGuestLimitReached(true)
-      if (!guestLimitNotified) {
-        setGuestLimitNotified(true)
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `assistant_limit_${Date.now()}`,
-            role: 'assistant',
-            content: `Hi, you have reached your ${GUEST_MESSAGE_LIMIT}-message guest limit. Please sign up, or return in 24 hours to continue as a guest.`,
-            timestamp: new Date()
-          }
-        ])
-      }
-      setShowGuestSignupModal(true)
+    if (isSignedInPlanLocked) {
+      setNoticeModal({
+        title: 'Chat is locked',
+        message: 'Your plan is currently paused. Your dashboard remains available in read-only mode and your documents stay safe. Resume your plan to continue chatting.',
+      })
       return
     }
     if (hasAttachments && !supabaseUser) {
@@ -1499,11 +1433,6 @@ export default function ChatInterface() {
         localStorage.setItem('currentConversationId', targetConversationId)
       }
     }
-    if (targetConversationId) {
-      window.dispatchEvent(
-        new CustomEvent('premiumThreadMessageCountChanged', { detail: { conversationId: targetConversationId, delta: 1 } })
-      )
-    }
     setInput('')
     setAttachedFiles([])
 
@@ -1516,11 +1445,6 @@ export default function ChatInterface() {
         const message = error instanceof Error ? error.message : 'Attachment upload failed. Please try again.'
         setNoticeModal({ title: 'Attachment upload failed', message })
         setMessages((prev) => prev.filter((msg) => msg.id !== optimisticMessageId))
-        if (targetConversationId) {
-          window.dispatchEvent(
-            new CustomEvent('premiumThreadMessageCountChanged', { detail: { conversationId: targetConversationId, delta: -1 } })
-          )
-        }
         setInput(rawInput)
         setAttachedFiles(filesToUpload)
         setLoading(false)
@@ -1585,56 +1509,22 @@ export default function ChatInterface() {
 
       if (!response.ok) {
         const serverMessage =
-          data && typeof data.message === 'string'
-            ? data.message
-            : data && typeof data.error === 'string'
-              ? data.error
-              : ''
-        const details = serverMessage || (raw ? raw.slice(0, 240) : '')
-        throw new Error(`API ${response.status}${details ? `: ${details}` : ''}`)
+          data && typeof data.response === 'string' && data.response.trim()
+            ? data.response.trim()
+            : data && typeof data.message === 'string' && data.message.trim()
+              ? data.message.trim()
+              : data && typeof data.error === 'string' && data.error.trim()
+                ? data.error.trim()
+                : ''
+        const details = serverMessage || 'Request failed. Please try again.'
+        throw new Error(details)
       }
 
       if (!data || typeof data.response !== 'string' || !data.response.trim()) {
         throw new Error('API 200: Invalid response payload')
       }
 
-      if (targetConversationId) {
-        window.dispatchEvent(
-          new CustomEvent('premiumThreadMessageCountChanged', { detail: { conversationId: targetConversationId } })
-        )
-      }
-
       const assistantText = stripAssistantSourcesBlock(String(data.response || ''))
-      const serverIndicatedLimitReached =
-        Boolean((data as any)?.guestLimitReached) ||
-        Boolean((data as any)?.metadata?.guestLimitReached) ||
-        Boolean((data as any)?.metadata?.limitReached)
-      const looksLikeGuestLimitMessage =
-        typeof assistantText === 'string' &&
-        /guest\s+limit/i.test(assistantText) &&
-        /sign\s*up|sign\s+in|continue/i.test(assistantText)
-
-      if (serverIndicatedLimitReached || looksLikeGuestLimitMessage) {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(GUEST_LIMIT_TRIGGERED_KEY, '1')
-        }
-        setIsGuestLimitReached(true)
-        setShowGuestSignupModal(true)
-        setLoading(false)
-        setLoadingLabel(null)
-
-        const limitMessage: Message = {
-          id: `assistant_limit_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-          role: 'assistant',
-          content: assistantText,
-          timestamp: new Date(),
-          isTyping: false,
-          metadata: data.metadata as AssistantMetadata | undefined
-        }
-
-        setMessages((prev) => [...prev, limitMessage])
-        return
-      }
       const assistantMessageId = `assistant_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
       const assistantMessage: Message = {
         id: assistantMessageId,
@@ -1648,14 +1538,9 @@ export default function ChatInterface() {
       setMessages((prev) => [...prev, assistantMessage])
       typeMessageById(assistantText, assistantMessageId)
     } catch (error: unknown) {
-      if (targetConversationId) {
-        window.dispatchEvent(
-          new CustomEvent('premiumThreadMessageCountChanged', { detail: { conversationId: targetConversationId, delta: -1 } })
-        )
-      }
       const errorText = error instanceof Error && error.message
         ? error.message
-        : 'MyMckenzie is unavailable to help right now. Please try again later.'
+        : 'MyMcKenzieCS is unavailable to help right now. Please try again later.'
       const errorMessageId = `assistant_error_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
       const errorMessage: Message = {
         id: errorMessageId,
@@ -1787,16 +1672,16 @@ export default function ChatInterface() {
             onInputChange={handleInputChange}
             onInputKeyDown={handleInputKeyDown}
             loading={loading}
-            isGuestLimitReached={isGuestLimitReached}
             fileInputRef={fileInputRef}
             onFileChange={handleFileChange}
-          onAttachClick={handleAttachClick}
-          hasSupabaseUser={Boolean(supabaseUser)}
-          onOpenGuestSignupModal={() => setShowGuestSignupModal(true)}
-          onStopGeneration={handleStopGeneration}
-          canSubmit={input.trim().length > 0 || attachedFiles.length > 0}
-          showWordLimitWarning={showWordLimitWarning}
-        />
+            onAttachClick={handleAttachClick}
+            hasSupabaseUser={Boolean(supabaseUser)}
+            onStopGeneration={handleStopGeneration}
+            canSubmit={!isSignedInPlanLocked && (input.trim().length > 0 || attachedFiles.length > 0)}
+            showWordLimitWarning={showWordLimitWarning}
+            isPlanLocked={isSignedInPlanLocked}
+            planLockMessage="Plan paused: chat is locked. Your documents remain safe and available in read-only mode."
+          />
 
         <ReportIssueModal
           isOpen={showReportModal}

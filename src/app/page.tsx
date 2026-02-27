@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import PreloadingLink from '@/components/PreloadingLink';
 
 const workspaceFeatures = [
   {
@@ -33,32 +32,33 @@ const plans = [
   {
     name: 'Basic',
     price: '18',
-    summary: 'For early stage organisation',
     bullets: [
-      'MyMcKenzie Basic Assistant',
+      'MyMcKenzieCS Basic Assistant',
       '10 document storage',
-      'Conversation history'
+      'Conversation history included'
     ]
   },
   {
     name: 'Premium',
     price: '32',
-    summary: 'For active case preparation',
     bullets: [
-      'MyMckenzieCS Smart Assistant',
+      'MyMcKenzieCS Smart Assistant',
       '25 document storage',
-      'OpenAI + web search'
+      'Conversation history included',
+      'Enhanced research support',
+      'Deadline reminder emails'
     ],
     highlight: true
   },
   {
     name: 'Premium +',
     price: '199',
-    summary: 'For high-volume matters',
     bullets: [
-      'MyMckenzieCS Intelligent Assistant',
+      'MyMcKenzieCS Intelligent Assistant',
       '150+ document storage',
-      'Case law search and study'
+      'Persistent chat history',
+      'Advanced case law retrieval and study',
+      'Deadline reminder emails'
     ]
   }
 ];
@@ -89,31 +89,25 @@ export default function HomePage() {
                     with structure, not stress.
                   </h1>
                   <p className="text-base md:text-xl text-white/85 mt-5 max-w-3xl mx-auto xl:mx-0 leading-relaxed">
-                    MymckenzieCS is your AI-assisted case workspace: procedural guidance, document support, deadlines,
+                    MyMcKenzieCS is your AI-assisted case platform: procedural guidance, document support, deadlines tracking,
                     and legal research in one connected flow.
                   </p>
                   <div className="mt-7 flex flex-wrap gap-3 justify-center xl:justify-start">
-                    <PreloadingLink
-                      href="/chatbot"
-                      className="bg-gradient-to-r from-amber-300 to-orange-500 text-[#240025] font-bold py-4 px-8 rounded-full text-lg shadow-[0_16px_40px_rgba(0,0,0,0.32)] hover:from-amber-200 hover:to-orange-400 transition-colors border border-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
-                    >
-                      Try MymckenzieCS Assistant
-                    </PreloadingLink>
-                    <Link
-                      href="/auth/signup"
-                      className="app-button-secondary text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
-                    >
-                      Create account
-                    </Link>
                     <Link
                       href="/pricing"
                       className="app-button-secondary text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
                     >
-                      View plans
+                      Choose plan
+                    </Link>
+                    <Link
+                      href="/auth/signin"
+                      className="app-button-secondary text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
+                    >
+                      Log in
                     </Link>
                   </div>
                   <div className="mt-4 text-sm text-white/75">
-                    Informational support only. Not legal advice.
+                    Informational and court support only. Not legal advice.
                   </div>
                 </div>
 
@@ -127,7 +121,7 @@ export default function HomePage() {
                 >
                   <Image
                     src="/assets/mymckenzie-high-resolution-logo (7) 1.svg"
-                    alt="MymckenzieCS logo"
+                    alt="MyMcKenzieCS logo"
                     width={550}
                     height={550}
                     priority
@@ -149,7 +143,7 @@ export default function HomePage() {
           <div className="app-container relative z-10 py-4 md:py-6">
             <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
               <div>
-                <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Inside MymckenzieCS</div>
+                <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Inside MyMcKenzieCS</div>
                 <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">Every tool tied to one case workspace</h3>
               </div>
             </div>
@@ -170,17 +164,11 @@ export default function HomePage() {
         {/* Plans */}
         <section className="w-full">
           <div className="app-container relative z-10 py-9 md:py-12">
-            <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
+            <div className="flex items-end justify-start flex-wrap gap-4 mb-7">
               <div>
                 <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Plans</div>
                 <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">Choose support level by case complexity</h3>
               </div>
-              <Link
-                href="/pricing"
-                className="app-button-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
-              >
-                Full pricing
-              </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {plans.map((plan) => (
@@ -197,10 +185,11 @@ export default function HomePage() {
                     £{plan.price}
                     <span className="text-base text-white/70">/month</span>
                   </div>
-                  <p className="text-sm text-white/75 mt-2">{plan.summary}</p>
                   <div className="mt-4 space-y-2 text-sm text-white/85">
                     {plan.bullets.map((item) => (
-                      <div key={item}>{item}</div>
+                      <div key={item}>
+                        {item}
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -222,21 +211,15 @@ export default function HomePage() {
                   Start with one question, then run the whole case from the same workspace.
                 </p>
               </div>
-              <PreloadingLink
-                href="/chatbot"
-                className="bg-gradient-to-r from-amber-400 to-fuchsia-500 text-[#1f0b28] font-semibold px-8 py-3 rounded-full shadow-lg hover:from-amber-300 hover:to-fuchsia-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#270427]"
-              >
-                Try MymckenzieCS Assistant
-              </PreloadingLink>
             </div>
           </div>
         </section>
       </main>
-      <footer className="w-full text-white mt-0 text-center border-t border-white/10 bg-[#120117]">
+      <footer className="w-full text-white mt-0 text-center border-t border-white/10 bg-[#270427]">
         <div className="app-container py-12">
           <div className="text-base md:text-lg font-medium mb-2"> 2026 LenJordan Ltd. All rights reserved.</div>
           <div className="text-base md:text-lg font-medium mb-4 text-white/85">
-            MymckenzieCS is a product of LenJordan Ltd.<br/>Company No. 16931933
+            MyMcKenzieCS is a product of LenJordan Ltd.<br/>Company No. 16931933
           </div>
           <div className="flex flex-wrap justify-center gap-3 mb-4 text-sm md:text-base text-white/80">
             <a href="/privacy-policy" className="underline hover:text-purple-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#120117] rounded">Privacy Policy</a>
@@ -252,7 +235,7 @@ export default function HomePage() {
             <a href="/about" className="underline hover:text-purple-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#120117] rounded">About</a>
           </div>
           <div className="max-w-3xl mx-auto text-sm md:text-base font-semibold opacity-90 mt-4 leading-relaxed text-white/80">
-            MyMcKenzie Assistant provides informational support only and is not a substitute for legal advice.
+            MyMcKenzieCS Assistant provides informational and court support only. Not legal advice.
           </div>
         </div>
       </footer>

@@ -208,7 +208,7 @@ serve(async (req) => {
     const RESEND_FROM_NAME =
       env.get('RESEND_ALERT_FROM_NAME') ||
       env.get('RESEND_FROM_NAME') ||
-      'MymckenzieCS';
+      'MyMcKenzieCS';
     const APP_URL = (env.get('NEXT_PUBLIC_APP_URL') || env.get('APP_URL') || 'https://mymckenziecs.com').replace(/\/$/, '');
     const REMINDER_ALERT_EMAIL = env.get('REMINDER_ALERT_EMAIL') || env.get('ADMIN_EMAIL') || '';
     const SEND_CONCURRENCY = parseIntWithBounds(env.get('REMINDER_SEND_CONCURRENCY') || undefined, 5, 1, 20);

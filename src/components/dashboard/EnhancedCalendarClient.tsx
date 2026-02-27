@@ -5,6 +5,8 @@ import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import { hasReminderAccess as planHasReminderAccess } from '@/lib/plans/access'
 import styles from './calendar-new.module.css'
 
+const CALENDAR_READ_ONLY_MESSAGE = 'Read-only mode: resume plan to manage calendar events.'
+
 type CalendarEvent = {
   id: string
   title: string
@@ -135,6 +137,8 @@ export default function EnhancedCalendarClient() {
   const [uid, setUid] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [authChecked, setAuthChecked] = useState(false)
+  const [hasPaidAccess, setHasPaidAccess] = useState(false)
+  const [planChecked, setPlanChecked] = useState(false)
   const [hasReminderAccess, setHasReminderAccess] = useState(false)
   const [remindersEnabled, setRemindersEnabled] = useState(false)
   const [prefsLoading, setPrefsLoading] = useState(false)
@@ -208,24 +212,23 @@ export default function EnhancedCalendarClient() {
     if (!authChecked) return
     const fetchEvents = async () => {
       try {
-        const browserSupabase = getSupabaseBrowserClient()
         if (!uid) {
           setCalendarLoadError(null)
           return
         }
 
-        const { data: directRows, error: directError } = await browserSupabase
-          .from('calendar_events')
-          .select('id, title, notes, time, date, category, priority, type, source, completed')
-          .eq('user_id', uid)
-          .order('date', { ascending: true })
-
-        if (directError) {
-          setCalendarLoadError(directError.message || 'Unable to load calendar events.')
+        const response = await fetch('/api/calendar', {
+          credentials: 'include',
+          cache: 'no-store',
+        })
+        if (!response.ok) {
+          setCalendarLoadError('Unable to load calendar events.')
           return
         }
+        const payload = await response.json()
+        const rows = Array.isArray(payload?.events) ? payload.events : []
 
-        setEventsByDate(mapEventsToDateMap(Array.isArray(directRows) ? directRows : []))
+        setEventsByDate(mapEventsToDateMap(rows))
         setCalendarLoadError(null)
       } catch (error: any) {
         console.error('Failed to fetch calendar events:', error)
@@ -237,6 +240,8 @@ export default function EnhancedCalendarClient() {
 
   useEffect(() => {
     if (!uid) {
+      setHasPaidAccess(false)
+      setPlanChecked(true)
       setHasReminderAccess(false)
       return
     }
@@ -244,14 +249,16 @@ export default function EnhancedCalendarClient() {
       setPrefsLoading(true)
       setPrefsError(null)
       try {
-        const planRes = await fetch('/api/user/plan', { credentials: 'include' })
+        const planRes = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' })
         if (!planRes.ok) throw new Error('Failed to load plan')
         const planData = await planRes.json()
-        const canUseReminders = planHasReminderAccess(planData?.plan || '')
+        const paidAccess = Boolean(planData?.paidAccess)
+        setHasPaidAccess(paidAccess)
+        const canUseReminders = paidAccess && planHasReminderAccess(planData?.plan || '')
         setHasReminderAccess(canUseReminders)
 
         if (canUseReminders) {
-          const prefRes = await fetch('/api/user/preferences', { credentials: 'include' })
+          const prefRes = await fetch('/api/user/preferences', { credentials: 'include', cache: 'no-store' })
           if (!prefRes.ok) throw new Error('Failed to load preferences')
           const prefData = await prefRes.json()
           setRemindersEnabled(prefData.deadline_reminders === true)
@@ -260,16 +267,20 @@ export default function EnhancedCalendarClient() {
         }
       } catch (error) {
         console.error('Failed to load plan/preferences', error)
+        setHasPaidAccess(false)
+        setHasReminderAccess(false)
+        setRemindersEnabled(false)
         setPrefsError('Unable to load reminder preferences')
       } finally {
         setPrefsLoading(false)
+        setPlanChecked(true)
       }
     }
     loadPlanAndPrefs()
   }, [uid])
 
   const toggleReminderEmails = async () => {
-    if (!uid || !hasReminderAccess) return
+    if (!uid || !hasReminderAccess || !hasPaidAccess) return
     const nextValue = !remindersEnabled
     setRemindersEnabled(nextValue)
     setPrefsSaving(true)
@@ -301,6 +312,10 @@ export default function EnhancedCalendarClient() {
   }
 
   const addEvent = async () => {
+    if (!canManageEvents) {
+      setFormError(CALENDAR_READ_ONLY_MESSAGE)
+      return
+    }
     if (!selectedDate) return
     const title = newTitle.trim()
     if (title.length < 2) {
@@ -319,129 +334,110 @@ export default function EnhancedCalendarClient() {
     setIsSavingEvent(true)
 
     const normalizedSelected = startOfDay(selectedDate)
-
-    if (uid) {
-      const browserSupabase = getSupabaseBrowserClient()
-      let saveTimeoutId: number | null = null
-      try {
-        const insertPromise = browserSupabase
-          .from('calendar_events')
-          .insert({
-            user_id: uid,
-            title,
-            notes: newNotes.trim() || null,
-            time: newTime || null,
-            date: new Date(`${dateKey(normalizedSelected)}T00:00:00.000Z`).toISOString(),
-            category: newCategory,
-            priority: newPriority,
-            type: 'user_created',
-            completed: false,
-          })
-          .select('*')
-
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          saveTimeoutId = window.setTimeout(() => reject(new Error('SAVE_TIMEOUT')), 12000)
-        })
-
-        const result = (await Promise.race([insertPromise, timeoutPromise])) as Awaited<typeof insertPromise>
-        if (saveTimeoutId) {
-          window.clearTimeout(saveTimeoutId)
-          saveTimeoutId = null
-        }
-        const insertedEvents = Array.isArray(result?.data) ? result.data : []
-        const directError = result?.error
-
-        if (directError) {
-          setFormError(directError.message || 'Failed to save event.')
-          return
-        }
-        if (insertedEvents.length === 0) {
-          setFormError('No events were created.')
-          return
-        }
-
-        setEventsByDate((prev) => {
-          const next = { ...prev }
-          insertedEvents.forEach((ev) => {
-            const jsDate = parseEventDate(ev.date)
-            const key = dateKeyFromUnknown(ev.date) || dateKey(jsDate)
-            const mappedEvent: CalendarEvent = {
-              id: ev.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-              docId: ev.id,
-              title: ev.title ?? title,
-              notes: ev.notes ?? undefined,
-              time: ev.time ?? undefined,
-              type: ev.type ?? undefined,
-              source: ev.source ?? undefined,
-              dateValue: jsDate,
-              daysUntil: getDaysUntil(jsDate),
-              priority: (ev.priority || newPriority || 'medium') as CalendarEvent['priority'],
-              category: (ev.category || newCategory || 'deadline') as CalendarEvent['category'],
-              completed: Boolean(ev.completed),
-            }
-            next[key] = [...(next[key] || []), mappedEvent]
-          })
-          return next
-        })
-
-        resetForm()
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error && error.message === 'SAVE_TIMEOUT'
-            ? 'Save timed out. Please try again.'
-            : 'Failed to save event. Please try again.'
-        setFormError(errorMessage)
-      } finally {
-        if (saveTimeoutId) window.clearTimeout(saveTimeoutId)
-        setIsSavingEvent(false)
+    try {
+      const response = await fetch('/api/calendar', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          notes: newNotes.trim() || null,
+          time: newTime || null,
+          date: dateKey(normalizedSelected),
+          category: newCategory,
+          priority: newPriority,
+          type: 'user_created',
+        }),
+      })
+      if (response.status === 402) {
+        const payload = await response.json().catch(() => ({} as Record<string, unknown>))
+        setHasPaidAccess(false)
+        setFormError(
+          typeof payload?.error === 'string' && payload.error.trim() ? payload.error : CALENDAR_READ_ONLY_MESSAGE
+        )
+        return
       }
-      return
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({} as Record<string, unknown>))
+        setFormError(typeof payload?.error === 'string' ? payload.error : 'Failed to save event.')
+        return
+      }
+
+      const result = await response.json()
+      const insertedEvents = Array.isArray(result?.events) ? result.events : result?.event ? [result.event] : []
+      if (insertedEvents.length === 0) {
+        setFormError('No events were created.')
+        return
+      }
+
+      setEventsByDate((prev) => {
+        const next = { ...prev }
+        insertedEvents.forEach((ev: any) => {
+          const jsDate = parseEventDate(ev.date)
+          const key = dateKeyFromUnknown(ev.date) || dateKey(jsDate)
+          const mappedEvent: CalendarEvent = {
+            id: ev.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            docId: ev.id,
+            title: ev.title ?? title,
+            notes: ev.notes ?? undefined,
+            time: ev.time ?? undefined,
+            type: ev.type ?? undefined,
+            source: ev.source ?? undefined,
+            dateValue: jsDate,
+            daysUntil: getDaysUntil(jsDate),
+            priority: (ev.priority || newPriority || 'medium') as CalendarEvent['priority'],
+            category: (ev.category || newCategory || 'deadline') as CalendarEvent['category'],
+            completed: Boolean(ev.completed),
+          }
+          next[key] = [...(next[key] || []), mappedEvent]
+        })
+        return next
+      })
+
+      resetForm()
+    } catch (error) {
+      console.error('Failed to save event:', error)
+      setFormError('Failed to save event. Please try again.')
+    } finally {
+      setIsSavingEvent(false)
     }
-
-    setEventsByDate((prev) => {
-      const next = { ...prev }
-      const key = dateKey(normalizedSelected)
-      const ev: CalendarEvent = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        title,
-        time: newTime || undefined,
-        notes: newNotes.trim() || undefined,
-        dateValue: normalizedSelected,
-        daysUntil: getDaysUntil(normalizedSelected),
-        category: newCategory,
-        priority: newPriority,
-        completed: false,
-      }
-      next[key] = [...(next[key] || []), ev]
-      return next
-    })
-
-    resetForm()
-    setIsSavingEvent(false)
   }
 
   const deleteEvent = async (key: string, id: string) => {
-    if (uid) {
-      const ev = (eventsByDate[key] || []).find((e) => e.docId === id || e.id === id)
-      if (ev?.docId) {
-        try {
-          const browserSupabase = getSupabaseBrowserClient()
-          const { error } = await browserSupabase
-            .from('calendar_events')
-            .delete()
-            .eq('id', ev.docId)
-            .eq('user_id', uid)
-          if (error) {
-            setFormError(error.message || 'Failed to delete event.')
-            return
-          }
-        } catch (error) {
-          console.error('Failed to delete event:', error)
-          setFormError('Failed to delete event.')
-          return
-        }
-      }
+    if (!canManageEvents) {
+      setFormError(CALENDAR_READ_ONLY_MESSAGE)
+      return
     }
+    const ev = (eventsByDate[key] || []).find((e) => e.docId === id || e.id === id)
+    if (!ev?.docId) {
+      setFormError('Event not found.')
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/calendar?id=${encodeURIComponent(ev.docId)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      if (response.status === 402) {
+        const payload = await response.json().catch(() => ({} as Record<string, unknown>))
+        setHasPaidAccess(false)
+        setFormError(
+          typeof payload?.error === 'string' && payload.error.trim() ? payload.error : CALENDAR_READ_ONLY_MESSAGE
+        )
+        return
+      }
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({} as Record<string, unknown>))
+        setFormError(typeof payload?.error === 'string' ? payload.error : 'Failed to delete event.')
+        return
+      }
+    } catch (error) {
+      console.error('Failed to delete event:', error)
+      setFormError('Failed to delete event.')
+      return
+    }
+
     setEventsByDate((prev) => {
       const list = prev[key] || []
       const nextList = list.filter((e) => e.id !== id && e.docId !== id)
@@ -453,8 +449,12 @@ export default function EnhancedCalendarClient() {
   }
 
   const toggleCompleted = async (key: string, id: string) => {
+    if (!canManageEvents) {
+      setFormError(CALENDAR_READ_ONLY_MESSAGE)
+      return
+    }
     const target = (eventsByDate[key] || []).find((e) => e.id === id || e.docId === id)
-    if (!target) return
+    if (!target?.docId) return
     const nextCompleted = !target.completed
 
     setEventsByDate((prev) => ({
@@ -464,24 +464,36 @@ export default function EnhancedCalendarClient() {
       ),
     }))
 
-    if (uid && target.docId) {
-      try {
-        const browserSupabase = getSupabaseBrowserClient()
-        const { error } = await browserSupabase
-          .from('calendar_events')
-          .update({ completed: nextCompleted })
-          .eq('id', target.docId)
-          .eq('user_id', uid)
-        if (error) throw error
-      } catch (error) {
-        console.error('Failed to update event:', error)
-        setEventsByDate((prev) => ({
-          ...prev,
-          [key]: (prev[key] || []).map((e) =>
-            e.id === id || e.docId === id ? { ...e, completed: !nextCompleted } : e
-          ),
-        }))
+    try {
+      const response = await fetch('/api/calendar', {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: target.docId, completed: nextCompleted }),
+      })
+      if (response.status === 402) {
+        const payload = await response.json().catch(() => ({} as Record<string, unknown>))
+        setHasPaidAccess(false)
+        setFormError(
+          typeof payload?.error === 'string' && payload.error.trim() ? payload.error : CALENDAR_READ_ONLY_MESSAGE
+        )
+        throw new Error('READ_ONLY')
       }
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({} as Record<string, unknown>))
+        throw new Error(typeof payload?.error === 'string' ? payload.error : 'Failed to update event.')
+      }
+    } catch (error) {
+      console.error('Failed to update event:', error)
+      if (error instanceof Error && error.message && error.message !== 'READ_ONLY') {
+        setFormError(error.message)
+      }
+      setEventsByDate((prev) => ({
+        ...prev,
+        [key]: (prev[key] || []).map((e) =>
+          e.id === id || e.docId === id ? { ...e, completed: !nextCompleted } : e
+        ),
+      }))
     }
   }
 
@@ -569,6 +581,15 @@ export default function EnhancedCalendarClient() {
     return styles.eventStatusFuture
   }
 
+  const readOnlyMode = Boolean(uid) && planChecked && !hasPaidAccess
+  const canManageEvents = Boolean(uid) && planChecked && hasPaidAccess
+
+  useEffect(() => {
+    if (readOnlyMode && eventsPanelMode === 'add') {
+      setEventsPanelMode('view')
+    }
+  }, [eventsPanelMode, readOnlyMode])
+
   return (
     <div className={styles.calendarPage}>
       <div className={styles.header}>
@@ -635,6 +656,27 @@ export default function EnhancedCalendarClient() {
         </div>
 
         <div className={styles.sidebarColumn}>
+          {hasReminderAccess && (
+            <div className={`${styles.card} ${styles.preferenceCard}`}>
+              <div className={styles.sidebarTitle}>Email Reminders</div>
+              <div className={styles.preferenceRow}>
+                <div>
+                  <div className={styles.preferenceLabel}>Deadline reminder emails</div>
+                  <div className={styles.preferenceHint}>Sent by the daily scheduler when this switch is enabled.</div>
+                </div>
+                <button
+                  className={`${styles.toggleButton} ${remindersEnabled ? styles.toggleOn : ''}`}
+                  onClick={toggleReminderEmails}
+                  disabled={prefsLoading || prefsSaving}
+                  aria-pressed={remindersEnabled}
+                >
+                  <span className={styles.toggleKnob} />
+                </button>
+              </div>
+              {prefsError && <div className={styles.preferenceError}>{prefsError}</div>}
+            </div>
+          )}
+
           <div className={`${styles.card} ${styles.sidebar}`}>
             <div className={styles.eventsPanelHeader}>
               <div className={styles.sidebarTitle}>Events</div>
@@ -648,13 +690,23 @@ export default function EnhancedCalendarClient() {
                 </button>
                 <button
                   type="button"
-                  className={`${styles.eventsModeButton} ${eventsPanelMode === 'add' ? styles.eventsModeButtonActive : ''}`}
-                  onClick={() => setEventsPanelMode('add')}
+                  className={`${styles.eventsModeButton} ${eventsPanelMode === 'add' ? styles.eventsModeButtonActive : ''} ${
+                    !canManageEvents ? styles.eventsModeButtonDisabled : ''
+                  }`}
+                  onClick={() => {
+                    if (!canManageEvents) {
+                      setFormError(CALENDAR_READ_ONLY_MESSAGE)
+                      return
+                    }
+                    setEventsPanelMode('add')
+                  }}
+                  disabled={!canManageEvents}
                 >
                   Add Event
                 </button>
               </div>
             </div>
+            {readOnlyMode && <div className={styles.readOnlyBanner}>{CALENDAR_READ_ONLY_MESSAGE}</div>}
 
             {eventsPanelMode === 'view' ? (
               <>
@@ -698,10 +750,18 @@ export default function EnhancedCalendarClient() {
                           <div className={`${styles.eventStatus} ${statusClass(status)}`}>{statusLabel(event)}</div>
                           {event.notes && <div className={styles.eventMeta}>{event.notes}</div>}
                           <div className={styles.eventActions}>
-                            <button className={styles.inlineButton} onClick={() => toggleCompleted(event.keyDate, event.id)}>
+                            <button
+                              className={styles.inlineButton}
+                              onClick={() => toggleCompleted(event.keyDate, event.id)}
+                              disabled={!canManageEvents}
+                            >
                               {event.completed ? 'Unmark' : 'Mark done'}
                             </button>
-                            <button className={styles.inlineButton} onClick={() => deleteEvent(event.keyDate, event.id)}>
+                            <button
+                              className={styles.inlineButton}
+                              onClick={() => deleteEvent(event.keyDate, event.id)}
+                              disabled={!canManageEvents}
+                            >
                               Delete
                             </button>
                           </div>
@@ -715,7 +775,12 @@ export default function EnhancedCalendarClient() {
               <>
                 <div className={styles.formGroup}>
                   <label>Title</label>
-                  <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Event title" />
+                  <input
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="Event title"
+                    disabled={!canManageEvents}
+                  />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Date</label>
@@ -727,15 +792,20 @@ export default function EnhancedCalendarClient() {
                       if (!year || !month || !day) return
                       setSelectedDate(new Date(year, month - 1, day))
                     }}
+                    disabled={!canManageEvents}
                   />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Time</label>
-                  <input type="time" value={newTime} onChange={(e) => setNewTime(e.target.value)} />
+                  <input type="time" value={newTime} onChange={(e) => setNewTime(e.target.value)} disabled={!canManageEvents} />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Category</label>
-                  <select value={newCategory} onChange={(e) => setNewCategory(e.target.value as CalendarEvent['category'])}>
+                  <select
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value as CalendarEvent['category'])}
+                    disabled={!canManageEvents}
+                  >
                     <option value="deadline">Deadline</option>
                     <option value="hearing">Hearing</option>
                     <option value="meeting">Meeting</option>
@@ -745,7 +815,11 @@ export default function EnhancedCalendarClient() {
                 </div>
                 <div className={styles.formGroup}>
                   <label>Priority</label>
-                  <select value={newPriority} onChange={(e) => setNewPriority(e.target.value as CalendarEvent['priority'])}>
+                  <select
+                    value={newPriority}
+                    onChange={(e) => setNewPriority(e.target.value as CalendarEvent['priority'])}
+                    disabled={!canManageEvents}
+                  >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
@@ -753,13 +827,13 @@ export default function EnhancedCalendarClient() {
                 </div>
                 <div className={styles.formGroup}>
                   <label>Notes</label>
-                  <textarea rows={3} value={newNotes} onChange={(e) => setNewNotes(e.target.value)} />
+                  <textarea rows={3} value={newNotes} onChange={(e) => setNewNotes(e.target.value)} disabled={!canManageEvents} />
                 </div>
                 <div className={styles.modalActions}>
-                  <button className={styles.navButton} onClick={resetForm}>
+                  <button className={styles.navButton} onClick={resetForm} disabled={!canManageEvents}>
                     Clear
                   </button>
-                  <button className={styles.primaryButton} onClick={addEvent} disabled={isSavingEvent}>
+                  <button className={styles.primaryButton} onClick={addEvent} disabled={isSavingEvent || !canManageEvents}>
                     {isSavingEvent ? 'Saving...' : 'Save event'}
                   </button>
                 </div>
@@ -767,28 +841,6 @@ export default function EnhancedCalendarClient() {
             )}
             {formError && <div className={styles.formError}>{formError}</div>}
           </div>
-
-          {hasReminderAccess && (
-            <div className={`${styles.card} ${styles.preferenceCard}`}>
-              <div className={styles.sidebarTitle}>Email Reminders</div>
-              <div className={styles.preferenceRow}>
-                <div>
-                  <div className={styles.preferenceLabel}>Deadline reminder emails</div>
-                  <div className={styles.preferenceHint}>Sent by the daily scheduler when this switch is enabled.</div>
-                </div>
-                <button
-                  className={`${styles.toggleButton} ${remindersEnabled ? styles.toggleOn : ''}`}
-                  onClick={toggleReminderEmails}
-                  disabled={prefsLoading || prefsSaving}
-                  aria-pressed={remindersEnabled}
-                >
-                  <span className={styles.toggleKnob} />
-                </button>
-              </div>
-              {prefsError && <div className={styles.preferenceError}>{prefsError}</div>}
-            </div>
-          )}
-
         </div>
       </div>
     </div>

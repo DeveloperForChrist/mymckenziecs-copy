@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     await sendResendEmail({
       to: authUserData.user.email,
-      subject: 'Verify your MymckenzieCS email',
+      subject: 'Verify your MyMcKenzieCS email',
       htmlBody,
       tag: 'verify-email-resend',
     })

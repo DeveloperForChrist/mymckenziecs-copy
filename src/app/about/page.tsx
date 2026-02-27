@@ -5,14 +5,14 @@ export default function AboutPage() {
   return (
     <LegalPageLayout
       title="About"
-      subtitle="Why we built MymckenzieCS and who it serves."
-      meta="Built by MyMckenzie Ltd • Empowering Litigants in Person"
+      subtitle="Why we built MyMcKenzieCS and who it serves."
+      meta="Built by MyMcKenzieCS Ltd • Empowering Litigants in Person"
     >
       <div className="space-y-6 text-base md:text-lg">
         <div>
           <h2 className="text-2xl font-semibold mb-2">Our Purpose</h2>
           <p>
-            MymckenzieCS is an AI-powered support platform designed to help Litigants in Person
+            MyMcKenzieCS is an AI-powered support platform designed to help Litigants in Person
             navigate the court process with greater clarity, confidence, and organisation.
           </p>
           <p className="mt-3">
@@ -34,7 +34,7 @@ export default function AboutPage() {
         <div>
           <h2 className="text-2xl font-semibold mb-2">Not a Law Firm</h2>
           <p>
-            MymckenzieCS does not provide legal advice and is not a law firm or regulated legal service.
+            MyMcKenzieCS does not provide legal advice and is not a law firm or regulated legal service.
             All support offered is informational, procedural, and organisational. You remain fully responsible for
             your own legal decisions and filings.
           </p>
@@ -42,7 +42,7 @@ export default function AboutPage() {
         <div>
           <h2 className="text-2xl font-semibold mb-2">Who We Are</h2>
           <p>
-            MyMckenzie Ltd is a UK-based technology company focused on building intelligent tools that solve real-world
+            MyMcKenzieCS Ltd is a UK-based technology company focused on building intelligent tools that solve real-world
             problems. We combine technology, user-focused design, and a commitment to simplifying complex processes so
             people can manage their cases confidently and independently.
           </p>

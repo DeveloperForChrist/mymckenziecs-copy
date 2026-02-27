@@ -6,12 +6,12 @@ export default function PrivacyPolicyPage() {
     <LegalPageLayout
       title="Privacy Policy"
       subtitle="How we collect, use, and protect your information under UK GDPR."
-      meta="Owned by MyMckenzie Ltd • Last Updated: February 10, 2026"
+      meta="Owned by MyMcKenzieCS Ltd • Last Updated: February 10, 2026"
     >
       <ol className="list-decimal pl-6 space-y-6 text-base md:text-lg">
         <li>
           <b>Introduction</b>
-          <p className="mt-2">This Privacy Policy explains how MymckenzieCS, owned and operated by MyMckenzie Ltd, collects, uses, stores, and protects your personal data under the Data Protection Act 2018 and the UK GDPR.</p>
+          <p className="mt-2">This Privacy Policy explains how MyMcKenzieCS, owned and operated by MyMcKenzieCS Ltd, collects, uses, stores, and protects your personal data under the Data Protection Act 2018 and the UK GDPR.</p>
           <p>By using the Platform, you agree to the practices described in this policy.</p>
           <p>We are not a law firm, and we do not provide legal advice. We are a legal-tech service that supports Litigants in Person with AI-generated tools.</p>
         </li>
@@ -145,7 +145,10 @@ export default function PrivacyPolicyPage() {
           <b>Data Retention</b>
           <ul className="list-disc pl-6 mt-2">
             <li>Your account data is kept while your account is active</li>
-            <li>Uploaded documents remain until you delete them</li>
+            <li>When paid access lapses, we send reminders and a final notice before archive/deletion phases</li>
+            <li>Archive phase: uploaded files and conversation content may be archived after the retention window</li>
+            <li>Deletion phase: retained case content may be deleted after the longer retention window</li>
+            <li>You can resume a paid plan before retention deadlines to keep uninterrupted access</li>
             <li>Backups may persist briefly</li>
             <li>If your account is deleted, associated data is removed unless legally required otherwise</li>
           </ul>
@@ -164,7 +167,7 @@ export default function PrivacyPolicyPage() {
         </li>
         <li>
           <b>Contact Information</b>
-          <p className="mt-2">MyMckenzie Ltd<br/>Email: support@mymckenziecs.com<br/>Registered Office: [Insert]<br/>Data Protection Contact: support@mymckenziecs.com</p>
+          <p className="mt-2">MyMcKenzieCS Ltd<br/>Email: support@mymckenziecs.com<br/>Registered Office: [Insert]<br/>Data Protection Contact: support@mymckenziecs.com</p>
         </li>
       </ol>
     </LegalPageLayout>

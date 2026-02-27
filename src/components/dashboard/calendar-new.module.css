@@ -45,6 +45,12 @@
   transition: all 0.2s ease;
 }
 
+.navButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 .navButton:hover {
   border-color: rgba(25, 114, 120, 0.5);
   color: var(--admin-teal-dark);
@@ -60,6 +66,12 @@
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 12px 24px rgba(25, 114, 120, 0.25);
+}
+
+.primaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .layout {
@@ -282,6 +294,11 @@
   cursor: pointer;
 }
 
+.eventsModeButtonDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .eventsModeButtonActive {
   background: #ffffff;
   color: var(--admin-ink);
@@ -293,6 +310,15 @@
   text-transform: uppercase;
   letter-spacing: 0.18em;
   color: var(--admin-muted);
+}
+
+.readOnlyBanner {
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: rgba(254, 243, 199, 0.75);
+  color: #92400e;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.82rem;
 }
 
 .eventList {
@@ -404,6 +430,11 @@
   cursor: pointer;
 }
 
+.inlineButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .inlineButtonPrimary {
   background: var(--admin-teal);
   border: none;
@@ -439,6 +470,14 @@
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 0.9rem;
+}
+
+.formGroup input:disabled,
+.formGroup select:disabled,
+.formGroup textarea:disabled {
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
 }
 
 .modalActions {

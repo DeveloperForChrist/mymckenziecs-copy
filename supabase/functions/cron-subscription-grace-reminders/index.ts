@@ -20,14 +20,14 @@ type UserRow = {
 }
 
 const getReminderDays = (): number[] => {
-  const raw = (Deno.env.get('BILLING_GRACE_REMINDER_DAYS') || '1,3,5').trim()
+  const raw = (Deno.env.get('BILLING_GRACE_REMINDER_DAYS') || '1,2,3,5,6').trim()
   const parsed = raw
     .split(',')
     .map((value) => Number.parseInt(value.trim(), 10))
     .filter((value) => Number.isFinite(value))
     .map((value) => Math.max(1, Math.min(30, value)))
   const uniqueSorted = Array.from(new Set(parsed)).sort((a, b) => a - b)
-  return uniqueSorted.length > 0 ? uniqueSorted : [1, 3, 5]
+  return uniqueSorted.length > 0 ? uniqueSorted : [1, 2, 3, 5, 6]
 }
 
 const parseSentReminderDays = (value: unknown): Set<number> => {
@@ -61,7 +61,7 @@ const standardReminderTemplate = (vars: Record<string, string>) => `<!doctype ht
 <p>We’ll retry your payment on ${vars.next_retry_date}.</p>
 <p>If payment isn’t completed by ${vars.grace_end_date}, your account moves to the Free plan.</p>
 <p><a href="${vars.manage_url}">Update payment method</a></p>
-<p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MymckenzieCS</p>
+<p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MyMcKenzieCS</p>
 </div></body></html>`
 
 const finalReminderTemplate = (vars: Record<string, string>) => `<!doctype html>
@@ -72,7 +72,7 @@ const finalReminderTemplate = (vars: Record<string, string>) => `<!doctype html>
 <p>If payment is not completed by <strong>${vars.grace_end_date}</strong>, your subscription access will end and your account will move to the Free plan.</p>
 <p>Please update your payment method now to avoid interruption.</p>
 <p><a href="${vars.manage_url}">Update payment method now</a></p>
-<p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MymckenzieCS</p>
+<p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MyMcKenzieCS</p>
 </div></body></html>`
 
 serve(async () => {

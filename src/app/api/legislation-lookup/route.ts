@@ -67,7 +67,7 @@ export async function GET(request: Request) {
     }
 
     const searchUrl = buildSearchUrl(rawTitle)
-    const response = await fetch(searchUrl, { headers: { 'User-Agent': 'MyMckenzie/1.0' } })
+    const response = await fetch(searchUrl, { headers: { 'User-Agent': 'MyMcKenzieCS/1.0' } })
     if (!response.ok) {
       return NextResponse.json({ url: searchUrl }, { status: 200 })
     }
