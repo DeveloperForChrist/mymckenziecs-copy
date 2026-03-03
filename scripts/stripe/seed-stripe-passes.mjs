@@ -49,7 +49,7 @@ async function ensurePassProduct(definition) {
       name: label,
       description: micro,
       active: true,
-      statement_descriptor: 'MyMcKenzie Pass',
+      statement_descriptor: 'MyMcKenzieCS Pass',
       metadata: {
         pass_slug: slug,
         pass_days: String(days),
@@ -110,7 +110,7 @@ async function ensurePassProduct(definition) {
 }
 
 async function main() {
-  console.log('🔄 Syncing Stripe products for MyMcKenzie passes…');
+  console.log('🔄 Syncing Stripe products for MyMcKenzieCS passes…');
   const results = [];
 
   for (const definition of passDefinitions) {

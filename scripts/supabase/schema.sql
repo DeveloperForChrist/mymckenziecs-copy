@@ -1,4 +1,4 @@
--- MyMcKenzie Supabase Schema
+-- MyMcKenzieCS Supabase Schema
 -- Complete database schema for UK Litigants in Person legal assistant
 -- Run this in Supabase SQL Editor to create all tables, indexes, and triggers
 

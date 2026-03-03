@@ -55,7 +55,7 @@ async function syncPasses() {
         // Create new product
         product = await stripe.products.create({
           name: label,
-          description: `${days}-day pass for MyMcKenzie`,
+          description: `${days}-day pass for MyMcKenzieCS`,
           metadata: {
             pass_slug: slug,
             days: days.toString(),

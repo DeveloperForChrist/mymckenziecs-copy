@@ -73,7 +73,7 @@ Message:
 ${message}
 
 ---
-Sent from MyMcKenzie Contact Form
+Sent from MyMcKenzieCS Contact Form
       `;
     const htmlBody = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -101,7 +101,7 @@ Sent from MyMcKenzie Contact Form
             <p style="white-space: pre-wrap;">${message}</p>
           </div>
           <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">
-            Sent from MyMcKenzie Contact Form
+            Sent from MyMcKenzieCS Contact Form
           </p>
         </div>
       `;

@@ -37,7 +37,7 @@ async function ensurePlan(plan) {
   if (!product) {
     product = await stripe.products.create({
       name: `${label} Plan`,
-      description: `${label} subscription plan for MyMcKenzie`,
+      description: `${label} subscription plan for MyMcKenzieCS`,
       active: true,
       metadata: { plan_slug: slug }
     });
@@ -45,7 +45,7 @@ async function ensurePlan(plan) {
   } else {
     await stripe.products.update(product.id, {
       name: `${label} Plan`,
-      description: `${label} subscription plan for MyMcKenzie`,
+      description: `${label} subscription plan for MyMcKenzieCS`,
       active: true,
       metadata: { plan_slug: slug }
     });

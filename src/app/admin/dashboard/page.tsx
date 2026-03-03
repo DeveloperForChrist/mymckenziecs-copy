@@ -682,7 +682,7 @@ export default function AdminDashboard() {
       <div className={styles.shell}>
         <aside className={styles.sidebar}>
           <div className={styles.brand}>
-            <div className={styles.brandLabel}>MyMcKenzie</div>
+            <div className={styles.brandLabel}>MyMcKenzieCS</div>
             <div className={styles.brandMeta}>Admin Control</div>
           </div>
           <nav className={styles.nav}>
