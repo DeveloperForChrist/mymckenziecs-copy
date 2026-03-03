@@ -70,6 +70,7 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
   // Stripe price IDs for plans
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [checkoutErrorPlanId, setCheckoutErrorPlanId] = useState<string | null>(null);
 
   const hasConfiguredPriceId = (priceId: string) => priceId.trim().length > 0;
 
@@ -77,6 +78,8 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
     checkoutLoading === priceId ? 'Redirecting…' : 'Launch your workspace';
 
   const handlePlanButtonClick = (priceId: string, planName: string) => {
+    setCheckoutError(null);
+    setCheckoutErrorPlanId(null);
     if (!hasConfiguredPriceId(priceId)) {
       if (!isSignedIn) {
         const redirectTo = '/dashboard';
@@ -84,6 +87,7 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
         return;
       }
       setCheckoutError('This plan is temporarily unavailable. Please try again shortly.');
+      setCheckoutErrorPlanId(priceId || null);
       return;
     }
     void handleSubscribe(priceId);
@@ -92,6 +96,7 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
   async function handleSubscribe(priceId: string) {
     setCheckoutLoading(priceId);
     setCheckoutError(null);
+    setCheckoutErrorPlanId(null);
     const supabase = getSupabaseBrowserClient();
     const session = (await supabase.auth.getSession()).data.session;
     const idToken = session?.access_token;
@@ -116,12 +121,14 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
       }
       if (!res.ok || !data?.url) {
         setCheckoutError(data?.error || 'Unable to start checkout');
+        setCheckoutErrorPlanId(priceId);
         setCheckoutLoading(null);
         return;
       }
       window.location.href = data.url;
     } catch (err: any) {
       setCheckoutError(err.message || 'Failed to start checkout');
+      setCheckoutErrorPlanId(priceId);
     } finally {
       setCheckoutLoading(null);
     }
@@ -138,6 +145,7 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
     const isKnownPlan = PLAN_PRICES.some((plan) => plan.priceId && plan.priceId === checkoutPlanId);
     if (!isKnownPlan) {
       setCheckoutError('Selected plan is unavailable. Please choose a plan below.');
+      setCheckoutErrorPlanId(checkoutPlanId || null);
       return;
     }
 
@@ -148,7 +156,8 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
   useEffect(() => {
     if (checkoutStatus !== 'cancelled') return;
     setCheckoutError('Checkout was cancelled. Choose a plan when you are ready.');
-  }, [checkoutStatus]);
+    setCheckoutErrorPlanId(checkoutPlanId || null);
+  }, [checkoutPlanId, checkoutStatus]);
 
   useEffect(() => {
     if (!authChecked) return;
@@ -417,7 +426,7 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
               >
                 {getPlanButtonLabel(basicPriceId)}
               </button>
-              {checkoutError && checkoutLoading === basicPriceId && (
+              {checkoutError && checkoutErrorPlanId === basicPriceId && (
                 <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>
               )}
             </div>
@@ -455,7 +464,7 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
               >
                 {getPlanButtonLabel(premiumPriceId)}
               </button>
-              {checkoutError && checkoutLoading === premiumPriceId && (
+              {checkoutError && checkoutErrorPlanId === premiumPriceId && (
                 <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>
               )}
             </div>
@@ -499,7 +508,7 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
               >
                 {getPlanButtonLabel(premiumPlusPriceId)}
               </button>
-              {checkoutError && checkoutLoading === premiumPlusPriceId && (
+              {checkoutError && checkoutErrorPlanId === premiumPlusPriceId && (
                 <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>
               )}
             </div>

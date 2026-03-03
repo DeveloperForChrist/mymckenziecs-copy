@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { sendResendEmail } from '@/lib/email/resend';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
+import { getAppUrl } from '@/lib/app-url';
 import fs from 'fs';
 import path from 'path';
 
@@ -37,7 +38,7 @@ export async function POST(_request: NextRequest) {
       return NextResponse.json({ error: 'Email not verified' }, { status: 400 });
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const appUrl = getAppUrl(_request);
 
     const nowIso = new Date().toISOString();
 

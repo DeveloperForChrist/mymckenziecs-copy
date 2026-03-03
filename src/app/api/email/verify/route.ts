@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'node:crypto'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
+import { getAppUrl } from '@/lib/app-url'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -12,8 +13,8 @@ function safeRedirectPath(input?: string | null) {
   return normalized.startsWith('/') ? normalized : '/dashboard'
 }
 
-function buildVerifyRedirect(request: NextRequest, status: 'invalid' | 'expired', redirectPath?: string) {
-  const next = new URL('/auth/verify-email', request.url)
+function buildVerifyRedirect(baseUrl: string, status: 'invalid' | 'expired', redirectPath?: string) {
+  const next = new URL('/auth/verify-email', baseUrl)
   next.searchParams.set('status', status)
   if (redirectPath && redirectPath.startsWith('/')) {
     next.searchParams.set('redirect', redirectPath)
@@ -22,12 +23,13 @@ function buildVerifyRedirect(request: NextRequest, status: 'invalid' | 'expired'
 }
 
 export async function GET(request: NextRequest) {
+  const baseUrl = getAppUrl(request)
   try {
     const token = request.nextUrl.searchParams.get('token') || ''
     const redirectPath = safeRedirectPath(request.nextUrl.searchParams.get('redirect'))
 
     if (!token) {
-      return NextResponse.redirect(buildVerifyRedirect(request, 'invalid', redirectPath))
+      return NextResponse.redirect(buildVerifyRedirect(baseUrl, 'invalid', redirectPath))
     }
 
     const tokenHash = createHash('sha256').update(token).digest('hex')
@@ -38,11 +40,11 @@ export async function GET(request: NextRequest) {
       .maybeSingle()
 
     if (userError || !userRow?.id) {
-      return NextResponse.redirect(buildVerifyRedirect(request, 'invalid', redirectPath))
+      return NextResponse.redirect(buildVerifyRedirect(baseUrl, 'invalid', redirectPath))
     }
 
     if (userRow.email_verified_at) {
-      return NextResponse.redirect(new URL(redirectPath, request.url))
+      return NextResponse.redirect(new URL(redirectPath, baseUrl))
     }
 
     const expiresAt = userRow.verification_token_expires_at
@@ -53,7 +55,7 @@ export async function GET(request: NextRequest) {
         .from('users')
         .update({ verification_token_hash: null, verification_token_expires_at: null })
         .eq('id', userRow.id)
-      return NextResponse.redirect(buildVerifyRedirect(request, 'expired', redirectPath))
+      return NextResponse.redirect(buildVerifyRedirect(baseUrl, 'expired', redirectPath))
     }
 
     const nowIso = new Date().toISOString()
@@ -61,7 +63,7 @@ export async function GET(request: NextRequest) {
       email_confirm: true,
     })
     if (authUpdateError) {
-      return NextResponse.redirect(buildVerifyRedirect(request, 'invalid', redirectPath))
+      return NextResponse.redirect(buildVerifyRedirect(baseUrl, 'invalid', redirectPath))
     }
 
     await supabaseAdmin
@@ -73,9 +75,9 @@ export async function GET(request: NextRequest) {
       })
       .eq('id', userRow.id)
 
-    return NextResponse.redirect(new URL(redirectPath, request.url))
+    return NextResponse.redirect(new URL(redirectPath, baseUrl))
   } catch {
     const redirectPath = safeRedirectPath(request.nextUrl.searchParams.get('redirect'))
-    return NextResponse.redirect(buildVerifyRedirect(request, 'invalid', redirectPath))
+    return NextResponse.redirect(buildVerifyRedirect(baseUrl, 'invalid', redirectPath))
   }
 }

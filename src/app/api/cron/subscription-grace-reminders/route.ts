@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { sendResendEmail } from '@/lib/email/resend';
+import { getAppUrl } from '@/lib/app-url';
 import fs from 'fs';
 import path from 'path';
 
@@ -73,9 +74,7 @@ export async function GET(request: Request) {
     const dayMs = 24 * 60 * 60 * 1000;
     const reminderDays = getReminderDays();
     const highestReminderDay = reminderDays[reminderDays.length - 1];
-    const manageUrl = process.env.NEXT_PUBLIC_APP_URL
-      ? `${process.env.NEXT_PUBLIC_APP_URL}/settings`
-      : 'http://localhost:3000/settings';
+    const manageUrl = `${getAppUrl(request)}/settings`;
 
     const { data: subs, error } = await supabaseAdmin
       .from('subscriptions')

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createHash, randomBytes } from 'node:crypto'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { sendResendEmail } from '@/lib/email/resend'
+import { getAppUrl } from '@/lib/app-url'
 import { emailDailyRateLimiter, emailRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit'
 
 function isValidEmail(email: string) {
@@ -65,10 +66,7 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', userRow.id)
 
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      (request.headers.get('origin') || '').replace(/\/$/, '') ||
-      'http://localhost:3000'
+    const appUrl = getAppUrl(request)
 
     const verifyUrl = `${appUrl}/api/email/verify?token=${encodeURIComponent(rawToken)}&redirect=${encodeURIComponent(redirect)}`
     const firstName = (userRow.name || '').trim().split(/\s+/)[0] || email.split('@')[0] || 'there'

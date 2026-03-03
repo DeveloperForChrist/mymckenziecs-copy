@@ -4,35 +4,16 @@ import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { stripe } from '@/lib/payments/stripe';
 import { logApiUsage } from '@/lib/utils/api-usage-logger';
 import { billingIpRateLimiter, billingRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
+import { getAppUrl } from '@/lib/app-url';
 
 function resolveAppCheckoutSuccessUrl(request: NextRequest): string {
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    return `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success`;
-  }
-
-  const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
-  const protocol = request.headers.get('x-forwarded-proto') || 'https';
-
-  if (host) {
-    return `${protocol}://${host}/checkout/success`;
-  }
-
-  return 'http://localhost:3000/checkout/success';
+  const base = getAppUrl(request);
+  return `${base}/checkout/success`;
 }
 
 function resolveAppPricingUrl(request: NextRequest): string {
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    return `${process.env.NEXT_PUBLIC_APP_URL}/pricing`;
-  }
-
-  const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
-  const protocol = request.headers.get('x-forwarded-proto') || 'https';
-
-  if (host) {
-    return `${protocol}://${host}/pricing`;
-  }
-
-  return 'http://localhost:3000/pricing';
+  const base = getAppUrl(request);
+  return `${base}/pricing`;
 }
 
 function withCheckoutParams(url: string, status: 'success' | 'cancelled') {
@@ -85,10 +66,9 @@ export async function POST(request: NextRequest) {
       .eq('id', authUid)
       .maybeSingle();
 
-    const isEmailVerified = Boolean(
-      (userRow as any)?.email_verified_at ||
-      (authData.user as any)?.email_confirmed_at
-    );
+    const isEmailVerified = userRow
+      ? Boolean((userRow as any)?.email_verified_at)
+      : Boolean((authData.user as any)?.email_confirmed_at);
 
     if (!isEmailVerified) {
       const verifyRedirect = `/auth/verify-email?redirect=${encodeURIComponent(`/pricing?plan=${encodeURIComponent(String(planId))}`)}`;

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/payments/stripe';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { sendResendEmail } from '@/lib/email/resend';
+import { getAppUrl } from '@/lib/app-url';
 import { isBillingActiveStripeStatus, normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
 import { buildLifecycleSchedule, getLifecycleArchiveDays, getLifecycleDeleteDays } from '@/lib/payments/subscription-lifecycle';
 import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
@@ -376,9 +377,7 @@ async function upsertSubscriptionFromStripe(subscription: any) {
         old_plan: oldName,
         new_plan: newName,
         change_type: changeType,
-        manage_url: process.env.NEXT_PUBLIC_APP_URL
-          ? `${process.env.NEXT_PUBLIC_APP_URL}/settings`
-          : 'http://localhost:3000/settings',
+        manage_url: `${getAppUrl()}/settings`,
       });
       await sendResendEmail({
         to: user.email,
@@ -432,7 +431,7 @@ export async function POST(request: Request) {
         const planName = resolvePlanNameFromPriceId(planId);
         const invoicePdfUrl =
           (session?.invoice && typeof session.invoice === 'object' ? session.invoice.invoice_pdf : null) ||
-          (process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/settings` : 'http://localhost:3000/settings');
+          `${getAppUrl(request)}/settings`;
         const htmlBody = renderTemplate('04-plan-upgrade-receipt.html', {
           name: user?.name || checkoutName || recipientEmail,
           txn_id: String(session?.payment_intent || session?.id || '—'),
@@ -491,9 +490,7 @@ export async function POST(request: Request) {
       const planType = normalizePlanTypeFromPrice(priceId);
       const planName = displayPlanName(planType);
       const renewalDate = formatDateShort(nextAttemptDate) || 'soon';
-      const manageUrl = process.env.NEXT_PUBLIC_APP_URL
-        ? `${process.env.NEXT_PUBLIC_APP_URL}/settings`
-        : 'http://localhost:3000/settings';
+      const manageUrl = `${getAppUrl()}/settings`;
 
       const htmlBody = renderTemplate('05-subscription-renewal-reminder.html', {
         name: user.name || '',

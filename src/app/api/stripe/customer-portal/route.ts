@@ -4,21 +4,10 @@ import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { logApiUsage } from '@/lib/utils/api-usage-logger';
 import { billingIpRateLimiter, billingRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
+import { getAppUrl } from '@/lib/app-url';
 
 function resolveReturnUrl(request: Request): string {
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    return `${process.env.NEXT_PUBLIC_APP_URL}/settings`;
-  }
-
-  const forwardedHost = request.headers.get('x-forwarded-host');
-  const host = forwardedHost || request.headers.get('host');
-  const protocol = request.headers.get('x-forwarded-proto') || 'https';
-
-  if (host) {
-    return `${protocol}://${host}/settings`;
-  }
-
-  return 'http://localhost:3000/settings';
+  return `${getAppUrl(request)}/settings`;
 }
 
 export async function POST(req: Request) {

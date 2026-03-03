@@ -4,6 +4,7 @@ import { sendResendEmail } from '@/lib/email/resend';
 import { emailDailyRateLimiter, emailRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 import fs from 'fs';
 import path from 'path';
+import { getAppUrl } from '@/lib/app-url';
 
 const TEMPLATE_DIR = path.join(process.cwd(), 'src', 'emails', 'templates');
 
@@ -37,10 +38,7 @@ export async function POST(request: NextRequest) {
       return rateLimitExceededResponse(accountDailyLimit, 'Too many reset attempts for this account. Try again later.');
     }
 
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      (request.headers.get('origin') || '').replace(/\/$/, '') ||
-      'http://localhost:3000';
+    const appUrl = getAppUrl(request);
     const redirectTo = `${appUrl}/auth/reset-password`;
 
     const { data, error } = await supabaseAdmin.auth.admin.generateLink({

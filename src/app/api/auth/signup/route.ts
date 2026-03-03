@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getAppUrl } from '@/lib/app-url'
 import { authRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { sendResendEmail } from '@/lib/email/resend'
@@ -90,10 +91,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Unable to create account profile.' }, { status: 500 })
     }
 
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      (request.headers.get('origin') || '').replace(/\/$/, '') ||
-      'http://localhost:3000'
+    const appUrl = getAppUrl(request)
 
     const verifyUrl = `${appUrl}/api/email/verify?token=${encodeURIComponent(rawToken)}&redirect=${encodeURIComponent(redirect)}`
     const htmlBody = `

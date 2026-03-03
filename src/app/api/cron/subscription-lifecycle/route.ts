@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { sendResendEmail } from '@/lib/email/resend';
+import { getAppUrl } from '@/lib/app-url';
 import {
   buildLifecycleSchedule,
   daysUntil,
@@ -125,7 +126,7 @@ export async function GET(request: Request) {
     const now = new Date();
     const nowIso = now.toISOString();
     const warningDays = getLifecycleWarningDays();
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const appUrl = getAppUrl(request);
     const resumeUrl = `${appUrl}/pricing`;
 
     const { data: subs, error: subsError } = await supabaseAdmin

@@ -133,6 +133,10 @@ export async function middleware(request: NextRequest) {
   // Check if path requires authentication
   const requiresAuth = protectedPaths.some((path) => pathname.startsWith(path))
   const requiresAdmin = adminPaths.some((path) => pathname.startsWith(path))
+  const shouldEnforceVerification =
+    requiresAuth &&
+    Boolean(user) &&
+    !pathname.startsWith('/api/')
 
   if (requiresAuth && !user) {
     // Redirect to sign-in for protected routes
@@ -142,6 +146,34 @@ export async function middleware(request: NextRequest) {
     const redirectUrl = new URL('/auth/signin', request.url)
     redirectUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(redirectUrl)
+  }
+
+  if (shouldEnforceVerification && user) {
+    const verificationStartedAt = Date.now()
+    const { data: verificationRow, error: verificationError } = await supabase
+      .from('users')
+      .select('email_verified_at')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    logMiddlewarePerf('user.verification', verificationStartedAt, pathname, {
+      hasRow: Boolean(verificationRow),
+      hasError: Boolean(verificationError),
+    })
+
+    if (verificationError) {
+      console.error('Error checking email verification in middleware:', verificationError)
+    }
+
+    const isEmailVerified = verificationRow
+      ? Boolean((verificationRow as any).email_verified_at)
+      : Boolean((user as any)?.email_confirmed_at)
+
+    if (!isEmailVerified) {
+      const redirectTarget = `${pathname}${request.nextUrl.search || ''}`
+      const verifyPath = `/auth/verify-email?redirect=${encodeURIComponent(redirectTarget)}`
+      return NextResponse.redirect(new URL(verifyPath, request.url))
+    }
   }
 
   const softSuspendedPaths = ['/dashboard', '/chatbot', '/settings']
