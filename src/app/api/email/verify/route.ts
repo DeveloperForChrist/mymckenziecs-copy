@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'node:crypto'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
+
 function safeRedirectPath(input?: string | null) {
   if (!input) return '/dashboard'
   const normalized = input.trim()

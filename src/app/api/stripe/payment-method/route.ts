@@ -3,6 +3,10 @@ import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { stripe } from '@/lib/payments/stripe';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
 type PaymentMethodSummary = {
   brand?: string | null;
   last4?: string | null;

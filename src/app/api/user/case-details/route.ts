@@ -3,6 +3,10 @@ import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { hasCaseProfileAccess } from '@/lib/plans/access'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
+
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 const hasMeaningfulCaseProfile = (row: Record<string, any> | null | undefined): boolean => {

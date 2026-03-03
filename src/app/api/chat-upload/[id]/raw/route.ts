@@ -4,6 +4,9 @@ import os from 'os'
 import path from 'path'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
 export const runtime = 'nodejs'
 
 const uploadDir = path.join(os.tmpdir(), 'mymckenzie-chat-uploads')

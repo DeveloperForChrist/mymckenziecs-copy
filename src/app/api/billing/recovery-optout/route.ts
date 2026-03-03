@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { verifyBillingRecoveryOptOutToken } from '@/lib/payments/recovery-optout';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
 function appBaseUrl(request: NextRequest): string {
   if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
   const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'localhost:3000';

@@ -5,6 +5,10 @@ import { documentLimitForPlan, planDisplayName } from '@/lib/plans/access'
 import { getUserPlanData } from '@/lib/payments/user-plan'
 import { getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse, uploadIpRateLimiter, uploadRateLimiter } from '@/lib/utils/rate-limit'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
+
 const MAX_FILE_SIZE = 25 * 1024 * 1024
 const DEFAULT_DOCUMENT_LIMIT = 100
 const MAX_DOCUMENT_LIMIT = 250

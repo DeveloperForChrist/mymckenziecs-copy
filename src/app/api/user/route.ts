@@ -5,6 +5,10 @@ import { sendResendEmail } from '@/lib/email/resend'
 import fs from 'fs'
 import path from 'path'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
+
 const TEMPLATE_DIR = path.join(process.cwd(), 'src', 'emails', 'templates')
 
 function renderTemplate(templateName: string, vars: Record<string, string>) {

@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
+
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   void request
   const supabase = await createSupabaseRouteClient()

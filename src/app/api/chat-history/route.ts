@@ -3,6 +3,10 @@ import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { isPaidPlan } from '@/lib/plans/access';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
 type ConversationSummary = {
   id: string;
   title: string;

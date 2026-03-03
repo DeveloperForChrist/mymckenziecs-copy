@@ -3,6 +3,10 @@ import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { isPaidPlan } from '@/lib/plans/access';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
 const DEFAULT_CASE_LIMIT = 50;
 const MAX_CASE_LIMIT = 200;
 

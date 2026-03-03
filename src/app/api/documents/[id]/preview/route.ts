@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import mammoth from 'mammoth'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
+
 export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const supabase = await createSupabaseRouteClient()
   const { data: authData } = await supabase.auth.getUser()
