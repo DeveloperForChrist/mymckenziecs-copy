@@ -23,8 +23,8 @@ type SubscriptionRow = {
   lifecycle_delete_at: string | null;
   lifecycle_archived_at: string | null;
   lifecycle_deleted_at: string | null;
-  lifecycle_archive_warning_days_sent: unknown;
-  lifecycle_delete_warning_days_sent: unknown;
+  lifecycle_archive_warning_days_sent: any;
+  lifecycle_delete_warning_days_sent: any;
 };
 
 function renderTemplate(templateName: string, vars: Record<string, string>) {
@@ -189,7 +189,7 @@ export async function GET(request: Request) {
       const user = usersById.get(sub.user_id) as { email?: string; name?: string | null } | undefined;
       const archiveWarningSentDays = parseReminderDaysSet(sub.lifecycle_archive_warning_days_sent);
       const deleteWarningSentDays = parseReminderDaysSet(sub.lifecycle_delete_warning_days_sent);
-      const updates: Record<string, unknown> = {};
+      const updates: Record<string, any> = {};
 
       if (!sub.lifecycle_lapsed_at) updates.lifecycle_lapsed_at = schedule.lapsedAt.toISOString();
       if (!sub.lifecycle_archive_at) updates.lifecycle_archive_at = archiveAt.toISOString();

@@ -1,4 +1,3 @@
-import React from "react";
 import styles from "../documents-page-new.module.css";
 import type { Document, Folder } from "./types";
 
@@ -41,16 +40,16 @@ export default function DocumentsTable({
       <div className={styles.tableBody}>
         {items.map((doc) => (
           <div key={doc.id} className={styles.tableRow}>
-            <div className={styles.cell}>
+            <div className={styles.cell} data-label="Name">
               <div className={styles.fileName}>
                 <i className="bx bx-file"></i>
                 <span title={doc.title}>{doc.title}</span>
               </div>
             </div>
-            <div className={styles.cell}>{doc.type}</div>
-            <div className={styles.cell}>{formatDate(doc.createdAt)}</div>
-            <div className={styles.cell}>{formatSize(doc.size || 0)}</div>
-            <div className={styles.cell}>
+            <div className={styles.cell} data-label="Type">{doc.type}</div>
+            <div className={styles.cell} data-label="Modified">{formatDate(doc.createdAt)}</div>
+            <div className={styles.cell} data-label="Size">{formatSize(doc.size || 0)}</div>
+            <div className={styles.cell} data-label="Folder">
               <select
                 className={styles.folderInlineSelect}
                 value={doc.folderId || ""}
@@ -64,7 +63,7 @@ export default function DocumentsTable({
                 ))}
               </select>
             </div>
-            <div className={styles.cell}>
+            <div className={styles.cell} data-label="Actions">
               <div className={styles.actions}>
                 <button
                   className={styles.actionIcon}

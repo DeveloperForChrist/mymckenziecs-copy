@@ -64,7 +64,7 @@ export default function SignInForm() {
 
       router.push('/dashboard')
       router.refresh()
-    } catch (err: unknown) {
+    } catch (err: any) {
       if (err instanceof AuthApiError) {
         setError(mapSupabaseError(err))
       } else if (err instanceof Error) {

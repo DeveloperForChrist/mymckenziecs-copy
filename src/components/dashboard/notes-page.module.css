@@ -725,3 +725,105 @@
     min-width: 130px;
   }
 }
+
+@media (max-width: 700px) {
+  .notesApp {
+    gap: 12px;
+    padding: 12px 0 22px;
+  }
+
+  .sidebar {
+    border-radius: 16px;
+  }
+
+  .sidebarHeader,
+  .sidebarFooter {
+    padding: 12px;
+  }
+
+  .notesListContent {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .noteDeleteBtn {
+    opacity: 1;
+  }
+
+  .noteEditor {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .editorHeader {
+    padding: 14px;
+    border-radius: 14px;
+    gap: 12px;
+  }
+
+  .editorTitle {
+    font-size: 1.25rem;
+  }
+
+  .editorActions {
+    width: 100%;
+  }
+
+  .actionButton,
+  .micButton {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .micButton {
+    height: 42px;
+  }
+
+  .editorContent {
+    padding-top: 14px;
+  }
+
+  .noteTitle {
+    font-size: 1.05rem;
+  }
+
+  .noteBody {
+    min-height: 240px;
+    font-size: 0.93rem;
+    line-height: 1.55;
+  }
+
+  .eventListItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .eventRemoveButton {
+    align-self: flex-end;
+  }
+
+  .editorFooter {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .modalOverlay {
+    padding: 12px;
+  }
+
+  .modalCard {
+    width: min(420px, 96vw);
+    padding: 16px;
+  }
+
+  .modalActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .modalButtonSecondary,
+  .modalButtonDanger {
+    width: 100%;
+  }
+}

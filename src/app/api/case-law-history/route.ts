@@ -26,7 +26,7 @@ interface ViewedCaseHistoryItem {
 const SEARCH_HISTORY_LIMIT = 10;
 const VIEWED_HISTORY_LIMIT = 12;
 
-const isMissingHistoryTableError = (error: unknown): boolean => {
+const isMissingHistoryTableError = (error: any): boolean => {
   if (!error || typeof error !== 'object') return false;
   const candidate = error as { code?: string; message?: string };
   if (candidate.code === 'PGRST205') return true;
@@ -34,18 +34,18 @@ const isMissingHistoryTableError = (error: unknown): boolean => {
   return typeof candidate.message === 'string' && candidate.message.includes('public.user_case_law_history');
 };
 
-const toIsoOrNow = (value: unknown): string => {
+const toIsoOrNow = (value: any): string => {
   if (typeof value !== 'string') return new Date().toISOString();
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
 };
 
-const sanitizeSearchHistory = (value: unknown): SearchHistoryItem[] | null => {
+const sanitizeSearchHistory = (value: any): SearchHistoryItem[] | null => {
   if (!Array.isArray(value)) return null;
   const items = value
     .map((item) => {
       if (!item || typeof item !== 'object') return null;
-      const raw = item as Record<string, unknown>;
+      const raw = item as Record<string, any>;
       if (typeof raw.query !== 'string') return null;
       const query = raw.query.trim();
       if (!query) return null;
@@ -70,12 +70,12 @@ const sanitizeSearchHistory = (value: unknown): SearchHistoryItem[] | null => {
   return deduped;
 };
 
-const sanitizeViewedHistory = (value: unknown): ViewedCaseHistoryItem[] | null => {
+const sanitizeViewedHistory = (value: any): ViewedCaseHistoryItem[] | null => {
   if (!Array.isArray(value)) return null;
   const items: ViewedCaseHistoryItem[] = [];
   for (const item of value) {
     if (!item || typeof item !== 'object') continue;
-    const raw = item as Record<string, unknown>;
+    const raw = item as Record<string, any>;
     if (typeof raw.id !== 'string' || typeof raw.citation !== 'string' || typeof raw.title !== 'string') continue;
     const id = raw.id.trim();
     const citation = raw.citation.trim();

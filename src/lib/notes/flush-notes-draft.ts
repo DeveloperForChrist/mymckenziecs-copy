@@ -11,8 +11,8 @@ interface NotePageDraft {
 interface GlobalLocalDraftPayload {
   notesPages: NotePageDraft[];
   activePageId: string;
-  selectedCaseId?: string;
   savedAt?: string;
+  ownerUid?: string;
 }
 
 interface FlushNotesDraftResult {
@@ -27,6 +27,8 @@ const normalizeDraftPages = (pages: NotePageDraft[]): NotePageDraft[] =>
     createdAt: note.createdAt || new Date().toISOString(),
     updatedAt: note.updatedAt || new Date().toISOString(),
   }));
+
+const FALLBACK_LOCAL_DRAFT_KEY = "mynotes-draft:last-local";
 
 const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
   if (timeoutMs <= 0) return promise;
@@ -47,7 +49,9 @@ export async function flushNotesDraftNow(
   }
 
   const globalKey = `mynotes-draft:${userId}:local`;
-  const raw = window.localStorage.getItem(globalKey);
+  const userRaw = window.localStorage.getItem(globalKey);
+  const fallbackRaw = window.localStorage.getItem(FALLBACK_LOCAL_DRAFT_KEY);
+  const raw = userRaw || fallbackRaw;
   if (!raw) {
     return { localSaved: false, serverSynced: false, reason: "no-local-draft" };
   }
@@ -57,6 +61,10 @@ export async function flushNotesDraftNow(
     parsed = JSON.parse(raw) as GlobalLocalDraftPayload;
   } catch {
     return { localSaved: false, serverSynced: false, reason: "invalid-local-draft" };
+  }
+
+  if (parsed.ownerUid && parsed.ownerUid !== userId) {
+    return { localSaved: false, serverSynced: false, reason: "draft-owner-mismatch" };
   }
 
   if (!Array.isArray(parsed?.notesPages) || parsed.notesPages.length === 0 || typeof parsed.activePageId !== "string") {
@@ -71,16 +79,16 @@ export async function flushNotesDraftNow(
   const refreshedDraft: GlobalLocalDraftPayload = {
     notesPages: normalizedPages,
     activePageId,
-    selectedCaseId: typeof parsed.selectedCaseId === "string" ? parsed.selectedCaseId : "",
+    ownerUid: userId,
     savedAt: new Date().toISOString(),
   };
 
   window.localStorage.setItem(globalKey, JSON.stringify(refreshedDraft));
+  window.localStorage.setItem(FALLBACK_LOCAL_DRAFT_KEY, JSON.stringify(refreshedDraft));
 
   const payload = JSON.stringify({
     notesPages: normalizedPages,
     activePageId,
-    selectedCaseId: refreshedDraft.selectedCaseId || "",
   });
 
   try {

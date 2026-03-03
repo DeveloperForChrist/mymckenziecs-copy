@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     // Use email from form, or try to get from auth
     const userEmail = email;
     let userName = email.split('@')[0];
-    let planLabel = 'Free';
+    let planLabel = 'No plan';
     
     try {
       const supabase = await createSupabaseRouteClient();
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
           planLabel = activeSub.plan_type.toString();
         }
       }
-    } catch (error) {
+    } catch (_error) {
       console.log('User not authenticated, using form email');
     }
 

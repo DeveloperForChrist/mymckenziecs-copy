@@ -65,6 +65,7 @@
   ],
   "exclude": [
     "node_modules",
-    "supabase/functions/**"
+    "supabase/functions/**",
+    ".next/dev/types/**/*.ts"
   ]
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import type { MouseEvent } from 'react'
+import { useState } from 'react'
 
 type Conversation = {
   id: string
@@ -23,6 +24,8 @@ export default function ChatConversationHistory({
   onOpenConversation,
   onDeleteConversation,
 }: ChatConversationHistoryProps) {
+  const [collapsed, setCollapsed] = useState(false)
+
   const renderList = (items: Conversation[]) => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {items.map((conv) => (
@@ -88,14 +91,41 @@ export default function ChatConversationHistory({
         borderRadius: '12px',
         border: '1px solid rgba(255,255,255,0.12)'
       }}>
-        <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginBottom: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-          Conversation history
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: collapsed ? 0 : '10px'
+          }}
+        >
+          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+            Conversation history
+          </div>
+          <button
+            type="button"
+            onClick={() => setCollapsed((prev) => !prev)}
+            style={{
+              border: '1px solid rgba(255,255,255,0.2)',
+              background: 'rgba(255,255,255,0.08)',
+              color: 'white',
+              borderRadius: '8px',
+              width: '28px',
+              height: '24px',
+              cursor: 'pointer',
+              lineHeight: 1
+            }}
+            aria-label={collapsed ? 'Expand conversation history' : 'Collapse conversation history'}
+            title={collapsed ? 'Expand' : 'Collapse'}
+          >
+            {collapsed ? '▾' : '▴'}
+          </button>
         </div>
-        {loadingHistory ? (
+        {!collapsed && loadingHistory ? (
           <div style={{ fontSize: '12px', color: 'rgba(226,232,240,0.7)' }}>Loading history…</div>
-        ) : conversations.length === 0 ? (
+        ) : !collapsed && conversations.length === 0 ? (
           <div style={{ fontSize: '12px', color: 'rgba(226,232,240,0.7)' }}>No conversations yet.</div>
-        ) : (
+        ) : !collapsed ? (
           <div
             className="history-scroll"
             style={{
@@ -112,7 +142,7 @@ export default function ChatConversationHistory({
           >
             {renderList(conversations)}
           </div>
-        )}
+        ) : null}
       </div>
       <style jsx>{`
         .history-scroll {

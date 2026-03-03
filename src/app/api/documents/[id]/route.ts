@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
+import { isPaidPlan } from '@/lib/plans/access'
 
 async function hasPaidAccess(userId: string): Promise<boolean> {
   const { data } = await supabaseAdmin
@@ -12,8 +13,7 @@ async function hasPaidAccess(userId: string): Promise<boolean> {
     .limit(1)
     .maybeSingle()
 
-  const label = String(data?.plan_type || '').toLowerCase()
-  return Boolean(label && (label.includes('basic') || label.includes('premium')))
+  return isPaidPlan(data?.plan_type)
 }
 
 export async function DELETE(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
@@ -71,7 +71,7 @@ export async function DELETE(_request: NextRequest, context: { params: Promise<{
     }
 
     return NextResponse.json({ success: true })
-  } catch (error: unknown) {
+  } catch (error: any) {
     const message = error instanceof Error ? error.message : 'Failed to delete document'
     return NextResponse.json({ error: message }, { status: 500 })
   }

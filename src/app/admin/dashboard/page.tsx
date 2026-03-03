@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import styles from './dashboard.module.css'
 
@@ -217,7 +217,7 @@ const periodLabels: Record<Period, string> = {
   month: 'last 30 days',
 }
 
-const normalizePlan = (plan?: string) => (plan || 'free').toLowerCase().replace(/_/g, ' ')
+const normalizePlan = (plan?: string) => (plan || 'no plan').toLowerCase().replace(/_/g, ' ')
 
 const formatNumber = (value?: number) => (value ?? 0).toLocaleString()
 
@@ -252,7 +252,11 @@ const distributionEntries = (record?: Record<string, number>, limit = 6) => {
 }
 
 export default function AdminDashboard() {
-  const PLAN_OPTIONS = ['free', 'basic', 'premium', 'premium +', 'premium plus', 'plus', 'premium pro', 'essential', 'premium cheap']
+  const USERS_PAGE_LIMIT = 100
+  const CASES_PAGE_LIMIT = 100
+  const DOCUMENTS_PAGE_LIMIT = 100
+  const API_USAGE_PAGE_LIMIT = 200
+  const PLAN_OPTIONS = ['no plan', 'basic', 'premium', 'premium +', 'premium plus', 'plus', 'premium pro', 'essential', 'premium cheap']
   const [activeTab, setActiveTab] = useState<AdminTab>('overview')
   const [users, setUsers] = useState<User[]>([])
   const [cases, setCases] = useState<Case[]>([])
@@ -276,6 +280,14 @@ export default function AdminDashboard() {
   })
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null)
   const [metricsWarnings, setMetricsWarnings] = useState<string[]>([])
+  const [usersHasMore, setUsersHasMore] = useState(false)
+  const [casesHasMore, setCasesHasMore] = useState(false)
+  const [documentsHasMore, setDocumentsHasMore] = useState(false)
+  const [apiUsageHasMore, setApiUsageHasMore] = useState(false)
+  const [usersLoadingMore, setUsersLoadingMore] = useState(false)
+  const [casesLoadingMore, setCasesLoadingMore] = useState(false)
+  const [documentsLoadingMore, setDocumentsLoadingMore] = useState(false)
+  const [apiUsageLoadingMore, setApiUsageLoadingMore] = useState(false)
   const [loading, setLoading] = useState(true)
   const [metricsLoading, setMetricsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -287,6 +299,197 @@ export default function AdminDashboard() {
   const [deleteCaseIdPending, setDeleteCaseIdPending] = useState<string | null>(null)
   const [planEditor, setPlanEditor] = useState<{ userId: string; currentPlan: string; nextPlan: string } | null>(null)
   const router = useRouter()
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [analyticsRes, usersRes, casesRes, docsRes, healthRes, feedbackRes] = await Promise.all([
+        fetch(`/api/admin/analytics?period=${period}`, { credentials: 'include' }),
+        fetch(`/api/admin/users?limit=${USERS_PAGE_LIMIT}&offset=0`, { credentials: 'include' }),
+        fetch(`/api/admin/cases?limit=${CASES_PAGE_LIMIT}&offset=0`, { credentials: 'include' }),
+        fetch(`/api/admin/documents?limit=${DOCUMENTS_PAGE_LIMIT}&offset=0`, { credentials: 'include' }),
+        fetch('/api/admin/system', { credentials: 'include' }),
+        fetch('/api/admin/feedback?limit=200', { credentials: 'include' }),
+      ])
+
+      const [analyticsData, usersData, casesData, docsData, healthData, feedbackData] = await Promise.all([
+        analyticsRes.json(),
+        usersRes.json(),
+        casesRes.json(),
+        docsRes.json(),
+        healthRes.json(),
+        feedbackRes.json(),
+      ])
+
+      setAnalytics(analyticsData.overview)
+      setUsers(usersData.users || [])
+      setUsersHasMore(Boolean(usersData?.pagination?.hasMore))
+      setCases(casesData.cases || [])
+      setCasesHasMore(Boolean(casesData?.pagination?.hasMore))
+      setDocuments(docsData.documents || [])
+      setDocumentsHasMore(Boolean(docsData?.pagination?.hasMore))
+      setSystemHealth(healthData.health)
+      setFeedback(feedbackData.feedback || [])
+      setFeedbackCounts(feedbackData.counts || { likes: 0, dislikes: 0, reports: 0, total: 0 })
+    } catch (error: any) {
+      console.error('Failed to fetch data:', error)
+    }
+  }, [period, USERS_PAGE_LIMIT, CASES_PAGE_LIMIT, DOCUMENTS_PAGE_LIMIT])
+
+  const fetchMetrics = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/admin/metrics?period=${period}`, { credentials: 'include' })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data?.error || 'Failed to fetch metrics')
+      }
+      setMetrics(data.metrics || null)
+      setMetricsWarnings(data.warnings || [])
+    } catch (error: any) {
+      console.error('Failed to fetch metrics:', error)
+      setMetrics(null)
+      setMetricsWarnings([
+        'Metrics unavailable. Verify Supabase service role, tables, and permissions.',
+      ])
+    }
+  }, [period])
+
+  const fetchApiUsage = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/admin/api-usage?period=${period}&limit=${API_USAGE_PAGE_LIMIT}&offset=0`, { credentials: 'include' })
+      const data = await res.json()
+      setApiUsage(data.usage || [])
+      setApiUsageHasMore(Boolean(data?.pagination?.hasMore))
+      setApiUsageSummary(
+        data.summary || {
+          totalRequests: 0,
+          totalErrors: 0,
+          totalTokens: 0,
+          totalCostUsd: 0,
+          errorRate: 0,
+        }
+      )
+    } catch (_err) {
+      setApiUsage([])
+      setApiUsageSummary({
+        totalRequests: 0,
+        totalErrors: 0,
+        totalTokens: 0,
+        totalCostUsd: 0,
+        errorRate: 0,
+      })
+      setApiUsageHasMore(false)
+    }
+  }, [period, API_USAGE_PAGE_LIMIT])
+
+  const loadMoreUsers = useCallback(async () => {
+    if (usersLoadingMore || !usersHasMore) return
+    setUsersLoadingMore(true)
+    try {
+      const res = await fetch(`/api/admin/users?limit=${USERS_PAGE_LIMIT}&offset=${users.length}`, { credentials: 'include' })
+      const data = await res.json()
+      const nextUsers = Array.isArray(data?.users) ? data.users : []
+      setUsers((prev) => {
+        const seen = new Set(prev.map((u) => u.id))
+        const merged = [...prev]
+        for (const row of nextUsers) {
+          if (!row?.id || seen.has(row.id)) continue
+          seen.add(row.id)
+          merged.push(row)
+        }
+        return merged
+      })
+      setUsersHasMore(Boolean(data?.pagination?.hasMore))
+    } catch (error) {
+      console.error('Failed to load more users:', error)
+    } finally {
+      setUsersLoadingMore(false)
+    }
+  }, [users.length, usersHasMore, usersLoadingMore, USERS_PAGE_LIMIT])
+
+  const loadMoreCases = useCallback(async () => {
+    if (casesLoadingMore || !casesHasMore) return
+    setCasesLoadingMore(true)
+    try {
+      const res = await fetch(`/api/admin/cases?limit=${CASES_PAGE_LIMIT}&offset=${cases.length}`, { credentials: 'include' })
+      const data = await res.json()
+      const nextCases = Array.isArray(data?.cases) ? data.cases : []
+      setCases((prev) => {
+        const seen = new Set(prev.map((c) => c.id))
+        const merged = [...prev]
+        for (const row of nextCases) {
+          if (!row?.id || seen.has(row.id)) continue
+          seen.add(row.id)
+          merged.push(row)
+        }
+        return merged
+      })
+      setCasesHasMore(Boolean(data?.pagination?.hasMore))
+    } catch (error) {
+      console.error('Failed to load more cases:', error)
+    } finally {
+      setCasesLoadingMore(false)
+    }
+  }, [cases.length, casesHasMore, casesLoadingMore, CASES_PAGE_LIMIT])
+
+  const loadMoreDocuments = useCallback(async () => {
+    if (documentsLoadingMore || !documentsHasMore) return
+    setDocumentsLoadingMore(true)
+    try {
+      const res = await fetch(`/api/admin/documents?limit=${DOCUMENTS_PAGE_LIMIT}&offset=${documents.length}`, { credentials: 'include' })
+      const data = await res.json()
+      const nextDocs = Array.isArray(data?.documents) ? data.documents : []
+      setDocuments((prev) => {
+        const seen = new Set(prev.map((d) => d.id))
+        const merged = [...prev]
+        for (const row of nextDocs) {
+          if (!row?.id || seen.has(row.id)) continue
+          seen.add(row.id)
+          merged.push(row)
+        }
+        return merged
+      })
+      setDocumentsHasMore(Boolean(data?.pagination?.hasMore))
+    } catch (error) {
+      console.error('Failed to load more documents:', error)
+    } finally {
+      setDocumentsLoadingMore(false)
+    }
+  }, [documents.length, documentsHasMore, documentsLoadingMore, DOCUMENTS_PAGE_LIMIT])
+
+  const loadMoreApiUsage = useCallback(async () => {
+    if (apiUsageLoadingMore || !apiUsageHasMore) return
+    setApiUsageLoadingMore(true)
+    try {
+      const res = await fetch(
+        `/api/admin/api-usage?period=${period}&limit=${API_USAGE_PAGE_LIMIT}&offset=${apiUsage.length}`,
+        { credentials: 'include' }
+      )
+      const data = await res.json()
+      const nextRows = Array.isArray(data?.usage) ? data.usage : []
+      setApiUsage((prev) => {
+        const merged = [...prev]
+        for (const row of nextRows) merged.push(row)
+        return merged
+      })
+      setApiUsageHasMore(Boolean(data?.pagination?.hasMore))
+    } catch (error) {
+      console.error('Failed to load more API usage:', error)
+    } finally {
+      setApiUsageLoadingMore(false)
+    }
+  }, [apiUsage.length, apiUsageHasMore, apiUsageLoadingMore, period, API_USAGE_PAGE_LIMIT])
+
+  const refreshAll = useCallback(async () => {
+    setLoading(true)
+    setMetricsLoading(true)
+    try {
+      await Promise.all([fetchData(), fetchApiUsage(), fetchMetrics()])
+      setLastUpdated(new Date().toISOString())
+    } finally {
+      setLoading(false)
+      setMetricsLoading(false)
+    }
+  }, [fetchApiUsage, fetchData, fetchMetrics])
 
   useEffect(() => {
     const check = async () => {
@@ -304,96 +507,9 @@ export default function AdminDashboard() {
       }
     }
     void check()
-  }, [router, period])
+  }, [router, refreshAll])
 
-  const refreshAll = async () => {
-    setLoading(true)
-    setMetricsLoading(true)
-    try {
-      await Promise.all([fetchData(), fetchApiUsage(), fetchMetrics()])
-      setLastUpdated(new Date().toISOString())
-    } finally {
-      setLoading(false)
-      setMetricsLoading(false)
-    }
-  }
-
-  const fetchData = async () => {
-    try {
-      const analyticsRes = await fetch(`/api/admin/analytics?period=${period}`, { credentials: 'include' })
-      const analyticsData = await analyticsRes.json()
-      setAnalytics(analyticsData.overview)
-
-      const usersRes = await fetch('/api/admin/users', { credentials: 'include' })
-      const usersData = await usersRes.json()
-      setUsers(usersData.users || [])
-
-      const casesRes = await fetch('/api/admin/cases', { credentials: 'include' })
-      const casesData = await casesRes.json()
-      setCases(casesData.cases || [])
-
-      const docsRes = await fetch('/api/admin/documents', { credentials: 'include' })
-      const docsData = await docsRes.json()
-      setDocuments(docsData.documents || [])
-
-      const healthRes = await fetch('/api/admin/system', { credentials: 'include' })
-      const healthData = await healthRes.json()
-      setSystemHealth(healthData.health)
-
-      const feedbackRes = await fetch('/api/admin/feedback', { credentials: 'include' })
-      const feedbackData = await feedbackRes.json()
-      setFeedback(feedbackData.feedback || [])
-      setFeedbackCounts(feedbackData.counts || { likes: 0, dislikes: 0, reports: 0, total: 0 })
-    } catch (error: unknown) {
-      console.error('Failed to fetch data:', error)
-    }
-  }
-
-  const fetchMetrics = async () => {
-    try {
-      const res = await fetch(`/api/admin/metrics?period=${period}`, { credentials: 'include' })
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data?.error || 'Failed to fetch metrics')
-      }
-      setMetrics(data.metrics || null)
-      setMetricsWarnings(data.warnings || [])
-    } catch (error: unknown) {
-      console.error('Failed to fetch metrics:', error)
-      setMetrics(null)
-      setMetricsWarnings([
-        'Metrics unavailable. Verify Supabase service role, tables, and permissions.',
-      ])
-    }
-  }
-
-  const fetchApiUsage = async () => {
-    try {
-      const res = await fetch(`/api/admin/api-usage?period=${period}`, { credentials: 'include' })
-      const data = await res.json()
-      setApiUsage(data.usage || [])
-      setApiUsageSummary(
-        data.summary || {
-          totalRequests: 0,
-          totalErrors: 0,
-          totalTokens: 0,
-          totalCostUsd: 0,
-          errorRate: 0,
-        }
-      )
-    } catch (err) {
-      setApiUsage([])
-      setApiUsageSummary({
-        totalRequests: 0,
-        totalErrors: 0,
-        totalTokens: 0,
-        totalCostUsd: 0,
-        errorRate: 0,
-      })
-    }
-  }
-
-  const handleUserAction = async (userId: string, action: string, data?: Record<string, unknown>) => {
+  const handleUserAction = async (userId: string, action: string, data?: Record<string, any>) => {
     try {
       const response = await fetch('/api/admin/users', {
         method: 'POST',
@@ -418,7 +534,7 @@ export default function AdminDashboard() {
       } else {
         setStatusModal({ title: 'Action failed', message: result.error || result.message || 'Unknown error' })
       }
-    } catch (error: unknown) {
+    } catch (error: any) {
       setStatusModal({
         title: 'Action failed',
         message: 'Failed to perform action: ' + (error instanceof Error ? error.message : 'Unknown error'),
@@ -451,7 +567,7 @@ export default function AdminDashboard() {
       } else {
         setStatusModal({ title: 'Delete failed', message: result.error || 'Failed to delete case' })
       }
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Delete failed:', error)
       setStatusModal({ title: 'Delete failed', message: 'Failed to delete case' })
     } finally {
@@ -835,7 +951,7 @@ export default function AdminDashboard() {
                 <div className={styles.panel}>
                   <div className={styles.panelTitle}>Distribution: Case Types</div>
                   <div className={styles.distribution}>
-                    {distributionEntries(metrics?.cases?.byType).map(([label, value], index, arr) => (
+                    {distributionEntries(metrics?.cases?.byType).map(([label, value], _index, arr) => (
                       <div key={label} className={styles.barRow}>
                         <div className={styles.barLabel}>{toTitleCase(label)} · {formatNumber(value)}</div>
                         <div className={styles.barTrack}>
@@ -849,7 +965,7 @@ export default function AdminDashboard() {
                 <div className={styles.panel}>
                   <div className={styles.panelTitle}>Distribution: Document Types</div>
                   <div className={styles.distribution}>
-                    {distributionEntries(metrics?.documents?.byType).map(([label, value], index, arr) => (
+                    {distributionEntries(metrics?.documents?.byType).map(([label, value], _index, arr) => (
                       <div key={label} className={styles.barRow}>
                         <div className={styles.barLabel}>{toTitleCase(label)} · {formatNumber(value)}</div>
                         <div className={styles.barTrack}>
@@ -863,7 +979,7 @@ export default function AdminDashboard() {
                 <div className={styles.panel}>
                   <div className={styles.panelTitle}>Distribution: Subscription Plans</div>
                   <div className={styles.distribution}>
-                    {distributionEntries(metrics?.subscriptions?.byPlan).map(([label, value], index, arr) => (
+                    {distributionEntries(metrics?.subscriptions?.byPlan).map(([label, value], _index, arr) => (
                       <div key={label} className={styles.barRow}>
                         <div className={styles.barLabel}>{toTitleCase(label)} · {formatNumber(value)}</div>
                         <div className={styles.barTrack}>
@@ -877,7 +993,7 @@ export default function AdminDashboard() {
                 <div className={styles.panel}>
                   <div className={styles.panelTitle}>Distribution: Calendar Categories</div>
                   <div className={styles.distribution}>
-                    {distributionEntries(metrics?.calendar?.byCategory).map(([label, value], index, arr) => (
+                    {distributionEntries(metrics?.calendar?.byCategory).map(([label, value], _index, arr) => (
                       <div key={label} className={styles.barRow}>
                         <div className={styles.barLabel}>{toTitleCase(label)} · {formatNumber(value)}</div>
                         <div className={styles.barTrack}>
@@ -960,7 +1076,7 @@ export default function AdminDashboard() {
                   />
                   <select className={styles.select} value={filterPlan} onChange={(e) => setFilterPlan(e.target.value)}>
                     <option value="">All plans</option>
-                    <option value="free">Free</option>
+                    <option value="no plan">No plan</option>
                     <option value="basic">Basic</option>
                     <option value="premium">Premium</option>
                     <option value="premium +">Premium +</option>
@@ -1031,6 +1147,13 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               </div>
+              {(usersHasMore || usersLoadingMore) && (
+                <div className={styles.toolbar} style={{ marginTop: 12 }}>
+                  <button className={styles.actionButtonSecondary} onClick={loadMoreUsers} disabled={usersLoadingMore}>
+                    {usersLoadingMore ? 'Loading…' : 'Load more users'}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -1087,6 +1210,13 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               </div>
+              {(casesHasMore || casesLoadingMore) && (
+                <div className={styles.toolbar} style={{ marginTop: 12 }}>
+                  <button className={styles.actionButtonSecondary} onClick={loadMoreCases} disabled={casesLoadingMore}>
+                    {casesLoadingMore ? 'Loading…' : 'Load more cases'}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -1126,6 +1256,17 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               </div>
+              {(documentsHasMore || documentsLoadingMore) && (
+                <div className={styles.toolbar} style={{ marginTop: 12 }}>
+                  <button
+                    className={styles.actionButtonSecondary}
+                    onClick={loadMoreDocuments}
+                    disabled={documentsLoadingMore}
+                  >
+                    {documentsLoadingMore ? 'Loading…' : 'Load more documents'}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -1150,7 +1291,7 @@ export default function AdminDashboard() {
                         acc[c.caseType] = (acc[c.caseType] || 0) + 1
                         return acc
                       }, {} as Record<string, number>)
-                    ).map(([type, count], index, arr) => (
+                    ).map(([type, count], _index, arr) => (
                       <div key={type} className={styles.barRow}>
                         <div className={styles.barLabel}>{toTitleCase(type)} · {formatNumber(count)}</div>
                         <div className={styles.barTrack}>
@@ -1169,7 +1310,7 @@ export default function AdminDashboard() {
                         acc[d.type] = (acc[d.type] || 0) + 1
                         return acc
                       }, {} as Record<string, number>)
-                    ).map(([type, count], index, arr) => (
+                    ).map(([type, count], _index, arr) => (
                       <div key={type} className={styles.barRow}>
                         <div className={styles.barLabel}>{toTitleCase(type)} · {formatNumber(count)}</div>
                         <div className={styles.barTrack}>
@@ -1426,6 +1567,17 @@ export default function AdminDashboard() {
                     </tbody>
                   </table>
                 </div>
+                {(apiUsageHasMore || apiUsageLoadingMore) && (
+                  <div className={styles.toolbar} style={{ marginTop: 12 }}>
+                    <button
+                      className={styles.actionButtonSecondary}
+                      onClick={loadMoreApiUsage}
+                      disabled={apiUsageLoadingMore}
+                    >
+                      {apiUsageLoadingMore ? 'Loading…' : 'Load more logs'}
+                    </button>
+                  </div>
+                )}
               </div>
             </>
           )}

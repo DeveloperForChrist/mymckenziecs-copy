@@ -1,12 +1,13 @@
-import React from 'react';
 import LegalPageLayout from '@/components/layout/LegalPageLayout';
+
+export const revalidate = 86400;
 
 export default function AboutPage() {
   return (
     <LegalPageLayout
       title="About"
       subtitle="Why we built MyMcKenzieCS and who it serves."
-      meta="Built by MyMcKenzieCS Ltd • Empowering Litigants in Person"
+      meta="Built by Lenjordan Ltd • Empowering Litigants in Person"
     >
       <div className="space-y-6 text-base md:text-lg">
         <div>
@@ -42,7 +43,7 @@ export default function AboutPage() {
         <div>
           <h2 className="text-2xl font-semibold mb-2">Who We Are</h2>
           <p>
-            MyMcKenzieCS Ltd is a UK-based technology company focused on building intelligent tools that solve real-world
+            Lenjordan Ltd is a UK-based technology company focused on building intelligent tools that solve real-world
             problems. We combine technology, user-focused design, and a commitment to simplifying complex processes so
             people can manage their cases confidently and independently.
           </p>

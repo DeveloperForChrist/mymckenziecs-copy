@@ -22,56 +22,20 @@ type AnalyticsContext = {
   sessionStartedAt?: string | null;
 };
 
-export function formatDateKey(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
+const CASE_LOOKUP_LIMIT = 25;
+const ENSURED_USER_ROW_TTL_MS = 60_000;
+const ENSURED_USER_ROW_CACHE_MAX = 50_000;
+const ensuredUserRowCache = new Map<string, number>();
 
-const buildCalendarDescription = (text: string, dateText: string) => {
-  const normalized = text.replace(/\s+/g, ' ').trim()
-  if (normalized.length && normalized.length <= 80) return normalized
-  return `Date mentioned: ${dateText}`
-}
-
-const extractDateMentions = (text: string) => {
-  const absoluteDates = new Set<string>()
-  const relativeDates = new Set<string>()
-  const monthPattern = '(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)'
-
-  const absolutePatterns: RegExp[] = [
-    /\b\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/g,
-    /\b\d{4}-\d{1,2}-\d{1,2}\b/g,
-    new RegExp(`\\b\\d{1,2}\\s+${monthPattern}\\s+\\d{2,4}\\b`, 'gi'),
-    new RegExp(`\\b${monthPattern}\\s+\\d{1,2}(?:st|nd|rd|th)?(?:,\\s*\\d{2,4})?\\b`, 'gi')
-  ]
-
-  const relativePatterns: RegExp[] = [
-    /\bday after tomorrow\b/gi,
-    /\btomorrow\b/gi,
-    /\bnext\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi,
-    /\bin\s+\d{1,3}\s+(day|days|week|weeks|month|months)\b/gi,
-    /\b\d{1,3}\s+(day|days|week|weeks|month|months)\s+(away|from\s+now|remaining|left|to\s+go)\b/gi
-  ]
-
-  for (const pattern of absolutePatterns) {
-    for (const match of text.matchAll(pattern)) {
-      if (match[0]) absoluteDates.add(match[0].trim())
+const setEnsuredUserRowCache = (userId: string, expiresAt: number) => {
+  if (ensuredUserRowCache.size >= ENSURED_USER_ROW_CACHE_MAX) {
+    for (const [key, expiry] of ensuredUserRowCache) {
+      if (expiry <= Date.now()) ensuredUserRowCache.delete(key);
+      if (ensuredUserRowCache.size < ENSURED_USER_ROW_CACHE_MAX) break;
     }
   }
-
-  for (const pattern of relativePatterns) {
-    for (const match of text.matchAll(pattern)) {
-      if (match[0]) relativeDates.add(match[0].trim())
-    }
-  }
-
-  return {
-    absolute: Array.from(absoluteDates),
-    relative: Array.from(relativeDates)
-  }
-}
+  ensuredUserRowCache.set(userId, expiresAt);
+};
 
 
 const classifyIntent = (message: string, hasAttachments = false): string => {
@@ -136,15 +100,23 @@ const hasMeaningfulCaseProfile = (row: Record<string, any> | null | undefined): 
 
 export class ChatManager {
   private userId: string;
+  private userEmail?: string | null;
   private activeCaseId?: string;
   private conversationId?: string;
   private userPlan: string | null = null;
 
-  constructor(userId: string, activeCaseId?: string, conversationId?: string) {
+  constructor(userId: string, activeCaseId?: string, conversationId?: string, userEmail?: string | null) {
     this.userId = userId;
+    this.userEmail = userEmail || null;
     this.activeCaseId = activeCaseId;
     // If no conversationId provided, generate a new UUID for this chat session
     this.conversationId = conversationId || this.generateUUID();
+  }
+
+  public seedUserPlan(planLabel?: string | null) {
+    const normalized = typeof planLabel === 'string' ? planLabel.trim() : '';
+    if (!normalized) return;
+    this.userPlan = normalized;
   }
 
   /**
@@ -156,85 +128,101 @@ export class ChatManager {
       return { requiresCaseSelection: false, activeCaseId: null, cases: [], conversationId: this.conversationId };
     }
 
-    // Resolve or create user in Supabase (idempotent upsert to avoid unique constraint errors)
-    const { data: fetchedUserRow } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('id', this.userId)
-      .maybeSingle();
+    const cachedEnsure = ensuredUserRowCache.get(this.userId);
+    const userRowRecentlyEnsured = typeof cachedEnsure === 'number' && cachedEnsure > Date.now();
+    let supabaseUserId = this.userId;
 
-    let userRow = fetchedUserRow;
-
-    if (!userRow) {
-      const { data: inserted, error: upsertError } = await supabaseAdmin
+    if (!userRowRecentlyEnsured) {
+      // Resolve or create user in Supabase (idempotent upsert to avoid unique constraint errors).
+      const { data: fetchedUserRow } = await supabaseAdmin
         .from('users')
-        .upsert(
-          { id: this.userId, email: `${this.userId}@placeholder.local` },
-          { onConflict: 'id' }
-        )
         .select('id')
+        .eq('id', this.userId)
         .maybeSingle();
 
-      if (upsertError) {
-        // If a race condition occurred, try reading again to avoid throwing
-        const { data: retryRow } = await supabaseAdmin
+      let userRow = fetchedUserRow;
+
+      if (!userRow) {
+        const insertEmail = (this.userEmail || `${this.userId}@placeholder.local`).trim();
+        const { data: inserted, error: upsertError } = await supabaseAdmin
           .from('users')
+          .upsert(
+            { id: this.userId, email: insertEmail || `${this.userId}@placeholder.local` },
+            { onConflict: 'id' }
+          )
           .select('id')
-          .eq('id', this.userId)
           .maybeSingle();
-        userRow = retryRow || null;
-      } else {
-        userRow = inserted;
+
+        if (upsertError) {
+          // If a race condition occurred, try reading again to avoid throwing.
+          const { data: retryRow } = await supabaseAdmin
+            .from('users')
+            .select('id')
+            .eq('id', this.userId)
+            .maybeSingle();
+          userRow = retryRow || null;
+        } else {
+          userRow = inserted;
+        }
+      }
+
+      if (!userRow) {
+        return { requiresCaseSelection: false, activeCaseId: null, cases: [], conversationId: this.conversationId };
+      }
+
+      supabaseUserId = userRow.id;
+      setEnsuredUserRowCache(this.userId, Date.now() + ENSURED_USER_ROW_TTL_MS);
+    }
+
+    // Plan can be pre-seeded by the API route to avoid duplicate subscription reads.
+    if (!this.userPlan) {
+      const { data: activeSub } = await supabaseAdmin
+        .from('subscriptions')
+        .select('plan_type')
+        .eq('user_id', supabaseUserId)
+        .in('status', ['active', 'past_due'])
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      this.userPlan = activeSub?.plan_type || 'No plan';
+    }
+
+    let resolvedActiveCaseId = this.activeCaseId;
+
+    if (resolvedActiveCaseId) {
+      const { data: selectedCase } = await supabaseAdmin
+        .from('cases')
+        .select('id, title, external_id, case_type, description')
+        .eq('id', resolvedActiveCaseId)
+        .eq('user_id', supabaseUserId)
+        .is('deleted_at', null)
+        .maybeSingle();
+
+      if (!selectedCase || !hasMeaningfulCaseProfile(selectedCase as any)) {
+        resolvedActiveCaseId = undefined;
       }
     }
 
-    if (!userRow) {
-      return { requiresCaseSelection: false, activeCaseId: null, cases: [], conversationId: this.conversationId };
+    if (!resolvedActiveCaseId) {
+      const { data: fallbackCaseCandidates } = await supabaseAdmin
+        .from('cases')
+        .select('id, title, external_id, case_type, description, last_accessed, created_at')
+        .eq('user_id', supabaseUserId)
+        .is('deleted_at', null)
+        .order('last_accessed', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false })
+        .limit(CASE_LOOKUP_LIMIT);
+
+      const fallbackCase = (fallbackCaseCandidates || []).find((row: any) => hasMeaningfulCaseProfile(row));
+      resolvedActiveCaseId = fallbackCase?.id || undefined;
     }
 
-    const supabaseUserId = userRow.id;
-
-    // Check subscription for plan
-    const { data: activeSub } = await supabaseAdmin
-      .from('subscriptions')
-      .select('plan_type')
-      .eq('user_id', supabaseUserId)
-      .in('status', ['active', 'past_due'])
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    this.userPlan = activeSub?.plan_type || 'Free';
-
-    // Get all cases
-    const { data: casesData } = await supabaseAdmin
-      .from('cases')
-      .select('*')
-      .eq('user_id', supabaseUserId)
-      .is('deleted_at', null)
-      .order('last_accessed', { ascending: false });
-
-    const cases = (casesData || []).filter((c: any) => hasMeaningfulCaseProfile(c)).map((c: any) => {
-      return { id: c.id, ...c };
-    });
-
-    const activeCaseStillExists = this.activeCaseId
-      ? cases.some((caseRow: any) => caseRow.id === this.activeCaseId)
-      : false;
-
-    // Single-profile mode: ignore stale case ids and default to the latest profile.
-    if (!activeCaseStillExists) {
-      this.activeCaseId = undefined;
-    }
-
-    if (cases.length > 0 && !this.activeCaseId) {
-      this.activeCaseId = cases[0].id;
-    }
+    this.activeCaseId = resolvedActiveCaseId;
 
     return {
       requiresCaseSelection: false,
-      activeCaseId: this.activeCaseId,
-      cases: cases,
+      activeCaseId: this.activeCaseId || null,
+      cases: [],
       conversationId: this.conversationId
     };
   }
@@ -321,7 +309,7 @@ export class ChatManager {
    * Step 2: Store raw conversation message
    * All messages (user and assistant) are stored directly to the database with full content
    * Access controls are enforced at API layer before this class is called.
-   * Case ID is optional - if user has set up case profile in settings, messages are personalized
+   * Case ID is optional - if user has set up case profile in chatbot, messages are personalized
    */
   async storeRawMessage(
     message: string,

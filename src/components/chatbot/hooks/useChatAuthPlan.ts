@@ -20,28 +20,51 @@ type SupabaseLike = {
 type UseChatAuthPlanArgs = {
   supabase: SupabaseLike
   clearSessionHistory: (userId?: string | null) => void
+  initialState?: InitialChatPlanState | null
 }
 
-export function useChatAuthPlan({ supabase, clearSessionHistory }: UseChatAuthPlanArgs) {
-  const [supabaseUser, setSupabaseUser] = useState<any>(null)
-  const [plan, setPlan] = useState<string | null>(null)
-  const [planStatus, setPlanStatus] = useState<string | null>(null)
-  const [paidAccess, setPaidAccess] = useState(false)
-  const [planLoaded, setPlanLoaded] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [authLoaded, setAuthLoaded] = useState(false)
+export type InitialChatPlanState = {
+  userId: string
+  plan: string
+  planStatus: string
+  paidAccess: boolean
+}
+
+export function useChatAuthPlan({ supabase, clearSessionHistory, initialState = null }: UseChatAuthPlanArgs) {
+  const initialUserId = initialState?.userId || null
+  const hasInitialState = Boolean(initialUserId)
+  const [supabaseUser, setSupabaseUser] = useState<any>(hasInitialState ? { id: initialUserId } : null)
+  const [plan, setPlan] = useState<string | null>(hasInitialState ? initialState?.plan || 'No plan' : null)
+  const [planStatus, setPlanStatus] = useState<string | null>(hasInitialState ? initialState?.planStatus || 'inactive' : null)
+  const [paidAccess, setPaidAccess] = useState(hasInitialState ? Boolean(initialState?.paidAccess) : false)
+  const [planLoaded, setPlanLoaded] = useState(hasInitialState)
+  const [isAuthenticated, setIsAuthenticated] = useState(hasInitialState)
+  const [authLoaded, setAuthLoaded] = useState(hasInitialState)
   const [welcomeVariant, setWelcomeVariant] = useState<WelcomeVariant>(null)
-  const lastUserIdRef = useRef<string | null>(null)
+  const lastUserIdRef = useRef<string | null>(initialUserId)
 
   useEffect(() => {
     let cancelled = false
 
-    const loadPlanForSession = async (nextUserId: string | null) => {
+    const loadPlanForSession = async (nextUserId: string | null, options?: { preferInitial?: boolean }) => {
       if (!nextUserId) {
         if (cancelled) return
-        setPlan('Free')
+        setPlan('Guest')
         setPlanStatus('guest')
         setPaidAccess(false)
+        setPlanLoaded(true)
+        return
+      }
+      const canUseInitial =
+        options?.preferInitial === true &&
+        initialUserId !== null &&
+        initialUserId === nextUserId &&
+        hasInitialState
+      if (canUseInitial) {
+        if (cancelled) return
+        setPlan((initialState?.plan || 'No plan').toString().trim())
+        setPlanStatus((initialState?.planStatus || 'inactive').toString().trim().toLowerCase())
+        setPaidAccess(Boolean(initialState?.paidAccess))
         setPlanLoaded(true)
         return
       }
@@ -50,15 +73,15 @@ export function useChatAuthPlan({ supabase, clearSessionHistory }: UseChatAuthPl
         if (!response.ok) throw new Error('Failed to load subscription plan')
         const data = await response.json()
         if (cancelled) return
-        const fetchedPlan = (data?.plan || 'Free').toString().trim()
+        const fetchedPlan = (data?.plan || 'No plan').toString().trim()
         setPlan(fetchedPlan)
-        setPlanStatus((data?.planStatus || 'free').toString().trim().toLowerCase())
+        setPlanStatus((data?.planStatus || 'inactive').toString().trim().toLowerCase())
         setPaidAccess(Boolean(data?.paidAccess))
-      } catch (error: unknown) {
+      } catch (error: any) {
         if (!cancelled) {
           console.error('Failed to load subscription plan:', error)
-          setPlan('Free')
-          setPlanStatus('free')
+          setPlan('No plan')
+          setPlanStatus('inactive')
           setPaidAccess(false)
         }
       } finally {
@@ -84,9 +107,9 @@ export function useChatAuthPlan({ supabase, clearSessionHistory }: UseChatAuthPl
             lastUserIdRef.current = null
           }
           setWelcomeVariant(null)
-          await loadPlanForSession(null)
-          return
-        }
+        await loadPlanForSession(null, { preferInitial: true })
+        return
+      }
 
         if (typeof window !== 'undefined') {
           const welcomeKey = `chatbotWelcomeSeen:${user.id}`
@@ -99,12 +122,12 @@ export function useChatAuthPlan({ supabase, clearSessionHistory }: UseChatAuthPl
           setWelcomeVariant('returning')
         }
 
-        await loadPlanForSession(nextUserId)
+        await loadPlanForSession(nextUserId, { preferInitial: true })
       } catch (error) {
         if (!cancelled) {
           console.error('Failed to resolve auth state:', error)
-          setPlan('Free')
-          setPlanStatus('free')
+          setPlan('No plan')
+          setPlanStatus('inactive')
           setPaidAccess(false)
           setPlanLoaded(true)
         }
@@ -131,8 +154,15 @@ export function useChatAuthPlan({ supabase, clearSessionHistory }: UseChatAuthPl
       setSupabaseUser(session?.user || null)
       setIsAuthenticated(Boolean(session?.user))
       setAuthLoaded(true)
-      setPlanLoaded(false)
-      void loadPlanForSession(nextUserId)
+      const canUseInitial =
+        Boolean(nextUserId) &&
+        initialUserId !== null &&
+        nextUserId === initialUserId &&
+        hasInitialState
+      if (!canUseInitial) {
+        setPlanLoaded(false)
+      }
+      void loadPlanForSession(nextUserId, { preferInitial: true })
     })
     const { data: { subscription } } = authListener
 
@@ -140,7 +170,7 @@ export function useChatAuthPlan({ supabase, clearSessionHistory }: UseChatAuthPl
       cancelled = true
       subscription.unsubscribe()
     }
-  }, [supabase, clearSessionHistory])
+  }, [supabase, clearSessionHistory, hasInitialState, initialState, initialUserId])
 
   return {
     supabaseUser,

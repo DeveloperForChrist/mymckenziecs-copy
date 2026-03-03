@@ -12,6 +12,13 @@ import DocumentsTable from "./documents/DocumentsTable";
 import DocumentsViewerModal from "./documents/DocumentsViewerModal";
 import type { Document, Folder } from "./documents/types";
 
+type DocumentsClientProps = {
+  initialCanUpload?: boolean;
+  initialPlanLoaded?: boolean;
+};
+
+const DOCUMENTS_PAGE_SIZE = 100;
+
 const mapApiDocument = (x: any, folderMap: Record<string, string>, folderOverride?: string): Document => ({
   id: x.id,
   title: x.name || 'Document',
@@ -20,13 +27,16 @@ const mapApiDocument = (x: any, folderMap: Record<string, string>, folderOverrid
   createdAt: x.created_at || new Date().toISOString(),
   starred: false,
   size: x.file_size || 0,
-  folderId: folderOverride || x.case_id || folderMap[x.id] || undefined,
+  folderId: folderOverride || folderMap[x.id] || undefined,
   mimeType: x.mime_type || null,
   storagePath: x.storage_path || null,
   storageUrl: x.storage_url || null
 });
 
-export default function DocumentsClient() {
+export default function DocumentsClient({
+  initialCanUpload = false,
+  initialPlanLoaded = false,
+}: DocumentsClientProps) {
   const [activeFilter, setActiveFilter] = useState<'recents'|'starred'>('recents');
   const [activeFolder, setActiveFolder] = useState<string|null>(null);
   const router = useRouter();
@@ -34,10 +44,8 @@ export default function DocumentsClient() {
   const [searchQuery, setSearchQuery] = useState("");
   const [documents, setDocuments] = useState<Document[]>([]);
   const [customFolders, setCustomFolders] = useState<Folder[]>([]);
-  const [caseFolders, setCaseFolders] = useState<Folder[]>([]);
   const [folderMap, setFolderMap] = useState<Record<string, string>>({});
   const [uploadFolderId, setUploadFolderId] = useState<string>('');
-  const [activeCaseId, setActiveCaseId] = useState('');
   const [uid, setUid] = useState<string | null>(null);
   const [viewingDocument, setViewingDocument] = useState<Document | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -49,9 +57,12 @@ export default function DocumentsClient() {
   const [newFolderName, setNewFolderName] = useState('');
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [documentsHasMore, setDocumentsHasMore] = useState(false);
+  const [documentsNextOffset, setDocumentsNextOffset] = useState(0);
+  const [documentsLoadingMore, setDocumentsLoadingMore] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ kind: 'document' | 'folder'; id: string } | null>(null);
-  const [canUpload, setCanUpload] = useState(true);
-  const [planLoaded, setPlanLoaded] = useState(false);
+  const [canUpload, setCanUpload] = useState(Boolean(initialCanUpload));
+  const [planLoaded, setPlanLoaded] = useState(Boolean(initialPlanLoaded));
 
   const readApiJson = async (res: Response) => {
     const contentType = res.headers.get('content-type') || '';
@@ -64,6 +75,8 @@ export default function DocumentsClient() {
     return { error: trimmed || 'Request failed' };
   };
 
+  // Intentionally keyed by uid only; folder reassignment is handled in a separate effect.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
     supabase.auth.getUser().then(({ data }) => {
@@ -87,9 +100,7 @@ export default function DocumentsClient() {
         if (cancelled) return;
         setCanUpload(Boolean(data?.paidAccess));
       } catch {
-        if (!cancelled) {
-          setCanUpload(true);
-        }
+        // Keep preloaded value (or locked default) when plan refresh fails.
       } finally {
         if (!cancelled) {
           setPlanLoaded(true);
@@ -135,38 +146,24 @@ export default function DocumentsClient() {
 
   useEffect(() => {
     const controller = new AbortController();
-    const fetchCaseFolders = async () => {
-      if (!uid) return;
-      try {
-        const response = await fetch('/api/cases', { credentials: 'include', signal: controller.signal });
-        const data = await readApiJson(response);
-        if (!response.ok) return;
-        const foldersFromCases: Folder[] = Array.isArray(data?.cases)
-          ? data.cases.map((c: any) => ({
-              id: String(c.id),
-              name: c?.title || c?.case_number || 'Untitled case',
-              kind: 'case' as const,
-              locked: true,
-            }))
-          : [];
-        setCaseFolders(foldersFromCases);
-      } catch (error: any) {
-        if (error?.name !== 'AbortError') {
-          console.error('Failed to fetch case folders', error);
-        }
-      }
-    };
-    fetchCaseFolders();
-    return () => controller.abort();
-  }, [uid]);
-  useEffect(() => {
-    const controller = new AbortController();
     const fetchDocuments = async () => {
+      if (!uid) {
+        setDocuments([]);
+        setDocumentsHasMore(false);
+        setDocumentsNextOffset(0);
+        return;
+      }
       try {
-        const res = await fetch('/api/documents', { credentials: 'include', signal: controller.signal });
+        const res = await fetch(
+          `/api/documents?limit=${DOCUMENTS_PAGE_SIZE}&offset=0`,
+          { credentials: 'include', signal: controller.signal }
+        );
         const data: any = await readApiJson(res);
         if (!res.ok) throw new Error(data?.error || 'Failed to load documents');
-        setDocuments((data.documents || []).map((x: any) => mapApiDocument(x, folderMap)));
+        const mapped = (data.documents || []).map((x: any) => mapApiDocument(x, folderMap));
+        setDocuments(mapped);
+        setDocumentsHasMore(Boolean(data?.pagination?.hasMore));
+        setDocumentsNextOffset(Number.isFinite(data?.pagination?.nextOffset) ? Number(data.pagination.nextOffset) : mapped.length);
       } catch (err: any) {
         if (err?.name === 'AbortError') return;
         console.error('Failed to fetch documents', err);
@@ -174,7 +171,37 @@ export default function DocumentsClient() {
     };
     fetchDocuments();
     return () => controller.abort();
-  }, [activeCaseId]);
+  }, [uid]);
+
+  const loadMoreDocuments = async () => {
+    if (!uid || documentsLoadingMore || !documentsHasMore) return;
+    setDocumentsLoadingMore(true);
+    try {
+      const res = await fetch(
+        `/api/documents?limit=${DOCUMENTS_PAGE_SIZE}&offset=${documentsNextOffset}`,
+        { credentials: 'include' }
+      );
+      const data: any = await readApiJson(res);
+      if (!res.ok) throw new Error(data?.error || 'Failed to load more documents');
+
+      const mapped = (data.documents || []).map((x: any) => mapApiDocument(x, folderMap));
+      setDocuments((prev) => {
+        const seen = new Set(prev.map((doc) => doc.id));
+        const deduped = mapped.filter((doc: Document) => !seen.has(doc.id));
+        return [...prev, ...deduped];
+      });
+      setDocumentsHasMore(Boolean(data?.pagination?.hasMore));
+      setDocumentsNextOffset(
+        Number.isFinite(data?.pagination?.nextOffset)
+          ? Number(data.pagination.nextOffset)
+          : documentsNextOffset + mapped.length
+      );
+    } catch (err: any) {
+      setUploadError(err?.message || 'Failed to load more documents');
+    } finally {
+      setDocumentsLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     if (!documents.length) return;
@@ -210,16 +237,14 @@ export default function DocumentsClient() {
       const formData = new FormData();
       files.forEach(file => formData.append('files', file));
       const targetFolderId = activeFolder || uploadFolderId || undefined;
-      const targetCaseId = caseFolders.some((f) => f.id === targetFolderId) ? targetFolderId : activeCaseId || undefined;
-      if (targetCaseId) formData.append('caseId', targetCaseId);
 
       const res = await fetch('/api/documents', { method: 'POST', body: formData, credentials: 'include' });
       const data: any = await readApiJson(res);
       if (!res.ok) throw new Error(data?.error || 'Upload failed');
-      const newDocs: Document[] = (data.documents || []).map((x:any)=> mapApiDocument(x, folderMap, targetFolderId));
+      const newDocs: Document[] = (data.documents || []).map((x: any)=> mapApiDocument(x, folderMap, targetFolderId));
       setDocuments(p=>[...newDocs,...p]);
       const mapFolderId = targetFolderId || '';
-      if (mapFolderId && !caseFolders.some((f) => f.id === mapFolderId)) {
+      if (mapFolderId) {
         setFolderMap(prev => {
           const next = { ...prev };
           newDocs.forEach(doc => { next[doc.id] = mapFolderId; });
@@ -236,7 +261,6 @@ export default function DocumentsClient() {
 
   const handleFolderAssignment = (docId: string, folderId: string) => {
     setDocuments(p => p.map(d => d.id == docId ? { ...d, folderId: folderId || undefined } : d));
-    if (caseFolders.some((folder) => folder.id === folderId)) return;
     setFolderMap(p => ({ ...p, [docId]: folderId }));
   };
 
@@ -269,7 +293,6 @@ export default function DocumentsClient() {
   };
 
   const deleteFolder = (folderId: string) => {
-    if (caseFolders.some((folder) => folder.id === folderId)) return;
     setDeleteModal({ kind: 'folder', id: folderId });
   };
 
@@ -288,7 +311,7 @@ export default function DocumentsClient() {
 
   const handleCreateFolder = () => {
     if (newFolderName.trim()) {
-      setCustomFolders(p => [...p, { id: `folder-${Date.now()}`, name: newFolderName.trim(), kind: 'custom' }]);
+      setCustomFolders(p => [...p, { id: `folder-${Date.now()}`, name: newFolderName.trim() }]);
       setShowFolderModal(false);
       setNewFolderName('');
     }
@@ -353,19 +376,7 @@ export default function DocumentsClient() {
     loadPreview();
   }, [viewingDocument]);
 
-  const folders = useMemo(() => [...caseFolders, ...customFolders], [caseFolders, customFolders]);
-
-  useEffect(() => {
-    if (!activeFolder) {
-      setActiveCaseId('');
-      return;
-    }
-    if (caseFolders.some((folder) => folder.id === activeFolder)) {
-      setActiveCaseId(activeFolder);
-    } else {
-      setActiveCaseId('');
-    }
-  }, [activeFolder, caseFolders]);
+  const folders = useMemo(() => [...customFolders], [customFolders]);
 
   const fmt = (d:string) => new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'});
   const fmtSize = (b:number) => b>1048576?`${(b/1048576).toFixed(1)} MB`:b>0?`${(b/1024).toFixed(0)} KB`:'-';
@@ -647,18 +658,41 @@ export default function DocumentsClient() {
               <p>Upload documents to get started</p>
             </div>
           ) : (
-            <DocumentsTable
-              items={items}
-              folders={folders}
-              formatDate={fmt}
-              formatSize={fmtSize}
-              onView={handleViewDocument}
-              onDownload={handleDownloadDocument}
-              onToggleStar={toggleStar}
-              canDelete={canUpload}
-              onDelete={deleteDocument}
-              onFolderChange={handleFolderAssignment}
-            />
+            <>
+              <DocumentsTable
+                items={items}
+                folders={folders}
+                formatDate={fmt}
+                formatSize={fmtSize}
+                onView={handleViewDocument}
+                onDownload={handleDownloadDocument}
+                onToggleStar={toggleStar}
+                canDelete={canUpload}
+                onDelete={deleteDocument}
+                onFolderChange={handleFolderAssignment}
+              />
+              {documentsHasMore && (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0 4px' }}>
+                  <button
+                    type="button"
+                    style={{
+                      border: '1px solid rgba(15,23,42,0.16)',
+                      borderRadius: '10px',
+                      background: '#fff',
+                      color: '#0f172a',
+                      padding: '8px 14px',
+                      fontWeight: 600,
+                      cursor: documentsLoadingMore ? 'not-allowed' : 'pointer',
+                      opacity: documentsLoadingMore ? 0.75 : 1,
+                    }}
+                    onClick={() => void loadMoreDocuments()}
+                    disabled={documentsLoadingMore}
+                  >
+                    {documentsLoadingMore ? 'Loading...' : 'Load more documents'}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>

@@ -13,14 +13,14 @@ const PERIODS = {
 } as const
 
 type PeriodKey = keyof typeof PERIODS
-type MetricsRow = Record<string, unknown>
+type MetricsRow = Record<string, any>
 type MetricsQuery = unknown
 
-const chain = (query: MetricsQuery, method: string, ...args: unknown[]): MetricsQuery => {
+const chain = (query: MetricsQuery, method: string, ...args: any[]): MetricsQuery => {
   if (!query || typeof query !== 'object') return query
-  const candidate = (query as Record<string, unknown>)[method]
+  const candidate = (query as Record<string, any>)[method]
   if (typeof candidate !== 'function') return query
-  return (candidate as (...params: unknown[]) => unknown).apply(query, args)
+  return (candidate as (...params: any[]) => unknown).apply(query, args)
 }
 
 export async function GET(request: Request) {
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 
     const warnings: string[] = []
 
-    const warn = (label: string, error: unknown) => {
+    const warn = (label: string, error: any) => {
       const message = error instanceof Error ? error.message : String(error)
       warnings.push(`${label}: ${message}`)
     }
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
       try {
         let query: MetricsQuery = supabaseAdmin.from(table).select('*', { count: 'exact', head: true })
         if (apply) query = apply(query)
-        const { count, error } = await (query as { then: PromiseLike<{ count: number | null; error: unknown }>['then'] })
+        const { count, error } = await (query as { then: PromiseLike<{ count: number | null; error: any }>['then'] })
         if (error) throw error
         return count ?? 0
       } catch (error) {
@@ -61,7 +61,7 @@ export async function GET(request: Request) {
       }
     }
 
-    const select = async <T extends Record<string, unknown>>(
+    const select = async <T extends Record<string, any>>(
       table: string,
       columns: string,
       label: string,
@@ -70,9 +70,9 @@ export async function GET(request: Request) {
       try {
         let query: MetricsQuery = supabaseAdmin.from(table).select(columns)
         if (apply) query = apply(query)
-        const { data, error } = await (query as { then: PromiseLike<{ data: unknown[] | null; error: unknown }>['then'] })
+        const { data, error } = await (query as { then: PromiseLike<{ data: any[] | null; error: any }>['then'] })
         if (error) throw error
-        return (data || []) as unknown as T[]
+        return (data || []) as any as T[]
       } catch (error) {
         warn(label, error)
         return [] as T[]
@@ -371,7 +371,7 @@ export async function GET(request: Request) {
       },
       warnings,
     })
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error('Error fetching metrics:', error)
     const message = error instanceof Error ? error.message : 'Failed to fetch metrics'
     return NextResponse.json({ error: message }, { status: 500 })

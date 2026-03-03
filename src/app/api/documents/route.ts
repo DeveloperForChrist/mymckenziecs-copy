@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
+import { documentLimitForPlan, planDisplayName } from '@/lib/plans/access'
+import { getUserPlanData } from '@/lib/payments/user-plan'
 import { getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse, uploadIpRateLimiter, uploadRateLimiter } from '@/lib/utils/rate-limit'
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024
+const DEFAULT_DOCUMENT_LIMIT = 100
+const MAX_DOCUMENT_LIMIT = 250
 
 const sanitizeFilename = (name: string) =>
   name.replace(/[^a-zA-Z0-9._\- ]/g, '').trim() || 'uploaded-document'
@@ -13,21 +17,14 @@ const getExtension = (name: string) => {
   return parts.length > 1 ? parts[parts.length - 1].toUpperCase() : 'Document'
 }
 
-async function hasPaidAccess(userId: string): Promise<boolean> {
-  const { data } = await supabaseAdmin
-    .from('subscriptions')
-    .select('plan_type, status')
-    .eq('user_id', userId)
-    .in('status', ['active', 'past_due'])
-    .order('updated_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  const label = String(data?.plan_type || '').toLowerCase()
-  return Boolean(label && (label.includes('basic') || label.includes('premium')))
+const parseBoundedPositiveInt = (value: string | null, fallback: number, max: number): number => {
+  if (!value) return fallback
+  const parsed = Number.parseInt(value, 10)
+  if (!Number.isFinite(parsed) || parsed < 0) return fallback
+  return Math.min(parsed, max)
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteClient()
     const { data: authData } = await supabase.auth.getUser()
@@ -35,40 +32,37 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const user = authData.user
+    const { searchParams } = new URL(request.url)
+    const limit = parseBoundedPositiveInt(searchParams.get('limit'), DEFAULT_DOCUMENT_LIMIT, MAX_DOCUMENT_LIMIT)
+    const offset = parseBoundedPositiveInt(searchParams.get('offset'), 0, Number.MAX_SAFE_INTEGER)
+    const rangeEnd = offset + limit
 
-    // Defense-in-depth: RLS already enforces access, but we also filter server-side.
-    const { data: caseRows, error: casesErr } = await supabase
-      .from('cases')
-      .select('id')
-      .eq('user_id', user.id)
-      .is('deleted_at', null)
-
-    if (casesErr) {
-      return NextResponse.json({ error: casesErr.message }, { status: 500 })
-    }
-
-    const caseIds = (caseRows || []).map((r: any) => r.id).filter(Boolean)
-
-    let query = supabase
+    const { data, error } = await supabaseAdmin
       .from('documents')
       .select('id, name, type, created_at, file_size, mime_type, storage_path, storage_url, case_id')
       .is('deleted_at', null)
+      .eq('uploaded_by', user.id)
       .order('created_at', { ascending: false })
-
-    if (caseIds.length > 0) {
-      query = query.or(`uploaded_by.eq.${user.id},case_id.in.(${caseIds.join(',')})`)
-    } else {
-      query = query.eq('uploaded_by', user.id)
-    }
-
-    const { data, error } = await query
+      .range(offset, rangeEnd)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ documents: data || [] })
-  } catch (error: unknown) {
+    const rows = data || []
+    const hasMore = rows.length > limit
+    const documents = rows.slice(0, limit)
+
+    return NextResponse.json({
+      documents,
+      pagination: {
+        limit,
+        offset,
+        hasMore,
+        nextOffset: offset + Math.min(rows.length, limit),
+      },
+    })
+  } catch (error: any) {
     const message = error instanceof Error ? error.message : 'Failed to fetch documents'
     return NextResponse.json({ error: message }, { status: 500 })
   }
@@ -82,8 +76,12 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const paid = await hasPaidAccess(user.id)
-    if (!paid) {
+    const planData = await getUserPlanData(user.id, user.email || null, { bypassCache: true })
+    const activePlanLabel = planData?.plan || 'No plan'
+    const paid = Boolean(planData?.paidAccess)
+    const planDocLimit = documentLimitForPlan(activePlanLabel)
+
+    if (!paid || planDocLimit <= 0) {
       return NextResponse.json(
         { error: 'Read-only mode: resume plan to upload documents. Existing documents remain safe.' },
         { status: 402 }
@@ -114,10 +112,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No files provided' }, { status: 400 })
     }
 
-    let caseId = caseIdFromForm || null
+    const { count: existingDocumentsCount, error: countError } = await supabaseAdmin
+      .from('documents')
+      .select('id', { count: 'exact', head: true })
+      .eq('uploaded_by', user.id)
+      .is('deleted_at', null)
+
+    if (countError) {
+      return NextResponse.json({ error: countError.message }, { status: 500 })
+    }
+
+    const usedDocuments = Number(existingDocumentsCount || 0)
+    const requestedUploads = files.length
+    if (usedDocuments + requestedUploads > planDocLimit) {
+      const remaining = Math.max(planDocLimit - usedDocuments, 0)
+      return NextResponse.json(
+        {
+          error: `Upload limit reached for ${planDisplayName(activePlanLabel)} plan. You can store up to ${planDocLimit} documents.`,
+          limit: planDocLimit,
+          used: usedDocuments,
+          remaining,
+          requested: requestedUploads,
+        },
+        { status: 403 }
+      )
+    }
+
+    const caseId = caseIdFromForm || null
     if (caseId) {
       // Prevent orphaned storage uploads: validate ownership before uploading anything.
-      const { data: ownedCase, error: ownedErr } = await supabase
+      const { data: ownedCase, error: ownedErr } = await supabaseAdmin
         .from('cases')
         .select('id')
         .eq('id', caseId)
@@ -144,7 +168,7 @@ export async function POST(request: NextRequest) {
       const mimeType = file.type || null
       const docType = getExtension(cleanName)
 
-      const { error: uploadError } = await supabase
+      const { error: uploadError } = await supabaseAdmin
         .storage
         .from('user-uploads')
         .upload(storagePath, file, { contentType: file.type || undefined })
@@ -153,7 +177,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: uploadError.message }, { status: 500 })
       }
 
-      const { data: inserted, error: insertError } = await supabase
+      const { data: inserted, error: insertError } = await supabaseAdmin
         .from('documents')
         .insert({
           case_id: caseId,
@@ -171,7 +195,7 @@ export async function POST(request: NextRequest) {
       if (insertError) {
         // Avoid leaking storage objects if DB insert fails post-upload.
         try {
-          await supabase.storage.from('user-uploads').remove([storagePath])
+          await supabaseAdmin.storage.from('user-uploads').remove([storagePath])
         } catch {}
         return NextResponse.json({ error: insertError.message }, { status: 500 })
       }
@@ -180,7 +204,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ documents: results })
-  } catch (error: unknown) {
+  } catch (error: any) {
     const message = error instanceof Error ? error.message : 'Upload failed'
     return NextResponse.json({ error: message }, { status: 500 })
   }

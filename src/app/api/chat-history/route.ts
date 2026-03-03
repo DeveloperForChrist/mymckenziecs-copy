@@ -17,13 +17,15 @@ type ConversationMessageRow = {
   role: string;
   content: string | null;
   timestamp: string | null;
-  metadata?: unknown;
+  metadata?: any;
 };
 
 const BILLING_ACTIVE_STATUSES = ['active', 'past_due'];
 const MAX_THREADS = 60;
+const DEFAULT_MESSAGE_LIMIT = 400;
+const MAX_MESSAGE_LIMIT = 1200;
 
-function normalizeTimestamp(value: unknown): string {
+function normalizeTimestamp(value: any): string {
   if (!value) {
     return new Date(0).toISOString();
   }
@@ -40,7 +42,7 @@ function normalizeTimestamp(value: unknown): string {
     typeof value === 'object' &&
     value !== null &&
     'toDate' in value &&
-    typeof (value as { toDate?: unknown }).toDate === 'function'
+    typeof (value as { toDate?: any }).toDate === 'function'
   ) {
     return ((value as { toDate: () => Date }).toDate()).toISOString();
   }
@@ -49,7 +51,7 @@ function normalizeTimestamp(value: unknown): string {
   return Number.isNaN(parsed.getTime()) ? new Date(0).toISOString() : parsed.toISOString();
 }
 
-function buildConversationTitle(value: unknown): string {
+function buildConversationTitle(value: any): string {
   const raw = typeof value === 'string' ? value : '';
   if (!raw.trim()) return 'Conversation';
 
@@ -159,6 +161,12 @@ function chunkArray<T>(items: T[], size: number): T[][] {
     chunks.push(items.slice(i, i + size));
   }
   return chunks;
+}
+
+function parseMessageLimit(value: any): number {
+  const parsed = Number.parseInt(String(value ?? ''), 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return DEFAULT_MESSAGE_LIMIT;
+  return Math.min(parsed, MAX_MESSAGE_LIMIT);
 }
 
 async function fetchMessagesByConversationIds(
@@ -348,7 +356,7 @@ export async function GET() {
       total: conversations.length,
       limited,
     });
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error('Chat history GET error:', error);
     return NextResponse.json({ error: 'Failed to load chat history' }, { status: 500 });
   }
@@ -370,8 +378,9 @@ export async function POST(request: NextRequest) {
     }
 
     const limited = false;
-    const { caseId, conversationId, sessionId } = await request.json();
+    const { caseId, conversationId, sessionId, limit } = await request.json();
     const resolvedConversationId = conversationId || sessionId;
+    const messageLimit = parseMessageLimit(limit);
 
     if (!caseId && !resolvedConversationId) {
       return NextResponse.json({ messages: [], total: 0, limited });
@@ -382,7 +391,8 @@ export async function POST(request: NextRequest) {
     let query = supabaseAdmin
       .from('messages')
       .select('id, role, content, timestamp, metadata')
-      .order('timestamp', { ascending: true });
+      .order('timestamp', { ascending: false })
+      .limit(messageLimit);
 
     if (resolvedConversationId) {
       const allowed = await canAccessConversation(authUid, resolvedConversationId, caseIds);
@@ -403,7 +413,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
     }
 
-    const messageEntries = (messagesData || []).map((msg: any) => ({
+    const descendingEntries = (messagesData || []).map((msg: any) => ({
       id: msg.id,
       role: msg.role,
       message: msg.content || '',
@@ -413,13 +423,16 @@ export async function POST(request: NextRequest) {
           ? msg.metadata
           : undefined,
     }));
+    const messageEntries = descendingEntries.reverse();
 
     return NextResponse.json({
       messages: messageEntries,
       total: messageEntries.length,
       limited,
+      pageLimit: messageLimit,
+      hasMoreOlder: (messagesData || []).length >= messageLimit,
     });
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error('Error fetching messages:', error);
     return NextResponse.json(
       { error: 'Failed to fetch messages' },
@@ -467,7 +480,7 @@ export async function DELETE(request: NextRequest) {
     await supabaseAdmin.from('chat_memory').delete().eq('user_id', authUid).eq('conversation_id', conversationId);
 
     return NextResponse.json({ success: true, deletedConversationId: conversationId });
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error('Delete conversation error:', error);
     return NextResponse.json(
       { error: 'Failed to delete conversation' },

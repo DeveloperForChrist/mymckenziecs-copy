@@ -5,6 +5,10 @@ import { OpenAI } from 'openai';
 import { aiIpRateLimiter, aiRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 import { hasCaseLawAccess } from '@/lib/plans/access';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
 async function resolveActivePlan(userId: string): Promise<string> {
   const { data } = await supabaseAdmin
     .from('subscriptions')

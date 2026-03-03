@@ -15,6 +15,4 @@ export interface Document {
 export interface Folder {
   id: string;
   name: string;
-  kind?: 'case' | 'custom';
-  locked?: boolean;
 }

@@ -42,7 +42,7 @@ SELECT id, email, name, role FROM users WHERE role = 'admin';
 
 ### 2. **Admin Users API** ([src/app/api/admin/users/route.ts](../src/app/api/admin/users/route.ts))
 - Better error handling with detailed messages
-- Validates plan values (Free, Basic, Premium)
+- Validates plan values (No plan, Basic, Premium, Premium +)
 - Logs all admin actions for debugging
 - Shows specific error details when subscription update fails
 
@@ -96,7 +96,7 @@ Your subscriptions table should have:
 CREATE TABLE subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id),
-  plan_type TEXT,  -- 'Free', 'Basic', or 'Premium'
+  plan_type TEXT,  -- 'No plan', 'Basic', 'Premium', or 'Premium +'
   status TEXT DEFAULT 'active',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()

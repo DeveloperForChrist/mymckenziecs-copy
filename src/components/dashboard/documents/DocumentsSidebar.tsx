@@ -1,4 +1,3 @@
-import React from "react";
 import styles from "../documents-page-new.module.css";
 import type { Folder } from "./types";
 
@@ -53,18 +52,16 @@ export default function DocumentsSidebar({
                 >
                   <i className="bx bx-folder"></i>
                   <span className={styles.folderName}>{folder.name}</span>
-                  {!folder.locked && (
-                    <button
-                      className={styles.folderDelete}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onDeleteFolder(folder.id);
-                      }}
-                      type="button"
-                    >
-                      <i className="bx bx-x"></i>
-                    </button>
-                  )}
+                  <button
+                    className={styles.folderDelete}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onDeleteFolder(folder.id);
+                    }}
+                    type="button"
+                  >
+                    <i className="bx bx-x"></i>
+                  </button>
                 </div>
               ))
             )}
@@ -74,8 +71,7 @@ export default function DocumentsSidebar({
 
       <div className={styles.sidebarFooter}>
         <a href="/dashboard" className={styles.dashboardLink}>
-          <i className="bx bx-arrow-back"></i>
-          Dashboard
+          Go to Dashboard
         </a>
       </div>
     </aside>

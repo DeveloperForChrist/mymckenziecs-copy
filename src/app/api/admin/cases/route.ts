@@ -16,6 +16,20 @@ type CaseRow = {
   users?: Array<{ email?: string | null }> | null
 }
 
+const DEFAULT_LIMIT = 100;
+const MAX_LIMIT = 250;
+
+function parsePositiveInt(input: string | null, fallback: number) {
+  const parsed = Number.parseInt(input || '', 10);
+  if (!Number.isFinite(parsed) || parsed < 0) return fallback;
+  return parsed;
+}
+
+function clampLimit(input: string | null) {
+  const parsed = parsePositiveInt(input, DEFAULT_LIMIT);
+  return Math.min(Math.max(parsed, 1), MAX_LIMIT);
+}
+
 export async function GET(request: Request) {
   try {
     const admin = await requireAdminSession();
@@ -24,7 +38,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId') || '';
     const status = searchParams.get('status') || '';
-    const limit = parseInt(searchParams.get('limit') || '100');
+    const limit = clampLimit(searchParams.get('limit'));
+    const offset = parsePositiveInt(searchParams.get('offset'), 0);
+    const rangeEnd = offset + limit - 1;
 
     let query = supabaseAdmin
       .from('cases')
@@ -41,7 +57,7 @@ export async function GET(request: Request) {
       `)
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
-      .limit(limit);
+      .range(offset, rangeEnd);
 
     if (userId) {
       query = query.eq('user_id', userId);
@@ -71,8 +87,16 @@ export async function GET(request: Request) {
       partiesInvolved: []
     }));
 
-    return NextResponse.json({ cases, total: cases.length });
-  } catch (error: unknown) {
+    return NextResponse.json({
+      cases,
+      total: cases.length,
+      pagination: {
+        limit,
+        offset,
+        hasMore: (casesData || []).length === limit,
+      },
+    });
+  } catch (error: any) {
     console.error('Error fetching cases:', error);
     const message = error instanceof Error ? error.message : 'Failed to fetch cases';
     return NextResponse.json({ error: message }, { status: 500 });
@@ -103,7 +127,7 @@ export async function DELETE(request: Request) {
     }
 
     return NextResponse.json({ success: true, message: 'Case deleted' });
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error('Error deleting case:', error);
     const message = error instanceof Error ? error.message : 'Failed to delete case';
     return NextResponse.json({ error: message }, { status: 500 });

@@ -139,7 +139,7 @@ export default function SignUpForm() {
       const signInParams = new URLSearchParams({ verify: 'sent', redirect: nextRedirect })
       router.push(`/auth/signin?${signInParams.toString()}`)
       router.refresh()
-    } catch (err: unknown) {
+    } catch (err: any) {
       if (err instanceof Error) {
         setError(err.message || 'An error occurred during sign up')
       } else {

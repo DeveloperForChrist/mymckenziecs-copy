@@ -1,16 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import mammoth from 'mammoth'
 import { createRequire } from 'module'
-import { invokeFreeLegalAgent, invokeLegalAgent } from '@/lib/ai/agents/legal-agent'
+import { invokeBasicLegalAgent, invokeLegalAgent } from '@/lib/ai/agents/legal-agent'
 import { ChatManager } from '@/lib/ai/chat-manager'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
-import { aiRateLimiter, aiGuestRateLimiter, aiIpRateLimiter, rateLimit, getIdentifier } from '@/lib/utils/rate-limit'
+import {
+  aiRateLimiter,
+  rateLimit,
+  getIdentifier,
+  acquirePremiumProviderCapacity,
+} from '@/lib/utils/rate-limit'
 import { chatMessageSchema } from '@/validators/index'
 import { z } from 'zod'
 import { captureServerException } from '@/lib/monitoring/error-logger'
-import { isBasicPlan, isPaidPlan, isPremiumPlusPlan } from '@/lib/plans/access'
+import { isBasicPlan, isPremiumPlan, isPremiumPlusPlan } from '@/lib/plans/access'
 import { searchByText } from '@/lib/vector/milvus'
+import { getUserPlanData } from '@/lib/payments/user-plan'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
 
 type ChatAttachment = {
   name?: string
@@ -53,7 +63,6 @@ const chatAttachmentSchema = z.object({
 const chatRequestSchema = z.object({
   message: z.string().min(1).max(5000),
   activeCaseId: z.string().uuid().optional(),
-  caseProfile: z.object({ id: z.string().uuid().optional() }).passthrough().optional(),
   mode: z.enum(['legal-advisor', 'document-review', 'general']).optional(),
   history: z.array(z.object({ role: z.string(), content: z.string() })).optional(),
   attachmentsOnly: z.boolean().optional(),
@@ -65,18 +74,14 @@ const chatRequestSchema = z.object({
 }).passthrough()
 
 const nodeRequire = createRequire(import.meta.url)
-const GUEST_COOKIE_NAME = 'mm_guest_id'
-const PREMIUM_PLUS_OPENAI_MODEL = process.env.OPENAI_PREMIUM_PLUS_MODEL || 'o3'
+const PREMIUM_PLUS_OPENAI_MODEL = process.env.OPENAI_PREMIUM_PLUS_MODEL
+if (!PREMIUM_PLUS_OPENAI_MODEL) {
+  throw new Error('OPENAI_PREMIUM_PLUS_MODEL is required')
+}
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-const normalizePlanLabel = (value: unknown): string =>
+const normalizePlanLabel = (value: any): string =>
   typeof value === 'string' ? value.trim().toLowerCase() : ''
-
-const parseForwardedFor = (value: string | null) => {
-  if (!value) return null
-  const first = value.split(',')[0]?.trim()
-  return first || null
-}
 
 const normalizeHost = (value: string | null) => {
   const trimmed = (value || '').trim()
@@ -109,19 +114,6 @@ const isAllowedOrigin = (request: NextRequest) => {
   }
 
   return false
-}
-
-const setGuestCookie = (response: NextResponse, guestId: string) => {
-  response.cookies.set({
-    name: GUEST_COOKIE_NAME,
-    value: guestId,
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 60,
-  })
-  return response
 }
 
 const getExtension = (name?: string) => {
@@ -157,7 +149,7 @@ const extractTextFromBuffer = async (buffer: Buffer, name?: string, mimeType?: s
   return ''
 }
 
-const buildAttachmentContext = async (attachments: ChatAttachment[], baseUrl: string) => {
+const buildAttachmentContext = async (attachments: ChatAttachment[], baseUrl: string, cookieHeader?: string | null) => {
   if (!attachments.length) return ''
   const sections: string[] = []
   let totalLength = 0
@@ -174,7 +166,9 @@ const buildAttachmentContext = async (attachments: ChatAttachment[], baseUrl: st
         ? `${attachment.downloadURL}/raw`
         : attachment.downloadURL
       const url = rawUrl.startsWith('http') ? rawUrl : `${baseUrl}${rawUrl}`
-      const response = await fetch(url)
+      const response = await fetch(url, {
+        headers: cookieHeader ? { cookie: cookieHeader } : undefined,
+      })
       if (!response.ok) {
         sections.push(`Document: ${name}\n(Failed to read file content)`)
         continue
@@ -212,14 +206,14 @@ const truncateText = (value: string, maxChars: number) => {
   return `${value.slice(0, maxChars - 1)}…`
 }
 
-const firstDefinedString = (...values: unknown[]) => {
+const firstDefinedString = (...values: any[]) => {
   for (const value of values) {
     if (typeof value === 'string' && value.trim().length > 0) return value.trim()
   }
   return ''
 }
 
-const asObject = (value: unknown): Record<string, any> | null => {
+const asObject = (value: any): Record<string, any> | null => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null
   return value as Record<string, any>
 }
@@ -634,7 +628,7 @@ const buildCaseLawSuggestionQuery = ({
 
   const memoryFacts = Array.isArray(memoryRow?.key_facts)
     ? memoryRow.key_facts
-        .map((item: unknown) => normalizeCompactText(String(item || '')))
+        .map((item: any) => normalizeCompactText(String(item || '')))
         .filter(Boolean)
         .slice(0, 3)
     : []
@@ -709,7 +703,7 @@ const fetchCaseLawSuggestions = async (query: string, limit: number = 3): Promis
   }
 }
 
-const normalizeRagText = (value: unknown, maxLen: number): string => {
+const normalizeRagText = (value: any, maxLen: number): string => {
   if (typeof value !== 'string') return ''
   const compact = normalizeCompactText(value)
   if (!compact) return ''
@@ -840,7 +834,7 @@ const buildCaseContext = (caseData: Record<string, any>) => {
   if (!caseData) return ''
   const lines: string[] = []
 
-  const pushList = (label: string, items?: unknown[], limit: number = 5) => {
+  const pushList = (label: string, items?: any[], limit: number = 5) => {
     if (!Array.isArray(items) || items.length === 0) return
     const trimmed = items.slice(0, limit).map((item) => String(item))
     lines.push(`${label}: ${trimmed.join('; ')}`)
@@ -899,7 +893,7 @@ const extractKeyFactsFromMessage = (message: string) => {
   return facts
 }
 
-const mergeFacts = (existing: unknown, incoming: string[]) => {
+const mergeFacts = (existing: any, incoming: string[]) => {
   const current = Array.isArray(existing) ? existing.map((x) => String(x)).filter(Boolean) : []
   const merged = [...current]
   for (const fact of incoming) {
@@ -1002,8 +996,6 @@ const buildMemoryContext = (memory: any) => {
 
 export async function POST(request: NextRequest) {
   let authUserId: string | undefined
-  let guestId: string | null = null
-  let shouldSetGuestCookie = false
 
   try {
     const secFetchSite = request.headers.get('sec-fetch-site')
@@ -1023,31 +1015,25 @@ export async function POST(request: NextRequest) {
     const { data: authData } = await supabase.auth.getUser()
     authUserId = authData?.user?.id
 
-    let userId = authUserId
-    const ip =
-      parseForwardedFor(request.headers.get('x-forwarded-for')) ||
-      parseForwardedFor(request.headers.get('x-real-ip')) ||
-      null
-
-    if (!userId) {
-      const existing = request.cookies.get(GUEST_COOKIE_NAME)?.value || null
-      if (existing && uuidRegex.test(existing)) {
-        guestId = existing
-      } else {
-        guestId = crypto.randomUUID()
-        shouldSetGuestCookie = true
-      }
-      userId = `anon_${guestId}`
+    if (!authUserId) {
+      return NextResponse.json(
+        {
+          response: 'Please sign in and choose a paid plan to use chat.',
+          metadata: {
+            signInRequired: true,
+            upgradeRequired: true,
+          },
+        },
+        { status: 401 }
+      )
     }
 
-    const withCookie = (res: NextResponse) => {
-      if (shouldSetGuestCookie && guestId) setGuestCookie(res, guestId)
-      return res
-    }
+    const userId = authUserId
+    const guestId: string | null = null
+    const withCookie = (res: NextResponse) => res
 
-    const limiter = authUserId ? aiRateLimiter : aiGuestRateLimiter
-    const identifier = authUserId ? getIdentifier(userId, ip || undefined) : `guest:${guestId}`
-    const rateLimitResult = await rateLimit(limiter, identifier, authUserId ? 10 : 6, 60000)
+    const identifier = getIdentifier(userId)
+    const rateLimitResult = await rateLimit(aiRateLimiter, identifier, 10, 60000)
     if (!rateLimitResult.success) {
       return withCookie(
         NextResponse.json(
@@ -1068,29 +1054,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!authUserId && ip) {
-      const ipResult = await rateLimit(aiIpRateLimiter, `ip:${ip}`, 60, 10 * 60 * 1000)
-      if (!ipResult.success) {
-        return withCookie(
-          NextResponse.json(
-            {
-              error: 'Too many requests',
-              message: 'You have exceeded the rate limit. Please try again later.',
-              resetAt: new Date(ipResult.reset).toISOString(),
-            },
-            {
-              status: 429,
-              headers: {
-                'X-RateLimit-Limit': String(ipResult.limit),
-                'X-RateLimit-Remaining': String(ipResult.remaining),
-                'X-RateLimit-Reset': String(ipResult.reset),
-              },
-            }
-          )
-        )
-      }
-    }
-
     const body = await request.json()
     const parsedBody = chatRequestSchema.safeParse(body)
     if (!parsedBody.success) {
@@ -1104,12 +1067,6 @@ export async function POST(request: NextRequest) {
         ? bodyData.activeCaseId.trim()
         : undefined
 
-    const caseProfile = bodyData?.caseProfile && typeof bodyData.caseProfile === 'object' ? bodyData.caseProfile : null
-    const profileCaseId =
-      caseProfile && typeof caseProfile.id === 'string' && uuidRegex.test(caseProfile.id)
-        ? caseProfile.id
-        : undefined
-
     const validation = chatMessageSchema.safeParse({
       message: bodyData.message,
       caseId: sanitizedCaseId,
@@ -1119,14 +1076,14 @@ export async function POST(request: NextRequest) {
       return withCookie(NextResponse.json({ error: 'Invalid input', details: validation.error.issues }, { status: 400 }))
     }
 
-    const { message, history, conversationId, attachmentsOnly, attachments, sessionMessageCount, sessionStartedAt } = bodyData
-    const activeCaseId = sanitizedCaseId || profileCaseId
+    const { message, history, conversationId, attachments, sessionMessageCount, sessionStartedAt } = bodyData
+    const activeCaseId = sanitizedCaseId
 
     if (!message || typeof message !== 'string') {
       return withCookie(NextResponse.json({ message: 'Message is required' }, { status: 400 }))
     }
 
-    const chatManager = new ChatManager(userId, activeCaseId, conversationId)
+    const chatManager = new ChatManager(userId, activeCaseId, conversationId, authData?.user?.email || null)
 
     const sanitizedHistory = Array.isArray(history)
       ? history
@@ -1137,6 +1094,38 @@ export async function POST(request: NextRequest) {
           }))
           .slice(-6)
       : []
+
+    let hasPaidPlan = false
+    let basicPlanActive = false
+    let premiumPlanActive = false
+    let premiumPlusActive = false
+    let activePlanLabel = 'none'
+    if (authUserId) {
+      const planData = await getUserPlanData(authUserId, authData?.user?.email || null)
+      activePlanLabel = normalizePlanLabel(planData?.plan || '')
+      hasPaidPlan = Boolean(planData?.paidAccess)
+      basicPlanActive = isBasicPlan(activePlanLabel)
+      premiumPlusActive = isPremiumPlusPlan(activePlanLabel)
+      premiumPlanActive = hasPaidPlan && isPremiumPlan(activePlanLabel)
+      chatManager.seedUserPlan(planData?.plan || null)
+
+      if (!hasPaidPlan) {
+        return withCookie(
+          NextResponse.json(
+            {
+              response: 'A paid plan is required to use chat. Please choose a plan to continue.',
+              metadata: {
+                upgradeRequired: true,
+                activePlan: activePlanLabel || 'none',
+                planStatus: String(planData?.planStatus || 'inactive').toLowerCase(),
+              },
+            },
+            { status: 403 }
+          )
+        )
+      }
+
+    }
 
     const sessionInfo = await chatManager.initializeSession()
     if (sessionInfo.requiresCaseSelection) {
@@ -1158,45 +1147,9 @@ export async function POST(request: NextRequest) {
     const baseUrl = host ? `${proto}://${host}` : ''
 
     const hasAttachments = Array.isArray(attachments) && attachments.length > 0
-    const attachmentContext = hasAttachments && baseUrl ? await buildAttachmentContext(attachments, baseUrl) : ''
+    const cookieHeader = request.headers.get('cookie')
+    const attachmentContext = hasAttachments && baseUrl ? await buildAttachmentContext(attachments, baseUrl, cookieHeader) : ''
     const attachmentMetadata = hasAttachments && !attachmentContext ? buildAttachmentMetadata(attachments) : ''
-
-    let hasPaidPlan = false
-    let basicPlanActive = false
-    let premiumPlanActive = false
-    let premiumPlusActive = false
-    let activePlanLabel = 'free'
-    if (authUserId) {
-      const { data: activeSub } = await supabaseAdmin
-        .from('subscriptions')
-        .select('id, plan_type')
-        .eq('user_id', authUserId)
-        .in('status', ['active', 'past_due'])
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      activePlanLabel = normalizePlanLabel(activeSub?.plan_type || '')
-      hasPaidPlan = isPaidPlan(activeSub?.plan_type || '')
-      basicPlanActive = isBasicPlan(activePlanLabel)
-      premiumPlusActive = isPremiumPlusPlan(activePlanLabel)
-      premiumPlanActive = hasPaidPlan && !basicPlanActive && !premiumPlusActive && activePlanLabel.includes('premium')
-
-      if (!hasPaidPlan) {
-        return withCookie(
-          NextResponse.json(
-            {
-              response: 'A paid plan is required for signed-in chat. Continue as guest or choose a plan to continue.',
-              metadata: {
-                upgradeRequired: true,
-                activePlan: activePlanLabel || 'none',
-              },
-            },
-            { status: 403 }
-          )
-        )
-      }
-
-    }
 
     const processingResult = await chatManager.processMessage(message, hasAttachments, {
       userAgent: request.headers.get('user-agent'),
@@ -1237,9 +1190,33 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    let resolvedCaseId = processingResult.caseId || sessionInfo.activeCaseId || activeCaseId || null
-    const needsStoredContext = sanitizedHistory.length < 2
+    if (authUserId && (premiumPlanActive || premiumPlusActive)) {
+      const providerCapacity = await acquirePremiumProviderCapacity()
+      if (!providerCapacity.success) {
+        const retryAfterSeconds = Math.max(1, Math.ceil(providerCapacity.retryAfterMs / 1000))
+        return withCookie(
+          NextResponse.json(
+            {
+              error: 'Provider capacity reached',
+              message: 'Premium chat is briefly at capacity. Please retry in a few seconds.',
+              resetAt: new Date(providerCapacity.reset).toISOString(),
+              retryAfterMs: providerCapacity.retryAfterMs,
+            },
+            {
+              status: 429,
+              headers: {
+                'Retry-After': String(retryAfterSeconds),
+                'X-RateLimit-Limit': String(providerCapacity.limit),
+                'X-RateLimit-Remaining': String(providerCapacity.remaining),
+                'X-RateLimit-Reset': String(providerCapacity.reset),
+              },
+            }
+          )
+        )
+      }
+    }
 
+    let resolvedCaseId = processingResult.caseId || sessionInfo.activeCaseId || activeCaseId || null
     let caseContextData = null
     if (resolvedCaseId) {
       caseContextData = await chatManager.getCaseData(resolvedCaseId)
@@ -1348,9 +1325,9 @@ export async function POST(request: NextRequest) {
     const messageForAgent = truncateText(rawMessageForAgent, 12000)
     const threadId = `thread_${Date.now()}_${userId}`
 
-    const shouldUseFreeLegalAgent = !authUserId || basicPlanActive
-    const agentResponse = shouldUseFreeLegalAgent
-      ? await invokeFreeLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords)
+    const shouldUseBasicLegalAgent = basicPlanActive
+    const agentResponse = shouldUseBasicLegalAgent
+      ? await invokeBasicLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords)
       : await invokeLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
           useDiscriminator: premiumPlusActive,
           useSearch: shouldUseSearchRetrieval,
@@ -1451,14 +1428,14 @@ export async function POST(request: NextRequest) {
             ...(includeDebug
                 ? {
                   debug: {
-                    premiumFlow: !shouldUseFreeLegalAgent,
+                    premiumFlow: !shouldUseBasicLegalAgent,
                     basicPlanFlow: basicPlanActive,
                     premiumPlanFlow: premiumPlanActive,
                     premiumPlusFlow: premiumPlusActive,
-                    planLabel: activePlanLabel || 'free',
+                    planLabel: activePlanLabel || 'none',
                     sourceCount,
                     hasInlineCitationTags,
-                    citationMode: premiumPlusActive ? 'search+citations' : (premiumPlanActive ? 'search-no-citations' : 'free-no-search'),
+                    citationMode: premiumPlusActive ? 'search+citations' : (premiumPlanActive ? 'search-no-citations' : 'basic-no-search'),
                     retrievalEnabled: shouldUseSearchRetrieval,
                     premiumPlusCaseLawRetrievalEnabled: shouldUsePremiumPlusCaseLawRetrieval,
                     vectorCaseLawRagEnabled: usePremiumPlusVectorRag,

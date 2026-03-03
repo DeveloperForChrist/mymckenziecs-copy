@@ -44,13 +44,24 @@ export async function GET(request: Request) {
       .gte('created_at', startIso);
     if (newUsersErr) throw newUsersErr;
 
-    // Active users: distinct users with cases touched in period
-    const { data: activeUserIds, error: activeErr } = await supabaseAdmin
-      .from('cases')
-      .select('user_id')
-      .gte('last_accessed', startIso);
-    if (activeErr) throw activeErr;
-    const activeUsers = new Set((activeUserIds || []).map((r) => r.user_id)).size;
+    // Active users: distinct users with cases touched in period.
+    let activeUsers = 0;
+    const { data: activeUsersData, error: activeUsersErr } = await supabaseAdmin.rpc(
+      'count_active_case_users_since',
+      { p_since: startIso }
+    );
+    if (!activeUsersErr) {
+      activeUsers = Number(activeUsersData || 0);
+    } else {
+      // Backward-compatible fallback before migration rollout.
+      const { data: activeUserIds, error: activeErr } = await supabaseAdmin
+        .from('cases')
+        .select('user_id')
+        .gte('last_accessed', startIso)
+        .limit(10000);
+      if (activeErr) throw activeErr;
+      activeUsers = new Set((activeUserIds || []).map((r) => r.user_id)).size;
+    }
 
     // Premium users: users with active subscription
     const { count: premiumUsers, error: premiumErr } = await supabaseAdmin
@@ -101,7 +112,7 @@ export async function GET(request: Request) {
       },
       period
     });
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error('Error fetching analytics:', error);
     const message = error instanceof Error ? error.message : 'Failed to fetch analytics';
     return NextResponse.json({ error: message }, { status: 500 });

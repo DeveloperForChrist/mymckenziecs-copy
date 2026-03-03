@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
+import { isPaidPlan } from '@/lib/plans/access';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -37,16 +38,15 @@ async function hasPaidAccess(userId: string): Promise<boolean> {
     .limit(1)
     .maybeSingle();
 
-  const label = String(data?.plan_type || '').toLowerCase();
-  return Boolean(label && (label.includes('basic') || label.includes('premium')));
+  return isPaidPlan(data?.plan_type);
 }
 
-function asObject(input: unknown): Record<string, unknown> | null {
+function asObject(input: any): Record<string, any> | null {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
-  return input as Record<string, unknown>;
+  return input as Record<string, any>;
 }
 
-function parseDate(input: unknown, field: string): { value?: Date; error?: string } {
+function parseDate(input: any, field: string): { value?: Date; error?: string } {
   if (typeof input !== 'string' || !input.trim()) {
     return { error: `${field} is required` };
   }
@@ -67,7 +67,7 @@ function parseDate(input: unknown, field: string): { value?: Date; error?: strin
   return { value: parsed };
 }
 
-function parseOptionalTime(input: unknown): { value: string | null; error?: string } {
+function parseOptionalTime(input: any): { value: string | null; error?: string } {
   if (input === null || input === undefined || input === '') {
     return { value: null };
   }
@@ -81,7 +81,7 @@ function parseOptionalTime(input: unknown): { value: string | null; error?: stri
   return { value: trimmed.slice(0, 5) };
 }
 
-function validateCreateInput(body: Record<string, unknown>): { value?: CreateEventInput; error?: string } {
+function validateCreateInput(body: Record<string, any>): { value?: CreateEventInput; error?: string } {
   const title = typeof body.title === 'string' ? body.title.trim() : '';
   if (title.length < 2) {
     return { error: 'title must be at least 2 characters' };
@@ -197,7 +197,6 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = authData.user.id;
-    const authEmail = (authData.user.email || '').trim();
     const { searchParams } = new URL(request.url);
 
     const start = normalizeDateFilter(searchParams.get('startDate'), 'startDate');
@@ -209,23 +208,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: end.error }, { status: 400 });
     }
 
-    const candidateUserIds = new Set<string>([userId]);
-    if (authEmail) {
-      const { data: profileRows, error: profileError } = await supabaseAdmin
-        .from('users')
-        .select('id')
-        .ilike('email', authEmail);
-      if (!profileError && Array.isArray(profileRows)) {
-        for (const row of profileRows) {
-          if (row?.id) candidateUserIds.add(String(row.id));
-        }
-      }
-    }
-
     let query = supabaseAdmin
       .from('calendar_events')
       .select('*')
-      .in('user_id', Array.from(candidateUserIds))
+      .eq('user_id', userId)
       .order('date', { ascending: true });
     if (start.value) query = query.gte('date', start.value);
     if (end.value) query = query.lte('date', end.value);
@@ -354,7 +340,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Event ID is required' }, { status: 400 });
     }
 
-    const updateData: Record<string, unknown> = {};
+    const updateData: Record<string, any> = {};
 
     if ('title' in body) {
       const title = typeof body.title === 'string' ? body.title.trim() : '';

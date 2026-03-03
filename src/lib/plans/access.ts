@@ -1,39 +1,95 @@
-export function normalizePlanLabel(value: unknown): string {
+export function normalizePlanLabel(value: any): string {
   if (!value) return '';
-  return value.toString().trim().toLowerCase();
+  return value.toString().trim().toLowerCase().replace(/_/g, ' ');
 }
 
-export function isBasicPlan(plan: unknown): boolean {
+export type PlanTier = 'none' | 'basic' | 'premium' | 'premium_plus';
+
+export function getPlanTier(plan: any): PlanTier {
   const label = normalizePlanLabel(plan);
-  return label.includes('basic');
+  if (!label) return 'none';
+
+  // Premium+ aliases
+  if (
+    label.includes('premium +') ||
+    label.includes('premium plus') ||
+    label.includes('premium pro') ||
+    label === 'plus'
+  ) {
+    return 'premium_plus';
+  }
+
+  // Basic aliases
+  if (
+    label.includes('basic') ||
+    label.includes('essential') ||
+    label.includes('premium cheap')
+  ) {
+    return 'basic';
+  }
+
+  // Premium aliases
+  if (label.includes('premium') || label.includes('standard')) {
+    return 'premium';
+  }
+
+  if (label.includes('free')) return 'none';
+  return 'none';
 }
 
-export function isPaidPlan(plan: unknown): boolean {
-  const label = normalizePlanLabel(plan);
-  return isBasicPlan(label) || label.includes('premium') || label.includes('premium +');
+export function isBasicPlan(plan: any): boolean {
+  return getPlanTier(plan) === 'basic';
 }
 
-export function isPremiumPlusPlan(plan: unknown): boolean {
-  const label = normalizePlanLabel(plan);
-  return label.includes('premium +');
+export function isPremiumPlan(plan: any): boolean {
+  return getPlanTier(plan) === 'premium';
 }
 
-export function hasCaseLawAccess(plan: unknown): boolean {
+export function isPaidPlan(plan: any): boolean {
+  const tier = getPlanTier(plan);
+  return tier === 'basic' || tier === 'premium' || tier === 'premium_plus';
+}
+
+export function isPremiumPlusPlan(plan: any): boolean {
+  return getPlanTier(plan) === 'premium_plus';
+}
+
+export function hasCaseLawAccess(plan: any): boolean {
   return isPremiumPlusPlan(plan);
 }
 
-export function hasCaseProfileAccess(plan: unknown): boolean {
+export function hasCaseProfileAccess(plan: any): boolean {
   return isPaidPlan(plan) && !isBasicPlan(plan);
 }
 
-export function hasReminderAccess(plan: unknown): boolean {
+export function hasReminderAccess(plan: any): boolean {
   return isPaidPlan(plan) && !isBasicPlan(plan);
 }
 
-export function planPriceForLabel(plan: unknown): string {
-  const label = normalizePlanLabel(plan).replace(/_/g, ' ');
-  if (label.includes('basic')) return '18';
-  if (label.includes('premium +')) return '199';
-  if (label.includes('premium')) return '32';
+export function planPriceForLabel(plan: any): string {
+  const tier = getPlanTier(plan);
+  if (tier === 'basic') return '18';
+  if (tier === 'premium') return '32';
+  if (tier === 'premium_plus') return '199';
   return '0';
+}
+
+const DOCUMENT_LIMITS: Record<PlanTier, number> = {
+  none: 0,
+  basic: 10,
+  premium: 25,
+  premium_plus: 150,
+};
+
+export function documentLimitForPlan(plan: any): number {
+  const tier = getPlanTier(plan);
+  return DOCUMENT_LIMITS[tier] ?? 0;
+}
+
+export function planDisplayName(plan: any): string {
+  const tier = getPlanTier(plan);
+  if (tier === 'basic') return 'Basic';
+  if (tier === 'premium') return 'Premium';
+  if (tier === 'premium_plus') return 'Premium +';
+  return 'No plan';
 }

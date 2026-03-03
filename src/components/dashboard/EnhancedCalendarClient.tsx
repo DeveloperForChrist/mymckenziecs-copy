@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import { hasReminderAccess as planHasReminderAccess } from '@/lib/plans/access'
 import styles from './calendar-new.module.css'
@@ -51,6 +51,14 @@ function addMonths(date: Date, months: number) {
   return d
 }
 
+function startOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1)
+}
+
+function endOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0)
+}
+
 function pad2(n: number) {
   return n < 10 ? `0${n}` : `${n}`
 }
@@ -59,7 +67,7 @@ function dateKey(date: Date) {
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
 }
 
-function dateKeyFromUnknown(input: unknown): string | null {
+function dateKeyFromUnknown(input: any): string | null {
   if (typeof input !== 'string') return null
   const match = input.match(/^(\d{4})-(\d{2})-(\d{2})/)
   if (!match) return null
@@ -125,7 +133,23 @@ function statusLabel(event: CalendarEvent) {
   return 'Scheduled'
 }
 
-export default function EnhancedCalendarClient() {
+type EnhancedCalendarClientProps = {
+  initialAuthUid?: string | null
+  initialUserEmail?: string | null
+  initialHasPaidAccess?: boolean
+  initialPlanChecked?: boolean
+  initialHasReminderAccess?: boolean
+  initialRemindersEnabled?: boolean
+}
+
+export default function EnhancedCalendarClient({
+  initialAuthUid = null,
+  initialUserEmail = null,
+  initialHasPaidAccess = false,
+  initialPlanChecked = false,
+  initialHasReminderAccess = false,
+  initialRemindersEnabled = false,
+}: EnhancedCalendarClientProps = {}) {
   const [visibleMonth, setVisibleMonth] = useState(startOfDay(new Date()))
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(startOfDay(new Date()))
   const [eventsByDate, setEventsByDate] = useState<EventsByDate>({})
@@ -134,13 +158,13 @@ export default function EnhancedCalendarClient() {
   const [newNotes, setNewNotes] = useState('')
   const [newCategory, setNewCategory] = useState<CalendarEvent['category']>('deadline')
   const [newPriority, setNewPriority] = useState<CalendarEvent['priority']>('medium')
-  const [uid, setUid] = useState<string | null>(null)
-  const [userEmail, setUserEmail] = useState<string | null>(null)
-  const [authChecked, setAuthChecked] = useState(false)
-  const [hasPaidAccess, setHasPaidAccess] = useState(false)
-  const [planChecked, setPlanChecked] = useState(false)
-  const [hasReminderAccess, setHasReminderAccess] = useState(false)
-  const [remindersEnabled, setRemindersEnabled] = useState(false)
+  const [uid, setUid] = useState<string | null>(initialAuthUid)
+  const [userEmail, setUserEmail] = useState<string | null>(initialUserEmail)
+  const [authChecked, setAuthChecked] = useState(Boolean(initialAuthUid))
+  const [hasPaidAccess, setHasPaidAccess] = useState(Boolean(initialHasPaidAccess))
+  const [planChecked, setPlanChecked] = useState(Boolean(initialPlanChecked))
+  const [hasReminderAccess, setHasReminderAccess] = useState(Boolean(initialHasReminderAccess))
+  const [remindersEnabled, setRemindersEnabled] = useState(Boolean(initialRemindersEnabled))
   const [prefsLoading, setPrefsLoading] = useState(false)
   const [prefsSaving, setPrefsSaving] = useState(false)
   const [prefsError, setPrefsError] = useState<string | null>(null)
@@ -217,7 +241,14 @@ export default function EnhancedCalendarClient() {
           return
         }
 
-        const response = await fetch('/api/calendar', {
+        const rangeStart = startOfMonth(addMonths(visibleMonth, -1))
+        const rangeEnd = endOfMonth(addMonths(visibleMonth, 2))
+        const params = new URLSearchParams({
+          startDate: rangeStart.toISOString(),
+          endDate: rangeEnd.toISOString(),
+        })
+
+        const response = await fetch(`/api/calendar?${params.toString()}`, {
           credentials: 'include',
           cache: 'no-store',
         })
@@ -236,9 +267,10 @@ export default function EnhancedCalendarClient() {
       }
     }
     fetchEvents()
-  }, [authChecked, uid])
+  }, [authChecked, uid, visibleMonth])
 
   useEffect(() => {
+    if (!authChecked) return
     if (!uid) {
       setHasPaidAccess(false)
       setPlanChecked(true)
@@ -277,7 +309,7 @@ export default function EnhancedCalendarClient() {
       }
     }
     loadPlanAndPrefs()
-  }, [uid])
+  }, [authChecked, uid])
 
   const toggleReminderEmails = async () => {
     if (!uid || !hasReminderAccess || !hasPaidAccess) return
@@ -350,7 +382,7 @@ export default function EnhancedCalendarClient() {
         }),
       })
       if (response.status === 402) {
-        const payload = await response.json().catch(() => ({} as Record<string, unknown>))
+        const payload = await response.json().catch(() => ({} as Record<string, any>))
         setHasPaidAccess(false)
         setFormError(
           typeof payload?.error === 'string' && payload.error.trim() ? payload.error : CALENDAR_READ_ONLY_MESSAGE
@@ -358,7 +390,7 @@ export default function EnhancedCalendarClient() {
         return
       }
       if (!response.ok) {
-        const payload = await response.json().catch(() => ({} as Record<string, unknown>))
+        const payload = await response.json().catch(() => ({} as Record<string, any>))
         setFormError(typeof payload?.error === 'string' ? payload.error : 'Failed to save event.')
         return
       }
@@ -420,7 +452,7 @@ export default function EnhancedCalendarClient() {
         credentials: 'include',
       })
       if (response.status === 402) {
-        const payload = await response.json().catch(() => ({} as Record<string, unknown>))
+        const payload = await response.json().catch(() => ({} as Record<string, any>))
         setHasPaidAccess(false)
         setFormError(
           typeof payload?.error === 'string' && payload.error.trim() ? payload.error : CALENDAR_READ_ONLY_MESSAGE
@@ -428,7 +460,7 @@ export default function EnhancedCalendarClient() {
         return
       }
       if (!response.ok) {
-        const payload = await response.json().catch(() => ({} as Record<string, unknown>))
+        const payload = await response.json().catch(() => ({} as Record<string, any>))
         setFormError(typeof payload?.error === 'string' ? payload.error : 'Failed to delete event.')
         return
       }
@@ -472,7 +504,7 @@ export default function EnhancedCalendarClient() {
         body: JSON.stringify({ id: target.docId, completed: nextCompleted }),
       })
       if (response.status === 402) {
-        const payload = await response.json().catch(() => ({} as Record<string, unknown>))
+        const payload = await response.json().catch(() => ({} as Record<string, any>))
         setHasPaidAccess(false)
         setFormError(
           typeof payload?.error === 'string' && payload.error.trim() ? payload.error : CALENDAR_READ_ONLY_MESSAGE
@@ -480,7 +512,7 @@ export default function EnhancedCalendarClient() {
         throw new Error('READ_ONLY')
       }
       if (!response.ok) {
-        const payload = await response.json().catch(() => ({} as Record<string, unknown>))
+        const payload = await response.json().catch(() => ({} as Record<string, any>))
         throw new Error(typeof payload?.error === 'string' ? payload.error : 'Failed to update event.')
       }
     } catch (error) {
@@ -520,7 +552,6 @@ export default function EnhancedCalendarClient() {
     return cells
   }, [visibleMonth, selectedDate, today])
 
-  const selectedKey = selectedDate ? dateKey(selectedDate) : dateKey(today)
   const allEventsList = useMemo<EventListItem[]>(() => {
     const all: EventListItem[] = []
     Object.entries(eventsByDate).forEach(([key, list]) => {

@@ -15,7 +15,7 @@ export interface AssistantMetadata {
   pendingCalendarEntries?: PendingCalendarEntriesMetadata
   activeCaseId?: string
   sources?: SourceReference[]
-  [key: string]: unknown
+  [key: string]: any
 }
 
 export type AttachmentDisplay = {

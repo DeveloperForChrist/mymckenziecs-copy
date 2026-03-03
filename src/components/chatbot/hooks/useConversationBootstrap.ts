@@ -31,6 +31,7 @@ export function useConversationBootstrap({
 }: UseConversationBootstrapArgs) {
   useEffect(() => {
     const conversationStorageKey = 'currentConversationId'
+    const lastSignInAtStorageKey = 'chatbotLastSignInAt'
     let cancelled = false
 
     const loadMessagesForConversation = async (storedUserId: string, targetConversationId: string) => {
@@ -38,7 +39,7 @@ export function useConversationBootstrap({
         const response = await fetch('/api/chat-history', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: storedUserId, sessionId: targetConversationId })
+          body: JSON.stringify({ userId: storedUserId, sessionId: targetConversationId, limit: 400 })
         })
 
         const data = await response.json()
@@ -52,7 +53,7 @@ export function useConversationBootstrap({
           }))
           setMessages(loadedMessages)
         }
-      } catch (error: unknown) {
+      } catch (error: any) {
         console.error('Failed to load conversation:', error)
       }
     }
@@ -60,21 +61,34 @@ export function useConversationBootstrap({
     const loadConversation = async () => {
       const urlParams = new URLSearchParams(window.location.search)
       const conversationId = urlParams.get('conversationId')
-      const isNew = urlParams.get('new')
+      const isNew = urlParams.get('new') === 'true'
       const supabase = getSupabaseBrowserClient()
       const { data: authData } = await supabase.auth.getUser()
       const authUserId = authData?.user?.id || null
+      const currentSignInAt = String(authData?.user?.last_sign_in_at || '').trim()
 
       let storedUserId = localStorage.getItem('userId')
       if (authUserId) {
         const previousUserId = storedUserId
+        const previousSignInAt = localStorage.getItem(lastSignInAtStorageKey)
         storedUserId = authUserId
         localStorage.setItem('userId', storedUserId)
         setUserId(storedUserId)
+        if (currentSignInAt) {
+          localStorage.setItem(lastSignInAtStorageKey, currentSignInAt)
+        } else {
+          localStorage.removeItem(lastSignInAtStorageKey)
+        }
 
-        // Prevent guest thread/counter carry-over after sign-in unless a specific conversation is requested.
+        // Prevent stale thread carry-over after auth transitions unless a specific conversation is requested.
         const switchedFromGuest = Boolean(previousUserId && previousUserId.startsWith('anon_') && previousUserId !== storedUserId)
-        if (!conversationId && !isNew && switchedFromGuest) {
+        const switchedAccounts = Boolean(previousUserId && !previousUserId.startsWith('anon_') && previousUserId !== storedUserId)
+        const signedInAgain = Boolean(
+          previousSignInAt &&
+          currentSignInAt &&
+          previousSignInAt !== currentSignInAt
+        )
+        if (!conversationId && !isNew && (switchedFromGuest || switchedAccounts || signedInAgain)) {
           setMessages([])
           const newConversationId = generateUUID()
           setConversationId(newConversationId)
@@ -82,9 +96,11 @@ export function useConversationBootstrap({
           return
         }
       } else if (!storedUserId) {
+        localStorage.removeItem(lastSignInAtStorageKey)
         storedUserId = `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
         localStorage.setItem('userId', storedUserId)
       } else {
+        localStorage.removeItem(lastSignInAtStorageKey)
         const normalized = normalizeUserId(storedUserId)
         if (normalized && normalized !== storedUserId) {
           storedUserId = normalized

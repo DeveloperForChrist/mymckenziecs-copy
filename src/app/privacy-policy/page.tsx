@@ -1,17 +1,18 @@
-import React from 'react';
 import LegalPageLayout from '@/components/layout/LegalPageLayout';
+
+export const revalidate = 86400;
 
 export default function PrivacyPolicyPage() {
   return (
     <LegalPageLayout
       title="Privacy Policy"
       subtitle="How we collect, use, and protect your information under UK GDPR."
-      meta="Owned by MyMcKenzieCS Ltd • Last Updated: February 10, 2026"
+      meta="Owned by Lenjordan Ltd • Last Updated: March 2, 2026"
     >
       <ol className="list-decimal pl-6 space-y-6 text-base md:text-lg">
         <li>
           <b>Introduction</b>
-          <p className="mt-2">This Privacy Policy explains how MyMcKenzieCS, owned and operated by MyMcKenzieCS Ltd, collects, uses, stores, and protects your personal data under the Data Protection Act 2018 and the UK GDPR.</p>
+          <p className="mt-2">This Privacy Policy explains how MyMcKenzieCS, owned and operated by Lenjordan Ltd, collects, uses, stores, and protects your personal data under the Data Protection Act 2018 and the UK GDPR.</p>
           <p>By using the Platform, you agree to the practices described in this policy.</p>
           <p>We are not a law firm, and we do not provide legal advice. We are a legal-tech service that supports Litigants in Person with AI-generated tools.</p>
         </li>
@@ -25,7 +26,8 @@ export default function PrivacyPolicyPage() {
                 <li>Name</li>
                 <li>Email address</li>
                 <li>Account login information</li>
-                <li>Subscription or payment details (processed by third parties, not stored by us)</li>
+                <li>Subscription and billing metadata (for example, plan name, billing status, renewal dates, Stripe customer/subscription identifiers)</li>
+                <li>Limited payment method metadata where available (for example, card brand and last four digits via Stripe)</li>
               </ul>
             </li>
             <li>
@@ -65,6 +67,8 @@ export default function PrivacyPolicyPage() {
             <li>Providing customer support</li>
             <li>Improving functionality and features</li>
             <li>Ensuring security and preventing misuse</li>
+            <li>Enforcing access rules based on subscription status (including read-only controls after lapse)</li>
+            <li>Sending operational account and billing notices (verification, payment reminders, hard-lock/deletion warnings)</li>
             <li>Fulfilling legal or regulatory obligations</li>
           </ul>
           <p className="mt-2">We do not use your data for advertising. We do not sell or transfer your data to third parties for marketing.</p>
@@ -106,6 +110,7 @@ export default function PrivacyPolicyPage() {
             <li>Cloud infrastructure providers (hosting, authentication, database, storage)</li>
             <li>Stripe (payments)</li>
             <li>Email service providers</li>
+            <li>AI model providers used to generate assistant responses</li>
           </ul>
           <p className="mt-2">All act as data processors under GDPR.</p>
           <b className="block mt-2">No Legal Adviser Access</b>
@@ -117,6 +122,14 @@ export default function PrivacyPolicyPage() {
             <li>To comply with regulatory obligations</li>
           </ul>
           <p className="mt-2">We never disclose data voluntarily to third parties for non-legal reasons.</p>
+        </li>
+        <li>
+          <b>Automated Access &amp; Billing Decisions</b>
+          <p className="mt-2">Some account actions are automated, including entitlement checks, subscription status checks, and read-only/lifecycle gating based on billing state.</p>
+          <ul className="list-disc pl-6 mt-2">
+            <li>These checks help us deliver the contract, prevent misuse, and apply account rules consistently.</li>
+            <li>If you believe an automated account state is wrong, contact support to request review.</li>
+          </ul>
         </li>
         <li>
           <b>Your Rights Under UK GDPR</b>
@@ -145,12 +158,22 @@ export default function PrivacyPolicyPage() {
           <b>Data Retention</b>
           <ul className="list-disc pl-6 mt-2">
             <li>Your account data is kept while your account is active</li>
-            <li>When paid access lapses, we send reminders and a final notice before archive/deletion phases</li>
-            <li>Archive phase: uploaded files and conversation content may be archived after the retention window</li>
-            <li>Deletion phase: retained case content may be deleted after the longer retention window</li>
-            <li>You can resume a paid plan before retention deadlines to keep uninterrupted access</li>
+            <li>Failed renewals may enter a grace phase (typically up to 5 days, or as stated in billing notices) with billing reminders</li>
+            <li>After lapse, account features may move to read-only until billing is resumed</li>
+            <li>Hard-lock/archive phase may apply around day 30 from lapse, with warning notices sent before the milestone</li>
+            <li>Deletion phase may apply around day 90 from lapse, with warning notices sent before the milestone</li>
+            <li>You can resume a paid plan before deletion deadlines to restore normal access</li>
             <li>Backups may persist briefly</li>
             <li>If your account is deleted, associated data is removed unless legally required otherwise</li>
+          </ul>
+          <p className="mt-2">Where timelines are updated, we will reflect this in product notices and policy updates.</p>
+        </li>
+        <li>
+          <b>Browser Storage</b>
+          <p className="mt-2">To improve reliability and continuity, we may store limited account-related data in browser storage (such as draft notes and dismissed notification preferences).</p>
+          <ul className="list-disc pl-6 mt-2">
+            <li>This data is tied to your browser session/profile and can be cleared in browser settings.</li>
+            <li>Browser storage is used for product functionality, not ad tracking.</li>
           </ul>
         </li>
         <li>
@@ -167,7 +190,7 @@ export default function PrivacyPolicyPage() {
         </li>
         <li>
           <b>Contact Information</b>
-          <p className="mt-2">MyMcKenzieCS Ltd<br/>Email: support@mymckenziecs.com<br/>Registered Office: [Insert]<br/>Data Protection Contact: support@mymckenziecs.com</p>
+          <p className="mt-2">Lenjordan Ltd<br/>Email: support@mymckenziecs.com<br/>Registered Office: [Insert]<br/>Data Protection Contact: support@mymckenziecs.com</p>
         </li>
       </ol>
     </LegalPageLayout>

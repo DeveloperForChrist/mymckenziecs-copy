@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
+import { isPaidPlan } from '@/lib/plans/access';
 
-const hasMeaningfulCaseProfile = (row: Record<string, unknown> | null | undefined): boolean => {
+const DEFAULT_CASE_LIMIT = 50;
+const MAX_CASE_LIMIT = 200;
+
+const hasMeaningfulCaseProfile = (row: Record<string, any> | null | undefined): boolean => {
   if (!row) return false;
   const title = typeof row.title === 'string' ? row.title.trim() : '';
   const externalId = typeof row.external_id === 'string' ? row.external_id.trim() : '';
@@ -23,8 +27,14 @@ const hasPaidAccess = async (userId: string): Promise<boolean> => {
     .limit(1)
     .maybeSingle();
 
-  const label = String(data?.plan_type || '').toLowerCase();
-  return Boolean(label && (label.includes('basic') || label.includes('premium')));
+  return isPaidPlan(data?.plan_type);
+};
+
+const parseBoundedPositiveInt = (value: string | null, fallback: number, max: number): number => {
+  if (!value) return fallback;
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed < 0) return fallback;
+  return Math.min(parsed, max);
 };
 
 export async function GET(request: NextRequest) {
@@ -36,64 +46,42 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = authData.user.id;
+    const { searchParams } = new URL(request.url);
+    const limit = parseBoundedPositiveInt(searchParams.get('limit'), DEFAULT_CASE_LIMIT, MAX_CASE_LIMIT);
+    const offset = parseBoundedPositiveInt(searchParams.get('offset'), 0, Number.MAX_SAFE_INTEGER);
+    const rangeEnd = offset + limit;
 
-    console.log('📁 Fetching cases for user:', userId);
-    // Ensure user exists in Supabase
-    const { data: existingUser, error: userFetchError } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('id', userId)
-      .maybeSingle();
-
-    if (userFetchError) {
-      console.error('Failed to fetch user from Supabase', userFetchError);
-      return NextResponse.json({ error: 'Failed to fetch cases' }, { status: 500 });
-    }
-
-    let supabaseUserId = existingUser?.id as string | undefined;
-    if (!supabaseUserId) {
-      // Create user row if missing
-      const email = authData.user.email || `${userId}@placeholder.local`;
-
-      const insertPayload: any = { email };
-      // Only set `id` when the supplied userId appears to be a valid uuid
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-      if (uuidRegex.test(userId)) insertPayload.id = userId;
-
-      const { data: inserted, error: insertErr } = await supabaseAdmin
-        .from('users')
-        .insert(insertPayload)
-        .select('id')
-        .single();
-      if (insertErr) {
-        console.error('Failed to create user in Supabase', insertErr);
-        return NextResponse.json({ error: 'Failed to fetch cases' }, { status: 500 });
-      }
-      supabaseUserId = inserted.id;
-    }
-
-    // Fetch cases for this user ordered by last_accessed/updated_at
+    // Fetch bounded cases ordered by last_accessed/created_at.
     const { data: casesData, error: casesError } = await supabaseAdmin
       .from('cases')
       .select('*')
-      .eq('user_id', supabaseUserId)
-      .order('last_accessed', { ascending: false });
+      .eq('user_id', userId)
+      .order('last_accessed', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false })
+      .range(offset, rangeEnd);
 
     if (casesError) {
       console.error('Failed to fetch cases from Supabase', casesError);
       return NextResponse.json({ error: 'Failed to fetch cases', cases: [] }, { status: 500 });
     }
 
-    const cases = (casesData || []).filter((row: Record<string, unknown>) => hasMeaningfulCaseProfile(row));
-
-    const caseLabel = cases.length === 1 ? 'case' : 'cases';
-    console.log(`✅ Found ${cases.length} ${caseLabel} for user ${userId}`);
+    const rawRows = (casesData || []) as Record<string, any>[];
+    const hasMore = rawRows.length > limit;
+    const cases = rawRows
+      .slice(0, limit)
+      .filter((row: Record<string, any>) => hasMeaningfulCaseProfile(row));
 
     return NextResponse.json({
       cases,
       total: cases.length,
       plan: null,
-      freeCaseLimit: null
+      freeCaseLimit: null,
+      pagination: {
+        limit,
+        offset,
+        hasMore,
+        nextOffset: offset + Math.min(rawRows.length, limit),
+      },
     });
   } catch (error: any) {
     console.error('Error fetching cases:', error);

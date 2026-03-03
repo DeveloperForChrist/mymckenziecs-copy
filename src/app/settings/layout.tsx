@@ -1,43 +1,29 @@
-'use client'
+import type { ReactNode } from 'react'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { isBillingEligibleUser } from '@/lib/auth/session-user'
 
-import { useEffect, useState, type ReactNode } from 'react'
-import { useRouter } from 'next/navigation'
-import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
-
-export default function SettingsLayout({ children }: { children: ReactNode }) {
-  const router = useRouter()
-  const [authState, setAuthState] = useState<'checking' | 'authenticated'>('checking')
-
-  useEffect(() => {
-    const supabase = getSupabaseBrowserClient()
-    let cancelled = false
-
-    supabase.auth.getSession().then(({ data }) => {
-      if (cancelled) return
-      if (!data.session?.user) {
-        router.replace('/')
-        return
-      }
-      setAuthState('authenticated')
-    })
-
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (cancelled) return
-      if (!session?.user) {
-        router.replace('/')
-        return
-      }
-      setAuthState('authenticated')
-    })
-
-    return () => {
-      cancelled = true
-      listener?.subscription?.unsubscribe()
+export default async function SettingsLayout({ children }: { children: ReactNode }) {
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll() {
+          // No-op in server component render context.
+        },
+      },
     }
-  }, [router])
+  )
 
-  if (authState === 'checking') {
-    return null
+  const { data: authData } = await supabase.auth.getUser()
+  if (!isBillingEligibleUser(authData?.user)) {
+    redirect('/auth/signin?redirect=/settings')
   }
 
   return <>{children}</>

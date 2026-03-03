@@ -51,6 +51,16 @@ const redis =
       })
     : null
 
+const PREMIUM_PROVIDER_GLOBAL_RPM = Number.isFinite(Number(process.env.PREMIUM_PROVIDER_GLOBAL_RPM))
+  ? Math.max(1, Math.floor(Number(process.env.PREMIUM_PROVIDER_GLOBAL_RPM)))
+  : 240
+const PREMIUM_PROVIDER_QUEUE_WAIT_MS = Number.isFinite(Number(process.env.PREMIUM_PROVIDER_QUEUE_WAIT_MS))
+  ? Math.max(0, Math.floor(Number(process.env.PREMIUM_PROVIDER_QUEUE_WAIT_MS)))
+  : 250
+const PREMIUM_PROVIDER_QUEUE_RETRIES = Number.isFinite(Number(process.env.PREMIUM_PROVIDER_QUEUE_RETRIES))
+  ? Math.max(0, Math.floor(Number(process.env.PREMIUM_PROVIDER_QUEUE_RETRIES)))
+  : 2
+
 // Fallback to in-memory if Redis is not configured
 const inMemoryLimiter = new InMemoryRateLimiter()
 
@@ -68,19 +78,6 @@ export const aiRateLimiter = redis
   : null
 
 /**
- * Rate limiter for guest AI usage
- * 6 requests per 60 seconds per guest ID
- */
-export const aiGuestRateLimiter = redis
-  ? new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(6, '60 s'),
-      analytics: true,
-      prefix: 'ratelimit:ai_guest',
-    })
-  : null
-
-/**
  * IP-wide AI limiter (defense in depth)
  * 60 requests per 10 minutes per IP
  */
@@ -90,6 +87,19 @@ export const aiIpRateLimiter = redis
       limiter: Ratelimit.slidingWindow(60, '600 s'),
       analytics: true,
       prefix: 'ratelimit:ai_ip',
+    })
+  : null
+
+/**
+ * Global provider budget for paid premium chat flow.
+ * Prevents sudden traffic spikes from saturating upstream LLM providers.
+ */
+export const premiumProviderGlobalLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(PREMIUM_PROVIDER_GLOBAL_RPM, '60 s'),
+      analytics: true,
+      prefix: 'ratelimit:premium_provider_global',
     })
   : null
 
@@ -212,6 +222,43 @@ export async function rateLimit(
   }
 
   return limiter.limit(identifier)
+}
+
+const sleep = async (ms: number) =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, ms)
+  })
+
+export async function acquirePremiumProviderCapacity() {
+  let attempt = 0
+  let lastResult = await rateLimit(
+    premiumProviderGlobalLimiter,
+    'premium_provider_global',
+    PREMIUM_PROVIDER_GLOBAL_RPM,
+    60000
+  )
+
+  while (!lastResult.success && attempt < PREMIUM_PROVIDER_QUEUE_RETRIES) {
+    attempt += 1
+    if (PREMIUM_PROVIDER_QUEUE_WAIT_MS > 0) {
+      await sleep(PREMIUM_PROVIDER_QUEUE_WAIT_MS)
+    }
+    lastResult = await rateLimit(
+      premiumProviderGlobalLimiter,
+      'premium_provider_global',
+      PREMIUM_PROVIDER_GLOBAL_RPM,
+      60000
+    )
+  }
+
+  const waitedMs = attempt * PREMIUM_PROVIDER_QUEUE_WAIT_MS
+  const retryAfterMs = Math.max(250, (lastResult.reset || Date.now()) - Date.now())
+
+  return {
+    ...lastResult,
+    waitedMs,
+    retryAfterMs,
+  }
 }
 
 /**

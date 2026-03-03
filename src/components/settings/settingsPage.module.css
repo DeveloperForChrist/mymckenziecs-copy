@@ -120,17 +120,6 @@
 /* Grid and form layout */
 .formGrid { display:flex; flex-direction:column; gap:28px; }
 .gridRow2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:24px; }
-.caseProfileLayout { display:grid; grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr); gap:24px; }
-.caseProfileCard { border:1px solid rgba(255, 255, 255, 0.12); border-radius:18px; padding:24px; background:rgba(255, 255, 255, 0.05); box-shadow:0 18px 60px rgba(0,0,0,0.22); backdrop-filter:blur(18px); }
-.caseProfileRow { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:24px; }
-.caseProfileActions { display:flex; justify-content:flex-end; gap:12px; flex-wrap:wrap; }
-.caseProfileHint { font-size:0.8rem; color:rgba(226, 232, 240, 0.72); margin:6px 0 0; }
-.caseProfileSidebar { display:flex; flex-direction:column; gap:18px; }
-.caseProfileSidebarCard { border:1px solid rgba(255, 255, 255, 0.12); border-radius:18px; padding:18px; background:rgba(15, 23, 42, 0.28); box-shadow:0 18px 60px rgba(0,0,0,0.2); backdrop-filter:blur(18px); }
-.caseProfileSidebarTitle { font-size:0.85rem; font-weight:800; color:rgba(248, 250, 252, 0.98); text-transform:uppercase; letter-spacing:0.08em; margin:0 0 12px; }
-.caseProfilePillRow { display:flex; flex-wrap:wrap; gap:8px; }
-.caseProfilePill { background:rgba(167, 139, 250, 0.2); color:rgba(237, 233, 254, 0.98); border:1px solid rgba(255, 255, 255, 0.18); border-radius:999px; padding:6px 12px; font-size:0.72rem; font-weight:800; letter-spacing:0.04em; text-transform:uppercase; }
-.caseProfileList { margin:0; padding-left:18px; color:rgba(226, 232, 240, 0.85); font-size:0.85rem; display:flex; flex-direction:column; gap:8px; }
 .formGroup, .formGroupFull { display:flex; flex-direction:column; gap:8px; }
 .formLabel { font-weight:600; font-size:0.9rem; color:rgba(226, 232, 240, 0.9); }
 .textInput, .selectInput, .textArea { width:100%; padding:12px 14px; border:1px solid rgba(255, 255, 255, 0.14); border-radius:12px; font-size:0.95rem; background:rgba(15, 23, 42, 0.35); color:rgba(248, 250, 252, 0.96); }
@@ -177,6 +166,7 @@
 .planTitle { font-size:1.25rem; font-weight:750; margin:0; color:rgba(248, 250, 252, 0.98); }
 .planPriceLarge { font-size:1.65rem; font-weight:800; color:rgba(248, 250, 252, 0.98); margin:6px 0; }
 .planHint { font-size:0.85rem; color:rgba(226, 232, 240, 0.72); margin:0; }
+.billingAlert { margin:10px 0 0; padding:10px 12px; border-radius:10px; border:1px solid rgba(252, 165, 165, 0.45); background:rgba(127, 29, 29, 0.38); color:#fecaca; font-size:0.86rem; font-weight:600; }
 .planMeta { display:flex; gap:32px; flex-wrap:wrap; align-items:flex-start; }
 .planMetaLabel { text-transform:uppercase; font-size:0.68rem; letter-spacing:0.1em; color:rgba(226, 232, 240, 0.6); margin:0 0 4px; }
 .planMetaValue { font-size:1rem; font-weight:700; color:rgba(248, 250, 252, 0.96); margin:0; }
@@ -185,10 +175,6 @@
 .paymentCard { border:1px dashed rgba(255, 255, 255, 0.2); border-radius:16px; padding:20px; background:rgba(15, 23, 42, 0.25); margin-bottom:16px; }
 .cardInfo { display:flex; align-items:center; gap:16px; }
 
-@media (max-width: 640px) {
-  .caseProfileLayout { grid-template-columns: 1fr; }
-}
-
 /* Contact */
 .contactInfo { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); margin-top:8px; }
 .contactItem { background:rgba(15, 23, 42, 0.25); border:1px solid rgba(255, 255, 255, 0.12); border-radius:12px; padding:16px; color:rgba(248, 250, 252, 0.94); }
@@ -196,3 +182,78 @@
 /* Sidebar adjustments */
 .sidebarHeading { font-size:1.1rem; font-weight:700; color:#fff; margin:0 0 24px; }
 .menuItemActive { background:rgba(255,255,255,0.18); }
+
+@media (max-width: 1100px) {
+  .settingsContainer {
+    flex-direction: column;
+    min-height: auto;
+    gap: 12px;
+    padding: 12px 0 24px;
+  }
+
+  .mainContent {
+    padding: 20px;
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 700px) {
+  .mainContent {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .topActions {
+    justify-content: stretch;
+  }
+
+  .topActions a {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .heading {
+    font-size: 1.35rem;
+  }
+
+  .desc {
+    font-size: 0.9rem;
+    margin-bottom: 14px;
+  }
+
+  .settingsSection {
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .gridRow2 {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .planMeta {
+    gap: 14px;
+  }
+
+  .planButtons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .primaryBtn,
+  .secondaryBtn,
+  .dangerBtn,
+  .dangerOutlineBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modalOverlay {
+    padding: 14px;
+  }
+
+  .modalCard {
+    padding: 16px;
+    border-radius: 14px;
+  }
+}

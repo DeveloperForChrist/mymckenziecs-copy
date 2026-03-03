@@ -5,7 +5,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     const admin = await requireAdminSession();
     if (!admin.ok) return admin.response;
@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     };
 
     return NextResponse.json({ health });
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error('Error fetching system info:', error);
     const message = error instanceof Error ? error.message : 'Failed to fetch system info';
     return NextResponse.json({ 
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error('Error performing system action:', error);
     const message = error instanceof Error ? error.message : 'Failed to perform system action';
     return NextResponse.json({ error: message }, { status: 500 });

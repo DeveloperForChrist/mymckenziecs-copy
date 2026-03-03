@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 
-const postClientError = (payload: Record<string, unknown>) => {
+const postClientError = (payload: Record<string, any>) => {
   const body = JSON.stringify(payload)
   const url = '/api/client-error'
 

@@ -26,7 +26,7 @@ const hasPaidAccess = async (userId: string): Promise<boolean> => {
   return Boolean(label && (label.includes("basic") || label.includes("premium")));
 };
 
-const isMissingUserNotesTableError = (error: unknown): boolean => {
+const isMissingUserNotesTableError = (error: any): boolean => {
   if (!error || typeof error !== "object") return false;
   const candidate = error as { code?: string; message?: string };
   if (candidate.code === "PGRST205") return true;
@@ -34,15 +34,15 @@ const isMissingUserNotesTableError = (error: unknown): boolean => {
   return typeof candidate.message === "string" && candidate.message.includes("public.user_notes");
 };
 
-const toIsoOrNow = (value: unknown): string => {
+const toIsoOrNow = (value: any): string => {
   if (typeof value !== "string") return new Date().toISOString();
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
 };
 
-const sanitizeNotePage = (input: unknown): StoredNotePage | null => {
+const sanitizeNotePage = (input: any): StoredNotePage | null => {
   if (!input || typeof input !== "object") return null;
-  const raw = input as Record<string, unknown>;
+  const raw = input as Record<string, any>;
   if (typeof raw.id !== "string" || typeof raw.title !== "string" || typeof raw.content !== "string") {
     return null;
   }
@@ -57,7 +57,7 @@ const sanitizeNotePage = (input: unknown): StoredNotePage | null => {
   };
 };
 
-const sanitizeNotes = (input: unknown): StoredNotePage[] | null => {
+const sanitizeNotes = (input: any): StoredNotePage[] | null => {
   if (!Array.isArray(input)) return null;
   if (input.length > MAX_NOTES) return null;
   const sanitized: StoredNotePage[] = [];
@@ -101,7 +101,7 @@ export async function GET() {
     const userId = authData.user.id;
     const { data, error } = await supabaseAdmin
       .from("user_notes")
-      .select("notes_pages, active_page_id, selected_case_id, updated_at")
+      .select("notes_pages, active_page_id, updated_at")
       .eq("user_id", userId)
       .maybeSingle();
 
@@ -110,7 +110,6 @@ export async function GET() {
         return NextResponse.json({
           notesPages: [],
           activePageId: "",
-          selectedCaseId: "",
           updatedAt: null,
           localOnly: true,
         });
@@ -125,13 +124,11 @@ export async function GET() {
       notesPages.length > 0 && notesPages.some((page) => page.id === activePageIdRaw)
         ? activePageIdRaw
         : notesPages[0]?.id || "";
-    const selectedCaseId = typeof data?.selected_case_id === "string" ? data.selected_case_id : "";
     const updatedAt = typeof data?.updated_at === "string" ? data.updated_at : null;
 
     return NextResponse.json({
       notesPages,
       activePageId,
-      selectedCaseId,
       updatedAt,
     });
   } catch (error) {
@@ -166,7 +163,6 @@ export async function PUT(request: Request) {
       notesPages.length > 0 && notesPages.some((page) => page.id === activePageCandidate)
         ? activePageCandidate
         : notesPages[0]?.id || "";
-    const selectedCaseId = typeof body?.selectedCaseId === "string" ? body.selectedCaseId.trim() : "";
 
     const userId = authData.user.id;
     await ensureUserRow(userId, authData.user.email);
@@ -178,7 +174,6 @@ export async function PUT(request: Request) {
           user_id: userId,
           notes_pages: notesPages,
           active_page_id: activePageId,
-          selected_case_id: selectedCaseId || null,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "user_id" }
@@ -191,7 +186,6 @@ export async function PUT(request: Request) {
           localOnly: true,
           notesPages,
           activePageId,
-          selectedCaseId,
         });
       }
       console.error("Failed to save notes", upsertError);
@@ -202,7 +196,6 @@ export async function PUT(request: Request) {
       ok: true,
       notesPages,
       activePageId,
-      selectedCaseId,
     });
   } catch (error) {
     console.error("Notes PUT error", error);

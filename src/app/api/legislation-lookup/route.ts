@@ -7,9 +7,6 @@ const cache = new Map<string, string>()
 const buildSearchUrl = (title: string) =>
   `https://www.legislation.gov.uk/all?title=${encodeURIComponent(title)}`
 
-const buildJusticeSearchUrl = (query: string) =>
-  `https://www.justice.gov.uk/courts/procedure-rules/civil/search?query=${encodeURIComponent(query)}&profile=_default`
-
 const resolveCprPartUrl = (part: string) => {
   const numeric = part.match(/^\d{1,2}$/)
   if (!numeric) return null
@@ -76,7 +73,7 @@ export async function GET(request: Request) {
     const resolved = extractLegislationUrl(html) || searchUrl
     cache.set(rawTitle, resolved)
     return NextResponse.json({ url: resolved }, { status: 200 })
-  } catch (error: unknown) {
+  } catch (_error: any) {
     const fallback = resolveCprOrPdUrl(rawTitle) || buildSearchUrl(rawTitle)
     return NextResponse.json({ url: fallback }, { status: 200 })
   }

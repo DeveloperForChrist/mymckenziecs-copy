@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/database/supabase-browser";
 import styles from "./notes-page.module.css";
 
@@ -34,24 +34,34 @@ interface LocalDraftPayload {
 }
 
 interface GlobalLocalDraftPayload extends LocalDraftPayload {
-  selectedCaseId: string;
+  ownerUid?: string;
 }
 
 interface ServerNotesPayload {
   notesPages: NotePage[];
   activePageId: string;
-  selectedCaseId: string;
   updatedAt?: string;
 }
 
 const NOTES_READ_ONLY_MESSAGE = "Read-only mode: resume plan to edit notes. Existing notes remain safe.";
+const FALLBACK_LOCAL_DRAFT_KEY = "mynotes-draft:last-local";
 
-export default function NotesPageClient() {
-  const [authUid, setAuthUid] = useState<string | null>(null);
-  const [selectedCaseId, setSelectedCaseId] = useState("");
+type NotesPageClientProps = {
+  initialAuthUid?: string | null;
+  initialReadOnlyMode?: boolean;
+  initialReadOnlyMessage?: string | null;
+};
+
+export default function NotesPageClient({
+  initialAuthUid = null,
+  initialReadOnlyMode = false,
+  initialReadOnlyMessage = null,
+}: NotesPageClientProps = {}) {
+  const [authUid, setAuthUid] = useState<string | null>(initialAuthUid);
   const [loadingNotes, setLoadingNotes] = useState(true);
-  const [readOnlyMode, setReadOnlyMode] = useState(false);
-  const [readOnlyMessage, setReadOnlyMessage] = useState<string | null>(null);
+  const [notesHydrated, setNotesHydrated] = useState(false);
+  const [readOnlyMode, setReadOnlyMode] = useState(Boolean(initialReadOnlyMode));
+  const [readOnlyMessage, setReadOnlyMessage] = useState<string | null>(initialReadOnlyMessage);
 
   const [notesPages, setNotesPages] = useState<NotePage[]>([
     { id: "p1", title: "Overview", content: "Key facts and timeline...", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
@@ -65,12 +75,10 @@ export default function NotesPageClient() {
   const lastSavedRef = useRef<string>("");
   const latestDraftRef = useRef<{
     authUid: string | null;
-    selectedCaseId: string;
     notesPages: NotePage[];
     activePageId: string;
   }>({
     authUid: null,
-    selectedCaseId: "",
     notesPages: [],
     activePageId: "",
   });
@@ -89,7 +97,7 @@ export default function NotesPageClient() {
 
   const globalDraftStorageKey = useCallback((uid: string) => `mynotes-draft:${uid}:local`, []);
   const normalizeDraftPages = useCallback(
-    (pages: unknown[]): NotePage[] =>
+    (pages: any[]): NotePage[] =>
       pages.map((note: any) => ({
         ...note,
         createdAt: note.createdAt || new Date().toISOString(),
@@ -102,7 +110,6 @@ export default function NotesPageClient() {
     async (
       pages: NotePage[],
       activeId: string,
-      selectedCaseIdForSave: string,
       payload: string,
       options?: { keepalive?: boolean; updateStatus?: boolean }
     ) => {
@@ -115,12 +122,11 @@ export default function NotesPageClient() {
           body: JSON.stringify({
             notesPages: pages,
             activePageId: activeId,
-            selectedCaseId: selectedCaseIdForSave,
           }),
         });
 
         if (response.status === 402) {
-          const data = await response.json().catch(() => ({} as Record<string, unknown>));
+          const data = await response.json().catch(() => ({} as Record<string, any>));
           const lockedMessage =
             typeof data.error === "string" && data.error.trim().length > 0
               ? data.error
@@ -170,7 +176,6 @@ export default function NotesPageClient() {
       return {
         notesPages: normalizedPages,
         activePageId: normalizedActivePageId,
-        selectedCaseId: typeof data.selectedCaseId === "string" ? data.selectedCaseId : "",
         updatedAt: typeof data.updatedAt === "string" ? data.updatedAt : undefined,
       };
     } catch (error) {
@@ -193,11 +198,10 @@ export default function NotesPageClient() {
   useEffect(() => {
     latestDraftRef.current = {
       authUid,
-      selectedCaseId,
       notesPages,
       activePageId,
     };
-  }, [authUid, selectedCaseId, notesPages, activePageId]);
+  }, [authUid, notesPages, activePageId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -206,20 +210,46 @@ export default function NotesPageClient() {
       if (!authUid || typeof window === "undefined") {
         if (!cancelled) {
           setLoadingNotes(false);
+          setNotesHydrated(false);
         }
         return;
       }
 
       setLoadingNotes(true);
+      setNotesHydrated(false);
+      lastSavedRef.current = "";
 
       let localDraft: GlobalLocalDraftPayload | null = null;
       try {
-        const draftRaw = window.localStorage.getItem(globalDraftStorageKey(authUid));
-        if (draftRaw) {
-          const parsed = JSON.parse(draftRaw) as GlobalLocalDraftPayload;
+        const draftCandidates: GlobalLocalDraftPayload[] = [];
+        const ownDraftRaw = window.localStorage.getItem(globalDraftStorageKey(authUid));
+        const fallbackDraftRaw = window.localStorage.getItem(FALLBACK_LOCAL_DRAFT_KEY);
+
+        if (ownDraftRaw) {
+          const parsed = JSON.parse(ownDraftRaw) as GlobalLocalDraftPayload;
           if (Array.isArray(parsed?.notesPages) && parsed.notesPages.length > 0 && typeof parsed.activePageId === "string") {
-            localDraft = parsed;
+            draftCandidates.push(parsed);
           }
+        }
+
+        if (fallbackDraftRaw) {
+          const parsed = JSON.parse(fallbackDraftRaw) as GlobalLocalDraftPayload;
+          if (
+            Array.isArray(parsed?.notesPages) &&
+            parsed.notesPages.length > 0 &&
+            typeof parsed.activePageId === "string" &&
+            (!parsed.ownerUid || parsed.ownerUid === authUid)
+          ) {
+            draftCandidates.push(parsed);
+          }
+        }
+
+        if (draftCandidates.length > 0) {
+          localDraft = draftCandidates.reduce((latest, candidate) => {
+            const latestTs = latest?.savedAt ? new Date(latest.savedAt).getTime() : 0;
+            const candidateTs = candidate?.savedAt ? new Date(candidate.savedAt).getTime() : 0;
+            return candidateTs > latestTs ? candidate : latest;
+          }, draftCandidates[0]);
         }
       } catch (error) {
         console.error("Failed to restore local notes", error);
@@ -241,16 +271,15 @@ export default function NotesPageClient() {
 
         setNotesPages(normalizedDraftNotes);
         setActivePageId(normalizedActivePageId);
-        setSelectedCaseId(typeof sourceDraft.selectedCaseId === "string" ? sourceDraft.selectedCaseId : "");
         lastSavedRef.current = JSON.stringify({
           notesPages: normalizedDraftNotes,
           activePageId: normalizedActivePageId,
-          selectedCaseId: typeof sourceDraft.selectedCaseId === "string" ? sourceDraft.selectedCaseId : "",
         });
       }
 
       setSaving("saved");
       setLoadingNotes(false);
+      setNotesHydrated(true);
     };
 
     void loadNotes();
@@ -261,27 +290,24 @@ export default function NotesPageClient() {
   }, [authUid, globalDraftStorageKey, loadNotesFromServer, normalizeDraftPages]);
 
   useEffect(() => {
-    if (!authUid || !notesPages.length || !activePageId || typeof window === "undefined") return;
+    if (!notesHydrated || !authUid || !notesPages.length || !activePageId || typeof window === "undefined") return;
     try {
       const localDraft: GlobalLocalDraftPayload = {
         notesPages,
         activePageId,
-        selectedCaseId,
+        ownerUid: authUid,
         savedAt: new Date().toISOString(),
       };
       window.localStorage.setItem(globalDraftStorageKey(authUid), JSON.stringify(localDraft));
+      window.localStorage.setItem(FALLBACK_LOCAL_DRAFT_KEY, JSON.stringify(localDraft));
     } catch (error) {
       console.error("Failed to persist local notes", error);
     }
-  }, [authUid, notesPages, activePageId, selectedCaseId, globalDraftStorageKey]);
+  }, [notesHydrated, authUid, notesPages, activePageId, globalDraftStorageKey]);
 
   useEffect(() => {
     let cancelled = false;
-    if (!authUid) {
-      setReadOnlyMode(false);
-      setReadOnlyMessage(null);
-      return;
-    }
+    if (!authUid) return;
 
     const loadPlanAccess = async () => {
       try {
@@ -314,7 +340,7 @@ export default function NotesPageClient() {
       saveTimeoutRef.current = null;
     }
 
-    if (!authUid || !notesPages.length || !activePageId) return;
+    if (!notesHydrated || !authUid || !notesPages.length || !activePageId) return;
     if (readOnlyMode) {
       if (saving !== "saved") {
         setSaving("saved");
@@ -322,7 +348,7 @@ export default function NotesPageClient() {
       return;
     }
 
-    const payload = JSON.stringify({ notesPages, activePageId, selectedCaseId });
+    const payload = JSON.stringify({ notesPages, activePageId });
     if (payload === lastSavedRef.current) {
       if (saving !== "saved") {
         setSaving("saved");
@@ -336,16 +362,17 @@ export default function NotesPageClient() {
 
     setSaving("saving");
     saveTimeoutRef.current = setTimeout(async () => {
-      await saveNotesToServer(notesPages, activePageId, selectedCaseId, payload, {
+      await saveNotesToServer(notesPages, activePageId, payload, {
         keepalive: true,
       });
     }, 250);
-  }, [authUid, selectedCaseId, notesPages, activePageId, readOnlyMode, saving, saveNotesToServer]);
+  }, [notesHydrated, authUid, notesPages, activePageId, readOnlyMode, saving, saveNotesToServer]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const flushPendingSave = () => {
+      if (!notesHydrated) return;
       if (!saveTimeoutRef.current) return;
       clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = null;
@@ -358,14 +385,12 @@ export default function NotesPageClient() {
       const payload = JSON.stringify({
         notesPages: snapshot.notesPages,
         activePageId: snapshot.activePageId,
-        selectedCaseId: snapshot.selectedCaseId,
       });
       if (payload === lastSavedRef.current) return;
 
       void saveNotesToServer(
         snapshot.notesPages,
         snapshot.activePageId,
-        snapshot.selectedCaseId,
         payload,
         { keepalive: true, updateStatus: false }
       );
@@ -385,7 +410,7 @@ export default function NotesPageClient() {
       window.removeEventListener("pagehide", flushPendingSave);
       flushPendingSave();
     };
-  }, [readOnlyMode, saveNotesToServer]);
+  }, [notesHydrated, readOnlyMode, saveNotesToServer]);
 
   const onChangeTitle = useCallback((val: string) => {
     if (readOnlyMode) return;
@@ -435,13 +460,6 @@ export default function NotesPageClient() {
     setActivePageId(id);
   };
 
-  const deletePage = () => {
-    if (readOnlyMode) return;
-    if (notesPages.length <= 1) return;
-    setPendingDeleteNoteId(activePageId);
-    setDeleteModalOpen(true);
-  };
-
   const confirmDeletePage = () => {
     if (readOnlyMode) return;
     if (!pendingDeleteNoteId) return;
@@ -475,7 +493,7 @@ export default function NotesPageClient() {
           noteContent: activePage.content,
         }),
       });
-      const data = await response.json().catch(() => ({} as Record<string, unknown>));
+      const data = await response.json().catch(() => ({} as Record<string, any>));
       if (!response.ok) {
         const errorMessage = typeof data.error === "string" ? data.error : "Failed to summarise note.";
         throw new Error(errorMessage);
@@ -484,10 +502,10 @@ export default function NotesPageClient() {
       setSummaryResult({
         summary: typeof data.summary === "string" ? data.summary : "",
         actionItems: Array.isArray(data.actionItems)
-          ? data.actionItems.filter((item: unknown): item is string => typeof item === "string")
+          ? data.actionItems.filter((item: any): item is string => typeof item === "string")
           : [],
         keyRisks: Array.isArray(data.keyRisks)
-          ? data.keyRisks.filter((item: unknown): item is string => typeof item === "string")
+          ? data.keyRisks.filter((item: any): item is string => typeof item === "string")
           : [],
       });
       setSummaryStatus("Summary ready.");
@@ -541,16 +559,16 @@ export default function NotesPageClient() {
           noteContent: activePage.content,
         }),
       });
-      const data = await response.json().catch(() => ({} as Record<string, unknown>));
+      const data = await response.json().catch(() => ({} as Record<string, any>));
       if (!response.ok) {
         const errorMessage = typeof data.error === "string" ? data.error : "Failed to extract dates.";
         throw new Error(errorMessage);
       }
 
-      const events = Array.isArray(data.events) ? (data.events as unknown[]) : [];
+      const events = Array.isArray(data.events) ? (data.events as any[]) : [];
       const parsedEvents: ExtractedCalendarEvent[] = events
-        .map((event: unknown) => {
-          const item = event as Record<string, unknown>;
+        .map((event: any) => {
+          const item = event as Record<string, any>;
           const category: ExtractedCalendarEvent["category"] =
             item.category === "hearing" || item.category === "meeting" || item.category === "reminder" || item.category === "other"
               ? item.category
@@ -602,7 +620,7 @@ export default function NotesPageClient() {
               repeat: "none",
             }),
           });
-          const payload = await response.json().catch(() => ({} as Record<string, unknown>));
+          const payload = await response.json().catch(() => ({} as Record<string, any>));
           if (!response.ok) {
             const errorMessage = typeof payload.error === "string" ? payload.error : "Failed to create calendar event";
             return { ok: false, error: errorMessage };
@@ -753,7 +771,6 @@ export default function NotesPageClient() {
 
         <div className={styles.sidebarFooter}>
           <a href="/dashboard" className={styles.dashboardLink}>
-            <i className="bx bx-arrow-back" />
             <span>Go to Dashboard</span>
           </a>
         </div>

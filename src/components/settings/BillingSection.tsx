@@ -1,7 +1,6 @@
 "use client";
-import React, { useEffect, useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import styles from './settingsPage.module.css';
-import { supabase } from '@/lib/database/supabase-client'
 
 type UserPlan = {
   plan?: string;
@@ -10,6 +9,7 @@ type UserPlan = {
   nextBillingDate?: any;
   hasStripeCustomer?: boolean;
   paidAccess?: boolean;
+  cancelAtPeriodEnd?: boolean;
   canResume?: boolean;
   archiveAt?: string | null;
   deleteAt?: string | null;
@@ -24,12 +24,9 @@ type PaymentMethodSummary = {
   country?: string | null;
 };
 
-export default function BillingSection() {
-  const [uid, setUid] = useState<string | null>(null);
-  const [idToken, setIdToken] = useState<string | null>(null);
-  const [authResolved, setAuthResolved] = useState(false);
-  const [planData, setPlanData] = useState<UserPlan | null>(null);
-  const [loading, setLoading] = useState(true);
+export default function BillingSection({ initialPlanData = null }: { initialPlanData?: UserPlan | null }) {
+  const [planData, setPlanData] = useState<UserPlan | null>(initialPlanData);
+  const [loading, setLoading] = useState(!initialPlanData);
   const [error, setError] = useState<string | null>(null);
   const [portalPending, startPortal] = useTransition();
   const [portalError, setPortalError] = useState<string | null>(null);
@@ -42,43 +39,14 @@ export default function BillingSection() {
   const hasNoPaidPlan = !planData?.paidAccess;
   const normalizedStatus = (planData?.planStatus || '').toString().toLowerCase();
   const isLapsedStatus = normalizedStatus === 'expired' || normalizedStatus === 'cancelled';
+  const isPastDueStatus = normalizedStatus === 'past_due';
+  const isCancellationScheduled = Boolean(planData?.paidAccess && planData?.cancelAtPeriodEnd);
 
   useEffect(() => {
-    let mounted = true
-    supabase.auth.getSession().then(({ data }) => {
-      const user = data.session?.user
-      if (user && mounted) {
-        setUid(user.id)
-        setIdToken(data.session?.access_token ?? null)
-      } else if (mounted) {
-        setUid(null)
-        setIdToken(null)
-      }
-      if (mounted) setAuthResolved(true)
-    })
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      const user = session?.user
-      setUid(user?.id ?? null)
-      setIdToken(session?.access_token ?? null)
-      setAuthResolved(true)
-    })
-    return () => {
-      mounted = false
-      listener.subscription.unsubscribe()
+    const shouldShowLoader = !initialPlanData;
+    if (shouldShowLoader) {
+      setLoading(true);
     }
-  }, []);
-
-  useEffect(() => {
-    if (!authResolved) {
-      return;
-    }
-
-    if (!uid) {
-      setLoading(false);
-      setPlanData(null);
-      return;
-    }
-    setLoading(true);
     setError(null);
     
     // Fetch plan from server-side API
@@ -93,12 +61,15 @@ export default function BillingSection() {
       })
       .catch(err => {
         setError(err.message);
-        setLoading(false);
+        if (shouldShowLoader) {
+          setLoading(false);
+        }
       });
-  }, [uid, authResolved]);
+  // First paint uses server data when available; then this refreshes in background.
+  }, [initialPlanData]);
 
   useEffect(() => {
-    if (!authResolved || !uid || checkoutSynced) {
+    if (checkoutSynced) {
       return;
     }
     const params = new URLSearchParams(window.location.search);
@@ -152,16 +123,17 @@ export default function BillingSection() {
     return () => {
       cancelled = true;
     };
-  }, [uid, authResolved, checkoutSynced]);
+  }, [checkoutSynced]);
 
   useEffect(() => {
-    if (!authResolved || !uid || billingBackfillChecked || loading) {
+    if (billingBackfillChecked || loading) {
       return;
     }
 
     const planLabel = (planData?.plan || '').toString().toLowerCase();
-    const looksFree = !planLabel || planLabel.includes('free');
-    if (!looksFree) {
+    const looksUnsubscribed =
+      !planLabel || planLabel.includes('free') || planLabel.includes('no plan') || planLabel.includes('inactive');
+    if (!looksUnsubscribed) {
       setBillingBackfillChecked(true);
       return;
     }
@@ -200,10 +172,10 @@ export default function BillingSection() {
     return () => {
       cancelled = true;
     };
-  }, [uid, authResolved, billingBackfillChecked, loading, planData?.plan]);
+  }, [billingBackfillChecked, loading, planData?.plan]);
 
   useEffect(() => {
-    if (!authResolved || !uid || !planData?.hasStripeCustomer) {
+    if (!planData?.hasStripeCustomer) {
       setPaymentMethod(null);
       setPaymentLoading(false);
       setPaymentError(null);
@@ -229,7 +201,7 @@ export default function BillingSection() {
         setPaymentError(err.message);
         setPaymentLoading(false);
       });
-  }, [uid, authResolved, planData?.hasStripeCustomer]);
+  }, [planData?.hasStripeCustomer]);
 
   function formatNextBillingDate(value: any): string {
     if (!value) return '—';
@@ -252,7 +224,7 @@ export default function BillingSection() {
         const res = await fetch('/api/stripe/customer-portal', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uid, mode }),
+          body: JSON.stringify({ mode }),
         });
         const json = await res.json();
         if (!res.ok || !json.url) {
@@ -289,20 +261,44 @@ export default function BillingSection() {
                   <p className={styles.planPriceLarge}>£{planData?.planPrice}/month</p>
                 )}
                 <p className={styles.planHint}>
-                  Next billing: {formatNextBillingDate(planData?.nextBillingDate)}
+                  {isLapsedStatus
+                    ? `Subscription ended: ${formatNextBillingDate(planData?.nextBillingDate)}`
+                    : isCancellationScheduled
+                      ? `Access until: ${formatNextBillingDate(planData?.nextBillingDate)}`
+                      : `Next billing: ${formatNextBillingDate(planData?.nextBillingDate)}`}
                 </p>
+                {isCancellationScheduled && !isLapsedStatus && (
+                  <p className={styles.planHint} style={{ color: '#fef3c7' }}>
+                    Cancellation scheduled. Future billing is stopped and paid access remains until the end date above.
+                  </p>
+                )}
+                {isPastDueStatus && (
+                  <p className={styles.billingAlert}>
+                    We weren't able to collect the payment, so your service may stop soon unless it's fixed. Reactivate to continue.
+                  </p>
+                )}
                 {isLapsedStatus && (
-                  <p className={styles.planHint} style={{ color: '#fca5a5' }}>
-                    Paid access is paused. Archive date: {formatNextBillingDate(planData?.archiveAt)} · Deletion date:{' '}
-                    {formatNextBillingDate(planData?.deleteAt)}
+                  <>
+                    <p className={styles.billingAlert}>
+                      Your subscription has ended. Reactivate to continue.
+                    </p>
+                    <p className={styles.planHint} style={{ color: '#fca5a5' }}>
+                      Account retained. Archive date: {formatNextBillingDate(planData?.archiveAt)} · Deletion date:{' '}
+                      {formatNextBillingDate(planData?.deleteAt)}
+                    </p>
+                  </>
+                )}
+                {!isLapsedStatus && (
+                  <p className={styles.planHint}>
+                    Your account and data remain in place if subscription access ends, subject to your retention schedule.
                   </p>
                 )}
               </div>
             </div>
             <div className={styles.planCardActions}>
               <div className={styles.planButtons}>
-                <a href="/pricing" className={styles.primaryBtn} style={{ textDecoration: 'none' }}>Change Plan</a>
-                {uid && planData?.hasStripeCustomer && (
+                <a href="/pricing?redirect=%2Fsettings%3Ftab%3Dbilling" className={styles.primaryBtn} style={{ textDecoration: 'none' }}>Change Plan</a>
+                {planData?.hasStripeCustomer && (
                   <button
                     type="button"
                     disabled={portalPending}
@@ -344,16 +340,6 @@ export default function BillingSection() {
                     <h4>Loading payment method…</h4>
                     <p className={styles.helpText}>Please wait while we fetch your billing details.</p>
                   </>
-                ) : !authResolved ? (
-                  <>
-                    <h4>Loading account session…</h4>
-                    <p className={styles.helpText}>Please wait.</p>
-                  </>
-                ) : !uid ? (
-                  <>
-                    <h4>Unavailable</h4>
-                    <p className={styles.helpText}>Account session unavailable. Refresh and try again.</p>
-                  </>
                 ) : paymentMethod ? (
                   <>
                     <h4>Card ending •••• {paymentMethod.last4}</h4>
@@ -375,7 +361,7 @@ export default function BillingSection() {
             </div>
           </div>
         )}
-        {uid && !loading && (
+        {!loading && (
           <div className={styles.bottomActions}>
             {planData?.hasStripeCustomer ? (
               <button
@@ -393,7 +379,7 @@ export default function BillingSection() {
                       : 'Add payment method'}
               </button>
             ) : (
-              <a href="/pricing" className={styles.primaryBtn} style={{ textDecoration: 'none' }}>
+              <a href="/pricing?redirect=%2Fsettings%3Ftab%3Dbilling" className={styles.primaryBtn} style={{ textDecoration: 'none' }}>
                 {isLapsedStatus ? 'Resume plan' : 'Choose a plan'}
               </a>
             )}

@@ -7,6 +7,7 @@ import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import AppTopbar from '@/components/layout/AppTopbar'
 import ChatConversationHistory from '@/components/chatbot/ChatConversationHistory'
 import DeleteConversationModal from '@/components/chatbot/DeleteConversationModal'
+import { hasCaseProfileAccess } from '@/lib/plans/access'
 
 interface Conversation {
   id: string
@@ -15,40 +16,52 @@ interface Conversation {
   caseId?: string
 }
 
-const resolveUserDisplayName = (user: any): string => {
-  const metadata = user?.user_metadata || {}
-  const fullName = typeof metadata.full_name === 'string' ? metadata.full_name.trim() : ''
-  if (fullName) return fullName
-  const displayName = typeof metadata.display_name === 'string' ? metadata.display_name.trim() : ''
-  if (displayName) return displayName
-  const firstName = typeof metadata.first_name === 'string' ? metadata.first_name.trim() : ''
-  const lastName = typeof metadata.last_name === 'string' ? metadata.last_name.trim() : ''
-  const combined = [firstName, lastName].filter(Boolean).join(' ').trim()
-  if (combined) return combined
-  if (typeof user?.email === 'string' && user.email.includes('@')) {
-    return user.email.split('@')[0]
-  }
-  return 'Account'
+type CaseSummary = {
+  id: string
+  title?: string | null
+  case_type?: string | null
 }
 
-export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded: boolean) => void } = {}) {
+type ChatbotNavbarProps = {
+  onPlanLoaded?: (loaded: boolean) => void
+  initialPlanInfo?: { plan?: string | null; planStatus?: string | null; paidAccess?: boolean } | null
+  initialIsLoggedIn?: boolean
+}
+
+export default function ChatbotNavbar({
+  onPlanLoaded,
+  initialPlanInfo = null,
+  initialIsLoggedIn = false,
+}: ChatbotNavbarProps = {}) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [plan, setPlan] = useState<string | null>(null)
-  const [planLoaded, setPlanLoaded] = useState(false)
-  const [planInfo, setPlanInfo] = useState<any>(null)
-  const [planInfoLoaded, setPlanInfoLoaded] = useState(false)
-  const [cases, setCases] = useState<any[]>([])
+  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(initialIsLoggedIn))
+  const [plan, setPlan] = useState<string | null>(
+    initialPlanInfo?.plan ? initialPlanInfo.plan.toString() : null
+  )
+  const [planLoaded, setPlanLoaded] = useState(Boolean(initialIsLoggedIn))
+  const [planInfo, setPlanInfo] = useState<any>(initialPlanInfo)
+  const [planInfoLoaded, setPlanInfoLoaded] = useState(Boolean(initialPlanInfo))
+  const [cases, setCases] = useState<CaseSummary[]>([])
   const [activeCaseId, setActiveCaseId] = useState<string | null>(null)
   const [uid, setUid] = useState<string | null>(null)
-  const [userDisplayName, setUserDisplayName] = useState('Account')
   const [deleteTargetConversationId, setDeleteTargetConversationId] = useState<string | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isDeletingConversation, setIsDeletingConversation] = useState(false)
   const [deleteConversationError, setDeleteConversationError] = useState<string | null>(null)
+  const [isCaseProfileModalOpen, setIsCaseProfileModalOpen] = useState(false)
+  const [caseProfileId, setCaseProfileId] = useState<string | null>(null)
+  const [caseTitle, setCaseTitle] = useState('')
+  const [caseNumber, setCaseNumber] = useState('')
+  const [hearingDate, setHearingDate] = useState('')
+  const [caseSummary, setCaseSummary] = useState('')
+  const [isCaseProfileLoading, setIsCaseProfileLoading] = useState(false)
+  const [isCaseProfileSaving, setIsCaseProfileSaving] = useState(false)
+  const [isCaseProfileDeleting, setIsCaseProfileDeleting] = useState(false)
+  const [caseProfileStatus, setCaseProfileStatus] = useState<string | null>(null)
+  const [caseProfileError, setCaseProfileError] = useState<string | null>(null)
 
   useEffect(() => {
     setPlanInfoLoaded(false)
@@ -64,12 +77,10 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
     supabase.auth.getUser().then(({ data }) => {
       const user = data?.user || null
       setUid(user?.id || null)
-      setUserDisplayName(resolveUserDisplayName(user))
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const user = session?.user || null
       setUid(user?.id || null)
-      setUserDisplayName(resolveUserDisplayName(user))
     })
     return () => subscription.unsubscribe()
   }, [])
@@ -82,6 +93,10 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
   useEffect(() => {
     const handleActiveCaseChanged = (event: Event) => {
       const detail = (event as CustomEvent<{ caseId?: string | null }>).detail
+      if (detail?.caseId === null) {
+        setActiveCaseId(null)
+        return
+      }
       const nextCaseId = detail?.caseId?.trim()
       if (!nextCaseId) return
       setActiveCaseId(nextCaseId)
@@ -90,14 +105,19 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
     return () => window.removeEventListener('activeCaseChanged', handleActiveCaseChanged as EventListener)
   }, [])
 
+  const activeCase = cases.find((c) => c.id === activeCaseId) || null
+  const workingOnLabel = activeCase?.title?.trim() || activeCase?.case_type?.trim() || 'General guidance'
+  const caseProfilePlanLabel = (planInfo?.plan || plan || '').toString()
+  const canUseCaseProfile = planLoaded && isLoggedIn && hasCaseProfileAccess(caseProfilePlanLabel)
+
   useEffect(() => {
     const fetchCases = async () => {
-      if (!uid) {
+      if (!uid || !canUseCaseProfile) {
         setCases([])
         return
       }
       try {
-        const res = await fetch('/api/cases')
+        const res = await fetch('/api/cases?limit=200&offset=0')
         const data = await res.json()
         setCases(Array.isArray(data.cases) ? data.cases : [])
       } catch (err) {
@@ -105,10 +125,22 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
       }
     }
     void fetchCases()
-  }, [uid])
+  }, [uid, canUseCaseProfile])
 
-  const activeCase = cases.find((c) => c.id === activeCaseId) || null
-  const workingOnLabel = activeCase?.title?.trim() || activeCase?.case_type?.trim() || 'General guidance'
+  useEffect(() => {
+    if (canUseCaseProfile) return
+    setCases([])
+    setActiveCaseId(null)
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('selectedCaseId')
+      window.dispatchEvent(new CustomEvent('activeCaseChanged', { detail: { caseId: null } }))
+    }
+  }, [canUseCaseProfile])
+
+  useEffect(() => {
+    if (!planLoaded) return
+    onPlanLoaded?.(true)
+  }, [planLoaded, onPlanLoaded])
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient()
@@ -241,39 +273,194 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
     }
   }
 
+  const clearCaseProfileForm = () => {
+    setCaseProfileId(null)
+    setCaseTitle('')
+    setCaseNumber('')
+    setHearingDate('')
+    setCaseSummary('')
+  }
+
+  const publishActiveCaseChanged = (nextCaseId: string | null) => {
+    if (typeof window === 'undefined') return
+    if (nextCaseId) {
+      localStorage.setItem('selectedCaseId', nextCaseId)
+    } else {
+      localStorage.removeItem('selectedCaseId')
+    }
+    window.dispatchEvent(new CustomEvent('activeCaseChanged', { detail: { caseId: nextCaseId } }))
+  }
+
+  const loadCaseProfile = async () => {
+    setIsCaseProfileLoading(true)
+    setCaseProfileError(null)
+    setCaseProfileStatus(null)
+    try {
+      const response = await fetch('/api/user/case-details', { credentials: 'include' })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        if (response.status === 403) {
+          setCaseProfileError('Case profile is available on Premium and Premium + plans.')
+          clearCaseProfileForm()
+          return
+        }
+        setCaseProfileError(typeof data?.error === 'string' ? data.error : 'Failed to load case profile.')
+        return
+      }
+
+      const item = data?.case
+      if (!item) {
+        clearCaseProfileForm()
+        return
+      }
+
+      setCaseProfileId(typeof item.id === 'string' ? item.id : null)
+      setCaseTitle(typeof item.title === 'string' && item.title !== 'Untitled case' ? item.title : '')
+      setCaseNumber(typeof item.external_id === 'string' ? item.external_id : '')
+      setHearingDate(typeof item.case_type === 'string' ? item.case_type : '')
+      setCaseSummary(typeof item.description === 'string' ? item.description : '')
+    } catch {
+      setCaseProfileError('Failed to load case profile.')
+    } finally {
+      setIsCaseProfileLoading(false)
+    }
+  }
+
+  const openCaseProfileModal = async () => {
+    if (!canUseCaseProfile) return
+    setIsCaseProfileModalOpen(true)
+    await loadCaseProfile()
+  }
+
+  useEffect(() => {
+    if (!canUseCaseProfile && isCaseProfileModalOpen) {
+      setIsCaseProfileModalOpen(false)
+    }
+  }, [canUseCaseProfile, isCaseProfileModalOpen])
+
+  const handleSaveCaseProfile = async () => {
+    if (isCaseProfileSaving || isCaseProfileDeleting) return
+    setIsCaseProfileSaving(true)
+    setCaseProfileError(null)
+    setCaseProfileStatus(null)
+    try {
+      const hasAnyInput = Boolean(caseNumber.trim() || hearingDate.trim() || caseTitle.trim() || caseSummary.trim())
+      if (!hasAnyInput) {
+        const deleteResponse = await fetch('/api/user/case-details', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ caseId: caseProfileId }),
+        })
+        const deleteData = await deleteResponse.json().catch(() => ({}))
+        if (!deleteResponse.ok) {
+          setCaseProfileError(typeof deleteData?.error === 'string' ? deleteData.error : 'Failed to clear case profile.')
+          return
+        }
+        clearCaseProfileForm()
+        setActiveCaseId(null)
+        publishActiveCaseChanged(null)
+        setCaseProfileStatus('Case profile cleared.')
+        return
+      }
+
+      const res = await fetch('/api/user/case-details', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          caseId: caseNumber || null,
+          caseType: hearingDate || null,
+          caseTitle: caseTitle || null,
+          caseDescription: caseSummary || null,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setCaseProfileError(typeof data?.error === 'string' ? data.error : 'Failed to save case profile.')
+        return
+      }
+
+      if (data?.case?.id) {
+        const savedCaseId = String(data.case.id)
+        setCaseProfileId(savedCaseId)
+        setActiveCaseId(savedCaseId)
+        publishActiveCaseChanged(savedCaseId)
+        setCaseProfileStatus('Case profile saved.')
+        void fetch('/api/cases?limit=200&offset=0')
+          .then((r) => r.json())
+          .then((d) => setCases(Array.isArray(d.cases) ? d.cases : []))
+          .catch(() => null)
+      }
+    } catch {
+      setCaseProfileError('Failed to save case profile.')
+    } finally {
+      setIsCaseProfileSaving(false)
+    }
+  }
+
+  const handleDeleteCaseProfile = async () => {
+    if (isCaseProfileDeleting || isCaseProfileSaving) return
+    setIsCaseProfileDeleting(true)
+    setCaseProfileError(null)
+    setCaseProfileStatus(null)
+    try {
+      const res = await fetch('/api/user/case-details', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ caseId: caseProfileId }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setCaseProfileError(typeof data?.error === 'string' ? data.error : 'Failed to delete case profile.')
+        return
+      }
+      clearCaseProfileForm()
+      setActiveCaseId(null)
+      publishActiveCaseChanged(null)
+      setCaseProfileStatus('Case profile cleared.')
+      void fetch('/api/cases?limit=200&offset=0')
+        .then((r) => r.json())
+        .then((d) => setCases(Array.isArray(d.cases) ? d.cases : []))
+        .catch(() => null)
+    } catch {
+      setCaseProfileError('Failed to delete case profile.')
+    } finally {
+      setIsCaseProfileDeleting(false)
+    }
+  }
+
   return (
     <>
       <AppTopbar
         left={(
-          planLoaded && isLoggedIn ? (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                paddingLeft: '8px',
-                minWidth: 0,
-              }}
-            >
-              <span
+          canUseCaseProfile ? (
+            <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '8px' }}>
+              <button
+                type="button"
+                onClick={() => void openCaseProfileModal()}
                 style={{
-                  fontSize: '16px',
-                  fontWeight: 700,
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  background: 'rgba(255,255,255,0.1)',
                   color: '#ffffff',
+                  borderRadius: '10px',
+                  padding: '6px 10px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
                   whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '220px',
                 }}
-                title={userDisplayName}
+                title="Open case profile"
               >
-                {userDisplayName}
-              </span>
+                Case Profile
+              </button>
             </div>
           ) : null
         )}
         center={null}
         right={(
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {isLoggedIn && (
               <button
                 type="button"
@@ -289,12 +476,34 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
             {planLoaded && (
               isLoggedIn ? (
                 <Link href="/dashboard" className="app-button-secondary">
-                  Go to dashboard
+                  Go to Dashboard
                 </Link>
               ) : (
                 <>
-                  <Link href="/pricing" style={{ color: '#fff', fontWeight: 700, fontSize: '1.2rem', textDecoration: 'underline', marginRight: '8px' }}>Register</Link>
-                  <Link href="/auth/signin" style={{ color: '#fff', fontWeight: 600, fontSize: '1.2rem', textDecoration: 'underline' }}>Sign in</Link>
+                  <Link
+                    href="/pricing"
+                    style={{
+                      color: '#fff',
+                      fontWeight: 700,
+                      fontSize: 'clamp(0.88rem, 2.6vw, 1rem)',
+                      textDecoration: 'underline',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    Register
+                  </Link>
+                  <Link
+                    href="/auth/signin"
+                    style={{
+                      color: '#fff',
+                      fontWeight: 600,
+                      fontSize: 'clamp(0.88rem, 2.6vw, 1rem)',
+                      textDecoration: 'underline',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    Sign in
+                  </Link>
                 </>
               )
             )}
@@ -308,12 +517,13 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
           style={{
             position: 'fixed',
             top: 0,
-            right: isSidebarOpen ? 0 : '-350px',
-            width: '320px',
+            right: 0,
+            width: 'min(92vw, 340px)',
             height: '100vh',
             background: '#270427',
             boxShadow: isSidebarOpen ? '-2px 0 10px rgba(0,0,0,0.5)' : 'none',
-            transition: 'right 0.3s ease',
+            transition: 'transform 0.3s ease',
+            transform: isSidebarOpen ? 'translateX(0)' : 'translateX(100%)',
             zIndex: 2000,
             color: 'white',
             display: 'flex',
@@ -346,7 +556,7 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
           </div>
 
           <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {cases.length > 0 && activeCase && (
+            {canUseCaseProfile && cases.length > 0 && activeCase && (
               <div
                 style={{
                   marginBottom: '10px',
@@ -391,24 +601,26 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
                   <div><b>Plan:</b> {planInfo.plan || plan || 'No plan'}</div>
                   {planInfo.nextBillingDate && <div><b>Renews:</b> {formatDate(planInfo.nextBillingDate)}</div>}
                   <div><b>Status:</b> {planInfo.planStatus || 'Active'}</div>
-                  <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(139,92,246,0.25)' }}>
-                    <div style={{ fontSize: '12px', color: 'rgba(196,181,253,0.95)', marginBottom: '4px', letterSpacing: '0.3px' }}>
-                      Working on
+                  {canUseCaseProfile && (
+                    <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(139,92,246,0.25)' }}>
+                      <div style={{ fontSize: '12px', color: 'rgba(196,181,253,0.95)', marginBottom: '4px', letterSpacing: '0.3px' }}>
+                        Working on
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '13px',
+                          color: '#ffffff',
+                          fontWeight: 700,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                        title={workingOnLabel}
+                      >
+                        {workingOnLabel}
+                      </div>
                     </div>
-                    <div
-                      style={{
-                        fontSize: '13px',
-                        color: '#ffffff',
-                        fontWeight: 700,
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}
-                      title={workingOnLabel}
-                    >
-                      {workingOnLabel}
-                    </div>
-                  </div>
+                  )}
                 </>
               ) : (
                 <div>{planInfoLoaded ? 'Plan info unavailable.' : 'Loading plan info...'}</div>
@@ -465,6 +677,145 @@ export default function ChatbotNavbar({ onPlanLoaded }: { onPlanLoaded?: (loaded
             zIndex: 1999
           }}
         />
+      )}
+
+      {isCaseProfileModalOpen && (
+        <div
+          onClick={() => setIsCaseProfileModalOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.55)',
+            zIndex: 2600,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: 'min(760px, 100%)',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              background: 'linear-gradient(180deg, #19031b 0%, #220629 100%)',
+              border: '1px solid rgba(255,255,255,0.18)',
+              borderRadius: '16px',
+              boxShadow: '0 30px 70px rgba(0,0,0,0.5)',
+              color: '#fff',
+              padding: '18px'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Case Profile</h3>
+              <button
+                type="button"
+                onClick={() => setIsCaseProfileModalOpen(false)}
+                style={{
+                  background: 'none',
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  color: '#fff',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+                aria-label="Close case profile modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p style={{ margin: '0 0 14px', opacity: 0.9, fontSize: '14px' }}>
+              Fill in case details if you want more tailored responses. You can also leave this empty.
+            </p>
+
+            {caseProfileError && (
+              <div style={{ marginBottom: '12px', padding: '10px', borderRadius: '10px', background: 'rgba(127,29,29,0.35)', border: '1px solid rgba(248,113,113,0.35)', color: '#fecaca', fontSize: '13px' }}>
+                {caseProfileError}
+              </div>
+            )}
+            {caseProfileStatus && (
+              <div style={{ marginBottom: '12px', padding: '10px', borderRadius: '10px', background: 'rgba(20,83,45,0.35)', border: '1px solid rgba(74,222,128,0.35)', color: '#bbf7d0', fontSize: '13px' }}>
+                {caseProfileStatus}
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gap: '10px' }}>
+              <label style={{ display: 'grid', gap: '6px', fontSize: '13px' }}>
+                <span style={{ opacity: 0.9 }}>Case Number</span>
+                <input
+                  value={caseNumber}
+                  onChange={(e) => setCaseNumber(e.target.value)}
+                  disabled={isCaseProfileLoading || isCaseProfileSaving || isCaseProfileDeleting}
+                  style={{ height: '40px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#fff', padding: '0 12px' }}
+                />
+              </label>
+              <label style={{ display: 'grid', gap: '6px', fontSize: '13px' }}>
+                <span style={{ opacity: 0.9 }}>Case Title</span>
+                <input
+                  value={caseTitle}
+                  onChange={(e) => setCaseTitle(e.target.value)}
+                  disabled={isCaseProfileLoading || isCaseProfileSaving || isCaseProfileDeleting}
+                  style={{ height: '40px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#fff', padding: '0 12px' }}
+                />
+              </label>
+              <label style={{ display: 'grid', gap: '6px', fontSize: '13px' }}>
+                <span style={{ opacity: 0.9 }}>Hearing Date / Type</span>
+                <input
+                  value={hearingDate}
+                  onChange={(e) => setHearingDate(e.target.value)}
+                  disabled={isCaseProfileLoading || isCaseProfileSaving || isCaseProfileDeleting}
+                  style={{ height: '40px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#fff', padding: '0 12px' }}
+                />
+              </label>
+              <label style={{ display: 'grid', gap: '6px', fontSize: '13px' }}>
+                <span style={{ opacity: 0.9 }}>Case Summary</span>
+                <textarea
+                  rows={6}
+                  value={caseSummary}
+                  onChange={(e) => setCaseSummary(e.target.value)}
+                  disabled={isCaseProfileLoading || isCaseProfileSaving || isCaseProfileDeleting}
+                  style={{ borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#fff', padding: '10px 12px', resize: 'vertical' }}
+                />
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '14px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={handleDeleteCaseProfile}
+                disabled={isCaseProfileLoading || isCaseProfileSaving || isCaseProfileDeleting}
+                style={{
+                  border: '1px solid rgba(248,113,113,0.45)',
+                  background: 'rgba(127,29,29,0.35)',
+                  color: '#fecaca',
+                  borderRadius: '10px',
+                  padding: '9px 12px',
+                  cursor: 'pointer'
+                }}
+              >
+                {isCaseProfileDeleting ? 'Clearing…' : 'Clear Profile'}
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveCaseProfile}
+                disabled={isCaseProfileLoading || isCaseProfileSaving || isCaseProfileDeleting}
+                style={{
+                  border: '1px solid rgba(96,165,250,0.5)',
+                  background: 'rgba(37,99,235,0.35)',
+                  color: '#dbeafe',
+                  borderRadius: '10px',
+                  padding: '9px 12px',
+                  cursor: 'pointer'
+                }}
+              >
+                {isCaseProfileSaving ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <DeleteConversationModal

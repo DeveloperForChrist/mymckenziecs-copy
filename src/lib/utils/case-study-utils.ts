@@ -206,53 +206,6 @@ export function extractSections(content: string): Array<{ title: string; positio
 }
 
 /**
- * Sanitize and validate case study input data
- * @param data - Raw input data
- * @returns Sanitized data object
- */
-export function sanitizeCaseInput(data: any): {
-  title: string;
-  citation: string;
-  summary: string;
-  extracts: string[];
-  court: string;
-  year: number;
-  outcome: string;
-  url: string;
-} {
-  return {
-    title: String(data.title || '').trim().substring(0, 500),
-    citation: String(data.citation || '').trim().substring(0, 200),
-    summary: String(data.summary || 'No summary available').trim().substring(0, 10000),
-    extracts: Array.isArray(data.extracts) 
-      ? data.extracts
-          .filter((e: any) => typeof e === 'string' && e.trim().length > 0)
-          .map((e: string) => e.substring(0, 5000))
-          .slice(0, 5)
-      : [],
-    court: String(data.court || 'Not specified').trim(),
-    year: Number(data.year) || new Date().getFullYear(),
-    outcome: String(data.outcome || 'Not specified').trim(),
-    url: String(data.url || '').trim()
-  };
-}
-
-/**
- * Format case study content for display with proper whitespace handling
- * @param content - Raw content string
- * @returns Formatted content with normalized whitespace
- */
-export function formatCaseStudyContent(content: string): string {
-  if (!content) return '';
-  
-  return content
-    .replace(/\r\n/g, '\n') // Normalize line endings
-    .replace(/\n{3,}/g, '\n\n') // Max 2 consecutive newlines
-    .replace(/[ \t]+/g, ' ') // Normalize spaces
-    .trim();
-}
-
-/**
  * Calculate a quality score for case study content
  * @param content - The case study content
  * @returns Score from 0-100 indicating content quality

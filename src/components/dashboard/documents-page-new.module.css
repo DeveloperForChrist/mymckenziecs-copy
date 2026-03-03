@@ -828,10 +828,43 @@
   color: #fff;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 900px) {
+  .mainContent {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .headerSection {
+    padding: 14px;
+  }
+
+  .headerTitle h1 {
+    font-size: 1.25rem;
+  }
+
+  .headerTitle p {
+    font-size: 0.86rem;
+  }
+
+  .searchContainer {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .filterTabs {
+    width: 100%;
+  }
+
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 8px 10px;
+  }
+
   .actionButtons {
     width: 100%;
     margin-left: 0;
+    justify-content: space-between;
   }
 
   .uploadGroup {
@@ -845,6 +878,56 @@
   .folderSelect {
     flex: 1;
     min-width: 0;
+  }
+
+  .fileListContainer {
+    overflow-x: visible;
+  }
+
+  .fileTable {
+    min-width: 0;
+  }
+
+  .tableHeader {
+    display: none;
+  }
+
+  .tableBody {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .tableRow {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cell::before {
+    content: attr(data-label);
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(226, 232, 240, 0.62);
+    font-weight: 700;
+  }
+
+  .actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .folderInlineSelect {
+    min-height: 36px;
   }
 }
 

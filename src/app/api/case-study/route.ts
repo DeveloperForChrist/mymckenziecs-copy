@@ -16,6 +16,12 @@ import { z } from 'zod';
 import { captureServerException } from '@/lib/monitoring/error-logger';
 import { hasCaseLawAccess } from '@/lib/plans/access';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
+const CASE_STUDY_RESPONSE_CACHE_ENABLED = false;
+
 // Input validation schema with better validation rules
 const caseStudySchema = z.object({
   title: z.string().min(5, 'Case title must be at least 5 characters').max(500, 'Title too long'),
@@ -86,38 +92,40 @@ export async function POST(req: NextRequest) {
 
     console.log('🎓 Generating case study for:', validatedData.title);
 
-    // Check cache before generating
-    const cached = caseStudyCache.get(validatedData.title, validatedData.citation);
-    if (cached) {
-      const contentStats = analyzeContentStatistics(cached.content);
-      const qualityScore = calculateContentQuality(cached.content);
-      const educationalValue = assessEducationalValue(cached.content);
-      const paginatedContent = paginateContent(cached.content, 500);
-      const processingTime = Date.now() - startTime;
+    // Optional cache path is intentionally disabled to keep AI outputs always fresh.
+    if (CASE_STUDY_RESPONSE_CACHE_ENABLED) {
+      const cached = caseStudyCache.get(validatedData.title, validatedData.citation);
+      if (cached) {
+        const contentStats = analyzeContentStatistics(cached.content);
+        const qualityScore = calculateContentQuality(cached.content);
+        const educationalValue = assessEducationalValue(cached.content);
+        const paginatedContent = paginateContent(cached.content, 500);
+        const processingTime = Date.now() - startTime;
 
-      return NextResponse.json({
-        success: true,
-        caseStudy: cached.content,
-        paginatedContent,
-        totalPages: paginatedContent.length,
-        wordsPerPage: 500,
-        totalWords: contentStats.wordCount,
-        metadata: {
-          ...cached.metadata,
-          processingTimeMs: processingTime,
-          isFallback: cached.metadata?.model === 'fallback',
-          contentStatistics: contentStats,
-          qualityScore,
-          educationalValue,
-          cacheHit: true
-        },
-        caseData: {
-          title: validatedData.title,
-          citation: validatedData.citation,
-          court: validatedData.court,
-          year: validatedData.year
-        }
-      });
+        return NextResponse.json({
+          success: true,
+          caseStudy: cached.content,
+          paginatedContent,
+          totalPages: paginatedContent.length,
+          wordsPerPage: 500,
+          totalWords: contentStats.wordCount,
+          metadata: {
+            ...cached.metadata,
+            processingTimeMs: processingTime,
+            isFallback: cached.metadata?.model === 'fallback',
+            contentStatistics: contentStats,
+            qualityScore,
+            educationalValue,
+            cacheHit: true
+          },
+          caseData: {
+            title: validatedData.title,
+            citation: validatedData.citation,
+            court: validatedData.court,
+            year: validatedData.year
+          }
+        });
+      }
     }
 
     // Optionally enrich extracts using vector DB if available
@@ -292,11 +300,12 @@ export async function POST(req: NextRequest) {
       educationalValue
     });
 
-    // Cache the result
-    caseStudyCache.set(validatedData.title, validatedData.citation, {
-      content: result.content,
-      metadata: result.metadata
-    });
+    if (CASE_STUDY_RESPONSE_CACHE_ENABLED) {
+      caseStudyCache.set(validatedData.title, validatedData.citation, {
+        content: result.content,
+        metadata: result.metadata
+      });
+    }
 
     return NextResponse.json({
       success: true,

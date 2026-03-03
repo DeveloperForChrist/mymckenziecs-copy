@@ -31,7 +31,7 @@ Sentry.init({
   environment: process.env.NODE_ENV,
 
   // Filter out sensitive data
-  beforeSend(event: any, hint: any) {
+  beforeSend(event: any, _hint: any) {
     // Remove sensitive user data
     if (event.user) {
       delete event.user.email;

@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
 import path from 'path';
-import resendSender, { renderTemplate } from '../resendSender';
+import { renderTemplate } from '../resendSender';
 
 const RESEND_KEY = process.env.RESEND_API_KEY || '';
 const FROM = process.env.FROM_EMAIL || 'noreply@yourdomain';

@@ -38,7 +38,6 @@ All 5 critical security and reliability features have been implemented and teste
 ### 4. ✅ Input Validation (Zod)
 - **Files Created**:
   - `src/validators/index.ts` - 15+ validation schemas
-  - `src/validators/api-schemas.ts` - Deprecated, kept for compatibility
 - **Schemas**: 
   - Chat messages
   - Document analysis
@@ -76,21 +75,20 @@ Tests  17 passed | 3 skipped (20)
 
 ## 📁 Files Created/Modified
 
-**New Files (17)**:
+**New Files (16)**:
 1. `middleware.ts` - Auth middleware
 2. `src/lib/utils/rate-limit.ts` - Rate limiting utility
 3. `sentry.server.config.ts` - Sentry server config
 4. `sentry.client.config.ts` - Sentry client config
 5. `sentry.edge.config.ts` - Sentry edge config
 6. `src/validators/index.ts` - Validation schemas
-7. `src/validators/api-schemas.ts` - Legacy schemas
-8. `vitest.config.ts` - Test configuration
-9. `src/__tests__/setup.ts` - Test setup
-10. `src/__tests__/smoke.test.ts` - Smoke tests
-11. `src/__tests__/validators.test.ts` - Validation tests
-12. `src/__tests__/rate-limit.test.ts` - Rate limit tests
-13. `.env.test` - Test environment variables
-14. `docs/SECURITY_FEATURES.md` - Documentation
+7. `vitest.config.ts` - Test configuration
+8. `src/__tests__/setup.ts` - Test setup
+9. `src/__tests__/smoke.test.ts` - Smoke tests
+10. `src/__tests__/validators.test.ts` - Validation tests
+11. `src/__tests__/rate-limit.test.ts` - Rate limit tests
+12. `.env.test` - Test environment variables
+13. `docs/SECURITY_FEATURES.md` - Documentation
 
 **Modified Files (6)**:
 1. `package.json` - Added test scripts

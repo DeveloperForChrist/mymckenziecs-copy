@@ -5,7 +5,7 @@ import { hasCaseProfileAccess } from '@/lib/plans/access'
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-const hasMeaningfulCaseProfile = (row: Record<string, unknown> | null | undefined): boolean => {
+const hasMeaningfulCaseProfile = (row: Record<string, any> | null | undefined): boolean => {
   if (!row) return false
   const title = typeof row.title === 'string' ? row.title.trim() : ''
   const externalId = typeof row.external_id === 'string' ? row.external_id.trim() : ''
@@ -163,7 +163,7 @@ export async function POST(request: Request) {
       : null
     const targetCaseId = existingByExternalId?.id || existingCases[0]?.id || null
 
-    const payload: Record<string, unknown> = {
+    const payload: Record<string, any> = {
       title: nextTitle,
       case_type: nextCaseType,
       description: nextDescription,
@@ -326,7 +326,7 @@ export async function DELETE(_request: Request) {
       return NextResponse.json({ error: caseRowsError.message }, { status: 500 })
     }
 
-    const allCaseIds = (caseRows || []).map((row: any) => row.id).filter((id: unknown): id is string => typeof id === 'string')
+    const allCaseIds = (caseRows || []).map((row: any) => row.id).filter((id: any): id is string => typeof id === 'string')
     const targetCaseIds = allCaseIds
 
     if (targetCaseIds.length === 0) {

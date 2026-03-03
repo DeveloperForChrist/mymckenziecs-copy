@@ -16,7 +16,7 @@ function renderTemplate(templateName: string, vars: Record<string, string>) {
   return html
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteClient()
     const { data, error } = await supabase.auth.getUser()
@@ -120,7 +120,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(_request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteClient()
     const { data, error } = await supabase.auth.getUser()

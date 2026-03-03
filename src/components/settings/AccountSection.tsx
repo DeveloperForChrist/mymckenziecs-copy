@@ -1,21 +1,9 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-// Expose dummy case creator for browser console in development only
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  import('@/lib/utils/create-dummy-case').then(mod => {
-    window.createDummyCaseForCurrentUser = mod.createDummyCaseForCurrentUser;
-  });
-}
+import { useState, useEffect } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import { flushNotesDraftNow } from '@/lib/notes/flush-notes-draft';
 import type { User } from '@supabase/supabase-js';
 import styles from './settingsPage.module.css';
-
-declare global {
-  interface Window {
-    createDummyCaseForCurrentUser?: (...args: Array<unknown>) => Promise<unknown>;
-  }
-}
 
 export default function AccountSection() {
   const [showNewPassword, setShowNewPassword] = useState(false);

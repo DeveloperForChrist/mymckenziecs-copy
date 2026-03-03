@@ -1,4 +1,3 @@
-import React from "react";
 import styles from "../documents-page-new.module.css";
 
 type DocumentsHeaderProps = {

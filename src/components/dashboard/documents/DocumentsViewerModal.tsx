@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import styles from "../documents-page-new.module.css";
 import type { Document } from "./types";
 
-type HighlightRange = { start: number; end: number; label?: string; reason?: string };
-
 type HighlightPart = { text: string; highlight: boolean };
+type HighlightRange = { start: number; end: number; label?: string; reason?: string };
 
 type DocumentsViewerModalProps = {
   document: Document | null;
@@ -31,9 +30,9 @@ export default function DocumentsViewerModal({
   previewHtml,
   previewUrl,
   buildHighlights,
-  buildHighlightsFromRanges,
+  buildHighlightsFromRanges: _buildHighlightsFromRanges,
   buildHighlightedHtml,
-  extractIssues,
+  extractIssues: _extractIssues,
   getPreviewKind,
   onClose,
 }: DocumentsViewerModalProps) {

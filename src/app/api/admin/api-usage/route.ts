@@ -7,6 +7,20 @@ export const dynamic = 'force-dynamic';
 
 
 const PERIODS: Record<string, number> = { day: 1, week: 7, month: 30 }
+const DEFAULT_LIMIT = 200;
+const MAX_LIMIT = 1000;
+
+function parsePositiveInt(input: string | null, fallback: number) {
+  const parsed = Number.parseInt(input || '', 10);
+  if (!Number.isFinite(parsed) || parsed < 0) return fallback;
+  return parsed;
+}
+
+function clampLimit(input: string | null) {
+  const parsed = parsePositiveInt(input, DEFAULT_LIMIT);
+  return Math.min(Math.max(parsed, 1), MAX_LIMIT);
+}
+
 type ApiUsageRow = {
   success?: boolean
   total_tokens?: number | null
@@ -20,7 +34,9 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = req.nextUrl
     const provider = searchParams.get('provider') || ''
-    const limit = Number(searchParams.get('limit') || '200')
+    const limit = clampLimit(searchParams.get('limit'))
+    const offset = parsePositiveInt(searchParams.get('offset'), 0)
+    const rangeEnd = offset + limit - 1
     const period = searchParams.get('period') || 'week'
 
     const now = new Date()
@@ -32,7 +48,7 @@ export async function GET(req: NextRequest) {
       .from('api_usage')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(limit)
+      .range(offset, rangeEnd)
       .gte('created_at', startDate.toISOString())
 
     if (provider) query = query.eq('provider', provider)
@@ -61,8 +77,13 @@ export async function GET(req: NextRequest) {
       usage,
       summary: { ...summary, errorRate },
       period: { key: period, start: startDate.toISOString(), end: now.toISOString() },
+      pagination: {
+        limit,
+        offset,
+        hasMore: usage.length === limit,
+      },
     })
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error('Error fetching api usage:', error)
     const message = error instanceof Error ? error.message : 'Failed to fetch api usage'
     return NextResponse.json({ error: message }, { status: 500 })

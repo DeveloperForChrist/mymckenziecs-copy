@@ -61,10 +61,22 @@ TONE:
 `;
 
 const OPENAI_MODEL = process.env.OPENAI_CHAT_MODEL || 'gpt-4o'
+const OPENAI_BASIC_MODEL = process.env.OPENAI_BASIC_MODEL || process.env.OPENAI_NON_PREMIUM_MODEL || 'gpt-4.1-mini'
 const GROQ_MODEL = process.env.GROQ_CHAT_MODEL || 'meta-llama/llama-4-maverick-17b-128e-instruct'
 const GROQ_FALLBACK_MODEL = process.env.GROQ_CHAT_FALLBACK_MODEL || 'llama-3.3-70b-versatile'
 const MAX_TOKENS = 1000
 const COMPREHENSIVE_TOKEN_BONUS = 0
+const BASIC_OPENAI_ROUTING_PERCENT_RAW =
+  process.env.BASIC_OPENAI_ROUTING_PERCENT ??
+  process.env.NON_PREMIUM_OPENAI_ROUTING_PERCENT ??
+  process.env.FREE_TIER_OPENAI_ROUTING_PERCENT
+const BASIC_OPENAI_ROUTING_PERCENT = Number.isFinite(Number(BASIC_OPENAI_ROUTING_PERCENT_RAW))
+  ? Math.min(100, Math.max(0, Math.floor(Number(BASIC_OPENAI_ROUTING_PERCENT_RAW))))
+  : 20
+const GROQ_RATE_LIMIT_COOLDOWN_MS = Number.isFinite(Number(process.env.GROQ_RATE_LIMIT_COOLDOWN_MS))
+  ? Math.max(250, Number(process.env.GROQ_RATE_LIMIT_COOLDOWN_MS))
+  : 3000
+let groqRateLimitedUntil = 0
 
 // =====================================================
 // SIMPLE HELPERS
@@ -79,6 +91,26 @@ type LegalAgentOptions = {
   includeCitations?: boolean
   provider?: LlmProvider
   openaiModel?: string
+}
+
+function stableBucketPercent(input: string): number {
+  let hash = 0
+  for (let i = 0; i < input.length; i += 1) {
+    hash = ((hash * 31) + input.charCodeAt(i)) | 0
+  }
+  return Math.abs(hash) % 100
+}
+
+function chooseBasicProvider(userKey?: string): LlmProvider {
+  if (BASIC_OPENAI_ROUTING_PERCENT <= 0) return 'groq'
+  if (BASIC_OPENAI_ROUTING_PERCENT >= 100) return 'openai'
+
+  const key = (userKey || '').trim()
+  if (!key) {
+    return Math.random() * 100 < BASIC_OPENAI_ROUTING_PERCENT ? 'openai' : 'groq'
+  }
+
+  return stableBucketPercent(key) < BASIC_OPENAI_ROUTING_PERCENT ? 'openai' : 'groq'
 }
 
 // Sanitize history
@@ -364,13 +396,19 @@ async function callLLM(
   systemPrompt: string = SYSTEM_PROMPT,
   model: string = OPENAI_MODEL,
   maxTokens: number = MAX_TOKENS,
-  provider: LlmProvider = 'openai'
+  provider: LlmProvider = 'openai',
+  openAiFallbackModel: string = OPENAI_MODEL
 ): Promise<string> {
   if (provider === 'groq') {
     const groqApiKey = process.env.GROQ_API_KEY
     if (!groqApiKey) {
       console.error('GROQ_API_KEY is not set for Groq provider request')
-      return "I'm unable to respond right now because the free-tier model is unavailable. Please try again shortly."
+      return "I'm unable to respond right now because the base model is unavailable. Please try again shortly."
+    }
+
+    if (Date.now() < groqRateLimitedUntil) {
+      // Temporary circuit breaker after Groq 429 bursts.
+      return callLLM(prompt, systemPrompt, openAiFallbackModel, maxTokens, 'openai', openAiFallbackModel)
     }
 
     try {
@@ -393,6 +431,13 @@ async function callLLM(
         })
 
         if (!response.ok) {
+          if (response.status === 429) {
+            const retryAfterHeader = response.headers.get('retry-after')
+            const retryAfterMs = Number.isFinite(Number(retryAfterHeader))
+              ? Math.max(250, Math.floor(Number(retryAfterHeader) * 1000))
+              : GROQ_RATE_LIMIT_COOLDOWN_MS
+            groqRateLimitedUntil = Math.max(groqRateLimitedUntil, Date.now() + retryAfterMs)
+          }
           const details = await response.text().catch(() => '')
           throw new Error(`Groq model ${modelName} failed (${response.status}): ${details}`)
         }
@@ -418,9 +463,15 @@ async function callLLM(
         }
         throw primaryError
       }
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Groq API Error:', error)
-      return "I'm unable to respond right now because the free-tier model is unavailable. Please try again shortly."
+      try {
+        // Final fallback to OpenAI if Groq is saturated/unavailable.
+        return await callLLM(prompt, systemPrompt, openAiFallbackModel, maxTokens, 'openai', openAiFallbackModel)
+      } catch (openAiFallbackError) {
+        console.error('OpenAI fallback after Groq failure also failed:', openAiFallbackError)
+        return "I'm unable to respond right now because the base model is unavailable. Please try again shortly."
+      }
     }
   }
 
@@ -437,7 +488,7 @@ async function callLLM(
       { role: 'user' as const, content: prompt }
     ]
     const buildPayload = (useMaxCompletionTokens: boolean) => {
-      const basePayload: Record<string, unknown> = {
+      const basePayload: Record<string, any> = {
         model,
         messages,
       }
@@ -476,7 +527,7 @@ async function callLLM(
     }
 
     return stripMarkdown(stripUrlsFromText(rawResponse))
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error('OpenAI API Error:', error)
     return "I'm having a problem. Please try again later."
   }
@@ -560,7 +611,7 @@ export async function createLegalAgent(
           const directPrompt = `${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. Output must be plain text only. Follow the presentation rules.`
           const llmProvider: LlmProvider = options?.provider || 'openai'
           const modelForProvider = llmProvider === 'groq' ? GROQ_MODEL : openaiModel
-          const directAnswer = await callLLM(directPrompt, systemPrompt, modelForProvider, MAX_TOKENS, llmProvider)
+          const directAnswer = await callLLM(directPrompt, systemPrompt, modelForProvider, MAX_TOKENS, llmProvider, openaiModel)
           const neutralDirectAnswer = neutralizeLegalAdviceTone(directAnswer)
           return {
             response: neutralDirectAnswer,
@@ -590,8 +641,8 @@ export async function createLegalAgent(
         let sourceMode: 'engine' | 'fallback' | 'none' = 'none'
 
         try {
-          const parsed = JSON.parse(searchResult) as { sources?: unknown[]; packet?: string; sourceMode?: unknown }
-          sources = Array.isArray(parsed.sources) ? parsed.sources.filter((u: unknown): u is string => typeof u === 'string') : []
+          const parsed = JSON.parse(searchResult) as { sources?: any[]; packet?: string; sourceMode?: any }
+          sources = Array.isArray(parsed.sources) ? parsed.sources.filter((u: any): u is string => typeof u === 'string') : []
           searchedInfo = typeof parsed.packet === 'string' ? parsed.packet : ''
           if (parsed.sourceMode === 'engine' || parsed.sourceMode === 'fallback' || parsed.sourceMode === 'none') {
             sourceMode = parsed.sourceMode
@@ -624,26 +675,41 @@ export async function createLegalAgent(
 
         // 5. DISCRIMINATOR: Critic/revise/verify the comprehensive answer for the user
         if (useDiscriminator) {
-          const discriminatorAgent = await createDiscriminatorAgent(trimmedHistory, caseKeywords, effectiveIncludeCitations)
-          const streamlined = await discriminatorAgent.invoke({
-            input: latestQuestion,
-            comprehensiveAnswer: comprehensiveAnswer,
-            allSources: sources
-          })
+          try {
+            const discriminatorAgent = await createDiscriminatorAgent(trimmedHistory, caseKeywords, effectiveIncludeCitations)
+            const streamlined = await discriminatorAgent.invoke({
+              input: latestQuestion,
+              comprehensiveAnswer: comprehensiveAnswer,
+              allSources: sources
+            })
 
-          const final = ensureCitationsForPremium(
-            neutralizeLegalAdviceTone(streamlined.streamlinedAnswer),
-            sources,
-            effectiveIncludeCitations
-          )
-          const finalResponse = final.responseText
-          const citedSources = final.sources || streamlined.citedSources
+            const final = ensureCitationsForPremium(
+              neutralizeLegalAdviceTone(streamlined.streamlinedAnswer),
+              sources,
+              effectiveIncludeCitations
+            )
+            const finalResponse = final.responseText
+            const citedSources = final.sources || streamlined.citedSources
 
-          return {
-            response: finalResponse,
-            document_generated: false,
-            guidance_provided: true,
-            sources: citedSources
+            return {
+              response: finalResponse,
+              document_generated: false,
+              guidance_provided: true,
+              sources: citedSources
+            }
+          } catch (discriminatorError: any) {
+            console.error('Discriminator unavailable; falling back to primary legal answer', discriminatorError)
+            const fallback = ensureCitationsForPremium(
+              neutralizeLegalAdviceTone(comprehensiveAnswer),
+              sources,
+              effectiveIncludeCitations
+            )
+            return {
+              response: fallback.responseText,
+              document_generated: false,
+              guidance_provided: true,
+              sources: fallback.sources
+            }
           }
         }
 
@@ -658,10 +724,10 @@ export async function createLegalAgent(
           guidance_provided: true,
           sources: finalNoEngineCitations.sources
         }
-      } catch (error: unknown) {
+      } catch (error: any) {
         const message = error instanceof Error ? error.message : ''
         const status = (typeof error === 'object' && error !== null && 'status' in error)
-          ? ((error as { status?: unknown }).status as number | undefined)
+          ? ((error as { status?: any }).status as number | undefined)
           : undefined
 
         if (message.includes('rate limit') || status === 429) {
@@ -683,8 +749,8 @@ export async function createLegalAgent(
  */
 export async function invokeLegalAgent(
   message: string,
-  threadId: string,
-  userId?: string,
+  _threadId: string,
+  _userId?: string,
   conversationHistory: Array<{ role: string; content: string }> = [],
   caseKeywords?: string,
   options?: { useDiscriminator?: boolean; useSearch?: boolean; includeCitations?: boolean; openaiModel?: string }
@@ -700,18 +766,20 @@ export async function invokeLegalAgent(
   }
 }
 
-export async function invokeFreeLegalAgent(
+export async function invokeBasicLegalAgent(
   message: string,
   threadId: string,
   userId?: string,
   conversationHistory: Array<{ role: string; content: string }> = [],
   caseKeywords?: string
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
+  const basicProvider = chooseBasicProvider(userId || threadId)
   const agent = await createLegalAgent(conversationHistory, caseKeywords, undefined, {
     useDiscriminator: false,
     useSearch: false,
     systemPrompt: SYSTEM_PROMPT_FREE,
-    provider: 'groq'
+    provider: basicProvider,
+    openaiModel: OPENAI_BASIC_MODEL
   })
   const response = await agent.invoke({ input: message })
   return {

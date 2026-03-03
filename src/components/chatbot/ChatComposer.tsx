@@ -60,7 +60,7 @@ export default function ChatComposer({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '24px'
+            padding: 'clamp(12px, 4vw, 24px)'
           }}
           onClick={onCloseGuestSignupModal}
         >
@@ -68,20 +68,20 @@ export default function ChatComposer({
             onClick={(e) => e.stopPropagation()}
             style={{
               width: '100%',
-              maxWidth: '520px',
+              maxWidth: 'min(520px, 100vw)',
               background: 'rgba(20, 6, 26, 0.98)',
               border: '1px solid rgba(255,255,255,0.12)',
               borderRadius: '16px',
-              padding: '28px',
+              padding: 'clamp(18px, 5vw, 28px)',
               color: '#fff',
               boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
             }}
           >
-            <div style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '10px' }}>
+            <div style={{ fontSize: 'clamp(1.1rem, 4.8vw, 1.35rem)', fontWeight: 700, marginBottom: '10px' }}>
               Sign up to attach documents
             </div>
             <div style={{ opacity: 0.85, lineHeight: 1.6, marginBottom: '20px' }}>
-              File uploads are available to registered users. Create a free account to upload documents and keep them with your case.
+              File uploads are available to registered users. Create an account to upload documents and keep them with your case.
             </div>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
               <button
@@ -124,7 +124,7 @@ export default function ChatComposer({
                   textDecoration: 'none'
                 }}
               >
-                Create free account
+                Create account
               </Link>
             </div>
           </div>
@@ -137,18 +137,18 @@ export default function ChatComposer({
           right: 0,
           bottom: 0,
           width: '100%',
-          padding: '0 24px 12px 24px',
+          padding: '0 max(10px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left))',
           pointerEvents: 'auto',
           zIndex: 50,
           background: 'transparent',
         }}
       >
-        <div style={{ width: '100%', maxWidth: '760px', margin: '0 auto', position: 'relative', pointerEvents: 'auto', display: 'flex', justifyContent: 'center' }}>
+        <div style={{ width: '100%', maxWidth: 'min(760px, 100vw)', margin: '0 auto', position: 'relative', pointerEvents: 'auto', display: 'flex', justifyContent: 'center' }}>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0', width: '100%', alignItems: 'center' }}>
             <div
               style={{
                 width: '100%',
-                maxWidth: '700px',
+                maxWidth: 'min(700px, 100vw)',
                 margin: '0 auto',
                 borderRadius: '12px',
                 background: 'linear-gradient(135deg, #2a0726 0%, #4b1b4f 60%, rgba(43,11,42,0.95) 100%)',
@@ -156,7 +156,7 @@ export default function ChatComposer({
                 WebkitBackdropFilter: 'blur(6px)',
                 border: '1px solid rgba(236,72,153,0.18)',
                 boxShadow: '0 10px 30px rgba(25,6,30,0.6), inset 0 1px 0 rgba(255,255,255,0.02)',
-                padding: '12px 16px',
+                padding: '10px 12px',
                 transition: 'background 0.25s, box-shadow 0.25s, transform 0.15s',
                 display: 'flex',
                 flexDirection: 'column',
@@ -402,7 +402,7 @@ export default function ChatComposer({
                 maxWidth: '700px',
                 margin: '10px auto 0',
                 textAlign: 'center',
-                fontSize: '13px',
+                fontSize: 'clamp(11px, 2.8vw, 13px)',
                 fontWeight: 600,
                 color: 'rgba(255,255,255,0.78)',
                 lineHeight: 1.4,
@@ -414,7 +414,7 @@ export default function ChatComposer({
             {showWordLimitWarning && (
               <div style={{ textAlign: 'center', marginTop: '12px' }}>
                 <p style={{
-                  fontSize: '16px',
+                  fontSize: 'clamp(13px, 3.3vw, 16px)',
                   color: '#ff4444',
                   fontWeight: '600',
                   margin: 0

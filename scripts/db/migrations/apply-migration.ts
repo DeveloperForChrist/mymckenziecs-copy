@@ -61,7 +61,7 @@ async function runMigration() {
         console.log(`[${i + 1}/${statements.length}] ${displayText}`);
         
         // Try using the admin API directly
-        const { data, error } = await supabase.from('_migrations').insert(
+        await supabase.from('_migrations').insert(
           { migration: `statement_${i}`, executed_at: new Date() }
         ).select();
         

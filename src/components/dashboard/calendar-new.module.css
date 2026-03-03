@@ -569,3 +569,108 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 700px) {
+  .calendarPage {
+    padding: 12px 0 22px;
+  }
+
+  .header {
+    padding: 14px;
+    border-radius: 16px;
+    gap: 12px;
+  }
+
+  .headerTitle h1 {
+    font-size: 1.35rem;
+  }
+
+  .headerTitle p {
+    font-size: 0.9rem;
+  }
+
+  .headerActions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .navButton,
+  .primaryButton {
+    display: inline-flex;
+    align-items: center;
+    flex: 1;
+    min-width: 110px;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .layout {
+    gap: 14px;
+    margin-top: 14px;
+  }
+
+  .calendarCard {
+    padding: 12px;
+    overflow-x: auto;
+  }
+
+  .monthTitle {
+    font-size: 1rem;
+  }
+
+  .monthGrid {
+    gap: 4px;
+  }
+
+  .dayHeader {
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    padding: 4px 0;
+  }
+
+  .dayCell {
+    min-height: 72px;
+    padding: 6px;
+    gap: 4px;
+    border-radius: 10px;
+  }
+
+  .dayNumber {
+    font-size: 0.78rem;
+  }
+
+  .eventPill {
+    font-size: 0.62rem;
+    padding: 3px 5px;
+  }
+
+  .sidebar,
+  .addCard,
+  .preferenceCard {
+    padding: 14px;
+  }
+
+  .eventsPanelHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .eventsModeSwitch {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .preferenceRow {
+    align-items: flex-start;
+  }
+
+  .eventActions {
+    flex-wrap: wrap;
+  }
+
+  .modalActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

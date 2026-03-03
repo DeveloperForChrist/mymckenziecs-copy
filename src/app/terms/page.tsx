@@ -1,17 +1,18 @@
-import React from 'react';
 import LegalPageLayout from '@/components/layout/LegalPageLayout';
+
+export const revalidate = 86400;
 
 export default function TermsPage() {
   return (
     <LegalPageLayout
       title="Terms & Conditions"
       subtitle="Clear rules for using the platform and keeping your case data safe."
-      meta="Owned by MyMcKenzieCS Ltd • Last Updated: February 10, 2026"
+      meta="Owned by Lenjordan Ltd • Last Updated: March 2, 2026"
     >
       <ol className="list-decimal pl-6 space-y-6 text-base md:text-lg">
         <li>
           <b>Introduction</b>
-          <p className="mt-2">These Terms and Conditions (&quot;Terms&quot;) govern your access to and use of MyMcKenzieCS (&quot;The Platform&quot;), owned and operated by MyMcKenzieCS Ltd (&quot;We&quot;, &quot;Us&quot;, &quot;Our&quot;).</p>
+          <p className="mt-2">These Terms and Conditions (&quot;Terms&quot;) govern your access to and use of MyMcKenzieCS (&quot;The Platform&quot;), owned and operated by Lenjordan Ltd (&quot;We&quot;, &quot;Us&quot;, &quot;Our&quot;).</p>
           <p>By registering an account, using the Platform, or purchasing any service, you agree to these Terms. If you do not agree, you must stop using the Platform immediately.</p>
           <p>MyMcKenzieCS is a digital tool for Litigants in Person, providing AI-powered guidance, drafting assistance, and case-support tools. We are not a law firm and do not provide legal advice.</p>
         </li>
@@ -41,7 +42,7 @@ export default function TermsPage() {
             <li><b>Document Review:</b> AI analysis of uploaded case files, highlighting missing information or inconsistencies</li>
             <li><b>Case Dashboard:</b> Evidence organisation, timeline building, note-taking, progress tracking</li>
             <li><b>Research Tools:</b> Explanations of legislation, case management guidance, plain-English interpretations</li>
-            <li><b>Subscription Services:</b> Free tier, Basic, Premium, Premium +, One-off consultation/drafting payments</li>
+            <li><b>Subscription Services:</b> Basic, Premium, and Premium + paid plans</li>
           </ul>
         </li>
         <li>
@@ -58,12 +59,19 @@ export default function TermsPage() {
         <li>
           <b>Payments &amp; Billing</b>
           <ol className="list-decimal pl-6 mt-2 space-y-1">
-            <li>Paid services include subscription tiers, case-insights fees, and premium document features.</li>
+            <li>Paid services are provided through recurring subscription plans (Basic, Premium, and Premium +).</li>
             <li>All payments are made in advance.</li>
             <li>Prices are listed on the Platform and may change with notice.</li>
             <li>Subscriptions renew automatically unless cancelled through your account settings.</li>
             <li>You are responsible for cancelling your subscription before renewal if you do not wish to continue.</li>
-            <li>One-off payments are non-recurring.</li>
+            <li>If payment fails, your subscription may move to a <b>past_due</b> status with a grace period typically up to 5 days (or as stated in your billing notices).</li>
+            <li>During grace, we may retry payment and send billing reminders to your account email.</li>
+            <li>If payment is not completed by grace expiry, your subscription may become <b>expired</b> or <b>cancelled</b> and paid features are paused.</li>
+            <li>After lapse, dashboard tools may switch to read-only mode and chat input/attachments may be locked until billing is resumed.</li>
+            <li>During read-only mode, retained data remains available for viewing and download where supported.</li>
+            <li>For long-term non-payment, lifecycle timelines apply (typically hard lock/archive around day 30 and deletion scheduling around day 90, subject to product notices).</li>
+            <li>We send lifecycle warning emails before hard lock and deletion milestones (typically at 7, 5, 3, and 1 days).</li>
+            <li>Operational billing/security communications are essential service notices and are not marketing messages.</li>
           </ol>
         </li>
         <li>
@@ -95,7 +103,7 @@ export default function TermsPage() {
         <li>
           <b>Intellectual Property</b>
           <ol className="list-decimal pl-6 mt-2 space-y-1">
-            <li>The Platform, branding, design, algorithms, and AI workflows belong to MyMcKenzieCS Ltd.</li>
+            <li>The Platform, branding, design, algorithms, and AI workflows belong to Lenjordan Ltd.</li>
             <li>You retain ownership of documents and data you upload.</li>
             <li>Generated drafts belong to you once created, but you grant us a licence to process them for quality improvement and system functioning.</li>
             <li>You may not:
@@ -140,8 +148,9 @@ export default function TermsPage() {
             <li>Uploading illegal or harmful content</li>
             <li>Fraudulent payment activity</li>
             <li>Violations of these Terms</li>
+            <li>Long-term non-payment under the billing lifecycle described above</li>
           </ul>
-          <p className="mt-2">If a paid subscription lapses, account features may be restricted and retention timelines (archive/deletion) may apply after final notice emails.</p>
+          <p className="mt-2">If a paid subscription lapses, account features may be restricted and retention timelines (read-only, archive, and deletion phases) may apply after notice emails.</p>
           <p className="mt-2">You may delete your account at any time.</p>
         </li>
         <li>
@@ -164,7 +173,7 @@ export default function TermsPage() {
         </li>
         <li>
           <b>Contact Information</b>
-          <p className="mt-2">MyMcKenzieCS Ltd<br/>Email: support@mymckenziecs.com<br/>Registered Office: [Insert]</p>
+          <p className="mt-2">Lenjordan Ltd<br/>Email: support@mymckenziecs.com<br/>Registered Office: [Insert]</p>
         </li>
         <li>
           <b>Agreement</b>

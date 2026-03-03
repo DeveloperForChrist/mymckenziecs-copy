@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     const response = NextResponse.json({ ok: true })
     response.cookies.set(adminSessionCookieName, token, getAdminCookieOptions())
     return response
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error('Admin login failed:', error)
     return NextResponse.json({ error: 'Login failed' }, { status: 500 })
   }

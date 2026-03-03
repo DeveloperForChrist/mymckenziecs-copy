@@ -1,5 +1,8 @@
 import SignInForm from '@/components/auth/SignInForm'
 import styles from '@/app/auth/auth.module.css'
+import { Suspense } from 'react'
+
+export const revalidate = 86400
 
 export default function SignInPage() {
   return (
@@ -29,7 +32,6 @@ export default function SignInPage() {
               </div>
             </div>
             <div className={styles.heroFooter}>
-              <span className={styles.pill}>Persistent chat history</span>
               <a href="/pricing">Pricing</a>
               <a href="/faq">Plan FAQ</a>
             </div>
@@ -42,7 +44,9 @@ export default function SignInPage() {
                 Sign in to resume your case workspace and review updated notes.
               </p>
             </div>
-            <SignInForm />
+            <Suspense fallback={<div className={styles.formSubtitle}>Loading sign in form...</div>}>
+              <SignInForm />
+            </Suspense>
             <p className={styles.footnote}>
               Don&apos;t have an account?{' '}
               <a href="/pricing" className={styles.inlineLink}>

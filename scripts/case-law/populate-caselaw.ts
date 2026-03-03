@@ -1,4 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
 import { OpenAI } from 'openai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -21,11 +20,6 @@ interface CaseData {
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 async function generateEmbedding(text: string): Promise<number[]> {
   try {

@@ -15,6 +15,38 @@ type UserRow = {
   updated_at?: string | null
 }
 
+const DEFAULT_LIMIT = 50;
+const MAX_LIMIT = 200;
+
+function parsePositiveInt(input: string | null, fallback: number) {
+  const parsed = Number.parseInt(input || '', 10);
+  if (!Number.isFinite(parsed) || parsed < 0) return fallback;
+  return parsed;
+}
+
+function clampLimit(input: string | null) {
+  const parsed = parsePositiveInt(input, DEFAULT_LIMIT);
+  return Math.min(Math.max(parsed, 1), MAX_LIMIT);
+}
+
+function normalizePlanLabel(input: string | null | undefined) {
+  const value = String(input || '').trim().toLowerCase();
+  if (!value) return '';
+  if (value === 'premium +' || value === 'premium plus' || value === 'plus' || value === 'premium pro') return 'premium +';
+  if (value === 'basic' || value === 'essential' || value === 'premium cheap') return 'basic';
+  if (value === 'premium') return 'premium';
+  if (value === 'none' || value === 'no plan' || value === 'inactive') return 'no plan';
+  return value;
+}
+
+function formatPlanLabel(input: string | null | undefined) {
+  const normalized = normalizePlanLabel(input);
+  if (normalized === 'premium +') return 'Premium +';
+  if (normalized === 'premium') return 'Premium';
+  if (normalized === 'basic') return 'Basic';
+  if (normalized === 'no plan' || !normalized) return 'No plan';
+  return input || 'No plan';
+}
 
 export async function GET(request: Request) {
   try {
@@ -23,15 +55,16 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
-    const planFilter = searchParams.get('plan') || '';
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const planFilter = normalizePlanLabel(searchParams.get('plan'));
+    const limit = clampLimit(searchParams.get('limit'));
+    const offset = parsePositiveInt(searchParams.get('offset'), 0);
+    const rangeEnd = offset + limit - 1;
 
-    // Fetch users from Supabase
     let query = supabaseAdmin
       .from('users')
-      .select('*')
+      .select('id, email, name, fullName, address, created_at, updated_at')
       .order('created_at', { ascending: false })
-      .limit(limit);
+      .range(offset, rangeEnd);
 
     if (search) {
       query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%`);
@@ -44,23 +77,35 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
     }
 
+    const typedUsersData = (usersData || []) as UserRow[];
+    const userIds = typedUsersData.map((row) => row.id).filter(Boolean);
+    const latestPlanByUser = new Map<string, string>();
+
+    if (userIds.length > 0) {
+      const { data: subscriptionsData, error: subscriptionsError } = await supabaseAdmin
+        .from('subscriptions')
+        .select('user_id, plan_type, updated_at')
+        .in('user_id', userIds)
+        .in('status', ['active', 'past_due'])
+        .order('updated_at', { ascending: false });
+
+      if (subscriptionsError) {
+        console.error('Error fetching subscriptions:', subscriptionsError);
+      } else {
+        for (const row of subscriptionsData || []) {
+          const userId = String((row as any).user_id || '');
+          if (!userId || latestPlanByUser.has(userId)) continue;
+          latestPlanByUser.set(userId, formatPlanLabel((row as any).plan_type));
+        }
+      }
+    }
+
     const users = [];
 
-    for (const userData of (usersData || []) as UserRow[]) {
-      // Check subscription for plan - get the most recent active subscription
-      const { data: activeSub } = await supabaseAdmin
-        .from('subscriptions')
-        .select('plan_type, updated_at')
-        .eq('user_id', userData.id)
-        .in('status', ['active', 'past_due'])
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+    for (const userData of typedUsersData) {
+      const userPlan = latestPlanByUser.get(userData.id) || 'No plan';
 
-      const userPlan = activeSub?.plan_type || 'Free';
-
-      // Apply plan filter
-      if (planFilter && userPlan !== planFilter) {
+      if (planFilter && normalizePlanLabel(userPlan) !== planFilter) {
         continue;
       }
 
@@ -77,8 +122,16 @@ export async function GET(request: Request) {
       });
     }
 
-    return NextResponse.json({ users, total: users.length });
-  } catch (error: unknown) {
+    return NextResponse.json({
+      users,
+      total: users.length,
+      pagination: {
+        limit,
+        offset,
+        hasMore: typedUsersData.length === limit,
+      },
+    });
+  } catch (error: any) {
     console.error('Error fetching users:', error);
     const message = error instanceof Error ? error.message : 'Failed to fetch users';
     return NextResponse.json({ error: message }, { status: 500 });
@@ -115,7 +168,7 @@ export async function POST(request: Request) {
 
       case 'updatePlan': {
         // Validate plan
-        const validPlans = ['free', 'basic', 'premium', 'premium +', 'premium plus', 'essential', 'plus', 'premium cheap', 'premium pro'];
+        const validPlans = ['none', 'no plan', 'inactive', 'basic', 'premium', 'premium +', 'premium plus', 'essential', 'plus', 'premium cheap', 'premium pro'];
         if (!data?.plan || !validPlans.includes(data.plan.toLowerCase())) {
           console.error('❌ Invalid plan:', data?.plan);
           return NextResponse.json({ 
@@ -133,8 +186,8 @@ export async function POST(request: Request) {
               ? 'Premium'
               : requestedPlan === 'basic' || requestedPlan === 'essential' || requestedPlan === 'premium cheap'
                 ? 'Basic'
-                : requestedPlan === 'free'
-                  ? 'Free'
+                : requestedPlan === 'none' || requestedPlan === 'no plan' || requestedPlan === 'inactive'
+                  ? 'No plan'
                   : requestedPlan;
 
         console.log(`🔄 Updating plan for user ${userId} to ${planToSet}`);
@@ -229,7 +282,7 @@ export async function POST(request: Request) {
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error('Error performing user action:', error);
     const message = error instanceof Error ? error.message : 'Failed to perform user action';
     return NextResponse.json({ error: message }, { status: 500 });

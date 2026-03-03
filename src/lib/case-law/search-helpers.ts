@@ -3,10 +3,10 @@ import path from 'path';
 import OpenAI from 'openai';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 
-let _localCaseMap: Map<string, any> | null = null;
+let _localCaseMap: Map<string, Record<string, any>> | null = null;
 function loadLocalCaseMap() {
   if (_localCaseMap) return _localCaseMap;
-  const map = new Map<string, any>();
+  const map = new Map<string, Record<string, any>>();
   try {
     const curatedPath = path.join(process.cwd(), 'data', 'bronze', 'case-law', 'curated.json');
     if (fs.existsSync(curatedPath)) {
@@ -38,8 +38,8 @@ function loadLocalCaseMap() {
 }
 
 // Remove duplicate cases based on citation
-function removeDuplicates(results: any[]) {
-  const map = new Map<string, any>();
+function removeDuplicates(results: Array<Record<string, any>>) {
+  const map = new Map<string, Record<string, any>>();
   for (const result of results) {
     const key = result.citation || result.id;
     if (!key) continue;
@@ -51,7 +51,7 @@ function removeDuplicates(results: any[]) {
       continue;
     }
 
-    const existing = map.get(key);
+    const existing = map.get(key) || {};
     const existingSources = new Set<string>(Array.isArray(existing.sources) ? existing.sources : []);
     const nextSources = Array.isArray(result.sources)
       ? result.sources
@@ -322,7 +322,7 @@ function parseRSSFeed(rssText: string, query: string, limit: number, source: str
 async function enrichResultsWithSupabase(results: any[]) {
   if (!results || results.length === 0) return;
 
-  const isUuid = (value: unknown) =>
+  const isUuid = (value: any) =>
     typeof value === 'string' &&
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
@@ -383,7 +383,7 @@ async function enrichResultsWithSupabase(results: any[]) {
       if (Array.isArray(data)) mergedRows.push(...data);
     }
 
-    const map = new Map<string, any>();
+    const map = new Map<string, Record<string, any>>();
     for (const row of mergedRows) {
       if (row.id) map.set(String(row.id), row);
       if (row.citation) map.set(String(row.citation), row);

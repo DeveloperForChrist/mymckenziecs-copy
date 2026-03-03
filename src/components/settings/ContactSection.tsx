@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import styles from './settingsPage.module.css';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
+import { isPremiumPlusPlan } from '@/lib/plans/access';
 
 export default function ContactSection() {
   const [userEmail, setUserEmail] = useState<string>('');
-  const [userName, setUserName] = useState<string>('');
-  const [userPlan, setUserPlan] = useState<string>('Free');
+  const [userPlan, setUserPlan] = useState<string>('No plan');
   const [formData, setFormData] = useState({
     subject: '',
     message: '',
@@ -21,7 +21,6 @@ export default function ContactSection() {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           setUserEmail(user.email || '');
-          setUserName(user.user_metadata?.full_name || user.email?.split('@')[0] || 'User');
         }
       } catch (error) {
         console.error('Failed to fetch user data:', error);
@@ -36,7 +35,7 @@ export default function ContactSection() {
         const res = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
-        setUserPlan((data?.plan || 'Free').toString());
+        setUserPlan((data?.plan || 'No plan').toString());
       } catch (error) {
         console.error('Failed to fetch user plan:', error);
       }
@@ -45,8 +44,8 @@ export default function ContactSection() {
   }, []);
 
   const planLabel = userPlan.toString();
-  const isPremiumPlusPlan = /premium\s*plus|plus|premium\s*pro|premium\s*cheap/i.test(planLabel);
-  const responseTime = isPremiumPlusPlan ? 'within 24 hours' : 'within 2-3 days';
+  const hasPremiumPlusSupport = isPremiumPlusPlan(planLabel);
+  const responseTime = hasPremiumPlusSupport ? 'within 24 hours' : 'within 2-3 days';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

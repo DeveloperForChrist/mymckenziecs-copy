@@ -1,5 +1,6 @@
-import React from 'react';
 import LegalPageLayout from '@/components/layout/LegalPageLayout';
+
+export const revalidate = 86400;
 
 export default function HelpPage() {
   return (

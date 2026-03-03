@@ -1,5 +1,4 @@
 "use client";
-import React from 'react';
 import styles from './settingsSidebar.module.css';
 
 type Item = { label: string; key: string };

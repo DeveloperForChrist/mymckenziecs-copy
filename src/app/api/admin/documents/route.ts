@@ -15,6 +15,20 @@ type DocumentRow = {
   file_size?: number | null
 }
 
+const DEFAULT_LIMIT = 50;
+const MAX_LIMIT = 250;
+
+function parsePositiveInt(input: string | null, fallback: number) {
+  const parsed = Number.parseInt(input || '', 10);
+  if (!Number.isFinite(parsed) || parsed < 0) return fallback;
+  return parsed;
+}
+
+function clampLimit(input: string | null) {
+  const parsed = parsePositiveInt(input, DEFAULT_LIMIT);
+  return Math.min(Math.max(parsed, 1), MAX_LIMIT);
+}
+
 export async function GET(request: Request) {
   try {
     const admin = await requireAdminSession();
@@ -22,7 +36,9 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId') || '';
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const limit = clampLimit(searchParams.get('limit'));
+    const offset = parsePositiveInt(searchParams.get('offset'), 0);
+    const rangeEnd = offset + limit - 1;
 
     let query = supabaseAdmin
       .from('documents')
@@ -38,7 +54,7 @@ export async function GET(request: Request) {
       `)
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
-      .limit(limit);
+      .range(offset, rangeEnd);
 
     if (userId) {
       query = query.eq('uploaded_by', userId);
@@ -63,11 +79,16 @@ export async function GET(request: Request) {
       contentLength: doc.file_size || 0
     }));
 
-    return NextResponse.json({ 
-      documents, 
-      total: documents.length 
+    return NextResponse.json({
+      documents,
+      total: documents.length,
+      pagination: {
+        limit,
+        offset,
+        hasMore: (docsData || []).length === limit,
+      },
     });
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error('Error fetching documents:', error);
     const message = error instanceof Error ? error.message : 'Failed to fetch documents';
     return NextResponse.json({ error: message }, { status: 500 });

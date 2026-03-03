@@ -99,7 +99,6 @@ try {
 ### 4. Input Validation (Zod)
 **Files**: 
 - `src/validators/index.ts` - General schemas
-- `src/validators/api-schemas.ts` - API-specific schemas
 
 Type-safe validation for all API inputs using Zod.
 

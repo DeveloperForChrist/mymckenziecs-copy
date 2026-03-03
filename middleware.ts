@@ -1,6 +1,28 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const parsePositiveInt = (value: string | undefined, fallback: number) => {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallback
+}
+
+const REQUEST_TIMING_WARN_MS = parsePositiveInt(process.env.REQUEST_TIMING_WARN_MS, 250)
+const LOG_REQUEST_TIMING = process.env.LOG_REQUEST_TIMING === '1'
+
+const logMiddlewarePerf = (
+  phase: string,
+  startedAt: number,
+  pathname: string,
+  metadata?: Record<string, string | number | boolean>
+) => {
+  const durationMs = Date.now() - startedAt
+  if (!LOG_REQUEST_TIMING && durationMs < REQUEST_TIMING_WARN_MS) return
+  const extra = metadata
+    ? Object.entries(metadata).map(([key, value]) => `${key}=${String(value)}`).join(' ')
+    : ''
+  console.info(`[perf][middleware] phase=${phase} duration_ms=${durationMs} path=${pathname}${extra ? ` ${extra}` : ''}`)
+}
+
 function hasPaidPlan(plan: unknown): boolean {
   const label = String(plan || '').toLowerCase()
   return (
@@ -40,7 +62,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
           response = NextResponse.next({
@@ -55,9 +77,11 @@ export async function middleware(request: NextRequest) {
   )
 
   // Refresh session if exists
+  const authStartedAt = Date.now()
   const {
     data: { user },
   } = await supabase.auth.getUser()
+  logMiddlewarePerf('auth.getUser', authStartedAt, pathname, { authenticated: Boolean(user) })
 
   // Protected routes - require authentication
   const protectedPaths = [
@@ -122,16 +146,38 @@ export async function middleware(request: NextRequest) {
 
   const softSuspendedPaths = ['/dashboard', '/chatbot', '/settings']
   const isSoftSuspendedPath = softSuspendedPaths.some((path) => pathname.startsWith(path))
+  const requiresPaidPlan = paidPlanPaths.some((path) => pathname.startsWith(path)) && Boolean(user)
 
-  if (user && isSoftSuspendedPath) {
-    const { data: latestSub } = await supabase
+  let latestSub: { plan_type?: string | null; status?: string | null; lifecycle_archived_at?: string | null } | null = null
+  let activeSub: { plan_type?: string | null; status?: string | null } | null = null
+
+  if (user && (isSoftSuspendedPath || requiresPaidPlan)) {
+    const subStartedAt = Date.now()
+    const { data: subscriptions, error: subError } = await supabase
       .from('subscriptions')
       .select('plan_type, status, lifecycle_archived_at')
       .eq('user_id', user.id)
       .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+      .limit(5)
 
+    logMiddlewarePerf('subscriptions.snapshot', subStartedAt, pathname, {
+      rowCount: subscriptions?.length || 0,
+      hasError: Boolean(subError),
+    })
+
+    if (subError) {
+      console.error('Error checking subscription status in middleware:', subError)
+    } else {
+      latestSub = subscriptions?.[0] || null
+      activeSub =
+        subscriptions?.find((sub) => {
+          const status = String(sub?.status || '').toLowerCase()
+          return status === 'active' || status === 'past_due'
+        }) || null
+    }
+  }
+
+  if (user && isSoftSuspendedPath) {
     const status = String(latestSub?.status || '').toLowerCase()
     const hardLocked =
       hasPaidPlan(latestSub?.plan_type) &&
@@ -145,22 +191,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  const requiresPaidPlan = paidPlanPaths.some((path) => pathname.startsWith(path)) && user
-
   if (requiresPaidPlan && user) {
-    const { data: activeSub, error: subError } = await supabase
-      .from('subscriptions')
-      .select('plan_type')
-      .eq('user_id', user.id)
-      .in('status', ['active', 'past_due'])
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    if (subError) {
-      console.error('Error checking subscription status in middleware:', subError)
-    }
-
     if (!hasPaidPlan(activeSub?.plan_type)) {
       if (pathname.startsWith('/api/')) {
         const method = request.method.toUpperCase()
@@ -181,11 +212,13 @@ export async function middleware(request: NextRequest) {
 
   if (requiresAdmin && user) {
     // Check if user has admin role
+    const adminStartedAt = Date.now()
     const { data: profile, error: profileError } = await supabase
       .from('users')
       .select('role')
       .eq('id', user.id)
       .single()
+    logMiddlewarePerf('admin.role', adminStartedAt, pathname, { hasProfile: Boolean(profile), hasError: Boolean(profileError) })
 
     // Log for debugging
     if (profileError) {
@@ -209,13 +242,30 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public directory)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    '/',
+    '/admin/:path*',
+    '/jesusistheadmin/:path*',
+    '/dashboard/:path*',
+    '/chatbot/:path*',
+    '/settings/:path*',
+    '/api/chat/:path*',
+    '/api/analyze-document/:path*',
+    '/api/analyse-doc/:path*',
+    '/api/search-case-law/:path*',
+    '/api/cases/:path*',
+    '/api/case-study/:path*',
+    '/api/case-study-chat/:path*',
+    '/api/case-analysis/:path*',
+    '/api/case-summary/:path*',
+    '/api/drafts/:path*',
+    '/api/evidence-bundle/:path*',
+    '/api/doc-review/:path*',
+    '/api/calendar/:path*',
+    '/api/chat-history/:path*',
+    '/api/chat-upload/:path*',
+    '/api/message-count/:path*',
+    '/api/passes/:path*',
+    '/api/user/:path*',
+    '/api/admin/:path*',
   ],
 }

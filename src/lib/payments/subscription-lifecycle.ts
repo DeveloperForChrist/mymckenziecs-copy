@@ -26,11 +26,6 @@ export function getLifecycleWarningDays(): number[] {
   return unique.length > 0 ? unique : [7, 5, 3, 1];
 }
 
-export function isLifecycleLapsedStatus(status: unknown): boolean {
-  const normalized = String(status || '').toLowerCase().trim();
-  return normalized === 'expired' || normalized === 'cancelled';
-}
-
 export function buildLifecycleSchedule(lapsedAt: Date | string | number | null | undefined) {
   const parsed = lapsedAt ? new Date(lapsedAt) : new Date();
   const base = Number.isNaN(parsed.getTime()) ? new Date() : parsed;
@@ -43,7 +38,7 @@ export function buildLifecycleSchedule(lapsedAt: Date | string | number | null |
   };
 }
 
-export function parseReminderDaysSet(value: unknown): Set<number> {
+export function parseReminderDaysSet(value: any): Set<number> {
   const sent = new Set<number>();
   if (Array.isArray(value)) {
     for (const entry of value) {

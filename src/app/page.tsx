@@ -1,5 +1,8 @@
-import Link from 'next/link';
 import Image from 'next/image';
+import HeroActionButtons from '@/components/home/HeroActionButtons';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import { isBillingEligibleUser } from '@/lib/auth/session-user';
 
 const workspaceFeatures = [
   {
@@ -7,8 +10,8 @@ const workspaceFeatures = [
     text: 'Ask procedural questions and get structured plain-English guidance.'
   },
   {
-    title: 'Case Profile',
-    text: 'Set your case type and stage so guidance stays context-aware.'
+    title: 'Chat Context',
+    text: 'Add your case details in chatbot to keep guidance context-aware.'
   },
   {
     title: 'Documents',
@@ -45,7 +48,6 @@ const plans = [
       'MyMcKenzieCS Smart Assistant',
       '25 document storage',
       'Conversation history included',
-      'Enhanced research support',
       'Deadline reminder emails'
     ],
     highlight: true
@@ -58,12 +60,32 @@ const plans = [
       '150+ document storage',
       'Persistent chat history',
       'Advanced case law retrieval and study',
+      'Enhanced research support',
       'Deadline reminder emails'
     ]
   }
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll() {
+          // No-op in server component render context.
+        },
+      },
+    }
+  );
+
+  const { data: authData } = await supabase.auth.getUser();
+  const hasAccountSession = isBillingEligibleUser(authData?.user);
+
   return (
     <div className="homepage">
       <main
@@ -92,27 +114,14 @@ export default function HomePage() {
                     MyMcKenzieCS is your AI-assisted case platform: procedural guidance, document support, deadlines tracking,
                     and legal research in one connected flow.
                   </p>
-                  <div className="mt-7 flex flex-wrap gap-3 justify-center xl:justify-start">
-                    <Link
-                      href="/pricing"
-                      className="app-button-secondary text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
-                    >
-                      Choose plan
-                    </Link>
-                    <Link
-                      href="/auth/signin"
-                      className="app-button-secondary text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
-                    >
-                      Log in
-                    </Link>
-                  </div>
+                  <HeroActionButtons hasAccountSession={hasAccountSession} />
                   <div className="mt-4 text-sm text-white/75">
                     Informational and court support only. Not legal advice.
                   </div>
                 </div>
 
                 <div
-                  className="w-[350px] h-[350px] md:w-[500px] md:h-[500px] flex items-center justify-center mx-auto"
+                  className="h-[min(82vw,350px)] w-[min(82vw,350px)] md:h-[500px] md:w-[500px] flex items-center justify-center mx-auto"
                   style={{
                     borderRadius: '9999px',
                     overflow: 'hidden',
@@ -217,9 +226,9 @@ export default function HomePage() {
       </main>
       <footer className="w-full text-white mt-0 text-center border-t border-white/10 bg-[#270427]">
         <div className="app-container py-12">
-          <div className="text-base md:text-lg font-medium mb-2"> 2026 LenJordan Ltd. All rights reserved.</div>
+          <div className="text-base md:text-lg font-medium mb-2"> 2026 Lenjordan Ltd. All rights reserved.</div>
           <div className="text-base md:text-lg font-medium mb-4 text-white/85">
-            MyMcKenzieCS is a product of LenJordan Ltd.<br/>Company No. 16931933
+            MyMcKenzieCS is a product of Lenjordan Ltd.<br/>Company No. 16931933
           </div>
           <div className="flex flex-wrap justify-center gap-3 mb-4 text-sm md:text-base text-white/80">
             <a href="/privacy-policy" className="underline hover:text-purple-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#120117] rounded">Privacy Policy</a>

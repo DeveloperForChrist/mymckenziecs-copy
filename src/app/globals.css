@@ -264,3 +264,14 @@ a {
 :where(input, select, textarea):focus-visible {
   border-color: inherit;
 }
+
+@media (max-width: 700px) {
+  .app-container {
+    padding: 14px 12px;
+  }
+
+  .app-button-secondary {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+}

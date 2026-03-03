@@ -1,5 +1,7 @@
 import styles from './faq.module.css';
 
+export const revalidate = 86400;
+
 export default function FaqPage() {
   return (
     <main className={styles.page}>
@@ -20,20 +22,19 @@ export default function FaqPage() {
           <article className={styles.card}>
             <h3>What does Basic include?</h3>
             <p>
-              Basic gives you the MyMcKenzieCS Basic Assistant, unlimited conversations with a 20-message per thread limit,
-              and document storage.
+              Basic gives you the MyMcKenzieCS Basic Assistant, document storage, and conversation history.
             </p>
           </article>
           <article className={styles.card}>
             <h3>What does Premium add?</h3>
             <p>
-              Premium expands limits with a 25-message per thread cap, larger document storage, and OpenAI + web search support.
+              Premium adds larger document storage, conversation history, and deadline reminder emails.
             </p>
           </article>
           <article className={styles.card}>
             <h3>What does Premium + add?</h3>
             <p>
-              Premium + is built for high-volume cases with the MyMcKenzieCS Intelligent Assistant, the largest storage allowance, and advanced case law tools.
+              Premium + is built for high-volume cases with the MyMcKenzieCS Intelligent Assistant, the largest storage allowance, enhanced research support, and advanced case law tools.
             </p>
           </article>
           <article className={styles.card}>

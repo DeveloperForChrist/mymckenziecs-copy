@@ -7,8 +7,9 @@ import ReportIssueModal from '@/components/chatbot/ReportIssueModal'
 import NoticeModal from '@/components/chatbot/NoticeModal'
 import ChatComposer from '@/components/chatbot/ChatComposer'
 import ChatMessageList from '@/components/chatbot/ChatMessageList'
-import { useChatAuthPlan } from '@/components/chatbot/hooks/useChatAuthPlan'
+import { useChatAuthPlan, type InitialChatPlanState } from '@/components/chatbot/hooks/useChatAuthPlan'
 import { useConversationBootstrap } from '@/components/chatbot/hooks/useConversationBootstrap'
+import { hasCaseProfileAccess } from '@/lib/plans/access'
 import type {
   AssistantMetadata,
   Message,
@@ -688,15 +689,6 @@ type UploadedAttachment = {
   mimeType?: string | null;
 };
 
-type CaseProfilePayload = {
-  id?: string;
-  caseTitle?: string;
-  caseNumber?: string;
-  caseType?: string;
-  caseDescription?: string;
-  caseStage?: string;
-};
-
 const normalizeUserId = (value?: string | null) => {
   const trimmed = value?.trim()
   if (!trimmed) return null
@@ -724,10 +716,14 @@ const getOrInitSessionStart = (userId: string) => {
   return now
 }
 
-export default function ChatInterface() {
+type ChatInterfaceProps = {
+  initialAuthPlan?: InitialChatPlanState | null
+}
+
+export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceProps = {}) {
   const [caseId, setCaseId] = useState<string>("");
-  const [caseProfileContext, setCaseProfileContext] = useState<CaseProfilePayload | null>(null);
   const supabase = getSupabaseBrowserClient();
+  const pendingActiveCaseOverrideRef = useRef<string | null>(null)
 
   const normalizeCaseId = (value?: string | null) => {
     const trimmed = value?.trim();
@@ -739,76 +735,49 @@ export default function ChatInterface() {
 
   const {
     supabaseUser,
+    plan,
     paidAccess,
     planLoaded,
-    isAuthenticated,
     authLoaded,
-  } = useChatAuthPlan({ supabase, clearSessionHistory })
+  } = useChatAuthPlan({ supabase, clearSessionHistory, initialState: initialAuthPlan })
+  const canUseCaseContext = Boolean(supabaseUser) && planLoaded && hasCaseProfileAccess(plan || '')
 
   useEffect(() => {
+    if (!canUseCaseContext) return
     const stored = localStorage.getItem("selectedCaseId");
-    if (stored) setCaseId(stored);
-  }, []);
+    const normalizedStoredCaseId = normalizeCaseId(stored);
+    if (normalizedStoredCaseId) setCaseId(normalizedStoredCaseId);
+    if (stored && !normalizedStoredCaseId) localStorage.removeItem('selectedCaseId')
+  }, [canUseCaseContext]);
+
+  useEffect(() => {
+    if (!planLoaded) return
+    if (!supabaseUser || canUseCaseContext) return
+    setCaseId('')
+    pendingActiveCaseOverrideRef.current = null
+    localStorage.removeItem('selectedCaseId')
+    window.dispatchEvent(new CustomEvent('activeCaseChanged', { detail: { caseId: null } }))
+  }, [supabaseUser, planLoaded, canUseCaseContext])
+
   useEffect(() => {
     const handler = (event: Event) => {
-      const detail = (event as CustomEvent<{ caseId?: string }>).detail;
-      if (detail?.caseId) {
-        setCaseId(detail.caseId);
+      if (!canUseCaseContext) return
+      const detail = (event as CustomEvent<{ caseId?: string | null }>).detail;
+      if (detail?.caseId === null) {
+        setCaseId('')
+        pendingActiveCaseOverrideRef.current = null
+        localStorage.removeItem('selectedCaseId')
+        return
       }
+      const normalizedNextCaseId = normalizeCaseId(detail?.caseId);
+      if (!normalizedNextCaseId) return;
+      setCaseId(normalizedNextCaseId);
+      localStorage.setItem('selectedCaseId', normalizedNextCaseId)
+      pendingActiveCaseOverrideRef.current = normalizedNextCaseId
     };
     window.addEventListener('activeCaseChanged', handler as EventListener);
     return () => window.removeEventListener('activeCaseChanged', handler as EventListener);
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    const fetchCaseProfileContext = async () => {
-      if (!supabaseUser?.id) {
-        if (!cancelled) setCaseProfileContext(null);
-        return;
-      }
-
-      try {
-        const res = await fetch('/api/cases', { credentials: 'include' });
-        if (!res.ok) {
-          if (!cancelled) setCaseProfileContext(null);
-          return;
-        }
-
-        const data = await res.json();
-        const cases = Array.isArray(data?.cases) ? data.cases : [];
-        const active = (caseId && cases.find((c: any) => c?.id === caseId)) || cases[0];
-
-        if (!active) {
-          if (!cancelled) setCaseProfileContext(null);
-          return;
-        }
-
-        const mapped: CaseProfilePayload = {
-          id: active.id,
-          caseTitle: active.title || undefined,
-          caseNumber: active.external_id || undefined,
-          caseType: active.case_type || undefined,
-          caseDescription: active.description || undefined,
-          caseStage:
-            (active?.checklist_procedural &&
-            typeof active.checklist_procedural === 'object' &&
-            typeof active.checklist_procedural.currentStage === 'string')
-              ? active.checklist_procedural.currentStage
-              : undefined,
-        };
-
-        if (!cancelled) setCaseProfileContext(mapped);
-      } catch {
-        if (!cancelled) setCaseProfileContext(null);
-      }
-    };
-
-    fetchCaseProfileContext();
-    return () => {
-      cancelled = true;
-    };
-  }, [supabaseUser?.id, caseId]);
+  }, [canUseCaseContext]);
 
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -940,7 +909,7 @@ export default function ChatInterface() {
     try {
       await navigator.clipboard.writeText(content)
       // Could add a toast notification here
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error('Failed to copy:', err)
     }
   }
@@ -1009,7 +978,7 @@ export default function ChatInterface() {
           uploaded.push(file)
         })
       }
-    } catch (error: unknown) {
+    } catch (error: any) {
       const message = error instanceof Error ? error.message : 'Upload failed'
       console.error('Attachment upload failed', error)
       errors.push(message)
@@ -1061,7 +1030,7 @@ export default function ChatInterface() {
         ...prev,
         [messageIndex]: type
       }))
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Failed to submit feedback:', error)
     }
   }
@@ -1096,7 +1065,7 @@ export default function ChatInterface() {
       setReportingMessageContent('')
       
       setNoticeModal({ title: 'Report submitted', message: 'Thank you for your feedback.' })
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Failed to submit report:', error)
       setNoticeModal({ title: 'Submit failed', message: 'Failed to submit report. Please try again.' })
     }
@@ -1135,12 +1104,15 @@ export default function ChatInterface() {
       }
     }
 
+    let activeCaseOverride: string | null = null
     try {
       const regenAttachments = userMsg.attachments || []
       const regenMessage = regenAttachments.length
         ? composeMessageWithAttachments(userMsg.content, regenAttachments)
         : userMsg.content
       const attachmentsOnly = regenAttachments.length > 0 && userMsg.content.trim() === 'Uploaded documents for review.'
+      activeCaseOverride = canUseCaseContext ? pendingActiveCaseOverrideRef.current : null
+      pendingActiveCaseOverrideRef.current = null
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1149,8 +1121,7 @@ export default function ChatInterface() {
           history: messages.slice(0, messageIndex - 1),
           userId: userId,
           conversationId: targetConversationId,
-          caseProfile: caseProfileContext || undefined,
-          activeCaseId: normalizeCaseId(caseId) || undefined,
+          activeCaseId: canUseCaseContext ? activeCaseOverride || undefined : undefined,
           attachments: regenAttachments,
           attachmentsOnly: attachmentsOnly,
           sessionMessageCount: sessionUserMessageCount,
@@ -1169,7 +1140,7 @@ export default function ChatInterface() {
         throw new Error(message)
       }
 
-      if (data?.metadata?.activeCaseId) {
+      if (canUseCaseContext && data?.metadata?.activeCaseId) {
         const resolvedCaseId = String(data.metadata.activeCaseId).trim()
         if (resolvedCaseId) {
           setCaseId(resolvedCaseId)
@@ -1191,7 +1162,8 @@ export default function ChatInterface() {
       setMessages((prev) => [...prev, assistantMessage])
 
       typeMessageById(assistantText, assistantMessageId)
-    } catch (error: unknown) {
+    } catch (error: any) {
+      if (activeCaseOverride) pendingActiveCaseOverrideRef.current = activeCaseOverride
       const errorText = 'MyMcKenzieCS is unavailable to help right now. Please try again later.'
       const errorMessageId = `assistant_regen_error_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
       const errorMessage: Message = {
@@ -1266,21 +1238,15 @@ export default function ChatInterface() {
     }
 
     const totalLength = sanitizedText.length
-    // Drive typing by elapsed time so it never jumps from empty to full text.
-    const tickMs = 24
-    const minDurationMs = 1400
-    const maxDurationMs = 9000
-    const targetDurationMs = Math.min(maxDurationMs, Math.max(minDurationMs, totalLength * 26))
-    const startedAt = Date.now()
+    // Strict character-by-character typing for a natural output reveal.
+    const tickMs = 14
     let cursor = 0
 
     const tick = () => {
-      const elapsed = Date.now() - startedAt
-      const progress = Math.min(1, elapsed / targetDurationMs)
-      const nextCursor = Math.max(cursor, Math.ceil(totalLength * progress))
-      cursor = Math.min(totalLength, nextCursor)
-      const chunk = formatAssistantResponse(sanitizedText.slice(0, cursor))
+      cursor = Math.min(totalLength, cursor + 1)
+      const rawChunk = sanitizedText.slice(0, cursor)
       const isDone = cursor >= totalLength
+      const chunk = isDone ? formatAssistantResponse(rawChunk) : rawChunk
 
       setMessages((prev) => applyUpdate(prev, chunk, isDone))
 
@@ -1439,8 +1405,8 @@ export default function ChatInterface() {
     let uploadedAttachments: UploadedAttachment[] = []
     if (hasAttachments) {
       try {
-        uploadedAttachments = await uploadAttachments(filesToUpload, caseId)
-      } catch (error: unknown) {
+        uploadedAttachments = await uploadAttachments(filesToUpload, canUseCaseContext ? caseId : null)
+      } catch (error: any) {
         console.error('Attachment upload failed', error)
         const message = error instanceof Error ? error.message : 'Attachment upload failed. Please try again.'
         setNoticeModal({ title: 'Attachment upload failed', message })
@@ -1480,7 +1446,10 @@ export default function ChatInterface() {
     const sessionUserMessageCount =
       messages.filter((msg) => msg.role === 'user').length + 1
 
+    let activeCaseOverride: string | null = null
     try {
+      activeCaseOverride = canUseCaseContext ? pendingActiveCaseOverrideRef.current : null
+      pendingActiveCaseOverrideRef.current = null
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1489,8 +1458,7 @@ export default function ChatInterface() {
           history: messages,
           userId: userId,
           conversationId: targetConversationId,
-          activeCaseId: normalizeCaseId(caseId) || undefined,
-          caseProfile: caseProfileContext || undefined,
+          activeCaseId: canUseCaseContext ? activeCaseOverride || undefined : undefined,
           attachments: uploadedAttachments,
           attachmentsOnly: !hasText && uploadedAttachments.length > 0,
           sessionMessageCount: sessionUserMessageCount,
@@ -1537,7 +1505,8 @@ export default function ChatInterface() {
 
       setMessages((prev) => [...prev, assistantMessage])
       typeMessageById(assistantText, assistantMessageId)
-    } catch (error: unknown) {
+    } catch (error: any) {
+      if (activeCaseOverride) pendingActiveCaseOverrideRef.current = activeCaseOverride
       const errorText = error instanceof Error && error.message
         ? error.message
         : 'MyMcKenzieCS is unavailable to help right now. Please try again later.'
@@ -1580,7 +1549,7 @@ export default function ChatInterface() {
       <div style={containerStyle}>
         <div style={stageStyle}>
         {/* Top spacer to match full-bleed layout */}
-        <div style={{ height: '28px', display: 'flex', alignItems: 'center', padding: '0 24px' }} />
+        <div style={{ height: '22px', display: 'flex', alignItems: 'center', padding: '0 max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left))' }} />
 
 
         <div
@@ -1593,10 +1562,10 @@ export default function ChatInterface() {
             alignItems: 'center',
             justifyContent: 'flex-end',
             position: 'relative',
-            paddingBottom: '240px', // increased padding to prevent chatbar overlap
+            paddingBottom: 'clamp(180px, 28vh, 240px)',
           }}
         >
-                  <div style={{ width: '100%', maxWidth: '760px', margin: '32px auto 0 auto', padding: '0 12px', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '120px' }}>
+                  <div style={{ width: '100%', maxWidth: '760px', margin: '20px auto 0 auto', padding: '0 clamp(8px, 3vw, 12px)', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '120px' }}>
             <div
               ref={scrollContainerRef}
               onScroll={handleScroll}
@@ -1636,7 +1605,7 @@ export default function ChatInterface() {
                 position: 'fixed',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                bottom: '176px',
+                bottom: 'clamp(130px, 20vh, 176px)',
                 width: '38px',
                 height: '38px',
                 borderRadius: '999px',

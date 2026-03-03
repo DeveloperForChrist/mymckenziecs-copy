@@ -1,12 +1,13 @@
-import React from 'react';
 import LegalPageLayout from '@/components/layout/LegalPageLayout';
+
+export const revalidate = 86400;
 
 export default function CookiePolicyPage() {
   return (
     <LegalPageLayout
       title="Cookie Policy"
       subtitle="How we use cookies and local storage to keep the platform secure."
-      meta="Owned by MyMcKenzieCS Ltd • Last Updated: February 10, 2026"
+      meta="Owned by Lenjordan Ltd • Last Updated: February 28, 2026"
     >
       <ol className="list-decimal pl-6 space-y-6 text-base md:text-lg">
         <li>
@@ -70,13 +71,15 @@ export default function CookiePolicyPage() {
                 <li>Session storage</li>
                 <li>Cache storage</li>
               </ul>
-              <p className="mt-1">...to keep track of:</p>
+              <p className="mt-1">...to support product features such as:</p>
               <ul className="list-disc pl-6 mt-1">
-                <li>Documents you’re working on</li>
-                <li>Chat session continuity</li>
-                <li>Temporary case-preparation data</li>
+                <li>Draft notes auto-save and recovery</li>
+                <li>Chat/session continuity and signed-in navigation state</li>
+                <li>Dismissed UI tips and similar preferences</li>
+                <li>Temporary case-preparation workflow data</li>
               </ul>
-              <p className="mt-1">This is not used for tracking or advertising.</p>
+              <p className="mt-1">This storage is for service functionality and is not used for advertising profiling.</p>
+              <p className="mt-1">Persistent browser storage remains until it expires, is replaced, or you clear it from browser settings.</p>
             </li>
           </ol>
         </li>
@@ -115,7 +118,7 @@ export default function CookiePolicyPage() {
         </li>
         <li>
           <b>Contact Information</b>
-          <p className="mt-2">MyMcKenzieCS Ltd<br/>Email: support@mymckenziecs.com<br/>Registered Office: [Insert]</p>
+          <p className="mt-2">Lenjordan Ltd<br/>Email: support@mymckenziecs.com<br/>Registered Office: [Insert]</p>
         </li>
       </ol>
     </LegalPageLayout>

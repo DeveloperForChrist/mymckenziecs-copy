@@ -1,5 +1,8 @@
 import SignUpForm from '@/components/auth/SignUpForm'
 import styles from '@/app/auth/auth.module.css'
+import { Suspense } from 'react'
+
+export const revalidate = 86400
 
 export default function SignUpPage() {
   return (
@@ -30,7 +33,7 @@ export default function SignUpPage() {
               </div>
             </div>
             <div className={styles.heroFooter}>
-              <span className={styles.pill}>Guest chat is free. Paid plans unlock full workspace tools.</span>
+              <span className={styles.pill}>Choose a plan to unlock full workspace tools.</span>
               <a href="/pricing">Plans</a>
               <a href="/faq">Plan FAQ</a>
             </div>
@@ -43,7 +46,9 @@ export default function SignUpPage() {
                 Enter your details to create your account. If you selected a plan, payment is collected immediately after this step.
               </p>
             </div>
-            <SignUpForm />
+            <Suspense fallback={<div className={styles.formSubtitle}>Loading account form...</div>}>
+              <SignUpForm />
+            </Suspense>
             <p className={styles.footnote}>
               Already have an account?{' '}
               <a href="/auth/signin" className={styles.inlineLink}>

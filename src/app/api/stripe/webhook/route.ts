@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { sendResendEmail } from '@/lib/email/resend';
 import { isBillingActiveStripeStatus, normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
 import { buildLifecycleSchedule, getLifecycleArchiveDays, getLifecycleDeleteDays } from '@/lib/payments/subscription-lifecycle';
+import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
 import fs from 'fs';
 import path from 'path';
 import { PLAN_PRICES } from '@/constants';
@@ -38,29 +39,6 @@ function resolvePlanNameFromPriceId(priceId?: string | null) {
   const plan = PLAN_PRICES.find((p) => p.priceId === priceId);
   return plan?.name || 'Your new plan';
 }
-
-function parseTimestamp(value: any): number | null {
-  if (!value) return null;
-  try {
-    if (value instanceof Date) {
-      return value.getTime();
-    }
-    if (typeof value.toDate === 'function') {
-      return value.toDate().getTime();
-    }
-    if (typeof value === 'number') {
-      return value;
-    }
-    if (typeof value === 'string') {
-      const parsed = Date.parse(value);
-      return Number.isNaN(parsed) ? null : parsed;
-    }
-  } catch (error) {
-    console.warn('Unable to parse timestamp from value', value);
-  }
-  return null;
-}
-
 
 async function getUserEmail(userId: string): Promise<{ email: string; name?: string | null } | null> {
   const { data } = await supabaseAdmin
@@ -157,7 +135,7 @@ async function markSubscriptionLapsed(customerId: string | null, status: 'cancel
       }
     : buildLifecycleSchedule(now);
 
-  const payload: Record<string, unknown> = {
+  const payload: Record<string, any> = {
     status,
     lifecycle_lapsed_at: schedule.lapsedAt.toISOString(),
     lifecycle_archive_at: schedule.archiveAt.toISOString(),
@@ -190,7 +168,7 @@ async function markSubscriptionLapsed(customerId: string | null, status: 'cancel
 async function clearSubscriptionGrace(customerId: string | null, status: 'active' | 'cancelled' | 'expired' = 'active') {
   if (!customerId) return;
   const now = new Date();
-  const payload: Record<string, unknown> = {
+  const payload: Record<string, any> = {
     status,
     past_due_since: null,
     grace_period_end: null,
@@ -272,13 +250,13 @@ function getConfiguredGraceDays(): number {
 }
 
 function normalizePlanTypeFromPrice(priceId?: string | null): string {
-  if (!priceId) return 'Free';
+  if (!priceId) return 'No plan';
   const match = PLAN_PRICES.find((plan) => plan.priceId === priceId);
   const name = (match?.name || '').toLowerCase();
   if (name.includes('basic') || name.includes('essential') || name.includes('premium cheap')) return 'Basic';
   if (name.includes('premium +') || name.includes('premium plus') || name.includes('plus') || name.includes('premium pro')) return 'Premium +';
   if (name.includes('premium')) return 'Premium';
-  return 'Free';
+  return 'No plan';
 }
 
 function displayPlanName(planType?: string | null): string {
@@ -286,7 +264,7 @@ function displayPlanName(planType?: string | null): string {
   if (raw.includes('basic') || raw.includes('essential') || raw.includes('premium cheap')) return 'Basic';
   if (raw.includes('premium +') || raw.includes('premium plus') || raw.includes('premium pro') || raw.includes('plus')) return 'Premium +';
   if (raw.includes('premium')) return 'Premium';
-  if (!raw || raw.includes('free')) return 'Free';
+  if (!raw || raw.includes('free') || raw.includes('no plan')) return 'No plan';
   return planType || 'Plan';
 }
 
@@ -371,7 +349,10 @@ async function upsertSubscriptionFromStripe(subscription: any) {
 
   if (error) {
     console.error('Failed to upsert subscription from Stripe', error);
+    return;
   }
+
+  invalidateUserPlanCache(userId);
 
   if (status === 'cancelled' || status === 'expired') {
     await markSubscriptionLapsed(customerId, status);

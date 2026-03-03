@@ -39,7 +39,7 @@ function getReminderDays(): number[] {
   return uniqueSorted.length > 0 ? uniqueSorted : [1, 2, 3, 5, 6];
 }
 
-function parseSentReminderDays(value: unknown): Set<number> {
+function parseSentReminderDays(value: any): Set<number> {
   const sent = new Set<number>();
   if (Array.isArray(value)) {
     for (const entry of value) {
@@ -147,7 +147,7 @@ export async function GET(request: Request) {
       if (sentDays.has(3)) updates.grace_day3_sent_at = now.toISOString();
       if (sentDays.has(6)) updates.grace_day6_sent_at = now.toISOString();
 
-      const payload: Record<string, unknown> = {
+      const payload: Record<string, any> = {
         ...updates,
         grace_reminder_days_sent: Array.from(sentDays).sort((a, b) => a - b),
         updated_at: now.toISOString(),

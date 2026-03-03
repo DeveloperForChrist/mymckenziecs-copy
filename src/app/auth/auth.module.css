@@ -308,3 +308,74 @@
     min-height: unset;
   }
 }
+
+@media (max-width: 700px) {
+  .page {
+    padding: 14px 10px;
+  }
+
+  .hero {
+    padding: 20px 16px;
+    border-radius: 20px;
+  }
+
+  .heroTitle {
+    font-size: clamp(2rem, 11vw, 2.7rem);
+    margin-top: 12px;
+  }
+
+  .heroCopy {
+    font-size: 0.98rem;
+    line-height: 1.45;
+  }
+
+  .heroList {
+    gap: 8px;
+    margin-top: 16px;
+    font-size: 0.95rem;
+  }
+
+  .formPanel {
+    padding: 18px 14px;
+    border-radius: 20px;
+    gap: 14px;
+  }
+
+  .formTitle {
+    font-size: clamp(1.8rem, 10vw, 2.35rem);
+  }
+
+  .formSubtitle {
+    font-size: 0.96rem;
+  }
+
+  .label {
+    font-size: 0.92rem;
+  }
+
+  .fieldHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    font-size: 0.98rem;
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+
+  .primaryButton {
+    font-size: 1rem;
+    padding: 14px 16px;
+    border-radius: 12px;
+  }
+
+  .outlineButton {
+    width: 100%;
+    text-align: center;
+    border-radius: 12px;
+  }
+}

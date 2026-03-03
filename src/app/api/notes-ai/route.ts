@@ -11,6 +11,10 @@ import {
   rateLimitExceededResponse,
 } from "@/lib/utils/rate-limit";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -40,7 +44,7 @@ const extractedEventsSchema = z.object({
   events: z.array(extractedEventSchema).max(12).default([]),
 });
 
-function parseJsonFromModelOutput(content: string): unknown {
+function parseJsonFromModelOutput(content: string): any {
   const raw = content.trim();
   if (!raw) return null;
   try {

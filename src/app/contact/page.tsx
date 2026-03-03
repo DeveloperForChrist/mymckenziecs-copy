@@ -1,4 +1,3 @@
-import React from 'react';
 import LegalPageLayout from '@/components/layout/LegalPageLayout';
 
 export default function ContactPage() {
