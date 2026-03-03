@@ -85,6 +85,26 @@ export default async function HomePage() {
 
   const { data: authData } = await supabase.auth.getUser();
   const hasAccountSession = isBillingEligibleUser(authData?.user);
+  let hasPaidAccess = false;
+
+  if (hasAccountSession && authData?.user?.id) {
+    const { data: subscriptions } = await supabase
+      .from('subscriptions')
+      .select('plan_type, status')
+      .eq('user_id', authData.user.id)
+      .order('updated_at', { ascending: false })
+      .limit(5);
+
+    hasPaidAccess = Boolean(
+      (subscriptions || []).some((sub: any) => {
+        const planLabel = String(sub?.plan_type || '').toLowerCase();
+        const status = String(sub?.status || '').toLowerCase();
+        const paidPlan = planLabel.includes('basic') || planLabel.includes('premium');
+        const activeState = status === 'active' || status === 'past_due';
+        return paidPlan && activeState;
+      })
+    );
+  }
 
   return (
     <div className="homepage">
@@ -114,7 +134,7 @@ export default async function HomePage() {
                     MyMcKenzieCS is your AI-assisted case platform: procedural guidance, document support, deadlines tracking,
                     and legal research in one connected flow.
                   </p>
-                  <HeroActionButtons hasAccountSession={hasAccountSession} />
+                  <HeroActionButtons hasAccountSession={hasAccountSession} hasPaidAccess={hasPaidAccess} />
                   <div className="mt-4 text-sm text-white/75">
                     Informational and court support only. Not legal advice.
                   </div>
