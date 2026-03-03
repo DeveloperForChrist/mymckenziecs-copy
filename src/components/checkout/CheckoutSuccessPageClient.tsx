@@ -39,7 +39,7 @@ export default function CheckoutSuccessPageClient() {
         }
 
         if (cancelled) return;
-        setMessage('Payment confirmed. Redirecting to your dashboard...');
+        setMessage('Payment confirmed. Redirecting...');
         router.replace('/dashboard');
       } catch (error: any) {
         if (cancelled) return;

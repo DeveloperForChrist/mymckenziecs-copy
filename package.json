@@ -10,6 +10,7 @@
     "lint": "eslint src instrumentation.ts instrumentation-client.ts sentry.server.config.ts sentry.edge.config.ts --ext .ts,.tsx",
     "type-check": "tsc --noEmit",
     "launch:check": "node scripts/ops/launch-readiness.mjs",
+    "llm:check": "node scripts/ops/check-llm-models.mjs",
     "load:test": "node scripts/ops/load-test.mjs",
     "load:test:chat": "node scripts/ops/load-test.mjs --target chat --seconds 60 --concurrency 40",
     "load:test:mixed": "node scripts/ops/load-test.mjs --target mixed --seconds 60 --concurrency 40",

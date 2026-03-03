@@ -41,21 +41,31 @@ export async function GET(_request: NextRequest) {
     }
 
     if (!userRow) {
+      const authEmailVerifiedAt = (data.user as any)?.email_confirmed_at || null
       return NextResponse.json({
         fullName: data.user.user_metadata?.full_name || data.user.user_metadata?.display_name || '',
         email: data.user.email || '',
         address: '',
         createdAt: data.user.created_at || new Date().toISOString(),
-        lastActive: null
+        lastActive: null,
+        emailVerifiedAt: authEmailVerifiedAt,
+        emailVerified: Boolean(authEmailVerifiedAt),
       })
     }
+
+    const emailVerifiedAt =
+      (userRow as any).email_verified_at ||
+      (userRow as any).emailVerifiedAt ||
+      null
 
     return NextResponse.json({
       fullName: (userRow as any).fullName || (userRow as any).full_name || userRow.name || '',
       email: userRow.email || data.user.email || '',
       address: (userRow as any).address || '',
       createdAt: userRow.created_at || data.user.created_at || '',
-      lastActive: (userRow as any).last_active || null
+      lastActive: (userRow as any).last_active || null,
+      emailVerifiedAt,
+      emailVerified: Boolean(emailVerifiedAt),
     })
   } catch (error: any) {
     console.error('Error fetching user data:', error);

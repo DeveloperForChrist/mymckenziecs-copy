@@ -76,10 +76,30 @@ const chatRequestSchema = z.object({
 const nodeRequire = createRequire(import.meta.url)
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-const getPremiumPlusOpenAiModel = (): string | null => {
-  const model = (process.env.OPENAI_PREMIUM_PLUS_MODEL || '').trim()
-  return model.length > 0 ? model : null
+const getEnvModelValue = (...keys: string[]): string | null => {
+  for (const key of keys) {
+    const value = (process.env[key] || '').trim()
+    if (value) return value
+  }
+  return null
 }
+
+const getPremiumOpenAiModel = (): string =>
+  getEnvModelValue('OPENAI_PREMIUM_MODEL', 'OPENAI_CHAT_MODEL') || 'gpt-4o'
+
+const getPremiumOpenAiFallbackModel = (primaryModel: string): string =>
+  getEnvModelValue('OPENAI_PREMIUM_FALLBACK_MODEL', 'OPENAI_CHAT_FALLBACK_MODEL', 'OPENAI_BASIC_MODEL') || primaryModel
+
+const getPremiumPlusOpenAiModel = (): string | null =>
+  getEnvModelValue('OPENAI_PREMIUM_PLUS_MODEL')
+
+const getPremiumPlusOpenAiFallbackModel = (primaryModel: string): string =>
+  getEnvModelValue(
+    'OPENAI_PREMIUM_PLUS_FALLBACK_MODEL',
+    'OPENAI_PREMIUM_FALLBACK_MODEL',
+    'OPENAI_CHAT_FALLBACK_MODEL',
+    'OPENAI_BASIC_MODEL'
+  ) || primaryModel
 
 const normalizePlanLabel = (value: any): string =>
   typeof value === 'string' ? value.trim().toLowerCase() : ''
@@ -1327,6 +1347,8 @@ export async function POST(request: NextRequest) {
     const threadId = `thread_${Date.now()}_${userId}`
 
     const shouldUseBasicLegalAgent = basicPlanActive
+    const premiumOpenAiModel = getPremiumOpenAiModel()
+    const premiumOpenAiFallbackModel = getPremiumOpenAiFallbackModel(premiumOpenAiModel)
     const premiumPlusOpenAiModel = premiumPlusActive ? getPremiumPlusOpenAiModel() : null
     if (premiumPlusActive && !premiumPlusOpenAiModel) {
       console.error('OPENAI_PREMIUM_PLUS_MODEL is missing for a Premium+ chat request')
@@ -1337,13 +1359,19 @@ export async function POST(request: NextRequest) {
         )
       )
     }
+    const premiumPlusOpenAiFallbackModel = premiumPlusOpenAiModel
+      ? getPremiumPlusOpenAiFallbackModel(premiumPlusOpenAiModel)
+      : null
     const agentResponse = shouldUseBasicLegalAgent
       ? await invokeBasicLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords)
       : await invokeLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
           useDiscriminator: premiumPlusActive,
           useSearch: shouldUseSearchRetrieval,
           includeCitations: premiumPlusActive,
-          openaiModel: premiumPlusOpenAiModel || undefined,
+          openaiModel: premiumPlusActive ? (premiumPlusOpenAiModel || undefined) : premiumOpenAiModel,
+          openaiFallbackModel: premiumPlusActive
+            ? (premiumPlusOpenAiFallbackModel || undefined)
+            : premiumOpenAiFallbackModel,
         })
 
     const includeDebug = process.env.NODE_ENV !== 'production'

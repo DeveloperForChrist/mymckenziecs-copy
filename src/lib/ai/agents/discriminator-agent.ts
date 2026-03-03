@@ -1,8 +1,18 @@
-import claudeLegalClient from '../providers/claude-legal-client'
+import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import { logClaudeUsage } from '@/lib/utils/claude-usage'
 import { neutralizeLegalAdviceTone } from './legal-tone'
 
 const DISCRIMINATOR_MODEL = process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101'
+const DISCRIMINATOR_CLAUDE_FALLBACK_MODEL = process.env.CLAUDE_FALLBACK_MODEL || ''
+const DISCRIMINATOR_OPENAI_FALLBACK_MODEL =
+  process.env.OPENAI_DISCRIMINATOR_FALLBACK_MODEL ||
+  process.env.OPENAI_PREMIUM_PLUS_FALLBACK_MODEL ||
+  process.env.OPENAI_PREMIUM_FALLBACK_MODEL ||
+  process.env.OPENAI_PREMIUM_PLUS_MODEL ||
+  process.env.OPENAI_PREMIUM_MODEL ||
+  process.env.OPENAI_CHAT_MODEL ||
+  'gpt-4.1-mini'
 const DISCRIMINATOR_MAX_TOKENS = 800
 
 const stripMarkdown = (text: string): string => {
@@ -38,11 +48,6 @@ async function streamlineAnswerForUser(
   caseKeywords?: string,
   includeCitations: boolean = false
 ): Promise<{ streamlinedAnswer: string; citedSourcesIndices: number[] }> {
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) {
-    throw new Error('ANTHROPIC_API_KEY is not set in the environment')
-  }
-  
   const sourcesList = allSources.map((url, i) => `[${i + 1}] ${url}`).join('\n')
   
   const citationRule = includeCitations
@@ -103,37 +108,108 @@ Provide ONLY the final streamlined answer. No explanations needed.`
 
   const systemPrompt = `You are a UK litigant in person acting as a discriminator (critic, reviser, verifier) for legal guidance. Your job is to detect gaps, weak claims, missing steps, and formatting issues, then fix them. You are responsible for presentation, organisation,structure and making sure dialogue is conversational friendly. Streamline and improve while preserving accuracy. Output MUST be plain text only, with section titles as plain text lines (do NOT end titles with a colon). Use headings only when the topic branches, and make them specific. Use short paragraphs (1 idea, 1-3 sentences). Use numbered lists for ordered steps or hierarchy and bullets for parallel ideas. Do not output tables. Use divider lines only when shifting mode (explanation → examples, law → practical) and the divider line must be exactly: ---. Always end with a one-sentence compression line starting with "In short:". ${citationRule} Keep page references if present. No markdown.`
 
-  const startedAt = Date.now()
-  let completion
-  try {
-    completion = await claudeLegalClient.messages.create({
-      model: DISCRIMINATOR_MODEL,
-      max_tokens: DISCRIMINATOR_MAX_TOKENS,
-      temperature: 0.5,
-      system: systemPrompt,
-      messages: [
-        { role: 'user', content: streamlinePrompt }
-      ]
-    })
-    logClaudeUsage({
-      model: DISCRIMINATOR_MODEL,
-      usage: (completion as any)?.usage,
-      success: true,
-      latencyMs: Date.now() - startedAt,
-      requestType: 'discriminator',
-    })
-  } catch (error: any) {
-    logClaudeUsage({
-      model: DISCRIMINATOR_MODEL,
-      success: false,
-      latencyMs: Date.now() - startedAt,
-      requestType: 'discriminator',
-      error: error?.message || String(error),
-    })
-    throw error
+  const runClaudeDiscriminator = async (modelName: string, apiKey: string): Promise<string> => {
+    const startedAt = Date.now()
+    const claudeLegalClient = new Anthropic({ apiKey })
+    try {
+      const completion = await claudeLegalClient.messages.create({
+        model: modelName,
+        max_tokens: DISCRIMINATOR_MAX_TOKENS,
+        temperature: 0.5,
+        system: systemPrompt,
+        messages: [
+          { role: 'user', content: streamlinePrompt }
+        ]
+      })
+      logClaudeUsage({
+        model: modelName,
+        usage: (completion as any)?.usage,
+        success: true,
+        latencyMs: Date.now() - startedAt,
+        requestType: 'discriminator',
+      })
+      return completion.content[0]?.type === 'text' ? completion.content[0].text : comprehensiveAnswer
+    } catch (error: any) {
+      logClaudeUsage({
+        model: modelName,
+        success: false,
+        latencyMs: Date.now() - startedAt,
+        requestType: 'discriminator',
+        error: error?.message || String(error),
+      })
+      throw error
+    }
   }
 
-  const streamed = completion.content[0]?.type === 'text' ? completion.content[0].text : comprehensiveAnswer
+  const runOpenAiDiscriminatorFallback = async (): Promise<string> => {
+    const openAiApiKey = (process.env.OPENAI_API_KEY || '').trim()
+    if (!openAiApiKey) {
+      throw new Error('OPENAI_API_KEY is not set for discriminator fallback')
+    }
+
+    const openai = new OpenAI({ apiKey: openAiApiKey })
+    const model = DISCRIMINATOR_OPENAI_FALLBACK_MODEL
+    const normalizedModel = model.trim().toLowerCase()
+    const useMaxCompletionTokens = normalizedModel.startsWith('o')
+    const messages = [
+      { role: 'system' as const, content: systemPrompt },
+      { role: 'user' as const, content: streamlinePrompt },
+    ]
+    const payload: Record<string, any> = {
+      model,
+      messages,
+    }
+    if (useMaxCompletionTokens) {
+      payload.max_completion_tokens = DISCRIMINATOR_MAX_TOKENS
+    } else {
+      payload.max_tokens = DISCRIMINATOR_MAX_TOKENS
+      payload.temperature = 0.5
+    }
+
+    const completion = await openai.chat.completions.create(payload as any)
+    return completion.choices?.[0]?.message?.content || comprehensiveAnswer
+  }
+
+  const anthropicApiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
+  let streamed = comprehensiveAnswer
+  let claudeSucceeded = false
+  let lastProviderError: unknown = null
+
+  if (anthropicApiKey) {
+    try {
+      streamed = await runClaudeDiscriminator(DISCRIMINATOR_MODEL, anthropicApiKey)
+      claudeSucceeded = true
+    } catch (primaryClaudeError) {
+      lastProviderError = primaryClaudeError
+      const fallbackModel = DISCRIMINATOR_CLAUDE_FALLBACK_MODEL.trim()
+      if (fallbackModel && fallbackModel !== DISCRIMINATOR_MODEL) {
+        try {
+          streamed = await runClaudeDiscriminator(fallbackModel, anthropicApiKey)
+          claudeSucceeded = true
+        } catch (fallbackClaudeError) {
+          lastProviderError = fallbackClaudeError
+        }
+      }
+    }
+  }
+
+  if (!claudeSucceeded) {
+    try {
+      streamed = await runOpenAiDiscriminatorFallback()
+      console.warn('Discriminator fallback engaged: using OpenAI model', {
+        model: DISCRIMINATOR_OPENAI_FALLBACK_MODEL,
+      })
+    } catch (openAiFallbackError) {
+      if (lastProviderError) {
+        console.error('Claude and OpenAI discriminator fallback failed', {
+          claudeError: String(lastProviderError),
+          openAiError: String(openAiFallbackError),
+        })
+      }
+      throw openAiFallbackError
+    }
+  }
+
   let streamlinedAnswer = stripMarkdown(streamed)
   streamlinedAnswer = neutralizeLegalAdviceTone(streamlinedAnswer)
   if (!includeCitations) {

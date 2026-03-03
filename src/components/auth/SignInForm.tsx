@@ -27,8 +27,7 @@ export default function SignInForm() {
   const verifiedState = (searchParams?.get('verified') || '').trim().toLowerCase()
   const billingOptOutState = (searchParams?.get('billing_opt_out') || '').trim().toLowerCase()
   const redirectParam = (searchParams?.get('redirect') || '').trim()
-  const hasExplicitRedirect = redirectParam.startsWith('/')
-  const nextPath = hasExplicitRedirect ? redirectParam : '/dashboard'
+  const nextPath = redirectParam.startsWith('/') ? redirectParam : '/dashboard'
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -56,13 +55,37 @@ export default function SignInForm() {
         throw error
       }
 
-      if (hasExplicitRedirect) {
-        router.push(nextPath)
+      let isVerified = true
+      try {
+        const verificationRes = await fetch('/api/user', {
+          credentials: 'include',
+          cache: 'no-store',
+        })
+        if (verificationRes.ok) {
+          const verificationPayload = await verificationRes.json().catch(() => ({}))
+          isVerified =
+            typeof verificationPayload?.emailVerified === 'boolean'
+              ? verificationPayload.emailVerified
+              : true
+        }
+      } catch {
+        // Fail open to avoid blocking verified users on transient API issues.
+        isVerified = true
+      }
+
+      if (isVerified) {
+        const verifiedRedirect = nextPath.startsWith('/auth/verify-email')
+          ? '/dashboard'
+          : nextPath
+        router.push(verifiedRedirect)
         router.refresh()
         return
       }
 
-      router.push('/dashboard')
+      const verifyRedirect = nextPath.startsWith('/auth/verify-email')
+        ? nextPath
+        : `/auth/verify-email?redirect=${encodeURIComponent(nextPath)}`
+      router.push(verifyRedirect)
       router.refresh()
     } catch (err: any) {
       if (err instanceof AuthApiError) {

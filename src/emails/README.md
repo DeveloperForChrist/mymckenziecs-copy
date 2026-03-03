@@ -36,16 +36,16 @@ Reminder edge function sharding (optional query params):
 
 Usage:
 - Load a template file and replace placeholders with values.
-- Use `resendSender.send()` to dispatch.
+- Use the Resend SDK to dispatch.
 
 Examples:
 
 Single send (Resend SDK):
 ```ts
 import { Resend } from 'resend';
-import { renderTemplate } from './resendSender';
+import fs from 'node:fs';
 const resend = new Resend(process.env.RESEND_API_KEY);
-const html = renderTemplate('src/emails/templates/deadline-3days.html', { name: 'Alex', case_title: 'State v. Smith', deadline_title: 'Motion to Dismiss Due', deadline_time: '09:00', deadline_notes: 'Draft ready; need final review.', deadline_priority: 'medium', deadline_date: '2026-03-01', days_left: '21', action_url: 'https://app...' });
+const html = fs.readFileSync('src/emails/templates/deadline-3days.html', 'utf8');
 await resend.emails.send({ from: process.env.FROM_EMAIL, to: 'user@example.com', subject: '3 weeks until deadline', html });
 ```
 
@@ -56,8 +56,6 @@ await resend.batch.send([
 	{ from: process.env.FROM_EMAIL, to: ['b@ex.com'], subject: 'Welcome', html: '<p>hi</p>' },
 ]);
 ```
-
-There is an example file at `src/emails/examples/sendExamples.ts` demonstrating both single and batch sends.
 
 Scheduler
  - A scheduler example script is included at `src/emails/scheduler/sendDeadlineReminders.js`.

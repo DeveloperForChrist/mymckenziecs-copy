@@ -61,7 +61,12 @@ TONE:
 `;
 
 const OPENAI_MODEL = process.env.OPENAI_CHAT_MODEL || 'gpt-4o'
+const OPENAI_FALLBACK_MODEL = process.env.OPENAI_CHAT_FALLBACK_MODEL || process.env.OPENAI_BASIC_MODEL || 'gpt-4.1-mini'
 const OPENAI_BASIC_MODEL = process.env.OPENAI_BASIC_MODEL || process.env.OPENAI_NON_PREMIUM_MODEL || 'gpt-4.1-mini'
+const OPENAI_BASIC_FALLBACK_MODEL =
+  process.env.OPENAI_BASIC_FALLBACK_MODEL ||
+  process.env.OPENAI_NON_PREMIUM_FALLBACK_MODEL ||
+  OPENAI_FALLBACK_MODEL
 const GROQ_MODEL = process.env.GROQ_CHAT_MODEL || 'meta-llama/llama-4-maverick-17b-128e-instruct'
 const GROQ_FALLBACK_MODEL = process.env.GROQ_CHAT_FALLBACK_MODEL || 'llama-3.3-70b-versatile'
 const MAX_TOKENS = 1000
@@ -91,6 +96,7 @@ type LegalAgentOptions = {
   includeCitations?: boolean
   provider?: LlmProvider
   openaiModel?: string
+  openaiFallbackModel?: string
 }
 
 function stableBucketPercent(input: string): number {
@@ -397,7 +403,7 @@ async function callLLM(
   model: string = OPENAI_MODEL,
   maxTokens: number = MAX_TOKENS,
   provider: LlmProvider = 'openai',
-  openAiFallbackModel: string = OPENAI_MODEL
+  openAiFallbackModel: string = OPENAI_FALLBACK_MODEL
 ): Promise<string> {
   if (provider === 'groq') {
     const groqApiKey = process.env.GROQ_API_KEY
@@ -481,15 +487,13 @@ async function callLLM(
       throw new Error('OPENAI_API_KEY is not set in the environment')
     }
     const openai = new OpenAI({ apiKey })
-    const normalizedModel = model.trim().toLowerCase()
-    const shouldUseMaxCompletionTokens = normalizedModel.startsWith('o')
     const messages = [
       { role: 'system' as const, content: systemPrompt },
       { role: 'user' as const, content: prompt }
     ]
-    const buildPayload = (useMaxCompletionTokens: boolean) => {
+    const buildPayload = (modelName: string, useMaxCompletionTokens: boolean) => {
       const basePayload: Record<string, any> = {
-        model,
+        model: modelName,
         messages,
       }
 
@@ -503,19 +507,38 @@ async function callLLM(
       return basePayload
     }
 
+    const runOpenAiModel = async (modelName: string) => {
+      const normalizedModel = modelName.trim().toLowerCase()
+      const shouldUseMaxCompletionTokens = normalizedModel.startsWith('o')
+      try {
+        return await openai.chat.completions.create(
+          buildPayload(modelName, shouldUseMaxCompletionTokens) as any
+        )
+      } catch (error: any) {
+        const unsupportedTokenParam =
+          error?.code === 'unsupported_parameter' &&
+          (error?.param === 'max_tokens' || error?.param === 'max_completion_tokens')
+        if (!unsupportedTokenParam) throw error
+        return openai.chat.completions.create(
+          buildPayload(modelName, !shouldUseMaxCompletionTokens) as any
+        )
+      }
+    }
+
     let completion: any
     try {
-      completion = await openai.chat.completions.create(
-        buildPayload(shouldUseMaxCompletionTokens) as any
-      )
-    } catch (error: any) {
-      const unsupportedTokenParam =
-        error?.code === 'unsupported_parameter' &&
-        (error?.param === 'max_tokens' || error?.param === 'max_completion_tokens')
-      if (!unsupportedTokenParam) throw error
-      completion = await openai.chat.completions.create(
-        buildPayload(!shouldUseMaxCompletionTokens) as any
-      )
+      completion = await runOpenAiModel(model)
+    } catch (primaryError) {
+      const fallbackModel = (openAiFallbackModel || '').trim()
+      if (fallbackModel && fallbackModel !== model) {
+        console.error('OpenAI primary model failed, trying fallback model', {
+          primaryModel: model,
+          fallbackModel,
+        })
+        completion = await runOpenAiModel(fallbackModel)
+      } else {
+        throw primaryError
+      }
     }
 
     let rawResponse = completion.choices[0]?.message?.content || "I couldn't generate a response."
@@ -572,6 +595,8 @@ export async function createLegalAgent(
   const useSearch = options?.useSearch !== false
   const includeCitations = options?.includeCitations === true
   const openaiModel = options?.openaiModel || OPENAI_MODEL
+  const openaiFallbackModel = options?.openaiFallbackModel || OPENAI_FALLBACK_MODEL
+  const llmProvider: LlmProvider = options?.provider || 'openai'
   return {
     tools,
     systemPrompt,
@@ -609,9 +634,15 @@ export async function createLegalAgent(
           const historyContext = buildHistoryContext(trimmedHistory)
           const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
           const directPrompt = `${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. Output must be plain text only. Follow the presentation rules.`
-          const llmProvider: LlmProvider = options?.provider || 'openai'
           const modelForProvider = llmProvider === 'groq' ? GROQ_MODEL : openaiModel
-          const directAnswer = await callLLM(directPrompt, systemPrompt, modelForProvider, MAX_TOKENS, llmProvider, openaiModel)
+          const directAnswer = await callLLM(
+            directPrompt,
+            systemPrompt,
+            modelForProvider,
+            MAX_TOKENS,
+            llmProvider,
+            openaiFallbackModel
+          )
           const neutralDirectAnswer = neutralizeLegalAdviceTone(directAnswer)
           return {
             response: neutralDirectAnswer,
@@ -665,12 +696,14 @@ export async function createLegalAgent(
           : 'Do not include any source citations.'
         const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\nUser question: "${latestQuestion}"\n\nGenerate a thorough, detailed answer that comprehensively covers this topic using ALL relevant information from the sources. ${citationInstruction} Create a complete answer that covers all aspects and angles of the question. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. No markdown. Use clear section titles as plain text lines ending with a colon (e.g., "Summary:"). Use short paragraphs and bullets (•) where needed.`
         
+        const modelForProvider = llmProvider === 'groq' ? GROQ_MODEL : openaiModel
         const comprehensiveAnswer = await callLLM(
           comprehensivePrompt,
           systemPrompt,
-          openaiModel,
+          modelForProvider,
           MAX_TOKENS + COMPREHENSIVE_TOKEN_BONUS,
-          'openai'
+          llmProvider,
+          openaiFallbackModel
         )
 
         // 5. DISCRIMINATOR: Critic/revise/verify the comprehensive answer for the user
@@ -753,7 +786,14 @@ export async function invokeLegalAgent(
   _userId?: string,
   conversationHistory: Array<{ role: string; content: string }> = [],
   caseKeywords?: string,
-  options?: { useDiscriminator?: boolean; useSearch?: boolean; includeCitations?: boolean; openaiModel?: string }
+  options?: {
+    useDiscriminator?: boolean
+    useSearch?: boolean
+    includeCitations?: boolean
+    provider?: LlmProvider
+    openaiModel?: string
+    openaiFallbackModel?: string
+  }
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
   const agent = await createLegalAgent(conversationHistory, caseKeywords, undefined, options)
   const response = await agent.invoke({ input: message })
@@ -779,7 +819,8 @@ export async function invokeBasicLegalAgent(
     useSearch: false,
     systemPrompt: SYSTEM_PROMPT_FREE,
     provider: basicProvider,
-    openaiModel: OPENAI_BASIC_MODEL
+    openaiModel: OPENAI_BASIC_MODEL,
+    openaiFallbackModel: OPENAI_BASIC_FALLBACK_MODEL,
   })
   const response = await agent.invoke({ input: message })
   return {

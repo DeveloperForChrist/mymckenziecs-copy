@@ -252,72 +252,72 @@ export default function DashboardHomeClient({
             </section>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', gap: 'clamp(14px, 2.6vw, 24px)', marginBottom: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(310px, 100%), 1fr))', gap: 'clamp(18px, 3vw, 30px)', marginBottom: '18px' }}>
             {visibleFeatures.map((feature, idx) => (
-              <Link
-                key={idx}
-                href={feature.href}
-                prefetch={feature.href === '/settings' ? false : undefined}
-                style={{ textDecoration: 'none' }}
-              >
-                <div style={{
-                  background: `linear-gradient(135deg, ${feature.color})`,
-                  padding: 'clamp(18px, 3.8vw, 30px) clamp(16px, 3.4vw, 24px)',
-                  borderRadius: '14px',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '100%',
-                  minHeight: 'clamp(170px, 34vw, 220px)',
-                  position: 'relative',
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-8px)';
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = '0 20px 40px rgba(0,0,0,0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
-                }}>
-                  <div>
-                    {typeof feature.alertCount === 'number' && feature.alertCount > 0 && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '14px',
-                          right: '14px',
-                          minWidth: '31px',
-                          height: '31px',
-                          borderRadius: '999px',
-                          padding: '0 9px',
-                          background: 'rgba(127, 29, 29, 0.92)',
-                          color: '#fff',
-                          fontSize: '0.82rem',
-                          fontWeight: 800,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          boxShadow: '0 8px 18px rgba(0,0,0,0.24)',
-                        }}
-                        aria-label={`${feature.alertCount} upcoming calendar event${feature.alertCount === 1 ? '' : 's'}`}
-                      >
-                        {feature.alertCount > 99 ? '99+' : feature.alertCount}
-                      </div>
+                <Link
+                  key={idx}
+                  href={feature.href}
+                  prefetch={feature.href === '/settings' ? false : undefined}
+                  style={{ textDecoration: 'none' }}
+                >
+                  <div style={{
+                    background: `linear-gradient(135deg, ${feature.color})`,
+                    padding: 'clamp(22px, 4.4vw, 36px) clamp(18px, 3.8vw, 28px)',
+                    borderRadius: '14px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    height: '100%',
+                    minHeight: 'clamp(230px, 40vw, 320px)',
+                    position: 'relative',
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-8px)';
+                    (e.currentTarget as HTMLDivElement).style.boxShadow = '0 20px 40px rgba(0,0,0,0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
+                    (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
+                  }}>
+                    <div>
+                      {typeof feature.alertCount === 'number' && feature.alertCount > 0 && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '14px',
+                            right: '14px',
+                            minWidth: '31px',
+                            height: '31px',
+                            borderRadius: '999px',
+                            padding: '0 9px',
+                            background: 'rgba(127, 29, 29, 0.92)',
+                            color: '#fff',
+                            fontSize: '0.82rem',
+                            fontWeight: 800,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 8px 18px rgba(0,0,0,0.24)',
+                          }}
+                          aria-label={`${feature.alertCount} upcoming calendar event${feature.alertCount === 1 ? '' : 's'}`}
+                        >
+                          {feature.alertCount > 99 ? '99+' : feature.alertCount}
+                        </div>
+                      )}
+                      <i className={`bx ${feature.icon}`} style={{ fontSize: 'clamp(1.9rem, 7vw, 2.45rem)', display: 'block', marginBottom: '14px', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))' }} />
+                      <h3 style={{ fontSize: 'clamp(1.2rem, 4.6vw, 1.55rem)', fontWeight: 600, marginBottom: '10px' }}>{feature.title}</h3>
+                      <p style={{ fontSize: 'clamp(0.93rem, 3.1vw, 1.04rem)', opacity: 0.9, marginBottom: '8px', lineHeight: 1.45 }}>{feature.desc}</p>
+                    </div>
+                    {feature.badge && (
+                      <span style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.2)', padding: '5px 10px', borderRadius: '20px', width: 'fit-content' }}>
+                        {feature.badge}
+                      </span>
                     )}
-                    <i className={`bx ${feature.icon}`} style={{ fontSize: 'clamp(1.9rem, 7vw, 2.45rem)', display: 'block', marginBottom: '14px', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))' }} />
-                    <h3 style={{ fontSize: 'clamp(1.2rem, 4.6vw, 1.55rem)', fontWeight: 600, marginBottom: '10px' }}>{feature.title}</h3>
-                    <p style={{ fontSize: 'clamp(0.93rem, 3.1vw, 1.04rem)', opacity: 0.9, marginBottom: '8px', lineHeight: 1.45 }}>{feature.desc}</p>
                   </div>
-                  {feature.badge && (
-                    <span style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.2)', padding: '5px 10px', borderRadius: '20px', width: 'fit-content' }}>
-                      {feature.badge}
-                    </span>
-                  )}
-                </div>
-              </Link>
+                </Link>
             ))}
           </div>
         </div>

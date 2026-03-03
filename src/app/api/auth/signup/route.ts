@@ -9,9 +9,9 @@ function isValidEmail(email: string) {
 }
 
 function safeRedirectPath(input?: string) {
-  if (!input) return '/pricing'
+  if (!input) return '/dashboard'
   const normalized = input.trim()
-  return normalized.startsWith('/') ? normalized : '/pricing'
+  return normalized.startsWith('/') ? normalized : '/dashboard'
 }
 
 export async function POST(request: NextRequest) {

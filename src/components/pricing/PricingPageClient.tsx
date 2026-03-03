@@ -71,6 +71,24 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
+  const hasConfiguredPriceId = (priceId: string) => priceId.trim().length > 0;
+
+  const getPlanButtonLabel = (priceId: string) =>
+    checkoutLoading === priceId ? 'Redirecting…' : 'Launch your workspace';
+
+  const handlePlanButtonClick = (priceId: string, planName: string) => {
+    if (!hasConfiguredPriceId(priceId)) {
+      if (!isSignedIn) {
+        const redirectTo = '/dashboard';
+        window.location.href = `/auth/signup?plan=${encodeURIComponent(planName)}&redirect=${encodeURIComponent(redirectTo)}`;
+        return;
+      }
+      setCheckoutError('This plan is temporarily unavailable. Please try again shortly.');
+      return;
+    }
+    void handleSubscribe(priceId);
+  };
+
   async function handleSubscribe(priceId: string) {
     setCheckoutLoading(priceId);
     setCheckoutError(null);
@@ -92,6 +110,10 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
         body: JSON.stringify({ planId: priceId }),
       });
       const data = await res.json();
+      if (!res.ok && data?.code === 'EMAIL_VERIFICATION_REQUIRED' && typeof data?.redirect === 'string') {
+        window.location.href = data.redirect;
+        return;
+      }
       if (!res.ok || !data?.url) {
         setCheckoutError(data?.error || 'Unable to start checkout');
         setCheckoutLoading(null);
@@ -327,7 +349,9 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
             <div>
               <p style={{ textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.75rem', color: '#f8a76f', fontWeight: 600 }}>Pricing</p>
               <h1 style={{ fontSize: 'clamp(2rem, 8vw, 3.6rem)', lineHeight: 1.05, margin: '0.8rem 0 1rem 0' }}>
-                Legal support that feels human, priced like a utility.
+                Your in-person litigation workspace,
+                <br />
+                structured for people.
               </h1>
               <p style={{ fontSize: 'clamp(1rem, 3.2vw, 1.2rem)', color: '#cbd5f5', maxWidth: '520px' }}>
                 Choose a plan that keeps you moving with confidence — from first questions to prepared filings.
@@ -388,10 +412,10 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
               <button
                 className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
                 style={{ background: 'linear-gradient(135deg, #93c5fd, #3b82f6)', border: '2px solid transparent' }}
-                onClick={() => handleSubscribe(basicPriceId)}
-                disabled={!basicPriceId || checkoutLoading === basicPriceId}
+                onClick={() => handlePlanButtonClick(basicPriceId, 'Basic')}
+                disabled={checkoutLoading === basicPriceId}
               >
-                {!basicPriceId ? 'Configure price ID' : (checkoutLoading === basicPriceId ? 'Redirecting…' : 'Launch your workspace')}
+                {getPlanButtonLabel(basicPriceId)}
               </button>
               {checkoutError && checkoutLoading === basicPriceId && (
                 <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>
@@ -426,10 +450,10 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
               <button
                 className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
                 style={{ background: 'linear-gradient(135deg, #7bd4c9, #3aa79d)', border: '2px solid transparent' }}
-                onClick={() => handleSubscribe(premiumPriceId)}
-                disabled={!premiumPriceId || checkoutLoading === premiumPriceId}
+                onClick={() => handlePlanButtonClick(premiumPriceId, 'Premium')}
+                disabled={checkoutLoading === premiumPriceId}
               >
-                {!premiumPriceId ? 'Configure price ID' : (checkoutLoading === premiumPriceId ? 'Redirecting…' : 'Launch your workspace')}
+                {getPlanButtonLabel(premiumPriceId)}
               </button>
               {checkoutError && checkoutLoading === premiumPriceId && (
                 <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>
@@ -470,10 +494,10 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
               <button
                 className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
                 style={{ background: 'linear-gradient(135deg, #f8a76f, #f26a3d)', border: '2px solid transparent' }}
-                onClick={() => handleSubscribe(premiumPlusPriceId)}
-                disabled={!premiumPlusPriceId || checkoutLoading === premiumPlusPriceId}
+                onClick={() => handlePlanButtonClick(premiumPlusPriceId, 'Premium +')}
+                disabled={checkoutLoading === premiumPlusPriceId}
               >
-                {!premiumPlusPriceId ? 'Configure price ID' : (checkoutLoading === premiumPlusPriceId ? 'Redirecting…' : 'Launch your workspace')}
+                {getPlanButtonLabel(premiumPlusPriceId)}
               </button>
               {checkoutError && checkoutLoading === premiumPlusPriceId && (
                 <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>

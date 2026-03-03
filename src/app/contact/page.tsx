@@ -5,7 +5,7 @@ export default function ContactPage() {
     <LegalPageLayout
       title="Contact"
       subtitle="Reach the MyMcKenzieCS team for help, support, or account questions."
-      meta="Support hours: Mon–Fri, 9:00–18:00 (UK)"
+        meta="Support hours: Mon–Fri, 9:00–17:00 (UK)"
     >
       <div className="space-y-8 text-base md:text-lg">
         <section>

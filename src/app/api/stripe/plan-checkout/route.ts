@@ -81,9 +81,26 @@ export async function POST(request: NextRequest) {
     // Find or create Stripe customer for user
     const { data: userRow } = await supabaseAdmin
       .from('users')
-      .select('id')
+      .select('id, email_verified_at')
       .eq('id', authUid)
       .maybeSingle();
+
+    const isEmailVerified = Boolean(
+      (userRow as any)?.email_verified_at ||
+      (authData.user as any)?.email_confirmed_at
+    );
+
+    if (!isEmailVerified) {
+      const verifyRedirect = `/auth/verify-email?redirect=${encodeURIComponent(`/pricing?plan=${encodeURIComponent(String(planId))}`)}`;
+      return NextResponse.json(
+        {
+          error: 'Verify your email before checkout',
+          code: 'EMAIL_VERIFICATION_REQUIRED',
+          redirect: verifyRedirect,
+        },
+        { status: 403 }
+      );
+    }
 
     // Check for existing subscription with stripe_customer_id
     let customerId: string | null = null;

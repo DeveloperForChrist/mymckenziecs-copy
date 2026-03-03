@@ -12,10 +12,10 @@ function safeRedirectPath(input?: string | null) {
   return normalized.startsWith('/') ? normalized : '/dashboard'
 }
 
-function buildSignInRedirect(request: NextRequest, status: 'success' | 'invalid' | 'expired', redirectPath?: string) {
-  const next = new URL('/auth/signin', request.url)
-  next.searchParams.set('verified', status)
-  if (status === 'success' && redirectPath) {
+function buildVerifyRedirect(request: NextRequest, status: 'invalid' | 'expired', redirectPath?: string) {
+  const next = new URL('/auth/verify-email', request.url)
+  next.searchParams.set('status', status)
+  if (redirectPath && redirectPath.startsWith('/')) {
     next.searchParams.set('redirect', redirectPath)
   }
   return next
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     const redirectPath = safeRedirectPath(request.nextUrl.searchParams.get('redirect'))
 
     if (!token) {
-      return NextResponse.redirect(buildSignInRedirect(request, 'invalid'))
+      return NextResponse.redirect(buildVerifyRedirect(request, 'invalid', redirectPath))
     }
 
     const tokenHash = createHash('sha256').update(token).digest('hex')
@@ -38,11 +38,11 @@ export async function GET(request: NextRequest) {
       .maybeSingle()
 
     if (userError || !userRow?.id) {
-      return NextResponse.redirect(buildSignInRedirect(request, 'invalid'))
+      return NextResponse.redirect(buildVerifyRedirect(request, 'invalid', redirectPath))
     }
 
     if (userRow.email_verified_at) {
-      return NextResponse.redirect(buildSignInRedirect(request, 'success', redirectPath))
+      return NextResponse.redirect(new URL(redirectPath, request.url))
     }
 
     const expiresAt = userRow.verification_token_expires_at
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
         .from('users')
         .update({ verification_token_hash: null, verification_token_expires_at: null })
         .eq('id', userRow.id)
-      return NextResponse.redirect(buildSignInRedirect(request, 'expired'))
+      return NextResponse.redirect(buildVerifyRedirect(request, 'expired', redirectPath))
     }
 
     const nowIso = new Date().toISOString()
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
       email_confirm: true,
     })
     if (authUpdateError) {
-      return NextResponse.redirect(buildSignInRedirect(request, 'invalid'))
+      return NextResponse.redirect(buildVerifyRedirect(request, 'invalid', redirectPath))
     }
 
     await supabaseAdmin
@@ -73,8 +73,9 @@ export async function GET(request: NextRequest) {
       })
       .eq('id', userRow.id)
 
-    return NextResponse.redirect(buildSignInRedirect(request, 'success', redirectPath))
+    return NextResponse.redirect(new URL(redirectPath, request.url))
   } catch {
-    return NextResponse.redirect(buildSignInRedirect(request, 'invalid'))
+    const redirectPath = safeRedirectPath(request.nextUrl.searchParams.get('redirect'))
+    return NextResponse.redirect(buildVerifyRedirect(request, 'invalid', redirectPath))
   }
 }

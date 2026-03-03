@@ -54,7 +54,7 @@ export default function SignUpForm() {
   const redirectParam = (searchParams?.get('redirect') || '').trim()
   const fallbackRedirect = selectedPlanId
     ? `/pricing?plan=${encodeURIComponent(selectedPlanId)}`
-    : '/pricing'
+    : '/dashboard'
   const nextRedirect =
     redirectParam.startsWith('/')
       ? redirectParam
@@ -116,23 +116,13 @@ export default function SignUpForm() {
           throw new Error('Account created, but we could not start payment. Please sign in and continue from pricing.')
         }
 
-        const checkoutResponse = await fetch('/api/stripe/plan-checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            planId: selectedPlanId,
-            successUrl: '/checkout/success',
-            cancelUrl: '/pricing?checkout_status=cancelled',
-          }),
+        const verifyParams = new URLSearchParams({
+          verify: 'sent',
+          redirect: nextRedirect,
+          planId: selectedPlanId,
         })
-
-        const checkoutPayload = await checkoutResponse.json().catch(() => ({}))
-        if (!checkoutResponse.ok || !checkoutPayload?.url) {
-          throw new Error(checkoutPayload?.error || 'Unable to start secure checkout. Please try again.')
-        }
-
-        window.location.assign(checkoutPayload.url)
+        router.push(`/auth/verify-email?${verifyParams.toString()}`)
+        router.refresh()
         return
       }
 
