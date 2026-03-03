@@ -6,7 +6,7 @@
     "dev": "next dev",
     "dev:py": "python3 scripts/case-law/milvus_bridge.py",
     "build": "next build --webpack",
-    "start": "node .next/standalone/server.js",
+    "start": "next start",
     "lint": "eslint src instrumentation.ts instrumentation-client.ts sentry.server.config.ts sentry.edge.config.ts --ext .ts,.tsx",
     "type-check": "tsc --noEmit",
     "launch:check": "node scripts/ops/launch-readiness.mjs",
