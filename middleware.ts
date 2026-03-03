@@ -41,7 +41,7 @@ function hasCaseProfileAccess(plan: unknown): boolean {
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  // Migrate legacy admin URLs to the new admin path.
+  // Keep old admin URLs working, but canonical login is /jesusistheadmin.
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
     const redirectedPath = pathname.replace(/^\/admin/, '/jesusistheadmin')
     return NextResponse.redirect(new URL(redirectedPath, request.url))
