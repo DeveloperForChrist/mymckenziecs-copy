@@ -28,6 +28,7 @@ export default function SignInForm() {
   const billingOptOutState = (searchParams?.get('billing_opt_out') || '').trim().toLowerCase()
   const redirectParam = (searchParams?.get('redirect') || '').trim()
   const nextPath = redirectParam.startsWith('/') ? redirectParam : '/dashboard'
+  const billingRedirect = '/pricing?redirect=%2Fsettings%3Ftab%3Dbilling'
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -73,19 +74,41 @@ export default function SignInForm() {
         isVerified = true
       }
 
-      if (isVerified) {
-        const verifiedRedirect = nextPath.startsWith('/auth/verify-email')
-          ? '/dashboard'
-          : nextPath
-        router.push(verifiedRedirect)
+      if (!isVerified) {
+        const verifyRedirectTarget =
+          nextPath.startsWith('/pricing')
+            ? nextPath
+            : '/pricing?redirect=%2Fsettings%3Ftab%3Dbilling'
+        const verifyRedirect = `/auth/verify-email?redirect=${encodeURIComponent(verifyRedirectTarget)}`
+        router.push(verifyRedirect)
         router.refresh()
         return
       }
 
-      const verifyRedirect = nextPath.startsWith('/auth/verify-email')
-        ? nextPath
-        : `/auth/verify-email?redirect=${encodeURIComponent(nextPath)}`
-      router.push(verifyRedirect)
+      let hasPaidPlan = false
+      try {
+        const planRes = await fetch('/api/user/plan', {
+          credentials: 'include',
+          cache: 'no-store',
+        })
+        if (planRes.ok) {
+          const planPayload = await planRes.json().catch(() => ({}))
+          hasPaidPlan = Boolean(planPayload?.paidAccess)
+        }
+      } catch {
+        hasPaidPlan = false
+      }
+
+      if (!hasPaidPlan) {
+        router.push(billingRedirect)
+        router.refresh()
+        return
+      }
+
+      const verifiedRedirect = nextPath.startsWith('/auth/verify-email')
+        ? '/dashboard'
+        : nextPath
+      router.push(verifiedRedirect)
       router.refresh()
     } catch (err: any) {
       if (err instanceof AuthApiError) {

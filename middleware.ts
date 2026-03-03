@@ -211,6 +211,7 @@ export async function middleware(request: NextRequest) {
 
   if (user && isSoftSuspendedPath) {
     const status = String(latestSub?.status || '').toLowerCase()
+    const paid = hasPaidPlan(activeSub?.plan_type)
     const hardLocked =
       hasPaidPlan(latestSub?.plan_type) &&
       (status === 'expired' || status === 'cancelled') &&
@@ -219,6 +220,12 @@ export async function middleware(request: NextRequest) {
     if (hardLocked) {
       const pricingUrl = new URL('/pricing', request.url)
       pricingUrl.searchParams.set('hard_lock', '1')
+      return NextResponse.redirect(pricingUrl)
+    }
+
+    if (!paid && pathname.startsWith('/dashboard')) {
+      const pricingUrl = new URL('/pricing', request.url)
+      pricingUrl.searchParams.set('redirect', '/settings?tab=billing')
       return NextResponse.redirect(pricingUrl)
     }
   }
