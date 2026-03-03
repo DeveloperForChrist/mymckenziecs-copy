@@ -74,11 +74,12 @@ const chatRequestSchema = z.object({
 }).passthrough()
 
 const nodeRequire = createRequire(import.meta.url)
-const PREMIUM_PLUS_OPENAI_MODEL = process.env.OPENAI_PREMIUM_PLUS_MODEL
-if (!PREMIUM_PLUS_OPENAI_MODEL) {
-  throw new Error('OPENAI_PREMIUM_PLUS_MODEL is required')
-}
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+const getPremiumPlusOpenAiModel = (): string | null => {
+  const model = (process.env.OPENAI_PREMIUM_PLUS_MODEL || '').trim()
+  return model.length > 0 ? model : null
+}
 
 const normalizePlanLabel = (value: any): string =>
   typeof value === 'string' ? value.trim().toLowerCase() : ''
@@ -1326,13 +1327,23 @@ export async function POST(request: NextRequest) {
     const threadId = `thread_${Date.now()}_${userId}`
 
     const shouldUseBasicLegalAgent = basicPlanActive
+    const premiumPlusOpenAiModel = premiumPlusActive ? getPremiumPlusOpenAiModel() : null
+    if (premiumPlusActive && !premiumPlusOpenAiModel) {
+      console.error('OPENAI_PREMIUM_PLUS_MODEL is missing for a Premium+ chat request')
+      return withCookie(
+        NextResponse.json(
+          { response: 'Premium+ chat is temporarily unavailable. Please try again shortly.' },
+          { status: 503 }
+        )
+      )
+    }
     const agentResponse = shouldUseBasicLegalAgent
       ? await invokeBasicLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords)
       : await invokeLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
           useDiscriminator: premiumPlusActive,
           useSearch: shouldUseSearchRetrieval,
           includeCitations: premiumPlusActive,
-          openaiModel: premiumPlusActive ? PREMIUM_PLUS_OPENAI_MODEL : undefined,
+          openaiModel: premiumPlusOpenAiModel || undefined,
         })
 
     const includeDebug = process.env.NODE_ENV !== 'production'
