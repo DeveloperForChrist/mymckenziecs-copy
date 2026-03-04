@@ -207,12 +207,12 @@ const buildReferenceSearchUrl = (refText: string) => {
 const BULLET_PREFIX = '• '
 
 const hasBulletPrefix = (line: string) => /^(?:[\*\-•]\s+|\d+\.\s+)/.test(line)
-const hasNumberPrefix = (line: string) => /^\d+\.\s+/.test(line)
+const hasNumberPrefix = (line: string) => /^\d+(?:\.|\))\s+/.test(line)
 
 const stripLinePrefix = (line: string) =>
   line.replace(/^(?:[\*\-•]\s+|\d+\.\s+)/, '').trim()
 
-const stripNumberPrefix = (line: string) => line.replace(/^\d+\.\s+/, '').trim()
+const stripNumberPrefix = (line: string) => line.replace(/^\d+(?:\.|\))\s+/, '').trim()
 
 const isNumberedHeadingLine = (line: string) => {
   if (!hasNumberPrefix(line)) return false
@@ -220,7 +220,12 @@ const isNumberedHeadingLine = (line: string) => {
   if (!text) return false
   const wordCount = text.trim().split(/\s+/).length
   if (wordCount > 10) return false
-  return /^[A-Z]/.test(text)
+  // Heading-like if short and title-ish, or explicitly written like a heading.
+  const looksHeadingLike =
+    /^[A-Z]/.test(text) ||
+    /^[A-Za-z][A-Za-z0-9\s\-()'"/,&]+:$/.test(text) ||
+    (/^[A-Za-z]/.test(text) && !/[.!?]$/.test(text))
+  return looksHeadingLike
 }
 
 const isSummaryLine = (line: string) => /^(in short|summary|takeaway)\s*:/i.test(line.trim())

@@ -167,7 +167,9 @@ export default function ChatMessageList({
                 margin: 6px 0 4px 0;
                 color: #f1f5f9;
                 text-transform: uppercase;
-                text-decoration: none;
+                text-decoration: underline;
+                text-decoration-thickness: 1.5px;
+                text-underline-offset: 4px;
               }
               .message-container .assistant-summary {
                 font-family: inherit;
