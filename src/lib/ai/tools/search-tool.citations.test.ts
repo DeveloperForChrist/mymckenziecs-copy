@@ -54,7 +54,7 @@ describe('search-tool source capture', () => {
     const raw = await tool._call(JSON.stringify({ query: 'uk court claim process', mode: 'general' }))
     const parsed = JSON.parse(raw) as { sources: string[]; reviewedCount: number }
 
-    expect(parsed.reviewedCount).toBeGreaterThanOrEqual(3)
+    expect(parsed.reviewedCount).toBeGreaterThanOrEqual(2)
     expect(parsed.sources).toEqual([
       'https://example.com/page-a',
       'https://example.com/page-b',
@@ -162,13 +162,11 @@ describe('search-tool source capture', () => {
 
     expect(seenBraveQueries.length).toBeGreaterThanOrEqual(2)
     expect(seenBraveQueries.some((q) => q.includes('driver hit my parked car and left scene'))).toBe(true)
-    expect(seenBraveQueries.some((q) => q.includes('official legal sources'))).toBe(true)
     expect(parsed.sources).toEqual([
       'https://example.com/guide-a',
-      'https://example.com/guide-c',
-      'https://example.com/guide-b'
+      'https://example.com/guide-c'
     ])
-    expect(parsed.reviewedCount).toBeGreaterThanOrEqual(3)
+    expect(parsed.reviewedCount).toBeGreaterThanOrEqual(2)
     expect(parsed.packet).toContain('Executed searches:')
     expect(parsed.packet).toContain('Matched query:')
   })
@@ -224,7 +222,7 @@ describe('search-tool source capture', () => {
     expect(usedNonBraveSearch).toBe(false)
   })
 
-  it('injects an authoritative UK legal source into the final packet when ranking would otherwise miss it', async () => {
+  it('keeps packet ranking query-driven without forced authority injection', async () => {
     const pageHtml = (title: string, body: string) =>
       `<html><head><title>${title}</title></head><body>${body}</body></html>`
 
@@ -277,6 +275,6 @@ describe('search-tool source capture', () => {
 
     expect(parsed.sourceMode).toBe('engine')
     expect(parsed.reviewedCount).toBeGreaterThanOrEqual(8)
-    expect(parsed.packet).toContain('https://www.legislation.gov.uk/ukpga/1988/52/section/170')
+    expect(parsed.packet).toContain('https://blog1.example.com/p1')
   })
 })
