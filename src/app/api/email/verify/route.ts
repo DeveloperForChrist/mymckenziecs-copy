@@ -22,6 +22,15 @@ function buildVerifyRedirect(baseUrl: string, status: 'invalid' | 'expired', red
   return next
 }
 
+function buildVerifySuccessRedirect(baseUrl: string, redirectPath?: string) {
+  const next = new URL('/auth/verify-email', baseUrl)
+  next.searchParams.set('verified', 'success')
+  if (redirectPath && redirectPath.startsWith('/')) {
+    next.searchParams.set('redirect', redirectPath)
+  }
+  return next
+}
+
 export async function GET(request: NextRequest) {
   const baseUrl = getAppUrl(request)
   try {
@@ -44,7 +53,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (userRow.email_verified_at) {
-      return NextResponse.redirect(new URL(redirectPath, baseUrl))
+      return NextResponse.redirect(buildVerifySuccessRedirect(baseUrl, redirectPath))
     }
 
     const expiresAt = userRow.verification_token_expires_at
@@ -75,7 +84,7 @@ export async function GET(request: NextRequest) {
       })
       .eq('id', userRow.id)
 
-    return NextResponse.redirect(new URL(redirectPath, baseUrl))
+    return NextResponse.redirect(buildVerifySuccessRedirect(baseUrl, redirectPath))
   } catch {
     const redirectPath = safeRedirectPath(request.nextUrl.searchParams.get('redirect'))
     return NextResponse.redirect(buildVerifyRedirect(baseUrl, 'invalid', redirectPath))

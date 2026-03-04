@@ -18,6 +18,7 @@ export default function VerifyEmailScreen() {
 
   const status = useMemo(() => (searchParams?.get('status') || '').trim().toLowerCase(), [searchParams])
   const verify = useMemo(() => (searchParams?.get('verify') || '').trim().toLowerCase(), [searchParams])
+  const verified = useMemo(() => (searchParams?.get('verified') || '').trim().toLowerCase(), [searchParams])
   const redirectParam = useMemo(() => (searchParams?.get('redirect') || '').trim(), [searchParams])
   const planId = useMemo(() => (searchParams?.get('planId') || '').trim(), [searchParams])
   const postVerifyRedirect = useMemo(() => {
@@ -56,6 +57,14 @@ export default function VerifyEmailScreen() {
         const email = typeof payload?.email === 'string' ? payload.email : ''
 
         if (isVerified) {
+          if (verified === 'success') {
+            setNotice('Email verified successfully. Redirecting you now...')
+            window.setTimeout(() => {
+              router.replace(postVerifyRedirect)
+              router.refresh()
+            }, 900)
+            return
+          }
           router.replace(postVerifyRedirect)
           return
         }
@@ -79,7 +88,7 @@ export default function VerifyEmailScreen() {
     return () => {
       cancelled = true
     }
-  }, [postVerifyRedirect, router, verify])
+  }, [postVerifyRedirect, router, verify, verified])
 
   const resendVerification = async () => {
     if (!userEmail || resendPending) return
