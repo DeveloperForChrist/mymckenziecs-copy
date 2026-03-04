@@ -5,12 +5,19 @@
 <html>
   <head><meta charset="utf-8"/><title>Plan updated</title></head>
   <body>
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-    <h1>Your plan has been updated</h1>
-    <p>Hi {{name}},</p>
-    <p>Your plan was {{change_type}} from <strong>{{old_plan}}</strong> to <strong>{{new_plan}}</strong>.</p>
-    <p><a href="{{manage_url}}">Manage your plan</a></p>
+    <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
+      <h2 style="margin: 0 0 12px;">Your plan has been updated</h2>
+      <p>Hi {{name}},</p>
+      <p>
+        This is a confirmation that your plan was {{change_type}} from <strong>{{old_plan}}</strong> to
+        <strong>{{new_plan}}</strong> on <strong>{{changed_date}}</strong> at <strong>{{changed_time}}</strong>.
+      </p>
+      <p>If you made this change, no further action is required.</p>
+      <p>
+        If you did not request or approve this change, contact support immediately at {{support_email}}.
+      </p>
+      <p><a href="{{manage_url}}">Manage your plan</a></p>
+      <p style="margin-top: 24px;">MyMcKenzieCS</p>
     </div>
-  <p style="margin-top: 24px;">MyMcKenzieCS</p>
   </body>
 </html>

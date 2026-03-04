@@ -1,18 +1,17 @@
-<!-- Trigger: final payment reminder during grace period
-     Purpose: urgent final notice before downgrade/cancellation action
-     Key elements: grace end date, immediate CTA -->
 <!doctype html>
 <html>
-  <head><meta charset="utf-8"/><title>Final payment reminder</title></head>
-  <body>
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h1>Final payment reminder</h1>
-      <p>Hi {{name}},</p>
-      <p>This is your final reminder. We still haven’t been able to collect your subscription payment.</p>
-      <p>If payment is not completed by <strong>{{grace_end_date}}</strong>, your subscription access will end.</p>
-      <p>Please update your payment method now to avoid interruption.</p>
-      <p><a href="{{manage_url}}">Update payment method now</a></p>
-    </div>
-  <p style="margin-top: 24px;">MyMcKenzieCS</p>
+  <head>
+    <meta charset="utf-8" />
+    <title>Final payment reminder</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
+    <h2 style="margin: 0 0 12px;">Final payment reminder</h2>
+    <p>Hi {{name}},</p>
+    <p>
+      This is your final reminder to resolve your outstanding subscription payment.
+    </p>
+    <p><strong>Grace period ends:</strong> {{grace_end_date}}</p>
+    <p><a href="{{manage_url}}">Update payment method now</a></p>
+    <p style="margin-top: 24px;">MyMcKenzieCS</p>
   </body>
 </html>

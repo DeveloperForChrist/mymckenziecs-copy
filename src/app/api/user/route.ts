@@ -24,6 +24,22 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
+function formatChangedAt(date: Date) {
+  const datePart = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Europe/London',
+  }).format(date)
+  const timePart = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Europe/London',
+  }).format(date)
+  return { datePart, timePart: `${timePart} UK time` }
+}
+
 export async function GET(_request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteClient()
@@ -96,6 +112,8 @@ export async function PUT(request: NextRequest) {
 
     const authUid = data.user.id
     const nowIso = new Date().toISOString()
+    const changedAt = new Date()
+    const { datePart, timePart } = formatChangedAt(changedAt)
     const currentEmail = (data.user.email || '').trim().toLowerCase()
     const requestedEmail = email || currentEmail
 
@@ -107,6 +125,24 @@ export async function PUT(request: NextRequest) {
       Boolean(requestedEmail) &&
       Boolean(currentEmail) &&
       requestedEmail.toLowerCase() !== currentEmail.toLowerCase()
+
+    const { data: existingUserRow } = await supabaseAdmin
+      .from('users')
+      .select('fullName, full_name, name, address')
+      .eq('id', authUid)
+      .maybeSingle()
+
+    const priorFullName = String(
+      (existingUserRow as any)?.fullName ||
+      (existingUserRow as any)?.full_name ||
+      (existingUserRow as any)?.name ||
+      data.user.user_metadata?.full_name ||
+      data.user.user_metadata?.display_name ||
+      ''
+    ).trim()
+    const priorAddress = String((existingUserRow as any)?.address || '').trim()
+    const detailsChangeRequested =
+      fullName !== priorFullName || address !== priorAddress
 
     if (emailChangeRequested) {
       const { error: authEmailUpdateError } = await supabaseAdmin.auth.admin.updateUserById(authUid, {
@@ -187,6 +223,8 @@ export async function PUT(request: NextRequest) {
           name: firstName,
           old_email: currentEmail,
           new_email: requestedEmail,
+          changed_date: datePart,
+          changed_time: timePart,
           support_email: supportEmail,
         })
         await sendResendEmail({
@@ -205,6 +243,8 @@ export async function PUT(request: NextRequest) {
             name: firstName,
             old_email: currentEmail,
             new_email: requestedEmail,
+            changed_date: datePart,
+            changed_time: timePart,
             support_email: supportEmail,
           })
           await sendResendEmail({
@@ -216,6 +256,35 @@ export async function PUT(request: NextRequest) {
         } catch (oldEmailNoticeError) {
           console.error('Failed to send old-email change notice', oldEmailNoticeError)
         }
+      }
+    }
+
+    if (detailsChangeRequested && requestedEmail) {
+      const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com'
+      const firstName = (fullName || data.user.user_metadata?.full_name || data.user.user_metadata?.display_name || 'there')
+        .trim()
+        .split(/\s+/)[0] || 'there'
+      const changedFields: string[] = []
+      if (fullName !== priorFullName) changedFields.push('full name')
+      if (address !== priorAddress) changedFields.push('address')
+
+      try {
+        const htmlBody = renderTemplate('25-account-details-changed.html', {
+          name: firstName,
+          email: requestedEmail,
+          changed_fields: changedFields.join(', ') || 'account details',
+          changed_date: datePart,
+          changed_time: timePart,
+          support_email: supportEmail,
+        })
+        await sendResendEmail({
+          to: requestedEmail,
+          subject: 'Your MyMcKenzieCS account details were updated',
+          htmlBody,
+          tag: 'account-details-changed-notice',
+        })
+      } catch (detailsNoticeError) {
+        console.error('Failed to send account details change notice', detailsNoticeError)
       }
     }
 

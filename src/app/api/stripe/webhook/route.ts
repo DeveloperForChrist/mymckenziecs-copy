@@ -18,6 +18,7 @@ const stripeEventSchema = z.object({
   type: z.string(),
   data: z.object({
     object: z.unknown(),
+    previous_attributes: z.unknown().optional(),
   }),
 });
 
@@ -39,6 +40,42 @@ function formatAmount(amountMinor?: number | null, currency?: string | null) {
 function resolvePlanNameFromPriceId(priceId?: string | null) {
   const plan = PLAN_PRICES.find((p) => p.priceId === priceId);
   return plan?.name || 'Your new plan';
+}
+
+function formatChangedAt(date: Date) {
+  const datePart = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Europe/London',
+  }).format(date);
+  const timePart = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Europe/London',
+  }).format(date);
+  return { datePart, timePart: `${timePart} UK time` };
+}
+
+async function describePaymentMethod(paymentMethodRef: any): Promise<string> {
+  if (!paymentMethodRef) return 'No default payment method';
+
+  let paymentMethod = paymentMethodRef;
+  if (typeof paymentMethodRef === 'string') {
+    try {
+      paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodRef);
+    } catch {
+      return 'Updated payment method';
+    }
+  }
+
+  const card = (paymentMethod as any)?.card;
+  if (!card) return 'Updated payment method';
+  const brand = String(card.brand || 'Card');
+  const last4 = String(card.last4 || '');
+  if (!last4) return `${brand} card`;
+  return `${brand.toUpperCase()} ending ${last4}`;
 }
 
 async function getUserEmail(userId: string): Promise<{ email: string; name?: string | null } | null> {
@@ -364,6 +401,8 @@ async function upsertSubscriptionFromStripe(subscription: any) {
     if (user) {
       const oldName = displayPlanName(existing.plan_type);
       const newName = displayPlanName(planType);
+      const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com';
+      const changedAt = formatChangedAt(new Date());
       const rank = (name: string) => {
         const n = name.toLowerCase();
         if (n.includes('premium +') || n.includes('premium plus') || n.includes('plus') || n.includes('premium pro')) return 3;
@@ -377,7 +416,10 @@ async function upsertSubscriptionFromStripe(subscription: any) {
         old_plan: oldName,
         new_plan: newName,
         change_type: changeType,
+        changed_date: changedAt.datePart,
+        changed_time: changedAt.timePart,
         manage_url: `${getAppUrl()}/settings`,
+        support_email: supportEmail,
       });
       await sendResendEmail({
         to: user.email,
@@ -467,6 +509,39 @@ export async function POST(request: Request) {
     } else if (event.type === 'customer.subscription.created' || event.type === 'customer.subscription.updated') {
       const subscription = event.data.object as any;
       await upsertSubscriptionFromStripe(subscription);
+    } else if (event.type === 'customer.updated') {
+      const customer = event.data.object as any;
+      const previousAttributes = (event.data as any)?.previous_attributes as any;
+      const oldDefaultPm = previousAttributes?.invoice_settings?.default_payment_method;
+
+      if (typeof oldDefaultPm !== 'undefined') {
+        const newDefaultPm = customer?.invoice_settings?.default_payment_method;
+        const customerId = typeof customer?.id === 'string' ? customer.id : null;
+        const user = await getUserByStripeCustomerId(customerId);
+
+        if (user) {
+          const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com';
+          const changedAt = formatChangedAt(new Date());
+          const oldPaymentMethod = await describePaymentMethod(oldDefaultPm);
+          const newPaymentMethod = await describePaymentMethod(newDefaultPm);
+          const htmlBody = renderTemplate('26-payment-method-changed.html', {
+            name: user.name || '',
+            email: user.email,
+            old_payment_method: oldPaymentMethod,
+            new_payment_method: newPaymentMethod,
+            changed_date: changedAt.datePart,
+            changed_time: changedAt.timePart,
+            support_email: supportEmail,
+            manage_url: `${getAppUrl()}/settings`,
+          });
+          await sendResendEmail({
+            to: user.email,
+            subject: 'Your MyMcKenzieCS payment method was changed',
+            htmlBody,
+            tag: 'billing-payment-method-changed',
+          });
+        }
+      }
     } else if (event.type === 'invoice.upcoming') {
       const invoice = event.data.object as any;
       const customerId = invoice?.customer as string | null;

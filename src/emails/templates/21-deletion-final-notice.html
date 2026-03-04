@@ -1,16 +1,18 @@
-<!-- Trigger: deletion warning sequence (7/5/3/1 days before deletion phase) -->
 <!doctype html>
 <html>
-  <head><meta charset="utf-8"/><title>Deletion warning</title></head>
-  <body>
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h1>Deletion warning</h1>
-      <p>Hi {{name}},</p>
-      <p>Your account remains inactive.</p>
-      <p>Deletion is in <strong>{{days_left}}</strong> day(s).</p>
-      <p>On <strong>{{delete_date}}</strong>, retained case content is scheduled for deletion under our retention policy.</p>
-      <p><a href="{{resume_url}}">Resume plan now</a></p>
-    </div>
-  <p style="margin-top: 24px;">MyMcKenzieCS</p>
+  <head>
+    <meta charset="utf-8" />
+    <title>Deletion warning</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
+    <h2 style="margin: 0 0 12px;">Deletion warning</h2>
+    <p>Hi {{name}},</p>
+    <p>
+      Your account remains inactive.
+    </p>
+    <p><strong>Days remaining:</strong> {{days_left}}</p>
+    <p><strong>Deletion date:</strong> {{delete_date}}</p>
+    <p><a href="{{resume_url}}">Resume plan now</a></p>
+    <p style="margin-top: 24px;">MyMcKenzieCS</p>
   </body>
 </html>

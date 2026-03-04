@@ -1,16 +1,18 @@
-<!-- Trigger: hard-lock warning sequence (7/5/3/1 days before archive phase) -->
 <!doctype html>
 <html>
-  <head><meta charset="utf-8"/><title>Hard lock warning</title></head>
-  <body>
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h1>Hard lock warning</h1>
-      <p>Hi {{name}},</p>
-      <p>Your paid access is still inactive.</p>
-      <p>Hard lock is in <strong>{{days_left}}</strong> day(s).</p>
-      <p>On <strong>{{archive_date}}</strong>, your workspace enters hard lock (read-only freeze).</p>
-      <p><a href="{{resume_url}}">Resume plan now</a></p>
-    </div>
-  <p style="margin-top: 24px;">MyMcKenzieCS</p>
+  <head>
+    <meta charset="utf-8" />
+    <title>Hard lock warning</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
+    <h2 style="margin: 0 0 12px;">Hard lock warning</h2>
+    <p>Hi {{name}},</p>
+    <p>
+      Your paid access remains inactive.
+    </p>
+    <p><strong>Days remaining:</strong> {{days_left}}</p>
+    <p><strong>Hard lock date:</strong> {{archive_date}}</p>
+    <p><a href="{{resume_url}}">Resume plan now</a></p>
+    <p style="margin-top: 24px;">MyMcKenzieCS</p>
   </body>
 </html>

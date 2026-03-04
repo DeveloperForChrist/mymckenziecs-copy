@@ -1,20 +1,20 @@
-<!-- Trigger: payment failure from Stripe
-     Purpose: Prompt user to retry payment; show invoice link and grace period
-     Key elements: invoice link, retry CTA, grace period notice -->
 <!doctype html>
 <html>
-  <head><meta charset="utf-8"/><title>Payment failed</title></head>
-  <body>
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-    <h1>Payment attempt failed</h1>
-    <p>We attempted to take your subscription payment, but the payment did not go through.</p>
-    <p>This affected invoice {{invoice_id}}.</p>
-    <p>We’ll retry your payment on {{next_retry_date}}.</p>
-    <p>If payment isn’t completed by {{grace_end_date}}, your subscription access will end.</p>
-    <p>Retry now: <a href="{{retry_url}}">Retry payment</a></p>
-    <p>Invoice: <a href="{{invoice_url}}">View invoice</a></p>
-    <p>Please update payment within {{grace_days}} days to avoid service interruption.</p>
-    </div>
-  <p style="margin-top: 24px;">MyMcKenzieCS</p>
+  <head>
+    <meta charset="utf-8" />
+    <title>Payment failed</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
+    <h2 style="margin: 0 0 12px;">Payment failed</h2>
+    <p>Hi {{name}},</p>
+    <p>
+      We were unable to process your subscription payment for invoice <strong>{{invoice_id}}</strong>.
+    </p>
+    <p><strong>Next retry date:</strong> {{next_retry_date}}</p>
+    <p><strong>Grace period ends:</strong> {{grace_end_date}}</p>
+    <p><strong>Grace period length:</strong> {{grace_days}} days</p>
+    <p><a href="{{retry_url}}">Retry payment</a></p>
+    <p><a href="{{invoice_url}}">View invoice</a></p>
+    <p style="margin-top: 24px;">MyMcKenzieCS</p>
   </body>
 </html>
