@@ -166,7 +166,7 @@ a {
 }
 
 .app-container {
-  max-width: 1400px;
+  max-width: none;
   margin: 0 auto;
   padding: 24px 16px;
 }
@@ -191,7 +191,7 @@ a {
 }
 
 .app-topbar-inner {
-  max-width: 1400px;
+  max-width: none;
   margin: 0 auto;
   padding: 10px 16px;
   display: flex;

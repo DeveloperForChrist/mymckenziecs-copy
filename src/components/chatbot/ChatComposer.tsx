@@ -1,6 +1,7 @@
 "use client"
 
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import type { FormEvent, KeyboardEvent, MutableRefObject, ChangeEvent } from 'react'
 
 type ChatComposerProps = {
@@ -48,6 +49,17 @@ export default function ChatComposer({
   isPlanLocked,
   planLockMessage,
 }: ChatComposerProps) {
+  const [isMobileViewport, setIsMobileViewport] = useState(false)
+
+  useEffect(() => {
+    const updateViewport = () => {
+      setIsMobileViewport(window.innerWidth <= 700)
+    }
+    updateViewport()
+    window.addEventListener('resize', updateViewport)
+    return () => window.removeEventListener('resize', updateViewport)
+  }, [])
+
   return (
     <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0px', position: 'relative', alignItems: 'center' }}>
       {showGuestSignupModal && (
@@ -143,12 +155,12 @@ export default function ChatComposer({
           background: 'transparent',
         }}
       >
-        <div style={{ width: '100%', maxWidth: 'min(760px, 100vw)', margin: '0 auto', position: 'relative', pointerEvents: 'auto', display: 'flex', justifyContent: 'center' }}>
+        <div style={{ width: '100%', maxWidth: isMobileViewport ? 'min(760px, 100vw)' : 'none', margin: '0 auto', position: 'relative', pointerEvents: 'auto', display: 'flex', justifyContent: 'center' }}>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0', width: '100%', alignItems: 'center' }}>
             <div
               style={{
                 width: '100%',
-                maxWidth: 'min(700px, 100vw)',
+                maxWidth: isMobileViewport ? 'min(700px, 100vw)' : 'none',
                 margin: '0 auto',
                 borderRadius: '12px',
                 background: 'linear-gradient(135deg, #2a0726 0%, #4b1b4f 60%, rgba(43,11,42,0.95) 100%)',
@@ -399,7 +411,7 @@ export default function ChatComposer({
             <div
               style={{
                 width: '100%',
-                maxWidth: '700px',
+                maxWidth: isMobileViewport ? 'min(700px, 100vw)' : 'none',
                 margin: '10px auto 0',
                 textAlign: 'center',
                 fontSize: 'clamp(11px, 2.8vw, 13px)',
