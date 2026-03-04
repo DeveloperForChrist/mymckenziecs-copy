@@ -63,11 +63,8 @@ export default function NotesPageClient({
   const [readOnlyMode, setReadOnlyMode] = useState(Boolean(initialReadOnlyMode));
   const [readOnlyMessage, setReadOnlyMessage] = useState<string | null>(initialReadOnlyMessage);
 
-  const [notesPages, setNotesPages] = useState<NotePage[]>([
-    { id: "p1", title: "Overview", content: "Key facts and timeline...", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-    { id: "p2", title: "Evidence", content: "Photos, emails, inspection reports...", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  ]);
-  const [activePageId, setActivePageId] = useState("p1");
+  const [notesPages, setNotesPages] = useState<NotePage[]>([]);
+  const [activePageId, setActivePageId] = useState("");
   const activePage = useMemo(() => notesPages.find(p => p.id === activePageId), [notesPages, activePageId]);
 
   const [saving, setSaving] = useState<"saved" | "saving" | "error">("saved");

@@ -45,7 +45,7 @@ export default function ContactSection() {
 
   const planLabel = userPlan.toString();
   const hasPremiumPlusSupport = isPremiumPlusPlan(planLabel);
-  const responseTime = hasPremiumPlusSupport ? 'within 24 hours' : 'within 2-3 days';
+  const responseTime = hasPremiumPlusSupport ? 'within 1-2 days' : 'within 2-3 days';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

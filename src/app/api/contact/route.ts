@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import nodemailer from 'nodemailer';
+import { sendResendEmail } from '@/lib/email/resend';
+import { isPremiumPlusPlan, planDisplayName } from '@/lib/plans/access';
 import { emailDailyRateLimiter, emailRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 
 export async function POST(req: NextRequest) {
@@ -60,7 +62,10 @@ export async function POST(req: NextRequest) {
     const gmailUser = process.env.GMAIL_USER;
     const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
 
-    const subjectLine = `[${planLabel}] ${subject} - ${userName}`;
+    const premiumPlus = isPremiumPlusPlan(planLabel);
+    const normalizedPlanLabel = planDisplayName(planLabel);
+    const subjectPrefix = premiumPlus ? '[PRIORITY][Premium +]' : `[${normalizedPlanLabel}]`;
+    const subjectLine = `${subjectPrefix} ${subject} - ${userName}`;
     const textBody = `
 Contact Form Submission
 
@@ -106,20 +111,45 @@ Sent from MyMcKenzieCS Contact Form
         </div>
       `;
 
-    if (gmailUser && gmailAppPassword) {
+    const priorityHeaders = {
+      'X-Plan': normalizedPlanLabel,
+      'X-Priority': premiumPlus ? '1 (Highest)' : '3 (Normal)',
+      Importance: premiumPlus ? 'High' : 'Normal',
+      Priority: premiumPlus ? 'urgent' : 'normal',
+    };
+
+    const canUseResend = Boolean(process.env.RESEND_API_KEY);
+    let messageSent = false;
+
+    if (canUseResend) {
+      try {
+        await sendResendEmail({
+          to: supportEmail,
+          subject: subjectLine,
+          textBody,
+          htmlBody,
+          tag: 'contact',
+          from: process.env.RESEND_ALERT_FROM_EMAIL || process.env.RESEND_FROM_EMAIL,
+        });
+        messageSent = true;
+      } catch (resendError) {
+        if (!gmailUser || !gmailAppPassword) {
+          throw resendError;
+        }
+      }
+    }
+
+    if (!messageSent && gmailUser && gmailAppPassword) {
       const transporter = nodemailer.createTransport({
         service: 'gmail',
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
         auth: {
           user: gmailUser,
           pass: gmailAppPassword,
         },
       });
-
-      const isPlusPlan = /plus|premium\s*pro|premium\s*cheap/i.test(planLabel);
-      const priorityHeaders = {
-        'X-Plan': planLabel,
-        'X-Priority': isPlusPlan ? 'High' : 'Normal',
-      };
 
       await transporter.sendMail({
         from: gmailUser,
@@ -130,7 +160,8 @@ Sent from MyMcKenzieCS Contact Form
         html: htmlBody,
         headers: priorityHeaders,
       });
-    } else {
+      messageSent = true;
+    } else if (!messageSent && !canUseResend) {
       return NextResponse.json(
         { error: 'Email service is not configured. Please try again later.' },
         { status: 500 }

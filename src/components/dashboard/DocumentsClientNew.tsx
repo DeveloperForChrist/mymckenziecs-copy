@@ -320,12 +320,19 @@ export default function DocumentsClient({
   // Summarize / analyse actions removed per product decision.
 
   const getPreviewKind = (doc: Document) => {
-    const name = doc.title.toLowerCase();
-    const mime = doc.mimeType || '';
-    if (mime.startsWith('image/') || /\.(png|jpe?g|gif|webp|svg)$/.test(name)) return 'image';
-    if (mime.includes('pdf') || name.endsWith('.pdf')) return 'pdf';
-    if (mime.includes('word') || name.endsWith('.docx')) return 'docx';
-    if (mime.startsWith('text/') || /\.(txt|md|csv|json|log)$/.test(name)) return 'text';
+    const rawName = (doc.title || doc.type || '').trim();
+    const normalizedName = rawName.split('?')[0].toLowerCase();
+    const mime = (doc.mimeType || '').toLowerCase();
+
+    if (
+      mime.startsWith('image/') ||
+      /\.(png|jpe?g|gif|webp|svg|bmp|tiff?|avif|heic|heif)$/.test(normalizedName)
+    ) {
+      return 'image';
+    }
+    if (mime.includes('pdf') || normalizedName.endsWith('.pdf')) return 'pdf';
+    if (mime.includes('word') || normalizedName.endsWith('.docx')) return 'docx';
+    if (mime.startsWith('text/') || /\.(txt|md|csv|json|log)$/.test(normalizedName)) return 'text';
     return 'file';
   };
 
@@ -354,8 +361,16 @@ export default function DocumentsClient({
         if (!res.ok || !data?.url) {
           throw new Error(data?.error || 'Unable to load preview');
         }
+        const previewDoc: Document = {
+          ...viewingDocument,
+          mimeType: viewingDocument.mimeType || data?.mimeType || null,
+          title: viewingDocument.title || data?.name || viewingDocument.title,
+        };
+        if ((previewDoc.mimeType && !viewingDocument.mimeType) || (data?.name && !viewingDocument.title)) {
+          setViewingDocument(previewDoc);
+        }
         setPreviewUrl(data.url);
-        const kind = getPreviewKind(viewingDocument);
+        const kind = getPreviewKind(previewDoc);
         if (kind === 'text' || kind === 'docx') {
           const previewRes = await fetch(`/api/documents/${viewingDocument.id}/preview`, { credentials: 'include' });
           const previewData: any = await readApiJson(previewRes);
