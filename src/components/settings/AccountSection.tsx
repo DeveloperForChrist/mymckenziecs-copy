@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
+import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout';
 import { flushNotesDraftNow } from '@/lib/notes/flush-notes-draft';
 import type { User } from '@supabase/supabase-js';
 import styles from './settingsPage.module.css';
@@ -96,7 +97,7 @@ export default function AccountSection() {
       const supabase = getSupabaseBrowserClient();
       const authUserId = userId || (await supabase.auth.getUser()).data.user?.id || null;
       await flushNotesDraftNow(authUserId, { timeoutMs: 2500 });
-      await supabase.auth.signOut();
+      await safeBrowserSignOut(supabase);
       if (typeof window !== 'undefined') {
         localStorage.removeItem('userId');
         localStorage.removeItem('currentConversationId');
@@ -164,7 +165,7 @@ export default function AccountSection() {
       const supabase = getSupabaseBrowserClient();
       const authUserId = userId || (await supabase.auth.getUser()).data.user?.id || null;
       await flushNotesDraftNow(authUserId, { timeoutMs: 2500 });
-      await supabase.auth.signOut();
+      await safeBrowserSignOut(supabase);
       if (typeof window !== 'undefined') {
         localStorage.removeItem('userId');
         localStorage.removeItem('currentConversationId');

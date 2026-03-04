@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
+import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout'
 
 export default function VerifyEmailScreen() {
   const router = useRouter()
@@ -11,6 +13,7 @@ export default function VerifyEmailScreen() {
   const [unauthorized, setUnauthorized] = useState(false)
   const [userEmail, setUserEmail] = useState('')
   const [resendPending, setResendPending] = useState(false)
+  const [switchingAccount, setSwitchingAccount] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
 
   const status = useMemo(() => (searchParams?.get('status') || '').trim().toLowerCase(), [searchParams])
@@ -101,6 +104,22 @@ export default function VerifyEmailScreen() {
     }
   }
 
+  const handleUseDifferentAccount = async () => {
+    if (switchingAccount) return
+    setSwitchingAccount(true)
+    setNotice(null)
+    try {
+      const supabase = getSupabaseBrowserClient()
+      await safeBrowserSignOut(supabase)
+      router.replace(`/auth/signin?redirect=${encodeURIComponent(postVerifyRedirect)}`)
+      router.refresh()
+    } catch {
+      setNotice('Could not switch account right now. Please try again.')
+    } finally {
+      setSwitchingAccount(false)
+    }
+  }
+
   const statusMessage =
     status === 'expired'
       ? 'That verification link expired. Request a fresh link below.'
@@ -185,6 +204,24 @@ export default function VerifyEmailScreen() {
               }}
             >
               {resendPending ? 'Sending verification...' : 'Resend verification email'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { void handleUseDifferentAccount() }}
+              disabled={switchingAccount}
+              style={{
+                textDecoration: 'none',
+                padding: '0.7rem 1rem',
+                borderRadius: '999px',
+                background: 'transparent',
+                color: '#f8fafc',
+                border: '1px solid rgba(248, 250, 252, 0.35)',
+                fontWeight: 700,
+                cursor: switchingAccount ? 'not-allowed' : 'pointer',
+                opacity: switchingAccount ? 0.7 : 1,
+              }}
+            >
+              {switchingAccount ? 'Switching...' : 'Use a different account'}
             </button>
           </div>
         )}

@@ -228,6 +228,18 @@
   border-bottom: 1px solid rgba(17, 35, 39, 0.35);
 }
 
+.inlineTextButton {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: var(--auth-ink-soft);
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: inherit;
+}
+
 .errorBox {
   border-radius: 14px;
   background: #fff3f0;

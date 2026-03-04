@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
+import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout'
 import styles from '@/app/auth/auth.module.css'
 
 function parseName(fullName: string) {
@@ -85,6 +86,10 @@ export default function SignUpForm() {
     }
 
     try {
+      const supabase = getSupabaseBrowserClient()
+      // If a previous unfinished account is still in session, clear it before creating a new one.
+      await safeBrowserSignOut(supabase)
+
       const { normalized, firstName, lastName } = parseName(trimmedName)
 
       const response = await fetch('/api/auth/signup', {
@@ -106,7 +111,6 @@ export default function SignUpForm() {
       }
 
       if (selectedPlanId) {
-        const supabase = getSupabaseBrowserClient()
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: formData.email.trim(),
           password: formData.password,

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { AuthApiError } from '@supabase/supabase-js'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
+import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout'
 import styles from '@/app/auth/auth.module.css'
 
 function mapSupabaseError(error: AuthApiError) {
@@ -38,6 +39,44 @@ export default function SignInForm() {
   const [loading, setLoading] = useState(false)
   const [resendLoading, setResendLoading] = useState(false)
   const [resendMessage, setResendMessage] = useState('')
+  const [activeSessionEmail, setActiveSessionEmail] = useState('')
+  const [switchingAccount, setSwitchingAccount] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    const loadSession = async () => {
+      try {
+        const supabase = getSupabaseBrowserClient()
+        const { data } = await supabase.auth.getUser()
+        if (!cancelled) {
+          setActiveSessionEmail(data?.user?.email || '')
+        }
+      } catch {
+        if (!cancelled) setActiveSessionEmail('')
+      }
+    }
+    void loadSession()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const handleUseDifferentAccount = async () => {
+    setError('')
+    setResendMessage('')
+    setSwitchingAccount(true)
+    try {
+      const supabase = getSupabaseBrowserClient()
+      await safeBrowserSignOut(supabase)
+      setActiveSessionEmail('')
+      setFormData({ email: '', password: '' })
+      router.refresh()
+    } catch {
+      setError('Could not switch account right now. Please refresh and try again.')
+    } finally {
+      setSwitchingAccount(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -196,6 +235,19 @@ export default function SignInForm() {
       {resendMessage && (
         <div className={styles.successBox}>
           {resendMessage}
+        </div>
+      )}
+      {activeSessionEmail && (
+        <div className={styles.successBox}>
+          Signed in as <strong>{activeSessionEmail}</strong>. Need another email?{' '}
+          <button
+            type="button"
+            onClick={() => { void handleUseDifferentAccount() }}
+            disabled={switchingAccount}
+            className={styles.inlineTextButton}
+          >
+            {switchingAccount ? 'Switching...' : 'Use a different account'}
+          </button>
         </div>
       )}
 
