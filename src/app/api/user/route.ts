@@ -20,6 +20,10 @@ function renderTemplate(templateName: string, vars: Record<string, string>) {
   return html
 }
 
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
 export async function GET(_request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteClient()
@@ -61,6 +65,7 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json({
       fullName: (userRow as any).fullName || (userRow as any).full_name || userRow.name || '',
       email: userRow.email || data.user.email || '',
+      pendingEmail: (userRow as any).pending_email || null,
       address: (userRow as any).address || '',
       createdAt: userRow.created_at || data.user.created_at || '',
       lastActive: (userRow as any).last_active || null,
@@ -86,15 +91,62 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json()
     const fullName = typeof body?.fullName === 'string' ? body.fullName.trim() : ''
-    const email = typeof body?.email === 'string' ? body.email.trim() : ''
+    const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : ''
     const address = typeof body?.address === 'string' ? body.address.trim() : ''
 
     const authUid = data.user.id
     const nowIso = new Date().toISOString()
+    const currentEmail = (data.user.email || '').trim().toLowerCase()
+    const requestedEmail = email || currentEmail
+
+    if (requestedEmail && !isValidEmail(requestedEmail)) {
+      return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 })
+    }
+
+    const emailChangeRequested =
+      Boolean(requestedEmail) &&
+      Boolean(currentEmail) &&
+      requestedEmail.toLowerCase() !== currentEmail.toLowerCase()
+
+    if (emailChangeRequested) {
+      const { error: authEmailUpdateError } = await supabaseAdmin.auth.admin.updateUserById(authUid, {
+        email: requestedEmail,
+        email_confirm: true,
+      })
+      if (authEmailUpdateError) {
+        console.error('Error updating auth email:', authEmailUpdateError)
+        return NextResponse.json({ error: authEmailUpdateError.message || 'Failed to update email' }, { status: 400 })
+      }
+    }
+
+    const metadataUpdateNeeded = Boolean(fullName)
+    if (metadataUpdateNeeded) {
+      const existingMeta = ((data.user.user_metadata as Record<string, any>) || {})
+      const authUpdatePayload: { email?: string; data?: Record<string, any> } = {}
+
+      if (metadataUpdateNeeded) {
+        const parts = fullName.split(/\s+/).filter(Boolean)
+        const first = parts[0] || ''
+        const last = parts.slice(1).join(' ')
+        authUpdatePayload.data = {
+          ...existingMeta,
+          full_name: fullName,
+          display_name: fullName,
+          first_name: first,
+          last_name: last,
+        }
+      }
+
+      const { error: authUpdateError } = await supabase.auth.updateUser(authUpdatePayload)
+      if (authUpdateError) {
+        console.error('Error updating auth profile:', authUpdateError)
+        return NextResponse.json({ error: authUpdateError.message || 'Failed to update auth profile' }, { status: 400 })
+      }
+    }
 
     const basePayload: Record<string, any> = {
       id: authUid,
-      email: email || data.user.email || null,
+      email: requestedEmail || currentEmail || null,
       name: fullName || data.user.user_metadata?.full_name || data.user.user_metadata?.display_name || null,
       updated_at: nowIso
     }
@@ -124,7 +176,50 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to update user data' }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true });
+    if (emailChangeRequested) {
+      const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com'
+      const firstName = (fullName || data.user.user_metadata?.full_name || data.user.user_metadata?.display_name || 'there')
+        .trim()
+        .split(/\s+/)[0] || 'there'
+
+      try {
+        const newEmailHtml = renderTemplate('22-email-change-verify.html', {
+          name: firstName,
+          old_email: currentEmail,
+          new_email: requestedEmail,
+          support_email: supportEmail,
+        })
+        await sendResendEmail({
+          to: requestedEmail,
+          subject: 'Your MyMcKenzieCS account email has been updated',
+          htmlBody: newEmailHtml,
+          tag: 'email-change-new-email-notice',
+        })
+      } catch (newEmailNoticeError) {
+        console.error('Failed to send new-email change notice', newEmailNoticeError)
+      }
+
+      if (currentEmail) {
+        try {
+          const oldEmailHtml = renderTemplate('23-email-change-confirmed-old.html', {
+            name: firstName,
+            old_email: currentEmail,
+            new_email: requestedEmail,
+            support_email: supportEmail,
+          })
+          await sendResendEmail({
+            to: currentEmail,
+            subject: 'Your MyMcKenzieCS account email was changed',
+            htmlBody: oldEmailHtml,
+            tag: 'email-change-old-email-notice',
+          })
+        } catch (oldEmailNoticeError) {
+          console.error('Failed to send old-email change notice', oldEmailNoticeError)
+        }
+      }
+    }
+
+    return NextResponse.json({ success: true, emailChangeRequested });
   } catch (error: any) {
     console.error('Error updating user data:', error);
     return NextResponse.json(

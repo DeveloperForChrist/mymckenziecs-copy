@@ -59,7 +59,12 @@ function buildConversationTitle(value: any): string {
   const raw = typeof value === 'string' ? value : '';
   if (!raw.trim()) return 'Conversation';
 
-  const cleaned = raw
+  const labelStripped = raw
+    .replace(/\b(?:user asked|user|assistant|ai|system)\s*:\s*/gi, ' ')
+    .replace(/\|\s*(?:assistant|ai|system)\s*:.*/gi, ' ')
+    .trim();
+
+  const cleaned = labelStripped
     .replace(/https?:\/\/\S+/gi, ' ')
     .replace(/\[[0-9]+\]/g, ' ')
     .replace(/\s+/g, ' ')
@@ -94,6 +99,12 @@ function buildConversationTitle(value: any): string {
     .trim();
 
   return title || 'Conversation';
+}
+
+function isPlaceholderTitle(value: string | null | undefined): boolean {
+  const normalized = (value || '').trim().toLowerCase();
+  if (!normalized) return true;
+  return normalized === 'conversation' || normalized === 'user' || normalized === 'assistant' || normalized === 'user asked';
 }
 
 const dedupe = <T,>(items: T[]): T[] => Array.from(new Set(items.filter(Boolean) as T[]));
@@ -300,7 +311,7 @@ function mergeConversations(
       if (msg.case_id) existing.caseId = msg.case_id;
     }
 
-    if ((existing.title === 'Conversation' || !existing.title) && msg.role === 'user') {
+    if (isPlaceholderTitle(existing.title) && msg.role === 'user') {
       existing.title = msgTitle;
     }
   }

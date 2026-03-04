@@ -7,14 +7,18 @@ import type { User } from '@supabase/supabase-js';
 import styles from './settingsPage.module.css';
 
 export default function AccountSection() {
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [passwordSaving, setPasswordSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDeleteFinalConfirm, setShowDeleteFinalConfirm] = useState(false);
+  const [showProfileChangeConfirm, setShowProfileChangeConfirm] = useState(false);
+  const [profileChangeSummary, setProfileChangeSummary] = useState<string[]>([]);
   const [deleteAcknowledged, setDeleteAcknowledged] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [statusModal, setStatusModal] = useState<{ title: string; message: string } | null>(null);
@@ -23,6 +27,10 @@ export default function AccountSection() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [initialProfile, setInitialProfile] = useState({ firstName: '', lastName: '', email: '' });
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   // Load user data from Supabase
   useEffect(() => {
@@ -45,17 +53,20 @@ export default function AccountSection() {
       // Derive name from user metadata
       const meta = user.user_metadata || {};
       const displayName = (meta.full_name || meta.display_name || '').trim();
+      let resolvedFirstName = '';
+      let resolvedLastName = '';
       if (displayName) {
         const parts = displayName.split(' ');
-        setFirstName(parts[0] || '');
-        setLastName(parts.slice(1).join(' ') || '');
+        resolvedFirstName = parts[0] || '';
+        resolvedLastName = parts.slice(1).join(' ') || '';
       } else {
-        setFirstName(meta.first_name || '');
-        setLastName(meta.last_name || '');
+        resolvedFirstName = meta.first_name || '';
+        resolvedLastName = meta.last_name || '';
       }
 
+      let resolvedEmail = user.email || '';
       if (user.email) {
-        setEmail(user.email);
+        resolvedEmail = user.email;
       }
 
       // Fetch additional profile data from /api/user
@@ -66,16 +77,24 @@ export default function AccountSection() {
           const fullName = (data.fullName || '').trim();
           if (fullName) {
             const parts = fullName.split(' ');
-            setFirstName(parts[0] || '');
-            setLastName(parts.slice(1).join(' ') || '');
+            resolvedFirstName = parts[0] || '';
+            resolvedLastName = parts.slice(1).join(' ') || '';
           }
           if (data.email) {
-            setEmail(data.email);
+            resolvedEmail = data.email;
           }
         }
       } catch (error) {
         console.error('Error fetching profile data:', error);
       } finally {
+        setFirstName(resolvedFirstName);
+        setLastName(resolvedLastName);
+        setEmail(resolvedEmail);
+        setInitialProfile({
+          firstName: resolvedFirstName,
+          lastName: resolvedLastName,
+          email: resolvedEmail,
+        });
         setLoading(false);
       }
     };
@@ -111,13 +130,36 @@ export default function AccountSection() {
     }
   };
 
+  const getProfileChangeSummary = (): string[] => {
+    const changes: string[] = [];
+    const nextFirst = firstName.trim();
+    const nextLast = lastName.trim();
+    const nextEmail = email.trim();
+    if (nextFirst !== initialProfile.firstName.trim()) changes.push('First name');
+    if (nextLast !== initialProfile.lastName.trim()) changes.push('Last name');
+    if (nextEmail.toLowerCase() !== initialProfile.email.trim().toLowerCase()) changes.push('Email address');
+    return changes;
+  };
+
   const handleSaveChanges = async () => {
     if (!userId) {
       setStatusModal({ title: 'Update unavailable', message: 'You must be signed in to update your profile.' });
       return;
     }
 
+    const changes = getProfileChangeSummary();
+    if (changes.length === 0) {
+      setStatusModal({ title: 'No changes', message: 'There are no account changes to save.' });
+      return;
+    }
+
+    setProfileChangeSummary(changes);
+    setShowProfileChangeConfirm(true);
+  };
+
+  const persistProfileChanges = async () => {
     setSaving(true);
+    setShowProfileChangeConfirm(false);
     try {
       const fullName = `${firstName} ${lastName}`.trim();
 
@@ -127,18 +169,96 @@ export default function AccountSection() {
         credentials: 'include',
         body: JSON.stringify({
           fullName,
-          email
+          email,
+          redirect: '/dashboard',
         })
       });
 
-      if (!response.ok) throw new Error('Failed to save changes');
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload?.error || 'Failed to save changes');
 
-      setStatusModal({ title: 'Changes saved', message: 'Your profile changes were saved successfully.' });
+      setStatusModal({
+        title: 'Changes saved',
+        message: payload?.emailChangeRequested
+          ? 'Your email was updated. Confirmation notifications were sent to both old and new addresses.'
+          : 'Your profile changes were saved successfully.'
+      });
+      setInitialProfile({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+      });
     } catch (error) {
       console.error('Error saving changes:', error);
       setStatusModal({ title: 'Save failed', message: 'Failed to save changes. Please try again.' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const mapPasswordError = (message: string): string => {
+    const normalized = (message || '').toLowerCase();
+    if (
+      normalized.includes('leaked') ||
+      normalized.includes('pwned') ||
+      normalized.includes('compromised') ||
+      normalized.includes('haveibeenpwned') ||
+      (normalized.includes('password') && normalized.includes('breach'))
+    ) {
+      return 'This password appears in known data breaches. Choose a different one.';
+    }
+    return message || 'We could not update your password. Please try again.';
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!userId) {
+      setStatusModal({ title: 'Update unavailable', message: 'You must be signed in to update your password.' });
+      return;
+    }
+
+    if (!currentPassword) {
+      setStatusModal({ title: 'Current password required', message: 'Enter your current password to continue.' });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setStatusModal({ title: 'Weak password', message: 'Please choose a password that is at least 8 characters long.' });
+      return;
+    }
+
+    if (!/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
+      setStatusModal({ title: 'Weak password', message: 'Please include at least one number and one special character.' });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setStatusModal({ title: 'Mismatch', message: 'Passwords do not match.' });
+      return;
+    }
+
+    setPasswordSaving(true);
+    try {
+      const response = await fetch('/api/user/password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ currentPassword, password: newPassword }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Failed to update password');
+      }
+
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setStatusModal({ title: 'Password updated', message: 'Your password was updated successfully.' });
+    } catch (error: any) {
+      const message = mapPasswordError(error?.message || '');
+      setStatusModal({ title: 'Update failed', message });
+    } finally {
+      setPasswordSaving(false);
     }
   };
 
@@ -231,9 +351,32 @@ export default function AccountSection() {
         <h2 className={styles.sectionHeading}>Security Settings</h2>
         <form className={styles.formGrid}>
           <div className={styles.formGroupFull}> 
+            <label className={styles.formLabel}>Current Password</label>
+            <div className={styles.passwordContainer}>
+              <input
+                className={styles.textInput}
+                type={showCurrentPassword ? 'text' : 'password'}
+                placeholder="********"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+              <button type="button" className={styles.togglePassword} onClick={() => setShowCurrentPassword(s => !s)}>
+                {showCurrentPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
+          </div>
+          <div className={styles.formGroupFull}> 
             <label className={styles.formLabel}>New Password</label>
             <div className={styles.passwordContainer}>
-              <input className={styles.textInput} type={showNewPassword ? 'text' : 'password'} placeholder="••••••••" />
+              <input
+                className={styles.textInput}
+                type={showNewPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="new-password"
+              />
               <button type="button" className={styles.togglePassword} onClick={() => setShowNewPassword(s=>!s)}>
                 {showNewPassword ? 'Hide' : 'Show'}
               </button>
@@ -243,14 +386,23 @@ export default function AccountSection() {
           <div className={styles.formGroupFull}> 
             <label className={styles.formLabel}>Confirm New Password</label>
             <div className={styles.passwordContainer}>
-              <input className={styles.textInput} type={showConfirmPassword ? 'text' : 'password'} placeholder="••••••••" />
+              <input
+                className={styles.textInput}
+                type={showConfirmPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+              />
               <button type="button" className={styles.togglePassword} onClick={() => setShowConfirmPassword(s=>!s)}>
                 {showConfirmPassword ? 'Hide' : 'Show'}
               </button>
             </div>
           </div>
           <div className={styles.actionsRow}>
-            <button type="button" className={styles.primaryBtn}>Update Password</button>
+            <button type="button" className={styles.primaryBtn} onClick={handleUpdatePassword} disabled={passwordSaving}>
+              {passwordSaving ? 'Updating...' : 'Update Password'}
+            </button>
           </div>
         </form>
       </section>
@@ -272,7 +424,7 @@ export default function AccountSection() {
         <button 
           className={styles.primaryBtn}
           onClick={handleSaveChanges}
-          disabled={saving}
+          disabled={saving || loading}
         >
           {saving ? 'Saving...' : 'Save Changes'}
         </button>
@@ -280,6 +432,34 @@ export default function AccountSection() {
           Delete Account
         </button>
       </div>
+      {showProfileChangeConfirm && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true">
+          <div className={styles.modalCard}>
+            <h3 className={styles.modalTitle}>Confirm account changes</h3>
+            <p className={styles.modalBody}>
+              Are you sure you want to change: {profileChangeSummary.join(', ')}?
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.secondaryBtn}
+                onClick={() => setShowProfileChangeConfirm(false)}
+                disabled={saving}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={styles.primaryBtn}
+                onClick={persistProfileChanges}
+                disabled={saving}
+              >
+                {saving ? 'Saving...' : 'Yes, save changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {showDeleteConfirm && (
         <div className={styles.modalOverlay} role="dialog" aria-modal="true">
           <div className={styles.modalCard}>
