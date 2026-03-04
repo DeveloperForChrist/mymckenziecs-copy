@@ -145,12 +145,31 @@ export async function PUT(request: NextRequest) {
       fullName !== priorFullName || address !== priorAddress
 
     if (emailChangeRequested) {
+      const { data: existingEmailOwner, error: existingEmailOwnerError } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .eq('email', requestedEmail)
+        .neq('id', authUid)
+        .maybeSingle()
+
+      if (existingEmailOwnerError) {
+        console.error('Error checking existing email ownership:', existingEmailOwnerError)
+        return NextResponse.json({ error: 'Unable to validate email availability right now.' }, { status: 500 })
+      }
+      if (existingEmailOwner) {
+        return NextResponse.json({ error: 'That email address is already in use by another account.' }, { status: 409 })
+      }
+
       const { error: authEmailUpdateError } = await supabaseAdmin.auth.admin.updateUserById(authUid, {
         email: requestedEmail,
         email_confirm: true,
       })
       if (authEmailUpdateError) {
         console.error('Error updating auth email:', authEmailUpdateError)
+        const normalized = (authEmailUpdateError.message || '').toLowerCase()
+        if (normalized.includes('already') || normalized.includes('exists') || normalized.includes('duplicate')) {
+          return NextResponse.json({ error: 'That email address is already in use by another account.' }, { status: 409 })
+        }
         return NextResponse.json({ error: authEmailUpdateError.message || 'Failed to update email' }, { status: 400 })
       }
     }

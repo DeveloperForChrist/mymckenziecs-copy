@@ -56,23 +56,10 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}))
-    const currentPassword = typeof body?.currentPassword === 'string' ? body.currentPassword : ''
     const password = typeof body?.password === 'string' ? body.password : ''
-    if (!currentPassword) {
-      return NextResponse.json({ error: 'Current password is required' }, { status: 400 })
-    }
-
     const currentEmail = (data.user.email || '').trim()
     if (!currentEmail) {
-      return NextResponse.json({ error: 'Unable to verify current password for this account' }, { status: 400 })
-    }
-
-    const { error: reauthError } = await supabase.auth.signInWithPassword({
-      email: currentEmail,
-      password: currentPassword,
-    })
-    if (reauthError) {
-      return NextResponse.json({ error: 'Current password is incorrect' }, { status: 400 })
+      return NextResponse.json({ error: 'Unable to verify account email for this account' }, { status: 400 })
     }
 
     const passwordValidationError = validatePassword(password)

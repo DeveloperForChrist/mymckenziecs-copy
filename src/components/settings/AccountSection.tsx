@@ -7,7 +7,6 @@ import type { User } from '@supabase/supabase-js';
 import styles from './settingsPage.module.css';
 
 export default function AccountSection() {
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -28,7 +27,6 @@ export default function AccountSection() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [initialProfile, setInitialProfile] = useState({ firstName: '', lastName: '', email: '' });
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -175,7 +173,13 @@ export default function AccountSection() {
       });
 
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload?.error || 'Failed to save changes');
+      if (!response.ok) {
+        setStatusModal({
+          title: 'Save failed',
+          message: payload?.error || 'Failed to save changes. Please try again.'
+        });
+        return;
+      }
 
       setStatusModal({
         title: 'Changes saved',
@@ -189,8 +193,11 @@ export default function AccountSection() {
         email: email.trim(),
       });
     } catch (error) {
-      console.error('Error saving changes:', error);
-      setStatusModal({ title: 'Save failed', message: 'Failed to save changes. Please try again.' });
+      console.error('Unexpected error saving changes:', error);
+      const message = error instanceof Error && error.message
+        ? error.message
+        : 'Failed to save changes. Please try again.'
+      setStatusModal({ title: 'Save failed', message });
     } finally {
       setSaving(false);
     }
@@ -216,11 +223,6 @@ export default function AccountSection() {
       return;
     }
 
-    if (!currentPassword) {
-      setStatusModal({ title: 'Current password required', message: 'Enter your current password to continue.' });
-      return;
-    }
-
     if (newPassword.length < 8) {
       setStatusModal({ title: 'Weak password', message: 'Please choose a password that is at least 8 characters long.' });
       return;
@@ -242,7 +244,7 @@ export default function AccountSection() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ currentPassword, password: newPassword }),
+        body: JSON.stringify({ password: newPassword }),
       });
 
       const payload = await response.json().catch(() => ({}));
@@ -250,7 +252,6 @@ export default function AccountSection() {
         throw new Error(payload?.error || 'Failed to update password');
       }
 
-      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setStatusModal({ title: 'Password updated', message: 'Your password was updated successfully.' });
@@ -350,22 +351,6 @@ export default function AccountSection() {
       <section className={styles.settingsSection}>
         <h2 className={styles.sectionHeading}>Security Settings</h2>
         <form className={styles.formGrid}>
-          <div className={styles.formGroupFull}> 
-            <label className={styles.formLabel}>Current Password</label>
-            <div className={styles.passwordContainer}>
-              <input
-                className={styles.textInput}
-                type={showCurrentPassword ? 'text' : 'password'}
-                placeholder="********"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                autoComplete="current-password"
-              />
-              <button type="button" className={styles.togglePassword} onClick={() => setShowCurrentPassword(s => !s)}>
-                {showCurrentPassword ? 'Hide' : 'Show'}
-              </button>
-            </div>
-          </div>
           <div className={styles.formGroupFull}> 
             <label className={styles.formLabel}>New Password</label>
             <div className={styles.passwordContainer}>
