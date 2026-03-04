@@ -1,19 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk'
-import OpenAI from 'openai'
 import { logClaudeUsage } from '@/lib/utils/claude-usage'
 import { neutralizeLegalAdviceTone } from './legal-tone'
 
-const DISCRIMINATOR_MODEL = process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101'
-const DISCRIMINATOR_CLAUDE_FALLBACK_MODEL = process.env.CLAUDE_FALLBACK_MODEL || ''
-const DISCRIMINATOR_OPENAI_FALLBACK_MODEL =
-  process.env.OPENAI_DISCRIMINATOR_FALLBACK_MODEL ||
-  process.env.OPENAI_PREMIUM_PLUS_FALLBACK_MODEL ||
-  process.env.OPENAI_PREMIUM_FALLBACK_MODEL ||
-  process.env.OPENAI_PREMIUM_PLUS_MODEL ||
-  process.env.OPENAI_PREMIUM_MODEL ||
-  process.env.OPENAI_CHAT_MODEL ||
-  'gpt-4.1-mini'
-const DISCRIMINATOR_MAX_TOKENS = 800
+const ORCHESTRATOR_MODEL = process.env.PREMIUM_PLUS_CLAUDE_MODEL || 'claude-opus-4-5-20251101'
+const ORCHESTRATOR_CLAUDE_FALLBACK_MODEL = process.env.PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL || ''
+const ORCHESTRATOR_MAX_TOKENS = 800
 
 const stripMarkdown = (text: string): string => {
   return text
@@ -40,13 +31,183 @@ const buildHistoryContext = (
   return `Conversation history:\n${lines.join('\n')}\n`
 }
 
+export type OrchestratorDecomposition = {
+  retrievalMode: 'web_only' | 'vector_only' | 'hybrid'
+  decomposition: string
+  vectorQuery?: string
+  webQuery?: string
+  clarificationQuestion?: string
+  confidence?: number
+  reasons: string[]
+}
+
+const parseDecompositionJson = (raw: string): OrchestratorDecomposition | null => {
+  const trimmed = (raw || '').trim()
+  if (!trimmed) return null
+
+  const direct = trimmed
+  const wrappedMatch = trimmed.match(/\{[\s\S]*\}/)
+  const candidates = wrappedMatch ? [direct, wrappedMatch[0]] : [direct]
+
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate) as any
+      const retrievalModeRaw = String(parsed?.retrieval_mode || parsed?.retrievalMode || '').trim().toLowerCase()
+      const retrievalMode = (
+        retrievalModeRaw === 'web_only' ||
+        retrievalModeRaw === 'vector_only' ||
+        retrievalModeRaw === 'hybrid'
+      ) ? retrievalModeRaw : null
+      if (!retrievalMode) continue
+
+      const decomposition = String(parsed?.decomposition || parsed?.summary || '').trim()
+      const vectorQuery = String(parsed?.vector_query || parsed?.vectorQuery || '').trim()
+      const webQuery = String(parsed?.web_query || parsed?.webQuery || '').trim()
+      const clarificationQuestion = String(
+        parsed?.clarification_question || parsed?.clarificationQuestion || ''
+      ).trim()
+      const rawConfidence = Number(
+        parsed?.confidence ??
+        parsed?.routing_confidence ??
+        parsed?.score ??
+        NaN
+      )
+      const confidence = Number.isFinite(rawConfidence)
+        ? Math.max(0, Math.min(1, rawConfidence))
+        : undefined
+      const reasons = Array.isArray(parsed?.reasons)
+        ? parsed.reasons.map((v: any) => String(v).trim()).filter(Boolean).slice(0, 8)
+        : []
+
+      return {
+        retrievalMode,
+        decomposition,
+        vectorQuery: vectorQuery || undefined,
+        webQuery: webQuery || undefined,
+        clarificationQuestion: clarificationQuestion || undefined,
+        confidence,
+        reasons,
+      }
+    } catch {
+      // try next candidate
+    }
+  }
+
+  return null
+}
+
+export async function decomposeWithOrchestrator(
+  input: string,
+  history: Array<{ role: 'user' | 'assistant'; content: string }> = [],
+  caseKeywords?: string,
+  options?: {
+    orchestratorModel?: string
+    orchestratorFallbackModel?: string
+    discriminatorModel?: string
+    discriminatorFallbackModel?: string
+  }
+): Promise<OrchestratorDecomposition | null> {
+  const anthropicApiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
+  if (!anthropicApiKey) return null
+
+  const activeOrchestratorModel =
+    (options?.orchestratorModel || options?.discriminatorModel || ORCHESTRATOR_MODEL).trim() || ORCHESTRATOR_MODEL
+  const activeOrchestratorFallbackModel =
+    (options?.orchestratorFallbackModel || options?.discriminatorFallbackModel || ORCHESTRATOR_CLAUDE_FALLBACK_MODEL).trim()
+  const historyContext = buildHistoryContext(history)
+
+  const systemPrompt = `You are a legal orchestrator for UK litigant-in-person support.
+You decompose a user's message before retrieval and generation.
+Return JSON only. No prose, no markdown.`
+  const userPrompt = `Decompose the user input in free form and choose retrieval mode.
+User message:
+${input}
+
+${caseKeywords ? `Case context: ${caseKeywords}\n` : ''}${historyContext}
+
+Rules:
+1. retrieval_mode must be one of: web_only, vector_only, hybrid.
+2. Use vector_only when legal authorities/precedent are dominant.
+3. Use web_only when current procedure/forms/deadlines/guidance are dominant.
+4. Use hybrid when both are materially relevant.
+5. decomposition: 2-6 concise lines summarizing what matters.
+6. vector_query/web_query should be short, focused retrieval queries.
+7. clarification_question only if a missing fact blocks safe guidance.
+8. confidence should be 0 to 1 for routing certainty.
+9. reasons should list why mode was selected.
+
+Output schema:
+{
+  "retrieval_mode": "web_only|vector_only|hybrid",
+  "decomposition": "string",
+  "vector_query": "string",
+  "web_query": "string",
+  "clarification_question": "string",
+  "confidence": 0.0,
+  "reasons": ["string"]
+}`
+
+  const runClaude = async (modelName: string): Promise<string> => {
+    const startedAt = Date.now()
+    const client = new Anthropic({ apiKey: anthropicApiKey })
+    try {
+      const completion = await client.messages.create({
+        model: modelName,
+        max_tokens: 500,
+        temperature: 0.2,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
+      })
+      logClaudeUsage({
+        model: modelName,
+        usage: (completion as any)?.usage,
+        success: true,
+        latencyMs: Date.now() - startedAt,
+        requestType: 'orchestrator-decompose',
+      })
+      return completion.content[0]?.type === 'text' ? completion.content[0].text : ''
+    } catch (error: any) {
+      logClaudeUsage({
+        model: modelName,
+        success: false,
+        latencyMs: Date.now() - startedAt,
+        requestType: 'orchestrator-decompose',
+        error: error?.message || String(error),
+      })
+      throw error
+    }
+  }
+
+  try {
+    const primary = await runClaude(activeOrchestratorModel)
+    const parsed = parseDecompositionJson(primary)
+    if (parsed) return parsed
+  } catch {
+    // try fallback below
+  }
+
+  if (activeOrchestratorFallbackModel && activeOrchestratorFallbackModel !== activeOrchestratorModel) {
+    try {
+      const fallback = await runClaude(activeOrchestratorFallbackModel)
+      const parsed = parseDecompositionJson(fallback)
+      if (parsed) return parsed
+    } catch {
+      return null
+    }
+  }
+
+  return null
+}
+
 async function streamlineAnswerForUser(
   comprehensiveAnswer: string,
   allSources: string[],
   userQuery: string,
   historyContext: string,
   caseKeywords?: string,
-  includeCitations: boolean = false
+  includeCitations: boolean = false,
+  orchestratorModel?: string,
+  orchestratorFallbackModel?: string
 ): Promise<{ streamlinedAnswer: string; citedSourcesIndices: number[] }> {
   const sourcesList = allSources.map((url, i) => `[${i + 1}] ${url}`).join('\n')
   
@@ -56,7 +217,7 @@ async function streamlineAnswerForUser(
   const citationTaskRule = includeCitations
     ? 'Preserve and improve source citations like [1], [2], [3] so factual claims are attributable.'
     : 'Remove any source citations like [1], [2], [3].'
-  const streamlinePrompt = `You are the discriminator agent (critic, reviser, verifier) reviewing the assistant's answer. Your goal is to decide if the answer is genuinely helpful to the user based on their specific question and the conversation history. If it is missing anything important, add it. If it is too long or unfocused, streamline it.
+  const streamlinePrompt = `You are the orchestrator agent (critic, reviser, verifier) reviewing the assistant's answer. Your goal is to decide if the answer is genuinely helpful to the user based on their specific question and the conversation history. If it is missing anything important, add it. If it is too long or unfocused, streamline it.
 
 UNDERSTAND THE USER'S ACTUAL NEED:
 User's Specific Question: "${userQuery}"
@@ -76,7 +237,7 @@ You will receive a long, detailed legal answer. Your job is to:
 9. Use numbered lists (1., 2., 3.) for ordered steps or hierarchy
 10. Use bullets (•) for parallel ideas
 11. Do not output tables.
-12. Use divider lines only when shifting mode (explanation → examples, law → practical). Divider line must be exactly: ---
+12. Use divider lines only when shifting mode (explanation → examples, law → practical). Divider line must be exactly: ────────────────────
 13. Always end with a one-sentence compression line starting with "In short:"
 14. ${citationRule}
 14. Keep any page references (e.g., "Page 4") if present
@@ -106,15 +267,15 @@ Your task:
 
 Provide ONLY the final streamlined answer. No explanations needed.`
 
-  const systemPrompt = `You are a UK litigant in person acting as a discriminator (critic, reviser, verifier) for legal guidance. Your job is to detect gaps, weak claims, missing steps, and formatting issues, then fix them. You are responsible for presentation, organisation,structure and making sure dialogue is conversational friendly. Streamline and improve while preserving accuracy. Output MUST be plain text only, with section titles as plain text lines (do NOT end titles with a colon). Use headings only when the topic branches, and make them specific. Use short paragraphs (1 idea, 1-3 sentences). Use numbered lists for ordered steps or hierarchy and bullets for parallel ideas. Do not output tables. Use divider lines only when shifting mode (explanation → examples, law → practical) and the divider line must be exactly: ---. Always end with a one-sentence compression line starting with "In short:". ${citationRule} Keep page references if present. No markdown.`
+  const systemPrompt = `You are a UK litigant in person acting as an orchestrator (critic, reviser, verifier) for legal guidance. Your job is to detect gaps, weak claims, missing steps, and formatting issues, then fix them. You are responsible for presentation, organisation,structure and making sure dialogue is conversational friendly. Streamline and improve while preserving accuracy. Output MUST be plain text only, with section titles as plain text lines (do NOT end titles with a colon). Use headings only when the topic branches, and make them specific. Use short paragraphs (1 idea, 1-3 sentences). Use numbered lists for ordered steps or hierarchy and bullets for parallel ideas. Do not output tables. Use divider lines only when shifting mode (explanation → examples, law → practical) and the divider line must be exactly: ────────────────────. Always end with a one-sentence compression line starting with "In short:". ${citationRule} Keep page references if present. No markdown.`
 
-  const runClaudeDiscriminator = async (modelName: string, apiKey: string): Promise<string> => {
+  const runClaudeOrchestrator = async (modelName: string, apiKey: string): Promise<string> => {
     const startedAt = Date.now()
     const claudeLegalClient = new Anthropic({ apiKey })
     try {
       const completion = await claudeLegalClient.messages.create({
         model: modelName,
-        max_tokens: DISCRIMINATOR_MAX_TOKENS,
+        max_tokens: ORCHESTRATOR_MAX_TOKENS,
         temperature: 0.5,
         system: systemPrompt,
         messages: [
@@ -126,7 +287,7 @@ Provide ONLY the final streamlined answer. No explanations needed.`
         usage: (completion as any)?.usage,
         success: true,
         latencyMs: Date.now() - startedAt,
-        requestType: 'discriminator',
+        requestType: 'orchestrator',
       })
       return completion.content[0]?.type === 'text' ? completion.content[0].text : comprehensiveAnswer
     } catch (error: any) {
@@ -134,81 +295,39 @@ Provide ONLY the final streamlined answer. No explanations needed.`
         model: modelName,
         success: false,
         latencyMs: Date.now() - startedAt,
-        requestType: 'discriminator',
+        requestType: 'orchestrator',
         error: error?.message || String(error),
       })
       throw error
     }
   }
 
-  const runOpenAiDiscriminatorFallback = async (): Promise<string> => {
-    const openAiApiKey = (process.env.OPENAI_API_KEY || '').trim()
-    if (!openAiApiKey) {
-      throw new Error('OPENAI_API_KEY is not set for discriminator fallback')
-    }
-
-    const openai = new OpenAI({ apiKey: openAiApiKey })
-    const model = DISCRIMINATOR_OPENAI_FALLBACK_MODEL
-    const normalizedModel = model.trim().toLowerCase()
-    const useMaxCompletionTokens = normalizedModel.startsWith('o')
-    const messages = [
-      { role: 'system' as const, content: systemPrompt },
-      { role: 'user' as const, content: streamlinePrompt },
-    ]
-    const payload: Record<string, any> = {
-      model,
-      messages,
-    }
-    if (useMaxCompletionTokens) {
-      payload.max_completion_tokens = DISCRIMINATOR_MAX_TOKENS
-    } else {
-      payload.max_tokens = DISCRIMINATOR_MAX_TOKENS
-      payload.temperature = 0.5
-    }
-
-    const completion = await openai.chat.completions.create(payload as any)
-    return completion.choices?.[0]?.message?.content || comprehensiveAnswer
-  }
-
   const anthropicApiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
+  if (!anthropicApiKey) {
+    throw new Error('ANTHROPIC_API_KEY is not set for orchestrator')
+  }
+  const activeOrchestratorModel = (orchestratorModel || ORCHESTRATOR_MODEL).trim() || ORCHESTRATOR_MODEL
+  const activeOrchestratorFallbackModel = (orchestratorFallbackModel || ORCHESTRATOR_CLAUDE_FALLBACK_MODEL).trim()
   let streamed = comprehensiveAnswer
-  let claudeSucceeded = false
   let lastProviderError: unknown = null
 
-  if (anthropicApiKey) {
-    try {
-      streamed = await runClaudeDiscriminator(DISCRIMINATOR_MODEL, anthropicApiKey)
-      claudeSucceeded = true
-    } catch (primaryClaudeError) {
-      lastProviderError = primaryClaudeError
-      const fallbackModel = DISCRIMINATOR_CLAUDE_FALLBACK_MODEL.trim()
-      if (fallbackModel && fallbackModel !== DISCRIMINATOR_MODEL) {
-        try {
-          streamed = await runClaudeDiscriminator(fallbackModel, anthropicApiKey)
-          claudeSucceeded = true
-        } catch (fallbackClaudeError) {
-          lastProviderError = fallbackClaudeError
-        }
+  try {
+    streamed = await runClaudeOrchestrator(activeOrchestratorModel, anthropicApiKey)
+  } catch (primaryClaudeError) {
+    lastProviderError = primaryClaudeError
+    const fallbackModel = activeOrchestratorFallbackModel
+    if (fallbackModel && fallbackModel !== activeOrchestratorModel) {
+      try {
+        streamed = await runClaudeOrchestrator(fallbackModel, anthropicApiKey)
+      } catch (fallbackClaudeError) {
+        lastProviderError = fallbackClaudeError
+        throw fallbackClaudeError
       }
+    } else {
+      throw primaryClaudeError
     }
   }
-
-  if (!claudeSucceeded) {
-    try {
-      streamed = await runOpenAiDiscriminatorFallback()
-      console.warn('Discriminator fallback engaged: using OpenAI model', {
-        model: DISCRIMINATOR_OPENAI_FALLBACK_MODEL,
-      })
-    } catch (openAiFallbackError) {
-      if (lastProviderError) {
-        console.error('Claude and OpenAI discriminator fallback failed', {
-          claudeError: String(lastProviderError),
-          openAiError: String(openAiFallbackError),
-        })
-      }
-      throw openAiFallbackError
-    }
-  }
+  if (lastProviderError && !streamed) throw lastProviderError
 
   let streamlinedAnswer = stripMarkdown(streamed)
   streamlinedAnswer = neutralizeLegalAdviceTone(streamlinedAnswer)
@@ -272,10 +391,16 @@ Provide ONLY the final streamlined answer. No explanations needed.`
   return { streamlinedAnswer: streamlinedAnswer.trim(), citedSourcesIndices }
 }
 
-export async function createDiscriminatorAgent(
+export async function createOrchestratorAgent(
   conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [],
   caseKeywords?: string,
-  includeCitations: boolean = false
+  includeCitations: boolean = false,
+  options?: {
+    orchestratorModel?: string
+    orchestratorFallbackModel?: string
+    discriminatorModel?: string
+    discriminatorFallbackModel?: string
+  }
 ) {
   return {
     async invoke({ 
@@ -288,7 +413,16 @@ export async function createDiscriminatorAgent(
       allSources: string[]
     }): Promise<{ streamlinedAnswer: string; citedSources?: Array<{ number: number; title: string; url: string }> }> {
       const historyContext = buildHistoryContext(conversationHistory)
-      const { streamlinedAnswer, citedSourcesIndices } = await streamlineAnswerForUser(comprehensiveAnswer, allSources, input, historyContext, caseKeywords, includeCitations)
+      const { streamlinedAnswer, citedSourcesIndices } = await streamlineAnswerForUser(
+        comprehensiveAnswer,
+        allSources,
+        input,
+        historyContext,
+        caseKeywords,
+        includeCitations,
+        options?.orchestratorModel || options?.discriminatorModel,
+        options?.orchestratorFallbackModel || options?.discriminatorFallbackModel
+      )
       
       // Format cited sources
       const citedSources = citedSourcesIndices.map((idx) => {
@@ -315,3 +449,6 @@ export async function createDiscriminatorAgent(
     }
   }
 }
+
+// Backward compatibility alias
+export const createDiscriminatorAgent = createOrchestratorAgent

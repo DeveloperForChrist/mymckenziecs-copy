@@ -3,7 +3,7 @@ import { OpenAI } from 'openai';
 import { supabaseAdmin } from '../../database/supabase-server';
 import { DocGeneratorTool } from '../tools/doc-generator-tool';
 import { SearchTool } from '../tools/search-tool';
-import { createDiscriminatorAgent } from './discriminator-agent';
+import { createOrchestratorAgent } from './discriminator-agent';
 import { neutralizeLegalAdviceTone } from './legal-tone';
 
 // Simplified system prompt
@@ -54,6 +54,7 @@ PRESENTATION:
 - Use short paragraphs (1 idea, 1-3 sentences, 2-4 lines).
 - Use numbered lists (1., 2., 3.) for ordered steps or hierarchy.
 - Use bullets (•) for parallel ideas.
+- Use divider lines only when shifting mode (explanation -> examples, law -> practical). Divider line must be exactly: ────────────────────
 - When using court abbreviations in case references (for example UKSC, EWCA, EWHC), explain them in plain English on first mention.
 
 TONE:
@@ -62,6 +63,7 @@ TONE:
 - DO not GIVE legal advice.
 - Avoid definitive legal conclusions on the user's facts (use "may", "can", "generally").
 - Prefer neutral phrasing instead of direct instructions.
+- Do not create bespoke or personalised letters/drafts. You may only provide template-style drafts with placeholders in [SQUARE BRACKETS].
 
 
 
@@ -113,6 +115,7 @@ PRESENTATION:
 - Use short paragraphs (1 idea, 1-3 sentences, 2-4 lines).
 - Use numbered lists (1., 2., 3.) for ordered steps or hierarchy.
 - Use bullets (•) for parallel ideas.
+- Use divider lines only when shifting mode (explanation -> examples, law -> practical). Divider line must be exactly: ────────────────────
 - When using court abbreviations in case references (for example UKSC, EWCA, EWHC), explain them in plain English on first mention.
 
 TONE:
@@ -121,21 +124,37 @@ TONE:
 - DO not GIVE legal advice.
 - Avoid definitive legal conclusions on the user's facts (use "may", "can", "generally").
 - Prefer neutral phrasing instead of direct instructions.
+- Do not create bespoke or personalised letters/drafts. You may only provide template-style drafts with placeholders in [SQUARE BRACKETS].
 
 
 `;
 
-const OPENAI_MODEL = process.env.OPENAI_CHAT_MODEL || 'gpt-4o'
-const OPENAI_FALLBACK_MODEL = process.env.OPENAI_CHAT_FALLBACK_MODEL || process.env.OPENAI_BASIC_MODEL || 'gpt-4.1-mini'
+const OPENAI_MODEL = process.env.OPENAI_PREMIUM_MODEL || 'gpt-4o'
+const OPENAI_FALLBACK_MODEL = process.env.OPENAI_PREMIUM_FALLBACK_MODEL || OPENAI_MODEL
 const OPENAI_BASIC_MODEL = process.env.OPENAI_BASIC_MODEL || process.env.OPENAI_NON_PREMIUM_MODEL || 'gpt-4.1-mini'
 const OPENAI_BASIC_FALLBACK_MODEL =
   process.env.OPENAI_BASIC_FALLBACK_MODEL ||
   process.env.OPENAI_NON_PREMIUM_FALLBACK_MODEL ||
-  OPENAI_FALLBACK_MODEL
+  OPENAI_BASIC_MODEL
 const GROQ_MODEL = process.env.GROQ_CHAT_MODEL || 'meta-llama/llama-4-maverick-17b-128e-instruct'
 const GROQ_FALLBACK_MODEL = process.env.GROQ_CHAT_FALLBACK_MODEL || 'llama-3.3-70b-versatile'
 const MAX_TOKENS = 1000
+const PREMIUM_TARGET_TOKENS = Number.isFinite(Number(process.env.PREMIUM_TARGET_TOKENS))
+  ? Math.max(600, Math.floor(Number(process.env.PREMIUM_TARGET_TOKENS)))
+  : 1200
+const PREMIUM_MAX_TOKENS = Number.isFinite(Number(process.env.PREMIUM_MAX_TOKENS))
+  ? Math.max(PREMIUM_TARGET_TOKENS, Math.floor(Number(process.env.PREMIUM_MAX_TOKENS)))
+  : 1500
+const PREMIUM_LENGTH_TAIL_TOKENS = Number.isFinite(Number(process.env.PREMIUM_LENGTH_TAIL_TOKENS))
+  ? Math.max(100, Math.floor(Number(process.env.PREMIUM_LENGTH_TAIL_TOKENS)))
+  : 300
 const COMPREHENSIVE_TOKEN_BONUS = 0
+const BASIC_MAX_TOKENS = Number.isFinite(Number(process.env.BASIC_AGENT_MAX_TOKENS))
+  ? Math.max(1000, Number(process.env.BASIC_AGENT_MAX_TOKENS))
+  : 1600
+const BASIC_MAX_AUTO_CONTINUES = Number.isFinite(Number(process.env.BASIC_AGENT_MAX_AUTO_CONTINUES))
+  ? Math.max(0, Math.floor(Number(process.env.BASIC_AGENT_MAX_AUTO_CONTINUES)))
+  : 2
 const BASIC_OPENAI_ROUTING_PERCENT_RAW =
   process.env.BASIC_OPENAI_ROUTING_PERCENT ??
   process.env.NON_PREMIUM_OPENAI_ROUTING_PERCENT ??
@@ -154,6 +173,7 @@ let groqRateLimitedUntil = 0
 
 type RetrievalMode = 'education' | 'general'
 type LlmProvider = 'openai' | 'groq'
+type LengthRecoveryMode = 'none' | 'continue' | 'compress'
 type LegalAgentOptions = {
   useDiscriminator?: boolean
   useSearch?: boolean
@@ -162,6 +182,16 @@ type LegalAgentOptions = {
   provider?: LlmProvider
   openaiModel?: string
   openaiFallbackModel?: string
+  maxTokens?: number
+  autoContinueOnLength?: boolean
+  maxAutoContinues?: number
+  lengthRecoveryMode?: LengthRecoveryMode
+  maxCompressionRetries?: number
+  searchQueryOverride?: string
+  orchestratorModel?: string
+  orchestratorFallbackModel?: string
+  discriminatorModel?: string
+  discriminatorFallbackModel?: string
 }
 
 function stableBucketPercent(input: string): number {
@@ -243,7 +273,7 @@ function isBasicGreeting(rawInput: string): boolean {
 }
 
 // Detect document request
-function wantsFormalDraft(rawInput: string): boolean {
+function wantsDocumentDraftRequest(rawInput: string): boolean {
   if (!rawInput) return false
 
   const input = rawInput.trim().toLowerCase()
@@ -252,7 +282,9 @@ function wantsFormalDraft(rawInput: string): boolean {
   const hasExplicitRequest = [
     /(?:can|could|would)\s+you\s+(?:please\s+)?(draft|write|prepare|create|generate|produce)/,
     /(?:^|[.!?]\s+)(?:please\s+)(?:draft|write|prepare|create|generate|produce)\b/,
-    /\bhelp\s+me\s+(?:draft|write|prepare|create|generate|produce)\b/
+    /\bhelp\s+me\s+(?:draft|write|prepare|create|generate|produce)\b/,
+    /\b(draft|write|prepare|create|generate|produce)\s+(me\s+)?(a|an)\b/,
+    /\bneed\s+(a|an)\s+(draft|letter|statement|defence|defense|application|notice)\b/
   ].some((pattern) => pattern.test(input))
 
   if (!hasExplicitRequest) return false
@@ -263,6 +295,23 @@ function wantsFormalDraft(rawInput: string): boolean {
   ]
 
   return docTargets.some(term => input.includes(term))
+}
+
+function wantsTemplateFillOnly(rawInput: string): boolean {
+  if (!rawInput) return false
+  const input = rawInput.trim().toLowerCase()
+  if (input.length === 0) return false
+
+  const templateSignals = [
+    'template', 'pro forma', 'standard form', 'fill template', 'template fill',
+    'populate', 'fill in', 'complete form', 'form n1', 'n1 form', 'n9 form', 'n244'
+  ]
+
+  return templateSignals.some((signal) => input.includes(signal))
+}
+
+function templateOnlyRefusalMessage(): string {
+  return 'I cannot create bespoke or personalised letters/drafts. I can help fill template documents only. Tell me the template/form name and any fields you want populated, and I will return a placeholder-based template draft.'
 }
 
 // Remove markdown
@@ -461,6 +510,36 @@ function ensureCitationsForPremium(
   }
 }
 
+function hasUnclosedPairs(text: string, openChar: string, closeChar: string): boolean {
+  let balance = 0
+  for (const char of text) {
+    if (char === openChar) balance += 1
+    if (char === closeChar && balance > 0) balance -= 1
+  }
+  return balance > 0
+}
+
+function endsMidSentenceOrSection(text: string): boolean {
+  const trimmed = (text || '').trim()
+  if (!trimmed) return false
+
+  const lines = trimmed.split('\n').map((line) => line.trim()).filter(Boolean)
+  const lastLine = lines.length > 0 ? lines[lines.length - 1] : trimmed
+  if (!lastLine) return false
+
+  if (/^(In short:\s*)$/i.test(lastLine)) return true
+  if (/^[•\-]\s*$/.test(lastLine)) return true
+  if (/[,:;]$/.test(lastLine)) return true
+  if (/\b(and|or|but|because|with|including|such as|for example|for instance|which|that|then|if|when)\s*$/i.test(lastLine)) return true
+  if (/[([{]$/.test(lastLine)) return true
+  if (hasUnclosedPairs(trimmed, '(', ')')) return true
+  if (hasUnclosedPairs(trimmed, '[', ']')) return true
+  if (hasUnclosedPairs(trimmed, '"', '"')) return true
+
+  // If it does not end with terminal punctuation, treat as likely truncated.
+  return !/[.!?)]$/.test(lastLine)
+}
+
 // Call OpenAI LLM
 async function callLLM(
   prompt: string,
@@ -468,8 +547,24 @@ async function callLLM(
   model: string = OPENAI_MODEL,
   maxTokens: number = MAX_TOKENS,
   provider: LlmProvider = 'openai',
-  openAiFallbackModel: string = OPENAI_FALLBACK_MODEL
+  openAiFallbackModel: string = OPENAI_FALLBACK_MODEL,
+  autoContinueOnLength: boolean = false,
+  maxAutoContinues: number = 0,
+  compressOnLength: boolean = false,
+  maxCompressionRetries: number = 0,
+  compressionAttempt: number = 0,
+  lengthTailTokens: number = 0
 ): Promise<string> {
+  const continuationLimit = Math.max(0, Math.floor(maxAutoContinues))
+  const tailTokenLimit = Math.max(0, Math.floor(lengthTailTokens))
+  const continuationPrompt = 'Continue exactly from where you stopped. Do not repeat prior text. Keep the same structure and style.'
+  const compressionLimit = Math.max(0, Math.floor(maxCompressionRetries))
+  const canAttemptCompression = compressOnLength && compressionAttempt < compressionLimit
+  const compressionPrompt =
+    `${prompt}\n\n` +
+    'Your previous draft was cut off due to token limits. Rewrite the full answer so it is complete, self-contained, and fits within the token budget. ' +
+    'Prioritize the most important points, remove repetition, and end cleanly.'
+
   if (provider === 'groq') {
     const groqApiKey = process.env.GROQ_API_KEY
     if (!groqApiKey) {
@@ -483,7 +578,10 @@ async function callLLM(
     }
 
     try {
-      const runGroq = async (modelName: string) => {
+      const runGroq = async (
+        modelName: string,
+        messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>
+      ) => {
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -494,10 +592,7 @@ async function callLLM(
             model: modelName,
             max_tokens: maxTokens,
             temperature: 0.7,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: prompt },
-            ],
+            messages,
           }),
         })
 
@@ -517,28 +612,115 @@ async function callLLM(
           choices?: Array<{ message?: { content?: string | null }, finish_reason?: string | null }>
         }
 
-        let rawResponse = completion.choices?.[0]?.message?.content || "I couldn't generate a response."
-        const finishReason = completion.choices?.[0]?.finish_reason
-        if (finishReason === 'length') {
-          rawResponse = rawResponse.trim()
+        const rawResponse = completion.choices?.[0]?.message?.content || "I couldn't generate a response."
+        const finishReason = completion.choices?.[0]?.finish_reason || null
+        return { rawResponse, finishReason }
+      }
+
+      const baseMessages: Array<{ role: 'system' | 'user'; content: string }> = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt },
+      ]
+      const transcript: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [...baseMessages]
+      const chunks: string[] = []
+      let continueCount = 0
+      let endedByLengthWithoutRecovery = false
+
+      const runGroqWithFallback = async (messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>) => {
+        try {
+          return await runGroq(model, messages)
+        } catch (primaryError) {
+          if (model !== GROQ_FALLBACK_MODEL) {
+            console.error('Groq primary model failed, trying fallback', primaryError)
+            return await runGroq(GROQ_FALLBACK_MODEL, messages)
+          }
+          throw primaryError
         }
-        return stripMarkdown(stripUrlsFromText(rawResponse))
       }
 
       try {
-        return await runGroq(model)
-      } catch (primaryError) {
-        if (model !== GROQ_FALLBACK_MODEL) {
-          console.error('Groq primary model failed, trying fallback', primaryError)
-          return await runGroq(GROQ_FALLBACK_MODEL)
+        while (true) {
+          const { rawResponse, finishReason } = await runGroqWithFallback(transcript)
+          const cleanedChunk = rawResponse.trim()
+          if (cleanedChunk) {
+            chunks.push(cleanedChunk)
+            transcript.push({ role: 'assistant', content: cleanedChunk })
+          }
+
+          const canContinue =
+            autoContinueOnLength &&
+            finishReason === 'length' &&
+            continueCount < continuationLimit &&
+            endsMidSentenceOrSection(cleanedChunk)
+          if (!canContinue) {
+            if (finishReason === 'length') endedByLengthWithoutRecovery = true
+            break
+          }
+
+          continueCount += 1
+          transcript.push({ role: 'user', content: continuationPrompt })
         }
+
+        let combined = chunks.join('\n\n').trim()
+        if (endedByLengthWithoutRecovery && !autoContinueOnLength && tailTokenLimit > 0 && combined) {
+          const tailPrompt =
+            `Current partial response:\n${combined}\n\n` +
+            `Provide only the remaining conclusion in no more than ${tailTokenLimit} tokens. Do not repeat prior text. End cleanly.`
+          const tail = await callLLM(
+            tailPrompt,
+            systemPrompt,
+            model,
+            tailTokenLimit,
+            provider,
+            openAiFallbackModel,
+            false,
+            0,
+            false,
+            0,
+            0,
+            0
+          )
+          combined = `${combined}\n\n${tail}`.trim()
+          endedByLengthWithoutRecovery = false
+        }
+        if (endedByLengthWithoutRecovery && canAttemptCompression) {
+          return await callLLM(
+            compressionPrompt,
+            systemPrompt,
+            model,
+            maxTokens,
+            provider,
+            openAiFallbackModel,
+            false,
+            0,
+            compressOnLength,
+            compressionLimit,
+            compressionAttempt + 1,
+            0
+          )
+        }
+        return stripMarkdown(stripUrlsFromText(combined || "I couldn't generate a response."))
+      } catch (primaryError) {
         throw primaryError
       }
     } catch (error: any) {
       console.error('Groq API Error:', error)
       try {
         // Final fallback to OpenAI if Groq is saturated/unavailable.
-        return await callLLM(prompt, systemPrompt, openAiFallbackModel, maxTokens, 'openai', openAiFallbackModel)
+        return await callLLM(
+          prompt,
+          systemPrompt,
+          openAiFallbackModel,
+          maxTokens,
+          'openai',
+          openAiFallbackModel,
+          autoContinueOnLength,
+          continuationLimit,
+          compressOnLength,
+          compressionLimit,
+          compressionAttempt,
+          tailTokenLimit
+        )
       } catch (openAiFallbackError) {
         console.error('OpenAI fallback after Groq failure also failed:', openAiFallbackError)
         return "I'm unable to respond right now because the base model is unavailable. Please try again shortly."
@@ -552,11 +734,15 @@ async function callLLM(
       throw new Error('OPENAI_API_KEY is not set in the environment')
     }
     const openai = new OpenAI({ apiKey })
-    const messages = [
+    const baseMessages: Array<{ role: 'system' | 'user'; content: string }> = [
       { role: 'system' as const, content: systemPrompt },
       { role: 'user' as const, content: prompt }
     ]
-    const buildPayload = (modelName: string, useMaxCompletionTokens: boolean) => {
+    const buildPayload = (
+      modelName: string,
+      useMaxCompletionTokens: boolean,
+      messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>
+    ) => {
       const basePayload: Record<string, any> = {
         model: modelName,
         messages,
@@ -572,12 +758,15 @@ async function callLLM(
       return basePayload
     }
 
-    const runOpenAiModel = async (modelName: string) => {
+    const runOpenAiModel = async (
+      modelName: string,
+      messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>
+    ) => {
       const normalizedModel = modelName.trim().toLowerCase()
       const shouldUseMaxCompletionTokens = normalizedModel.startsWith('o')
       try {
         return await openai.chat.completions.create(
-          buildPayload(modelName, shouldUseMaxCompletionTokens) as any
+          buildPayload(modelName, shouldUseMaxCompletionTokens, messages) as any
         )
       } catch (error: any) {
         const unsupportedTokenParam =
@@ -585,36 +774,97 @@ async function callLLM(
           (error?.param === 'max_tokens' || error?.param === 'max_completion_tokens')
         if (!unsupportedTokenParam) throw error
         return openai.chat.completions.create(
-          buildPayload(modelName, !shouldUseMaxCompletionTokens) as any
+          buildPayload(modelName, !shouldUseMaxCompletionTokens, messages) as any
         )
       }
     }
 
-    let completion: any
-    try {
-      completion = await runOpenAiModel(model)
-    } catch (primaryError) {
-      const fallbackModel = (openAiFallbackModel || '').trim()
-      if (fallbackModel && fallbackModel !== model) {
-        console.error('OpenAI primary model failed, trying fallback model', {
-          primaryModel: model,
-          fallbackModel,
-        })
-        completion = await runOpenAiModel(fallbackModel)
-      } else {
+    const runOpenAiWithFallback = async (
+      messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>
+    ) => {
+      try {
+        return await runOpenAiModel(model, messages)
+      } catch (primaryError) {
+        const fallbackModel = (openAiFallbackModel || '').trim()
+        if (fallbackModel && fallbackModel !== model) {
+          console.error('OpenAI primary model failed, trying fallback model', {
+            primaryModel: model,
+            fallbackModel,
+          })
+          return await runOpenAiModel(fallbackModel, messages)
+        }
         throw primaryError
       }
     }
 
-    let rawResponse = completion.choices[0]?.message?.content || "I couldn't generate a response."
-    const finishReason = completion.choices[0]?.finish_reason
+    const transcript: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [...baseMessages]
+    const chunks: string[] = []
+    let continueCount = 0
+    let endedByLengthWithoutRecovery = false
 
-    // Intentionally do not auto-continue on length; keep the response within this call's token cap.
-    if (finishReason === 'length') {
-      rawResponse = rawResponse.trim()
+    while (true) {
+      const completion: any = await runOpenAiWithFallback(transcript)
+      const rawResponse = completion.choices?.[0]?.message?.content || "I couldn't generate a response."
+      const cleanedChunk = rawResponse.trim()
+      const finishReason = completion.choices?.[0]?.finish_reason
+      if (cleanedChunk) {
+        chunks.push(cleanedChunk)
+        transcript.push({ role: 'assistant', content: cleanedChunk })
+      }
+
+      const canContinue =
+        autoContinueOnLength &&
+        finishReason === 'length' &&
+        continueCount < continuationLimit &&
+        endsMidSentenceOrSection(cleanedChunk)
+      if (!canContinue) {
+        if (finishReason === 'length') endedByLengthWithoutRecovery = true
+        break
+      }
+
+      continueCount += 1
+      transcript.push({ role: 'user', content: continuationPrompt })
     }
 
-    return stripMarkdown(stripUrlsFromText(rawResponse))
+    let combined = chunks.join('\n\n').trim()
+    if (endedByLengthWithoutRecovery && !autoContinueOnLength && tailTokenLimit > 0 && combined) {
+      const tailPrompt =
+        `Current partial response:\n${combined}\n\n` +
+        `Provide only the remaining conclusion in no more than ${tailTokenLimit} tokens. Do not repeat prior text. End cleanly.`
+      const tail = await callLLM(
+        tailPrompt,
+        systemPrompt,
+        model,
+        tailTokenLimit,
+        provider,
+        openAiFallbackModel,
+        false,
+        0,
+        false,
+        0,
+        0,
+        0
+      )
+      combined = `${combined}\n\n${tail}`.trim()
+      endedByLengthWithoutRecovery = false
+    }
+    if (endedByLengthWithoutRecovery && canAttemptCompression) {
+      return await callLLM(
+        compressionPrompt,
+        systemPrompt,
+        model,
+        maxTokens,
+        provider,
+        openAiFallbackModel,
+        false,
+        0,
+        compressOnLength,
+        compressionLimit,
+        compressionAttempt + 1,
+        0
+      )
+    }
+    return stripMarkdown(stripUrlsFromText(combined || "I couldn't generate a response."))
   } catch (error: any) {
     console.error('OpenAI API Error:', error)
     return "I'm having a problem. Please try again later."
@@ -662,11 +912,32 @@ export async function createLegalAgent(
   const openaiModel = options?.openaiModel || OPENAI_MODEL
   const openaiFallbackModel = options?.openaiFallbackModel || OPENAI_FALLBACK_MODEL
   const llmProvider: LlmProvider = options?.provider || 'openai'
+  const orchestratorModel = options?.orchestratorModel || options?.discriminatorModel
+  const orchestratorFallbackModel = options?.orchestratorFallbackModel || options?.discriminatorFallbackModel
+  const searchQueryOverride = (options?.searchQueryOverride || '').trim()
+  const requestedMaxTokens = Number.isFinite(Number(options?.maxTokens))
+    ? Math.max(250, Number(options?.maxTokens))
+    : MAX_TOKENS
+  const maxTokens = useSearch
+    ? Math.min(PREMIUM_MAX_TOKENS, Math.max(PREMIUM_TARGET_TOKENS, requestedMaxTokens))
+    : requestedMaxTokens
+  const autoContinueOnLength = options?.autoContinueOnLength === true
+  const maxAutoContinues = Number.isFinite(Number(options?.maxAutoContinues))
+    ? Math.max(0, Math.floor(Number(options?.maxAutoContinues)))
+    : 0
+  const explicitLengthMode = options?.lengthRecoveryMode
+  const lengthRecoveryMode: LengthRecoveryMode = explicitLengthMode ||
+    (autoContinueOnLength ? 'continue' : (useSearch ? 'compress' : 'none'))
+  const useAutoContinue = lengthRecoveryMode === 'continue'
+  const useCompression = lengthRecoveryMode === 'compress'
+  const maxCompressionRetries = Number.isFinite(Number(options?.maxCompressionRetries))
+    ? Math.max(0, Math.floor(Number(options?.maxCompressionRetries)))
+    : (useCompression ? 1 : 0)
   return {
     tools,
     systemPrompt,
     /**
-     * Flow: greeting → document → SEARCH + ANSWER → DISCRIMINATOR REVIEW + IMPROVE
+     * Flow: greeting → document → SEARCH + ANSWER → ORCHESTRATOR REVIEW + IMPROVE
      */
     async invoke({ input }: { input: string }): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; sources?: Array<{ number: number; title: string; url: string }> }> {
       try {
@@ -683,7 +954,15 @@ export async function createLegalAgent(
         }
 
         // 2. Check document request
-        if (wantsFormalDraft(latestQuestion)) {
+        if (wantsDocumentDraftRequest(latestQuestion)) {
+          if (!wantsTemplateFillOnly(latestQuestion)) {
+            return {
+              response: templateOnlyRefusalMessage(),
+              document_generated: false,
+              guidance_provided: true,
+              sources: undefined
+            }
+          }
           const contextForTools = buildHistoryContext(trimmedHistory) + latestQuestion
           const docResult = await tools[0]._call(contextForTools)
           return {
@@ -694,19 +973,23 @@ export async function createLegalAgent(
           }
         }
 
-        // 3. LEGAL AGENT: Direct answer (no search, no discriminator)
+        // 3. LEGAL AGENT: Direct answer (no search, no orchestrator)
         if (!useSearch) {
           const historyContext = buildHistoryContext(trimmedHistory)
           const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
-          const directPrompt = `${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. Output must be plain text only. Follow the presentation rules.`
+          const directPrompt = `${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. Output must be plain text only. Follow the presentation rules, including divider lines only when changing mode (exactly ────────────────────).`
           const modelForProvider = llmProvider === 'groq' ? GROQ_MODEL : openaiModel
           const directAnswer = await callLLM(
             directPrompt,
             systemPrompt,
             modelForProvider,
-            MAX_TOKENS,
+            maxTokens,
             llmProvider,
-            openaiFallbackModel
+            openaiFallbackModel,
+            useAutoContinue,
+            maxAutoContinues,
+            useCompression,
+            maxCompressionRetries
           )
           const neutralDirectAnswer = neutralizeLegalAdviceTone(directAnswer)
           return {
@@ -722,9 +1005,9 @@ export async function createLegalAgent(
         const mode: RetrievalMode = isDefinition ? 'education' : 'general'
 
         // Build search query with case context if available.
-        let searchQuery = latestQuestion
+        let searchQuery = searchQueryOverride || latestQuestion
         if (caseKeywords && caseKeywords.trim()) {
-          searchQuery = `${latestQuestion} | Case context: ${caseKeywords}`
+          searchQuery = `${searchQuery} | Case context: ${caseKeywords}`
         }
 
         // Perform comprehensive search for all relevant information.
@@ -759,23 +1042,56 @@ export async function createLegalAgent(
         const citationInstruction = effectiveIncludeCitations
           ? 'Include inline citations in square brackets that match the sources list above, like [1] or [2]. Use citations on factual statements.'
           : 'Do not include any source citations.'
-        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\nUser question: "${latestQuestion}"\n\nGenerate a thorough, detailed answer that comprehensively covers this topic using ALL relevant information from the sources. ${citationInstruction} Create a complete answer that covers all aspects and angles of the question. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. No markdown. Use clear section titles as plain text lines ending with a colon (e.g., "Summary:"). Use short paragraphs and bullets (•) where needed.`
+        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\nUser question: "${latestQuestion}"\n\nGenerate a thorough, detailed answer that comprehensively covers this topic using ALL relevant information from the sources. ${citationInstruction} Create a complete answer that covers all aspects and angles of the question. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. No markdown. Use clear section titles as plain text lines. Use short paragraphs and bullets (•) where needed. Use divider lines only when shifting mode (explanation -> examples, law -> practical), and the divider line must be exactly: ────────────────────.`
         
         const modelForProvider = llmProvider === 'groq' ? GROQ_MODEL : openaiModel
-        const comprehensiveAnswer = await callLLM(
+        let comprehensiveAnswer = await callLLM(
           comprehensivePrompt,
           systemPrompt,
           modelForProvider,
-          MAX_TOKENS + COMPREHENSIVE_TOKEN_BONUS,
+          maxTokens + COMPREHENSIVE_TOKEN_BONUS,
           llmProvider,
-          openaiFallbackModel
+          openaiFallbackModel,
+          false,
+          0,
+          useCompression,
+          maxCompressionRetries,
+          0,
+          PREMIUM_LENGTH_TAIL_TOKENS
         )
+        if (endsMidSentenceOrSection(comprehensiveAnswer)) {
+          const completeEndingPrompt =
+            `Text to finalize:\n${comprehensiveAnswer}\n\n` +
+            'Rewrite this into a complete final response that ends cleanly and is not cut off. Keep the same meaning, legal caution, and structure.'
+          comprehensiveAnswer = await callLLM(
+            completeEndingPrompt,
+            systemPrompt,
+            modelForProvider,
+            PREMIUM_MAX_TOKENS,
+            llmProvider,
+            openaiFallbackModel,
+            false,
+            0,
+            true,
+            Math.max(1, maxCompressionRetries),
+            0,
+            PREMIUM_LENGTH_TAIL_TOKENS
+          )
+        }
 
-        // 5. DISCRIMINATOR: Critic/revise/verify the comprehensive answer for the user
+        // 5. ORCHESTRATOR: Critic/revise/verify the comprehensive answer for the user
         if (useDiscriminator) {
           try {
-            const discriminatorAgent = await createDiscriminatorAgent(trimmedHistory, caseKeywords, effectiveIncludeCitations)
-            const streamlined = await discriminatorAgent.invoke({
+            const orchestratorAgent = await createOrchestratorAgent(
+              trimmedHistory,
+              caseKeywords,
+              effectiveIncludeCitations,
+              {
+                orchestratorModel,
+                orchestratorFallbackModel,
+              }
+            )
+            const streamlined = await orchestratorAgent.invoke({
               input: latestQuestion,
               comprehensiveAnswer: comprehensiveAnswer,
               allSources: sources
@@ -795,8 +1111,8 @@ export async function createLegalAgent(
               guidance_provided: true,
               sources: citedSources
             }
-          } catch (discriminatorError: any) {
-            console.error('Discriminator unavailable; falling back to primary legal answer', discriminatorError)
+          } catch (orchestratorError: any) {
+            console.error('Orchestrator unavailable; falling back to primary legal answer', orchestratorError)
             const fallback = ensureCitationsForPremium(
               neutralizeLegalAdviceTone(comprehensiveAnswer),
               sources,
@@ -858,6 +1174,16 @@ export async function invokeLegalAgent(
     provider?: LlmProvider
     openaiModel?: string
     openaiFallbackModel?: string
+    maxTokens?: number
+    autoContinueOnLength?: boolean
+    maxAutoContinues?: number
+    lengthRecoveryMode?: LengthRecoveryMode
+    maxCompressionRetries?: number
+    searchQueryOverride?: string
+    orchestratorModel?: string
+    orchestratorFallbackModel?: string
+    discriminatorModel?: string
+    discriminatorFallbackModel?: string
   }
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
   const agent = await createLegalAgent(conversationHistory, caseKeywords, undefined, options)
@@ -886,6 +1212,9 @@ export async function invokeBasicLegalAgent(
     provider: basicProvider,
     openaiModel: OPENAI_BASIC_MODEL,
     openaiFallbackModel: OPENAI_BASIC_FALLBACK_MODEL,
+    maxTokens: BASIC_MAX_TOKENS,
+    autoContinueOnLength: true,
+    maxAutoContinues: BASIC_MAX_AUTO_CONTINUES,
   })
   const response = await agent.invoke({ input: message })
   return {

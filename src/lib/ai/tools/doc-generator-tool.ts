@@ -3,50 +3,71 @@ import openaiClient from '../providers/openai-client';
 
 export class DocGeneratorTool extends Tool {
   name = "document_generator";
-  description = "A document generator that creates legal documents for UK litigation based on user inputs and legal standards. Use this when the user asks to generate, create, or draft a legal document.";
+  description = "A template filler for UK litigation documents. Only fills approved template-style structures with placeholders. Never writes bespoke/personalized letters or drafts.";
+
+  private isTemplateFillIntent(input: string): boolean {
+    const text = (input || '').toLowerCase()
+    if (!text.trim()) return false
+
+    const mentionsTemplateOrForm =
+      /\b(template|pro forma|standard form|form|n1|n9|n180|n244|witness statement template|letter template)\b/.test(text)
+    const fillVerb =
+      /\b(fill|populate|complete|slot in|insert|use template|template fill)\b/.test(text)
+
+    return mentionsTemplateOrForm || fillVerb
+  }
+
+  private enforceTemplateOnlyOutput(output: string): string {
+    const text = (output || '').trim()
+    if (!text) {
+      return "I can only help with template-based document filling. Please provide a template type and key fields to fill."
+    }
+
+    const hasPlaceholder = /\[[^\]\n]{2,80}\]/.test(text)
+    const looksPersonalizedLetter =
+      /\bdear\s+(mr|mrs|ms|sir|madam|[a-z])/i.test(text) ||
+      /\byours\s+(sincerely|faithfully)\b/i.test(text)
+
+    if (!hasPlaceholder || looksPersonalizedLetter) {
+      return "I cannot produce bespoke or personalised letters. I can fill template documents only, using placeholders like [CLAIMANT NAME], [DATE], and [REFERENCE]."
+    }
+
+    return text
+  }
 
   async _call(input: string): Promise<string> {
     try {
       console.log("🔍 Analyzing document request with AI...");
+
+      if (!this.isTemplateFillIntent(input)) {
+        return "I cannot produce bespoke or personalised letters. I can help fill template documents only. Please name the template/form and the fields you want filled."
+      }
       
-      // Create a detailed prompt for UK legal document generation
-      const prompt = `You are a UK legal document expert. Based on the user's request: "${input}"
+      const prompt = `You are a UK legal template assistant. Based on the user's request: "${input}"
 
 ROLE AND SAFETY:
-- Act as a meticulous legal assistant with a fact-checker mandate.
-- Do not invent statute names, section numbers, or procedural rules.
-- If you are unsure about a section number or wording, omit it or mark it as "[Section to verify]" rather than guessing.
+- You must NEVER produce bespoke/personalised letters or custom advocacy drafts.
+- You may ONLY output template-fill content.
+- Keep user-specific items as placeholders in [SQUARE BRACKETS].
+- If a detail is missing, keep a placeholder; do not invent.
+- Do not include addresses, names, signatures, or salutations unless represented as placeholders.
 
-SEARCH-FIRST REQUIREMENT:
-- Before citing any statute, rule, practice direction, or section number, you must rely on official sources and include a link in the Source List.
-- If you cannot verify a source, do not cite it.
+OUTPUT FORMAT (plain text only, no markdown):
+1) TEMPLATE TYPE: one short line
+2) TEMPLATE FIELDS NEEDED: bullet list of placeholders
+3) TEMPLATE DRAFT: structured template text with placeholders
+4) CHECKLIST: short list of what the user should provide to complete placeholders
 
-WORKFLOW OUTPUT (plain text only, no markdown, no divider lines):
-1) RELEVANT ISSUES: List the key legal issues or breaches relevant to the user's facts (short, plain English).
-2) VERIFIED SOURCES: List each statute/rule you will rely on, with the exact title and a usable official URL from the approved sources (legislation.gov.uk, justice.gov.uk, caselaw.nationalarchives.gov.uk, parliament.uk, bailii.org, judiciary.uk, supremecourt.uk, gov.uk, citizensadvice.org.uk, advicenow.org.uk, lawworks.org.uk). If none, write "No statutory citations used."
-3) DRAFT DOCUMENT: Produce the full draft.
-
-DRAFTING RULES:
-- Identify the document type requested (witness statement, defence, letter before action, etc.).
-- Use UK-appropriate structure and terminology.
-- Include placeholder fields in [SQUARE BRACKETS] for user-specific details.
-- Use clear headings in plain text (e.g., INTRODUCTION, BACKGROUND, FACTS).
-- Keep it professional and court-ready.
-
-SOURCE LIST (mandatory at the end):
-- After the draft, add a "SOURCE LIST" section.
-- Every statute/rule/section cited must appear here with its official URL.
-- Do not include any sources you did not cite in the draft.
-
-Generate the complete response now.`;
+Generate template-fill output only.`
 
       const completion = await openaiClient.chat.completions.create({
         messages: [{ role: "user", content: prompt }],
         model: process.env.OPENAI_CHAT_MODEL || 'gpt-4o',
-        temperature: 0.7,
-        max_tokens: 2000
+        temperature: 0.3,
+        max_tokens: 1600
       });
-      return completion.choices[0]?.message?.content || "Failed to generate document.";
+      const raw = completion.choices[0]?.message?.content || "Failed to generate document."
+      return this.enforceTemplateOnlyOutput(raw)
     } catch (error: any) {
       if (error.message?.includes('rate limit') || error.status === 429) {
         return "⚠️ Rate limit exceeded. Please wait a minute and try again, or upgrade your API plan for higher limits.";

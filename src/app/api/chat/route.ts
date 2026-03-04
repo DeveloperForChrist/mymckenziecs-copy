@@ -17,6 +17,7 @@ import { captureServerException } from '@/lib/monitoring/error-logger'
 import { isBasicPlan, isPremiumPlan, isPremiumPlusPlan } from '@/lib/plans/access'
 import { searchByText } from '@/lib/vector/milvus'
 import { getUserPlanData } from '@/lib/payments/user-plan'
+import { decomposeWithOrchestrator } from '@/lib/ai/agents/discriminator-agent'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -85,10 +86,10 @@ const getEnvModelValue = (...keys: string[]): string | null => {
 }
 
 const getPremiumOpenAiModel = (): string =>
-  getEnvModelValue('OPENAI_PREMIUM_MODEL', 'OPENAI_CHAT_MODEL') || 'gpt-4o'
+  getEnvModelValue('OPENAI_PREMIUM_MODEL') || 'gpt-4o'
 
 const getPremiumOpenAiFallbackModel = (primaryModel: string): string =>
-  getEnvModelValue('OPENAI_PREMIUM_FALLBACK_MODEL', 'OPENAI_CHAT_FALLBACK_MODEL', 'OPENAI_BASIC_MODEL') || primaryModel
+  getEnvModelValue('OPENAI_PREMIUM_FALLBACK_MODEL', 'OPENAI_BASIC_MODEL') || primaryModel
 
 const getPremiumPlusOpenAiModel = (): string | null =>
   getEnvModelValue('OPENAI_PREMIUM_PLUS_MODEL')
@@ -97,9 +98,39 @@ const getPremiumPlusOpenAiFallbackModel = (primaryModel: string): string =>
   getEnvModelValue(
     'OPENAI_PREMIUM_PLUS_FALLBACK_MODEL',
     'OPENAI_PREMIUM_FALLBACK_MODEL',
-    'OPENAI_CHAT_FALLBACK_MODEL',
     'OPENAI_BASIC_MODEL'
   ) || primaryModel
+
+const getPremiumPlusOrchestratorModel = (): string | null =>
+  getEnvModelValue('PREMIUM_PLUS_CLAUDE_MODEL')
+
+const getPremiumPlusOrchestratorFallbackModel = (primaryModel: string): string =>
+  getEnvModelValue('PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL') || primaryModel
+
+const PREMIUM_PLUS_ORCHESTRATOR_DECOMPOSE_ENABLED =
+  (process.env.PREMIUM_PLUS_ORCHESTRATOR_DECOMPOSE_ENABLED || 'true').toLowerCase() !== 'false'
+const PREMIUM_PLUS_ORCHESTRATOR_FINAL_PASS_ENABLED =
+  (process.env.PREMIUM_PLUS_ORCHESTRATOR_FINAL_PASS_ENABLED || 'true').toLowerCase() !== 'false'
+const PREMIUM_PLUS_ORCHESTRATOR_MIN_CONFIDENCE = Math.max(
+  0,
+  Math.min(1, Number.parseFloat(process.env.PREMIUM_PLUS_ORCHESTRATOR_MIN_CONFIDENCE || '0.58'))
+)
+const PREMIUM_PLUS_ORCHESTRATOR_LOW_CONFIDENCE_MODE =
+  (process.env.PREMIUM_PLUS_ORCHESTRATOR_LOW_CONFIDENCE_MODE || 'fallback').toLowerCase() === 'hybrid'
+    ? 'hybrid'
+    : 'fallback'
+const CHAT_THREAD_MAX_USER_TURNS_DEFAULT = Number.isFinite(Number(process.env.CHAT_THREAD_MAX_USER_TURNS))
+  ? Math.max(10, Math.floor(Number(process.env.CHAT_THREAD_MAX_USER_TURNS)))
+  : 80
+const BASIC_THREAD_MAX_USER_TURNS = Number.isFinite(Number(process.env.BASIC_THREAD_MAX_USER_TURNS))
+  ? Math.max(10, Math.floor(Number(process.env.BASIC_THREAD_MAX_USER_TURNS)))
+  : CHAT_THREAD_MAX_USER_TURNS_DEFAULT
+const PREMIUM_THREAD_MAX_USER_TURNS = Number.isFinite(Number(process.env.PREMIUM_THREAD_MAX_USER_TURNS))
+  ? Math.max(10, Math.floor(Number(process.env.PREMIUM_THREAD_MAX_USER_TURNS)))
+  : CHAT_THREAD_MAX_USER_TURNS_DEFAULT
+const PREMIUM_PLUS_THREAD_MAX_USER_TURNS = Number.isFinite(Number(process.env.PREMIUM_PLUS_THREAD_MAX_USER_TURNS))
+  ? Math.max(10, Math.floor(Number(process.env.PREMIUM_PLUS_THREAD_MAX_USER_TURNS)))
+  : CHAT_THREAD_MAX_USER_TURNS_DEFAULT
 
 const normalizePlanLabel = (value: any): string =>
   typeof value === 'string' ? value.trim().toLowerCase() : ''
@@ -170,10 +201,55 @@ const extractTextFromBuffer = async (buffer: Buffer, name?: string, mimeType?: s
   return ''
 }
 
-const buildAttachmentContext = async (attachments: ChatAttachment[], baseUrl: string, cookieHeader?: string | null) => {
+const tokenizeChunkRanking = (text: string): Set<string> => {
+  const raw = (text || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ')
+  const tokens = raw
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 3)
+  return new Set(tokens)
+}
+
+const chunkTextForContext = (text: string, maxChars: number = 900, overlapChars: number = 140): string[] => {
+  const cleaned = (text || '').replace(/\s+/g, ' ').trim()
+  if (!cleaned) return []
+  if (cleaned.length <= maxChars) return [cleaned]
+
+  const chunks: string[] = []
+  let cursor = 0
+  let lastCursor = -1
+  while (cursor < cleaned.length && cursor !== lastCursor) {
+    lastCursor = cursor
+    const end = Math.min(cleaned.length, cursor + maxChars)
+    const chunk = cleaned.slice(cursor, end).trim()
+    if (chunk) chunks.push(chunk)
+    if (end >= cleaned.length) break
+    cursor = Math.max(0, end - overlapChars)
+  }
+  return chunks
+}
+
+const scoreChunkAgainstQuery = (chunk: string, queryTokens: Set<string>): number => {
+  if (!queryTokens.size) return 0
+  const chunkTokens = tokenizeChunkRanking(chunk)
+  if (!chunkTokens.size) return 0
+  let overlap = 0
+  for (const token of queryTokens) {
+    if (chunkTokens.has(token)) overlap += 1
+  }
+  return overlap / Math.max(1, Math.min(queryTokens.size, 12))
+}
+
+const buildAttachmentContext = async (
+  attachments: ChatAttachment[],
+  baseUrl: string,
+  cookieHeader?: string | null,
+  rankingQuery?: string
+) => {
   if (!attachments.length) return ''
   const sections: string[] = []
   let totalLength = 0
+  const rankingTokens = tokenizeChunkRanking(rankingQuery || '')
 
   for (const attachment of attachments) {
     const name = attachment.name || 'Untitled document'
@@ -197,11 +273,26 @@ const buildAttachmentContext = async (attachments: ChatAttachment[], baseUrl: st
       const arrayBuffer = await response.arrayBuffer()
       const text = await extractTextFromBuffer(Buffer.from(arrayBuffer), name, attachment.mimeType)
       const cleaned = text.replace(/\s+/g, ' ').trim()
-      const excerpt = cleaned ? cleaned.slice(0, 2500) : '(No extractable text)'
+      const chunks = cleaned ? chunkTextForContext(cleaned, 900, 140) : []
+      const selectedChunks = chunks
+        .map((chunk, idx) => ({
+          idx,
+          chunk,
+          score: scoreChunkAgainstQuery(chunk, rankingTokens) + (idx === 0 ? 0.02 : 0),
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3)
+        .sort((a, b) => a.idx - b.idx)
+
+      const excerpt = selectedChunks.length > 0
+        ? selectedChunks.map((entry, idx) => `Chunk ${idx + 1}: ${entry.chunk}`).join('\n')
+        : cleaned
+          ? cleaned.slice(0, 2500)
+          : '(No extractable text)'
       const section = `Document: ${name}\n${excerpt}`
       sections.push(section)
       totalLength += section.length
-      if (totalLength >= 3500) break
+      if (totalLength >= 5200) break
     } catch {
       sections.push(`Document: ${name}\n(Failed to read file content)`)
     }
@@ -209,6 +300,69 @@ const buildAttachmentContext = async (attachments: ChatAttachment[], baseUrl: st
 
   if (!sections.length) return ''
   return `\n\nAttachment excerpts:\n${sections.join('\n\n')}`
+}
+
+const normalizeAuthorityToken = (value: string): string =>
+  (value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim()
+
+const hasCaseLawSignal = (line: string): boolean => {
+  const text = (line || '').trim()
+  if (!text) return false
+  const hasCaseNamePattern = /\b[A-Z][A-Za-z'&.\-]{1,}\s+v\.?\s+[A-Z][A-Za-z'&.\-]{1,}\b/.test(text)
+  const hasNeutralCitationPattern = /\[\d{4}\]\s*[A-Z]{2,8}[A-Za-z\s]*\d+/i.test(text)
+  const hasCourtToken = /\b(UKSC|EWCA|EWHC|UKUT|EWFC)\b/i.test(text)
+  return hasCaseNamePattern || hasNeutralCitationPattern || hasCourtToken
+}
+
+const buildAllowedAuthorityTokens = (
+  vectorItems: VectorCaseLawRagItem[],
+  suggestionItems: CaseLawSuggestion[]
+): Set<string> => {
+  const tokens = new Set<string>()
+  const pushToken = (value: string) => {
+    const normalized = normalizeAuthorityToken(value)
+    if (normalized.length >= 4) tokens.add(normalized)
+  }
+
+  vectorItems.forEach((item) => {
+    pushToken(item.title || '')
+    pushToken(item.citation || '')
+    pushToken(`${item.title || ''} ${item.citation || ''}`)
+  })
+  suggestionItems.forEach((item) => {
+    pushToken(item.title || '')
+    pushToken(item.citation || '')
+    pushToken(`${item.title || ''} ${item.citation || ''}`)
+  })
+
+  return tokens
+}
+
+const scrubUnsupportedCaseLawClaims = (
+  text: string,
+  allowedAuthorityTokens: Set<string>
+): { text: string; removedCount: number } => {
+  const lines = (text || '').split('\n')
+  let removedCount = 0
+
+  const filtered = lines.filter((line) => {
+    if (!hasCaseLawSignal(line)) return true
+    const normalizedLine = normalizeAuthorityToken(line)
+    const hasAllowedAuthority = Array.from(allowedAuthorityTokens).some(
+      (token) => token.length >= 4 && normalizedLine.includes(token)
+    )
+    if (hasAllowedAuthority) return true
+    removedCount += 1
+    return false
+  })
+
+  let finalText = filtered.join('\n').replace(/\n{3,}/g, '\n\n').trim()
+  if (!finalText) finalText = 'I could not verify case-law references for this answer from retrieved authorities.'
+  if (removedCount > 0) {
+    finalText = `${finalText}\n\nNote: I removed unverified case-law references.`
+  }
+
+  return { text: finalText, removedCount }
 }
 
 const buildAttachmentMetadata = (attachments: ChatAttachment[]) => {
@@ -626,6 +780,152 @@ const evaluateCaseLawSuggestionNeed = ({
   return { shouldSuggest, shouldRetrieve, explanationStyle, score, reasons }
 }
 
+type RetrievalFocus = 'web_only' | 'vector_only' | 'hybrid'
+
+const evaluateRetrievalFocus = ({
+  message,
+  history,
+  intent,
+  hasAttachments,
+  caseContextData,
+}: {
+  message: string
+  history: Array<{ role: string; content: string }>
+  intent?: string
+  hasAttachments?: boolean
+  caseContextData?: Record<string, any> | null
+}): {
+  focus: RetrievalFocus
+  ownCaseNarrative: boolean
+  precedentScore: number
+  procedureScore: number
+  reasons: string[]
+} => {
+  const recentUserText = history
+    .filter((entry) => entry.role === 'user')
+    .slice(-4)
+    .map((entry) => normalizeCompactText(entry.content || ''))
+    .filter(Boolean)
+    .join(' ')
+
+  const aggregate = normalizeCompactText(`${recentUserText} ${message}`.toLowerCase())
+  const reasons: string[] = []
+  if (!aggregate) {
+    return {
+      focus: 'web_only',
+      ownCaseNarrative: false,
+      precedentScore: 0,
+      procedureScore: 0,
+      reasons: ['no-content'],
+    }
+  }
+
+  let precedentScore = 0
+  let procedureScore = 0
+
+  const precedentLanguagePattern =
+    /\b(case law|precedent|authority|judgment|neutral citation|ratio|obiter|holding|how courts|similar case|uksc|ewca|ewhc|ukut|ewfc)\b/
+  if (precedentLanguagePattern.test(aggregate)) {
+    precedentScore += 4
+    reasons.push('precedent-language')
+  }
+
+  const citationOrCaseNamePattern =
+    /\[[12][0-9]{3}\]\s*(uksc|ewca|ewhc|ukut|ewfc)\b|\b[\w'.-]+\s+v\.?\s+[\w'.-]+\b/i
+  if (citationOrCaseNamePattern.test(message)) {
+    precedentScore += 4
+    reasons.push('citation-or-case-name')
+  }
+
+  const procedureLanguagePattern =
+    /\b(deadline|time limit|form|n244|claim form|particulars|serve|service|file|filing|hmcts|gov\.uk|practice direction|cpr|procedure|process|what should i do next|next steps?)\b/
+  if (procedureLanguagePattern.test(aggregate)) {
+    procedureScore += 4
+    reasons.push('procedure-language')
+  }
+
+  const freshnessPattern = /\b(current|latest|updated|today|now|new rules?|recent)\b/
+  if (freshnessPattern.test(aggregate)) {
+    procedureScore += 2
+    reasons.push('freshness-language')
+  }
+
+  const datePattern =
+    /\b\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?\b|\b\d{1,2}\s*(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\b/i
+  const firstPersonPattern = /\b(i|my|me|we|our)\b/
+  const ownCaseActionPattern =
+    /\b(sent|served|filed|received|emailed|called|paid|unpaid|deadline|hearing|claim|defence|defense|witness|evidence|contract|landlord|tenant|employer|accident|letter)\b/
+  const caseContextSignal =
+    Boolean(caseContextData) &&
+    Boolean(
+      firstDefinedString(
+        caseContextData?.caseType,
+        caseContextData?.case_type,
+        resolveCaseStage(caseContextData || {}),
+        resolveCaseNextDeadline(caseContextData || {})
+      )
+    )
+
+  const ownCaseNarrative =
+    (firstPersonPattern.test(aggregate) && ownCaseActionPattern.test(aggregate)) ||
+    (firstPersonPattern.test(aggregate) && datePattern.test(message)) ||
+    caseContextSignal
+
+  if (ownCaseNarrative) {
+    precedentScore += 1
+    procedureScore += 1
+    reasons.push('own-case-context')
+  }
+
+  if (intent === 'case_law' || intent === 'appeal' || intent === 'jurisdiction') {
+    precedentScore += 2
+    reasons.push(`intent:${intent}-precedent`)
+  }
+  if (intent === 'procedure' || intent === 'calendar' || intent === 'enforcement') {
+    procedureScore += 2
+    reasons.push(`intent:${intent}-procedure`)
+  }
+
+  if (hasAttachments) {
+    procedureScore += 1
+    reasons.push('attachments-context')
+  }
+
+  let focus: RetrievalFocus = 'web_only'
+
+  if (ownCaseNarrative && !hasAttachments) {
+    if (procedureScore >= precedentScore + 3 && precedentScore < 2) {
+      focus = 'web_only'
+      reasons.push('own-case-procedure-heavy')
+    } else {
+      focus = 'hybrid'
+      reasons.push('own-case-hybrid-default')
+    }
+  } else if (precedentScore >= procedureScore + 3 && precedentScore >= 4) {
+    focus = 'vector_only'
+    reasons.push('precedent-dominant')
+  } else if (procedureScore >= precedentScore + 3 && procedureScore >= 4) {
+    focus = 'web_only'
+    reasons.push('procedure-dominant')
+  } else if (precedentScore >= 3 && procedureScore >= 3) {
+    focus = 'hybrid'
+    reasons.push('mixed-signals')
+  } else if (precedentScore >= 4) {
+    focus = 'vector_only'
+    reasons.push('precedent-threshold')
+  } else {
+    focus = 'web_only'
+    reasons.push('web-default')
+  }
+
+  if (hasAttachments && focus === 'vector_only') {
+    focus = 'web_only'
+    reasons.push('attachments-disable-vector')
+  }
+
+  return { focus, ownCaseNarrative, precedentScore, procedureScore, reasons }
+}
+
 const buildCaseLawSuggestionQuery = ({
   message,
   history,
@@ -995,6 +1295,70 @@ const buildSupportIntentResponse = (isSignedIn: boolean): string => {
   return 'This looks like an account or billing request. Please sign in first at /auth/signin, then manage billing in /settings. You can also view plans at /pricing or get help at /help.'
 }
 
+const isDraftRequestIntent = (text: string): boolean => {
+  const input = (text || '').toLowerCase()
+  if (!input.trim()) return false
+  const hasDraftVerb = /\b(draft|write|prepare|create|generate|produce)\b/.test(input)
+  const hasDocTarget =
+    /\b(letter|document|witness statement|statement|skeleton argument|defence|defense|application|affidavit|notice|pleading)\b/.test(
+      input
+    )
+  return hasDraftVerb && hasDocTarget
+}
+
+const isTemplateFillIntent = (text: string): boolean => {
+  const input = (text || '').toLowerCase()
+  if (!input.trim()) return false
+  return /\b(template|pro forma|standard form|fill in|populate|complete form|n1|n9|n180|n244)\b/.test(input)
+}
+
+const looksLikePersonalizedDraft = (text: string): boolean => {
+  const input = (text || '').toLowerCase()
+  if (!input.trim()) return false
+  return (
+    /\bdear\s+(sir|madam|mr|mrs|ms|[a-z])/.test(input) ||
+    /\byours\s+(sincerely|faithfully)\b/.test(input) ||
+    /\bletter before action\b/.test(input) ||
+    /\bre:\s*/.test(input)
+  )
+}
+
+const templateOnlyRefusalResponse =
+  'I cannot create bespoke or personalised letters/drafts. I can help fill template documents only. Please tell me the template/form and the fields to populate.'
+
+const enforceTemplateOnlyFinalResponse = (
+  userMessage: string,
+  responseText: string
+): { responseText: string; blocked: boolean; reason?: string } => {
+  const draftIntent = isDraftRequestIntent(userMessage)
+  const templateIntent = isTemplateFillIntent(userMessage)
+
+  if (draftIntent && !templateIntent) {
+    return { responseText: templateOnlyRefusalResponse, blocked: true, reason: 'non-template-draft-intent' }
+  }
+
+  if (!templateIntent && looksLikePersonalizedDraft(responseText)) {
+    return { responseText: templateOnlyRefusalResponse, blocked: true, reason: 'personalized-draft-output' }
+  }
+
+  return { responseText, blocked: false }
+}
+
+const resolveThreadTurnLimit = ({
+  basicPlanActive,
+  premiumPlanActive,
+  premiumPlusActive,
+}: {
+  basicPlanActive: boolean
+  premiumPlanActive: boolean
+  premiumPlusActive: boolean
+}): number => {
+  if (premiumPlusActive) return PREMIUM_PLUS_THREAD_MAX_USER_TURNS
+  if (premiumPlanActive) return PREMIUM_THREAD_MAX_USER_TURNS
+  if (basicPlanActive) return BASIC_THREAD_MAX_USER_TURNS
+  return CHAT_THREAD_MAX_USER_TURNS_DEFAULT
+}
+
 const buildMemoryContext = (memory: any) => {
   if (!memory) return ''
   const lines: string[] = []
@@ -1013,6 +1377,100 @@ const buildMemoryContext = (memory: any) => {
 
   if (!lines.length) return ''
   return `\n\nConversation memory:\n${lines.join('\n')}`
+}
+
+const hasUsefulMemory = (memory: any): boolean => {
+  if (!memory) return false
+  const hasSummary = typeof memory.memory_summary === 'string' && memory.memory_summary.trim().length > 0
+  const hasFacts = Array.isArray(memory.key_facts) && memory.key_facts.some((f: any) => String(f || '').trim().length > 0)
+  const hasOpenQuestions =
+    Array.isArray(memory.open_questions) && memory.open_questions.some((q: any) => String(q || '').trim().length > 0)
+  return hasSummary || hasFacts || hasOpenQuestions
+}
+
+const normalizeMemoryList = (value: any, maxItems: number, maxChars: number): string[] => {
+  const arr = Array.isArray(value) ? value : []
+  const out: string[] = []
+  for (const entry of arr) {
+    const text = truncateText(String(entry || '').trim(), maxChars)
+    if (!text) continue
+    if (!out.includes(text)) out.push(text)
+    if (out.length >= maxItems) break
+  }
+  return out
+}
+
+const loadCaseScopedMemoryFallback = async ({
+  authUserId,
+  guestId,
+  caseId,
+  excludeConversationId,
+}: {
+  authUserId?: string | null
+  guestId?: string | null
+  caseId: string
+  excludeConversationId?: string | null
+}): Promise<{ memory_summary: string | null; key_facts: string[]; open_questions: string[] } | null> => {
+  if (!caseId) return null
+  if (!authUserId && !guestId) return null
+
+  let query = supabaseAdmin
+    .from('chat_memory')
+    .select('memory_summary,key_facts,open_questions,conversation_id,updated_at')
+    .eq('case_id', caseId)
+    .order('updated_at', { ascending: false })
+    .limit(6)
+
+  if (authUserId) {
+    query = query.eq('user_id', authUserId)
+  } else if (guestId) {
+    query = query.eq('guest_id', guestId)
+  }
+
+  if (excludeConversationId) {
+    query = query.neq('conversation_id', excludeConversationId)
+  }
+
+  const { data, error } = await query
+  if (error) {
+    console.warn('Case-scoped memory fallback lookup failed:', error)
+    return null
+  }
+
+  const rows = Array.isArray(data) ? data : []
+  if (rows.length === 0) return null
+
+  const summaryCandidates = rows
+    .map((row: any) => truncateText(String(row?.memory_summary || '').trim(), 220))
+    .filter(Boolean)
+    .slice(0, 2)
+
+  const keyFacts: string[] = []
+  const openQuestions: string[] = []
+
+  for (const row of rows) {
+    for (const fact of normalizeMemoryList((row as any)?.key_facts, 8, 150)) {
+      if (!keyFacts.includes(fact)) keyFacts.push(fact)
+      if (keyFacts.length >= 12) break
+    }
+    for (const question of normalizeMemoryList((row as any)?.open_questions, 2, 160)) {
+      if (!openQuestions.includes(question)) openQuestions.push(question)
+      if (openQuestions.length >= 4) break
+    }
+    if (keyFacts.length >= 12 && openQuestions.length >= 4) break
+  }
+
+  const summary = summaryCandidates.length > 0
+    ? truncateText(summaryCandidates.join(' | '), 320)
+    : null
+
+  const fallbackMemory = {
+    memory_summary: summary,
+    key_facts: keyFacts.slice(0, 12),
+    open_questions: openQuestions.slice(0, 4),
+  }
+
+  return hasUsefulMemory(fallbackMemory) ? fallbackMemory : null
 }
 
 export async function POST(request: NextRequest) {
@@ -1166,10 +1624,13 @@ export async function POST(request: NextRequest) {
     const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || ''
     const proto = request.headers.get('x-forwarded-proto') || 'http'
     const baseUrl = host ? `${proto}://${host}` : ''
+    const activeConversationId = sessionInfo.conversationId || conversationId || null
 
     const hasAttachments = Array.isArray(attachments) && attachments.length > 0
     const cookieHeader = request.headers.get('cookie')
-    const attachmentContext = hasAttachments && baseUrl ? await buildAttachmentContext(attachments, baseUrl, cookieHeader) : ''
+    const attachmentContext = hasAttachments && baseUrl
+      ? await buildAttachmentContext(attachments, baseUrl, cookieHeader, message)
+      : ''
     const attachmentMetadata = hasAttachments && !attachmentContext ? buildAttachmentMetadata(attachments) : ''
 
     const processingResult = await chatManager.processMessage(message, hasAttachments, {
@@ -1177,6 +1638,45 @@ export async function POST(request: NextRequest) {
       sessionMessageCount: typeof sessionMessageCount === 'number' ? sessionMessageCount : null,
       sessionStartedAt: typeof sessionStartedAt === 'string' ? sessionStartedAt : null,
     })
+
+    const threadTurnLimit = resolveThreadTurnLimit({
+      basicPlanActive,
+      premiumPlanActive,
+      premiumPlusActive,
+    })
+    let threadUserTurnCount: number | null = null
+    if (activeConversationId) {
+      const { count: userTurnCount, error: turnCountError } = await supabaseAdmin
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('conversation_id', activeConversationId)
+        .eq('role', 'user')
+      if (turnCountError) {
+        console.warn('Failed counting conversation turns:', turnCountError)
+      } else if (typeof userTurnCount === 'number') {
+        threadUserTurnCount = userTurnCount
+      }
+    }
+    if (threadUserTurnCount !== null && threadUserTurnCount >= threadTurnLimit) {
+      return withCookie(
+        NextResponse.json(
+          {
+            response:
+              `This chat has reached the thread limit (${threadTurnLimit} user turns). ` +
+              'Please start a new chat so responses stay accurate and fast.',
+            metadata: {
+              threadLimitReached: true,
+              threadUserTurnCount,
+              threadTurnLimit,
+              activeCaseId: processingResult.caseId || sessionInfo.activeCaseId || null,
+              conversationId: activeConversationId,
+              suggestNewChat: true,
+            },
+          },
+          { status: 200 }
+        )
+      )
+    }
 
     if (shouldBypassLegalAgentForSupport(processingResult.intent, message)) {
       const supportResponse = buildSupportIntentResponse(Boolean(authUserId))
@@ -1246,26 +1746,40 @@ export async function POST(request: NextRequest) {
       resolvedCaseId = null
     }
 
-    const memoryKey = buildMemoryKey(authUserId, guestId, resolvedCaseId || null, sessionInfo.conversationId || conversationId || null)
+    const memoryKey = buildMemoryKey(authUserId, guestId, resolvedCaseId || null, activeConversationId)
     const { data: memoryRow } = await supabaseAdmin
       .from('chat_memory')
       .select('memory_summary,key_facts,open_questions')
       .eq('memory_key', memoryKey)
       .maybeSingle()
+    let effectiveMemoryRow = memoryRow
+    let caseScopedMemoryFallbackUsed = false
+    if (!hasUsefulMemory(effectiveMemoryRow) && resolvedCaseId) {
+      const fallbackMemory = await loadCaseScopedMemoryFallback({
+        authUserId: authUserId || null,
+        guestId,
+        caseId: resolvedCaseId,
+        excludeConversationId: activeConversationId,
+      })
+      if (hasUsefulMemory(fallbackMemory)) {
+        effectiveMemoryRow = fallbackMemory
+        caseScopedMemoryFallbackUsed = true
+      }
+    }
 
     const followUpQuestion = inferFollowUpQuestion(processingResult.intent, message)
     const shouldShortCircuitToQuestion = Boolean(followUpQuestion && !hasAttachments && sanitizedHistory.length <= 1)
 
     if (shouldShortCircuitToQuestion) {
       const facts = extractKeyFactsFromMessage(message)
-      const mergedFacts = mergeFacts(memoryRow?.key_facts, facts)
+      const mergedFacts = mergeFacts(effectiveMemoryRow?.key_facts, facts)
       await supabaseAdmin.from('chat_memory').upsert(
         {
           memory_key: memoryKey,
           user_id: authUserId || null,
           guest_id: guestId || null,
           case_id: resolvedCaseId || null,
-          conversation_id: sessionInfo.conversationId || conversationId || null,
+          conversation_id: activeConversationId,
           memory_summary: truncateText(`User asked: ${message}`, 320),
           key_facts: mergedFacts,
           open_questions: [followUpQuestion],
@@ -1292,61 +1806,7 @@ export async function POST(request: NextRequest) {
 
     const caseContext = caseContextData ? buildCaseContext(caseContextData) : ''
     const caseKeywords = caseContextData ? extractCaseKeywords(caseContextData) : ''
-    const memoryContext = buildMemoryContext(memoryRow)
-    const caseLawSuggestionDecision = evaluateCaseLawSuggestionNeed({
-      message,
-      history: sanitizedHistory,
-      intent: processingResult.intent,
-      hasAttachments,
-    })
-    const shouldUsePremiumPlusCaseLawRetrieval = shouldUseCaseLawRetrieval({
-      message,
-      intent: processingResult.intent,
-      hasAttachments,
-      premiumFlow: premiumPlusActive,
-      suggestionDecision: caseLawSuggestionDecision,
-    })
-    const shouldUseSearchRetrieval = premiumPlusActive || premiumPlanActive
-    const usePremiumPlusVectorRag =
-      premiumPlusActive &&
-      shouldUsePremiumPlusCaseLawRetrieval &&
-      !hasAttachments
-    const shouldLookupCaseLawSuggestions =
-      premiumPlusActive &&
-      shouldUsePremiumPlusCaseLawRetrieval &&
-      caseLawSuggestionDecision.shouldSuggest
-
-    const caseLawQuery = buildCaseLawSuggestionQuery({
-      message,
-      history: sanitizedHistory,
-      caseContextData,
-      memoryRow,
-    })
-
-    const caseLawSuggestionPromise = shouldLookupCaseLawSuggestions
-      ? fetchCaseLawSuggestions(caseLawQuery, CASELAW_SUGGESTION_LIMIT)
-      : Promise.resolve([] as CaseLawSuggestion[])
-
-    const vectorCaseLawRagPromise = usePremiumPlusVectorRag
-      ? fetchPremiumPlusVectorCaseLawRag(caseLawQuery, CASELAW_RAG_LIMIT)
-      : Promise.resolve([] as VectorCaseLawRagItem[])
-
-    const vectorCaseLawRagItems = await vectorCaseLawRagPromise
-    const vectorCaseLawRagContext = buildVectorCaseLawRagContext(vectorCaseLawRagItems)
-    const caseLawStyleInstruction = premiumPlusActive
-      ? shouldUsePremiumPlusCaseLawRetrieval
-        ? '\n\nExplanation policy (Premium+): Start with a short plain-English answer first. Then add an "Authorities and interpretation" section with no more than 3 authorities, and explain each authority in one sentence.'
-        : '\n\nExplanation policy (Premium+): Keep this response plain-English and practical. Do not add case authorities unless the user explicitly asks for authority or precedent.'
-      : ''
-
-    const rawMessageForAgent = attachmentContext
-      ? `${message}\n\nThe user uploaded documents. Use the excerpts below in your analysis.${caseContext}${memoryContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}\n${attachmentContext}`
-      : `${message}${caseContext}${memoryContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}${attachmentMetadata}`
-
-    const messageForAgent = truncateText(rawMessageForAgent, 12000)
-    const threadId = `thread_${Date.now()}_${userId}`
-
-    const shouldUseBasicLegalAgent = basicPlanActive
+    const memoryContext = buildMemoryContext(effectiveMemoryRow)
     const premiumOpenAiModel = getPremiumOpenAiModel()
     const premiumOpenAiFallbackModel = getPremiumOpenAiFallbackModel(premiumOpenAiModel)
     const premiumPlusOpenAiModel = premiumPlusActive ? getPremiumPlusOpenAiModel() : null
@@ -1362,16 +1822,230 @@ export async function POST(request: NextRequest) {
     const premiumPlusOpenAiFallbackModel = premiumPlusOpenAiModel
       ? getPremiumPlusOpenAiFallbackModel(premiumPlusOpenAiModel)
       : null
+    const premiumPlusOrchestratorModel = premiumPlusActive ? getPremiumPlusOrchestratorModel() : null
+    if (premiumPlusActive && !premiumPlusOrchestratorModel) {
+      console.error('Premium+ orchestrator model is missing for a Premium+ chat request')
+      return withCookie(
+        NextResponse.json(
+          { response: 'Premium+ review is temporarily unavailable. Please try again shortly.' },
+          { status: 503 }
+        )
+      )
+    }
+    const premiumPlusOrchestratorFallbackModel = premiumPlusOrchestratorModel
+      ? getPremiumPlusOrchestratorFallbackModel(premiumPlusOrchestratorModel)
+      : null
+    const caseLawSuggestionDecision = evaluateCaseLawSuggestionNeed({
+      message,
+      history: sanitizedHistory,
+      intent: processingResult.intent,
+      hasAttachments,
+    })
+    const retrievalFocusDecision = evaluateRetrievalFocus({
+      message,
+      history: sanitizedHistory,
+      intent: processingResult.intent,
+      hasAttachments,
+      caseContextData,
+    })
+    let orchestratorDecomposition: Awaited<ReturnType<typeof decomposeWithOrchestrator>> | null = null
+    let orchestratedFocus: RetrievalFocus = retrievalFocusDecision.focus
+    let orchestratedVectorQuery = ''
+    let orchestratedWebQuery = ''
+    let orchestratorClarificationQuestion = ''
+    let orchestratorConfidence: number | null = null
+    let orchestratorLowConfidenceFallback: 'none' | 'heuristic' | 'hybrid' = 'none'
+    let routingReasonsApplied: string[] = retrievalFocusDecision.reasons.slice()
+
+    if (
+      premiumPlusActive &&
+      PREMIUM_PLUS_ORCHESTRATOR_DECOMPOSE_ENABLED
+    ) {
+      const orchestratorInput = truncateText(
+        attachmentContext
+          ? `${message}\n\nUser uploaded documents. Use the excerpts below during decomposition.\n${attachmentContext}`
+          : attachmentMetadata
+            ? `${message}\n\n${attachmentMetadata}`
+            : message,
+        12000
+      )
+      orchestratorDecomposition = await decomposeWithOrchestrator(
+        orchestratorInput,
+        sanitizedHistory as Array<{ role: 'user' | 'assistant'; content: string }>,
+        caseKeywords,
+        {
+          orchestratorModel: premiumPlusOrchestratorModel || undefined,
+          orchestratorFallbackModel: premiumPlusOrchestratorFallbackModel || undefined,
+        }
+      )
+
+      if (orchestratorDecomposition) {
+        orchestratedFocus = orchestratorDecomposition.retrievalMode
+        orchestratedVectorQuery = (orchestratorDecomposition.vectorQuery || '').trim()
+        orchestratedWebQuery = (orchestratorDecomposition.webQuery || '').trim()
+        orchestratorClarificationQuestion = (orchestratorDecomposition.clarificationQuestion || '').trim()
+        orchestratorConfidence = Number.isFinite(Number(orchestratorDecomposition.confidence))
+          ? Math.max(0, Math.min(1, Number(orchestratorDecomposition.confidence)))
+          : null
+        routingReasonsApplied = (orchestratorDecomposition.reasons || []).slice()
+
+        if (
+          orchestratorConfidence !== null &&
+          orchestratorConfidence < PREMIUM_PLUS_ORCHESTRATOR_MIN_CONFIDENCE
+        ) {
+          if (PREMIUM_PLUS_ORCHESTRATOR_LOW_CONFIDENCE_MODE === 'hybrid') {
+            orchestratedFocus = 'hybrid'
+            orchestratorLowConfidenceFallback = 'hybrid'
+          } else {
+            orchestratedFocus = retrievalFocusDecision.focus
+            orchestratedVectorQuery = ''
+            orchestratedWebQuery = ''
+            orchestratorLowConfidenceFallback = 'heuristic'
+            routingReasonsApplied = retrievalFocusDecision.reasons.slice()
+          }
+          routingReasonsApplied.push(
+            `orchestrator-low-confidence:${orchestratorConfidence.toFixed(2)}<${PREMIUM_PLUS_ORCHESTRATOR_MIN_CONFIDENCE.toFixed(2)}`
+          )
+        }
+      }
+    }
+
+    if (premiumPlusActive && orchestratorClarificationQuestion) {
+      return withCookie(
+        NextResponse.json(
+          {
+            response: orchestratorClarificationQuestion,
+            metadata: {
+              requiresClarification: true,
+              clarificationSource: 'orchestrator',
+              activeCaseId: resolvedCaseId,
+            },
+          },
+          { status: 200 }
+        )
+      )
+    }
+
+    const premiumPlusCaseLawBaseDecision = shouldUseCaseLawRetrieval({
+      message,
+      intent: processingResult.intent,
+      hasAttachments,
+      premiumFlow: premiumPlusActive,
+      suggestionDecision: caseLawSuggestionDecision,
+    })
+    const shouldUsePremiumPlusCaseLawRetrieval =
+      premiumPlusActive &&
+      orchestratedFocus !== 'web_only' &&
+      (
+        premiumPlusCaseLawBaseDecision ||
+        retrievalFocusDecision.ownCaseNarrative ||
+        retrievalFocusDecision.precedentScore >= retrievalFocusDecision.procedureScore
+      )
+
+    let shouldUseSearchRetrieval =
+      premiumPlanActive ||
+      (premiumPlusActive && orchestratedFocus !== 'vector_only')
+    let usePremiumPlusVectorRag =
+      premiumPlusActive &&
+      shouldUsePremiumPlusCaseLawRetrieval &&
+      !hasAttachments
+    const shouldLookupCaseLawSuggestions =
+      premiumPlusActive &&
+      shouldUsePremiumPlusCaseLawRetrieval &&
+      (caseLawSuggestionDecision.shouldSuggest || orchestratedFocus !== 'web_only')
+
+    const baselineCaseLawQuery = buildCaseLawSuggestionQuery({
+      message,
+      history: sanitizedHistory,
+      caseContextData,
+      memoryRow,
+    })
+    const caseLawQuery = orchestratedVectorQuery || baselineCaseLawQuery
+
+    const caseLawSuggestionPromise = shouldLookupCaseLawSuggestions
+      ? fetchCaseLawSuggestions(caseLawQuery, CASELAW_SUGGESTION_LIMIT)
+      : Promise.resolve([] as CaseLawSuggestion[])
+
+    const vectorCaseLawRagPromise = usePremiumPlusVectorRag
+      ? fetchPremiumPlusVectorCaseLawRag(caseLawQuery, CASELAW_RAG_LIMIT)
+      : Promise.resolve([] as VectorCaseLawRagItem[])
+
+    const vectorCaseLawRagItems = await vectorCaseLawRagPromise
+    const vectorOnlyRequested = premiumPlusActive && orchestratedFocus === 'vector_only'
+    const vectorFallbackToWeb =
+      vectorOnlyRequested &&
+      usePremiumPlusVectorRag &&
+      vectorCaseLawRagItems.length === 0
+    if (vectorFallbackToWeb) {
+      shouldUseSearchRetrieval = true
+    }
+    const vectorCaseLawRagContext = buildVectorCaseLawRagContext(vectorCaseLawRagItems)
+    const ownCaseFacts = retrievalFocusDecision.ownCaseNarrative
+      ? extractKeyFactsFromMessage(message).slice(0, 6)
+      : []
+    const ownCaseFactsContext = ownCaseFacts.length > 0
+      ? `\n\nUser facts for issue spotting:\n${ownCaseFacts.map((fact) => `- ${fact}`).join('\n')}`
+      : ''
+    const retrievalRoutingContext = premiumPlusActive
+      ? (
+        `\n\nRetrieval routing:\n` +
+        `- Focus: ${orchestratedFocus}\n` +
+        `- Own-case narrative: ${retrievalFocusDecision.ownCaseNarrative ? 'yes' : 'no'}\n` +
+        `- Precedent score: ${retrievalFocusDecision.precedentScore}\n` +
+        `- Procedure score: ${retrievalFocusDecision.procedureScore}\n` +
+        `- Routing reasons: ${routingReasonsApplied.join(', ')}` +
+        (orchestratorConfidence !== null ? `\n- Orchestrator confidence: ${orchestratorConfidence.toFixed(2)}` : '') +
+        (orchestratorLowConfidenceFallback !== 'none'
+          ? `\n- Low-confidence fallback applied: ${orchestratorLowConfidenceFallback}`
+          : '') +
+        (orchestratorDecomposition?.decomposition ? `\n- Orchestrator decomposition: ${orchestratorDecomposition.decomposition}` : '') +
+        (orchestratedWebQuery ? `\n- Orchestrator web query: ${orchestratedWebQuery}` : '') +
+        (orchestratedVectorQuery ? `\n- Orchestrator vector query: ${orchestratedVectorQuery}` : '') +
+        (vectorFallbackToWeb ? '\n- Vector confidence low. Switched on web guidance fallback.' : '')
+      )
+      : ''
+    const caseLawStyleInstruction = premiumPlusActive
+      ? (() => {
+          if (orchestratedFocus === 'web_only') {
+            return '\n\nExplanation policy (Premium+): Focus on current procedure and practical next steps in plain English. Do not add case authorities unless they are directly relevant.'
+          }
+          if (vectorOnlyRequested && !vectorFallbackToWeb) {
+            return '\n\nExplanation policy (Premium+): Focus on retrieved authorities and explain how courts have generally reasoned in similar situations. Keep practical next steps concise.'
+          }
+          return '\n\nExplanation policy (Premium+): Start with a short plain-English answer first. Then add an "Authorities and interpretation" section with no more than 3 authorities, and explain each authority in one sentence.'
+        })()
+      : ''
+
+    const orchestrationInstruction = premiumPlusActive && orchestratorDecomposition
+      ? `\n\nOrchestrator instruction:\n- Use retrieval focus: ${orchestratedFocus}\n` +
+        (orchestratorDecomposition.decomposition ? `- Decomposition:\n${orchestratorDecomposition.decomposition}\n` : '') +
+        (orchestratedWebQuery ? `- Web emphasis query: ${orchestratedWebQuery}\n` : '') +
+        (orchestratedVectorQuery ? `- Authority emphasis query: ${orchestratedVectorQuery}\n` : '')
+      : ''
+
+    const rawMessageForAgent = attachmentContext
+      ? `${message}${ownCaseFactsContext}\n\nThe user uploaded documents. Use the excerpts below in your analysis.${caseContext}${memoryContext}${retrievalRoutingContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}\n${attachmentContext}`
+      : `${message}${ownCaseFactsContext}${caseContext}${memoryContext}${retrievalRoutingContext}${orchestrationInstruction}${vectorCaseLawRagContext}${caseLawStyleInstruction}${attachmentMetadata}`
+
+    const messageForAgent = truncateText(rawMessageForAgent, 12000)
+    const threadId = `thread_${Date.now()}_${userId}`
+
+    const shouldUseBasicLegalAgent = basicPlanActive
     const agentResponse = shouldUseBasicLegalAgent
       ? await invokeBasicLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords)
       : await invokeLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
-          useDiscriminator: premiumPlusActive,
+          useDiscriminator: premiumPlusActive && PREMIUM_PLUS_ORCHESTRATOR_FINAL_PASS_ENABLED,
           useSearch: shouldUseSearchRetrieval,
           includeCitations: premiumPlusActive,
+          searchQueryOverride: premiumPlusActive ? (orchestratedWebQuery || undefined) : undefined,
           openaiModel: premiumPlusActive ? (premiumPlusOpenAiModel || undefined) : premiumOpenAiModel,
           openaiFallbackModel: premiumPlusActive
             ? (premiumPlusOpenAiFallbackModel || undefined)
             : premiumOpenAiFallbackModel,
+          orchestratorModel: premiumPlusActive ? (premiumPlusOrchestratorModel || undefined) : undefined,
+          orchestratorFallbackModel: premiumPlusActive
+            ? (premiumPlusOrchestratorFallbackModel || undefined)
+            : undefined,
         })
 
     const includeDebug = process.env.NODE_ENV !== 'production'
@@ -1396,10 +2070,19 @@ export async function POST(request: NextRequest) {
       suggestions: caseLawSuggestions,
       existingResponse: agentResponse.response || '',
     })
-    const finalAssistantResponse = caseLawSoftNextStep
+    const responseWithSoftStep = caseLawSoftNextStep
       ? `${agentResponse.response.trim()}\n\n${caseLawSoftNextStep}`
       : agentResponse.response
-    const actionItems = extractActionItems(`${message}\n${agentResponse.response}`)
+    const allowedAuthorityTokens = buildAllowedAuthorityTokens(vectorCaseLawRagItems, caseLawSuggestions)
+    const scrubbedCaseLaw = premiumPlusActive
+      ? scrubUnsupportedCaseLawClaims(responseWithSoftStep || '', allowedAuthorityTokens)
+      : { text: responseWithSoftStep || '', removedCount: 0 }
+    const templateGuardResult = enforceTemplateOnlyFinalResponse(message, scrubbedCaseLaw.text)
+    const finalAssistantResponse = templateGuardResult.responseText
+    const templateDraftBlocked = templateGuardResult.blocked
+    const templateDraftBlockReason = templateGuardResult.reason || null
+    const removedUnsupportedAuthorityLines = scrubbedCaseLaw.removedCount
+    const actionItems = extractActionItems(`${message}\n${finalAssistantResponse}`)
     if (actionItems.length > 0) {
       const rows = actionItems.map((item) => ({
         memory_key: memoryKey,
@@ -1416,14 +2099,14 @@ export async function POST(request: NextRequest) {
     }
 
     const incomingFacts = extractKeyFactsFromMessage(message)
-    const mergedFacts = mergeFacts(memoryRow?.key_facts, incomingFacts)
+    const mergedFacts = mergeFacts(effectiveMemoryRow?.key_facts, incomingFacts)
     await supabaseAdmin.from('chat_memory').upsert(
       {
         memory_key: memoryKey,
         user_id: authUserId || null,
         guest_id: guestId || null,
         case_id: resolvedCaseId || null,
-        conversation_id: sessionInfo.conversationId || conversationId || null,
+        conversation_id: activeConversationId,
         memory_summary: truncateText(`User: ${message} | Assistant: ${finalAssistantResponse}`, 480),
         key_facts: mergedFacts,
         open_questions: [],
@@ -1443,6 +2126,8 @@ export async function POST(request: NextRequest) {
           sources: agentResponse.sources || [],
           caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
           caseLawSoftNextStep,
+          templateDraftBlocked,
+          templateDraftBlockReason,
           actionItems,
         },
         processingResult.caseId || sessionInfo.activeCaseId || null
@@ -1464,6 +2149,8 @@ export async function POST(request: NextRequest) {
             pendingCalendarEntries: (processingResult as any).pendingCalendarEntries || null,
             followUpQuestion,
             actionItems,
+            templateDraftBlocked,
+            templateDraftBlockReason,
             ...(includeDebug
                 ? {
                   debug: {
@@ -1486,6 +2173,27 @@ export async function POST(request: NextRequest) {
                     caseLawSuggestionThreshold: CASELAW_SUGGESTION_MIN_TRIGGER_SCORE,
                     caseLawRetrievalThreshold: CASELAW_RETRIEVAL_MIN_SCORE,
                     caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
+                    retrievalFocus: retrievalFocusDecision.focus,
+                    retrievalFocusApplied: orchestratedFocus,
+                    retrievalOwnCaseNarrative: retrievalFocusDecision.ownCaseNarrative,
+                    retrievalPrecedentScore: retrievalFocusDecision.precedentScore,
+                    retrievalProcedureScore: retrievalFocusDecision.procedureScore,
+                    retrievalReasons: routingReasonsApplied,
+                    orchestratorDecomposeEnabled: PREMIUM_PLUS_ORCHESTRATOR_DECOMPOSE_ENABLED,
+                    orchestratorFinalPassEnabled: PREMIUM_PLUS_ORCHESTRATOR_FINAL_PASS_ENABLED,
+                    orchestratorMinConfidence: PREMIUM_PLUS_ORCHESTRATOR_MIN_CONFIDENCE,
+                    orchestratorLowConfidenceMode: PREMIUM_PLUS_ORCHESTRATOR_LOW_CONFIDENCE_MODE,
+                    orchestratorConfidence,
+                    orchestratorLowConfidenceFallback,
+                    orchestratorDecomposition: orchestratorDecomposition?.decomposition || null,
+                    orchestratorReasons: orchestratorDecomposition?.reasons || [],
+                    orchestratorWebQuery: orchestratedWebQuery || null,
+                    orchestratorVectorQuery: orchestratedVectorQuery || null,
+                    removedUnsupportedAuthorityLines,
+                    templateDraftBlocked,
+                    templateDraftBlockReason,
+                    caseScopedMemoryFallbackUsed,
+                    vectorFallbackToWeb,
                   },
                 }
               : {}),
