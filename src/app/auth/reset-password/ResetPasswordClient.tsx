@@ -26,6 +26,20 @@ export default function ResetPasswordClient() {
   const [canReset, setCanReset] = useState(false)
   const [checkingRecovery, setCheckingRecovery] = useState(isRecoveryMode)
 
+  const mapPasswordUpdateError = (message: string) => {
+    const normalized = (message || '').toLowerCase()
+    if (
+      normalized.includes('leaked') ||
+      normalized.includes('pwned') ||
+      normalized.includes('compromised') ||
+      normalized.includes('haveibeenpwned') ||
+      (normalized.includes('password') && normalized.includes('breach'))
+    ) {
+      return 'This password appears in known data breaches. Choose a different one.'
+    }
+    return message || 'We could not update your password. Please try again.'
+  }
+
   useEffect(() => {
     if (!isRecoveryMode) {
       setCanReset(false)
@@ -134,7 +148,7 @@ export default function ResetPasswordClient() {
       setNewPassword('')
       setConfirmPassword('')
     } catch (error: any) {
-      setResetError(error?.message || 'We could not update your password. Please try again.')
+      setResetError(mapPasswordUpdateError(error?.message || ''))
     } finally {
       setResetLoading(false)
     }
@@ -181,7 +195,7 @@ export default function ResetPasswordClient() {
             <p className={styles.formSubtitle}>
               {isRecoveryMode
                 ? 'Enter a new password below. Once saved, you will be redirected to sign in.'
-                : 'Enter the email linked to your MyMcKenzie account and we will send you a reset link.'}
+                : 'Enter the email linked to your MyMcKenzieCS account and we will send you a reset link.'}
             </p>
           </div>
 

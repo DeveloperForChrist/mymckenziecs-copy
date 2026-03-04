@@ -18,6 +18,15 @@ function parseName(fullName: string) {
 
 function mapApiError(message: string) {
   const normalized = (message || '').toLowerCase()
+  if (
+    normalized.includes('leaked') ||
+    normalized.includes('pwned') ||
+    normalized.includes('compromised') ||
+    normalized.includes('haveibeenpwned') ||
+    (normalized.includes('password') && normalized.includes('breach'))
+  ) {
+    return 'This password appears in known data breaches. Choose a different one.'
+  }
   if (normalized.includes('already') && normalized.includes('exists')) {
     return 'An account with this email already exists. Go to Sign In and use "Resend verification email".'
   }

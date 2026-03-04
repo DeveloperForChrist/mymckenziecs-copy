@@ -1,6 +1,6 @@
 # Security & Reliability Features
 
-This document describes the security and reliability features added to MyMcKenzie Next.js 2.
+This document describes the security and reliability features added to MyMcKenzieCS Next.js 2.
 
 ## 🛡️ Features Implemented
 

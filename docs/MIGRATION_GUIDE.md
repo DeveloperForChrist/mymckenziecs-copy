@@ -1,12 +1,12 @@
-# Migration Guide: MyMckenzie-2 to MyMckenzie-NextJS2
+# Migration Guide: MyMcKenzieCS-2 to MyMcKenzieCS-NextJS2
 
 ## Overview
 
-This document outlines the migration from the static HTML/CSS/JS application (MyMckenzie-2) to a modern Next.js framework (MyMckenzie-NextJS2).
+This document outlines the migration from the static HTML/CSS/JS application (MyMcKenzieCS-2) to a modern Next.js framework (MyMcKenzieCS-NextJS2).
 
 ## Architecture Changes
 
-### Before (MyMckenzie-2)
+### Before (MyMcKenzieCS-2)
 - **Type**: Static HTML/CSS/JS application
 - **Server**: Separate Express.js server (`server/index.cjs`)
 - **Routing**: Multiple HTML files with manual navigation
@@ -14,7 +14,7 @@ This document outlines the migration from the static HTML/CSS/JS application (My
 - **Styling**: Custom CSS files
 - **Build**: No build process
 
-### After (MyMckenzie-NextJS2)
+### After (MyMcKenzieCS-NextJS2)
 - **Type**: Next.js 14+ with App Router
 - **Server**: Integrated Next.js API routes
 - **Routing**: File-based routing with React components
@@ -25,7 +25,7 @@ This document outlines the migration from the static HTML/CSS/JS application (My
 ## File Structure Mapping
 
 ### Pages
-| Old (MyMckenzie-2) | New (MyMckenzie-NextJS2) |
+| Old (MyMcKenzieCS-2) | New (MyMcKenzieCS-NextJS2) |
 |-------------------|-------------------------|
 | `index.html` | `src/app/page.tsx` |
 | `auth/signin.html` | `src/app/auth/signin/page.tsx` |
@@ -176,14 +176,14 @@ const [message, setMessage] = useState('');
 
 ## Environment Variables Required
 
-Copy from MyMckenzie-2 or create new:
+Copy from MyMcKenzieCS-2 or create new:
 
 ```bash
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 
-# From MyMckenzie-2 .env (if exists)
+# From MyMcKenzieCS-2 .env (if exists)
 OPENAI_API_KEY=...
 STRIPE_SECRET_KEY=...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=...

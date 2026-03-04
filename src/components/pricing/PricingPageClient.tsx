@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import { isBillingEligibleUser } from '@/lib/auth/session-user';
+import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout';
 import { PLAN_PRICES } from '@/constants';
 
 type PricingPageClientProps = {
@@ -71,6 +72,7 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [checkoutErrorPlanKey, setCheckoutErrorPlanKey] = useState<string | null>(null);
+  const [switchToSignInPending, setSwitchToSignInPending] = useState(false);
 
   const hasConfiguredPriceId = (priceId: string) => priceId.trim().length > 0;
 
@@ -131,6 +133,17 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
       setCheckoutErrorPlanKey(planKey);
     } finally {
       setCheckoutLoading(null);
+    }
+  }
+
+  async function handleSwitchToSignIn() {
+    if (switchToSignInPending) return;
+    setSwitchToSignInPending(true);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await safeBrowserSignOut(supabase);
+    } finally {
+      window.location.href = '/auth/signin?redirect=%2Fdashboard';
     }
   }
 
@@ -281,17 +294,45 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
                     Loading account
                   </span>
                 ) : !hasPaidPlan ? (
-                  <span
+                  <div
                     style={{
-                      color: 'rgba(255, 255, 255, 0.85)',
-                      textDecoration: 'none',
-                      padding: '0.5rem 1rem',
-                      fontSize: 'clamp(0.92rem, 3.1vw, 1.1rem)',
-                      fontWeight: 600
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.8rem',
+                      flexWrap: 'wrap',
+                      justifyContent: 'flex-end',
+                      padding: '0.25rem 0.5rem',
                     }}
                   >
-                    {isLapsedStatus ? 'Resume subscription' : 'Complete registration'}
-                  </span>
+                    <span
+                      style={{
+                        color: 'rgba(255, 255, 255, 0.85)',
+                        textDecoration: 'none',
+                        fontSize: 'clamp(0.92rem, 3.1vw, 1.1rem)',
+                        fontWeight: 600
+                      }}
+                    >
+                      {isLapsedStatus ? 'Resume subscription' : 'Complete registration'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => { void handleSwitchToSignIn(); }}
+                      disabled={switchToSignInPending}
+                      style={{
+                        color: '#ffffff',
+                        background: 'transparent',
+                        border: '1px solid rgba(255,255,255,0.35)',
+                        borderRadius: '999px',
+                        padding: '0.45rem 0.9rem',
+                        fontSize: 'clamp(0.85rem, 2.8vw, 0.98rem)',
+                        fontWeight: 600,
+                        cursor: switchToSignInPending ? 'not-allowed' : 'pointer',
+                        opacity: switchToSignInPending ? 0.75 : 1,
+                      }}
+                    >
+                      {switchToSignInPending ? 'Switching...' : 'Already have an account? Sign in'}
+                    </button>
+                  </div>
                 ) : (
                   <a
                     href={navHref}

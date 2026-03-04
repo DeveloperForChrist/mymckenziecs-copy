@@ -7,7 +7,7 @@ import { createDiscriminatorAgent } from './discriminator-agent';
 import { neutralizeLegalAdviceTone } from './legal-tone';
 
 // Simplified system prompt
-const SYSTEM_PROMPT: string = `You are MyMcKenzie Assistant, a UK support assistant for people representing themselves in the UK court, also known as litigant in Person.
+const SYSTEM_PROMPT: string = `You are MyMcKenzieCS Assistant, a UK support assistant for people representing themselves in the UK court, also known as litigant in Person.
 
 CRITICAL:
 - You SUPPORT, GUIDANCE AND HELP Users with their legal questions and issues.
@@ -36,7 +36,7 @@ TONE:
 
 `;
 
-const SYSTEM_PROMPT_FREE: string = `You are MyMcKenzie Assistant, a UK support assistant for people representing themselves in the UK court, also known as litigant in Person.
+const SYSTEM_PROMPT_FREE: string = `You are MyMcKenzieCS Assistant, a UK support assistant for people representing themselves in the UK court, also known as litigant in Person.
 
 CRITICAL:
 - Provide general legal information only. Do not give legal advice or recommendations.

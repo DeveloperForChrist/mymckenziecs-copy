@@ -14,7 +14,7 @@ export default function SignUpPage() {
             <div>
               <h1 className={styles.heroTitle}>Create your legal workspace.</h1>
               <p className={styles.heroCopy}>
-                MyMcKenzie keeps your case notes, deadlines, and document context together so you can
+                MyMcKenzieCS keeps your case notes, deadlines, and document context together so you can
                 move with clarity and momentum.
               </p>
               <div className={styles.heroList}>

@@ -1,7 +1,7 @@
-# GitHub Push Plan for MyMckenzie Project
+# GitHub Push Plan for MyMcKenzieCS Project
 
 ## Current Status
-- Repository: https://github.com/DeveloperForChrist/MyMckenzie.git
+- Repository: https://github.com/DeveloperForChrist/MyMcKenzieCS.git
 - Branch: main
 - Remote: origin
 

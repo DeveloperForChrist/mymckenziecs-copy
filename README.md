@@ -1,6 +1,6 @@
-# MyMcKenzie Next.js 2
+# MyMcKenzieCS Next.js 2
 
-A modern Next.js 14+ implementation of the MyMcKenzie legal assistance platform, converted from the static HTML/CSS/JS application (MyMckenzie-2).
+A modern Next.js 14+ implementation of the MyMcKenzieCS legal assistance platform, converted from the static HTML/CSS/JS application (MyMcKenzieCS-2).
 
 ## 🚀 Features
 
@@ -180,9 +180,9 @@ Alternative AI provider using Google's Gemini Pro. Configure in `src/lib/gemini.
 - Admins can view recent OpenAI usage in the Admin Panel under the "OpenAI Usage" tab.
 - **Security:** Never expose your OpenAI API keys in client-side code or public files. All OpenAI calls are server-side only.
 
-## 📦 Migration from MyMckenzie-2
+## 📦 Migration from MyMcKenzieCS-2
 
-This project is a complete rewrite of the original MyMckenzie-2 static application with the following improvements:
+This project is a complete rewrite of the original MyMcKenzieCS-2 static application with the following improvements:
 
 ### Key Changes
 
@@ -196,7 +196,7 @@ This project is a complete rewrite of the original MyMckenzie-2 static applicati
 
 ### Feature Parity
 
-All features from MyMckenzie-2 have been migrated:
+All features from MyMcKenzieCS-2 have been migrated:
 
 - ✅ User authentication (signup, signin, password reset)
 - ✅ Dashboard with case management
@@ -264,4 +264,4 @@ For questions or issues, please contact the development team.
 
 ---
 
-**Note**: This is a Next.js conversion of the MyMckenzie-2 webapp. Make sure to complete the integration setup in the lib files and API routes before deploying to production.
+**Note**: This is a Next.js conversion of the MyMcKenzieCS-2 webapp. Make sure to complete the integration setup in the lib files and API routes before deploying to production.

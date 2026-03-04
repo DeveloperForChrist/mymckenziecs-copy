@@ -94,7 +94,7 @@ export async function POST(_request: NextRequest) {
     try {
       await sendResendEmail({
         to: email,
-        subject: 'Welcome to MyMcKenzieCS',
+        subject: 'Welcome to MyMcKenzie Court Support',
         htmlBody,
         tag: 'welcome-signup',
       });

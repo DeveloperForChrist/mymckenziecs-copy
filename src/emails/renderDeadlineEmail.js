@@ -83,7 +83,7 @@ async function main() {
       <p>Hi${user && user.name ? ` ${escapeHtml(user.name)}` : ''},</p>
       <p>Here are your upcoming deadlines:</p>
       <table style="width:100%; border-collapse:collapse;">${rowsHtml}</table>
-      <p style="margin-top:18px; color:#6b7280; font-size:12px;">MyMcKenzie</p>
+      <p style="margin-top:18px; color:#6b7280; font-size:12px;">MyMcKenzieCS</p>
     </div>`;
 
   const out = path.join('/tmp', 'rendered_deadline.html');

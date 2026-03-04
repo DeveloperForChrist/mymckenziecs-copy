@@ -13,7 +13,7 @@ npm install
 cp .env.example .env.local
 ```
 
-Then edit `.env.local` with your credentials from the original MyMckenzie-2 project.
+Then edit `.env.local` with your credentials from the original MyMcKenzieCS-2 project.
 
 ### 3. Run Development Server
 ```bash
@@ -180,7 +180,7 @@ npm run type-check # Check TypeScript types
 
 ## ✅ Migration Complete!
 
-All pages, components, and structure from MyMckenzie-2 have been successfully converted to Next.js. The project is ready for:
+All pages, components, and structure from MyMcKenzieCS-2 have been successfully converted to Next.js. The project is ready for:
 
 1. Installing dependencies
 2. Adding your environment variables

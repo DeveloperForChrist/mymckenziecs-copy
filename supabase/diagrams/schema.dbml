@@ -1,4 +1,4 @@
-// DBML schema for MyMcKenzie webapp
+// DBML schema for MyMcKenzieCS webapp
 // Import into dbdiagram.io or use dbml-cli to render
 
 Table users {

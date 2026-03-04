@@ -1,7 +1,7 @@
-# MyMcKenzie Extra Features Proposal
+# MyMcKenzieCS Extra Features Proposal
 
 ## Executive Summary
-This document outlines suggested additional features to enhance the MyMcKenzie legal assistance platform, improve user engagement, and differentiate from competitors.
+This document outlines suggested additional features to enhance the MyMcKenzieCS legal assistance platform, improve user engagement, and differentiate from competitors.
 
 ---
 

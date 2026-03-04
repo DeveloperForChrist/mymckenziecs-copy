@@ -1,6 +1,6 @@
 # End-to-End Tests
 
-This directory contains end-to-end tests for the MyMckenzie application.
+This directory contains end-to-end tests for the MyMcKenzieCS application.
 
 ## Setup
 

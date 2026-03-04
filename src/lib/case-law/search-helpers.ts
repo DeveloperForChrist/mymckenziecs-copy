@@ -82,7 +82,7 @@ async function searchSupremeCourtWebsite(query: string, limit: number = 10) {
     const searchUrl = `https://www.supremecourt.uk/cases/search?query=${encodeURIComponent(query)}&ordering=-date`;
     const response = await fetch(searchUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; MyMcKenzie-CaseLaw-Bot/1.0)',
+        'User-Agent': 'Mozilla/5.0 (compatible; MyMcKenzieCS-CaseLaw-Bot/1.0)',
         'Accept': 'text/html,application/xhtml+xml'
       }
     });
@@ -198,7 +198,7 @@ async function searchSupremeCourt(query: string, limit: number = 5) {
     const rssUrl = 'https://www.supremecourt.uk/news/judgments/rss.xml';
     const response = await fetch(rssUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; MyMcKenzie-CaseLaw-Bot/1.0)',
+        'User-Agent': 'Mozilla/5.0 (compatible; MyMcKenzieCS-CaseLaw-Bot/1.0)',
       },
     });
     
@@ -226,7 +226,7 @@ async function searchJudiciary(query: string, limit: number = 3) {
     const rssUrl = 'https://www.judiciary.uk/judgments/feed/';
     const response = await fetch(rssUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; MyMcKenzie-CaseLaw-Bot/1.0)',
+        'User-Agent': 'Mozilla/5.0 (compatible; MyMcKenzieCS-CaseLaw-Bot/1.0)',
       },
     });
     
@@ -503,7 +503,7 @@ async function searchNationalArchives(query: string, limit: number = 3) {
     const searchUrl = `https://www.nationalarchives.gov.uk/search/?search=${encodeURIComponent(query)}&type=case-law`;
     const response = await fetch(searchUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; MyMcKenzie-CaseLaw-Bot/1.0)',
+        'User-Agent': 'Mozilla/5.0 (compatible; MyMcKenzieCS-CaseLaw-Bot/1.0)',
       },
     });
     
@@ -536,7 +536,7 @@ async function searchFindCaseLawAPI(query: string, limit: number = 15) {
     
     const response = await fetch(searchUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; MyMcKenzie-CaseLaw-Bot/1.0)',
+        'User-Agent': 'Mozilla/5.0 (compatible; MyMcKenzieCS-CaseLaw-Bot/1.0)',
         'Accept': 'text/html,application/xhtml+xml'
       }
     });
@@ -657,7 +657,7 @@ async function searchFindCaseLawAtom(query: string, limit: number = 5) {
     const feedUrl = 'https://caselaw.nationalarchives.gov.uk/atom.xml';
     const response = await fetch(feedUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; MyMcKenzie-CaseLaw-Bot/1.0)'
+        'User-Agent': 'Mozilla/5.0 (compatible; MyMcKenzieCS-CaseLaw-Bot/1.0)'
       }
     });
 
