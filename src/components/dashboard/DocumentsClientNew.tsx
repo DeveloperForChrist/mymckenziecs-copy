@@ -25,7 +25,7 @@ const mapApiDocument = (x: any, folderMap: Record<string, string>, folderOverrid
   content: '',
   type: x.type || (x.mime_type ? x.mime_type.split('/')[1]?.toUpperCase() : 'Document'),
   createdAt: x.created_at || new Date().toISOString(),
-  starred: false,
+  starred: Boolean(x.starred),
   size: x.file_size || 0,
   folderId: folderOverride || folderMap[x.id] || undefined,
   mimeType: x.mime_type || null,
@@ -264,8 +264,29 @@ export default function DocumentsClient({
     setFolderMap(p => ({ ...p, [docId]: folderId }));
   };
 
-  const toggleStar = (id: string) => {
-    setDocuments(p => p.map(d => d.id === id ? {...d, starred: !d.starred} : d));
+  const toggleStar = async (id: string) => {
+    const target = documents.find((d) => d.id === id);
+    if (!target) return;
+    const nextStarred = !Boolean(target.starred);
+
+    setDocuments((prev) => prev.map((d) => (d.id === id ? { ...d, starred: nextStarred } : d)));
+    try {
+      const res = await fetch(`/api/documents/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ starred: nextStarred }),
+      });
+      const data: any = await readApiJson(res);
+      if (!res.ok) throw new Error(data?.error || 'Failed to update star status');
+
+      const confirmed = Boolean(data?.document?.starred);
+      setDocuments((prev) => prev.map((d) => (d.id === id ? { ...d, starred: confirmed } : d)));
+    } catch (err: any) {
+      // Roll back optimistic change if persistence failed.
+      setDocuments((prev) => prev.map((d) => (d.id === id ? { ...d, starred: !nextStarred } : d)));
+      setUploadError(err?.message || 'Failed to update star status');
+    }
   };
 
   const deleteDocument = async (id: string) => {

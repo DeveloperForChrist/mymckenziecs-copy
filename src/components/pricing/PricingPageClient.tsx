@@ -528,7 +528,7 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
                   <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> MyMcKenzieCS Intelligent Assistant
                 </li>
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> 150+ document storage
+                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> 150 document storage
                 </li>
                 <li className="flex items-start text-white">
                   <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> Persistent chat history

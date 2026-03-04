@@ -16,6 +16,73 @@ async function hasPaidAccess(userId: string): Promise<boolean> {
   return isPaidPlan(data?.plan_type)
 }
 
+async function canAccessDocument(userId: string, docId: string) {
+  const { data: doc, error } = await supabaseAdmin
+    .from('documents')
+    .select('id, uploaded_by, case_id')
+    .eq('id', docId)
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  if (error || !doc) return false
+  if (doc.uploaded_by === userId) return true
+  if (!doc.case_id) return false
+
+  const { data: ownedCase } = await supabaseAdmin
+    .from('cases')
+    .select('id')
+    .eq('id', doc.case_id)
+    .eq('user_id', userId)
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  return Boolean(ownedCase)
+}
+
+export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  try {
+    const supabase = await createSupabaseRouteClient()
+    const { data: authData, error: authErr } = await supabase.auth.getUser()
+    if (authErr || !authData?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id } = await context.params
+    if (!id) {
+      return NextResponse.json({ error: 'Missing document id' }, { status: 400 })
+    }
+
+    const body = await request.json().catch(() => ({}))
+    if (typeof body?.starred !== 'boolean') {
+      return NextResponse.json({ error: 'starred must be a boolean' }, { status: 400 })
+    }
+
+    const allowed = await canAccessDocument(authData.user.id, id)
+    if (!allowed) {
+      return NextResponse.json({ error: 'Document not found' }, { status: 404 })
+    }
+
+    const { data: updated, error: updateErr } = await supabaseAdmin
+      .from('documents')
+      .update({ starred: body.starred })
+      .eq('id', id)
+      .select('id, starred')
+      .maybeSingle()
+
+    if (updateErr) {
+      if (/column .*starred/i.test(updateErr.message || '')) {
+        return NextResponse.json({ error: 'Document starring is not available yet. Please run latest database migrations.' }, { status: 503 })
+      }
+      return NextResponse.json({ error: updateErr.message || 'Failed to update document' }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true, document: { id: updated?.id || id, starred: Boolean(updated?.starred) } })
+  } catch (error: any) {
+    const message = error instanceof Error ? error.message : 'Failed to update document'
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
+
 export async function DELETE(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createSupabaseRouteClient()

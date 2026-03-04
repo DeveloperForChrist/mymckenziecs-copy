@@ -41,19 +41,40 @@ export async function GET(request: NextRequest) {
     const offset = parseBoundedPositiveInt(searchParams.get('offset'), 0, Number.MAX_SAFE_INTEGER)
     const rangeEnd = offset + limit
 
-    const { data, error } = await supabaseAdmin
+    const preferredSelect = 'id, name, type, created_at, file_size, mime_type, storage_path, storage_url, case_id, starred'
+    const fallbackSelect = 'id, name, type, created_at, file_size, mime_type, storage_path, storage_url, case_id'
+
+    const preferredResult = await supabaseAdmin
       .from('documents')
-      .select('id, name, type, created_at, file_size, mime_type, storage_path, storage_url, case_id')
+      .select(preferredSelect)
       .is('deleted_at', null)
       .eq('uploaded_by', user.id)
       .order('created_at', { ascending: false })
       .range(offset, rangeEnd)
+    let error = preferredResult.error
+    let rowsRaw: any[] | null = (preferredResult.data as any[] | null) ?? null
+
+    // Backward-compatible fallback while starred migration rolls out.
+    if (error && /starred/i.test(error.message || '')) {
+      const fallbackResult = await supabaseAdmin
+        .from('documents')
+        .select(fallbackSelect)
+        .is('deleted_at', null)
+        .eq('uploaded_by', user.id)
+        .order('created_at', { ascending: false })
+        .range(offset, rangeEnd)
+      rowsRaw = (fallbackResult.data as any[] | null) ?? null
+      error = fallbackResult.error
+    }
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    const rows = data || []
+    const rows = (rowsRaw || []).map((row: any) => ({
+      ...row,
+      starred: Boolean(row?.starred),
+    }))
     const hasMore = rows.length > limit
     const documents = rows.slice(0, limit)
 

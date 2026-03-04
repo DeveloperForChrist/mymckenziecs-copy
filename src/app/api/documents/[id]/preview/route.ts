@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
+import { supabaseAdmin } from '@/lib/database/supabase-server'
 import mammoth from 'mammoth'
 
 export const dynamic = 'force-dynamic'
@@ -14,13 +15,30 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
   }
 
   const { id } = await context.params
-  const { data: document, error } = await supabase
+  const { data: document, error } = await supabaseAdmin
     .from('documents')
-    .select('id, storage_path, mime_type, name')
+    .select('id, storage_path, mime_type, name, uploaded_by, case_id')
     .eq('id', id)
-    .single()
+    .is('deleted_at', null)
+    .maybeSingle()
 
   if (error || !document) {
+    return NextResponse.json({ error: 'Document not found' }, { status: 404 })
+  }
+
+  let authorized = document.uploaded_by === authData.user.id
+  if (!authorized && document.case_id) {
+    const { data: ownedCase } = await supabaseAdmin
+      .from('cases')
+      .select('id')
+      .eq('id', document.case_id)
+      .eq('user_id', authData.user.id)
+      .is('deleted_at', null)
+      .maybeSingle()
+    authorized = Boolean(ownedCase)
+  }
+
+  if (!authorized) {
     return NextResponse.json({ error: 'Document not found' }, { status: 404 })
   }
 
@@ -28,7 +46,7 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
     return NextResponse.json({ error: 'No storage path' }, { status: 400 })
   }
 
-  const { data: fileData, error: downloadError } = await supabase
+  const { data: fileData, error: downloadError } = await supabaseAdmin
     .storage
     .from('user-uploads')
     .download(document.storage_path)

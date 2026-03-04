@@ -35,7 +35,7 @@ export const PLAN_PRICES = [
     display: '£199/Month',
     features: [
       'MyMcKenzieCS Intelligent Assistant',
-      '150+ document storage',
+      '150 document storage',
       'Persistent chat history',
       'Enhanced research support',
       'Advanced case law retrieval and study',

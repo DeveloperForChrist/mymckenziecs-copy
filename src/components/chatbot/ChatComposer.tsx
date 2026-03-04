@@ -1,7 +1,6 @@
 "use client"
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
 import type { FormEvent, KeyboardEvent, MutableRefObject, ChangeEvent } from 'react'
 
 type ChatComposerProps = {
@@ -49,16 +48,9 @@ export default function ChatComposer({
   isPlanLocked,
   planLockMessage,
 }: ChatComposerProps) {
-  const [isMobileViewport, setIsMobileViewport] = useState(false)
-
-  useEffect(() => {
-    const updateViewport = () => {
-      setIsMobileViewport(window.innerWidth <= 700)
-    }
-    updateViewport()
-    window.addEventListener('resize', updateViewport)
-    return () => window.removeEventListener('resize', updateViewport)
-  }, [])
+  const controlButtonSize = 'clamp(28px, 1.15vw + 22px, 40px)'
+  const controlIconSize = 'clamp(16px, 0.45vw + 14px, 22px)'
+  const controlFontSize = 'clamp(12px, 0.2vw + 11px, 14px)'
 
   return (
     <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0px', position: 'relative', alignItems: 'center' }}>
@@ -155,12 +147,12 @@ export default function ChatComposer({
           background: 'transparent',
         }}
       >
-        <div style={{ width: '100%', maxWidth: isMobileViewport ? 'min(760px, 100vw)' : 'none', margin: '0 auto', position: 'relative', pointerEvents: 'auto', display: 'flex', justifyContent: 'center' }}>
+        <div style={{ width: '100%', maxWidth: 'none', margin: '0 auto', position: 'relative', pointerEvents: 'auto', display: 'flex', justifyContent: 'center' }}>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0', width: '100%', alignItems: 'center' }}>
             <div
               style={{
                 width: '100%',
-                maxWidth: isMobileViewport ? 'min(700px, 100vw)' : 'none',
+                maxWidth: 'none',
                 margin: '0 auto',
                 borderRadius: '12px',
                 background: 'linear-gradient(135deg, #2a0726 0%, #4b1b4f 60%, rgba(43,11,42,0.95) 100%)',
@@ -305,8 +297,8 @@ export default function ChatComposer({
                         aria-label="Add attachment"
                         className="attach-btn"
                         style={{
-                          width: '28px',
-                          height: '28px',
+                          width: controlButtonSize,
+                          height: controlButtonSize,
                           borderRadius: '50%',
                           background: '#3b1f44',
                           color: '#F3F1FA',
@@ -314,7 +306,7 @@ export default function ChatComposer({
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: '12px',
+                          fontSize: controlFontSize,
                           cursor: hasSupabaseUser ? 'pointer' : 'not-allowed',
                           flexShrink: 0,
                           lineHeight: 0,
@@ -323,7 +315,7 @@ export default function ChatComposer({
                         }}
                         disabled={!hasSupabaseUser}
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <svg width={controlIconSize} height={controlIconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
                           <path
                             d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
                             stroke="#F3F1FA"
@@ -348,8 +340,8 @@ export default function ChatComposer({
                           onClick={onStopGeneration}
                           aria-label="Stop generation"
                           style={{
-                            width: '28px',
-                            height: '28px',
+                            width: controlButtonSize,
+                            height: controlButtonSize,
                             borderRadius: '50%',
                             background: '#8b5a8c',
                             color: '#F3F1FA',
@@ -357,14 +349,14 @@ export default function ChatComposer({
                             display: 'inline-flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            fontSize: '16px',
+                            fontSize: controlIconSize,
                             cursor: 'pointer',
                             flexShrink: 0,
                             lineHeight: 0,
                             transition: 'all 0.2s ease'
                           }}
                         >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <svg width={controlIconSize} height={controlIconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <rect x="6" y="6" width="12" height="12" rx="2" fill="#F3F1FA" />
                           </svg>
                         </button>
@@ -374,8 +366,8 @@ export default function ChatComposer({
                           aria-label="Send message"
                           disabled={!canSubmit}
                           style={{
-                            width: '28px',
-                            height: '28px',
+                            width: controlButtonSize,
+                            height: controlButtonSize,
                             borderRadius: '50%',
                             background: '#6b3a84',
                             color: '#F3F1FA',
@@ -383,7 +375,7 @@ export default function ChatComposer({
                             display: 'inline-flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            fontSize: '16px',
+                            fontSize: controlIconSize,
                             cursor: canSubmit ? 'pointer' : 'not-allowed',
                             flexShrink: 0,
                             lineHeight: 0,
@@ -391,7 +383,7 @@ export default function ChatComposer({
                             opacity: canSubmit ? 1 : 0.5
                           }}
                         >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <svg width={controlIconSize} height={controlIconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path
                               d="M4 12h16m-7-7l7 7-7 7"
                               stroke="#F3F1FA"
@@ -411,7 +403,7 @@ export default function ChatComposer({
             <div
               style={{
                 width: '100%',
-                maxWidth: isMobileViewport ? 'min(700px, 100vw)' : 'none',
+                maxWidth: 'none',
                 margin: '10px auto 0',
                 textAlign: 'center',
                 fontSize: 'clamp(11px, 2.8vw, 13px)',

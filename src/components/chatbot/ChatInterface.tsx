@@ -817,16 +817,6 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   const [autoScroll, setAutoScroll] = useState(true)
   const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false)
   const [showScrollToBottomButtonByWindow, setShowScrollToBottomButtonByWindow] = useState(false)
-  const [isMobileViewport, setIsMobileViewport] = useState(false)
-
-  useEffect(() => {
-    const updateViewport = () => {
-      setIsMobileViewport(window.innerWidth <= 700)
-    }
-    updateViewport()
-    window.addEventListener('resize', updateViewport)
-    return () => window.removeEventListener('resize', updateViewport)
-  }, [])
 
   const scrollToBottom = (behavior: 'auto' | 'smooth' = 'smooth') => {
     const container = scrollContainerRef.current
@@ -1580,7 +1570,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
             paddingBottom: 'clamp(180px, 28vh, 240px)',
           }}
         >
-                  <div style={{ width: '100%', maxWidth: isMobileViewport ? 'min(760px, 100vw)' : 'none', margin: '20px auto 0 auto', padding: '0 clamp(10px, 2vw, 24px)', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '120px' }}>
+                  <div style={{ width: '100%', maxWidth: 'none', margin: '20px auto 0 auto', padding: '0 clamp(10px, 2vw, 24px)', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '120px' }}>
             <div
               ref={scrollContainerRef}
               onScroll={handleScroll}
