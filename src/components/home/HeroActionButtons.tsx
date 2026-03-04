@@ -6,7 +6,7 @@ type HeroActionButtonsProps = {
 
 export default function HeroActionButtons({ hasAccountSession, hasPaidAccess }: HeroActionButtonsProps) {
   const dashboardHref = hasPaidAccess ? '/dashboard' : '/pricing?redirect=%2Fsettings%3Ftab%3Dbilling';
-  const dashboardLabel = hasPaidAccess ? 'Go to Dashboard' : hasAccountSession ? 'Complete setup' : 'Log in';
+  const dashboardLabel = hasPaidAccess ? 'Go to Dashboard' : hasAccountSession ? 'Complete setup' : 'Sign in';
 
   return (
     <div className="mt-7 flex flex-wrap gap-3 justify-center xl:justify-start">
