@@ -65,6 +65,11 @@ export default function VerifyEmailScreen() {
             }, 900)
             return
           }
+          if (verify === 'sent') {
+            setNotice('Your email has been successfully verified in another tab. You may now close this tab.')
+            setLoading(false)
+            return
+          }
           router.replace(postVerifyRedirect)
           return
         }
@@ -85,8 +90,12 @@ export default function VerifyEmailScreen() {
     }
 
     void loadUser()
+    const interval = window.setInterval(() => {
+      void loadUser()
+    }, 5000)
     return () => {
       cancelled = true
+      window.clearInterval(interval)
     }
   }, [postVerifyRedirect, router, verify, verified])
 

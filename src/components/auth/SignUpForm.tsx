@@ -119,28 +119,27 @@ export default function SignUpForm() {
         throw new Error(mapApiError(payload?.message || payload?.error || 'Sign up failed'))
       }
 
-      if (selectedPlanId) {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: formData.email.trim(),
-          password: formData.password,
-        })
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email.trim(),
+        password: formData.password,
+      })
 
-        if (signInError) {
+      if (signInError) {
+        if (selectedPlanId) {
           throw new Error('Account created, but we could not start payment. Please sign in and continue from pricing.')
         }
-
-        const verifyParams = new URLSearchParams({
-          verify: 'sent',
-          redirect: nextRedirect,
-          planId: selectedPlanId,
-        })
-        router.push(`/auth/verify-email?${verifyParams.toString()}`)
+        const signInParams = new URLSearchParams({ verify: 'sent', redirect: nextRedirect })
+        router.push(`/auth/signin?${signInParams.toString()}`)
         router.refresh()
         return
       }
 
-      const signInParams = new URLSearchParams({ verify: 'sent', redirect: nextRedirect })
-      router.push(`/auth/signin?${signInParams.toString()}`)
+      const verifyParams = new URLSearchParams({
+        verify: 'sent',
+        redirect: nextRedirect,
+      })
+      if (selectedPlanId) verifyParams.set('planId', selectedPlanId)
+      router.push(`/auth/verify-email?${verifyParams.toString()}`)
       router.refresh()
     } catch (err: any) {
       if (err instanceof Error) {

@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { isBillingEligibleUser } from '@/lib/auth/session-user'
+import { getUserPlanData } from '@/lib/payments/user-plan'
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies()
@@ -24,6 +25,11 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const { data: authData } = await supabase.auth.getUser()
   if (!isBillingEligibleUser(authData?.user)) {
     redirect('/auth/signin?redirect=/dashboard')
+  }
+
+  const planData = await getUserPlanData(authData.user.id, authData.user.email ?? null)
+  if (!planData.paidAccess) {
+    redirect('/pricing?redirect=%2Fdashboard')
   }
 
   return <>{children}</>
