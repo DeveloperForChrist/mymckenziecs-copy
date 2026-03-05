@@ -35,7 +35,7 @@ export default function ChatMessageList({
   messagesEndRef,
   TypingIndicatorComponent
 }: ChatMessageListProps) {
-  const messageSideInsetPx = 16
+  const messageSideInsetPx = 26
   const assistantReadableWidth = `min(calc(100% - ${messageSideInsetPx * 2}px), 72ch)`
 
   const stripLegacyReferenceIndex = (text: string) =>
