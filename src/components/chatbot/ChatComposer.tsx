@@ -51,6 +51,7 @@ export default function ChatComposer({
   const controlButtonSize = 'clamp(28px, 1.15vw + 22px, 40px)'
   const controlIconSize = 'clamp(16px, 0.45vw + 14px, 22px)'
   const controlFontSize = 'clamp(12px, 0.2vw + 11px, 14px)'
+  const composerMaxWidth = 'min(980px, calc(100vw - 28px))'
 
   return (
     <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0px', position: 'relative', alignItems: 'center' }}>
@@ -147,12 +148,12 @@ export default function ChatComposer({
           background: 'transparent',
         }}
       >
-        <div style={{ width: '100%', maxWidth: 'none', margin: '0 auto', position: 'relative', pointerEvents: 'auto', display: 'flex', justifyContent: 'center' }}>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0', width: '100%', alignItems: 'center' }}>
+        <div style={{ width: '100%', maxWidth: composerMaxWidth, margin: '0 auto', position: 'relative', pointerEvents: 'auto', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0', width: '100%', maxWidth: composerMaxWidth, alignItems: 'center' }}>
             <div
               style={{
                 width: '100%',
-                maxWidth: 'none',
+                maxWidth: composerMaxWidth,
                 margin: '0 auto',
                 borderRadius: '12px',
                 background: 'linear-gradient(135deg, #2a0726 0%, #4b1b4f 60%, rgba(43,11,42,0.95) 100%)',
@@ -403,7 +404,7 @@ export default function ChatComposer({
             <div
               style={{
                 width: '100%',
-                maxWidth: 'none',
+                maxWidth: composerMaxWidth,
                 margin: '10px auto 0',
                 textAlign: 'center',
                 fontSize: 'clamp(11px, 2.8vw, 13px)',
