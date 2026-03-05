@@ -10,6 +10,7 @@ import ChatMessageList from '@/components/chatbot/ChatMessageList'
 import { useChatAuthPlan, type InitialChatPlanState } from '@/components/chatbot/hooks/useChatAuthPlan'
 import { useConversationBootstrap } from '@/components/chatbot/hooks/useConversationBootstrap'
 import { hasCaseProfileAccess } from '@/lib/plans/access'
+import { pickResponsiveValue, useResponsiveViewport } from '@/lib/utils/useResponsiveViewport'
 import type {
   AssistantMetadata,
   Message,
@@ -817,6 +818,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   const [autoScroll, setAutoScroll] = useState(true)
   const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false)
   const [showScrollToBottomButtonByWindow, setShowScrollToBottomButtonByWindow] = useState(false)
+  const { screen } = useResponsiveViewport()
 
   const scrollToBottom = (behavior: 'auto' | 'smooth' = 'smooth') => {
     const container = scrollContainerRef.current
@@ -1548,6 +1550,16 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     minHeight: 'calc(100vh - 88px)',
     padding: '0'
   }
+  const messageLaneMaxWidth = pickResponsiveValue(screen, {
+    small: '100%',
+    medium: '940px',
+    large: '1100px',
+  })
+  const messageLanePadding = pickResponsiveValue(screen, {
+    small: '0 12px',
+    medium: '0 clamp(14px, 2.2vw, 22px)',
+    large: '0 clamp(18px, 2.8vw, 28px)',
+  })
 
   return (
     <>
@@ -1570,7 +1582,19 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
             paddingBottom: 'clamp(180px, 28vh, 240px)',
           }}
         >
-                  <div style={{ width: '100%', maxWidth: 'none', margin: '20px auto 0 auto', padding: '0 clamp(10px, 2vw, 24px)', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '120px' }}>
+                  <div
+                    style={{
+                      width: '100%',
+                      maxWidth: messageLaneMaxWidth,
+                      margin: '20px auto 0 auto',
+                      padding: messageLanePadding,
+                      boxSizing: 'border-box',
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      minHeight: '120px',
+                    }}
+                  >
             <div
               ref={scrollContainerRef}
               onScroll={handleScroll}

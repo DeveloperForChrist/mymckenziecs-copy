@@ -16,7 +16,13 @@ export default function LegalPageLayout({ title, subtitle, meta, children }: Leg
 
   return (
     <main style={pageStyle}>
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '3.25rem 1.5rem' }}>
+      <div
+        className="app-container"
+        style={{
+          paddingTop: 'clamp(32px, 5vw, 52px)',
+          paddingBottom: 'clamp(28px, 4vw, 44px)',
+        }}
+      >
         <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
           <aside
             style={{

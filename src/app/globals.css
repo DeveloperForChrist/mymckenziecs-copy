@@ -156,6 +156,32 @@ body:not(.homepage) .font-light {
   background: #270427;
   color: #f8fafc;
 }
+
+:root {
+  --app-shell-max-width: 100%;
+  --app-shell-padding-inline: 12px;
+  --app-shell-padding-block: 16px;
+  --app-topbar-padding-inline: 12px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --app-shell-max-width: 1320px;
+    --app-shell-padding-inline: clamp(14px, 3vw, 22px);
+    --app-shell-padding-block: clamp(16px, 2.8vw, 28px);
+    --app-topbar-padding-inline: clamp(14px, 3vw, 22px);
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --app-shell-max-width: 1720px;
+    --app-shell-padding-inline: clamp(18px, 2.6vw, 34px);
+    --app-shell-padding-block: clamp(20px, 2.4vw, 36px);
+    --app-topbar-padding-inline: clamp(18px, 2.6vw, 34px);
+  }
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -166,9 +192,9 @@ a {
 }
 
 .app-container {
-  max-width: none;
+  max-width: var(--app-shell-max-width);
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: var(--app-shell-padding-block) var(--app-shell-padding-inline);
 }
 
 .app-topbar {
@@ -191,9 +217,9 @@ a {
 }
 
 .app-topbar-inner {
-  max-width: none;
+  max-width: var(--app-shell-max-width);
   margin: 0 auto;
-  padding: 10px 16px;
+  padding: 10px var(--app-topbar-padding-inline);
   display: flex;
   align-items: center;
   justify-content: space-between;

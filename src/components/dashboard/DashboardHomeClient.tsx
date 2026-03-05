@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import { hasCaseLawAccess } from '@/lib/plans/access';
+import { pickResponsiveValue, useResponsiveViewport } from '@/lib/utils/useResponsiveViewport';
 
 function formatDateLabel(value?: string | null) {
   if (!value) return '';
@@ -35,6 +36,7 @@ export default function DashboardHomeClient({
   const [nextBillingDate, setNextBillingDate] = useState<string | null>(initialNextBillingDate);
   const [planLoaded, setPlanLoaded] = useState(Boolean(initialPlanLoaded));
   const [calendarAlertCount, setCalendarAlertCount] = useState(0);
+  const { screen } = useResponsiveViewport();
 
   const hasCaseLawFeature = hasCaseLawAccess(plan);
   const normalizedPlanStatus = planStatus.trim().toLowerCase();
@@ -179,6 +181,32 @@ export default function DashboardHomeClient({
     }
     return true;
   });
+  const desktopCardMinWidth = visibleFeatures.length <= 5 ? 260 : 285;
+  const cardMinWidthPx = pickResponsiveValue(screen, {
+    small: 240,
+    medium: 260,
+    large: desktopCardMinWidth,
+  });
+  const layoutMaxWidth = pickResponsiveValue(screen, {
+    small: '100%',
+    medium: '1320px',
+    large: '1720px',
+  });
+  const layoutPadding = pickResponsiveValue(screen, {
+    small: '16px 12px 20px',
+    medium: 'clamp(16px, 3vw, 28px) clamp(14px, 3vw, 22px) 24px',
+    large: 'clamp(20px, 2.6vw, 36px) clamp(18px, 2.6vw, 34px) 28px',
+  });
+  const gridGap = pickResponsiveValue(screen, {
+    small: '14px',
+    medium: '16px',
+    large: 'clamp(16px, 1.8vw, 24px)',
+  });
+  const cardMinHeight = pickResponsiveValue(screen, {
+    small: '210px',
+    medium: '240px',
+    large: '280px',
+  });
 
   if (!planLoaded) {
     return (
@@ -205,12 +233,12 @@ export default function DashboardHomeClient({
   return (
     <div style={{ background: 'linear-gradient(135deg, #240724 0%, #240724 50%, #240724 100%)', minHeight: '100vh' }}>
       <main style={{ color: '#ffffff' }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: 'clamp(16px, 3vw, 28px) clamp(12px, 3vw, 20px) 20px' }}>
+        <div style={{ maxWidth: layoutMaxWidth, margin: '0 auto', padding: layoutPadding }}>
           <div style={{ marginBottom: '28px' }}>
-            <h1 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.5rem)', fontWeight: 700, marginBottom: '12px', lineHeight: 1.2 }}>
+            <h1 style={{ fontSize: 'clamp(1.9rem, 4.4vw, 2.85rem)', fontWeight: 700, marginBottom: '12px', lineHeight: 1.2 }}>
               Welcome to MyMcKenzieCS
             </h1>
-            <p style={{ fontSize: 'clamp(0.96rem, 2.9vw, 1.1rem)', color: 'rgba(255,255,255,0.7)', maxWidth: '600px', lineHeight: 1.6 }}>
+            <p style={{ fontSize: 'clamp(1rem, 2.7vw, 1.16rem)', color: 'rgba(255,255,255,0.7)', maxWidth: '680px', lineHeight: 1.6 }}>
               Access your tools and manage your legal matters with AI-powered assistance.
             </p>
           </div>
@@ -252,7 +280,14 @@ export default function DashboardHomeClient({
             </section>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(310px, 100%), 1fr))', gap: 'clamp(18px, 3vw, 30px)', marginBottom: '18px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: `repeat(auto-fit, minmax(min(${cardMinWidthPx}px, 100%), 1fr))`,
+              gap: gridGap,
+              marginBottom: '18px',
+            }}
+          >
             {visibleFeatures.map((feature, idx) => (
                 <Link
                   key={idx}
@@ -271,7 +306,7 @@ export default function DashboardHomeClient({
                     flexDirection: 'column',
                     justifyContent: 'space-between',
                     height: '100%',
-                    minHeight: 'clamp(230px, 40vw, 320px)',
+                    minHeight: cardMinHeight,
                     position: 'relative',
                   }}
                   onMouseEnter={(e) => {
