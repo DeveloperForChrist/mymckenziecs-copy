@@ -43,16 +43,17 @@ export default function AboutPage() {
         <div>
           <h2 className="text-2xl font-semibold mb-2">Who We Are</h2>
           <p>
-            Lenjordan Ltd is a UK-based technology company focused on building intelligent tools that solve real-world
-            problems. We combine technology, user-focused design, and a commitment to simplifying complex processes so
-            people can manage their cases confidently and independently.
+            MyMckenzieCS is an AI-powered legal support platform designed for individuals representing themselves in court (Litigants in Person). 
+            It provides tools that help users understand legal procedures, prepare documents, analyse case materials, and organise their cases in a clearer and more structured way.
+            The platform is designed to make navigating the legal process more accessible and manageable. MyMcKenzieCS provides technology and informational support, 
+            but it is not a law firm and does not provide legal advice.
           </p>
         </div>
         <div>
           <h2 className="text-2xl font-semibold mb-2">Our Vision</h2>
           <p>
-            To create the leading AI-powered support system for people representing themselves in court, providing
-            tools that make the journey clearer, more structured, and less overwhelming.
+            To redefine access to justice by developing the leading AI-powered platform that empowers individuals 
+            representing themselves in court with clear, structured, and intelligent legal support.
           </p>
         </div>
       </div>

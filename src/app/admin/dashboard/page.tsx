@@ -320,6 +320,13 @@ export default function AdminDashboard() {
         feedbackRes.json(),
       ])
 
+      if (!usersRes.ok) {
+        setStatusModal({
+          title: 'Users load failed',
+          message: usersData?.error || usersData?.message || 'Failed to fetch users.',
+        })
+      }
+
       setAnalytics(analyticsData.overview)
       setUsers(usersData.users || [])
       setUsersHasMore(Boolean(usersData?.pagination?.hasMore))
@@ -604,6 +611,18 @@ export default function AdminDashboard() {
   )
 
   const periodLabel = periodLabels[period]
+  const filteredUsers = useMemo(
+    () =>
+      users.filter((user) => {
+        const matchesSearch =
+          !searchTerm ||
+          user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.email.toLowerCase().includes(searchTerm.toLowerCase())
+        const matchesPlan = !filterPlan || normalizePlan(user.plan) === filterPlan
+        return matchesSearch && matchesPlan
+      }),
+    [users, searchTerm, filterPlan]
+  )
 
   const overviewStats = [
     {
@@ -1097,16 +1116,7 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {users
-                      .filter((user) => {
-                        const matchesSearch =
-                          !searchTerm ||
-                          user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          user.email.toLowerCase().includes(searchTerm.toLowerCase())
-                        const matchesPlan = !filterPlan || normalizePlan(user.plan) === filterPlan
-                        return matchesSearch && matchesPlan
-                      })
-                      .map((user) => (
+                    {filteredUsers.map((user) => (
                         <tr key={user.id}>
                           <td>{user.fullName}</td>
                           <td>{user.email}</td>
@@ -1144,6 +1154,11 @@ export default function AdminDashboard() {
                           </td>
                         </tr>
                       ))}
+                    {filteredUsers.length === 0 && (
+                      <tr>
+                        <td colSpan={6}>No users found.</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>

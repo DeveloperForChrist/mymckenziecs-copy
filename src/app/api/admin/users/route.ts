@@ -10,7 +10,6 @@ type UserRow = {
   email?: string | null
   name?: string | null
   fullName?: string | null
-  address?: string | null
   created_at?: string | null
   updated_at?: string | null
 }
@@ -62,7 +61,7 @@ export async function GET(request: Request) {
 
     let query = supabaseAdmin
       .from('users')
-      .select('id, email, name, fullName, address, created_at, updated_at')
+      .select('id, email, name, fullName, created_at, updated_at')
       .order('created_at', { ascending: false })
       .range(offset, rangeEnd);
 
@@ -116,7 +115,7 @@ export async function GET(request: Request) {
         plan: userPlan,
         createdAt: userData.created_at || new Date().toISOString(),
         lastActive: userData.updated_at || null,
-        address: userData.address || '',
+        address: '',
         disabled: false,
         emailVerified: true
       });
