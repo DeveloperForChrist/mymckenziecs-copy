@@ -35,6 +35,9 @@ export default function ChatMessageList({
   messagesEndRef,
   TypingIndicatorComponent
 }: ChatMessageListProps) {
+  const messageSideInsetPx = 16
+  const assistantReadableWidth = `min(calc(100% - ${messageSideInsetPx * 2}px), 72ch)`
+
   const stripLegacyReferenceIndex = (text: string) =>
     (text || '')
       .replace(/^\s*Reference\s+index:\s*[^\n]*$/gim, '')
@@ -229,10 +232,10 @@ export default function ChatMessageList({
             `}</style>
             <div
               style={{
-                padding: isUser ? '6px 14px 6px 10px' : '0 0 0 14px',
+                padding: isUser ? '6px 14px 6px 10px' : '0',
                 borderRadius: isUser ? '12px' : '0',
-                maxWidth: isUser ? 'min(60%, 420px)' : 'min(100%, 72ch)',
-                width: isUser ? 'fit-content' : 'min(100%, 72ch)',
+                maxWidth: isUser ? 'min(60%, 420px)' : assistantReadableWidth,
+                width: isUser ? 'fit-content' : assistantReadableWidth,
                 boxSizing: 'border-box',
                 lineHeight: 1.65,
                 fontFamily: 'inherit',
@@ -247,7 +250,8 @@ export default function ChatMessageList({
                 textShadow: 'none',
                 transform: isUser ? 'translateZ(0)' : 'none',
                 alignSelf: isUser ? 'flex-end' : 'flex-start',
-                marginRight: isUser ? '18px' : '0'
+                marginLeft: isUser ? '0' : `${messageSideInsetPx}px`,
+                marginRight: isUser ? `${messageSideInsetPx}px` : '0'
               }}
               className={isUser ? 'user-message-bubble' : ''}
             >
