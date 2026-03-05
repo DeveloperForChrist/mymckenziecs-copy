@@ -1552,13 +1552,13 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   }
   const messageLaneMaxWidth = pickResponsiveValue(screen, {
     small: '100%',
-    medium: '940px',
-    large: '1100px',
+    medium: '860px',
+    large: '940px',
   })
   const messageLanePadding = pickResponsiveValue(screen, {
     small: '0 12px',
-    medium: '0 clamp(14px, 2.2vw, 22px)',
-    large: '0 clamp(18px, 2.8vw, 28px)',
+    medium: '0 clamp(12px, 1.6vw, 18px)',
+    large: '0 clamp(14px, 1.8vw, 22px)',
   })
 
   return (

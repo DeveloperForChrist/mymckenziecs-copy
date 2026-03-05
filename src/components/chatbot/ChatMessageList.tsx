@@ -229,10 +229,10 @@ export default function ChatMessageList({
             `}</style>
             <div
               style={{
-                padding: isUser ? '6px 14px 6px 10px' : '0 0 0 26px',
+                padding: isUser ? '6px 14px 6px 10px' : '0 0 0 14px',
                 borderRadius: isUser ? '12px' : '0',
-                maxWidth: isUser ? 'min(60%, 420px)' : '96%',
-                width: isUser ? 'fit-content' : '100%',
+                maxWidth: isUser ? 'min(60%, 420px)' : 'min(100%, 72ch)',
+                width: isUser ? 'fit-content' : 'min(100%, 72ch)',
                 boxSizing: 'border-box',
                 lineHeight: 1.65,
                 fontFamily: 'inherit',
