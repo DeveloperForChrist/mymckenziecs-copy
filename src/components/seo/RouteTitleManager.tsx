@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import { useLayoutEffect, useMemo } from 'react'
 
-const APP_NAME = 'MyMcKenzieCS'
+const APP_NAME = 'MyMcKenzie Court Support'
 
 const titleByPath: Record<string, string> = {
   '/': 'Home',
