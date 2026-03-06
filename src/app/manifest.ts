@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'MyMcKenzie Court Support',
     short_name: 'MyMcKenzieCS',
-    description: 'AI-assisted legal support platform for litigants in person.',
+    description: 'MyMcKenzie Court Support is an AI-assisted workspace for litigants in person.',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',

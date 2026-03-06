@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     default: APP_FULL_NAME,
     template: `%s | ${APP_FULL_NAME}`,
   },
-  description: 'AI-assisted legal support platform for litigants in person.',
+  description: 'MyMcKenzie Court Support is an AI-assisted workspace for litigants in person.',
   applicationName: APP_FULL_NAME,
   alternates: {
     canonical: '/',
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     type: 'website',
     url: siteUrl,
     title: APP_FULL_NAME,
-    description: 'AI-assisted legal support platform for litigants in person.',
+    description: 'MyMcKenzie Court Support is an AI-assisted workspace for litigants in person.',
     siteName: APP_FULL_NAME,
     images: [
       {
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: APP_FULL_NAME,
-    description: 'AI-assisted legal support platform for litigants in person.',
+    description: 'MyMcKenzie Court Support is an AI-assisted workspace for litigants in person.',
     images: ['/logo-mymckenzie.svg'],
   },
   manifest: '/manifest.webmanifest',
