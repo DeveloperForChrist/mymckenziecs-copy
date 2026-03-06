@@ -37,7 +37,7 @@ export default function ChatMessageList({
 }: ChatMessageListProps) {
   const messageSideInsetPx = 0
   const messageBubbleMaxWidth = `calc(100% - ${messageSideInsetPx * 2}px)`
-  const userMessageMaxWidth = `calc(${messageBubbleMaxWidth} / 2)`
+  const userMessageMaxWidth = `calc((${messageBubbleMaxWidth} / 2) + 20px)`
   const assistantMaxWidth = `min(${messageBubbleMaxWidth}, 650px)`
 
   const stripLegacyReferenceIndex = (text: string) =>
