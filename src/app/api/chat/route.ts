@@ -1639,6 +1639,34 @@ export async function POST(request: NextRequest) {
       sessionStartedAt: typeof sessionStartedAt === 'string' ? sessionStartedAt : null,
     })
 
+    // Ensure every conversation gets a memory anchor, even when later logic exits early.
+    if (activeConversationId) {
+      try {
+        const initialMemoryKey = buildMemoryKey(
+          authUserId,
+          guestId,
+          processingResult.caseId || sessionInfo.activeCaseId || null,
+          activeConversationId
+        )
+        await supabaseAdmin.from('chat_memory').upsert(
+          {
+            memory_key: initialMemoryKey,
+            user_id: authUserId || null,
+            guest_id: guestId || null,
+            case_id: processingResult.caseId || sessionInfo.activeCaseId || null,
+            conversation_id: activeConversationId,
+            memory_summary: truncateText(`User: ${message}`, 320),
+            key_facts: mergeFacts([], extractKeyFactsFromMessage(message)),
+            open_questions: [],
+            last_intent: processingResult.intent,
+          },
+          { onConflict: 'memory_key' }
+        )
+      } catch (memoryAnchorError) {
+        console.warn('Failed to persist initial chat memory anchor:', memoryAnchorError)
+      }
+    }
+
     const threadTurnLimit = resolveThreadTurnLimit({
       basicPlanActive,
       premiumPlanActive,

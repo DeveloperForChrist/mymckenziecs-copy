@@ -34,7 +34,7 @@ export function useConversationBootstrap({
     const lastSignInAtStorageKey = 'chatbotLastSignInAt'
     let cancelled = false
 
-    const loadMessagesForConversation = async (storedUserId: string, targetConversationId: string) => {
+    const loadMessagesForConversation = async (storedUserId: string, targetConversationId: string): Promise<number> => {
       try {
         const response = await fetch('/api/chat-history', {
           method: 'POST',
@@ -51,10 +51,28 @@ export function useConversationBootstrap({
             timestamp: new Date(msg.timestamp),
             metadata: msg.metadata
           }))
-          setMessages(loadedMessages)
+          if (!cancelled) {
+            setMessages(loadedMessages)
+          }
+          return loadedMessages.length
         }
       } catch (error: any) {
         console.error('Failed to load conversation:', error)
+      }
+      return 0
+    }
+
+    const findFallbackConversationId = async (currentConversationId: string): Promise<string | null> => {
+      try {
+        const response = await fetch('/api/chat-history', { cache: 'no-store' })
+        const data = await response.json().catch(() => ({}))
+        if (!response.ok || !Array.isArray(data?.conversations)) return null
+        const conversations = data.conversations as Array<{ id?: string }>
+        if (conversations.some((item) => item?.id === currentConversationId)) return null
+        const latestConversationId = conversations.find((item) => typeof item?.id === 'string')?.id || null
+        return latestConversationId
+      } catch {
+        return null
       }
     }
 
@@ -128,7 +146,15 @@ export function useConversationBootstrap({
         const storedConvId = localStorage.getItem(conversationStorageKey)
         if (storedConvId) {
           setConversationId(storedConvId)
-          await loadMessagesForConversation(storedUserId, storedConvId)
+          const loadedCount = await loadMessagesForConversation(storedUserId, storedConvId)
+          if (loadedCount === 0) {
+            const fallbackConversationId = await findFallbackConversationId(storedConvId)
+            if (fallbackConversationId) {
+              setConversationId(fallbackConversationId)
+              localStorage.setItem(conversationStorageKey, fallbackConversationId)
+              await loadMessagesForConversation(storedUserId, fallbackConversationId)
+            }
+          }
         } else {
           const newConversationId = generateUUID()
           setConversationId(newConversationId)

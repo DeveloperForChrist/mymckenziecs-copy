@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/database/supabase-browser";
+import { getPlanTier } from "@/lib/plans/access";
 import styles from "./notes-page.module.css";
 
 interface NotePage {
@@ -91,6 +92,7 @@ export default function NotesPageClient({
   const [extractStatus, setExtractStatus] = useState<string | null>(null);
   const [extractedEvents, setExtractedEvents] = useState<ExtractedCalendarEvent[]>([]);
   const [isSavingExtractedEvents, setIsSavingExtractedEvents] = useState(false);
+  const [canUseAiActions, setCanUseAiActions] = useState(false);
 
   const globalDraftStorageKey = useCallback((uid: string) => `mynotes-draft:${uid}:local`, []);
   const normalizeDraftPages = useCallback(
@@ -310,13 +312,16 @@ export default function NotesPageClient({
       try {
         const response = await fetch("/api/user/plan", { cache: "no-store" });
         if (!response.ok) return;
-        const data = (await response.json()) as { paidAccess?: boolean };
+        const data = (await response.json()) as { paidAccess?: boolean; plan?: string };
         if (cancelled) return;
         if (data?.paidAccess === false) {
           setReadOnlyMode(true);
           setReadOnlyMessage(NOTES_READ_ONLY_MESSAGE);
+          setCanUseAiActions(false);
           return;
         }
+        const tier = getPlanTier(data?.plan);
+        setCanUseAiActions(tier === "premium" || tier === "premium_plus");
         setReadOnlyMode(false);
         setReadOnlyMessage(null);
       } catch {
@@ -472,6 +477,10 @@ export default function NotesPageClient({
   };
 
   const summariseActiveNote = useCallback(async () => {
+    if (!canUseAiActions) {
+      setSummaryStatus("Summarise is available on Premium and Premium Plus plans.");
+      return;
+    }
     if (!activePage) return;
     if (!activePage.content.trim()) {
       setSummaryStatus("Add some note content first, then run summary.");
@@ -512,7 +521,7 @@ export default function NotesPageClient({
     } finally {
       setIsSummarising(false);
     }
-  }, [activePage]);
+  }, [activePage, canUseAiActions]);
 
   const addSummaryToNote = useCallback(() => {
     if (!summaryResult) return;
@@ -538,6 +547,10 @@ export default function NotesPageClient({
   }, [appendToActiveNote, summaryResult]);
 
   const extractDatesFromNote = useCallback(async () => {
+    if (!canUseAiActions) {
+      setExtractStatus("Extract Dates is available on Premium and Premium Plus plans.");
+      return;
+    }
     if (!activePage) return;
     if (!activePage.content.trim()) {
       setExtractStatus("Add note content first, then extract dates.");
@@ -595,7 +608,7 @@ export default function NotesPageClient({
     } finally {
       setIsExtractingDates(false);
     }
-  }, [activePage]);
+  }, [activePage, canUseAiActions]);
 
   const saveExtractedEvents = useCallback(async () => {
     if (extractedEvents.length === 0) return;
@@ -785,24 +798,26 @@ export default function NotesPageClient({
                   <p className={styles.readOnlyBanner}>{readOnlyMessage || NOTES_READ_ONLY_MESSAGE}</p>
                 )}
               </div>
-              <div className={styles.editorActions}>
-                <button
-                  type="button"
-                  className={styles.actionButton}
-                  onClick={summariseActiveNote}
-                  disabled={isSummarising}
-                >
-                  {isSummarising ? "Summarising..." : "Summarise"}
-                </button>
-                <button
-                  type="button"
-                  className={styles.actionButton}
-                  onClick={extractDatesFromNote}
-                  disabled={isExtractingDates}
-                >
-                  {isExtractingDates ? "Extracting..." : "Extract Dates"}
-                </button>
-              </div>
+              {canUseAiActions && (
+                <div className={styles.editorActions}>
+                  <button
+                    type="button"
+                    className={styles.actionButton}
+                    onClick={summariseActiveNote}
+                    disabled={isSummarising}
+                  >
+                    {isSummarising ? "Summarising..." : "Summarise"}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.actionButton}
+                    onClick={extractDatesFromNote}
+                    disabled={isExtractingDates}
+                  >
+                    {isExtractingDates ? "Extracting..." : "Extract Dates"}
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className={styles.editorContent}>

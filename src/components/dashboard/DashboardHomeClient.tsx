@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import { hasCaseLawAccess } from '@/lib/plans/access';
-import { pickResponsiveValue, useResponsiveViewport } from '@/lib/utils/useResponsiveViewport';
 
 function formatDateLabel(value?: string | null) {
   if (!value) return '';
@@ -36,7 +35,6 @@ export default function DashboardHomeClient({
   const [nextBillingDate, setNextBillingDate] = useState<string | null>(initialNextBillingDate);
   const [planLoaded, setPlanLoaded] = useState(Boolean(initialPlanLoaded));
   const [calendarAlertCount, setCalendarAlertCount] = useState(0);
-  const { screen } = useResponsiveViewport();
 
   const hasCaseLawFeature = hasCaseLawAccess(plan);
   const normalizedPlanStatus = planStatus.trim().toLowerCase();
@@ -182,31 +180,11 @@ export default function DashboardHomeClient({
     return true;
   });
   const desktopCardMinWidth = visibleFeatures.length <= 5 ? 260 : 285;
-  const cardMinWidthPx = pickResponsiveValue(screen, {
-    small: 240,
-    medium: 260,
-    large: desktopCardMinWidth,
-  });
-  const layoutMaxWidth = pickResponsiveValue(screen, {
-    small: '100%',
-    medium: '1320px',
-    large: '1720px',
-  });
-  const layoutPadding = pickResponsiveValue(screen, {
-    small: '16px 12px 20px',
-    medium: 'clamp(16px, 3vw, 28px) clamp(14px, 3vw, 22px) 24px',
-    large: 'clamp(20px, 2.6vw, 36px) clamp(18px, 2.6vw, 34px) 28px',
-  });
-  const gridGap = pickResponsiveValue(screen, {
-    small: '14px',
-    medium: '16px',
-    large: 'clamp(16px, 1.8vw, 24px)',
-  });
-  const cardMinHeight = pickResponsiveValue(screen, {
-    small: '210px',
-    medium: '240px',
-    large: '280px',
-  });
+  const cardMinWidthCss = `clamp(240px, 24vw, ${desktopCardMinWidth}px)`;
+  const layoutMaxWidth = 'var(--app-shell-max-width, 1720px)';
+  const layoutPadding = 'var(--app-shell-padding-block, 20px) var(--app-shell-padding-inline, 18px) calc(var(--app-shell-padding-block, 20px) + 8px)';
+  const gridGap = 'clamp(14px, 1.8vw, 24px)';
+  const cardMinHeight = 'clamp(210px, 24vw, 280px)';
 
   if (!planLoaded) {
     return (
@@ -283,7 +261,7 @@ export default function DashboardHomeClient({
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: `repeat(auto-fit, minmax(min(${cardMinWidthPx}px, 100%), 1fr))`,
+              gridTemplateColumns: `repeat(auto-fit, minmax(min(${cardMinWidthCss}, 100%), 1fr))`,
               gap: gridGap,
               marginBottom: '18px',
             }}

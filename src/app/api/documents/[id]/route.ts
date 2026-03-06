@@ -16,17 +16,17 @@ async function hasPaidAccess(userId: string): Promise<boolean> {
   return isPaidPlan(data?.plan_type)
 }
 
-async function canAccessDocument(userId: string, docId: string) {
+async function getAccessibleDocument(userId: string, docId: string) {
   const { data: doc, error } = await supabaseAdmin
     .from('documents')
-    .select('id, uploaded_by, case_id')
+    .select('id, uploaded_by, case_id, storage_path')
     .eq('id', docId)
     .is('deleted_at', null)
     .maybeSingle()
 
-  if (error || !doc) return false
-  if (doc.uploaded_by === userId) return true
-  if (!doc.case_id) return false
+  if (error || !doc) return null
+  if (doc.uploaded_by === userId) return doc
+  if (!doc.case_id) return null
 
   const { data: ownedCase } = await supabaseAdmin
     .from('cases')
@@ -36,7 +36,7 @@ async function canAccessDocument(userId: string, docId: string) {
     .is('deleted_at', null)
     .maybeSingle()
 
-  return Boolean(ownedCase)
+  return ownedCase ? doc : null
 }
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
@@ -57,8 +57,8 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       return NextResponse.json({ error: 'starred must be a boolean' }, { status: 400 })
     }
 
-    const allowed = await canAccessDocument(authData.user.id, id)
-    if (!allowed) {
+    const doc = await getAccessibleDocument(authData.user.id, id)
+    if (!doc) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 })
     }
 
@@ -103,24 +103,14 @@ export async function DELETE(_request: NextRequest, context: { params: Promise<{
       return NextResponse.json({ error: 'Missing document id' }, { status: 400 })
     }
 
-    // RLS on documents ensures the user can only delete their own document rows.
-    const { data: doc, error: docErr } = await supabase
-      .from('documents')
-      .select('id, storage_path')
-      .eq('id', id)
-      .is('deleted_at', null)
-      .maybeSingle()
-
-    if (docErr) {
-      return NextResponse.json({ error: docErr.message }, { status: 500 })
-    }
+    const doc = await getAccessibleDocument(authData.user.id, id)
     if (!doc) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 })
     }
 
-    // Best-effort delete from Storage. Storage RLS limits this to the user's own prefix.
+    // Best-effort delete from Storage using service role after access check.
     if (doc.storage_path) {
-      const { error: storageErr } = await supabase.storage.from('user-uploads').remove([doc.storage_path])
+      const { error: storageErr } = await supabaseAdmin.storage.from('user-uploads').remove([doc.storage_path])
       if (storageErr) {
         // If storage deletion fails, don't leave DB deleted while file remains inaccessible (or vice versa).
         return NextResponse.json({ error: storageErr.message || 'Failed to delete file' }, { status: 500 })
@@ -128,7 +118,7 @@ export async function DELETE(_request: NextRequest, context: { params: Promise<{
     }
 
     const nowIso = new Date().toISOString()
-    const { error: updateErr } = await supabase
+    const { error: updateErr } = await supabaseAdmin
       .from('documents')
       .update({ deleted_at: nowIso })
       .eq('id', id)

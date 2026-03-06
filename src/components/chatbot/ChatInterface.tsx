@@ -10,7 +10,6 @@ import ChatMessageList from '@/components/chatbot/ChatMessageList'
 import { useChatAuthPlan, type InitialChatPlanState } from '@/components/chatbot/hooks/useChatAuthPlan'
 import { useConversationBootstrap } from '@/components/chatbot/hooks/useConversationBootstrap'
 import { hasCaseProfileAccess } from '@/lib/plans/access'
-import { pickResponsiveValue, useResponsiveViewport } from '@/lib/utils/useResponsiveViewport'
 import type {
   AssistantMetadata,
   Message,
@@ -818,7 +817,6 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   const [autoScroll, setAutoScroll] = useState(true)
   const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false)
   const [showScrollToBottomButtonByWindow, setShowScrollToBottomButtonByWindow] = useState(false)
-  const { screen } = useResponsiveViewport()
 
   const scrollToBottom = (behavior: 'auto' | 'smooth' = 'smooth') => {
     const container = scrollContainerRef.current
@@ -1550,16 +1548,8 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     minHeight: 'calc(100vh - 88px)',
     padding: '0'
   }
-  const messageLaneMaxWidth = pickResponsiveValue(screen, {
-    small: '100%',
-    medium: '700px',
-    large: '700px',
-  })
-  const messageLanePadding = pickResponsiveValue(screen, {
-    small: '0 12px',
-    medium: '0',
-    large: '0',
-  })
+  const messageLaneMaxWidth = 'min(700px, 100%)'
+  const messageLanePadding = '0 12px'
 
   return (
     <>

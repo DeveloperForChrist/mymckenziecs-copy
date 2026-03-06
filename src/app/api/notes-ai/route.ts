@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/database/supabase-route";
+import { supabaseAdmin } from "@/lib/database/supabase-server";
+import { hasReminderAccess } from "@/lib/plans/access";
 import {
   aiIpRateLimiter,
   aiRateLimiter,
@@ -112,6 +114,19 @@ function fallbackExtractDates(noteContent: string) {
   return events;
 }
 
+async function hasNotesAiAccess(userId: string): Promise<boolean> {
+  const { data } = await supabaseAdmin
+    .from("subscriptions")
+    .select("plan_type, status")
+    .eq("user_id", userId)
+    .in("status", ["active", "past_due"])
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return hasReminderAccess(data?.plan_type);
+}
+
 export async function POST(request: NextRequest) {
   try {
     if (!process.env.OPENAI_API_KEY) {
@@ -122,6 +137,13 @@ export async function POST(request: NextRequest) {
     const { data: authData, error: authError } = await supabase.auth.getUser();
     if (authError || !authData?.user) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+    const hasAccess = await hasNotesAiAccess(authData.user.id);
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: "This feature is available on Premium and Premium Plus plans." },
+        { status: 402 }
+      );
     }
 
     const payload = requestSchema.safeParse(await request.json());

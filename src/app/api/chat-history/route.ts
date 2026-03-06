@@ -122,6 +122,11 @@ async function resolveUserIdsByEmail(email: string | null): Promise<string[]> {
   return dedupe((data || []).map((row: any) => row.id).filter(Boolean));
 }
 
+async function resolveScopedUserIds(authUid: string, authEmail: string | null): Promise<string[]> {
+  const emailUserIds = await resolveUserIdsByEmail(authEmail);
+  return dedupe([authUid, ...emailUserIds]);
+}
+
 async function hasPaidPlanAccess(authUid: string, authEmail: string | null): Promise<boolean> {
   const hasPaidForUserIds = async (userIds: string[]) => {
     if (userIds.length === 0) return false;
@@ -155,9 +160,7 @@ async function hasPaidPlanAccess(authUid: string, authEmail: string | null): Pro
   return hasPaidForUserIds(emailUserIds);
 }
 
-async function getOwnedCaseIds(authUid: string, authEmail: string | null): Promise<string[]> {
-  const emailUserIds = await resolveUserIdsByEmail(authEmail);
-  const userIds = dedupe([authUid, ...emailUserIds]);
+async function getOwnedCaseIds(userIds: string[]): Promise<string[]> {
   if (userIds.length === 0) return [];
 
   const { data } = await supabaseAdmin
@@ -232,14 +235,16 @@ async function fetchMessagesByCaseIds(caseIds: string[], maxRows = 1200): Promis
 }
 
 async function canAccessConversation(
-  authUid: string,
+  scopedUserIds: string[],
   conversationId: string,
   caseIds: string[]
 ): Promise<boolean> {
+  if (scopedUserIds.length === 0) return false;
+
   const { data: memoryRow } = await supabaseAdmin
     .from('chat_memory')
     .select('conversation_id')
-    .eq('user_id', authUid)
+    .in('user_id', scopedUserIds)
     .eq('conversation_id', conversationId)
     .limit(1)
     .maybeSingle();
@@ -249,7 +254,7 @@ async function canAccessConversation(
   const { data: actionRow } = await supabaseAdmin
     .from('chat_action_items')
     .select('id')
-    .eq('user_id', authUid)
+    .in('user_id', scopedUserIds)
     .eq('conversation_id', conversationId)
     .limit(1)
     .maybeSingle();
@@ -266,6 +271,25 @@ async function canAccessConversation(
       .maybeSingle();
 
     if (messageRow?.id) return true;
+  }
+
+  // Fallback for conversations persisted without case links but tagged by owner in metadata.
+  const { data: conversationRows, error: conversationRowsError } = await supabaseAdmin
+    .from('messages')
+    .select('metadata')
+    .eq('conversation_id', conversationId)
+    .order('timestamp', { ascending: false })
+    .limit(60);
+
+  if (!conversationRowsError && Array.isArray(conversationRows)) {
+    const ownsConversation = conversationRows.some((row: any) => {
+      const ownerId =
+        row?.metadata && typeof row.metadata === 'object' && typeof row.metadata.owner_user_id === 'string'
+          ? row.metadata.owner_user_id
+          : null;
+      return Boolean(ownerId && scopedUserIds.includes(ownerId));
+    });
+    if (ownsConversation) return true;
   }
 
   return false;
@@ -337,12 +361,13 @@ export async function GET() {
     }
 
     const limited = false;
-    const caseIds = await getOwnedCaseIds(authUid, authEmail);
+    const scopedUserIds = await resolveScopedUserIds(authUid, authEmail);
+    const caseIds = await getOwnedCaseIds(scopedUserIds);
 
     const { data: memoryRowsData, error: memoryError } = await supabaseAdmin
       .from('chat_memory')
       .select('conversation_id, memory_summary, updated_at, case_id')
-      .eq('user_id', authUid)
+      .in('user_id', scopedUserIds)
       .not('conversation_id', 'is', null)
       .order('updated_at', { ascending: false })
       .limit(500);
@@ -393,6 +418,7 @@ export async function POST(request: NextRequest) {
     }
 
     const limited = false;
+    const scopedUserIds = await resolveScopedUserIds(authUid, authEmail);
     const { caseId, conversationId, sessionId, limit } = await request.json();
     const resolvedConversationId = conversationId || sessionId;
     const messageLimit = parseMessageLimit(limit);
@@ -401,7 +427,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ messages: [], total: 0, limited });
     }
 
-    const caseIds = await getOwnedCaseIds(authUid, authEmail);
+    const caseIds = await getOwnedCaseIds(scopedUserIds);
 
     let query = supabaseAdmin
       .from('messages')
@@ -410,7 +436,7 @@ export async function POST(request: NextRequest) {
       .limit(messageLimit);
 
     if (resolvedConversationId) {
-      const allowed = await canAccessConversation(authUid, resolvedConversationId, caseIds);
+      const allowed = await canAccessConversation(scopedUserIds, resolvedConversationId, caseIds);
       if (!allowed) {
         return NextResponse.json({ messages: [], total: 0, limited });
       }
@@ -475,8 +501,9 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const caseIds = await getOwnedCaseIds(authUid, authEmail);
-    const allowed = await canAccessConversation(authUid, conversationId, caseIds);
+    const scopedUserIds = await resolveScopedUserIds(authUid, authEmail);
+    const caseIds = await getOwnedCaseIds(scopedUserIds);
+    const allowed = await canAccessConversation(scopedUserIds, conversationId, caseIds);
     if (!allowed) {
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
     }
@@ -491,8 +518,8 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to delete messages' }, { status: 500 });
     }
 
-    await supabaseAdmin.from('chat_action_items').delete().eq('user_id', authUid).eq('conversation_id', conversationId);
-    await supabaseAdmin.from('chat_memory').delete().eq('user_id', authUid).eq('conversation_id', conversationId);
+    await supabaseAdmin.from('chat_action_items').delete().in('user_id', scopedUserIds).eq('conversation_id', conversationId);
+    await supabaseAdmin.from('chat_memory').delete().in('user_id', scopedUserIds).eq('conversation_id', conversationId);
 
     return NextResponse.json({ success: true, deletedConversationId: conversationId });
   } catch (error: any) {

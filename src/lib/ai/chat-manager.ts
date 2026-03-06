@@ -336,7 +336,9 @@ export class ChatManager {
       timestamp: new Date().toISOString()
     };
     const metadataPayload = metadata && typeof metadata === 'object' ? metadata : {}
-    const insertPayload = { ...basePayload, metadata: metadataPayload }
+    const ownershipMetadata = this.shouldPersistMessages() ? { owner_user_id: this.userId } : {}
+    const normalizedMetadata = { ...metadataPayload, ...ownershipMetadata }
+    const insertPayload = { ...basePayload, metadata: normalizedMetadata }
     const isMissingMetadataColumnError = (err: any) => {
       const msg = String(err?.message || '').toLowerCase()
       return msg.includes('column') && msg.includes('metadata') && msg.includes('does not exist')
