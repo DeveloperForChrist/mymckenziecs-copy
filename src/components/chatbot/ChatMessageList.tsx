@@ -91,9 +91,7 @@ export default function ChatMessageList({
               boxSizing: 'border-box',
               flexDirection: 'column',
               alignItems: isUser ? 'flex-end' : 'flex-start',
-              marginBottom: '20px',
-              paddingLeft: '0',
-              paddingRight: '0'
+              marginBottom: '20px'
             }}
           >
             <style jsx>{`
@@ -252,8 +250,8 @@ export default function ChatMessageList({
                 textShadow: 'none',
                 transform: isUser ? 'translateZ(0)' : 'none',
                 alignSelf: isUser ? 'flex-end' : 'flex-start',
-                marginLeft: isUser ? '0' : `${messageSideInsetPx}px`,
-                marginRight: isUser ? `${messageSideInsetPx}px` : '0'
+                marginLeft: isUser ? undefined : `${messageSideInsetPx}px`,
+                marginRight: isUser ? `${messageSideInsetPx}px` : undefined
               }}
               className={isUser ? 'user-message-bubble' : ''}
             >
@@ -435,11 +433,10 @@ export default function ChatMessageList({
                         flexWrap: 'wrap',
                         alignItems: 'center',
                         gap: '6px',
-                        marginTop: '4px',
-                        marginLeft: '0'
+                        marginTop: '4px'
                       }}
                     >
-                      <span style={{ fontSize: '16px', color: 'rgba(226,232,240,0.9)', fontWeight: 600, marginLeft: '0', lineHeight: 1.4 }}>
+                      <span style={{ fontSize: '16px', color: 'rgba(226,232,240,0.9)', fontWeight: 600, lineHeight: 1.4 }}>
                         Sources:
                       </span>
                       {visibleSources.map((source) => (
@@ -473,7 +470,7 @@ export default function ChatMessageList({
             </div>
             {!isUser && message.content && (
               <>
-                <div className="user-copy-button" style={{ display: 'flex', gap: '10px', marginTop: '8px', alignItems: 'center', justifyContent: 'flex-start', marginLeft: '12px', flexWrap: 'wrap' }}>
+                <div className="user-copy-button" style={{ display: 'flex', gap: '10px', marginTop: '8px', alignItems: 'center', justifyContent: 'flex-start', flexWrap: 'wrap' }}>
                   <button
                   onClick={() => onCopyMessage(formatAssistantResponse(assistantDisplayContent))}
                   className="assistant-action-button"
