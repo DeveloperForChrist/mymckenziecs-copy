@@ -38,7 +38,7 @@ const setEnsuredUserRowCache = (userId: string, expiresAt: number) => {
 };
 
 
-const classifyIntent = (message: string, hasAttachments = false): string => {
+const classifyTask = (message: string, hasAttachments = false): string => {
   const text = message.trim().toLowerCase()
   if (!text) return 'question'
 
@@ -48,43 +48,54 @@ const classifyIntent = (message: string, hasAttachments = false): string => {
     return 'document_review'
   }
   if (/\b(draft|template|letter|statement|witness statement|pleading|bundle)\b/.test(text)) {
-    return 'document'
+    return 'document_drafting'
   }
   if (/\b(form|n\d{1,3}|cpr\s*form)\b/.test(text)) {
-    return 'forms'
+    return 'form_guidance'
   }
-  if (/\b(procedure|process|steps|how do i|how to|cpr|practice direction|pd\b)\b/.test(text)) {
-    return 'procedure'
-  }
-  if (/\b(case law|citation|precedent|authority|judgment|appeal|ruling)\b/.test(text)) {
-    return 'case_law'
-  }
-  if (/\b(appeal|set aside|overturn|permission to appeal)\b/.test(text)) {
-    return 'appeal'
-  }
-  if (/\b(enforcement|enforce|bailiff|hceo|high court enforcement|warrant|writ)\b/.test(text)) {
-    return 'enforcement'
-  }
-  if (/\b(evidence|exhibit|disclosure|bundle|witness|statement|documents)\b/.test(text)) {
-    return 'evidence'
-  }
-  if (/\b(settle|settlement|negotiate|offer|without prejudice|mediation)\b/.test(text)) {
-    return 'negotiation'
-  }
-  if (/\b(jurisdiction|venue|which court|right court|transfer)\b/.test(text)) {
-    return 'jurisdiction'
+  if (
+    /\b(case law|citation|precedent|authority|judgment|ruling|neutral citation|uksc|ewca|ewhc|appeal|set aside|overturn|permission to appeal)\b/.test(
+      text
+    )
+  ) {
+    return 'case_lookup'
   }
   if (/\b(status|update|progress|stage|where is my case|timeline)\b/.test(text)) {
     return 'case_status'
   }
-  if (/\b(deadline|hearing|court date|calendar|due|file by|serve by)\b/.test(text)) {
-    return 'calendar'
+  if (/\b(deadline|hearing|court date|calendar|due|file by|serve by|time limit|limitation)\b/.test(text)) {
+    return 'deadline_query'
   }
-  if (/\b(costs|fees|pricing|price|billing|subscription|plan)\b/.test(text)) {
-    return 'billing'
+  if (
+    /\b(procedure|process|steps|how do i|how to|cpr|practice direction|pd\b|enforcement|enforce|bailiff|hceo|high court enforcement|warrant|writ|evidence|exhibit|disclosure|witness|documents|settle|settlement|negotiate|offer|without prejudice|mediation|jurisdiction|venue|which court|right court|transfer)\b/.test(
+      text
+    )
+  ) {
+    return 'legal_procedure'
   }
-
   return 'question'
+}
+
+const classifyContextType = (hasAttachments: boolean, hasActiveCase: boolean): string => {
+  if (hasAttachments) return 'document_based'
+  if (hasActiveCase) return 'case_specific'
+  return 'general_information'
+}
+
+const classifyUrgency = (message: string): string => {
+  const text = message.trim().toLowerCase()
+  if (!text) return 'normal'
+
+  const deadlineSignals =
+    /\b(deadline|hearing|court date|due date|file by|serve by|before\b|limitation|expires?|time limit)\b/.test(text) ||
+    /\b\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?\b/.test(text) ||
+    /\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tomorrow|next week)\b/.test(text)
+  if (deadlineSignals) return 'deadline'
+
+  const urgentSignals = /\b(urgent|urgently|asap|immediately|emergency|right now|as soon as possible)\b/.test(text)
+  if (urgentSignals) return 'urgent'
+
+  return 'normal'
 }
 
 const hasMeaningfulCaseProfile = (row: Record<string, any> | null | undefined): boolean => {
@@ -281,7 +292,7 @@ export class ChatManager {
           plan: planLabel,
           is_guest: isGuest,
           message_length: message.length,
-          intent: classifyIntent(message, hasAttachments),
+          intent: classifyTask(message, hasAttachments),
           has_attachments: hasAttachments,
           device_type: deviceType,
           os,
@@ -444,12 +455,17 @@ export class ChatManager {
    */
   async processMessage(message: string, hasAttachments = false, analyticsContext?: AnalyticsContext) {
     const routedCaseId = this.activeCaseId || null;
+    const task = classifyTask(message, hasAttachments)
+    const contextType = classifyContextType(hasAttachments, Boolean(routedCaseId))
+    const urgency = classifyUrgency(message)
 
     await this.logMessageAnalytics(message, hasAttachments, analyticsContext);
     await this.storeRawMessage(message, 'user', {}, routedCaseId);
 
     return {
-      intent: classifyIntent(message, hasAttachments),
+      task,
+      contextType,
+      urgency,
       caseId: routedCaseId
     };
   }

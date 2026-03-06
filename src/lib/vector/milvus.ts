@@ -3,6 +3,49 @@ import { spawn } from 'child_process';
 import path from 'path';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let pythonMilvusCheckComplete = false;
+let pythonMilvusAvailable = true;
+
+const MILVUS_DEPENDENCY_MISSING_PREFIX = 'MILVUS_DEPENDENCY_MISSING';
+
+const isMissingPymilvusError = (message: string) =>
+  /no module named ['"]pymilvus['"]/i.test(message);
+
+const ensurePythonMilvusAvailable = async (): Promise<boolean> => {
+  if (pythonMilvusCheckComplete) return pythonMilvusAvailable;
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const child = spawn('python3', ['-c', 'import pymilvus'], { stdio: ['ignore', 'pipe', 'pipe'] });
+      let stderr = '';
+
+      child.stderr.on('data', (chunk) => {
+        stderr += String(chunk);
+      });
+      child.on('error', reject);
+      child.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+          return;
+        }
+        reject(new Error(stderr || `Python exited with code ${code}`));
+      });
+    });
+    pythonMilvusAvailable = true;
+  } catch (error: any) {
+    const message = String(error?.message || error || '');
+    if (isMissingPymilvusError(message)) {
+      console.warn('pymilvus is not installed; vector fallback to Python helper is disabled.');
+    } else {
+      console.warn('Python Milvus availability check failed:', message);
+    }
+    pythonMilvusAvailable = false;
+  } finally {
+    pythonMilvusCheckComplete = true;
+  }
+
+  return pythonMilvusAvailable;
+};
 
 export async function embedText(text: string): Promise<number[]> {
   const resp = await openai.embeddings.create({ model: 'text-embedding-3-small', input: text });
@@ -27,6 +70,11 @@ export async function searchVectorsByEmbedding(embedding: number[], topk: number
     }
   } catch (err) {
     // likely connection refused — fall back to spawning the helper per-request
+  }
+
+  const hasPythonMilvus = await ensurePythonMilvusAvailable();
+  if (!hasPythonMilvus) {
+    throw new Error(`${MILVUS_DEPENDENCY_MISSING_PREFIX}: pymilvus is not installed on this runtime`);
   }
 
   // Exec fallback (existing script).
@@ -61,7 +109,13 @@ export async function searchVectorsByEmbedding(embedding: number[], topk: number
     const parsed = JSON.parse(stdout || '[]');
     return Array.isArray(parsed) ? parsed : [];
   } catch (err: any) {
-    throw new Error('Python Milvus bridge failed: ' + (err?.message || String(err)));
+    const message = String(err?.message || err || '');
+    if (isMissingPymilvusError(message)) {
+      pythonMilvusCheckComplete = true;
+      pythonMilvusAvailable = false;
+      throw new Error(`${MILVUS_DEPENDENCY_MISSING_PREFIX}: ${message}`);
+    }
+    throw new Error('Python Milvus bridge failed: ' + message);
   }
 }
 
@@ -76,6 +130,11 @@ export async function searchByText(text: string, topk: number = 5): Promise<any[
     if (res.ok) return await res.json();
   } catch (err) {
     // ignore and fall back
+  }
+
+  const hasPythonMilvus = await ensurePythonMilvusAvailable();
+  if (!hasPythonMilvus) {
+    throw new Error(`${MILVUS_DEPENDENCY_MISSING_PREFIX}: pymilvus is not installed on this runtime`);
   }
 
   const emb = await embedText(text);

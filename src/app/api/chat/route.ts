@@ -576,13 +576,13 @@ const rankCaseLawCandidates = <T extends RankedCaseLawItem>(query: string, items
 
 const shouldUseCaseLawRetrieval = ({
   message,
-  intent,
+  task,
   hasAttachments,
   premiumFlow,
   suggestionDecision,
 }: {
   message: string
-  intent?: string
+  task?: string
   hasAttachments?: boolean
   premiumFlow: boolean
   suggestionDecision: { shouldSuggest: boolean; shouldRetrieve?: boolean }
@@ -593,8 +593,8 @@ const shouldUseCaseLawRetrieval = ({
   const text = normalizeCompactText(message.toLowerCase())
   if (!text) return false
 
-  const explicitlyNonRetrievalIntents = new Set(['billing', 'calendar', 'document_review'])
-  if (intent && explicitlyNonRetrievalIntents.has(intent)) {
+  const explicitlyNonRetrievalIntents = new Set(['deadline_query', 'document_review'])
+  if (task && explicitlyNonRetrievalIntents.has(task)) {
     return false
   }
 
@@ -614,12 +614,12 @@ const shouldUseCaseLawRetrieval = ({
 const evaluateCaseLawSuggestionNeed = ({
   message,
   history,
-  intent,
+  task,
   hasAttachments,
 }: {
   message: string
   history: Array<{ role: string; content: string }>
-  intent?: string
+  task?: string
   hasAttachments?: boolean
 }): {
   shouldSuggest: boolean
@@ -643,7 +643,7 @@ const evaluateCaseLawSuggestionNeed = ({
   const reasons: string[] = []
   let score = 0
 
-  if (hasAttachments && intent === 'document_review') {
+  if (hasAttachments && task === 'document_review') {
     return { shouldSuggest: false, shouldRetrieve: false, explanationStyle: 'plain', score: 0, reasons: ['document-review-only'] }
   }
 
@@ -714,19 +714,17 @@ const evaluateCaseLawSuggestionNeed = ({
     reasons.push('avoid-overwhelm')
   }
 
-  const intentAllowList = new Set([
-    'procedure',
-    'case_law',
-    'appeal',
-    'enforcement',
-    'evidence',
-    'jurisdiction',
+  const taskAllowList = new Set([
+    'legal_procedure',
+    'case_lookup',
     'case_status',
-    'negotiation',
+    'deadline_query',
+    'form_guidance',
+    'document_drafting',
   ])
-  if (intent && intentAllowList.has(intent)) {
+  if (task && taskAllowList.has(task)) {
     score += 2
-    reasons.push(`intent:${intent}`)
+    reasons.push(`task:${task}`)
   }
 
   const legalReasoningPattern =
@@ -785,13 +783,13 @@ type RetrievalFocus = 'web_only' | 'vector_only' | 'hybrid'
 const evaluateRetrievalFocus = ({
   message,
   history,
-  intent,
+  task,
   hasAttachments,
   caseContextData,
 }: {
   message: string
   history: Array<{ role: string; content: string }>
-  intent?: string
+  task?: string
   hasAttachments?: boolean
   caseContextData?: Record<string, any> | null
 }): {
@@ -877,13 +875,17 @@ const evaluateRetrievalFocus = ({
     reasons.push('own-case-context')
   }
 
-  if (intent === 'case_law' || intent === 'appeal' || intent === 'jurisdiction') {
+  if (task === 'case_lookup') {
     precedentScore += 2
-    reasons.push(`intent:${intent}-precedent`)
+    reasons.push('task:case_lookup-precedent')
   }
-  if (intent === 'procedure' || intent === 'calendar' || intent === 'enforcement') {
+  if (task === 'legal_procedure' || task === 'deadline_query' || task === 'form_guidance') {
     procedureScore += 2
-    reasons.push(`intent:${intent}-procedure`)
+    reasons.push(`task:${task}-procedure`)
+  }
+  if (task === 'case_status' || task === 'document_drafting') {
+    procedureScore += 1
+    reasons.push(`task:${task}-procedure-lite`)
   }
 
   if (hasAttachments) {
@@ -1263,18 +1265,21 @@ const extractActionItems = (text: string): ExtractedAction[] => {
   return actions
 }
 
-const inferFollowUpQuestion = (intent: string, message: string) => {
+const inferFollowUpQuestion = (task: string, message: string) => {
   const text = message.toLowerCase()
   const hasDate = /\b\d{1,2}[/\-]\d{1,2}([/\-]\d{2,4})?\b|\b(today|tomorrow|next week|next month|monday|tuesday|wednesday|thursday|friday)\b/i.test(message)
 
-  if (intent === 'calendar' && !hasDate) {
+  if (task === 'deadline_query' && !hasDate) {
     return 'Could you share the exact deadline or hearing date so I can give guidance in the right order and timing?'
   }
-  if (intent === 'evidence' && !/\b(document|email|letter|photo|screenshot|witness|statement)\b/.test(text)) {
+  if (task === 'document_review' && !/\b(document|email|letter|photo|screenshot|witness|statement)\b/.test(text)) {
     return 'What evidence do you currently have (for example emails, letters, screenshots, or witnesses)?'
   }
-  if (intent === 'procedure' && !/\b(claim form|defence|hearing|judgment|order|appeal|n244|cpr)\b/.test(text)) {
+  if (task === 'legal_procedure' && !/\b(claim form|defence|hearing|judgment|order|appeal|n244|cpr)\b/.test(text)) {
     return 'Which stage are you at right now (for example pre-claim, claim filed, defence filed, or hearing listed)?'
+  }
+  if (task === 'form_guidance' && !/\b(n\d{1,3}|claim form|defence form|n244|n180|n1)\b/.test(text)) {
+    return 'Which court form do you need help with (for example N1, N180, or N244)?'
   }
   return null
 }
@@ -1642,7 +1647,7 @@ export async function POST(request: NextRequest) {
             memory_summary: truncateText(`User: ${message}`, 320),
             key_facts: mergeFacts([], extractKeyFactsFromMessage(message)),
             open_questions: [],
-            last_intent: processingResult.intent,
+            last_intent: processingResult.task,
           },
           { onConflict: 'memory_key' }
         )
@@ -1683,6 +1688,9 @@ export async function POST(request: NextRequest) {
               activeCaseId: processingResult.caseId || sessionInfo.activeCaseId || null,
               conversationId: activeConversationId,
               suggestNewChat: true,
+              task: processingResult.task,
+              contextType: processingResult.contextType,
+              urgency: processingResult.urgency,
             },
           },
           { status: 200 }
@@ -1746,7 +1754,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const followUpQuestion = inferFollowUpQuestion(processingResult.intent, message)
+    const followUpQuestion = inferFollowUpQuestion(processingResult.task, message)
     const shouldShortCircuitToQuestion = Boolean(followUpQuestion && !hasAttachments && sanitizedHistory.length <= 1)
 
     if (shouldShortCircuitToQuestion) {
@@ -1762,7 +1770,7 @@ export async function POST(request: NextRequest) {
           memory_summary: truncateText(`User asked: ${message}`, 320),
           key_facts: mergedFacts,
           open_questions: [followUpQuestion],
-          last_intent: processingResult.intent,
+          last_intent: processingResult.task,
         },
         { onConflict: 'memory_key' }
       )
@@ -1776,6 +1784,9 @@ export async function POST(request: NextRequest) {
               requiresClarification: true,
               caseProcessing: processingResult,
               activeCaseId: resolvedCaseId,
+              task: processingResult.task,
+              contextType: processingResult.contextType,
+              urgency: processingResult.urgency,
             },
           },
           { status: 200 }
@@ -1817,13 +1828,13 @@ export async function POST(request: NextRequest) {
     const caseLawSuggestionDecision = evaluateCaseLawSuggestionNeed({
       message,
       history: sanitizedHistory,
-      intent: processingResult.intent,
+      task: processingResult.task,
       hasAttachments,
     })
     const retrievalFocusDecision = evaluateRetrievalFocus({
       message,
       history: sanitizedHistory,
-      intent: processingResult.intent,
+      task: processingResult.task,
       hasAttachments,
       caseContextData,
     })
@@ -1907,7 +1918,7 @@ export async function POST(request: NextRequest) {
 
     const premiumPlusCaseLawBaseDecision = shouldUseCaseLawRetrieval({
       message,
-      intent: processingResult.intent,
+      task: processingResult.task,
       hasAttachments,
       premiumFlow: premiumPlusActive,
       suggestionDecision: caseLawSuggestionDecision,
@@ -2089,7 +2100,7 @@ export async function POST(request: NextRequest) {
         memory_summary: truncateText(`User: ${message} | Assistant: ${finalAssistantResponse}`, 480),
         key_facts: mergedFacts,
         open_questions: [],
-        last_intent: processingResult.intent,
+        last_intent: processingResult.task,
       },
       { onConflict: 'memory_key' }
     )
@@ -2126,6 +2137,9 @@ export async function POST(request: NextRequest) {
             caseProcessing: processingResult,
             activeCaseId: processingResult.caseId || sessionInfo.activeCaseId,
             pendingCalendarEntries: (processingResult as any).pendingCalendarEntries || null,
+            task: processingResult.task,
+            contextType: processingResult.contextType,
+            urgency: processingResult.urgency,
             followUpQuestion,
             actionItems,
             templateDraftBlocked,
