@@ -3,7 +3,10 @@ import './globals.css'
 import ClientErrorReporter from '@/components/monitoring/ClientErrorReporter'
 import RouteTitleManager from '@/components/seo/RouteTitleManager'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mymckenziecs.com'
+const normalizeSiteUrl = (value: string) =>
+  value.replace(/^https?:\/\/www\./i, 'https://').replace(/\/+$/, '')
+
+const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL || 'https://mymckenziecs.com')
 const APP_FULL_NAME = 'MyMcKenzie Court Support'
 const APP_SHORT_NAME = 'MyMcKenzieCS'
 
