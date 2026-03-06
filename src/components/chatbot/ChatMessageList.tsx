@@ -35,9 +35,10 @@ export default function ChatMessageList({
   messagesEndRef,
   TypingIndicatorComponent
 }: ChatMessageListProps) {
-  const messageSideInsetPx = 36
+  const messageSideInsetPx = 0
   const messageBubbleMaxWidth = `calc(100% - ${messageSideInsetPx * 2}px)`
-  const assistantMaxLineWidth = `min(${messageBubbleMaxWidth}, 62ch)`
+  const userMessageMaxWidth = `calc(${messageBubbleMaxWidth} / 2)`
+  const assistantMaxWidth = `min(${messageBubbleMaxWidth}, 650px)`
 
   const stripLegacyReferenceIndex = (text: string) =>
     (text || '')
@@ -235,8 +236,8 @@ export default function ChatMessageList({
               style={{
                 padding: isUser ? '6px 14px 6px 10px' : '0',
                 borderRadius: isUser ? '12px' : '0',
-                maxWidth: isUser ? messageBubbleMaxWidth : assistantMaxLineWidth,
-                width: isUser ? 'fit-content' : assistantMaxLineWidth,
+                maxWidth: isUser ? userMessageMaxWidth : assistantMaxWidth,
+                width: isUser ? 'fit-content' : assistantMaxWidth,
                 boxSizing: 'border-box',
                 lineHeight: 1.65,
                 fontFamily: 'inherit',
