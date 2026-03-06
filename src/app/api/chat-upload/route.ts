@@ -5,6 +5,7 @@ import os from 'os'
 import path from 'path'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse, uploadIpRateLimiter } from '@/lib/utils/rate-limit'
+import { formatSupportedAttachmentTypes, isSupportedChatAttachment } from '@/lib/chat/attachments'
 
 export const runtime = 'nodejs'
 
@@ -87,6 +88,12 @@ export async function POST(request: Request) {
 
     for (const entry of entries) {
       if (!(entry instanceof File)) continue
+      if (!isSupportedChatAttachment({ name: entry.name, type: entry.type || null })) {
+        return NextResponse.json(
+          { message: `Unsupported file type for "${entry.name}". Supported types: ${formatSupportedAttachmentTypes()}.` },
+          { status: 400 }
+        )
+      }
       if (entry.size > MAX_FILE_SIZE) {
         return NextResponse.json({ message: 'File too large. Max size is 25MB.' }, { status: 400 })
       }

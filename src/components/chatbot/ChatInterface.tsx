@@ -10,6 +10,7 @@ import ChatMessageList from '@/components/chatbot/ChatMessageList'
 import { useChatAuthPlan, type InitialChatPlanState } from '@/components/chatbot/hooks/useChatAuthPlan'
 import { useConversationBootstrap } from '@/components/chatbot/hooks/useConversationBootstrap'
 import { hasCaseProfileAccess } from '@/lib/plans/access'
+import { formatSupportedAttachmentTypes, isSupportedChatAttachment } from '@/lib/chat/attachments'
 import type {
   AssistantMetadata,
   Message,
@@ -935,8 +936,24 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       e.target.value = ''
       return
     }
-    setGuestUploadWarning(null)
-    setAttachedFiles(prev => [...prev, ...files])
+    const supportedFiles = files.filter((file) => isSupportedChatAttachment({ name: file.name, type: file.type || null }))
+    const unsupportedFiles = files.filter((file) => !isSupportedChatAttachment({ name: file.name, type: file.type || null }))
+
+    if (unsupportedFiles.length > 0) {
+      const unsupportedNames = unsupportedFiles
+        .map((file) => file.name)
+        .slice(0, 3)
+        .join(', ')
+      setGuestUploadWarning(
+        `Unsupported file type: ${unsupportedNames}. Supported types: ${formatSupportedAttachmentTypes()}.`
+      )
+    } else {
+      setGuestUploadWarning(null)
+    }
+
+    if (supportedFiles.length > 0) {
+      setAttachedFiles(prev => [...prev, ...supportedFiles])
+    }
     e.target.value = ''
   }
 

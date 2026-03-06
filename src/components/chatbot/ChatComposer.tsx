@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import type { FormEvent, KeyboardEvent, MutableRefObject, ChangeEvent } from 'react'
+import { CHAT_ATTACHMENT_ACCEPT } from '@/lib/chat/attachments'
 
 type ChatComposerProps = {
   onSubmit: (e?: FormEvent<HTMLFormElement>) => void
@@ -289,7 +290,7 @@ export default function ChatComposer({
                         ref={fileInputRef}
                         type="file"
                         multiple
-                        accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                        accept={CHAT_ATTACHMENT_ACCEPT}
                         onChange={onFileChange}
                         style={{ display: 'none' }}
                       />
