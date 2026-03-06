@@ -53,6 +53,7 @@ export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [
+      { url: '/favicon-source.png', sizes: '1080x1080', type: 'image/png' },
       { url: '/favicon.ico', type: 'image/x-icon' },
       { url: '/favicon-48x48.png', sizes: '48x48', type: 'image/png' },
       { url: '/favicon-192x192.png', sizes: '192x192', type: 'image/png' },
