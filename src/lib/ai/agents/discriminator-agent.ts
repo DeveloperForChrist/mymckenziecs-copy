@@ -206,8 +206,8 @@ async function streamlineAnswerForUser(
   historyContext: string,
   caseKeywords?: string,
   includeCitations: boolean = false,
-  orchestratorModel?: string,
-  orchestratorFallbackModel?: string
+  discriminatorModel?: string,
+  discriminatorFallbackModel?: string
 ): Promise<{ streamlinedAnswer: string; citedSourcesIndices: number[] }> {
   const sourcesList = allSources.map((url, i) => `[${i + 1}] ${url}`).join('\n')
   
@@ -217,7 +217,7 @@ async function streamlineAnswerForUser(
   const citationTaskRule = includeCitations
     ? 'Preserve and improve source citations like [1], [2], [3] so factual claims are attributable.'
     : 'Remove any source citations like [1], [2], [3].'
-  const streamlinePrompt = `You are the orchestrator agent (critic, reviser, verifier) reviewing the assistant's answer. Your goal is to decide if the answer is genuinely helpful to the user based on their specific question and the conversation history. If it is missing anything important, add it. If it is too long or unfocused, streamline it.
+  const streamlinePrompt = `You are the discriminator agent (critic, reviser, verifier) reviewing the assistant's answer. Your goal is to decide if the answer is genuinely helpful to the user based on their specific question and the conversation history. If it is missing anything important, add it. If it is too long or unfocused, streamline it.
 
 UNDERSTAND THE USER'S ACTUAL NEED:
 User's Specific Question: "${userQuery}"
@@ -267,7 +267,7 @@ Your task:
 
 Provide ONLY the final streamlined answer. No explanations needed.`
 
-  const systemPrompt = `You are a UK litigant in person acting as an orchestrator (critic, reviser, verifier) for legal guidance. Your job is to detect gaps, weak claims, missing steps, and formatting issues, then fix them. You are responsible for presentation, organisation,structure and making sure dialogue is conversational friendly. Streamline and improve while preserving accuracy. Output MUST be plain text only, with section titles as plain text lines (do NOT end titles with a colon). Use headings only when the topic branches, and make them specific. Use short paragraphs (1 idea, 1-3 sentences). Use numbered lists for ordered steps or hierarchy and bullets for parallel ideas. Do not output tables. Use divider lines only when shifting mode (explanation → examples, law → practical) and the divider line must be exactly: ────────────────────. Always end with a one-sentence compression line starting with "In short:". ${citationRule} Keep page references if present. No markdown.`
+  const systemPrompt = `You are a UK litigant in person acting as a discriminator (critic, reviser, verifier) for legal guidance. Your job is to detect gaps, weak claims, missing steps, and formatting issues, then fix them. You are responsible for presentation, organisation,structure and making sure dialogue is conversational friendly. Streamline and improve while preserving accuracy. Output MUST be plain text only, with section titles as plain text lines (do NOT end titles with a colon). Use headings only when the topic branches, and make them specific. Use short paragraphs (1 idea, 1-3 sentences). Use numbered lists for ordered steps or hierarchy and bullets for parallel ideas. Do not output tables. Use divider lines only when shifting mode (explanation → examples, law → practical) and the divider line must be exactly: ────────────────────. Always end with a one-sentence compression line starting with "In short:". ${citationRule} Keep page references if present. No markdown.`
 
   const runClaudeOrchestrator = async (modelName: string, apiKey: string): Promise<string> => {
     const startedAt = Date.now()
@@ -306,8 +306,8 @@ Provide ONLY the final streamlined answer. No explanations needed.`
   if (!anthropicApiKey) {
     throw new Error('ANTHROPIC_API_KEY is not set for orchestrator')
   }
-  const activeOrchestratorModel = (orchestratorModel || ORCHESTRATOR_MODEL).trim() || ORCHESTRATOR_MODEL
-  const activeOrchestratorFallbackModel = (orchestratorFallbackModel || ORCHESTRATOR_CLAUDE_FALLBACK_MODEL).trim()
+  const activeOrchestratorModel = (discriminatorModel || ORCHESTRATOR_MODEL).trim() || ORCHESTRATOR_MODEL
+  const activeOrchestratorFallbackModel = (discriminatorFallbackModel || ORCHESTRATOR_CLAUDE_FALLBACK_MODEL).trim()
   let streamed = comprehensiveAnswer
   let lastProviderError: unknown = null
 
@@ -391,13 +391,11 @@ Provide ONLY the final streamlined answer. No explanations needed.`
   return { streamlinedAnswer: streamlinedAnswer.trim(), citedSourcesIndices }
 }
 
-export async function createOrchestratorAgent(
+export async function createDiscriminatorAgent(
   conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [],
   caseKeywords?: string,
   includeCitations: boolean = false,
   options?: {
-    orchestratorModel?: string
-    orchestratorFallbackModel?: string
     discriminatorModel?: string
     discriminatorFallbackModel?: string
   }
@@ -420,8 +418,8 @@ export async function createOrchestratorAgent(
         historyContext,
         caseKeywords,
         includeCitations,
-        options?.orchestratorModel || options?.discriminatorModel,
-        options?.orchestratorFallbackModel || options?.discriminatorFallbackModel
+        options?.discriminatorModel,
+        options?.discriminatorFallbackModel
       )
       
       // Format cited sources
@@ -451,4 +449,4 @@ export async function createOrchestratorAgent(
 }
 
 // Backward compatibility alias
-export const createDiscriminatorAgent = createOrchestratorAgent
+export const createOrchestratorAgent = createDiscriminatorAgent

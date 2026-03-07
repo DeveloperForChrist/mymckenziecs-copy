@@ -15,7 +15,7 @@ import { captureServerException } from '@/lib/monitoring/error-logger'
 import { isBasicPlan, isPremiumPlan, isPremiumPlusPlan } from '@/lib/plans/access'
 import { searchByText } from '@/lib/vector/milvus'
 import { getUserPlanData } from '@/lib/payments/user-plan'
-import { decomposeWithOrchestrator } from '@/lib/ai/agents/discriminator-agent'
+import { decomposeWithPlanner } from '@/lib/ai/agents/planner-agent'
 import { extractTextFromBuffer } from '@/lib/chat/text-extraction'
 
 export const dynamic = 'force-dynamic'
@@ -99,22 +99,30 @@ const getPremiumPlusOpenAiFallbackModel = (primaryModel: string): string =>
     'OPENAI_BASIC_MODEL'
   ) || primaryModel
 
-const getPremiumPlusOrchestratorModel = (): string | null =>
-  getEnvModelValue('PREMIUM_PLUS_CLAUDE_MODEL')
+const getPremiumPlusDiscriminatorModel = (): string | null =>
+  getEnvModelValue('PREMIUM_PLUS_DISCRIMINATOR_CLAUDE_MODEL', 'PREMIUM_PLUS_CLAUDE_MODEL')
 
-const getPremiumPlusOrchestratorFallbackModel = (primaryModel: string): string =>
-  getEnvModelValue('PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL') || primaryModel
+const getPremiumPlusDiscriminatorFallbackModel = (primaryModel: string): string =>
+  getEnvModelValue('PREMIUM_PLUS_DISCRIMINATOR_CLAUDE_FALLBACK_MODEL', 'PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL') || primaryModel
 
-const PREMIUM_PLUS_ORCHESTRATOR_DECOMPOSE_ENABLED =
-  (process.env.PREMIUM_PLUS_ORCHESTRATOR_DECOMPOSE_ENABLED || 'true').toLowerCase() !== 'false'
-const PREMIUM_PLUS_ORCHESTRATOR_FINAL_PASS_ENABLED =
-  (process.env.PREMIUM_PLUS_ORCHESTRATOR_FINAL_PASS_ENABLED || 'true').toLowerCase() !== 'false'
-const PREMIUM_PLUS_ORCHESTRATOR_MIN_CONFIDENCE = Math.max(
+const PREMIUM_PLUS_PLANNER_ENABLED =
+  (getEnvModelValue('PREMIUM_PLUS_PLANNER_ENABLED', 'PREMIUM_PLUS_ORCHESTRATOR_DECOMPOSE_ENABLED') || 'true').toLowerCase() !== 'false'
+const PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED =
+  (getEnvModelValue('PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED', 'PREMIUM_PLUS_ORCHESTRATOR_FINAL_PASS_ENABLED') || 'true').toLowerCase() !== 'false'
+const PREMIUM_PLUS_PLANNER_MIN_CONFIDENCE = Math.max(
   0,
-  Math.min(1, Number.parseFloat(process.env.PREMIUM_PLUS_ORCHESTRATOR_MIN_CONFIDENCE || '0.58'))
+  Math.min(
+    1,
+    Number.parseFloat(
+      getEnvModelValue('PREMIUM_PLUS_PLANNER_MIN_CONFIDENCE', 'PREMIUM_PLUS_ORCHESTRATOR_MIN_CONFIDENCE') || '0.58'
+    )
+  )
 )
-const PREMIUM_PLUS_ORCHESTRATOR_LOW_CONFIDENCE_MODE =
-  (process.env.PREMIUM_PLUS_ORCHESTRATOR_LOW_CONFIDENCE_MODE || 'fallback').toLowerCase() === 'hybrid'
+const PREMIUM_PLUS_PLANNER_LOW_CONFIDENCE_MODE =
+  (
+    getEnvModelValue('PREMIUM_PLUS_PLANNER_LOW_CONFIDENCE_MODE', 'PREMIUM_PLUS_ORCHESTRATOR_LOW_CONFIDENCE_MODE') ||
+    'fallback'
+  ).toLowerCase() === 'hybrid'
     ? 'hybrid'
     : 'fallback'
 const CHAT_THREAD_MAX_USER_TURNS_DEFAULT = Number.isFinite(Number(process.env.CHAT_THREAD_MAX_USER_TURNS))
@@ -1815,9 +1823,9 @@ export async function POST(request: NextRequest) {
     const premiumPlusOpenAiFallbackModel = premiumPlusOpenAiModel
       ? getPremiumPlusOpenAiFallbackModel(premiumPlusOpenAiModel)
       : null
-    const premiumPlusOrchestratorModel = premiumPlusActive ? getPremiumPlusOrchestratorModel() : null
-    if (premiumPlusActive && !premiumPlusOrchestratorModel) {
-      console.error('Premium+ orchestrator model is missing for a Premium+ chat request')
+    const premiumPlusDiscriminatorModel = premiumPlusActive ? getPremiumPlusDiscriminatorModel() : null
+    if (premiumPlusActive && PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED && !premiumPlusDiscriminatorModel) {
+      console.error('Premium+ discriminator model is missing for a Premium+ chat request')
       return withCookie(
         NextResponse.json(
           { response: 'Premium+ review is temporarily unavailable. Please try again shortly.' },
@@ -1825,8 +1833,8 @@ export async function POST(request: NextRequest) {
         )
       )
     }
-    const premiumPlusOrchestratorFallbackModel = premiumPlusOrchestratorModel
-      ? getPremiumPlusOrchestratorFallbackModel(premiumPlusOrchestratorModel)
+    const premiumPlusDiscriminatorFallbackModel = premiumPlusDiscriminatorModel
+      ? getPremiumPlusDiscriminatorFallbackModel(premiumPlusDiscriminatorModel)
       : null
     const caseLawSuggestionDecision = evaluateCaseLawSuggestionNeed({
       message,
@@ -1841,20 +1849,20 @@ export async function POST(request: NextRequest) {
       hasAttachments,
       caseContextData,
     })
-    let orchestratorDecomposition: Awaited<ReturnType<typeof decomposeWithOrchestrator>> | null = null
-    let orchestratedFocus: RetrievalFocus = retrievalFocusDecision.focus
-    let orchestratedVectorQuery = ''
-    let orchestratedWebQuery = ''
-    let orchestratorClarificationQuestion = ''
-    let orchestratorConfidence: number | null = null
-    let orchestratorLowConfidenceFallback: 'none' | 'heuristic' | 'hybrid' = 'none'
+    let plannerDecomposition: Awaited<ReturnType<typeof decomposeWithPlanner>> | null = null
+    let plannedFocus: RetrievalFocus = retrievalFocusDecision.focus
+    let plannedVectorQuery = ''
+    let plannedWebQuery = ''
+    let plannerClarificationQuestion = ''
+    let plannerConfidence: number | null = null
+    let plannerLowConfidenceFallback: 'none' | 'heuristic' | 'hybrid' = 'none'
     let routingReasonsApplied: string[] = retrievalFocusDecision.reasons.slice()
 
     if (
       premiumPlusActive &&
-      PREMIUM_PLUS_ORCHESTRATOR_DECOMPOSE_ENABLED
+      PREMIUM_PLUS_PLANNER_ENABLED
     ) {
-      const orchestratorInput = truncateText(
+      const plannerInput = truncateText(
         attachmentContext
           ? `${message}\n\nUser uploaded documents. Use the excerpts below during decomposition.\n${attachmentContext}`
           : attachmentMetadata
@@ -1862,55 +1870,51 @@ export async function POST(request: NextRequest) {
             : message,
         12000
       )
-      orchestratorDecomposition = await decomposeWithOrchestrator(
-        orchestratorInput,
+      plannerDecomposition = await decomposeWithPlanner(
+        plannerInput,
         sanitizedHistory as Array<{ role: 'user' | 'assistant'; content: string }>,
-        caseKeywords,
-        {
-          orchestratorModel: premiumPlusOrchestratorModel || undefined,
-          orchestratorFallbackModel: premiumPlusOrchestratorFallbackModel || undefined,
-        }
+        caseKeywords
       )
 
-      if (orchestratorDecomposition) {
-        orchestratedFocus = orchestratorDecomposition.retrievalMode
-        orchestratedVectorQuery = (orchestratorDecomposition.vectorQuery || '').trim()
-        orchestratedWebQuery = (orchestratorDecomposition.webQuery || '').trim()
-        orchestratorClarificationQuestion = (orchestratorDecomposition.clarificationQuestion || '').trim()
-        orchestratorConfidence = Number.isFinite(Number(orchestratorDecomposition.confidence))
-          ? Math.max(0, Math.min(1, Number(orchestratorDecomposition.confidence)))
+      if (plannerDecomposition) {
+        plannedFocus = plannerDecomposition.retrievalMode
+        plannedVectorQuery = (plannerDecomposition.vectorQuery || '').trim()
+        plannedWebQuery = (plannerDecomposition.webQuery || '').trim()
+        plannerClarificationQuestion = (plannerDecomposition.clarificationQuestion || '').trim()
+        plannerConfidence = Number.isFinite(Number(plannerDecomposition.confidence))
+          ? Math.max(0, Math.min(1, Number(plannerDecomposition.confidence)))
           : null
-        routingReasonsApplied = (orchestratorDecomposition.reasons || []).slice()
+        routingReasonsApplied = (plannerDecomposition.reasons || []).slice()
 
         if (
-          orchestratorConfidence !== null &&
-          orchestratorConfidence < PREMIUM_PLUS_ORCHESTRATOR_MIN_CONFIDENCE
+          plannerConfidence !== null &&
+          plannerConfidence < PREMIUM_PLUS_PLANNER_MIN_CONFIDENCE
         ) {
-          if (PREMIUM_PLUS_ORCHESTRATOR_LOW_CONFIDENCE_MODE === 'hybrid') {
-            orchestratedFocus = 'hybrid'
-            orchestratorLowConfidenceFallback = 'hybrid'
+          if (PREMIUM_PLUS_PLANNER_LOW_CONFIDENCE_MODE === 'hybrid') {
+            plannedFocus = 'hybrid'
+            plannerLowConfidenceFallback = 'hybrid'
           } else {
-            orchestratedFocus = retrievalFocusDecision.focus
-            orchestratedVectorQuery = ''
-            orchestratedWebQuery = ''
-            orchestratorLowConfidenceFallback = 'heuristic'
+            plannedFocus = retrievalFocusDecision.focus
+            plannedVectorQuery = ''
+            plannedWebQuery = ''
+            plannerLowConfidenceFallback = 'heuristic'
             routingReasonsApplied = retrievalFocusDecision.reasons.slice()
           }
           routingReasonsApplied.push(
-            `orchestrator-low-confidence:${orchestratorConfidence.toFixed(2)}<${PREMIUM_PLUS_ORCHESTRATOR_MIN_CONFIDENCE.toFixed(2)}`
+            `planner-low-confidence:${plannerConfidence.toFixed(2)}<${PREMIUM_PLUS_PLANNER_MIN_CONFIDENCE.toFixed(2)}`
           )
         }
       }
     }
 
-    if (premiumPlusActive && orchestratorClarificationQuestion) {
+    if (premiumPlusActive && plannerClarificationQuestion) {
       return withCookie(
         NextResponse.json(
           {
-            response: orchestratorClarificationQuestion,
+            response: plannerClarificationQuestion,
             metadata: {
               requiresClarification: true,
-              clarificationSource: 'orchestrator',
+              clarificationSource: 'planner',
               activeCaseId: resolvedCaseId,
             },
           },
@@ -1928,7 +1932,7 @@ export async function POST(request: NextRequest) {
     })
     const shouldUsePremiumPlusCaseLawRetrieval =
       premiumPlusActive &&
-      orchestratedFocus !== 'web_only' &&
+      plannedFocus !== 'web_only' &&
       (
         premiumPlusCaseLawBaseDecision ||
         retrievalFocusDecision.ownCaseNarrative ||
@@ -1937,7 +1941,7 @@ export async function POST(request: NextRequest) {
 
     let shouldUseSearchRetrieval =
       premiumPlanActive ||
-      (premiumPlusActive && orchestratedFocus !== 'vector_only')
+      (premiumPlusActive && plannedFocus !== 'vector_only')
     let usePremiumPlusVectorRag =
       premiumPlusActive &&
       shouldUsePremiumPlusCaseLawRetrieval &&
@@ -1945,7 +1949,7 @@ export async function POST(request: NextRequest) {
     const shouldLookupCaseLawSuggestions =
       premiumPlusActive &&
       shouldUsePremiumPlusCaseLawRetrieval &&
-      (caseLawSuggestionDecision.shouldSuggest || orchestratedFocus !== 'web_only')
+      (caseLawSuggestionDecision.shouldSuggest || plannedFocus !== 'web_only')
 
     const baselineCaseLawQuery = buildCaseLawSuggestionQuery({
       message,
@@ -1953,7 +1957,7 @@ export async function POST(request: NextRequest) {
       caseContextData,
       memoryRow,
     })
-    const caseLawQuery = orchestratedVectorQuery || baselineCaseLawQuery
+    const caseLawQuery = plannedVectorQuery || baselineCaseLawQuery
 
     const caseLawSuggestionPromise = shouldLookupCaseLawSuggestions
       ? fetchCaseLawSuggestions(caseLawQuery, CASELAW_SUGGESTION_LIMIT)
@@ -1964,7 +1968,7 @@ export async function POST(request: NextRequest) {
       : Promise.resolve([] as VectorCaseLawRagItem[])
 
     const vectorCaseLawRagItems = await vectorCaseLawRagPromise
-    const vectorOnlyRequested = premiumPlusActive && orchestratedFocus === 'vector_only'
+    const vectorOnlyRequested = premiumPlusActive && plannedFocus === 'vector_only'
     const vectorFallbackToWeb =
       vectorOnlyRequested &&
       usePremiumPlusVectorRag &&
@@ -1982,24 +1986,24 @@ export async function POST(request: NextRequest) {
     const retrievalRoutingContext = premiumPlusActive
       ? (
         `\n\nRetrieval routing:\n` +
-        `- Focus: ${orchestratedFocus}\n` +
+        `- Focus: ${plannedFocus}\n` +
         `- Own-case narrative: ${retrievalFocusDecision.ownCaseNarrative ? 'yes' : 'no'}\n` +
         `- Precedent score: ${retrievalFocusDecision.precedentScore}\n` +
         `- Procedure score: ${retrievalFocusDecision.procedureScore}\n` +
         `- Routing reasons: ${routingReasonsApplied.join(', ')}` +
-        (orchestratorConfidence !== null ? `\n- Orchestrator confidence: ${orchestratorConfidence.toFixed(2)}` : '') +
-        (orchestratorLowConfidenceFallback !== 'none'
-          ? `\n- Low-confidence fallback applied: ${orchestratorLowConfidenceFallback}`
+        (plannerConfidence !== null ? `\n- Planner confidence: ${plannerConfidence.toFixed(2)}` : '') +
+        (plannerLowConfidenceFallback !== 'none'
+          ? `\n- Low-confidence fallback applied: ${plannerLowConfidenceFallback}`
           : '') +
-        (orchestratorDecomposition?.decomposition ? `\n- Orchestrator decomposition: ${orchestratorDecomposition.decomposition}` : '') +
-        (orchestratedWebQuery ? `\n- Orchestrator web query: ${orchestratedWebQuery}` : '') +
-        (orchestratedVectorQuery ? `\n- Orchestrator vector query: ${orchestratedVectorQuery}` : '') +
+        (plannerDecomposition?.decomposition ? `\n- Planner decomposition: ${plannerDecomposition.decomposition}` : '') +
+        (plannedWebQuery ? `\n- Planner web query: ${plannedWebQuery}` : '') +
+        (plannedVectorQuery ? `\n- Planner vector query: ${plannedVectorQuery}` : '') +
         (vectorFallbackToWeb ? '\n- Vector confidence low. Switched on web guidance fallback.' : '')
       )
       : ''
     const caseLawStyleInstruction = premiumPlusActive
       ? (() => {
-          if (orchestratedFocus === 'web_only') {
+          if (plannedFocus === 'web_only') {
             return '\n\nExplanation policy (Premium+): Focus on current procedure and practical next steps in plain English. Do not add case authorities unless they are directly relevant.'
           }
           if (vectorOnlyRequested && !vectorFallbackToWeb) {
@@ -2009,16 +2013,16 @@ export async function POST(request: NextRequest) {
         })()
       : ''
 
-    const orchestrationInstruction = premiumPlusActive && orchestratorDecomposition
-      ? `\n\nOrchestrator instruction:\n- Use retrieval focus: ${orchestratedFocus}\n` +
-        (orchestratorDecomposition.decomposition ? `- Decomposition:\n${orchestratorDecomposition.decomposition}\n` : '') +
-        (orchestratedWebQuery ? `- Web emphasis query: ${orchestratedWebQuery}\n` : '') +
-        (orchestratedVectorQuery ? `- Authority emphasis query: ${orchestratedVectorQuery}\n` : '')
+    const plannerInstruction = premiumPlusActive && plannerDecomposition
+      ? `\n\nPlanner instruction:\n- Use retrieval focus: ${plannedFocus}\n` +
+        (plannerDecomposition.decomposition ? `- Decomposition:\n${plannerDecomposition.decomposition}\n` : '') +
+        (plannedWebQuery ? `- Web emphasis query: ${plannedWebQuery}\n` : '') +
+        (plannedVectorQuery ? `- Authority emphasis query: ${plannedVectorQuery}\n` : '')
       : ''
 
     const rawMessageForAgent = attachmentContext
       ? `${message}${ownCaseFactsContext}\n\nThe user uploaded documents. Use the excerpts below in your analysis.${caseContext}${memoryContext}${retrievalRoutingContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}\n${attachmentContext}`
-      : `${message}${ownCaseFactsContext}${caseContext}${memoryContext}${retrievalRoutingContext}${orchestrationInstruction}${vectorCaseLawRagContext}${caseLawStyleInstruction}${attachmentMetadata}`
+      : `${message}${ownCaseFactsContext}${caseContext}${memoryContext}${retrievalRoutingContext}${plannerInstruction}${vectorCaseLawRagContext}${caseLawStyleInstruction}${attachmentMetadata}`
 
     const messageForAgent = truncateText(rawMessageForAgent, 12000)
     const threadId = `thread_${Date.now()}_${userId}`
@@ -2027,17 +2031,17 @@ export async function POST(request: NextRequest) {
     const agentResponse = shouldUseBasicLegalAgent
       ? await invokeBasicLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords)
       : await invokeLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
-          useDiscriminator: premiumPlusActive && PREMIUM_PLUS_ORCHESTRATOR_FINAL_PASS_ENABLED,
+          useDiscriminator: premiumPlusActive && PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED,
           useSearch: shouldUseSearchRetrieval,
           includeCitations: premiumPlusActive,
-          searchQueryOverride: premiumPlusActive ? (orchestratedWebQuery || undefined) : undefined,
+          searchQueryOverride: premiumPlusActive ? (plannedWebQuery || undefined) : undefined,
           openaiModel: premiumPlusActive ? (premiumPlusOpenAiModel || undefined) : premiumOpenAiModel,
           openaiFallbackModel: premiumPlusActive
             ? (premiumPlusOpenAiFallbackModel || undefined)
             : premiumOpenAiFallbackModel,
-          orchestratorModel: premiumPlusActive ? (premiumPlusOrchestratorModel || undefined) : undefined,
-          orchestratorFallbackModel: premiumPlusActive
-            ? (premiumPlusOrchestratorFallbackModel || undefined)
+          discriminatorModel: premiumPlusActive ? (premiumPlusDiscriminatorModel || undefined) : undefined,
+          discriminatorFallbackModel: premiumPlusActive
+            ? (premiumPlusDiscriminatorFallbackModel || undefined)
             : undefined,
         })
 
@@ -2169,21 +2173,21 @@ export async function POST(request: NextRequest) {
                     caseLawRetrievalThreshold: CASELAW_RETRIEVAL_MIN_SCORE,
                     caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
                     retrievalFocus: retrievalFocusDecision.focus,
-                    retrievalFocusApplied: orchestratedFocus,
+                    retrievalFocusApplied: plannedFocus,
                     retrievalOwnCaseNarrative: retrievalFocusDecision.ownCaseNarrative,
                     retrievalPrecedentScore: retrievalFocusDecision.precedentScore,
                     retrievalProcedureScore: retrievalFocusDecision.procedureScore,
                     retrievalReasons: routingReasonsApplied,
-                    orchestratorDecomposeEnabled: PREMIUM_PLUS_ORCHESTRATOR_DECOMPOSE_ENABLED,
-                    orchestratorFinalPassEnabled: PREMIUM_PLUS_ORCHESTRATOR_FINAL_PASS_ENABLED,
-                    orchestratorMinConfidence: PREMIUM_PLUS_ORCHESTRATOR_MIN_CONFIDENCE,
-                    orchestratorLowConfidenceMode: PREMIUM_PLUS_ORCHESTRATOR_LOW_CONFIDENCE_MODE,
-                    orchestratorConfidence,
-                    orchestratorLowConfidenceFallback,
-                    orchestratorDecomposition: orchestratorDecomposition?.decomposition || null,
-                    orchestratorReasons: orchestratorDecomposition?.reasons || [],
-                    orchestratorWebQuery: orchestratedWebQuery || null,
-                    orchestratorVectorQuery: orchestratedVectorQuery || null,
+                    plannerEnabled: PREMIUM_PLUS_PLANNER_ENABLED,
+                    discriminatorFinalPassEnabled: PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED,
+                    plannerMinConfidence: PREMIUM_PLUS_PLANNER_MIN_CONFIDENCE,
+                    plannerLowConfidenceMode: PREMIUM_PLUS_PLANNER_LOW_CONFIDENCE_MODE,
+                    plannerConfidence,
+                    plannerLowConfidenceFallback,
+                    plannerDecomposition: plannerDecomposition?.decomposition || null,
+                    plannerReasons: plannerDecomposition?.reasons || [],
+                    plannerWebQuery: plannedWebQuery || null,
+                    plannerVectorQuery: plannedVectorQuery || null,
                     removedUnsupportedAuthorityLines,
                     templateDraftBlocked,
                     templateDraftBlockReason,

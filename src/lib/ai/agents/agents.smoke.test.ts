@@ -56,7 +56,8 @@ vi.mock('@anthropic-ai/sdk', () => {
 
 import { invokeBasicLegalAgent } from './legal-agent'
 import { CaseStudyAgent } from './case-study-agent'
-import { createOrchestratorAgent, decomposeWithOrchestrator } from './discriminator-agent'
+import { createDiscriminatorAgent } from './discriminator-agent'
+import { decomposeWithPlanner } from './planner-agent'
 
 describe('agent smoke checks', () => {
   const originalEnv = { ...process.env }
@@ -64,11 +65,34 @@ describe('agent smoke checks', () => {
   beforeEach(() => {
     process.env.OPENAI_API_KEY = 'test-key'
     process.env.ANTHROPIC_API_KEY = 'test-key'
+    process.env.GROQ_API_KEY = 'test-key'
     process.env.BASIC_OPENAI_ROUTING_PERCENT = '100'
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                retrieval_mode: 'hybrid',
+                decomposition: 'User asks about facts and procedure.',
+                vector_query: 'relevant UK precedent',
+                web_query: 'current UK procedure guidance',
+                confidence: 0.78,
+                reasons: ['mixed-signals'],
+              }),
+            },
+          },
+        ],
+      }),
+      text: async () => '',
+      headers: { get: () => null },
+    })))
   })
 
   afterEach(() => {
     vi.restoreAllMocks()
+    vi.unstubAllGlobals()
     process.env = { ...originalEnv }
   })
 
@@ -85,8 +109,8 @@ describe('agent smoke checks', () => {
     expect(result.response.trim().length).toBeGreaterThan(0)
   })
 
-  it('orchestrator decompose returns routing output', async () => {
-    const result = await decomposeWithOrchestrator(
+  it('planner agent returns routing output', async () => {
+    const result = await decomposeWithPlanner(
       'My landlord kept my deposit and ignored my letter before action. What next?',
       [],
       'small claims'
@@ -97,8 +121,8 @@ describe('agent smoke checks', () => {
     expect(result?.decomposition?.length || 0).toBeGreaterThan(0)
   })
 
-  it('orchestrator final-pass agent returns a streamlined reply', async () => {
-    const agent = await createOrchestratorAgent([], 'small claims', false)
+  it('discriminator final-pass agent returns a streamlined reply', async () => {
+    const agent = await createDiscriminatorAgent([], 'small claims', false)
     const result = await agent.invoke({
       input: 'What should I understand here?',
       comprehensiveAnswer: 'A longer draft answer from generator.',
@@ -130,4 +154,3 @@ describe('agent smoke checks', () => {
     expect(result.content.toLowerCase()).toContain('not legal advice')
   })
 })
-

@@ -29,13 +29,19 @@ const openAiModels = unique([
 ])
 
 const groqModels = unique([
-  process.env.GROQ_CHAT_MODEL,
-  process.env.GROQ_CHAT_FALLBACK_MODEL,
+  process.env.BASIC_GROQ_MODEL,
+  process.env.BASIC_GROQ_FALLBACK_MODEL,
+  process.env.GROQ_BASIC_MODEL,
+  process.env.GROQ_BASIC_FALLBACK_MODEL,
 ])
 
 const claudeModels = unique([
   process.env.CLAUDE_MODEL,
   process.env.CLAUDE_FALLBACK_MODEL,
+  process.env.PREMIUM_PLUS_CLAUDE_MODEL,
+  process.env.PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL,
+  process.env.PREMIUM_PLUS_PLANNER_CLAUDE_MODEL,
+  process.env.PREMIUM_PLUS_PLANNER_CLAUDE_FALLBACK_MODEL,
 ])
 
 const shorten = (value, max = 140) => {
@@ -50,7 +56,7 @@ async function checkOpenAiModel(model) {
     model,
     messages: [{ role: 'user', content: 'Reply with OK.' }],
   }
-  if (normalized.startsWith('o')) {
+  if (normalized.startsWith('o') || normalized.startsWith('gpt-5')) {
     payload.max_completion_tokens = 12
   } else {
     payload.max_tokens = 12
