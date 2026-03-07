@@ -22,6 +22,13 @@ type SearchCandidate = {
   fromQuery?: string
 }
 
+const SEARCH_SUBQUERY_LIMIT = 2
+const SEARCH_ENGINE_RESULT_LIMIT = 10
+const SEARCH_ENGINE_TIMEOUT_MS = 8000
+const SEARCH_PAGE_REVIEW_LIMIT = 6
+const SEARCH_PAGE_FETCH_TIMEOUT_MS = 5000
+const SEARCH_PACKET_RESULT_LIMIT = 6
+
 const safeJsonParse = <T,>(value: string): T | null => {
   try {
     return JSON.parse(value) as T
@@ -77,7 +84,7 @@ const extractSubIntents = (query: string): string[] => {
     .filter((part) => part.length >= 8)
 
   const fineParts = coarseParts.flatMap((part) => splitOnSubIntentJoiners(part))
-  return Array.from(new Set(fineParts)).slice(0, 3)
+  return Array.from(new Set(fineParts)).slice(0, SEARCH_SUBQUERY_LIMIT)
 }
 
 const buildNeedSuffix = (needs: Set<InfoNeed>): string => {
@@ -125,7 +132,7 @@ const buildSearchSubqueries = (query: string, mode: RetrievalMode): string[] => 
   )
 
   // Keep search fan-out small to control latency and provider limits.
-  return unique.slice(0, 3)
+  return unique.slice(0, SEARCH_SUBQUERY_LIMIT)
 }
 
 const BASE_CURATED_SOURCES: SearchCandidate[] = [
@@ -261,7 +268,7 @@ const fetchWithTimeout = async (url: string, timeoutMs: number, init?: RequestIn
 
 const fetchText = async (url: string): Promise<{ title?: string; text: string } | null> => {
   try {
-    const response = await fetchWithTimeout(url, 12000)
+    const response = await fetchWithTimeout(url, SEARCH_PAGE_FETCH_TIMEOUT_MS)
     if (!response.ok) return null
     const contentType = response.headers.get('content-type') || ''
     const raw = await response.text()
@@ -318,8 +325,8 @@ const searchViaBraveApi = async (query: string): Promise<SearchCandidate[]> => {
 
   try {
     const encoded = encodeURIComponent(query)
-    const url = `https://api.search.brave.com/res/v1/web/search?q=${encoded}&count=12&country=GB&search_lang=en`
-    const response = await fetchWithTimeout(url, 15000, {
+    const url = `https://api.search.brave.com/res/v1/web/search?q=${encoded}&count=${SEARCH_ENGINE_RESULT_LIMIT}&country=GB&search_lang=en`
+    const response = await fetchWithTimeout(url, SEARCH_ENGINE_TIMEOUT_MS, {
       headers: {
         'Accept': 'application/json',
         'Accept-Language': 'en-GB,en;q=0.9',
@@ -351,7 +358,7 @@ const searchViaBraveApi = async (query: string): Promise<SearchCandidate[]> => {
         url: href,
         title: title || getHost(href)
       })
-      if (results.length >= 12) break
+      if (results.length >= SEARCH_ENGINE_RESULT_LIMIT) break
     }
 
     return results
@@ -365,7 +372,7 @@ const searchViaBraveHtml = async (query: string): Promise<SearchCandidate[]> => 
   try {
     const encoded = encodeURIComponent(query)
     const url = `https://search.brave.com/search?q=${encoded}&source=web&country=GB&lang=en_gb`
-    const response = await fetchWithTimeout(url, 15000, {
+    const response = await fetchWithTimeout(url, SEARCH_ENGINE_TIMEOUT_MS, {
       headers: {
         'Accept-Language': 'en-GB,en;q=0.9'
       }
@@ -386,7 +393,7 @@ const searchViaBraveHtml = async (query: string): Promise<SearchCandidate[]> => 
     const seen = new Set<string>()
     let match: RegExpExecArray | null
 
-    while ((match = linkPattern.exec(html)) !== null && results.length < 12) {
+    while ((match = linkPattern.exec(html)) !== null && results.length < SEARCH_ENGINE_RESULT_LIMIT) {
       const href = (match[1] || '').replace(/&amp;/g, '&').trim()
       const rawTitle = stripHtml(match[2] || '')
       if (!href.startsWith('http://') && !href.startsWith('https://')) continue
@@ -490,7 +497,7 @@ export class SearchTool extends Tool {
 
       // Fetch and process results using a neutral ranking blend.
       const fetched = await Promise.all(
-        searchPool.slice(0, 10).map(async (result) => {
+        searchPool.slice(0, SEARCH_PAGE_REVIEW_LIMIT).map(async (result) => {
           const text = await fetchText(result.url)
           const excerpt = text
             ? (buildExcerpt(text.text, query, 900) || 'Content extracted but excerpt was minimal.')
@@ -528,13 +535,13 @@ export class SearchTool extends Tool {
       let rankedForPacket = reviewed
         .filter((value): value is NonNullable<typeof value> => Boolean(value))
         .sort((a, b) => b.score - a.score)
-        .slice(0, 8)
+        .slice(0, SEARCH_PACKET_RESULT_LIMIT)
 
       // Fallback: if content extraction was too sparse, still provide ranked URLs
       // so citation-capable tiers can attach source links.
       if (rankedForPacket.length === 0) {
         const fallback = searchPool
-          .slice(0, 8)
+          .slice(0, SEARCH_PACKET_RESULT_LIMIT)
           .map((result) => {
             const quality = getDomainQuality(result.url)
             const relevance = computeRelevanceScore(

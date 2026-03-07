@@ -2,8 +2,14 @@ import Anthropic from '@anthropic-ai/sdk'
 import { logClaudeUsage } from '@/lib/utils/claude-usage'
 import { neutralizeLegalAdviceTone } from './legal-tone'
 
-const DISCRIMINATOR_MODEL = process.env.PREMIUM_PLUS_CLAUDE_MODEL || 'claude-opus-4-5-20251101'
-const DISCRIMINATOR_CLAUDE_FALLBACK_MODEL = process.env.PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL || ''
+const DISCRIMINATOR_MODEL =
+  process.env.PREMIUM_PLUS_DISCRIMINATOR_CLAUDE_MODEL ||
+  process.env.PREMIUM_PLUS_CLAUDE_MODEL ||
+  'claude-opus-4-5-20251101'
+const DISCRIMINATOR_CLAUDE_FALLBACK_MODEL =
+  process.env.PREMIUM_PLUS_DISCRIMINATOR_CLAUDE_FALLBACK_MODEL ||
+  process.env.PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL ||
+  ''
 const DISCRIMINATOR_MAX_TOKENS = 800
 
 const stripMarkdown = (text: string): string => {
