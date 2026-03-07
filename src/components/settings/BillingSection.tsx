@@ -13,6 +13,8 @@ type UserPlan = {
   canResume?: boolean;
   archiveAt?: string | null;
   deleteAt?: string | null;
+  scheduledPlan?: string | null;
+  scheduledChangeDate?: string | null;
 };
 
 type PaymentMethodSummary = {
@@ -41,6 +43,7 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
   const isLapsedStatus = normalizedStatus === 'expired' || normalizedStatus === 'cancelled';
   const isPastDueStatus = normalizedStatus === 'past_due';
   const isCancellationScheduled = Boolean(planData?.paidAccess && planData?.cancelAtPeriodEnd);
+  const hasScheduledPlanChange = Boolean(planData?.scheduledPlan && planData?.scheduledChangeDate);
 
   useEffect(() => {
     const shouldShowLoader = !initialPlanData;
@@ -270,6 +273,11 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
                 {isCancellationScheduled && !isLapsedStatus && (
                   <p className={styles.planHint} style={{ color: '#fef3c7' }}>
                     Cancellation scheduled. Future billing is stopped and paid access remains until the end date above.
+                  </p>
+                )}
+                {hasScheduledPlanChange && !isLapsedStatus && (
+                  <p className={styles.planHint} style={{ color: '#fef3c7' }}>
+                    Scheduled change: {planData?.plan} remains active until {formatNextBillingDate(planData?.scheduledChangeDate)}, then switches to {planData?.scheduledPlan}.
                   </p>
                 )}
                 {isPastDueStatus && (

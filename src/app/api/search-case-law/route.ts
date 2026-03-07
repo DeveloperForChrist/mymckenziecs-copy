@@ -14,6 +14,7 @@ import {
   searchFindCaseLawAtom,
 } from '@/lib/case-law/search-helpers';
 import { captureServerException } from '@/lib/monitoring/error-logger';
+import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { hasCaseLawAccess } from '@/lib/plans/access';
 
 const caseLawRequestSchema = z.object({
@@ -164,16 +165,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: activeSub } = await supabaseAdmin
-      .from('subscriptions')
-      .select('plan_type, status')
-      .eq('user_id', userId)
-      .in('status', ['active', 'past_due'])
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (!hasCaseLawAccess(activeSub?.plan_type || '')) {
+    const snapshot = await getOrSyncUserEntitlementSnapshot(userId);
+    if (!hasCaseLawAccess(snapshot?.plan_type || '')) {
       return NextResponse.json(
         { error: 'Case law search is available on Premium + plans.' },
         { status: 403 }

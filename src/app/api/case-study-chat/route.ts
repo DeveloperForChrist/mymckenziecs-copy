@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
-import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { OpenAI } from 'openai';
 import { aiIpRateLimiter, aiRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
+import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { hasCaseLawAccess } from '@/lib/plans/access';
 
 export const dynamic = 'force-dynamic';
@@ -10,16 +10,8 @@ export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
 async function resolveActivePlan(userId: string): Promise<string> {
-  const { data } = await supabaseAdmin
-    .from('subscriptions')
-    .select('plan_type, status')
-    .eq('user_id', userId)
-    .in('status', ['active', 'past_due'])
-    .order('updated_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  return String(data?.plan_type || '');
+  const snapshot = await getOrSyncUserEntitlementSnapshot(userId);
+  return String(snapshot?.plan_type || '');
 }
 
 export async function POST(request: Request) {

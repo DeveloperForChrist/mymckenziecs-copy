@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import mammoth from 'mammoth'
-import { createRequire } from 'module'
 import { invokeBasicLegalAgent, invokeLegalAgent } from '@/lib/ai/agents/legal-agent'
 import { ChatManager } from '@/lib/ai/chat-manager'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
@@ -18,6 +16,7 @@ import { isBasicPlan, isPremiumPlan, isPremiumPlusPlan } from '@/lib/plans/acces
 import { searchByText } from '@/lib/vector/milvus'
 import { getUserPlanData } from '@/lib/payments/user-plan'
 import { decomposeWithOrchestrator } from '@/lib/ai/agents/discriminator-agent'
+import { extractTextFromBuffer } from '@/lib/chat/text-extraction'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -74,7 +73,6 @@ const chatRequestSchema = z.object({
   sessionStartedAt: z.string().optional(),
 }).passthrough()
 
-const nodeRequire = createRequire(import.meta.url)
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 const getEnvModelValue = (...keys: string[]): string | null => {
@@ -168,39 +166,6 @@ const isAllowedOrigin = (request: NextRequest) => {
   return false
 }
 
-const getExtension = (name?: string) => {
-  if (!name) return ''
-  const ext = name.split('.').pop()?.toLowerCase()
-  return ext || ''
-}
-
-const extractTextFromBuffer = async (buffer: Buffer, name?: string, mimeType?: string | null) => {
-  const ext = getExtension(name)
-  const typeHint = mimeType?.toLowerCase() || ''
-
-  if (typeHint.includes('pdf') || ext === 'pdf') {
-    try {
-      const pdfParseModule = nodeRequire('pdf-parse')
-      const parse = pdfParseModule?.default ?? pdfParseModule
-      const parsed = await parse(buffer)
-      return parsed.text || ''
-    } catch {
-      return ''
-    }
-  }
-
-  if (typeHint.includes('word') || ext === 'docx') {
-    const result = await mammoth.extractRawText({ buffer })
-    return result.value || ''
-  }
-
-  if (typeHint.startsWith('text/') || ['txt', 'md', 'rtf'].includes(ext)) {
-    return buffer.toString('utf-8')
-  }
-
-  return ''
-}
-
 const tokenizeChunkRanking = (text: string): Set<string> => {
   const raw = (text || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ')
   const tokens = raw
@@ -244,7 +209,8 @@ const buildAttachmentContext = async (
   attachments: ChatAttachment[],
   baseUrl: string,
   cookieHeader?: string | null,
-  rankingQuery?: string
+  rankingQuery?: string,
+  authUserId?: string | null
 ) => {
   if (!attachments.length) return ''
   const sections: string[] = []
@@ -259,18 +225,73 @@ const buildAttachmentContext = async (
     }
 
     try {
-      const rawUrl = attachment.downloadURL.startsWith('/api/chat-upload/')
-        ? `${attachment.downloadURL}/raw`
-        : attachment.downloadURL
-      const url = rawUrl.startsWith('http') ? rawUrl : `${baseUrl}${rawUrl}`
-      const response = await fetch(url, {
-        headers: cookieHeader ? { cookie: cookieHeader } : undefined,
-      })
-      if (!response.ok) {
-        sections.push(`Document: ${name}\n(Failed to read file content)`)
-        continue
+      let arrayBuffer: ArrayBuffer | null = null
+
+      if (
+        authUserId &&
+        typeof attachment.storagePath === 'string' &&
+        /^tmp_[a-zA-Z0-9_-]+$/.test(attachment.storagePath)
+      ) {
+        const { data: uploadRow } = await supabaseAdmin
+          .from('chat_uploads')
+          .select('storage_path, owner_id, expires_at, extracted_text, extract_status')
+          .eq('id', attachment.storagePath)
+          .maybeSingle()
+
+        const expiresAtMs = uploadRow?.expires_at ? new Date(uploadRow.expires_at).getTime() : NaN
+        if (
+          uploadRow?.owner_id === authUserId &&
+          Number.isFinite(expiresAtMs) &&
+          expiresAtMs > Date.now()
+        ) {
+          const extractedText = typeof uploadRow?.extracted_text === 'string' ? uploadRow.extracted_text.trim() : ''
+          if (extractedText) {
+            const cleaned = extractedText.replace(/\s+/g, ' ').trim()
+            const chunks = cleaned ? chunkTextForContext(cleaned, 900, 140) : []
+            const selectedChunks = chunks
+              .map((chunk, idx) => ({
+                idx,
+                chunk,
+                score: scoreChunkAgainstQuery(chunk, rankingTokens) + (idx === 0 ? 0.02 : 0),
+              }))
+              .sort((a, b) => b.score - a.score)
+              .slice(0, 3)
+              .sort((a, b) => a.idx - b.idx)
+            const excerpt = selectedChunks.length > 0
+              ? selectedChunks.map((entry, idx) => `Chunk ${idx + 1}: ${entry.chunk}`).join('\n')
+              : cleaned.slice(0, 2500)
+            const section = `Document: ${name}\n${excerpt}`
+            sections.push(section)
+            totalLength += section.length
+            if (totalLength >= 5200) break
+            continue
+          }
+
+          if (uploadRow?.extract_status === 'failed') {
+            sections.push(`Document: ${name}\n(No extractable text available)`)
+            continue
+          }
+
+          sections.push(`Document: ${name}\n(File text is not ready yet)`)
+          continue
+        }
       }
-      const arrayBuffer = await response.arrayBuffer()
+
+      if (!arrayBuffer) {
+        const rawUrl = attachment.downloadURL.startsWith('/api/chat-upload/')
+          ? `${attachment.downloadURL}/raw`
+          : attachment.downloadURL
+        const url = rawUrl.startsWith('http') ? rawUrl : `${baseUrl}${rawUrl}`
+        const response = await fetch(url, {
+          headers: cookieHeader ? { cookie: cookieHeader } : undefined,
+        })
+        if (!response.ok) {
+          sections.push(`Document: ${name}\n(Failed to read file content)`)
+          continue
+        }
+        arrayBuffer = await response.arrayBuffer()
+      }
+
       const text = await extractTextFromBuffer(Buffer.from(arrayBuffer), name, attachment.mimeType)
       const cleaned = text.replace(/\s+/g, ' ').trim()
       const chunks = cleaned ? chunkTextForContext(cleaned, 900, 140) : []
@@ -1618,7 +1639,7 @@ export async function POST(request: NextRequest) {
     const hasAttachments = Array.isArray(attachments) && attachments.length > 0
     const cookieHeader = request.headers.get('cookie')
     const attachmentContext = hasAttachments && baseUrl
-      ? await buildAttachmentContext(attachments, baseUrl, cookieHeader, message)
+      ? await buildAttachmentContext(attachments, baseUrl, cookieHeader, message, authUserId)
       : ''
     const attachmentMetadata = hasAttachments && !attachmentContext ? buildAttachmentMetadata(attachments) : ''
 
@@ -1628,76 +1649,11 @@ export async function POST(request: NextRequest) {
       sessionStartedAt: typeof sessionStartedAt === 'string' ? sessionStartedAt : null,
     })
 
-    // Ensure every conversation gets a memory anchor, even when later logic exits early.
-    if (activeConversationId) {
-      try {
-        const initialMemoryKey = buildMemoryKey(
-          authUserId,
-          guestId,
-          processingResult.caseId || sessionInfo.activeCaseId || null,
-          activeConversationId
-        )
-        await supabaseAdmin.from('chat_memory').upsert(
-          {
-            memory_key: initialMemoryKey,
-            user_id: authUserId || null,
-            guest_id: guestId || null,
-            case_id: processingResult.caseId || sessionInfo.activeCaseId || null,
-            conversation_id: activeConversationId,
-            memory_summary: truncateText(`User: ${message}`, 320),
-            key_facts: mergeFacts([], extractKeyFactsFromMessage(message)),
-            open_questions: [],
-            last_intent: processingResult.task,
-          },
-          { onConflict: 'memory_key' }
-        )
-      } catch (memoryAnchorError) {
-        console.warn('Failed to persist initial chat memory anchor:', memoryAnchorError)
-      }
-    }
-
     const threadTurnLimit = resolveThreadTurnLimit({
       basicPlanActive,
       premiumPlanActive,
       premiumPlusActive,
     })
-    let threadUserTurnCount: number | null = null
-    if (activeConversationId) {
-      const { count: userTurnCount, error: turnCountError } = await supabaseAdmin
-        .from('messages')
-        .select('id', { count: 'exact', head: true })
-        .eq('conversation_id', activeConversationId)
-        .eq('role', 'user')
-      if (turnCountError) {
-        console.warn('Failed counting conversation turns:', turnCountError)
-      } else if (typeof userTurnCount === 'number') {
-        threadUserTurnCount = userTurnCount
-      }
-    }
-    if (threadUserTurnCount !== null && threadUserTurnCount >= threadTurnLimit) {
-      return withCookie(
-        NextResponse.json(
-          {
-            response:
-              `This chat has reached the thread limit (${threadTurnLimit} user turns). ` +
-              'Please start a new chat so responses stay accurate and fast.',
-            metadata: {
-              threadLimitReached: true,
-              threadUserTurnCount,
-              threadTurnLimit,
-              activeCaseId: processingResult.caseId || sessionInfo.activeCaseId || null,
-              conversationId: activeConversationId,
-              suggestNewChat: true,
-              task: processingResult.task,
-              contextType: processingResult.contextType,
-              urgency: processingResult.urgency,
-            },
-          },
-          { status: 200 }
-        )
-      )
-    }
-
     if (authUserId && (premiumPlanActive || premiumPlusActive)) {
       const providerCapacity = await acquirePremiumProviderCapacity()
       if (!providerCapacity.success) {
@@ -1734,11 +1690,59 @@ export async function POST(request: NextRequest) {
     }
 
     const memoryKey = buildMemoryKey(authUserId, guestId, resolvedCaseId || null, activeConversationId)
+    const initialFacts = extractKeyFactsFromMessage(message)
+    const { data: incrementedTurnCount, error: incrementTurnError } = await supabaseAdmin.rpc(
+      'increment_chat_memory_turn_count',
+      {
+        p_memory_key: memoryKey,
+        p_user_id: authUserId || null,
+        p_guest_id: guestId || null,
+        p_case_id: resolvedCaseId || null,
+        p_conversation_id: activeConversationId,
+        p_last_intent: processingResult.task,
+        p_memory_summary: truncateText(`User: ${message}`, 320),
+        p_key_facts: initialFacts,
+        p_open_questions: [],
+      }
+    )
+    if (incrementTurnError) {
+      console.warn('Failed to increment chat memory turn count:', incrementTurnError)
+    }
+
     const { data: memoryRow } = await supabaseAdmin
       .from('chat_memory')
-      .select('memory_summary,key_facts,open_questions')
+      .select('memory_summary,key_facts,open_questions,user_turn_count')
       .eq('memory_key', memoryKey)
       .maybeSingle()
+    const threadUserTurnCount =
+      typeof incrementedTurnCount === 'number' && Number.isFinite(incrementedTurnCount)
+        ? Math.max(1, incrementedTurnCount)
+        : typeof memoryRow?.user_turn_count === 'number' && Number.isFinite(memoryRow.user_turn_count)
+          ? Math.max(1, memoryRow.user_turn_count)
+          : 1
+    if (threadUserTurnCount >= threadTurnLimit) {
+      return withCookie(
+        NextResponse.json(
+          {
+            response:
+              `This chat has reached the thread limit (${threadTurnLimit} user turns). ` +
+              'Please start a new chat so responses stay accurate and fast.',
+            metadata: {
+              threadLimitReached: true,
+              threadUserTurnCount,
+              threadTurnLimit,
+              activeCaseId: processingResult.caseId || sessionInfo.activeCaseId || null,
+              conversationId: activeConversationId,
+              suggestNewChat: true,
+              task: processingResult.task,
+              contextType: processingResult.contextType,
+              urgency: processingResult.urgency,
+            },
+          },
+          { status: 200 }
+        )
+      )
+    }
     let effectiveMemoryRow = memoryRow
     let caseScopedMemoryFallbackUsed = false
     if (!hasUsefulMemory(effectiveMemoryRow) && resolvedCaseId) {
@@ -1758,8 +1762,7 @@ export async function POST(request: NextRequest) {
     const shouldShortCircuitToQuestion = Boolean(followUpQuestion && !hasAttachments && sanitizedHistory.length <= 1)
 
     if (shouldShortCircuitToQuestion) {
-      const facts = extractKeyFactsFromMessage(message)
-      const mergedFacts = mergeFacts(effectiveMemoryRow?.key_facts, facts)
+      const mergedFacts = mergeFacts(effectiveMemoryRow?.key_facts, initialFacts)
       await supabaseAdmin.from('chat_memory').upsert(
         {
           memory_key: memoryKey,
@@ -2088,8 +2091,7 @@ export async function POST(request: NextRequest) {
       await supabaseAdmin.from('chat_action_items').insert(rows)
     }
 
-    const incomingFacts = extractKeyFactsFromMessage(message)
-    const mergedFacts = mergeFacts(effectiveMemoryRow?.key_facts, incomingFacts)
+    const mergedFacts = mergeFacts(effectiveMemoryRow?.key_facts, initialFacts)
     await supabaseAdmin.from('chat_memory').upsert(
       {
         memory_key: memoryKey,

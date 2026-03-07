@@ -3,6 +3,7 @@ import { stripe } from '@/lib/payments/stripe';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { isBillingActiveStripeStatus, normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
+import { syncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
 import { PLAN_PRICES } from '@/constants';
 
@@ -38,9 +39,13 @@ async function upsertSubscriptionForUser(
 
   const { data: existing } = await supabaseAdmin
     .from('subscriptions')
-    .select('plan_type, status')
+    .select('plan_type, status, scheduled_plan_type, scheduled_change_at')
     .eq('stripe_subscription_id', stripeSubscriptionId)
     .maybeSingle();
+
+  const scheduledPlanApplied =
+    Boolean(existing?.scheduled_plan_type) &&
+    existing.scheduled_plan_type === planType;
 
   const { error: upsertError } = await supabaseAdmin
     .from('subscriptions')
@@ -54,6 +59,8 @@ async function upsertSubscriptionForUser(
         current_period_start: currentPeriodStart,
         current_period_end: currentPeriodEnd,
         cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
+        scheduled_plan_type: scheduledPlanApplied ? null : existing?.scheduled_plan_type || null,
+        scheduled_change_at: scheduledPlanApplied ? null : existing?.scheduled_change_at || null,
         ...(isBillingActiveStripeStatus(status)
           ? {
               lifecycle_lapsed_at: null,
@@ -84,6 +91,7 @@ async function upsertSubscriptionForUser(
     (existing.status || '').toLowerCase() !== status;
 
   if (planChanged) {
+    await syncUserEntitlementSnapshot(userId);
     invalidateUserPlanCache(userId);
   }
 

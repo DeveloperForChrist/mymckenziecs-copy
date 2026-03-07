@@ -1,19 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
-import { isPaidPlan } from '@/lib/plans/access'
+import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements'
 
 async function hasPaidAccess(userId: string): Promise<boolean> {
-  const { data } = await supabaseAdmin
-    .from('subscriptions')
-    .select('plan_type, status')
-    .eq('user_id', userId)
-    .in('status', ['active', 'past_due'])
-    .order('updated_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  return isPaidPlan(data?.plan_type)
+  const snapshot = await getOrSyncUserEntitlementSnapshot(userId)
+  return Boolean(snapshot?.paid_access)
 }
 
 async function getAccessibleDocument(userId: string, docId: string) {

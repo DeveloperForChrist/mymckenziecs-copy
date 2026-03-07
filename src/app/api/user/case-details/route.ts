@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
+import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements'
 import { hasCaseProfileAccess } from '@/lib/plans/access'
 
 export const dynamic = 'force-dynamic'
@@ -33,29 +34,10 @@ type CaseProfileAccessState = {
 }
 
 const resolveCaseProfileAccess = async (userId: string): Promise<CaseProfileAccessState> => {
-  const { data: activeSub } = await supabaseAdmin
-    .from('subscriptions')
-    .select('plan_type, status')
-    .eq('user_id', userId)
-    .in('status', ['active', 'past_due'])
-    .order('updated_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
+  const snapshot = await getOrSyncUserEntitlementSnapshot(userId)
 
-  if (hasCaseProfileAccess(activeSub?.plan_type || '')) {
+  if (hasCaseProfileAccess(snapshot?.plan_type || '')) {
     return { canView: true, canEdit: true }
-  }
-
-  const { data: latestSub } = await supabaseAdmin
-    .from('subscriptions')
-    .select('plan_type')
-    .eq('user_id', userId)
-    .order('updated_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  if (hasCaseProfileAccess(latestSub?.plan_type || '')) {
-    return { canView: true, canEdit: false }
   }
 
   return { canView: false, canEdit: false }

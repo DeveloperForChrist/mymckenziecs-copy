@@ -15,7 +15,10 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
   const [isSignedIn, setIsSignedIn] = useState(initialIsSignedIn);
   const [authChecked, setAuthChecked] = useState(true);
   const [hasPaidPlan, setHasPaidPlan] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState('No plan');
   const [planStatus, setPlanStatus] = useState('inactive');
+  const [scheduledPlan, setScheduledPlan] = useState<string | null>(null);
+  const [scheduledChangeDate, setScheduledChangeDate] = useState<string | null>(null);
   const [planChecked, setPlanChecked] = useState(false);
   const autoCheckoutStartedRef = useRef(false);
   const searchParams = useSearchParams();
@@ -72,16 +75,34 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [checkoutErrorPlanKey, setCheckoutErrorPlanKey] = useState<string | null>(null);
+  const [changePlanMessage, setChangePlanMessage] = useState<string | null>(null);
   const [switchToSignInPending, setSwitchToSignInPending] = useState(false);
 
   const hasConfiguredPriceId = (priceId: string) => priceId.trim().length > 0;
+  const isCurrentPlanLabel = (planName: string) => currentPlan.trim().toLowerCase() === planName.trim().toLowerCase();
 
-  const getPlanButtonLabel = (priceId: string) =>
-    checkoutLoading === priceId ? 'Redirecting…' : 'Launch your workspace';
+  const getPlanButtonLabel = (priceId: string, planName: string) => {
+    if (checkoutLoading === priceId) return 'Updating…';
+    if (!hasPaidPlan) return 'Launch your workspace';
+
+    const normalizedCurrent = currentPlan.trim().toLowerCase();
+    const normalizedTarget = planName.trim().toLowerCase();
+    if (normalizedCurrent === normalizedTarget) return 'Current plan';
+
+    const currentMatchedPlan = PLAN_PRICES.find((plan) => plan.name.toLowerCase() === normalizedCurrent);
+    const targetMatchedPlan = PLAN_PRICES.find((plan) => plan.name.toLowerCase() === normalizedTarget);
+    const currentIndex = currentMatchedPlan ? PLAN_PRICES.indexOf(currentMatchedPlan) : -1;
+    const targetIndex = targetMatchedPlan ? PLAN_PRICES.indexOf(targetMatchedPlan) : -1;
+    if (currentIndex >= 0 && targetIndex >= 0 && targetIndex < currentIndex) {
+      return 'Downgrade at renewal';
+    }
+    return 'Change plan now';
+  };
 
   const handlePlanButtonClick = (priceId: string, planName: string, planKey: string) => {
     setCheckoutError(null);
     setCheckoutErrorPlanKey(null);
+    setChangePlanMessage(null);
     if (!hasConfiguredPriceId(priceId)) {
       if (!isSignedIn) {
         const redirectTo = '/dashboard';
@@ -90,6 +111,10 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
       }
       setCheckoutError('This plan is temporarily unavailable. Please try again shortly.');
       setCheckoutErrorPlanKey(planKey);
+      return;
+    }
+    if (hasPaidPlan) {
+      void handleChangePlan(priceId, planKey);
       return;
     }
     void handleSubscribe(priceId, planKey);
@@ -136,6 +161,62 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
     }
   }
 
+  async function handleChangePlan(priceId: string, planKey: string) {
+    setCheckoutLoading(priceId);
+    setCheckoutError(null);
+    setCheckoutErrorPlanKey(null);
+    setChangePlanMessage(null);
+
+    try {
+      const res = await fetch('/api/stripe/change-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ planId: priceId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setCheckoutError(data?.error || 'Unable to change plan');
+        setCheckoutErrorPlanKey(planKey);
+        return;
+      }
+
+      if (data?.changeTiming === 'unchanged') {
+        setChangePlanMessage(`You are already on ${data?.targetPlan || currentPlan}.`);
+      } else if (data?.changeTiming === 'period_end') {
+        const effectiveLabel = data?.effectiveDate
+          ? new Date(data.effectiveDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+          : 'your next billing date';
+        setScheduledPlan(data?.targetPlan || null);
+        setScheduledChangeDate(data?.effectiveDate || null);
+        setChangePlanMessage(`Downgrade scheduled. Your plan will change to ${data?.targetPlan || 'the selected plan'} on ${effectiveLabel}.`);
+      } else {
+        setCurrentPlan(data?.targetPlan || currentPlan);
+        setScheduledPlan(null);
+        setScheduledChangeDate(null);
+        setChangePlanMessage(`Plan changed to ${data?.targetPlan || 'the selected plan'}.`);
+      }
+
+      const planRes = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' });
+      if (planRes.ok) {
+        const refreshed = await planRes.json();
+        const status = String(refreshed?.planStatus || '').toLowerCase();
+        setPlanStatus(status || 'inactive');
+        setCurrentPlan(String(refreshed?.plan || 'No plan'));
+        setScheduledPlan(refreshed?.scheduledPlan || null);
+        setScheduledChangeDate(refreshed?.scheduledChangeDate || null);
+        setHasPaidPlan(Boolean(refreshed?.paidAccess) || (userHasPaidPlan(refreshed?.plan) && (status === 'active' || status === 'past_due')));
+      }
+    } catch (err: any) {
+      setCheckoutError(err.message || 'Failed to change plan');
+      setCheckoutErrorPlanKey(planKey);
+    } finally {
+      setCheckoutLoading(null);
+    }
+  }
+
   async function handleSwitchToSignIn() {
     if (switchToSignInPending) return;
     setSwitchToSignInPending(true);
@@ -153,6 +234,7 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
 
   useEffect(() => {
     if (!authChecked || !isSignedIn || autoCheckoutStartedRef.current) return;
+    if (!planChecked) return;
     if (!checkoutPlanId) return;
 
     const isKnownPlan = PLAN_PRICES.some((plan) => plan.priceId && plan.priceId === checkoutPlanId);
@@ -165,8 +247,12 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
     autoCheckoutStartedRef.current = true;
     const matchedPlan = PLAN_PRICES.find((plan) => plan.priceId === checkoutPlanId);
     const planKey = (matchedPlan?.name || '').toLowerCase().replace(/\s+/g, '-');
+    if (hasPaidPlan) {
+      void handleChangePlan(checkoutPlanId, planKey || 'unknown');
+      return;
+    }
     void handleSubscribe(checkoutPlanId, planKey || 'unknown');
-  }, [authChecked, isSignedIn, checkoutPlanId]);
+  }, [authChecked, isSignedIn, planChecked, hasPaidPlan, checkoutPlanId]);
 
   useEffect(() => {
     if (checkoutStatus !== 'cancelled') return;
@@ -194,13 +280,19 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
         if (cancelled) return;
         const status = String(data?.planStatus || '').toLowerCase();
         setPlanStatus(status || 'inactive');
+        setCurrentPlan(String(data?.plan || 'No plan'));
+        setScheduledPlan(data?.scheduledPlan || null);
+        setScheduledChangeDate(data?.scheduledChangeDate || null);
         setHasPaidPlan(Boolean(data?.paidAccess) || (userHasPaidPlan(data?.plan) && (status === 'active' || status === 'past_due')));
         setPlanChecked(true);
       })
       .catch(() => {
         if (cancelled) return;
         setHasPaidPlan(false);
+        setCurrentPlan('No plan');
         setPlanStatus('inactive');
+        setScheduledPlan(null);
+        setScheduledChangeDate(null);
         setPlanChecked(true);
       });
 
@@ -397,6 +489,38 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
             </div>
           )}
 
+          {changePlanMessage && (
+            <div
+              style={{
+                borderRadius: '16px',
+                border: '1px solid rgba(125, 211, 252, 0.35)',
+                background: 'linear-gradient(135deg, rgba(8, 47, 73, 0.35), rgba(15, 23, 42, 0.24))',
+                padding: '14px 16px',
+                marginBottom: '1.5rem',
+              }}
+            >
+              <p style={{ margin: 0, color: '#dbeafe', fontWeight: 600 }}>
+                {changePlanMessage}
+              </p>
+            </div>
+          )}
+
+          {scheduledPlan && scheduledChangeDate && (
+            <div
+              style={{
+                borderRadius: '16px',
+                border: '1px solid rgba(251, 191, 36, 0.35)',
+                background: 'linear-gradient(135deg, rgba(120, 53, 15, 0.32), rgba(51, 24, 12, 0.22))',
+                padding: '14px 16px',
+                marginBottom: '1.5rem',
+              }}
+            >
+              <p style={{ margin: 0, color: '#fde68a', fontWeight: 600 }}>
+                Scheduled change: {currentPlan} stays active until {new Date(scheduledChangeDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}, then switches to {scheduledPlan}.
+              </p>
+            </div>
+          )}
+
           <div style={{ display: 'grid', gap: 'clamp(1.2rem, 4vw, 2.5rem)', alignItems: 'center', gridTemplateColumns: 'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', marginBottom: '3.5rem' }}>
             <div>
               <p style={{ textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.75rem', color: '#f8a76f', fontWeight: 600 }}>Pricing</p>
@@ -465,9 +589,9 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
                 className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
                 style={{ background: 'linear-gradient(135deg, #93c5fd, #3b82f6)', border: '2px solid transparent' }}
                 onClick={() => handlePlanButtonClick(basicPriceId, 'Basic', 'basic')}
-                disabled={checkoutLoading === basicPriceId}
+                disabled={checkoutLoading === basicPriceId || (hasPaidPlan && isCurrentPlanLabel('Basic'))}
               >
-                {getPlanButtonLabel(basicPriceId)}
+                {getPlanButtonLabel(basicPriceId, 'Basic')}
               </button>
               {checkoutError && checkoutErrorPlanKey === 'basic' && (
                 <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>
@@ -503,9 +627,9 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
                 className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
                 style={{ background: 'linear-gradient(135deg, #7bd4c9, #3aa79d)', border: '2px solid transparent' }}
                 onClick={() => handlePlanButtonClick(premiumPriceId, 'Premium', 'premium')}
-                disabled={checkoutLoading === premiumPriceId}
+                disabled={checkoutLoading === premiumPriceId || (hasPaidPlan && isCurrentPlanLabel('Premium'))}
               >
-                {getPlanButtonLabel(premiumPriceId)}
+                {getPlanButtonLabel(premiumPriceId, 'Premium')}
               </button>
               {checkoutError && checkoutErrorPlanKey === 'premium' && (
                 <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>
@@ -547,9 +671,9 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
                 className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
                 style={{ background: 'linear-gradient(135deg, #f8a76f, #f26a3d)', border: '2px solid transparent' }}
                 onClick={() => handlePlanButtonClick(premiumPlusPriceId, 'Premium +', 'premium-plus')}
-                disabled={checkoutLoading === premiumPlusPriceId}
+                disabled={checkoutLoading === premiumPlusPriceId || (hasPaidPlan && isCurrentPlanLabel('Premium +'))}
               >
-                {getPlanButtonLabel(premiumPlusPriceId)}
+                {getPlanButtonLabel(premiumPlusPriceId, 'Premium +')}
               </button>
               {checkoutError && checkoutErrorPlanKey === 'premium-plus' && (
                 <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>

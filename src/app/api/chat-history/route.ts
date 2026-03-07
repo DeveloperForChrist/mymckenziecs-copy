@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
+import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { isPaidPlan } from '@/lib/plans/access';
 
 export const dynamic = 'force-dynamic';
@@ -24,7 +25,6 @@ type ConversationMessageRow = {
   metadata?: any;
 };
 
-const BILLING_ACTIVE_STATUSES = ['active', 'past_due'];
 const MAX_THREADS = 60;
 const DEFAULT_MESSAGE_LIMIT = 400;
 const MAX_MESSAGE_LIMIT = 1200;
@@ -131,29 +131,18 @@ async function hasPaidPlanAccess(authUid: string, authEmail: string | null): Pro
   const hasPaidForUserIds = async (userIds: string[]) => {
     if (userIds.length === 0) return false;
 
-    const { data: activeSub } = await supabaseAdmin
-      .from('subscriptions')
-      .select('plan_type')
-      .in('user_id', userIds)
-      .in('status', BILLING_ACTIVE_STATUSES)
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (isPaidPlan(activeSub?.plan_type || '')) return true;
-
-    const { data: latestSub } = await supabaseAdmin
-      .from('subscriptions')
-      .select('plan_type')
+    const { data: entitlements } = await supabaseAdmin
+      .from('user_entitlements')
+      .select('plan_type, paid_access, updated_at')
       .in('user_id', userIds)
       .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(5);
 
-    return isPaidPlan(latestSub?.plan_type || '');
+    return (entitlements || []).some((row: any) => Boolean(row?.paid_access) || isPaidPlan(row?.plan_type || ''));
   };
 
-  if (await hasPaidForUserIds([authUid])) return true;
+  const primarySnapshot = await getOrSyncUserEntitlementSnapshot(authUid);
+  if (primarySnapshot?.paid_access || isPaidPlan(primarySnapshot?.plan_type || '')) return true;
 
   const emailUserIds = await resolveUserIdsByEmail(authEmail);
   if (emailUserIds.length === 0) return false;

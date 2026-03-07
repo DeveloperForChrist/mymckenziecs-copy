@@ -5,7 +5,7 @@ import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { aiRateLimiter, rateLimit, getIdentifier } from '@/lib/utils/rate-limit';
 import OpenAI from 'openai';
-import { 
+import {
   paginateContent, 
   analyzeContentStatistics, 
   calculateContentQuality,
@@ -14,6 +14,7 @@ import {
 import { caseStudyCache } from '@/lib/cache/case-study-cache';
 import { z } from 'zod';
 import { captureServerException } from '@/lib/monitoring/error-logger';
+import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { hasCaseLawAccess } from '@/lib/plans/access';
 
 export const dynamic = 'force-dynamic';
@@ -44,16 +45,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: activeSub } = await supabaseAdmin
-      .from('subscriptions')
-      .select('plan_type, status')
-      .eq('user_id', authData.user.id)
-      .in('status', ['active', 'past_due'])
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const planLabel = String(activeSub?.plan_type || '');
+    const snapshot = await getOrSyncUserEntitlementSnapshot(authData.user.id);
+    const planLabel = String(snapshot?.plan_type || '');
     if (!planLabel) {
       return NextResponse.json(
         { error: 'Plan paused: case law study is locked. Resume your plan to continue.' },

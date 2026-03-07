@@ -38,6 +38,18 @@ function hasCaseProfileAccess(plan: unknown): boolean {
   return label.includes('premium')
 }
 
+type MiddlewareUserProfile = {
+  email_verified_at?: string | null
+  role?: string | null
+}
+
+type MiddlewareEntitlement = {
+  plan_type?: string | null
+  paid_access?: boolean | null
+  plan_status?: string | null
+  archive_at?: string | null
+}
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
@@ -137,6 +149,7 @@ export async function middleware(request: NextRequest) {
     requiresAuth &&
     Boolean(user) &&
     !pathname.startsWith('/api/')
+  const needsUserProfile = Boolean(user) && (shouldEnforceVerification || requiresAdmin)
 
   if (requiresAuth && !user) {
     // Redirect to sign-in for protected routes
@@ -148,25 +161,32 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  if (shouldEnforceVerification && user) {
-    const verificationStartedAt = Date.now()
-    const { data: verificationRow, error: verificationError } = await supabase
+  let userProfile: MiddlewareUserProfile | null = null
+  if (user && needsUserProfile) {
+    const profileStartedAt = Date.now()
+    const { data: profileRow, error: profileError } = await supabase
       .from('users')
-      .select('email_verified_at')
+      .select('email_verified_at, role')
       .eq('id', user.id)
       .maybeSingle()
 
-    logMiddlewarePerf('user.verification', verificationStartedAt, pathname, {
-      hasRow: Boolean(verificationRow),
-      hasError: Boolean(verificationError),
+    logMiddlewarePerf('user.profile', profileStartedAt, pathname, {
+      hasRow: Boolean(profileRow),
+      hasError: Boolean(profileError),
+      needsVerification: shouldEnforceVerification,
+      needsAdmin: requiresAdmin,
     })
 
-    if (verificationError) {
-      console.error('Error checking email verification in middleware:', verificationError)
+    if (profileError) {
+      console.error('Error checking user profile in middleware:', profileError)
+    } else {
+      userProfile = profileRow
     }
+  }
 
-    const isEmailVerified = verificationRow
-      ? Boolean((verificationRow as any).email_verified_at)
+  if (shouldEnforceVerification && user) {
+    const isEmailVerified = userProfile
+      ? Boolean(userProfile.email_verified_at)
       : Boolean((user as any)?.email_confirmed_at)
 
     if (!isEmailVerified) {
@@ -180,42 +200,62 @@ export async function middleware(request: NextRequest) {
   const isSoftSuspendedPath = softSuspendedPaths.some((path) => pathname.startsWith(path))
   const requiresPaidPlan = paidPlanPaths.some((path) => pathname.startsWith(path)) && Boolean(user)
 
-  let latestSub: { plan_type?: string | null; status?: string | null; lifecycle_archived_at?: string | null } | null = null
-  let activeSub: { plan_type?: string | null; status?: string | null } | null = null
+  let entitlement: MiddlewareEntitlement | null = null
 
   if (user && (isSoftSuspendedPath || requiresPaidPlan)) {
-    const subStartedAt = Date.now()
-    const { data: subscriptions, error: subError } = await supabase
-      .from('subscriptions')
-      .select('plan_type, status, lifecycle_archived_at')
+    const entitlementStartedAt = Date.now()
+    const { data: entitlementRow, error: entitlementError } = await supabase
+      .from('user_entitlements')
+      .select('plan_type, paid_access, plan_status, archive_at')
       .eq('user_id', user.id)
-      .order('updated_at', { ascending: false })
-      .limit(5)
+      .maybeSingle()
 
-    logMiddlewarePerf('subscriptions.snapshot', subStartedAt, pathname, {
-      rowCount: subscriptions?.length || 0,
-      hasError: Boolean(subError),
+    logMiddlewarePerf('user_entitlements.snapshot', entitlementStartedAt, pathname, {
+      hasRow: Boolean(entitlementRow),
+      hasError: Boolean(entitlementError),
     })
 
-    if (subError) {
-      console.error('Error checking subscription status in middleware:', subError)
+    if (entitlementError) {
+      console.error('Error checking entitlement status in middleware:', entitlementError)
     } else {
-      latestSub = subscriptions?.[0] || null
-      activeSub =
-        subscriptions?.find((sub) => {
-          const status = String(sub?.status || '').toLowerCase()
-          return status === 'active' || status === 'past_due'
-        }) || null
+      entitlement = entitlementRow
+      if (!entitlement) {
+        const fallbackStartedAt = Date.now()
+        const { data: fallbackSub, error: fallbackError } = await supabase
+          .from('subscriptions')
+          .select('plan_type, status, lifecycle_archive_at')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+
+        logMiddlewarePerf('subscriptions.fallback', fallbackStartedAt, pathname, {
+          hasRow: Boolean(fallbackSub),
+          hasError: Boolean(fallbackError),
+        })
+
+        if (fallbackError) {
+          console.error('Error checking fallback subscription state in middleware:', fallbackError)
+        } else if (fallbackSub) {
+          const fallbackStatus = String(fallbackSub.status || '').toLowerCase()
+          entitlement = {
+            plan_type: fallbackSub.plan_type,
+            plan_status: fallbackStatus,
+            paid_access: hasPaidPlan(fallbackSub.plan_type) && (fallbackStatus === 'active' || fallbackStatus === 'past_due'),
+            archive_at: fallbackSub.lifecycle_archive_at,
+          }
+        }
+      }
     }
   }
 
   if (user && isSoftSuspendedPath) {
-    const status = String(latestSub?.status || '').toLowerCase()
-    const paid = hasPaidPlan(activeSub?.plan_type)
+    const status = String(entitlement?.plan_status || '').toLowerCase()
+    const paid = Boolean(entitlement?.paid_access)
     const hardLocked =
-      hasPaidPlan(latestSub?.plan_type) &&
+      hasPaidPlan(entitlement?.plan_type) &&
       (status === 'expired' || status === 'cancelled') &&
-      Boolean(latestSub?.lifecycle_archived_at)
+      Boolean(entitlement?.archive_at)
 
     if (hardLocked) {
       const pricingUrl = new URL('/pricing', request.url)
@@ -231,7 +271,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (requiresPaidPlan && user) {
-    if (!hasPaidPlan(activeSub?.plan_type)) {
+    if (!Boolean(entitlement?.paid_access)) {
       if (pathname.startsWith('/api/')) {
         const method = request.method.toUpperCase()
         const isReadOnlyAllowed =
@@ -244,32 +284,18 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    if (pathname.startsWith('/dashboard/case-profile') && activeSub && !hasCaseProfileAccess(activeSub?.plan_type)) {
+    if (pathname.startsWith('/dashboard/case-profile') && entitlement && !hasCaseProfileAccess(entitlement?.plan_type)) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }
 
   if (requiresAdmin && user) {
-    // Check if user has admin role
-    const adminStartedAt = Date.now()
-    const { data: profile, error: profileError } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-    logMiddlewarePerf('admin.role', adminStartedAt, pathname, { hasProfile: Boolean(profile), hasError: Boolean(profileError) })
-
-    // Log for debugging
-    if (profileError) {
-      console.error('Error fetching user profile:', profileError)
-    }
-
-    if (!profile || profile.role !== 'admin') {
+    if (!userProfile || userProfile.role !== 'admin') {
       if (pathname.startsWith('/api/')) {
         return NextResponse.json({ 
           error: 'Forbidden - Admin access required',
           message: 'Your account does not have admin privileges. Contact support if you need admin access.',
-          debug: { hasProfile: !!profile, role: profile?.role, userId: user.id }
+          debug: { hasProfile: !!userProfile, role: userProfile?.role, userId: user.id }
         }, { status: 403 })
       }
       return NextResponse.redirect(new URL('/dashboard', request.url))

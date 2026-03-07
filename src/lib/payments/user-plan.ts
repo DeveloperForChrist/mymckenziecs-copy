@@ -1,6 +1,4 @@
-import { supabaseAdmin } from '@/lib/database/supabase-server';
-import { BILLING_ACTIVE_STATUSES } from '@/lib/payments/subscription-status';
-import { isPaidPlan, planPriceForLabel } from '@/lib/plans/access';
+import { entitlementPlanPrice, getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 
 export type UserPlanData = {
   plan: string;
@@ -13,6 +11,8 @@ export type UserPlanData = {
   canResume: boolean;
   archiveAt: string | null;
   deleteAt: string | null;
+  scheduledPlan: string | null;
+  scheduledChangeDate: string | null;
 };
 
 type GetUserPlanOptions = {
@@ -38,8 +38,7 @@ const USER_PLAN_CACHE_TTL_MS = parsePositiveInt(process.env.USER_PLAN_CACHE_TTL_
 const USER_PLAN_PERF_WARN_MS = parsePositiveInt(process.env.USER_PLAN_PERF_WARN_MS, DEFAULT_PLAN_PERF_WARN_MS);
 const SHOULD_LOG_PLAN_PERF = process.env.LOG_AUTH_PLAN_PERF === '1';
 
-const cacheKeyForUserPlan = (authUid: string, authEmail?: string | null) =>
-  `${authUid}::${String(authEmail || '').trim().toLowerCase()}`;
+const cacheKeyForUserPlan = (authUid: string) => `plan:${authUid}`;
 
 const readCachedPlan = (cacheKey: string): UserPlanData | null => {
   const cached = userPlanCache.get(cacheKey);
@@ -69,114 +68,28 @@ const logPlanPerf = (phase: string, startMs: number, metadata: Record<string, st
 
 export function invalidateUserPlanCache(authUid: string) {
   if (!authUid) return;
-  const prefix = `${authUid}::`;
-  for (const key of userPlanCache.keys()) {
-    if (key.startsWith(prefix)) userPlanCache.delete(key);
-  }
+  const cacheKey = cacheKeyForUserPlan(authUid);
+  userPlanCache.delete(cacheKey);
 }
 
 async function resolveUserPlanData(authUid: string, authEmail?: string | null): Promise<UserPlanData> {
-  const normalizedEmail = String(authEmail || '').trim();
-
-  // Prefer currently billable subscription states first.
-  const { data: activeSub } = await supabaseAdmin
-    .from('subscriptions')
-    .select(
-      'plan_type, status, current_period_end, stripe_subscription_id, stripe_customer_id, cancel_at_period_end, lifecycle_archive_at, lifecycle_delete_at'
-    )
-    .eq('user_id', authUid)
-    .in('status', [...BILLING_ACTIVE_STATUSES])
-    .order('updated_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  let resolvedSub = activeSub;
-
-  // Extra fallback: handle environments where subscriptions are linked to a
-  // legacy/mismatched user_id by resolving through the same auth email.
-  if (!resolvedSub && normalizedEmail) {
-    const { data: emailUsers } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('email', normalizedEmail);
-
-    let resolvedEmailUsers = emailUsers || [];
-    if (resolvedEmailUsers.length === 0) {
-      const { data: fallbackEmailUsers } = await supabaseAdmin
-        .from('users')
-        .select('id')
-        .ilike('email', normalizedEmail);
-      resolvedEmailUsers = fallbackEmailUsers || [];
-    }
-
-    const emailUserIds = resolvedEmailUsers.map((row: any) => row.id).filter(Boolean);
-    if (emailUserIds.length > 0) {
-      const { data: emailActiveSub } = await supabaseAdmin
-        .from('subscriptions')
-        .select(
-          'plan_type, status, current_period_end, stripe_subscription_id, stripe_customer_id, cancel_at_period_end, lifecycle_archive_at, lifecycle_delete_at'
-        )
-        .in('user_id', emailUserIds)
-        .in('status', [...BILLING_ACTIVE_STATUSES])
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (emailActiveSub) {
-        resolvedSub = emailActiveSub;
-      }
-    }
-  }
-
-  let latestSub: any = null;
-  if (!resolvedSub) {
-    const { data } = await supabaseAdmin
-      .from('subscriptions')
-      .select(
-        'plan_type, status, current_period_end, stripe_subscription_id, stripe_customer_id, cancel_at_period_end, lifecycle_archive_at, lifecycle_delete_at'
-      )
-      .eq('user_id', authUid)
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    latestSub = data;
-  }
-
-  const displaySub = resolvedSub || latestSub;
-  const rawPlan = displaySub?.plan_type || 'No plan';
-  const planPrice = displaySub ? planPriceForLabel(rawPlan) : '0';
-  const activeStatus = (resolvedSub?.status || '').toLowerCase();
-  const paidAccess = Boolean(
-    resolvedSub &&
-      isPaidPlan(resolvedSub.plan_type) &&
-      BILLING_ACTIVE_STATUSES.some((value) => value === activeStatus)
-  );
-  let hasStripeCustomer = !!(displaySub?.stripe_customer_id || displaySub?.stripe_subscription_id);
-
-  if (!hasStripeCustomer) {
-    const { data: latestCustomerSub } = await supabaseAdmin
-      .from('subscriptions')
-      .select('stripe_customer_id, stripe_subscription_id')
-      .eq('user_id', authUid)
-      .or('stripe_customer_id.not.is.null,stripe_subscription_id.not.is.null')
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    hasStripeCustomer = !!(latestCustomerSub?.stripe_customer_id || latestCustomerSub?.stripe_subscription_id);
-  }
+  const snapshot = await getOrSyncUserEntitlementSnapshot(authUid);
+  const rawPlan = snapshot?.plan_type || 'No plan';
+  const planPrice = entitlementPlanPrice(rawPlan);
 
   return {
     plan: rawPlan,
-    planStatus: displaySub?.status || 'inactive',
+    planStatus: snapshot?.plan_status || 'inactive',
     planPrice,
-    nextBillingDate: displaySub?.current_period_end || null,
-    hasStripeCustomer,
-    paidAccess,
-    cancelAtPeriodEnd: Boolean(displaySub?.cancel_at_period_end),
-    canResume: !paidAccess && Boolean(displaySub?.stripe_customer_id || displaySub?.stripe_subscription_id),
-    archiveAt: displaySub?.lifecycle_archive_at || null,
-    deleteAt: displaySub?.lifecycle_delete_at || null,
+    nextBillingDate: snapshot?.next_billing_date || null,
+    hasStripeCustomer: Boolean(snapshot?.has_stripe_customer),
+    paidAccess: Boolean(snapshot?.paid_access),
+    cancelAtPeriodEnd: Boolean(snapshot?.cancel_at_period_end),
+    canResume: Boolean(snapshot?.can_resume),
+    archiveAt: snapshot?.archive_at || null,
+    deleteAt: snapshot?.delete_at || null,
+    scheduledPlan: snapshot?.scheduled_plan_type || null,
+    scheduledChangeDate: snapshot?.scheduled_change_at || null,
   };
 }
 
@@ -197,7 +110,7 @@ export async function getUserPlanData(
     return value;
   }
 
-  const cacheKey = cacheKeyForUserPlan(authUid, authEmail);
+  const cacheKey = cacheKeyForUserPlan(authUid);
   const cached = readCachedPlan(cacheKey);
   if (cached) return cached;
 

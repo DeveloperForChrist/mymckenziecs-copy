@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../database/supabase-server';
+import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 
 // IntentResult interface removed - intent detection no longer used for message storage qualification
 
@@ -187,15 +188,8 @@ export class ChatManager {
 
     // Plan can be pre-seeded by the API route to avoid duplicate subscription reads.
     if (!this.userPlan) {
-      const { data: activeSub } = await supabaseAdmin
-        .from('subscriptions')
-        .select('plan_type')
-        .eq('user_id', supabaseUserId)
-        .in('status', ['active', 'past_due'])
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      this.userPlan = activeSub?.plan_type || 'No plan';
+      const entitlement = await getOrSyncUserEntitlementSnapshot(supabaseUserId);
+      this.userPlan = entitlement?.plan_type || 'No plan';
     }
 
     let resolvedActiveCaseId = this.activeCaseId;

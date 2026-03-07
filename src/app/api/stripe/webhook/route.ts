@@ -6,6 +6,7 @@ import { sendResendEmail } from '@/lib/email/resend';
 import { getAppUrl } from '@/lib/app-url';
 import { isBillingActiveStripeStatus, normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
 import { buildLifecycleSchedule, getLifecycleArchiveDays, getLifecycleDeleteDays } from '@/lib/payments/subscription-lifecycle';
+import { syncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
 import fs from 'fs';
 import path from 'path';
@@ -146,6 +147,12 @@ async function markSubscriptionPastDue(customerId: string | null, graceDays: num
 
   if (error) {
     console.error('Failed to mark subscription past_due', error);
+    return graceEnd;
+  }
+  const userId = await resolveUserIdForCustomer(customerId);
+  if (userId) {
+    invalidateUserPlanCache(userId);
+    await syncUserEntitlementSnapshot(userId);
   }
   return graceEnd;
 }
@@ -198,6 +205,13 @@ async function markSubscriptionLapsed(customerId: string | null, status: 'cancel
 
   if (error) {
     console.error('Failed to mark subscription lapsed', error);
+    return schedule;
+  }
+
+  const userId = await resolveUserIdForCustomer(customerId);
+  if (userId) {
+    invalidateUserPlanCache(userId);
+    await syncUserEntitlementSnapshot(userId);
   }
 
   return schedule;
@@ -237,8 +251,14 @@ async function clearSubscriptionGrace(customerId: string | null, status: 'active
 
   if (error) {
     console.error('Failed to clear subscription grace fields', error);
+    return;
   }
 
+  const userId = await resolveUserIdForCustomer(customerId);
+  if (userId) {
+    invalidateUserPlanCache(userId);
+    await syncUserEntitlementSnapshot(userId);
+  }
 }
 
 function formatDateLabel(value?: Date | number | null) {
@@ -353,9 +373,13 @@ async function upsertSubscriptionFromStripe(subscription: any) {
 
   const { data: existing } = await supabaseAdmin
     .from('subscriptions')
-    .select('id, plan_type, status')
+    .select('id, plan_type, status, scheduled_plan_type, scheduled_change_at')
     .eq('stripe_subscription_id', subscription?.id)
     .maybeSingle();
+
+  const scheduledPlanApplied =
+    Boolean(existing?.scheduled_plan_type) &&
+    existing.scheduled_plan_type === planType;
 
   const { error } = await supabaseAdmin
     .from('subscriptions')
@@ -368,6 +392,8 @@ async function upsertSubscriptionFromStripe(subscription: any) {
       current_period_start: currentPeriodStart,
       current_period_end: currentPeriodEnd,
       cancel_at_period_end: Boolean(subscription?.cancel_at_period_end),
+      scheduled_plan_type: scheduledPlanApplied ? null : existing?.scheduled_plan_type || null,
+      scheduled_change_at: scheduledPlanApplied ? null : existing?.scheduled_change_at || null,
       ...(isBillingActiveStripeStatus(status)
         ? {
             lifecycle_lapsed_at: null,
@@ -391,6 +417,7 @@ async function upsertSubscriptionFromStripe(subscription: any) {
   }
 
   invalidateUserPlanCache(userId);
+  await syncUserEntitlementSnapshot(userId);
 
   if (status === 'cancelled' || status === 'expired') {
     await markSubscriptionLapsed(customerId, status);
@@ -655,9 +682,16 @@ export async function POST(request: Request) {
           .update({
             status: 'cancelled',
             cancel_at_period_end: false,
+            scheduled_plan_type: null,
+            scheduled_change_at: null,
             updated_at: nowIso,
           })
           .eq('stripe_subscription_id', subscription.id);
+        const userId = await resolveUserIdForCustomer(subscription.customer as string | null);
+        if (userId) {
+          invalidateUserPlanCache(userId);
+          await syncUserEntitlementSnapshot(userId);
+        }
       } catch (error) {
         console.error('Failed to mark subscription cancelled', error);
       }

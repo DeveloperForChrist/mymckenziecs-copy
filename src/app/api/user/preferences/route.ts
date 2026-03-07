@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
+import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { hasReminderAccess } from '@/lib/plans/access';
 
 export const dynamic = 'force-dynamic';
@@ -8,16 +9,8 @@ export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
 async function requireReminderPlan(userId: string) {
-  const { data: activeSub } = await supabaseAdmin
-    .from('subscriptions')
-    .select('plan_type, status')
-    .eq('user_id', userId)
-    .in('status', ['active', 'past_due'])
-    .order('updated_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const isEligible = hasReminderAccess(activeSub?.plan_type || '');
+  const snapshot = await getOrSyncUserEntitlementSnapshot(userId);
+  const isEligible = hasReminderAccess(snapshot?.plan_type || '');
 
   return isEligible;
 }

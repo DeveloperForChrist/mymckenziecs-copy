@@ -10,6 +10,8 @@ import {
   rateLimit,
   rateLimitExceededResponse,
 } from '@/lib/utils/rate-limit';
+import { syncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
+import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
 import { isBillingActiveStripeStatus, normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
 
 const BILLABLE_CANCELABLE_STATUSES = ['active', 'past_due', 'trialing'] as const;
@@ -83,6 +85,8 @@ export async function POST(req: Request) {
         current_period_start: currentPeriodStart,
         current_period_end: currentPeriodEnd,
         cancel_at_period_end: Boolean(updatedSubscription.cancel_at_period_end),
+        scheduled_plan_type: null,
+        scheduled_change_at: null,
         ...(isBillingActiveStripeStatus(normalizedStatus)
           ? {
               lifecycle_lapsed_at: null,
@@ -106,6 +110,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Failed to update local subscription state' }, { status: 500 });
     }
 
+    await syncUserEntitlementSnapshot(authUid);
+    invalidateUserPlanCache(authUid);
     return NextResponse.json({
       ok: true,
       status: normalizedStatus,

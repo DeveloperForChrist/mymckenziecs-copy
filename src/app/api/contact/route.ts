@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
-import { supabaseAdmin } from '@/lib/database/supabase-server';
 import nodemailer from 'nodemailer';
 import { sendResendEmail } from '@/lib/email/resend';
+import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { isPremiumPlusPlan, planDisplayName } from '@/lib/plans/access';
 import { emailDailyRateLimiter, emailRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 
@@ -42,16 +42,9 @@ export async function POST(req: NextRequest) {
         userName = user.user_metadata?.full_name || user.email.split('@')[0];
       }
       if (user?.id) {
-        const { data: activeSub } = await supabaseAdmin
-          .from('subscriptions')
-          .select('plan_type, status')
-          .eq('user_id', user.id)
-          .in('status', ['active', 'past_due'])
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (activeSub?.plan_type) {
-          planLabel = activeSub.plan_type.toString();
+        const snapshot = await getOrSyncUserEntitlementSnapshot(user.id);
+        if (snapshot?.plan_type) {
+          planLabel = snapshot.plan_type.toString();
         }
       }
     } catch (_error) {

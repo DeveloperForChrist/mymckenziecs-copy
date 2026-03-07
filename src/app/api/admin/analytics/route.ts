@@ -65,9 +65,9 @@ export async function GET(request: Request) {
 
     // Premium users: users with active subscription
     const { count: premiumUsers, error: premiumErr } = await supabaseAdmin
-      .from('subscriptions')
+      .from('user_entitlements')
       .select('*', { count: 'exact', head: true })
-      .in('status', ['active', 'past_due']);
+      .eq('paid_access', true);
     if (premiumErr) throw premiumErr;
 
     // Messages in period

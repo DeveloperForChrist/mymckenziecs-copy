@@ -5,6 +5,7 @@ import { requireAdminSession } from '@/lib/auth/admin-guard'
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+const ADMIN_METRICS_ROLLUP_TTL_MS = 5 * 60 * 1000;
 
 const PERIODS = {
   day: 1,
@@ -25,17 +26,43 @@ const chain = (query: MetricsQuery, method: string, ...args: any[]): MetricsQuer
 
 export async function GET(request: Request) {
   try {
-    const admin = await requireAdminSession()
-    if (!admin.ok) return admin.response
+    const cronSecret = process.env.CRON_SECRET
+    const headerSecret = (request.headers.get('x-cron-secret') || request.headers.get('authorization') || '')
+      .replace(/^Bearer\s+/i, '')
+      .trim()
+    const isCronAuthorized = Boolean(cronSecret) && headerSecret === cronSecret
+
+    if (!isCronAuthorized) {
+      const admin = await requireAdminSession()
+      if (!admin.ok) return admin.response
+    }
 
     const { searchParams } = new URL(request.url)
     const periodParam = (searchParams.get('period') || 'week') as PeriodKey
     const period: PeriodKey = PERIODS[periodParam] ? periodParam : 'week'
+    const periodKey = `metrics:${period}`
 
     const now = new Date()
     const startDate = new Date(now)
     startDate.setDate(startDate.getDate() - PERIODS[period])
     const startIso = startDate.toISOString()
+
+    const { data: cachedRollup } = await supabaseAdmin
+      .from('admin_metric_rollups')
+      .select('payload, generated_at')
+      .eq('period_key', periodKey)
+      .maybeSingle()
+
+    const cachedGeneratedAtMs = cachedRollup?.generated_at
+      ? new Date(cachedRollup.generated_at).getTime()
+      : NaN
+    if (
+      cachedRollup?.payload &&
+      Number.isFinite(cachedGeneratedAtMs) &&
+      cachedGeneratedAtMs > Date.now() - ADMIN_METRICS_ROLLUP_TTL_MS
+    ) {
+      return NextResponse.json(cachedRollup.payload)
+    }
 
     const warnings: string[] = []
 
@@ -270,7 +297,7 @@ export async function GET(request: Request) {
     const avgDocSize = documentsSize.count > 0 ? documentsSize.total / documentsSize.count : 0
     const avgResults = caseLawSearchStats.count > 0 ? caseLawSearchStats.total / caseLawSearchStats.count : 0
 
-    return NextResponse.json({
+    const payload = {
       generatedAt: now.toISOString(),
       period: {
         key: period,
@@ -370,7 +397,20 @@ export async function GET(request: Request) {
         },
       },
       warnings,
-    })
+    }
+
+    await supabaseAdmin
+      .from('admin_metric_rollups')
+      .upsert(
+        {
+          period_key: periodKey,
+          payload,
+          generated_at: now.toISOString(),
+        },
+        { onConflict: 'period_key' }
+      )
+
+    return NextResponse.json(payload)
   } catch (error: any) {
     console.error('Error fetching metrics:', error)
     const message = error instanceof Error ? error.message : 'Failed to fetch metrics'

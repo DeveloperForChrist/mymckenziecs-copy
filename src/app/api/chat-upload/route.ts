@@ -1,58 +1,31 @@
 import { NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
-import fs from 'fs/promises'
-import os from 'os'
-import path from 'path'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
+import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse, uploadIpRateLimiter } from '@/lib/utils/rate-limit'
 import { formatSupportedAttachmentTypes, isSupportedChatAttachment } from '@/lib/chat/attachments'
+import { extractTextFromBuffer } from '@/lib/chat/text-extraction'
+import {
+  CHAT_UPLOAD_BUCKET,
+  CHAT_UPLOAD_TTL_MS,
+  buildChatUploadStoragePath,
+  deleteExpiredChatUploads,
+  sanitizeChatUploadFilename,
+} from '@/lib/chat/upload-store'
 
 export const runtime = 'nodejs'
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024
-const CHAT_UPLOAD_TTL_MS = 30 * 60 * 1000
-const uploadDir = path.join(os.tmpdir(), 'mymckenzie-chat-uploads')
+const IMMEDIATE_EXTRACTION_MAX_BYTES = 4 * 1024 * 1024
+const IMMEDIATE_EXTRACTION_TIMEOUT_MS = 4000
 
-const sanitizeFilename = (value: string) => {
-  const trimmed = value.replace(/\s+/g, ' ').trim()
-  return trimmed.replace(/[^a-zA-Z0-9._\- ]/g, '').trim() || 'uploaded-document'
-}
-
-type UploadMeta = {
-  id: string
-  name: string
-  mimeType: string
-  size: number
-  filename: string
-  ownerId: string
-  createdAt: string
-  expiresAt: string
-}
-
-const ensureUploadDir = async () => {
-  await fs.mkdir(uploadDir, { recursive: true })
-}
-
-const cleanupExpiredUploads = async () => {
-  await ensureUploadDir()
-  const now = Date.now()
-  const entries = await fs.readdir(uploadDir).catch(() => [])
-
-  for (const entry of entries) {
-    if (!entry.endsWith('.json')) continue
-    const metaPath = path.join(uploadDir, entry)
-    try {
-      const raw = await fs.readFile(metaPath, 'utf8')
-      const meta = JSON.parse(raw) as UploadMeta
-      const expiresAt = new Date(meta.expiresAt).getTime()
-      if (!Number.isFinite(expiresAt) || expiresAt > now) continue
-      const filePath = path.join(uploadDir, meta.filename)
-      await fs.unlink(filePath).catch(() => undefined)
-      await fs.unlink(metaPath).catch(() => undefined)
-    } catch {
-      await fs.unlink(metaPath).catch(() => undefined)
-    }
-  }
+const extractWithTimeout = async (buffer: Buffer, name: string, mimeType: string | null) => {
+  return await Promise.race<string>([
+    extractTextFromBuffer(buffer, name, mimeType),
+    new Promise<string>((_, reject) => {
+      setTimeout(() => reject(new Error('Extraction timed out')), IMMEDIATE_EXTRACTION_TIMEOUT_MS)
+    }),
+  ])
 }
 
 export async function POST(request: Request) {
@@ -70,13 +43,13 @@ export async function POST(request: Request) {
       return rateLimitExceededResponse(limit, 'Too many upload requests. Please try again later.')
     }
 
+    await deleteExpiredChatUploads()
+
     const formData = await request.formData()
     const entries = formData.getAll('files')
     if (!entries.length) {
       return NextResponse.json({ message: 'No files provided.' }, { status: 400 })
     }
-    await cleanupExpiredUploads()
-    await ensureUploadDir()
 
     const files: Array<{
       name: string
@@ -98,33 +71,68 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: 'File too large. Max size is 25MB.' }, { status: 400 })
       }
 
-      const safeName = sanitizeFilename(entry.name)
+      const safeName = sanitizeChatUploadFilename(entry.name)
       const id = `tmp_${randomUUID().replace(/-/g, '')}`
-      const filename = `${id}--${safeName}`
-      const filePath = path.join(uploadDir, filename)
-      const metaPath = path.join(uploadDir, `${id}.json`)
-      const buffer = Buffer.from(await entry.arrayBuffer())
-      await fs.writeFile(filePath, buffer)
+      const storagePath = buildChatUploadStoragePath(user.id, id, safeName)
       const now = new Date()
       const expiresAt = new Date(now.getTime() + CHAT_UPLOAD_TTL_MS)
-      const meta: UploadMeta = {
-        id,
-        name: safeName,
-        mimeType: entry.type || 'application/octet-stream',
-        size: buffer.length,
-        filename,
-        ownerId: user.id,
-        createdAt: now.toISOString(),
-        expiresAt: expiresAt.toISOString()
+      const fileBuffer = Buffer.from(await entry.arrayBuffer())
+      let extractedText: string | null = null
+      let extractStatus: 'pending' | 'complete' = 'pending'
+      let extractedAt: string | null = null
+
+      if (fileBuffer.length <= IMMEDIATE_EXTRACTION_MAX_BYTES) {
+        try {
+          const extracted = await extractWithTimeout(fileBuffer, safeName, entry.type || null)
+          extractedText = extracted.trim() ? extracted : null
+          extractStatus = 'complete'
+          extractedAt = now.toISOString()
+        } catch {
+          extractStatus = 'pending'
+        }
       }
-      await fs.writeFile(metaPath, JSON.stringify(meta, null, 2))
+
+      const { error: uploadError } = await supabaseAdmin.storage
+        .from(CHAT_UPLOAD_BUCKET)
+        .upload(storagePath, fileBuffer, {
+          contentType: entry.type || 'application/octet-stream',
+          upsert: false,
+        })
+
+      if (uploadError) {
+        console.error('Chat upload storage error', uploadError)
+        return NextResponse.json({ message: 'Upload failed.' }, { status: 500 })
+      }
+
+      const { error: insertError } = await supabaseAdmin
+        .from('chat_uploads')
+        .insert({
+          id,
+          owner_id: user.id,
+          name: safeName,
+          mime_type: entry.type || 'application/octet-stream',
+          size_bytes: fileBuffer.length,
+          storage_path: storagePath,
+          extracted_text: extractedText,
+          extract_status: extractStatus,
+          extracted_at: extractedAt,
+          extract_error: null,
+          created_at: now.toISOString(),
+          expires_at: expiresAt.toISOString(),
+        })
+
+      if (insertError) {
+        console.error('Chat upload metadata error', insertError)
+        await supabaseAdmin.storage.from(CHAT_UPLOAD_BUCKET).remove([storagePath]).catch(() => undefined)
+        return NextResponse.json({ message: 'Upload failed.' }, { status: 500 })
+      }
 
       files.push({
         name: safeName,
         downloadURL: `/api/chat-upload/${id}`,
         storagePath: id,
-        size: buffer.length,
-        mimeType: entry.type || null
+        size: fileBuffer.length,
+        mimeType: entry.type || null,
       })
     }
 
