@@ -595,7 +595,7 @@ const rankCaseLawCandidates = <T extends RankedCaseLawItem>(query: string, items
     return true
   })
 
-  const picked = (filtered.length > 0 ? filtered : ranked.slice(0, Math.min(limit, 2)))
+  const picked = filtered
     .sort((a, b) => b.combinedScore - a.combinedScore)
     .slice(0, limit)
     .map((entry) => entry.item)
