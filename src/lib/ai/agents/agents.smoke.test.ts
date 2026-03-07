@@ -10,7 +10,43 @@ vi.mock('openai', () => {
             : ''
           const isCaseStudy = combinedContent.includes('Please provide a comprehensive educational case study analysis')
           const isRoutingDecision = combinedContent.includes('Choose the retrieval mode for this user request before answer generation.')
+          const isPremiumSearchDecision = combinedContent.includes('Choose whether web retrieval is needed before answering this user request.')
+          if (isPremiumSearchDecision) {
+            return {
+              choices: [
+                {
+                  message: {
+                    content: JSON.stringify({
+                      search_mode: 'direct',
+                      web_query: '',
+                      confidence: 0.82,
+                      reasons: ['stable-legal-concept'],
+                    }),
+                  },
+                  finish_reason: 'stop',
+                },
+              ],
+            }
+          }
           if (isRoutingDecision) {
+            if (combinedContent.includes('What does claimant mean')) {
+              return {
+                choices: [
+                  {
+                    message: {
+                      content: JSON.stringify({
+                        retrieval_mode: 'direct',
+                        vector_query: '',
+                        web_query: '',
+                        confidence: 0.81,
+                        reasons: ['stable-legal-concept'],
+                      }),
+                    },
+                    finish_reason: 'stop',
+                  },
+                ],
+              }
+            }
             return {
               choices: [
                 {
@@ -75,10 +111,10 @@ vi.mock('@anthropic-ai/sdk', () => {
   return { default: MockAnthropic }
 })
 
-import { invokeBasicLegalAgent } from './legal-agent'
+import { invokeBasicLegalAgent, invokeLegalAgent } from './legal-agent'
 import { CaseStudyAgent } from './case-study-agent'
 import { createDiscriminatorAgent } from './discriminator-agent'
-import { decideRetrievalWithGenerator } from './legal-agent'
+import { decidePremiumSearchNeedWithGenerator, decideRetrievalWithGenerator } from './legal-agent'
 
 describe('agent smoke checks', () => {
   const originalEnv = { ...process.env }
@@ -130,6 +166,21 @@ describe('agent smoke checks', () => {
     expect(result.response.trim().length).toBeGreaterThan(0)
   })
 
+  it('direct legal agent path can still use discriminator review', async () => {
+    const result = await invokeLegalAgent(
+      'What does claimant mean in a small claim?',
+      'thread_smoke_direct_review',
+      'user_smoke_direct_review',
+      [],
+      'small claims',
+      { useSearch: false, useDiscriminator: true }
+    )
+
+    expect(typeof result.response).toBe('string')
+    expect(result.response.trim().length).toBeGreaterThan(0)
+    expect(result.response).toContain('In short:')
+  })
+
   it('generator retrieval routing returns a routing decision', async () => {
     const result = await decideRetrievalWithGenerator(
       'My landlord kept my deposit and ignored my letter before action. What next?',
@@ -140,6 +191,31 @@ describe('agent smoke checks', () => {
     expect(result).not.toBeNull()
     expect(result?.retrievalMode).toBe('hybrid')
     expect(result?.webQuery).toBe('current UK procedure guidance')
+  })
+
+  it('premium plus retrieval routing can choose direct for stable questions', async () => {
+    const result = await decideRetrievalWithGenerator(
+      'What does claimant mean in a small claim?',
+      [],
+      'small claims'
+    )
+
+    expect(result).not.toBeNull()
+    expect(result?.retrievalMode).toBe('direct')
+    expect(result?.webQuery).toBeUndefined()
+    expect(result?.vectorQuery).toBeUndefined()
+  })
+
+  it('premium search routing can skip web retrieval for direct questions', async () => {
+    const result = await decidePremiumSearchNeedWithGenerator(
+      'What does claimant mean in a small claim?',
+      [],
+      'small claims'
+    )
+
+    expect(result).not.toBeNull()
+    expect(result?.searchMode).toBe('direct')
+    expect(result?.webQuery).toBeUndefined()
   })
 
   it('discriminator final-pass agent returns a streamlined reply', async () => {

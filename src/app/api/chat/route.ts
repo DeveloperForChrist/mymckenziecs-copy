@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { decideRetrievalWithGenerator, invokeBasicLegalAgent, invokeLegalAgent } from '@/lib/ai/agents/legal-agent'
+import {
+  decidePremiumSearchNeedWithGenerator,
+  decideRetrievalWithGenerator,
+  invokeBasicLegalAgent,
+  invokeLegalAgent,
+} from '@/lib/ai/agents/legal-agent'
 import { ChatManager } from '@/lib/ai/chat-manager'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
@@ -104,6 +109,8 @@ const getPremiumPlusDiscriminatorModel = (): string | null =>
 const getPremiumPlusDiscriminatorFallbackModel = (primaryModel: string): string =>
   getEnvModelValue('PREMIUM_PLUS_DISCRIMINATOR_CLAUDE_FALLBACK_MODEL', 'PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL') || primaryModel
 
+const PREMIUM_GENERATOR_ROUTING_ENABLED =
+  (getEnvModelValue('PREMIUM_GENERATOR_ROUTING_ENABLED') || 'true').toLowerCase() !== 'false'
 const PREMIUM_PLUS_GENERATOR_ROUTING_ENABLED =
   (getEnvModelValue('PREMIUM_PLUS_GENERATOR_ROUTING_ENABLED') || 'true').toLowerCase() !== 'false'
 const PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED =
@@ -791,6 +798,7 @@ const evaluateCaseLawSuggestionNeed = ({
 }
 
 type RetrievalFocus = 'web_only' | 'vector_only' | 'hybrid'
+type AppliedRetrievalFocus = RetrievalFocus | 'direct'
 
 const evaluateRetrievalFocus = ({
   message,
@@ -1832,22 +1840,46 @@ export async function POST(request: NextRequest) {
       hasAttachments,
       caseContextData,
     })
+    const generatorRoutingInput = truncateText(
+      attachmentContext
+        ? `${message}\n\nUser uploaded documents. Use the excerpts below when deciding retrieval.\n${attachmentContext}`
+        : attachmentMetadata
+          ? `${message}\n\n${attachmentMetadata}`
+          : message,
+      12000
+    )
+    let premiumSearchRoutingDecision: Awaited<ReturnType<typeof decidePremiumSearchNeedWithGenerator>> | null = null
+    let premiumGeneratedWebQuery = ''
+    let premiumSearchRoutingConfidence: number | null = null
+    let premiumSearchRoutingReasons: string[] = []
+    if (premiumPlanActive && PREMIUM_GENERATOR_ROUTING_ENABLED) {
+      premiumSearchRoutingDecision = await decidePremiumSearchNeedWithGenerator(
+        generatorRoutingInput,
+        sanitizedHistory,
+        caseKeywords,
+        {
+          openaiModel: premiumOpenAiModel,
+          openaiFallbackModel: premiumOpenAiFallbackModel,
+        }
+      )
+      if (premiumSearchRoutingDecision) {
+        premiumGeneratedWebQuery = (premiumSearchRoutingDecision.webQuery || '').trim()
+        premiumSearchRoutingConfidence = Number.isFinite(Number(premiumSearchRoutingDecision.confidence))
+          ? Math.max(0, Math.min(1, Number(premiumSearchRoutingDecision.confidence)))
+          : null
+        premiumSearchRoutingReasons = premiumSearchRoutingDecision.reasons.length > 0
+          ? premiumSearchRoutingDecision.reasons.slice()
+          : [`generator-routing:${premiumSearchRoutingDecision.searchMode}`]
+      }
+    }
     let generatorRoutingDecision: Awaited<ReturnType<typeof decideRetrievalWithGenerator>> | null = null
-    let retrievalFocusApplied: RetrievalFocus = retrievalFocusDecision.focus
+    let retrievalFocusApplied: AppliedRetrievalFocus = retrievalFocusDecision.focus
     let generatedWebQuery = ''
     let generatedVectorQuery = ''
     let generatorRoutingConfidence: number | null = null
     let routingReasonsApplied: string[] = retrievalFocusDecision.reasons.slice()
 
     if (premiumPlusActive && PREMIUM_PLUS_GENERATOR_ROUTING_ENABLED) {
-      const generatorRoutingInput = truncateText(
-        attachmentContext
-          ? `${message}\n\nUser uploaded documents. Use the excerpts below when deciding retrieval.\n${attachmentContext}`
-          : attachmentMetadata
-            ? `${message}\n\n${attachmentMetadata}`
-            : message,
-        12000
-      )
       generatorRoutingDecision = await decideRetrievalWithGenerator(
         generatorRoutingInput,
         sanitizedHistory,
@@ -1871,6 +1903,13 @@ export async function POST(request: NextRequest) {
       }
     }
     const retrievalRoutingSource: 'generator' | 'heuristic' = generatorRoutingDecision ? 'generator' : 'heuristic'
+    const premiumSearchRoutingSource: 'generator' | 'fallback' = premiumSearchRoutingDecision ? 'generator' : 'fallback'
+    const premiumPlusNeedsWebRetrieval =
+      premiumPlusActive &&
+      (retrievalFocusApplied === 'web_only' || retrievalFocusApplied === 'hybrid')
+    const premiumPlusNeedsCaseLawRetrieval =
+      premiumPlusActive &&
+      (retrievalFocusApplied === 'vector_only' || retrievalFocusApplied === 'hybrid')
 
     const premiumPlusCaseLawBaseDecision = shouldUseCaseLawRetrieval({
       message,
@@ -1881,10 +1920,10 @@ export async function POST(request: NextRequest) {
     })
     const shouldUsePremiumPlusCaseLawRetrieval =
       retrievalRoutingSource === 'generator'
-        ? premiumPlusActive && retrievalFocusApplied !== 'web_only'
+        ? premiumPlusNeedsCaseLawRetrieval
         : (
             premiumPlusActive &&
-            retrievalFocusApplied !== 'web_only' &&
+            premiumPlusNeedsCaseLawRetrieval &&
             (
               premiumPlusCaseLawBaseDecision ||
               retrievalFocusDecision.ownCaseNarrative ||
@@ -1892,20 +1931,23 @@ export async function POST(request: NextRequest) {
             )
           )
 
+    const premiumShouldUseSearchRetrieval =
+      premiumPlanActive &&
+      (premiumSearchRoutingDecision ? premiumSearchRoutingDecision.searchMode === 'web' : true)
     let shouldUseSearchRetrieval =
-      premiumPlanActive ||
-      (premiumPlusActive && retrievalFocusApplied !== 'vector_only')
+      premiumShouldUseSearchRetrieval ||
+      premiumPlusNeedsWebRetrieval
     let usePremiumPlusVectorRag =
       premiumPlusActive &&
       shouldUsePremiumPlusCaseLawRetrieval &&
       (retrievalRoutingSource === 'generator' || !hasAttachments)
     const shouldLookupCaseLawSuggestions =
       retrievalRoutingSource === 'generator'
-        ? premiumPlusActive && retrievalFocusApplied !== 'web_only'
+        ? premiumPlusNeedsCaseLawRetrieval
         : (
             premiumPlusActive &&
             shouldUsePremiumPlusCaseLawRetrieval &&
-            (caseLawSuggestionDecision.shouldSuggest || retrievalFocusApplied !== 'web_only')
+            (caseLawSuggestionDecision.shouldSuggest || premiumPlusNeedsCaseLawRetrieval)
           )
 
     const baselineCaseLawQuery = buildCaseLawSuggestionQuery({
@@ -1952,6 +1994,9 @@ export async function POST(request: NextRequest) {
       : ''
     const caseLawStyleInstruction = premiumPlusActive
       ? (() => {
+          if (retrievalFocusApplied === 'direct') {
+            return '\n\nExplanation policy (Premium+): Answer directly in plain English from stable legal knowledge. Keep it practical and do not add authorities unless the user specifically asks for them or they are already provided in context.'
+          }
           if (retrievalFocusApplied === 'web_only') {
             return '\n\nExplanation policy (Premium+): Focus on current procedure and practical next steps in plain English. Do not add case authorities unless they are directly relevant.'
           }
@@ -1976,7 +2021,9 @@ export async function POST(request: NextRequest) {
           useDiscriminator: premiumPlusActive && PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED,
           useSearch: shouldUseSearchRetrieval,
           includeCitations: premiumPlusActive,
-          searchQueryOverride: premiumPlusActive ? (generatedWebQuery || undefined) : undefined,
+          searchQueryOverride: premiumPlusActive
+            ? (generatedWebQuery || undefined)
+            : (premiumGeneratedWebQuery || undefined),
           openaiModel: premiumPlusActive ? (premiumPlusOpenAiModel || undefined) : premiumOpenAiModel,
           openaiFallbackModel: premiumPlusActive
             ? (premiumPlusOpenAiFallbackModel || undefined)
@@ -2106,8 +2153,19 @@ export async function POST(request: NextRequest) {
                     planLabel: activePlanLabel || 'none',
                     sourceCount,
                     hasInlineCitationTags,
-                    citationMode: premiumPlusActive ? 'search+citations' : (premiumPlanActive ? 'search-no-citations' : 'basic-no-search'),
+                    citationMode: premiumPlusActive
+                      ? (shouldUseSearchRetrieval ? 'search+citations' : 'direct-no-search')
+                      : (premiumPlanActive
+                          ? (shouldUseSearchRetrieval ? 'search-no-citations' : 'direct-no-search')
+                          : 'basic-no-search'),
                     retrievalEnabled: shouldUseSearchRetrieval,
+                    premiumGeneratorRoutingEnabled: PREMIUM_GENERATOR_ROUTING_ENABLED,
+                    premiumSearchRoutingSource,
+                    premiumSearchRoutingUsed: Boolean(premiumSearchRoutingDecision),
+                    premiumSearchRoutingConfidence,
+                    premiumSearchRoutingReasons,
+                    premiumSearchModeApplied: premiumSearchRoutingDecision?.searchMode || 'fallback-search',
+                    premiumSearchQuery: premiumGeneratedWebQuery || null,
                     premiumPlusCaseLawRetrievalEnabled: shouldUsePremiumPlusCaseLawRetrieval,
                     vectorCaseLawRagEnabled: usePremiumPlusVectorRag,
                     vectorCaseLawRagCount: vectorCaseLawRagItems.length,

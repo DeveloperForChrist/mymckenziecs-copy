@@ -181,11 +181,18 @@ let groqRateLimitedUntil = 0
 type RetrievalMode = 'education' | 'general'
 type LlmProvider = 'openai' | 'groq'
 type LengthRecoveryMode = 'none' | 'continue' | 'compress'
-export type GeneratorRetrievalMode = 'web_only' | 'vector_only' | 'hybrid'
+export type GeneratorRetrievalMode = 'direct' | 'web_only' | 'vector_only' | 'hybrid'
 export type GeneratorRetrievalDecision = {
   retrievalMode: GeneratorRetrievalMode
   webQuery?: string
   vectorQuery?: string
+  confidence?: number
+  reasons: string[]
+}
+export type PremiumSearchMode = 'direct' | 'web'
+export type PremiumSearchDecision = {
+  searchMode: PremiumSearchMode
+  webQuery?: string
   confidence?: number
   reasons: string[]
 }
@@ -266,6 +273,7 @@ const parseGeneratorRetrievalJson = (raw: string): GeneratorRetrievalDecision | 
       const parsed = JSON.parse(candidate) as any
       const retrievalModeRaw = String(parsed?.retrieval_mode || parsed?.retrievalMode || '').trim().toLowerCase()
       const retrievalMode = (
+        retrievalModeRaw === 'direct' ||
         retrievalModeRaw === 'web_only' ||
         retrievalModeRaw === 'vector_only' ||
         retrievalModeRaw === 'hybrid'
@@ -291,6 +299,48 @@ const parseGeneratorRetrievalJson = (raw: string): GeneratorRetrievalDecision | 
         retrievalMode,
         webQuery: webQuery || undefined,
         vectorQuery: vectorQuery || undefined,
+        confidence,
+        reasons,
+      }
+    } catch {
+      // try next candidate
+    }
+  }
+
+  return null
+}
+
+const parsePremiumSearchJson = (raw: string): PremiumSearchDecision | null => {
+  const trimmed = (raw || '').trim()
+  if (!trimmed) return null
+
+  const wrappedMatch = trimmed.match(/\{[\s\S]*\}/)
+  const candidates = wrappedMatch ? [trimmed, wrappedMatch[0]] : [trimmed]
+
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate) as any
+      const searchModeRaw = String(parsed?.search_mode || parsed?.searchMode || '').trim().toLowerCase()
+      const searchMode = (searchModeRaw === 'direct' || searchModeRaw === 'web') ? searchModeRaw : null
+      if (!searchMode) continue
+
+      const webQuery = String(parsed?.web_query || parsed?.webQuery || '').trim()
+      const rawConfidence = Number(
+        parsed?.confidence ??
+        parsed?.routing_confidence ??
+        parsed?.score ??
+        NaN
+      )
+      const confidence = Number.isFinite(rawConfidence)
+        ? Math.max(0, Math.min(1, rawConfidence))
+        : undefined
+      const reasons = Array.isArray(parsed?.reasons)
+        ? parsed.reasons.map((value: any) => String(value).trim()).filter(Boolean).slice(0, 8)
+        : []
+
+      return {
+        searchMode,
+        webQuery: webQuery || undefined,
         confidence,
         reasons,
       }
@@ -964,20 +1014,21 @@ ${input}
 ${caseKeywords ? `Case context: ${caseKeywords}\n` : ''}${historyContext}
 
 Rules:
-1. retrieval_mode must be one of: web_only, vector_only, hybrid.
-2. Use web_only when current procedure, forms, deadlines, official guidance, or practical next steps are dominant.
-3. Use vector_only when case law, precedent, legal authorities, or analogical reasoning from authorities are dominant.
-4. Use hybrid when both current practical guidance and legal authorities materially matter.
-5. If attachment excerpts are present, prefer web_only or hybrid unless authority-heavy analysis is clearly dominant.
-6. web_query must be a short focused web search query.
-7. vector_query must be a short focused case-law retrieval query.
-8. confidence must be 0 to 1 for routing certainty.
-9. reasons should briefly explain the routing choice.
-10. Do not answer the user. Only choose retrieval.
+1. retrieval_mode must be one of: direct, web_only, vector_only, hybrid.
+2. Use direct when the answer can be given safely from stable general legal knowledge or plain-English explanation without needing current source verification or case-law retrieval.
+3. Use web_only when current procedure, forms, deadlines, official guidance, or practical next steps are dominant.
+4. Use vector_only when case law, precedent, legal authorities, or analogical reasoning from authorities are dominant.
+5. Use hybrid when both current practical guidance and legal authorities materially matter.
+6. If attachment excerpts are present, prefer web_only or hybrid unless authority-heavy analysis is clearly dominant.
+7. web_query must be a short focused web search query when web retrieval is needed. Leave it blank for direct or vector_only.
+8. vector_query must be a short focused case-law retrieval query when case-law retrieval is needed. Leave it blank for direct or web_only.
+9. confidence must be 0 to 1 for routing certainty.
+10. reasons should briefly explain the routing choice.
+11. Do not answer the user. Only choose retrieval.
 
 Output schema:
 {
-  "retrieval_mode": "web_only|vector_only|hybrid",
+  "retrieval_mode": "direct|web_only|vector_only|hybrid",
   "web_query": "string",
   "vector_query": "string",
   "confidence": 0.0,
@@ -1039,6 +1090,115 @@ Output schema:
     try {
       const fallback = await runModel(fallbackModel)
       const parsed = parseGeneratorRetrievalJson(fallback)
+      if (parsed) return parsed
+    } catch {
+      return null
+    }
+  }
+
+  return null
+}
+
+export async function decidePremiumSearchNeedWithGenerator(
+  input: string,
+  conversationHistory: Array<{ role: string; content: string }> = [],
+  caseKeywords?: string,
+  options?: {
+    openaiModel?: string
+    openaiFallbackModel?: string
+  }
+): Promise<PremiumSearchDecision | null> {
+  const apiKey = (process.env.OPENAI_API_KEY || '').trim()
+  if (!apiKey) return null
+
+  const trimmedHistory = sanitizeConversationHistory(conversationHistory, 12)
+  const historyContext = buildHistoryContext(trimmedHistory)
+  const model = (options?.openaiModel || OPENAI_MODEL).trim() || OPENAI_MODEL
+  const fallbackModel = (options?.openaiFallbackModel || OPENAI_FALLBACK_MODEL).trim()
+  const systemPrompt = [
+    'You are the MyMckenzieCS generator deciding whether web retrieval is needed before answering.',
+    'Decide whether the model should answer directly from stable legal knowledge or use web retrieval first.',
+    'Return JSON only. No prose, no markdown, no code fences.',
+  ].join(' ')
+  const userPrompt = `Choose whether web retrieval is needed before answering this user request.
+User message:
+${input}
+
+${caseKeywords ? `Case context: ${caseKeywords}\n` : ''}${historyContext}
+
+Rules:
+1. search_mode must be one of: direct, web.
+2. Use direct when the answer can be given safely from stable general legal knowledge, plain-English explanation, or common procedural concepts without needing current source verification.
+3. Use web when current procedure, official guidance, forms, deadlines, recent legal changes, or source-grounded practical next steps materially matter.
+4. If attachment excerpts are present and the answer depends on current rules, official forms, or source-grounded analysis, prefer web.
+5. web_query must be a short focused web search query when search_mode is web. Leave it blank when search_mode is direct.
+6. confidence must be 0 to 1 for routing certainty.
+7. reasons should briefly explain the routing choice.
+8. Do not answer the user. Only choose whether to use web retrieval.
+
+Output schema:
+{
+  "search_mode": "direct|web",
+  "web_query": "string",
+  "confidence": 0.0,
+  "reasons": ["string"]
+}`
+
+  const openai = new OpenAI({ apiKey })
+  const buildPayload = (modelName: string) => {
+    const normalizedModel = modelName.trim().toLowerCase()
+    const payload: Record<string, any> = {
+      model: modelName,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+    }
+    if (normalizedModel.startsWith('o') || normalizedModel.startsWith('gpt-5')) {
+      payload.max_completion_tokens = 180
+    } else {
+      payload.max_tokens = 180
+      payload.temperature = 0.1
+    }
+    return payload
+  }
+
+  const runModel = async (modelName: string): Promise<string> => {
+    try {
+      const completion = await openai.chat.completions.create(buildPayload(modelName) as any)
+      return completion.choices?.[0]?.message?.content || ''
+    } catch (error: any) {
+      const unsupportedTokenParam =
+        error?.code === 'unsupported_parameter' &&
+        (error?.param === 'max_tokens' || error?.param === 'max_completion_tokens')
+      if (!unsupportedTokenParam) throw error
+
+      const retryPayload = buildPayload(modelName)
+      if ('max_tokens' in retryPayload) {
+        delete retryPayload.max_tokens
+        retryPayload.max_completion_tokens = 180
+      } else {
+        delete retryPayload.max_completion_tokens
+        retryPayload.max_tokens = 180
+        retryPayload.temperature = 0.1
+      }
+      const completion = await openai.chat.completions.create(retryPayload as any)
+      return completion.choices?.[0]?.message?.content || ''
+    }
+  }
+
+  try {
+    const primary = await runModel(model)
+    const parsed = parsePremiumSearchJson(primary)
+    if (parsed) return parsed
+  } catch {
+    // try fallback below
+  }
+
+  if (fallbackModel && fallbackModel !== model) {
+    try {
+      const fallback = await runModel(fallbackModel)
+      const parsed = parsePremiumSearchJson(fallback)
       if (parsed) return parsed
     } catch {
       return null
@@ -1152,7 +1312,7 @@ export async function createLegalAgent(
           }
         }
 
-        // 3. LEGAL AGENT: Direct answer (no search, no discriminator)
+        // 3. LEGAL AGENT: Direct answer (no search, optional discriminator review)
         if (!useSearch) {
           const historyContext = buildHistoryContext(trimmedHistory)
           const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
@@ -1170,9 +1330,32 @@ export async function createLegalAgent(
             useCompression,
             maxCompressionRetries
           )
-          const neutralDirectAnswer = neutralizeLegalAdviceTone(directAnswer)
+          let finalDirectAnswer = neutralizeLegalAdviceTone(directAnswer)
+          if (useDiscriminator) {
+            try {
+              const discriminatorAgent = await createDiscriminatorAgent(
+                trimmedHistory,
+                caseKeywords,
+                false,
+                {
+                  discriminatorModel,
+                  discriminatorFallbackModel,
+                }
+              )
+              const reviewed = await discriminatorAgent.invoke({
+                input: latestQuestion,
+                comprehensiveAnswer: finalDirectAnswer,
+                allSources: [],
+              })
+              if (reviewed?.streamlinedAnswer?.trim()) {
+                finalDirectAnswer = reviewed.streamlinedAnswer.trim()
+              }
+            } catch (discriminatorError) {
+              console.error('Direct-answer discriminator review failed:', discriminatorError)
+            }
+          }
           return {
-            response: neutralDirectAnswer,
+            response: finalDirectAnswer,
             document_generated: false,
             guidance_provided: true,
             sources: undefined
