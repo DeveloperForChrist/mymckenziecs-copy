@@ -9,6 +9,7 @@ const normalizeSiteUrl = (value: string) =>
 const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL || 'https://mymckenziecs.com')
 const APP_FULL_NAME = 'MyMcKenzie Court Support'
 const APP_SHORT_NAME = 'MyMcKenzieCS'
+const FAVICON_SVG_PATH = '/assets/mymckenzie-high-resolution-logo (7) 1.svg'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -56,12 +57,12 @@ export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [
-      { url: '/favicon-source.png', sizes: '1080x1080', type: 'image/png' },
+      { url: FAVICON_SVG_PATH, type: 'image/svg+xml' },
       { url: '/favicon.ico', type: 'image/x-icon' },
       { url: '/favicon-48x48.png', sizes: '48x48', type: 'image/png' },
       { url: '/favicon-192x192.png', sizes: '192x192', type: 'image/png' },
     ],
-    shortcut: '/favicon.ico',
+    shortcut: FAVICON_SVG_PATH,
     apple: '/apple-touch-icon.png',
   },
 }
@@ -95,6 +96,8 @@ export default function RootLayout({
           href="https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css"
           rel="stylesheet"
         />
+        <link rel="icon" href={FAVICON_SVG_PATH} type="image/svg+xml" />
+        <link rel="shortcut icon" href={FAVICON_SVG_PATH} type="image/svg+xml" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
