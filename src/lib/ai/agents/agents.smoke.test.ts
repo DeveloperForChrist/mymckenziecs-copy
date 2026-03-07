@@ -5,8 +5,29 @@ vi.mock('openai', () => {
     chat = {
       completions: {
         create: vi.fn(async (payload: any) => {
-          const userContent = String(payload?.messages?.[0]?.content || '')
-          const isCaseStudy = userContent.includes('Please provide a comprehensive educational case study analysis')
+          const combinedContent = Array.isArray(payload?.messages)
+            ? payload.messages.map((message: any) => String(message?.content || '')).join('\n')
+            : ''
+          const isCaseStudy = combinedContent.includes('Please provide a comprehensive educational case study analysis')
+          const isRoutingDecision = combinedContent.includes('Choose the retrieval mode for this user request before answer generation.')
+          if (isRoutingDecision) {
+            return {
+              choices: [
+                {
+                  message: {
+                    content: JSON.stringify({
+                      retrieval_mode: 'hybrid',
+                      vector_query: 'relevant UK precedent',
+                      web_query: 'current UK procedure guidance',
+                      confidence: 0.78,
+                      reasons: ['mixed-signals'],
+                    }),
+                  },
+                  finish_reason: 'stop',
+                },
+              ],
+            }
+          }
           const content = isCaseStudy
             ? `CASE SUMMARY\n${'learning '.repeat(1200)}\n\nIn short: This is educational information only.`
             : 'Overview\n1. General guidance point.\n2. Practical note.\nIn short: This is general legal information support.'
@@ -57,7 +78,7 @@ vi.mock('@anthropic-ai/sdk', () => {
 import { invokeBasicLegalAgent } from './legal-agent'
 import { CaseStudyAgent } from './case-study-agent'
 import { createDiscriminatorAgent } from './discriminator-agent'
-import { decomposeWithPlanner } from './planner-agent'
+import { decideRetrievalWithGenerator } from './legal-agent'
 
 describe('agent smoke checks', () => {
   const originalEnv = { ...process.env }
@@ -109,8 +130,8 @@ describe('agent smoke checks', () => {
     expect(result.response.trim().length).toBeGreaterThan(0)
   })
 
-  it('planner agent returns routing output', async () => {
-    const result = await decomposeWithPlanner(
+  it('generator retrieval routing returns a routing decision', async () => {
+    const result = await decideRetrievalWithGenerator(
       'My landlord kept my deposit and ignored my letter before action. What next?',
       [],
       'small claims'
@@ -118,7 +139,7 @@ describe('agent smoke checks', () => {
 
     expect(result).not.toBeNull()
     expect(result?.retrievalMode).toBe('hybrid')
-    expect(result?.decomposition?.length || 0).toBeGreaterThan(0)
+    expect(result?.webQuery).toBe('current UK procedure guidance')
   })
 
   it('discriminator final-pass agent returns a streamlined reply', async () => {

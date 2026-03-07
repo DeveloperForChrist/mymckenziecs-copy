@@ -25,12 +25,6 @@ vi.mock('./discriminator-agent', () => ({
       streamlinedAnswer: comprehensiveAnswer,
       citedSources: undefined
     }))
-  })),
-  createOrchestratorAgent: vi.fn(async () => ({
-    invoke: vi.fn(async ({ comprehensiveAnswer }: { comprehensiveAnswer: string }) => ({
-      streamlinedAnswer: comprehensiveAnswer,
-      citedSources: undefined
-    }))
   }))
 }))
 

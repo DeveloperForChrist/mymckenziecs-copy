@@ -40,8 +40,6 @@ const claudeModels = unique([
   process.env.CLAUDE_FALLBACK_MODEL,
   process.env.PREMIUM_PLUS_CLAUDE_MODEL,
   process.env.PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL,
-  process.env.PREMIUM_PLUS_PLANNER_CLAUDE_MODEL,
-  process.env.PREMIUM_PLUS_PLANNER_CLAUDE_FALLBACK_MODEL,
 ])
 
 const shorten = (value, max = 140) => {

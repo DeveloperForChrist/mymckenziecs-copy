@@ -181,6 +181,14 @@ let groqRateLimitedUntil = 0
 type RetrievalMode = 'education' | 'general'
 type LlmProvider = 'openai' | 'groq'
 type LengthRecoveryMode = 'none' | 'continue' | 'compress'
+export type GeneratorRetrievalMode = 'web_only' | 'vector_only' | 'hybrid'
+export type GeneratorRetrievalDecision = {
+  retrievalMode: GeneratorRetrievalMode
+  webQuery?: string
+  vectorQuery?: string
+  confidence?: number
+  reasons: string[]
+}
 type LegalAgentOptions = {
   useDiscriminator?: boolean
   useSearch?: boolean
@@ -199,8 +207,6 @@ type LegalAgentOptions = {
   searchQueryOverride?: string
   discriminatorModel?: string
   discriminatorFallbackModel?: string
-  orchestratorModel?: string
-  orchestratorFallbackModel?: string
 }
 
 function stableBucketPercent(input: string): number {
@@ -246,6 +252,54 @@ function buildHistoryContext(history: Array<{ role: 'user' | 'assistant'; conten
 
   const lines = history.map(entry => `${entry.role === 'assistant' ? 'Assistant' : 'User'}: ${entry.content}`)
   return `Recent conversation:\n${lines.join('\n')}\n`
+}
+
+const parseGeneratorRetrievalJson = (raw: string): GeneratorRetrievalDecision | null => {
+  const trimmed = (raw || '').trim()
+  if (!trimmed) return null
+
+  const wrappedMatch = trimmed.match(/\{[\s\S]*\}/)
+  const candidates = wrappedMatch ? [trimmed, wrappedMatch[0]] : [trimmed]
+
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate) as any
+      const retrievalModeRaw = String(parsed?.retrieval_mode || parsed?.retrievalMode || '').trim().toLowerCase()
+      const retrievalMode = (
+        retrievalModeRaw === 'web_only' ||
+        retrievalModeRaw === 'vector_only' ||
+        retrievalModeRaw === 'hybrid'
+      ) ? retrievalModeRaw : null
+      if (!retrievalMode) continue
+
+      const webQuery = String(parsed?.web_query || parsed?.webQuery || '').trim()
+      const vectorQuery = String(parsed?.vector_query || parsed?.vectorQuery || '').trim()
+      const rawConfidence = Number(
+        parsed?.confidence ??
+        parsed?.routing_confidence ??
+        parsed?.score ??
+        NaN
+      )
+      const confidence = Number.isFinite(rawConfidence)
+        ? Math.max(0, Math.min(1, rawConfidence))
+        : undefined
+      const reasons = Array.isArray(parsed?.reasons)
+        ? parsed.reasons.map((value: any) => String(value).trim()).filter(Boolean).slice(0, 8)
+        : []
+
+      return {
+        retrievalMode,
+        webQuery: webQuery || undefined,
+        vectorQuery: vectorQuery || undefined,
+        confidence,
+        reasons,
+      }
+    } catch {
+      // try next candidate
+    }
+  }
+
+  return null
 }
 
 // Detect definition query
@@ -882,6 +936,118 @@ async function callLLM(
   }
 }
 
+export async function decideRetrievalWithGenerator(
+  input: string,
+  conversationHistory: Array<{ role: string; content: string }> = [],
+  caseKeywords?: string,
+  options?: {
+    openaiModel?: string
+    openaiFallbackModel?: string
+  }
+): Promise<GeneratorRetrievalDecision | null> {
+  const apiKey = (process.env.OPENAI_API_KEY || '').trim()
+  if (!apiKey) return null
+
+  const trimmedHistory = sanitizeConversationHistory(conversationHistory, 12)
+  const historyContext = buildHistoryContext(trimmedHistory)
+  const model = (options?.openaiModel || OPENAI_MODEL).trim() || OPENAI_MODEL
+  const fallbackModel = (options?.openaiFallbackModel || OPENAI_FALLBACK_MODEL).trim()
+  const systemPrompt = [
+    'You are the MyMckenzieCS generator deciding what retrieval is needed before answering.',
+    'Decide whether the answer should use web retrieval, case-law retrieval, or both.',
+    'Return JSON only. No prose, no markdown, no code fences.',
+  ].join(' ')
+  const userPrompt = `Choose the retrieval mode for this user request before answer generation.
+User message:
+${input}
+
+${caseKeywords ? `Case context: ${caseKeywords}\n` : ''}${historyContext}
+
+Rules:
+1. retrieval_mode must be one of: web_only, vector_only, hybrid.
+2. Use web_only when current procedure, forms, deadlines, official guidance, or practical next steps are dominant.
+3. Use vector_only when case law, precedent, legal authorities, or analogical reasoning from authorities are dominant.
+4. Use hybrid when both current practical guidance and legal authorities materially matter.
+5. If attachment excerpts are present, prefer web_only or hybrid unless authority-heavy analysis is clearly dominant.
+6. web_query must be a short focused web search query.
+7. vector_query must be a short focused case-law retrieval query.
+8. confidence must be 0 to 1 for routing certainty.
+9. reasons should briefly explain the routing choice.
+10. Do not answer the user. Only choose retrieval.
+
+Output schema:
+{
+  "retrieval_mode": "web_only|vector_only|hybrid",
+  "web_query": "string",
+  "vector_query": "string",
+  "confidence": 0.0,
+  "reasons": ["string"]
+}`
+
+  const openai = new OpenAI({ apiKey })
+  const buildPayload = (modelName: string) => {
+    const normalizedModel = modelName.trim().toLowerCase()
+    const payload: Record<string, any> = {
+      model: modelName,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+    }
+    if (normalizedModel.startsWith('o') || normalizedModel.startsWith('gpt-5')) {
+      payload.max_completion_tokens = 220
+    } else {
+      payload.max_tokens = 220
+      payload.temperature = 0.1
+    }
+    return payload
+  }
+
+  const runModel = async (modelName: string): Promise<string> => {
+    try {
+      const completion = await openai.chat.completions.create(buildPayload(modelName) as any)
+      return completion.choices?.[0]?.message?.content || ''
+    } catch (error: any) {
+      const unsupportedTokenParam =
+        error?.code === 'unsupported_parameter' &&
+        (error?.param === 'max_tokens' || error?.param === 'max_completion_tokens')
+      if (!unsupportedTokenParam) throw error
+
+      const retryPayload = buildPayload(modelName)
+      if ('max_tokens' in retryPayload) {
+        delete retryPayload.max_tokens
+        retryPayload.max_completion_tokens = 220
+      } else {
+        delete retryPayload.max_completion_tokens
+        retryPayload.max_tokens = 220
+        retryPayload.temperature = 0.1
+      }
+      const completion = await openai.chat.completions.create(retryPayload as any)
+      return completion.choices?.[0]?.message?.content || ''
+    }
+  }
+
+  try {
+    const primary = await runModel(model)
+    const parsed = parseGeneratorRetrievalJson(primary)
+    if (parsed) return parsed
+  } catch {
+    // try fallback below
+  }
+
+  if (fallbackModel && fallbackModel !== model) {
+    try {
+      const fallback = await runModel(fallbackModel)
+      const parsed = parseGeneratorRetrievalJson(fallback)
+      if (parsed) return parsed
+    } catch {
+      return null
+    }
+  }
+
+  return null
+}
+
 // =====================================================
 // MAIN AGENT
 // =====================================================
@@ -925,8 +1091,8 @@ export async function createLegalAgent(
   const groqModel = options?.groqModel || BASIC_GROQ_MODEL
   const groqFallbackModel = options?.groqFallbackModel || BASIC_GROQ_FALLBACK_MODEL
   const llmProvider: LlmProvider = options?.provider || 'openai'
-  const discriminatorModel = options?.discriminatorModel || options?.orchestratorModel
-  const discriminatorFallbackModel = options?.discriminatorFallbackModel || options?.orchestratorFallbackModel
+  const discriminatorModel = options?.discriminatorModel
+  const discriminatorFallbackModel = options?.discriminatorFallbackModel
   const searchQueryOverride = (options?.searchQueryOverride || '').trim()
   const requestedMaxTokens = Number.isFinite(Number(options?.maxTokens))
     ? Math.max(250, Number(options?.maxTokens))
@@ -1092,7 +1258,7 @@ export async function createLegalAgent(
           )
         }
 
-        // 5. ORCHESTRATOR: Critic/revise/verify the comprehensive answer for the user
+        // 5. DISCRIMINATOR: Critic/revise/verify the comprehensive answer for the user
         if (useDiscriminator) {
           try {
             const discriminatorAgent = await createDiscriminatorAgent(
@@ -1197,8 +1363,6 @@ export async function invokeLegalAgent(
     searchQueryOverride?: string
     discriminatorModel?: string
     discriminatorFallbackModel?: string
-    orchestratorModel?: string
-    orchestratorFallbackModel?: string
   }
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
   const agent = await createLegalAgent(conversationHistory, caseKeywords, undefined, options)

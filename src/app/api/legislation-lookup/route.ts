@@ -3,6 +3,21 @@ import { NextResponse } from 'next/server'
 export const runtime = 'nodejs'
 
 const cache = new Map<string, string>()
+const LEGISLATION_PATH_PATTERN = /href="(\/(?:ukpga|uksi|ukla|asp|anaw|mwa|nia|ukdsi)\/\d{4}\/\d+(?:\/contents)?)"/gi
+const GENERIC_REFERENCE_WORDS = new Set([
+  'act',
+  'rules',
+  'regulations',
+  'order',
+  'orders',
+  'the',
+  'and',
+  'of',
+  'for',
+  'part',
+  'section',
+  'rule',
+])
 
 const buildSearchUrl = (title: string) =>
   `https://www.legislation.gov.uk/all?title=${encodeURIComponent(title)}`
@@ -40,9 +55,76 @@ const resolveCprOrPdUrl = (title: string) => {
   return null
 }
 
-const extractLegislationUrl = (html: string) => {
-  const match = html.match(/href="(\/(?:ukpga|uksi|ukla|asp|anaw|mwa|nia|ukdsi)\/\d{4}\/\d+(?:\/contents)?)"/i)
-  return match ? `https://www.legislation.gov.uk${match[1]}` : null
+const normalizeReferenceText = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/&amp;/g, ' and ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+
+const extractLegislationUrls = (html: string) => {
+  const urls: string[] = []
+  const seen = new Set<string>()
+  let match: RegExpExecArray | null
+  LEGISLATION_PATH_PATTERN.lastIndex = 0
+  while ((match = LEGISLATION_PATH_PATTERN.exec(html)) !== null) {
+    const url = `https://www.legislation.gov.uk${match[1]}`
+    if (seen.has(url)) continue
+    seen.add(url)
+    urls.push(url)
+  }
+  return urls
+}
+
+const extractReferenceTokens = (title: string) =>
+  normalizeReferenceText(title)
+    .split(/\s+/)
+    .filter((token) => {
+      if (!token) return false
+      if (/^\d{4}$/.test(token)) return true
+      if (GENERIC_REFERENCE_WORDS.has(token)) return false
+      return token.length >= 3
+    })
+
+const isVerifiedLegislationPage = (title: string, html: string) => {
+  const pageText = normalizeReferenceText(html.replace(/<[^>]+>/g, ' '))
+  if (!pageText) return false
+  if (/\b(page not found|not found|no results found|sorry, there is a problem)\b/i.test(pageText)) {
+    return false
+  }
+
+  const normalizedTitle = normalizeReferenceText(title)
+  if (normalizedTitle && pageText.includes(normalizedTitle)) {
+    return true
+  }
+
+  const tokens = extractReferenceTokens(title)
+  if (tokens.length === 0) return false
+
+  const matchedCount = tokens.filter((token) => pageText.includes(token)).length
+  const requiredMatches = tokens.length <= 2 ? tokens.length : Math.min(tokens.length, 3)
+  return matchedCount >= requiredMatches
+}
+
+const resolveVerifiedLegislationUrl = async (title: string, searchHtml: string) => {
+  const candidates = extractLegislationUrls(searchHtml).slice(0, 3)
+  for (const candidate of candidates) {
+    try {
+      const response = await fetch(candidate, { headers: { 'User-Agent': 'MyMcKenzieCS/1.0' } })
+      if (!response.ok) continue
+      const html = await response.text()
+      if (isVerifiedLegislationPage(title, html)) {
+        return candidate
+      }
+    } catch {
+      continue
+    }
+  }
+  return null
+}
+
+export const clearLegislationLookupCacheForTests = () => {
+  cache.clear()
 }
 
 export async function GET(request: Request) {
@@ -70,7 +152,7 @@ export async function GET(request: Request) {
     }
 
     const html = await response.text()
-    const resolved = extractLegislationUrl(html) || searchUrl
+    const resolved = (await resolveVerifiedLegislationUrl(rawTitle, html)) || searchUrl
     cache.set(rawTitle, resolved)
     return NextResponse.json({ url: resolved }, { status: 200 })
   } catch (_error: any) {

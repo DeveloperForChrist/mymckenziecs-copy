@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { invokeBasicLegalAgent, invokeLegalAgent } from '@/lib/ai/agents/legal-agent'
+import { decideRetrievalWithGenerator, invokeBasicLegalAgent, invokeLegalAgent } from '@/lib/ai/agents/legal-agent'
 import { ChatManager } from '@/lib/ai/chat-manager'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
@@ -15,7 +15,6 @@ import { captureServerException } from '@/lib/monitoring/error-logger'
 import { isBasicPlan, isPremiumPlan, isPremiumPlusPlan } from '@/lib/plans/access'
 import { searchByText } from '@/lib/vector/milvus'
 import { getUserPlanData } from '@/lib/payments/user-plan'
-import { decomposeWithPlanner } from '@/lib/ai/agents/planner-agent'
 import { extractTextFromBuffer } from '@/lib/chat/text-extraction'
 
 export const dynamic = 'force-dynamic'
@@ -105,26 +104,10 @@ const getPremiumPlusDiscriminatorModel = (): string | null =>
 const getPremiumPlusDiscriminatorFallbackModel = (primaryModel: string): string =>
   getEnvModelValue('PREMIUM_PLUS_DISCRIMINATOR_CLAUDE_FALLBACK_MODEL', 'PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL') || primaryModel
 
-const PREMIUM_PLUS_PLANNER_ENABLED =
-  (getEnvModelValue('PREMIUM_PLUS_PLANNER_ENABLED', 'PREMIUM_PLUS_ORCHESTRATOR_DECOMPOSE_ENABLED') || 'true').toLowerCase() !== 'false'
+const PREMIUM_PLUS_GENERATOR_ROUTING_ENABLED =
+  (getEnvModelValue('PREMIUM_PLUS_GENERATOR_ROUTING_ENABLED') || 'true').toLowerCase() !== 'false'
 const PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED =
-  (getEnvModelValue('PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED', 'PREMIUM_PLUS_ORCHESTRATOR_FINAL_PASS_ENABLED') || 'true').toLowerCase() !== 'false'
-const PREMIUM_PLUS_PLANNER_MIN_CONFIDENCE = Math.max(
-  0,
-  Math.min(
-    1,
-    Number.parseFloat(
-      getEnvModelValue('PREMIUM_PLUS_PLANNER_MIN_CONFIDENCE', 'PREMIUM_PLUS_ORCHESTRATOR_MIN_CONFIDENCE') || '0.58'
-    )
-  )
-)
-const PREMIUM_PLUS_PLANNER_LOW_CONFIDENCE_MODE =
-  (
-    getEnvModelValue('PREMIUM_PLUS_PLANNER_LOW_CONFIDENCE_MODE', 'PREMIUM_PLUS_ORCHESTRATOR_LOW_CONFIDENCE_MODE') ||
-    'fallback'
-  ).toLowerCase() === 'hybrid'
-    ? 'hybrid'
-    : 'fallback'
+  (getEnvModelValue('PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED') || 'true').toLowerCase() !== 'false'
 const CHAT_THREAD_MAX_USER_TURNS_DEFAULT = Number.isFinite(Number(process.env.CHAT_THREAD_MAX_USER_TURNS))
   ? Math.max(10, Math.floor(Number(process.env.CHAT_THREAD_MAX_USER_TURNS)))
   : 80
@@ -1849,79 +1832,45 @@ export async function POST(request: NextRequest) {
       hasAttachments,
       caseContextData,
     })
-    let plannerDecomposition: Awaited<ReturnType<typeof decomposeWithPlanner>> | null = null
-    let plannedFocus: RetrievalFocus = retrievalFocusDecision.focus
-    let plannedVectorQuery = ''
-    let plannedWebQuery = ''
-    let plannerClarificationQuestion = ''
-    let plannerConfidence: number | null = null
-    let plannerLowConfidenceFallback: 'none' | 'heuristic' | 'hybrid' = 'none'
+    let generatorRoutingDecision: Awaited<ReturnType<typeof decideRetrievalWithGenerator>> | null = null
+    let retrievalFocusApplied: RetrievalFocus = retrievalFocusDecision.focus
+    let generatedWebQuery = ''
+    let generatedVectorQuery = ''
+    let generatorRoutingConfidence: number | null = null
     let routingReasonsApplied: string[] = retrievalFocusDecision.reasons.slice()
 
-    if (
-      premiumPlusActive &&
-      PREMIUM_PLUS_PLANNER_ENABLED
-    ) {
-      const plannerInput = truncateText(
+    if (premiumPlusActive && PREMIUM_PLUS_GENERATOR_ROUTING_ENABLED) {
+      const generatorRoutingInput = truncateText(
         attachmentContext
-          ? `${message}\n\nUser uploaded documents. Use the excerpts below during decomposition.\n${attachmentContext}`
+          ? `${message}\n\nUser uploaded documents. Use the excerpts below when deciding retrieval.\n${attachmentContext}`
           : attachmentMetadata
             ? `${message}\n\n${attachmentMetadata}`
             : message,
         12000
       )
-      plannerDecomposition = await decomposeWithPlanner(
-        plannerInput,
-        sanitizedHistory as Array<{ role: 'user' | 'assistant'; content: string }>,
-        caseKeywords
+      generatorRoutingDecision = await decideRetrievalWithGenerator(
+        generatorRoutingInput,
+        sanitizedHistory,
+        caseKeywords,
+        {
+          openaiModel: premiumPlusOpenAiModel || undefined,
+          openaiFallbackModel: premiumPlusOpenAiFallbackModel || undefined,
+        }
       )
 
-      if (plannerDecomposition) {
-        plannedFocus = plannerDecomposition.retrievalMode
-        plannedVectorQuery = (plannerDecomposition.vectorQuery || '').trim()
-        plannedWebQuery = (plannerDecomposition.webQuery || '').trim()
-        plannerClarificationQuestion = (plannerDecomposition.clarificationQuestion || '').trim()
-        plannerConfidence = Number.isFinite(Number(plannerDecomposition.confidence))
-          ? Math.max(0, Math.min(1, Number(plannerDecomposition.confidence)))
+      if (generatorRoutingDecision) {
+        retrievalFocusApplied = generatorRoutingDecision.retrievalMode
+        generatedWebQuery = (generatorRoutingDecision.webQuery || '').trim()
+        generatedVectorQuery = (generatorRoutingDecision.vectorQuery || '').trim()
+        generatorRoutingConfidence = Number.isFinite(Number(generatorRoutingDecision.confidence))
+          ? Math.max(0, Math.min(1, Number(generatorRoutingDecision.confidence)))
           : null
-        routingReasonsApplied = (plannerDecomposition.reasons || []).slice()
-
-        if (
-          plannerConfidence !== null &&
-          plannerConfidence < PREMIUM_PLUS_PLANNER_MIN_CONFIDENCE
-        ) {
-          if (PREMIUM_PLUS_PLANNER_LOW_CONFIDENCE_MODE === 'hybrid') {
-            plannedFocus = 'hybrid'
-            plannerLowConfidenceFallback = 'hybrid'
-          } else {
-            plannedFocus = retrievalFocusDecision.focus
-            plannedVectorQuery = ''
-            plannedWebQuery = ''
-            plannerLowConfidenceFallback = 'heuristic'
-            routingReasonsApplied = retrievalFocusDecision.reasons.slice()
-          }
-          routingReasonsApplied.push(
-            `planner-low-confidence:${plannerConfidence.toFixed(2)}<${PREMIUM_PLUS_PLANNER_MIN_CONFIDENCE.toFixed(2)}`
-          )
-        }
+        routingReasonsApplied = generatorRoutingDecision.reasons.length > 0
+          ? generatorRoutingDecision.reasons.slice()
+          : [`generator-routing:${retrievalFocusApplied}`]
       }
     }
-
-    if (premiumPlusActive && plannerClarificationQuestion) {
-      return withCookie(
-        NextResponse.json(
-          {
-            response: plannerClarificationQuestion,
-            metadata: {
-              requiresClarification: true,
-              clarificationSource: 'planner',
-              activeCaseId: resolvedCaseId,
-            },
-          },
-          { status: 200 }
-        )
-      )
-    }
+    const retrievalRoutingSource: 'generator' | 'heuristic' = generatorRoutingDecision ? 'generator' : 'heuristic'
 
     const premiumPlusCaseLawBaseDecision = shouldUseCaseLawRetrieval({
       message,
@@ -1931,25 +1880,33 @@ export async function POST(request: NextRequest) {
       suggestionDecision: caseLawSuggestionDecision,
     })
     const shouldUsePremiumPlusCaseLawRetrieval =
-      premiumPlusActive &&
-      plannedFocus !== 'web_only' &&
-      (
-        premiumPlusCaseLawBaseDecision ||
-        retrievalFocusDecision.ownCaseNarrative ||
-        retrievalFocusDecision.precedentScore >= retrievalFocusDecision.procedureScore
-      )
+      retrievalRoutingSource === 'generator'
+        ? premiumPlusActive && retrievalFocusApplied !== 'web_only'
+        : (
+            premiumPlusActive &&
+            retrievalFocusApplied !== 'web_only' &&
+            (
+              premiumPlusCaseLawBaseDecision ||
+              retrievalFocusDecision.ownCaseNarrative ||
+              retrievalFocusDecision.precedentScore >= retrievalFocusDecision.procedureScore
+            )
+          )
 
     let shouldUseSearchRetrieval =
       premiumPlanActive ||
-      (premiumPlusActive && plannedFocus !== 'vector_only')
+      (premiumPlusActive && retrievalFocusApplied !== 'vector_only')
     let usePremiumPlusVectorRag =
       premiumPlusActive &&
       shouldUsePremiumPlusCaseLawRetrieval &&
-      !hasAttachments
+      (retrievalRoutingSource === 'generator' || !hasAttachments)
     const shouldLookupCaseLawSuggestions =
-      premiumPlusActive &&
-      shouldUsePremiumPlusCaseLawRetrieval &&
-      (caseLawSuggestionDecision.shouldSuggest || plannedFocus !== 'web_only')
+      retrievalRoutingSource === 'generator'
+        ? premiumPlusActive && retrievalFocusApplied !== 'web_only'
+        : (
+            premiumPlusActive &&
+            shouldUsePremiumPlusCaseLawRetrieval &&
+            (caseLawSuggestionDecision.shouldSuggest || retrievalFocusApplied !== 'web_only')
+          )
 
     const baselineCaseLawQuery = buildCaseLawSuggestionQuery({
       message,
@@ -1957,7 +1914,7 @@ export async function POST(request: NextRequest) {
       caseContextData,
       memoryRow,
     })
-    const caseLawQuery = plannedVectorQuery || baselineCaseLawQuery
+    const caseLawQuery = generatedVectorQuery || baselineCaseLawQuery
 
     const caseLawSuggestionPromise = shouldLookupCaseLawSuggestions
       ? fetchCaseLawSuggestions(caseLawQuery, CASELAW_SUGGESTION_LIMIT)
@@ -1968,7 +1925,7 @@ export async function POST(request: NextRequest) {
       : Promise.resolve([] as VectorCaseLawRagItem[])
 
     const vectorCaseLawRagItems = await vectorCaseLawRagPromise
-    const vectorOnlyRequested = premiumPlusActive && plannedFocus === 'vector_only'
+    const vectorOnlyRequested = premiumPlusActive && retrievalFocusApplied === 'vector_only'
     const vectorFallbackToWeb =
       vectorOnlyRequested &&
       usePremiumPlusVectorRag &&
@@ -1983,27 +1940,19 @@ export async function POST(request: NextRequest) {
     const ownCaseFactsContext = ownCaseFacts.length > 0
       ? `\n\nUser facts for issue spotting:\n${ownCaseFacts.map((fact) => `- ${fact}`).join('\n')}`
       : ''
-    const retrievalRoutingContext = premiumPlusActive
+    const generatorRoutingContext = premiumPlusActive && generatorRoutingDecision
       ? (
-        `\n\nRetrieval routing:\n` +
-        `- Focus: ${plannedFocus}\n` +
-        `- Own-case narrative: ${retrievalFocusDecision.ownCaseNarrative ? 'yes' : 'no'}\n` +
-        `- Precedent score: ${retrievalFocusDecision.precedentScore}\n` +
-        `- Procedure score: ${retrievalFocusDecision.procedureScore}\n` +
-        `- Routing reasons: ${routingReasonsApplied.join(', ')}` +
-        (plannerConfidence !== null ? `\n- Planner confidence: ${plannerConfidence.toFixed(2)}` : '') +
-        (plannerLowConfidenceFallback !== 'none'
-          ? `\n- Low-confidence fallback applied: ${plannerLowConfidenceFallback}`
-          : '') +
-        (plannerDecomposition?.decomposition ? `\n- Planner decomposition: ${plannerDecomposition.decomposition}` : '') +
-        (plannedWebQuery ? `\n- Planner web query: ${plannedWebQuery}` : '') +
-        (plannedVectorQuery ? `\n- Planner vector query: ${plannedVectorQuery}` : '') +
-        (vectorFallbackToWeb ? '\n- Vector confidence low. Switched on web guidance fallback.' : '')
+        `\n\nGenerator retrieval decision:\n` +
+        `- Mode: ${retrievalFocusApplied}\n` +
+        (generatedWebQuery ? `- Web query: ${generatedWebQuery}\n` : '') +
+        (generatedVectorQuery ? `- Case-law query: ${generatedVectorQuery}\n` : '') +
+        (generatorRoutingConfidence !== null ? `- Confidence: ${generatorRoutingConfidence.toFixed(2)}\n` : '') +
+        `- Reasons: ${routingReasonsApplied.join(', ')}`
       )
       : ''
     const caseLawStyleInstruction = premiumPlusActive
       ? (() => {
-          if (plannedFocus === 'web_only') {
+          if (retrievalFocusApplied === 'web_only') {
             return '\n\nExplanation policy (Premium+): Focus on current procedure and practical next steps in plain English. Do not add case authorities unless they are directly relevant.'
           }
           if (vectorOnlyRequested && !vectorFallbackToWeb) {
@@ -2013,16 +1962,9 @@ export async function POST(request: NextRequest) {
         })()
       : ''
 
-    const plannerInstruction = premiumPlusActive && plannerDecomposition
-      ? `\n\nPlanner instruction:\n- Use retrieval focus: ${plannedFocus}\n` +
-        (plannerDecomposition.decomposition ? `- Decomposition:\n${plannerDecomposition.decomposition}\n` : '') +
-        (plannedWebQuery ? `- Web emphasis query: ${plannedWebQuery}\n` : '') +
-        (plannedVectorQuery ? `- Authority emphasis query: ${plannedVectorQuery}\n` : '')
-      : ''
-
     const rawMessageForAgent = attachmentContext
-      ? `${message}${ownCaseFactsContext}\n\nThe user uploaded documents. Use the excerpts below in your analysis.${caseContext}${memoryContext}${retrievalRoutingContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}\n${attachmentContext}`
-      : `${message}${ownCaseFactsContext}${caseContext}${memoryContext}${retrievalRoutingContext}${plannerInstruction}${vectorCaseLawRagContext}${caseLawStyleInstruction}${attachmentMetadata}`
+      ? `${message}${ownCaseFactsContext}\n\nThe user uploaded documents. Use the excerpts below in your analysis.${caseContext}${memoryContext}${generatorRoutingContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}\n${attachmentContext}`
+      : `${message}${ownCaseFactsContext}${caseContext}${memoryContext}${generatorRoutingContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}${attachmentMetadata}`
 
     const messageForAgent = truncateText(rawMessageForAgent, 12000)
     const threadId = `thread_${Date.now()}_${userId}`
@@ -2034,7 +1976,7 @@ export async function POST(request: NextRequest) {
           useDiscriminator: premiumPlusActive && PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED,
           useSearch: shouldUseSearchRetrieval,
           includeCitations: premiumPlusActive,
-          searchQueryOverride: premiumPlusActive ? (plannedWebQuery || undefined) : undefined,
+          searchQueryOverride: premiumPlusActive ? (generatedWebQuery || undefined) : undefined,
           openaiModel: premiumPlusActive ? (premiumPlusOpenAiModel || undefined) : premiumOpenAiModel,
           openaiFallbackModel: premiumPlusActive
             ? (premiumPlusOpenAiFallbackModel || undefined)
@@ -2062,8 +2004,12 @@ export async function POST(request: NextRequest) {
     }
 
     const caseLawSuggestions = await caseLawSuggestionPromise
+    const caseLawSuggestionShouldOffer =
+      retrievalRoutingSource === 'generator'
+        ? shouldLookupCaseLawSuggestions
+        : caseLawSuggestionDecision.shouldSuggest
     const caseLawSoftNextStep = buildCaseLawSoftNextStep({
-      shouldSuggest: caseLawSuggestionDecision.shouldSuggest,
+      shouldSuggest: caseLawSuggestionShouldOffer,
       suggestions: caseLawSuggestions,
       existingResponse: agentResponse.response || '',
     })
@@ -2173,21 +2119,18 @@ export async function POST(request: NextRequest) {
                     caseLawRetrievalThreshold: CASELAW_RETRIEVAL_MIN_SCORE,
                     caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
                     retrievalFocus: retrievalFocusDecision.focus,
-                    retrievalFocusApplied: plannedFocus,
+                    retrievalFocusApplied,
+                    retrievalRoutingSource,
                     retrievalOwnCaseNarrative: retrievalFocusDecision.ownCaseNarrative,
                     retrievalPrecedentScore: retrievalFocusDecision.precedentScore,
                     retrievalProcedureScore: retrievalFocusDecision.procedureScore,
                     retrievalReasons: routingReasonsApplied,
-                    plannerEnabled: PREMIUM_PLUS_PLANNER_ENABLED,
+                    generatorRoutingEnabled: PREMIUM_PLUS_GENERATOR_ROUTING_ENABLED,
+                    generatorRoutingUsed: Boolean(generatorRoutingDecision),
+                    generatorRoutingConfidence,
+                    generatorWebQuery: generatedWebQuery || null,
+                    generatorVectorQuery: generatedVectorQuery || null,
                     discriminatorFinalPassEnabled: PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED,
-                    plannerMinConfidence: PREMIUM_PLUS_PLANNER_MIN_CONFIDENCE,
-                    plannerLowConfidenceMode: PREMIUM_PLUS_PLANNER_LOW_CONFIDENCE_MODE,
-                    plannerConfidence,
-                    plannerLowConfidenceFallback,
-                    plannerDecomposition: plannerDecomposition?.decomposition || null,
-                    plannerReasons: plannerDecomposition?.reasons || [],
-                    plannerWebQuery: plannedWebQuery || null,
-                    plannerVectorQuery: plannedVectorQuery || null,
                     removedUnsupportedAuthorityLines,
                     templateDraftBlocked,
                     templateDraftBlockReason,

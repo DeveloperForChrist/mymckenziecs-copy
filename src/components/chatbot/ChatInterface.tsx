@@ -164,6 +164,9 @@ const legislationLinkCache = new Map<string, string>()
 const buildLegislationSearchUrl = (title: string) =>
   `https://www.legislation.gov.uk/all?title=${encodeURIComponent(title)}`
 
+const buildCourtFormSearchUrl = (refText: string) =>
+  `https://www.gov.uk/search/all?keywords=${encodeURIComponent(refText)}`
+
 const resolveCprPartUrl = (part: string) => {
   const numeric = part.match(/^\d{1,2}$/)
   if (!numeric) return null
@@ -554,7 +557,7 @@ const renderSourceCitations = (text: string | JSX.Element, sources?: SourceRefer
 }
 
 // Comprehensive rendering function that processes citations and legal references
-const renderMessageContent = (text: string, sources?: SourceReference[]): (string | JSX.Element)[] => {
+export const renderMessageContent = (text: string, sources?: SourceReference[]): (string | JSX.Element)[] => {
   // Process citations first
   const citationProcessed = renderSourceCitations(text, sources)
   
@@ -648,13 +651,51 @@ const renderLegalReferences = (text: string) => {
     if (next.type === 'legislation' || next.type === 'case' || next.type === 'form' || next.type === 'rule' || next.type === 'practice_direction') {
       const trailing = text.slice(next.end)
       const urlMatch = trailing.match(urlAfterPattern)
-      if (urlMatch) {
+      if (next.type === 'legislation' || next.type === 'rule' || next.type === 'practice_direction') {
+        if (urlMatch) {
+          const urlText = urlMatch[1]
+          parts.push(<LegislationLink key={`leg-${keyCounter++}`} refText={next.refText} hrefOverride={urlText} />)
+          cursor = next.end + urlMatch[0].length
+          continue
+        }
+        parts.push(<LegislationLink key={`leg-${keyCounter++}`} refText={next.refText} />)
+      } else if (next.type === 'form') {
+        const href = urlMatch?.[1] || buildCourtFormSearchUrl(next.refText)
+        parts.push(
+          <a
+            key={`form-${keyCounter++}`}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={linkStyle}
+          >
+            {next.refText}
+          </a>
+        )
+        if (urlMatch) {
+          cursor = next.end + urlMatch[0].length
+          continue
+        }
+      } else if (urlMatch) {
+        // Only auto-link ambiguous references like case names or form numbers
+        // when the model already supplied an explicit destination URL.
         const urlText = urlMatch[1]
-        parts.push(<LegislationLink key={`leg-${keyCounter++}`} refText={next.refText} hrefOverride={urlText} />)
+        parts.push(
+          <a
+            key={`ref-${keyCounter++}`}
+            href={urlText}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={linkStyle}
+          >
+            {next.refText}
+          </a>
+        )
         cursor = next.end + urlMatch[0].length
         continue
+      } else {
+        parts.push(next.refText)
       }
-      parts.push(<LegislationLink key={`leg-${keyCounter++}`} refText={next.refText} />)
     } else {
       const trailing = text.slice(next.end);
       const urlMatch = trailing.match(urlAfterPattern);
