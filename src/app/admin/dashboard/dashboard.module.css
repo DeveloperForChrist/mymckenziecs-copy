@@ -11,9 +11,9 @@
   display: grid;
   grid-template-columns: 260px 1fr;
   gap: 24px;
-  max-width: 1500px;
+  max-width: var(--app-shell-max-width, 1720px);
   margin: 0 auto;
-  padding: 28px 24px 40px;
+  padding: var(--app-shell-padding-block, 28px) var(--app-shell-padding-inline, 24px) 40px;
 }
 
 .sidebar {

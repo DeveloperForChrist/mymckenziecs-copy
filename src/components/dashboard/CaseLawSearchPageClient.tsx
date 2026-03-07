@@ -310,6 +310,7 @@ export default function CaseLawSearchPageClient({
   initialHasPaidAccess = false,
   initialPlanChecked = false,
 }: CaseLawSearchPageClientProps = {}) {
+  const workspaceMaxWidth = 'var(--app-shell-max-width, 1720px)';
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<CaseLawResult[]>([]);
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
@@ -769,7 +770,7 @@ export default function CaseLawSearchPageClient({
         minHeight: '100vh',
         padding: 'clamp(12px, 3vw, 24px)'
       }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+        <div style={{ maxWidth: workspaceMaxWidth, margin: '0 auto' }}>
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-white text-center">
               <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4" />
@@ -845,7 +846,7 @@ export default function CaseLawSearchPageClient({
       minHeight: '100vh',
       padding: 'clamp(12px, 3vw, 24px)'
     }}>
-      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+      <div style={{ maxWidth: workspaceMaxWidth, margin: '0 auto' }}>
         {/* Header */}
         <div className="mb-8">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
