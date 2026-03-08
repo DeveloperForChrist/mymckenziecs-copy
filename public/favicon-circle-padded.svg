@@ -7,14 +7,14 @@
   aria-label="MyMcKenzieCS favicon"
 >
   <title>MyMcKenzieCS favicon</title>
-  <!-- Keep only a small transparent bleed so the white ring is not clipped. -->
-  <rect width="512" height="512" fill="none" />
+  <!-- Dedicated favicon variant: use the square brand mark so tab corners do not show through. -->
+  <rect width="512" height="512" fill="#2a0627" />
   <image
     href="/favicon-source.png"
-    x="8"
-    y="8"
-    width="496"
-    height="496"
+    x="0"
+    y="0"
+    width="512"
+    height="512"
     preserveAspectRatio="xMidYMid meet"
   />
 </svg>
