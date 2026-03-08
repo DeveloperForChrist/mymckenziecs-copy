@@ -377,9 +377,8 @@ async function upsertSubscriptionFromStripe(subscription: any) {
     .eq('stripe_subscription_id', subscription?.id)
     .maybeSingle();
 
-  const scheduledPlanApplied =
-    Boolean(existing?.scheduled_plan_type) &&
-    existing.scheduled_plan_type === planType;
+  const scheduledPlanType = existing?.scheduled_plan_type || null;
+  const scheduledPlanApplied = scheduledPlanType !== null && scheduledPlanType === planType;
 
   const { error } = await supabaseAdmin
     .from('subscriptions')
@@ -392,7 +391,7 @@ async function upsertSubscriptionFromStripe(subscription: any) {
       current_period_start: currentPeriodStart,
       current_period_end: currentPeriodEnd,
       cancel_at_period_end: Boolean(subscription?.cancel_at_period_end),
-      scheduled_plan_type: scheduledPlanApplied ? null : existing?.scheduled_plan_type || null,
+      scheduled_plan_type: scheduledPlanApplied ? null : scheduledPlanType,
       scheduled_change_at: scheduledPlanApplied ? null : existing?.scheduled_change_at || null,
       ...(isBillingActiveStripeStatus(status)
         ? {

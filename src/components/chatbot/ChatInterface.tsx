@@ -7,6 +7,11 @@ import ReportIssueModal from '@/components/chatbot/ReportIssueModal'
 import NoticeModal from '@/components/chatbot/NoticeModal'
 import ChatComposer from '@/components/chatbot/ChatComposer'
 import ChatMessageList from '@/components/chatbot/ChatMessageList'
+import {
+  attachAssistantPresentationMetadata,
+  formatAssistantResponse,
+  parseAssistantResponse,
+} from '@/lib/chat/assistant-presentation'
 import { useChatAuthPlan, type InitialChatPlanState } from '@/components/chatbot/hooks/useChatAuthPlan'
 import { useConversationBootstrap } from '@/components/chatbot/hooks/useConversationBootstrap'
 import { hasCaseProfileAccess } from '@/lib/plans/access'
@@ -15,8 +20,6 @@ import type {
   AssistantMetadata,
   Message,
   AttachmentDisplay,
-  ParsedLine,
-  ParsedSection,
   SourceReference
 } from '@/components/chatbot/chat-types'
 
@@ -57,7 +60,7 @@ const TypingIndicator = ({ label = 'Working', compact = false }: { label?: strin
       <span className="mm-dot mm-dot2" />
       <span className="mm-dot mm-dot3" />
 
-      <style jsx>{`
+      <style>{`
         .mm-dot {
           width: ${dotSize}px;
           height: ${dotSize}px;
@@ -161,196 +164,6 @@ const convertUrlsToLinks = (segment: string) => {
 
 const buildCourtFormSearchUrl = (refText: string) =>
   `https://www.gov.uk/search/all?keywords=${encodeURIComponent(refText)}`
-
-const BULLET_PREFIX = '• '
-
-const hasBulletPrefix = (line: string) => /^(?:[\*\-•]\s+|\d+\.\s+)/.test(line)
-const hasNumberPrefix = (line: string) => /^\d+(?:\.|\))\s+/.test(line)
-
-const stripLinePrefix = (line: string) =>
-  line.replace(/^(?:[\*\-•]\s+|\d+\.\s+)/, '').trim()
-
-const stripNumberPrefix = (line: string) => line.replace(/^\d+(?:\.|\))\s+/, '').trim()
-
-const isNumberedHeadingLine = (line: string) => {
-  if (!hasNumberPrefix(line)) return false
-  const text = stripNumberPrefix(line)
-  if (!text) return false
-  const wordCount = text.trim().split(/\s+/).length
-  if (wordCount > 10) return false
-  // Heading-like if short and title-ish, or explicitly written like a heading.
-  const looksHeadingLike =
-    /^[A-Z]/.test(text) ||
-    /^[A-Za-z][A-Za-z0-9\s\-()'"/,&]+:$/.test(text) ||
-    (/^[A-Za-z]/.test(text) && !/[.!?]$/.test(text))
-  return looksHeadingLike
-}
-
-const isSummaryLine = (line: string) => /^(in short|summary|takeaway)\s*:/i.test(line.trim())
-
-const isHeadingLine = (line: string) => {
-  if (!line) return false
-  if (isSummaryLine(line)) return false
-  
-  // Ends with colon - definitely a heading
-  if (line.endsWith(':')) {
-    const wordCount = line.trim().split(/\s+/).length
-    if (wordCount <= 8 && line.trim().length <= 48) return true
-  }
-
-  // Short lines with an inline colon often signal a section title
-  if (line.includes(':') && !/[.!?]$/.test(line)) {
-    const wordCount = line.trim().split(/\s+/).length
-    if (wordCount <= 8 && /^[A-Z]/.test(line.trim())) return true
-  }
-  
-  // All caps - treat as heading only if short
-  const cleaned = line.replace(/[^A-Za-z]/g, '')
-  if (cleaned.length > 2 && cleaned === cleaned.toUpperCase()) {
-    const wordCount = line.trim().split(/\s+/).length
-    if (wordCount <= 6 && line.trim().length <= 48) return true
-  }
-  
-  // Title-style line: starts with capital, has 2-12 words, no ending punctuation (except : which we already checked)
-  const titlePattern = /^[A-Z][^.!?]*$/
-  if (!titlePattern.test(line)) return false
-  
-  const wordCount = line.trim().split(/\s+/).length
-  if (wordCount < 2 || wordCount > 12) return false
-  
-  // Has title case characteristics: most words start with capital
-  const words = line.trim().split(/\s+/)
-  const capitalWords = words.filter(w => /^[A-Z]/.test(w)).length
-  const ratio = capitalWords / words.length
-  
-  // If 50%+ of words are capitalized, treat as title
-  return ratio >= 0.5
-}
-
-const isDividerLine = (line: string) => /^(?:-{3,}|_{3,}|\*{3,})$/.test(line.trim())
-
-const parseAssistantResponse = (text: string, allowHeadings: boolean = true): ParsedSection[] => {
-  const normalized = text
-    .replace(/\r\n/g, '\n')
-    .replace(/\n(?:-{3,}|_{3,}|\*{3,})\n/g, '\n\n---\n\n')
-    .trim()
-  if (!normalized) return []
-
-  const sections = normalized
-    .split(/\n{2,}/)
-    .map(section => section.trim())
-    .filter(Boolean)
-
-  const parsed = sections.map((section) => {
-    const rawLines = section
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0)
-
-    if (!rawLines.length) {
-      return { heading: null, lines: [] }
-    }
-
-    if (rawLines.length === 1) {
-      const onlyLine = rawLines[0]
-      if (isDividerLine(onlyLine)) {
-        return {
-          heading: null,
-          lines: [{ text: '---', kind: 'divider' as const }]
-        }
-      }
-      const singleLine = rawLines[0]
-      if (isNumberedHeadingLine(singleLine)) {
-        return {
-          heading: null,
-          lines: [{ text: stripNumberPrefix(singleLine), kind: 'subheading' as const }]
-        }
-      }
-      const single = stripLinePrefix(singleLine)
-      if (isSummaryLine(singleLine)) {
-        return {
-          heading: null,
-          lines: [{ text: singleLine.trim(), kind: 'summary' as const }]
-        }
-      }
-      return {
-        heading: null,
-        lines: single ? [{ text: single, kind: 'paragraph' as const }] : []
-      }
-    }
-
-    const firstLine = rawLines[0]
-    const heading = allowHeadings && isHeadingLine(firstLine) ? stripLinePrefix(firstLine) : null
-    const bodyLines = heading ? rawLines.slice(1) : rawLines
-    const bulletCount = bodyLines.reduce(
-      (count, line) => count + (hasBulletPrefix(line) && !isNumberedHeadingLine(line) && !isDividerLine(line) ? 1 : 0),
-      0
-    )
-    const keepBullets = bulletCount >= 2
-    const lines: ParsedLine[] = []
-    for (let i = 0; i < bodyLines.length; i++) {
-      const line = bodyLines[i]
-
-      if (isDividerLine(line)) {
-        lines.push({ text: '---', kind: 'divider' as const })
-        continue
-      }
-      if (isSummaryLine(line)) {
-        lines.push({ text: line.trim(), kind: 'summary' as const })
-        continue
-      }
-      if (allowHeadings && isNumberedHeadingLine(line)) {
-        lines.push({ text: stripNumberPrefix(line), kind: 'subheading' as const })
-        continue
-      }
-      if (allowHeadings && line.endsWith(':')) {
-        const wordCount = line.trim().split(/\s+/).length
-        if (wordCount <= 8 && line.trim().length <= 48) {
-          lines.push({ text: line.trim(), kind: 'subheading' as const })
-          continue
-        }
-      }
-      const isBullet = keepBullets && hasBulletPrefix(line)
-      lines.push({
-        text: isBullet ? stripLinePrefix(line) : line.trim(),
-        kind: isBullet ? ('bullet' as const) : ('paragraph' as const)
-      })
-    }
-
-    return { heading, lines }
-  }).filter(section => section.heading || section.lines.length > 0)
-
-  const merged: ParsedSection[] = []
-  for (const section of parsed) {
-    const last = merged[merged.length - 1]
-    if (last && last.heading && last.lines.length === 0 && !section.heading && section.lines.length > 0) {
-      last.lines = [...last.lines, ...section.lines]
-      continue
-    }
-    merged.push({ heading: section.heading, lines: [...section.lines] })
-  }
-
-  return merged as ParsedSection[]
-}
-
-const formatAssistantResponse = (text: string) => {
-  const sections = parseAssistantResponse(text)
-  if (!sections.length) return text
-
-  return sections
-    .map((section) => {
-      const lines: string[] = []
-      if (section.heading) lines.push(section.heading)
-      lines.push(
-        ...section.lines.flatMap((line) => {
-          if (line.kind === 'divider') return ['---']
-          return [line.kind === 'bullet' ? `${BULLET_PREFIX}${line.text}` : line.text]
-        })
-      )
-      return lines.join('\n')
-    })
-    .join('\n\n')
-}
 
 const stripAssistantSourcesBlock = (text: string) => {
   if (!text) return text
@@ -1228,13 +1041,20 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
 
       const target = prev[targetIndex]
       const nextIsTyping = !isDone
-      if (target.content === text && target.isTyping === nextIsTyping) return prev
+      const nextMetadata = isDone
+        ? (attachAssistantPresentationMetadata(text, target.metadata, { reuseExistingPresentation: true }) as AssistantMetadata | undefined)
+        : target.metadata
+
+      if (target.content === text && target.isTyping === nextIsTyping && target.metadata === nextMetadata) {
+        return prev
+      }
 
       const updated = [...prev]
       updated[targetIndex] = {
         ...target,
         content: text,
-        isTyping: nextIsTyping
+        isTyping: nextIsTyping,
+        metadata: nextMetadata
       }
       return updated
     })
@@ -1297,7 +1117,11 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       if (lastIndex >= 0 && updated[lastIndex].role === 'assistant') {
         updated[lastIndex] = {
           ...updated[lastIndex],
-          isTyping: false
+          isTyping: false,
+          metadata: attachAssistantPresentationMetadata(
+            stripAssistantSourcesBlock(updated[lastIndex].content || ''),
+            updated[lastIndex].metadata
+          ) as AssistantMetadata | undefined
         }
       }
       return updated

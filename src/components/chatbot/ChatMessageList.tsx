@@ -94,7 +94,7 @@ export default function ChatMessageList({
               marginBottom: '20px'
             }}
           >
-            <style jsx>{`
+            <style>{`
               .message-container .user-copy-button {
                 opacity: 0;
                 transition: opacity 0.2s;
@@ -196,6 +196,10 @@ export default function ChatMessageList({
                 list-style-position: outside;
                 list-style-type: disc;
                 color: #e2e8f0;
+              }
+              .message-container .assistant-list-ordered {
+                list-style-type: decimal;
+                padding-left: 22px;
               }
               .message-container .assistant-list-item {
                 font-family: inherit;
@@ -351,10 +355,22 @@ export default function ChatMessageList({
                           </div>
                         )
                       ))}
-                    </div>
+                </div>
                   )}
                   {(() => {
-                    const sections = parseAssistantResponse(assistantDisplayContent, !message.isTyping)
+                    if (message.isTyping) {
+                      return (
+                        <p className="assistant-paragraph whitespace-pre-wrap">
+                          {renderAssistantText(assistantDisplayContent)}
+                        </p>
+                      )
+                    }
+
+                    const sections =
+                      message.metadata?.presentation?.version === 1 &&
+                      Array.isArray(message.metadata.presentation.sections)
+                        ? message.metadata.presentation.sections
+                        : parseAssistantResponse(assistantDisplayContent, true)
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                         {sections.map((section, sectionIndex) => (
@@ -367,31 +383,58 @@ export default function ChatMessageList({
                               )}
                               {(() => {
                                 const elements: JSX.Element[] = []
-                                let listBuffer: Array<{ line: ParsedLine; lineIndex: number }> = []
+                                let bulletBuffer: Array<{ line: ParsedLine; lineIndex: number }> = []
+                                let orderedBuffer: Array<{ line: ParsedLine; lineIndex: number }> = []
 
-                                const flushList = () => {
-                                  if (!listBuffer.length) return
-                                  const first = listBuffer[0]
+                                const flushBulletList = () => {
+                                  if (!bulletBuffer.length) return
+                                  const first = bulletBuffer[0]
                                   elements.push(
                                     <ul key={`section-${sectionIndex}-list-${first.lineIndex}`} className="assistant-list">
-                                      {listBuffer.map(({ line, lineIndex }) => (
+                                      {bulletBuffer.map(({ line, lineIndex }) => (
                                         <li key={`section-${sectionIndex}-li-${lineIndex}`} className="assistant-list-item whitespace-pre-wrap">
                                           {renderAssistantText(line.text)}
                                         </li>
                                       ))}
                                     </ul>
                                   )
-                                  listBuffer = []
+                                  bulletBuffer = []
+                                }
+
+                                const flushOrderedList = () => {
+                                  if (!orderedBuffer.length) return
+                                  const first = orderedBuffer[0]
+                                  elements.push(
+                                    <ol key={`section-${sectionIndex}-olist-${first.lineIndex}`} className="assistant-list assistant-list-ordered">
+                                      {orderedBuffer.map(({ line, lineIndex }) => (
+                                        <li key={`section-${sectionIndex}-oli-${lineIndex}`} className="assistant-list-item whitespace-pre-wrap">
+                                          {renderAssistantText(line.text)}
+                                        </li>
+                                      ))}
+                                    </ol>
+                                  )
+                                  orderedBuffer = []
+                                }
+
+                                const flushLists = () => {
+                                  flushBulletList()
+                                  flushOrderedList()
                                 }
 
                                 section.lines.forEach((line, lineIndex) => {
                                   if (!line.text.trim()) return
                                   if (line.kind === 'bullet') {
-                                    listBuffer.push({ line, lineIndex })
+                                    flushOrderedList()
+                                    bulletBuffer.push({ line, lineIndex })
+                                    return
+                                  }
+                                  if (line.kind === 'ordered') {
+                                    flushBulletList()
+                                    orderedBuffer.push({ line, lineIndex })
                                     return
                                   }
 
-                                  flushList()
+                                  flushLists()
                                   if (line.kind === 'divider') {
                                     elements.push(
                                       <div key={`section-${sectionIndex}-div-${lineIndex}`} aria-hidden="true" className="assistant-divider" />
@@ -417,7 +460,7 @@ export default function ChatMessageList({
                                   }
                                 })
 
-                                flushList()
+                                flushLists()
                                 return elements
                               })()}
                             </div>

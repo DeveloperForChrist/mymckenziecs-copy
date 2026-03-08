@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
+import { buildAssistantPresentation } from '@/lib/chat/assistant-presentation'
 import type { AssistantMetadata, Message } from '@/components/chatbot/chat-types'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 
@@ -44,13 +45,34 @@ export function useConversationBootstrap({
 
         const data = await response.json()
         if (response.ok && Array.isArray(data.messages)) {
-          const loadedMessages: Message[] = data.messages.map((msg: StoredMessage) => ({
-            id: `msg_${msg.timestamp}_${Math.random().toString(36).slice(2, 6)}`,
-            role: msg.role,
-            content: msg.message,
-            timestamp: new Date(msg.timestamp),
-            metadata: msg.metadata
-          }))
+          const loadedMessages: Message[] = data.messages.map((msg: StoredMessage) => {
+            const baseMetadata =
+              msg.metadata && typeof msg.metadata === 'object' && !Array.isArray(msg.metadata)
+                ? msg.metadata
+                : undefined
+            const presentation =
+              msg.role === 'assistant'
+                ? baseMetadata?.presentation || buildAssistantPresentation(msg.message || '')
+                : undefined
+            const metadata =
+              msg.role === 'assistant'
+                ? (() => {
+                    const nextMetadata = {
+                      ...(baseMetadata || {}),
+                      ...(presentation ? { presentation } : {}),
+                    }
+                    return Object.keys(nextMetadata).length > 0 ? nextMetadata : undefined
+                  })()
+                : baseMetadata
+
+            return {
+              id: `msg_${msg.timestamp}_${Math.random().toString(36).slice(2, 6)}`,
+              role: msg.role,
+              content: msg.message,
+              timestamp: new Date(msg.timestamp),
+              metadata
+            }
+          })
           if (!cancelled) {
             setMessages(loadedMessages)
           }

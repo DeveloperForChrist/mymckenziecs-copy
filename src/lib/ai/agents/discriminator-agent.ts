@@ -14,7 +14,7 @@ const DISCRIMINATOR_MAX_TOKENS = 800
 
 const stripMarkdown = (text: string): string => {
   return text
-    .replace(/#+ /g, '')
+    .replace(/^#{1,6}\s+/gm, '')
     .replace(/\*\*(.+?)\*\*/g, '$1')
     .replace(/\*(.+?)\*/g, '$1')
     .replace(/_{1,2}(.+?)_{1,2}/g, '$1')
@@ -70,12 +70,12 @@ You will receive a long, detailed legal answer. Your job is to:
 4. Improve structure and readability (use bullets • for lists)
 5. Keep the tone warm, reassuring, and accessible
 6. Use plain English without markdown formatting
-7. Use clear section titles as plain text lines (do NOT end titles with a colon). Use headings only when the topic branches, and make them specific
+7. Use plain text only. Use short standalone heading lines rather than markdown headings.
 8. Use short paragraphs (1 idea, 1-3 sentences, 2-4 lines)
-9. Use numbered lists (1., 2., 3.) for ordered steps or hierarchy
-10. Use bullets (•) for parallel ideas
-11. Do not output tables.
-12. Use divider lines only when shifting mode (explanation → examples, law → practical). Divider line must be exactly: ────────────────────
+9. Use numbered lists only for ordered steps, sequence, hierarchy, or priority
+10. Use bullet points only for parallel ideas, options, examples, evidence, or warnings
+11. Do not output tables, ALL CAPS headings, markdown headings, markdown bold, markdown italics, or markdown links.
+12. Use the divider line only when shifting mode (explanation → examples, law → practical, issue → next steps).
 13. Always end with a one-sentence compression line starting with "In short:"
 14. ${citationRule}
 14. Keep any page references (e.g., "Page 4") if present
@@ -105,7 +105,7 @@ Your task:
 
 Provide ONLY the final streamlined answer. No explanations needed.`
 
-  const systemPrompt = `You are a UK litigant in person acting as a discriminator (critic, reviser, verifier) for legal guidance. Your job is to detect gaps, weak claims, missing steps, and formatting issues, then fix them. You are responsible for presentation, organisation,structure and making sure dialogue is conversational friendly. Streamline and improve while preserving accuracy. Output MUST be plain text only, with section titles as plain text lines (do NOT end titles with a colon). Use headings only when the topic branches, and make them specific. Use short paragraphs (1 idea, 1-3 sentences). Use numbered lists for ordered steps or hierarchy and bullets for parallel ideas. Do not output tables. Use divider lines only when shifting mode (explanation → examples, law → practical) and the divider line must be exactly: ────────────────────. Always end with a one-sentence compression line starting with "In short:". ${citationRule} Keep page references if present. No markdown.`
+  const systemPrompt = `You are a UK litigant in person acting as a discriminator (critic, reviser, verifier) for legal guidance. Your job is to detect gaps, weak claims, missing steps, and formatting issues, then fix them. You are responsible for presentation, organisation,structure and making sure dialogue is conversational friendly. Streamline and improve while preserving accuracy. Output MUST be plain text only. Use short standalone heading lines rather than markdown headings. Use short paragraphs (1 idea, 1-3 sentences). Use numbered lists only for ordered steps, sequence, hierarchy, or priority. Use bullet points only for parallel ideas, options, examples, evidence, or warnings. Do not output tables, ALL CAPS headings, markdown headings, markdown bold, markdown italics, or markdown links. Use the divider line only when shifting mode (explanation → examples, law → practical, issue → next steps). Always end with a one-sentence compression line starting with "In short:". ${citationRule} Keep page references if present.`
 
   const runClaudeDiscriminator = async (modelName: string, apiKey: string): Promise<string> => {
     const startedAt = Date.now()

@@ -50,54 +50,23 @@ even if the user has not provided the document, you should be able to spot it ou
 To the user, you are a legal leader for them, most importantly preparing, then supporting and leading them.
 
 PRESENTATION:
-Always prioritise clarity and structured formatting over long explanations.
+Use plain text only.
 
-Responses must always be clearly structured and visually organised.
-
-SECTION TITLES
-- Use clear section titles written as plain text lines.
-- Titles must NOT end with a colon.
-- Leave one blank line before and after each title.
-
-PARAGRAPHS
-- Use short paragraphs only.
-- Each paragraph should contain a single idea.
-- Maximum 3 sentences per paragraph.
-
-LISTS
-- Use numbered lists (1., 2., 3.) when explaining:
-  • reasoning
-  • steps
-  • hierarchy
-  • court considerations
-
-- Use bullet points (•) when listing:
-  • examples
-  • supporting facts
-  • evidence
-  • parallel ideas
-
-DIVIDERS
-- Use a divider only when transitioning between major sections or modes of explanation.
-- The divider must appear on its own line.
-- The divider must be exactly:
-
-────────────────────
-
-DIVIDERS SHOULD BE USED WHEN TRANSITIONING BETWEEN:
-• Legal explanation → Example
-• Law reference → Practical application
-• Case analysis → Questions for the user
-• Evidence review → Recommendations
-
-LEGAL REFERENCES
-- When referencing legislation or case law, highlight the name using bold formatting.
-- If a case reference contains a court abbreviation (UKSC, EWCA, EWHC), explain the abbreviation in plain English the first time it appears.
-
-TEXT LENGTH
-- Avoid large blocks of text.
-- No paragraph should exceed 4 lines.
-- Every response must contain at least one list (numbered or bullet) where appropriate.
+FORMAT RULES:
+- Use a short standalone plain-text line for a main section title when the topic changes materially.
+- Use a short standalone plain-text line for a subheading only when a smaller branch is needed inside a section.
+- Use numbered lists for ordered steps, sequence, hierarchy, priority, or court process.
+- Use bullet points for parallel facts, examples, evidence, options, or warnings.
+- Use the divider line only when changing mode, for example law -> practical, explanation -> example, or issue -> next steps.
+- Do not use ALL CAPS headings.
+- Do not end headings with a colon.
+- Do not use tables.
+- Do not use markdown headings like #, ##, or ###.
+- Do not use markdown bold, italics, or markdown links.
+- Use short paragraphs only, with 1 idea and no more than 3 sentences.
+- Use a list only when it genuinely improves clarity.
+- End with a one-sentence compression line starting with "In short:" when a summary would help.
+- When using court abbreviations in case references (for example UKSC, EWCA, EWHC), explain them in plain English on first mention.
 
 
 
@@ -153,54 +122,23 @@ To the user, you are a legal leader/Assitant for them, most importantly preparin
 
 
 PRESENTATION:
-Always prioritise clarity and structured formatting over long explanations.
+Use plain text only.
 
-Responses must always be clearly structured and visually organised.
-
-SECTION TITLES
-- Use clear section titles written as plain text lines.
-- Titles must NOT end with a colon.
-- Leave one blank line before and after each title.
-
-PARAGRAPHS
-- Use short paragraphs only.
-- Each paragraph should contain a single idea.
-- Maximum 3 sentences per paragraph.
-
-LISTS
-- Use numbered lists (1., 2., 3.) when explaining:
-  • reasoning
-  • steps
-  • hierarchy
-  • court considerations
-
-- Use bullet points (•) when listing:
-  • examples
-  • supporting facts
-  • evidence
-  • parallel ideas
-
-DIVIDERS
-- Use a divider only when transitioning between major sections or modes of explanation.
-- The divider must appear on its own line.
-- The divider must be exactly:
-
-────────────────────
-
-DIVIDERS SHOULD BE USED WHEN TRANSITIONING BETWEEN:
-• Legal explanation → Example
-• Law reference → Practical application
-• Case analysis → Questions for the user
-• Evidence review → Recommendations
-
-LEGAL REFERENCES
-- When referencing legislation or case law, highlight the name using bold formatting.
-- If a case reference contains a court abbreviation (UKSC, EWCA, EWHC), explain the abbreviation in plain English the first time it appears.
-
-TEXT LENGTH
-- Avoid large blocks of text.
-- No paragraph should exceed 4 lines.
-- Every response must contain at least one list (numbered or bullet) where appropriate.
+FORMAT RULES:
+- Use a short standalone plain-text line for a main section title when the topic changes materially.
+- Use a short standalone plain-text line for a subheading only when a smaller branch is needed inside a section.
+- Use numbered lists for ordered steps, sequence, hierarchy, priority, or court process.
+- Use bullet points for parallel facts, examples, evidence, options, or warnings.
+- Use the divider line only when changing mode, for example law -> practical, explanation -> example, or issue -> next steps.
+- Do not use ALL CAPS headings.
+- Do not end headings with a colon.
+- Do not use tables.
+- Do not use markdown headings like #, ##, or ###.
+- Do not use markdown bold, italics, or markdown links.
+- Use short paragraphs only, with 1 idea and no more than 3 sentences.
+- Use a list only when it genuinely improves clarity.
+- End with a one-sentence compression line starting with "In short:" when a summary would help.
+- When using court abbreviations in case references (for example UKSC, EWCA, EWHC), explain them in plain English on first mention.
 
 
 TONE:
@@ -515,7 +453,7 @@ function templateOnlyRefusalMessage(): string {
 // Remove markdown
 function stripMarkdown(text: string): string {
   return text
-    .replace(/#+ /g, '')
+    .replace(/^#{1,6}\s+/gm, '')
     .replace(/\*\*(.+?)\*\*/g, '$1')
     .replace(/\*(.+?)\*/g, '$1')
     .replace(/_{1,2}(.+?)_{1,2}/g, '$1')
@@ -1401,7 +1339,7 @@ export async function createLegalAgent(
         if (!useSearch) {
           const historyContext = buildHistoryContext(trimmedHistory)
           const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
-          const directPrompt = `${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. Output must be plain text only. Follow the presentation rules, including divider lines only when changing mode (exactly ────────────────────).`
+          const directPrompt = `${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
           const modelForProvider = llmProvider === 'groq' ? groqModel : openaiModel
           const directAnswer = await callLLM(
             directPrompt,
@@ -1489,7 +1427,7 @@ export async function createLegalAgent(
         const citationInstruction = effectiveIncludeCitations
           ? 'Include inline citations in square brackets that match the sources list above, like [1] or [2]. Use citations on factual statements.'
           : 'Do not include any source citations.'
-        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\nUser question: "${latestQuestion}"\n\nGenerate a thorough, detailed answer that comprehensively covers this topic using ALL relevant information from the sources. ${citationInstruction} Create a complete answer that covers all aspects and angles of the question. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. No markdown. Use clear section titles as plain text lines. Use short paragraphs and bullets (•) where needed. Use divider lines only when shifting mode (explanation -> examples, law -> practical), and the divider line must be exactly: ────────────────────.`
+        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\nUser question: "${latestQuestion}"\n\nGenerate a thorough, detailed answer that comprehensively covers this topic using ALL relevant information from the sources. ${citationInstruction} Create a complete answer that covers all aspects and angles of the question. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
         
         const modelForProvider = llmProvider === 'groq' ? groqModel : openaiModel
         let comprehensiveAnswer = await callLLM(

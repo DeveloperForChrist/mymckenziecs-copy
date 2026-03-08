@@ -15,6 +15,7 @@ export interface AssistantMetadata {
   pendingCalendarEntries?: PendingCalendarEntriesMetadata
   activeCaseId?: string
   sources?: SourceReference[]
+  presentation?: AssistantPresentation
   [key: string]: any
 }
 
@@ -44,7 +45,7 @@ export type TimelineEntry = {
   note?: string
 }
 
-export type ParsedLineKind = 'paragraph' | 'bullet' | 'subheading' | 'divider' | 'summary'
+export type ParsedLineKind = 'paragraph' | 'bullet' | 'ordered' | 'subheading' | 'divider' | 'summary'
 
 export type ParsedLine = {
   text: string
@@ -54,4 +55,9 @@ export type ParsedLine = {
 export type ParsedSection = {
   heading: string | null
   lines: ParsedLine[]
+}
+
+export type AssistantPresentation = {
+  version: 1
+  sections: ParsedSection[]
 }

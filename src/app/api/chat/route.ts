@@ -21,6 +21,7 @@ import { isBasicPlan, isPremiumPlan, isPremiumPlusPlan } from '@/lib/plans/acces
 import { searchByText } from '@/lib/vector/milvus'
 import { getUserPlanData } from '@/lib/payments/user-plan'
 import { extractTextFromBuffer } from '@/lib/chat/text-extraction'
+import { buildAssistantResponsePayload, attachAssistantPresentationMetadata } from '@/lib/chat/assistant-presentation'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -1419,7 +1420,7 @@ const loadCaseScopedMemoryFallback = async ({
   guestId?: string | null
   caseId: string
   excludeConversationId?: string | null
-}): Promise<{ memory_summary: string | null; key_facts: string[]; open_questions: string[] } | null> => {
+}): Promise<{ memory_summary: string | null; key_facts: string[]; open_questions: string[]; user_turn_count: number | null } | null> => {
   if (!caseId) return null
   if (!authUserId && !guestId) return null
 
@@ -1477,6 +1478,7 @@ const loadCaseScopedMemoryFallback = async ({
     memory_summary: summary,
     key_facts: keyFacts.slice(0, 12),
     open_questions: openQuestions.slice(0, 4),
+    user_turn_count: null,
   }
 
   return hasUsefulMemory(fallbackMemory) ? fallbackMemory : null
@@ -1505,13 +1507,10 @@ export async function POST(request: NextRequest) {
 
     if (!authUserId) {
       return NextResponse.json(
-        {
-          response: 'Please sign in and choose a paid plan to use chat.',
-          metadata: {
-            signInRequired: true,
-            upgradeRequired: true,
-          },
-        },
+        buildAssistantResponsePayload('Please sign in and choose a paid plan to use chat.', {
+          signInRequired: true,
+          upgradeRequired: true,
+        }),
         { status: 401 }
       )
     }
@@ -1600,14 +1599,11 @@ export async function POST(request: NextRequest) {
       if (!hasPaidPlan) {
         return withCookie(
           NextResponse.json(
-            {
-              response: 'A paid plan is required to use chat. Please choose a plan to continue.',
-              metadata: {
-                upgradeRequired: true,
-                activePlan: activePlanLabel || 'none',
-                planStatus: String(planData?.planStatus || 'inactive').toLowerCase(),
-              },
-            },
+            buildAssistantResponsePayload('A paid plan is required to use chat. Please choose a plan to continue.', {
+              upgradeRequired: true,
+              activePlan: activePlanLabel || 'none',
+              planStatus: String(planData?.planStatus || 'inactive').toLowerCase(),
+            }),
             { status: 403 }
           )
         )
@@ -1617,16 +1613,18 @@ export async function POST(request: NextRequest) {
 
     const sessionInfo = await chatManager.initializeSession()
     if (sessionInfo.requiresCaseSelection) {
+      const caseSelectionResponse =
+        'I see you have multiple cases. Which case would you like to discuss?\n\n' +
+        sessionInfo.cases
+          .map((c: any, i: number) => `${i + 1}. ${c.caseType || 'Case'} - ${c.caseNumber || c.id}`)
+          .join('\n')
       return withCookie(
-        NextResponse.json({
-          requiresCaseSelection: true,
-          cases: sessionInfo.cases,
-          response:
-            'I see you have multiple cases. Which case would you like to discuss?\n\n' +
-            sessionInfo.cases
-              .map((c: any, i: number) => `${i + 1}. ${c.caseType || 'Case'} - ${c.caseNumber || c.id}`)
-              .join('\n'),
-        })
+        NextResponse.json(
+          buildAssistantResponsePayload(caseSelectionResponse, undefined, {
+            requiresCaseSelection: true,
+            cases: sessionInfo.cases,
+          })
+        )
       )
     }
 
@@ -1722,11 +1720,10 @@ export async function POST(request: NextRequest) {
     if (threadUserTurnCount >= threadTurnLimit) {
       return withCookie(
         NextResponse.json(
-          {
-            response:
-              `This chat has reached the thread limit (${threadTurnLimit} user turns). ` +
+          buildAssistantResponsePayload(
+            `This chat has reached the thread limit (${threadTurnLimit} user turns). ` +
               'Please start a new chat so responses stay accurate and fast.',
-            metadata: {
+            {
               threadLimitReached: true,
               threadUserTurnCount,
               threadTurnLimit,
@@ -1736,8 +1733,8 @@ export async function POST(request: NextRequest) {
               task: processingResult.task,
               contextType: processingResult.contextType,
               urgency: processingResult.urgency,
-            },
-          },
+            }
+          ),
           { status: 200 }
         )
       )
@@ -1761,6 +1758,7 @@ export async function POST(request: NextRequest) {
     const shouldShortCircuitToQuestion = Boolean(followUpQuestion && !hasAttachments && sanitizedHistory.length <= 1)
 
     if (shouldShortCircuitToQuestion) {
+      const clarificationQuestion = followUpQuestion || 'Can you clarify the main point you need help with?'
       const mergedFacts = mergeFacts(effectiveMemoryRow?.key_facts, initialFacts)
       await supabaseAdmin.from('chat_memory').upsert(
         {
@@ -1771,7 +1769,7 @@ export async function POST(request: NextRequest) {
           conversation_id: activeConversationId,
           memory_summary: truncateText(`User asked: ${message}`, 320),
           key_facts: mergedFacts,
-          open_questions: [followUpQuestion],
+          open_questions: [clarificationQuestion],
           last_intent: processingResult.task,
         },
         { onConflict: 'memory_key' }
@@ -1779,18 +1777,15 @@ export async function POST(request: NextRequest) {
 
       return withCookie(
         NextResponse.json(
-          {
-            response: followUpQuestion,
-            metadata: {
-              followUpQuestion,
-              requiresClarification: true,
-              caseProcessing: processingResult,
-              activeCaseId: resolvedCaseId,
-              task: processingResult.task,
-              contextType: processingResult.contextType,
-              urgency: processingResult.urgency,
-            },
-          },
+          buildAssistantResponsePayload(clarificationQuestion, {
+            followUpQuestion: clarificationQuestion,
+            requiresClarification: true,
+            caseProcessing: processingResult,
+            activeCaseId: resolvedCaseId,
+            task: processingResult.task,
+            contextType: processingResult.contextType,
+            urgency: processingResult.urgency,
+          }),
           { status: 200 }
         )
       )
@@ -1806,7 +1801,7 @@ export async function POST(request: NextRequest) {
       console.error('OPENAI_PREMIUM_PLUS_MODEL is missing for a Premium+ chat request')
       return withCookie(
         NextResponse.json(
-          { response: 'Premium+ chat is temporarily unavailable. Please try again shortly.' },
+          buildAssistantResponsePayload('Premium+ chat is temporarily unavailable. Please try again shortly.'),
           { status: 503 }
         )
       )
@@ -1819,7 +1814,7 @@ export async function POST(request: NextRequest) {
       console.error('Premium+ discriminator model is missing for a Premium+ chat request')
       return withCookie(
         NextResponse.json(
-          { response: 'Premium+ review is temporarily unavailable. Please try again shortly.' },
+          buildAssistantResponsePayload('Premium+ review is temporarily unavailable. Please try again shortly.'),
           { status: 503 }
         )
       )
@@ -2041,10 +2036,9 @@ export async function POST(request: NextRequest) {
     if (!agentResponse.response || !agentResponse.response.trim()) {
       return withCookie(
         NextResponse.json(
-          {
-            response: 'I had trouble generating a response. Please try again in a moment.',
-            metadata: { emptyResponse: true },
-          },
+          buildAssistantResponsePayload('I had trouble generating a response. Please try again in a moment.', {
+            emptyResponse: true,
+          }),
           { status: 200 }
         )
       )
@@ -2108,7 +2102,7 @@ export async function POST(request: NextRequest) {
       await chatManager.storeRawMessage(
         finalAssistantResponse,
         'assistant',
-        {
+        attachAssistantPresentationMetadata(finalAssistantResponse, {
           autoGenerated: true,
           type: 'legal_agent_response',
           caseId: processingResult.caseId || null,
@@ -2118,87 +2112,84 @@ export async function POST(request: NextRequest) {
           templateDraftBlocked,
           templateDraftBlockReason,
           actionItems,
-        },
+        }) || {},
         processingResult.caseId || sessionInfo.activeCaseId || null
       )
     }
 
     return withCookie(
       NextResponse.json(
-        {
-          response: finalAssistantResponse,
-          metadata: {
-            guidanceProvided: agentResponse.guidance_provided,
-            nextSteps: agentResponse.next_steps,
-            sources: agentResponse.sources || [],
-            caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
-            caseLawSoftNextStep,
-            caseProcessing: processingResult,
-            activeCaseId: processingResult.caseId || sessionInfo.activeCaseId,
-            pendingCalendarEntries: (processingResult as any).pendingCalendarEntries || null,
-            task: processingResult.task,
-            contextType: processingResult.contextType,
-            urgency: processingResult.urgency,
-            followUpQuestion,
-            actionItems,
-            templateDraftBlocked,
-            templateDraftBlockReason,
-            ...(includeDebug
-                ? {
-                  debug: {
-                    premiumFlow: !shouldUseBasicLegalAgent,
-                    basicPlanFlow: basicPlanActive,
-                    premiumPlanFlow: premiumPlanActive,
-                    premiumPlusFlow: premiumPlusActive,
-                    planLabel: activePlanLabel || 'none',
-                    sourceCount,
-                    hasInlineCitationTags,
-                    citationMode: premiumPlusActive
-                      ? (shouldUseSearchRetrieval ? 'search+citations' : 'direct-no-search')
-                      : (premiumPlanActive
-                          ? (shouldUseSearchRetrieval ? 'search-no-citations' : 'direct-no-search')
-                          : 'basic-no-search'),
-                    retrievalEnabled: shouldUseSearchRetrieval,
-                    premiumGeneratorRoutingEnabled: PREMIUM_GENERATOR_ROUTING_ENABLED,
-                    premiumSearchRoutingSource,
-                    premiumSearchRoutingUsed: Boolean(premiumSearchRoutingDecision),
-                    premiumSearchRoutingConfidence,
-                    premiumSearchRoutingReasons,
-                    premiumSearchModeApplied: premiumSearchRoutingDecision?.searchMode || 'fallback-search',
-                    premiumSearchQuery: premiumGeneratedWebQuery || null,
-                    premiumPlusCaseLawRetrievalEnabled: shouldUsePremiumPlusCaseLawRetrieval,
-                    vectorCaseLawRagEnabled: usePremiumPlusVectorRag,
-                    vectorCaseLawRagCount: vectorCaseLawRagItems.length,
-                    caseLawSuggestionTriggered: shouldLookupCaseLawSuggestions,
-                    caseLawSuggestionCount: caseLawSuggestions.length,
-                    caseLawSuggestionScore: caseLawSuggestionDecision.score,
-                    caseLawSuggestionReasons: caseLawSuggestionDecision.reasons,
-                    caseLawSuggestionThreshold: CASELAW_SUGGESTION_MIN_TRIGGER_SCORE,
-                    caseLawRetrievalThreshold: CASELAW_RETRIEVAL_MIN_SCORE,
-                    caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
-                    retrievalFocus: retrievalFocusDecision.focus,
-                    retrievalFocusApplied,
-                    retrievalRoutingSource,
-                    retrievalOwnCaseNarrative: retrievalFocusDecision.ownCaseNarrative,
-                    retrievalPrecedentScore: retrievalFocusDecision.precedentScore,
-                    retrievalProcedureScore: retrievalFocusDecision.procedureScore,
-                    retrievalReasons: routingReasonsApplied,
-                    generatorRoutingEnabled: PREMIUM_PLUS_GENERATOR_ROUTING_ENABLED,
-                    generatorRoutingUsed: Boolean(generatorRoutingDecision),
-                    generatorRoutingConfidence,
-                    generatorWebQuery: generatedWebQuery || null,
-                    generatorVectorQuery: generatedVectorQuery || null,
-                    discriminatorFinalPassEnabled: PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED,
-                    removedUnsupportedAuthorityLines,
-                    templateDraftBlocked,
-                    templateDraftBlockReason,
-                    caseScopedMemoryFallbackUsed,
-                    vectorFallbackToWeb,
-                  },
-                }
-              : {}),
-          },
-        },
+        buildAssistantResponsePayload(finalAssistantResponse, {
+          guidanceProvided: agentResponse.guidance_provided,
+          nextSteps: agentResponse.next_steps,
+          sources: agentResponse.sources || [],
+          caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
+          caseLawSoftNextStep,
+          caseProcessing: processingResult,
+          activeCaseId: processingResult.caseId || sessionInfo.activeCaseId,
+          pendingCalendarEntries: (processingResult as any).pendingCalendarEntries || null,
+          task: processingResult.task,
+          contextType: processingResult.contextType,
+          urgency: processingResult.urgency,
+          followUpQuestion,
+          actionItems,
+          templateDraftBlocked,
+          templateDraftBlockReason,
+          ...(includeDebug
+              ? {
+                debug: {
+                  premiumFlow: !shouldUseBasicLegalAgent,
+                  basicPlanFlow: basicPlanActive,
+                  premiumPlanFlow: premiumPlanActive,
+                  premiumPlusFlow: premiumPlusActive,
+                  planLabel: activePlanLabel || 'none',
+                  sourceCount,
+                  hasInlineCitationTags,
+                  citationMode: premiumPlusActive
+                    ? (shouldUseSearchRetrieval ? 'search+citations' : 'direct-no-search')
+                    : (premiumPlanActive
+                        ? (shouldUseSearchRetrieval ? 'search-no-citations' : 'direct-no-search')
+                        : 'basic-no-search'),
+                  retrievalEnabled: shouldUseSearchRetrieval,
+                  premiumGeneratorRoutingEnabled: PREMIUM_GENERATOR_ROUTING_ENABLED,
+                  premiumSearchRoutingSource,
+                  premiumSearchRoutingUsed: Boolean(premiumSearchRoutingDecision),
+                  premiumSearchRoutingConfidence,
+                  premiumSearchRoutingReasons,
+                  premiumSearchModeApplied: premiumSearchRoutingDecision?.searchMode || 'fallback-search',
+                  premiumSearchQuery: premiumGeneratedWebQuery || null,
+                  premiumPlusCaseLawRetrievalEnabled: shouldUsePremiumPlusCaseLawRetrieval,
+                  vectorCaseLawRagEnabled: usePremiumPlusVectorRag,
+                  vectorCaseLawRagCount: vectorCaseLawRagItems.length,
+                  caseLawSuggestionTriggered: shouldLookupCaseLawSuggestions,
+                  caseLawSuggestionCount: caseLawSuggestions.length,
+                  caseLawSuggestionScore: caseLawSuggestionDecision.score,
+                  caseLawSuggestionReasons: caseLawSuggestionDecision.reasons,
+                  caseLawSuggestionThreshold: CASELAW_SUGGESTION_MIN_TRIGGER_SCORE,
+                  caseLawRetrievalThreshold: CASELAW_RETRIEVAL_MIN_SCORE,
+                  caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
+                  retrievalFocus: retrievalFocusDecision.focus,
+                  retrievalFocusApplied,
+                  retrievalRoutingSource,
+                  retrievalOwnCaseNarrative: retrievalFocusDecision.ownCaseNarrative,
+                  retrievalPrecedentScore: retrievalFocusDecision.precedentScore,
+                  retrievalProcedureScore: retrievalFocusDecision.procedureScore,
+                  retrievalReasons: routingReasonsApplied,
+                  generatorRoutingEnabled: PREMIUM_PLUS_GENERATOR_ROUTING_ENABLED,
+                  generatorRoutingUsed: Boolean(generatorRoutingDecision),
+                  generatorRoutingConfidence,
+                  generatorWebQuery: generatedWebQuery || null,
+                  generatorVectorQuery: generatedVectorQuery || null,
+                  discriminatorFinalPassEnabled: PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED,
+                  removedUnsupportedAuthorityLines,
+                  templateDraftBlocked,
+                  templateDraftBlockReason,
+                  caseScopedMemoryFallbackUsed,
+                  vectorFallbackToWeb,
+                },
+              }
+            : {}),
+        }),
         { status: 200 }
       )
     )
@@ -2213,16 +2204,17 @@ export async function POST(request: NextRequest) {
 
     if (error?.message?.includes('rate limit') || error?.status === 429) {
       return NextResponse.json(
-        { response: "⚠️ I'm experiencing high demand right now. Please try again in a moment." },
+        buildAssistantResponsePayload("⚠️ I'm experiencing high demand right now. Please try again in a moment."),
         { status: 200 }
       )
     }
 
     return NextResponse.json(
-      {
-        message: error?.message || 'Chat failed',
-        response: 'I apologize, but I encountered an error. Please try again or rephrase your question.',
-      },
+      buildAssistantResponsePayload(
+        'I apologize, but I encountered an error. Please try again or rephrase your question.',
+        undefined,
+        { message: error?.message || 'Chat failed' }
+      ),
       { status: 500 }
     )
   }

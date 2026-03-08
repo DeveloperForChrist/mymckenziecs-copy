@@ -23,11 +23,12 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   )
 
   const { data: authData } = await supabase.auth.getUser()
-  if (!isBillingEligibleUser(authData?.user)) {
+  const authUser = authData?.user
+  if (!authUser || !isBillingEligibleUser(authUser)) {
     redirect('/auth/signin?redirect=/dashboard')
   }
 
-  const planData = await getUserPlanData(authData.user.id, authData.user.email ?? null)
+  const planData = await getUserPlanData(authUser.id, authUser.email ?? null)
   if (!planData.paidAccess) {
     redirect('/pricing?redirect=%2Fdashboard')
   }
