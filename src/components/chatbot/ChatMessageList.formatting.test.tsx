@@ -95,4 +95,58 @@ describe('ChatMessageList formatting', () => {
     expect(container.querySelector('ol.assistant-list-ordered')).toBeNull()
     expect(container.querySelector('.assistant-heading')).toBeNull()
   })
+
+  it('preserves ordered numbering when bullet detail appears between steps', () => {
+    const messages: Message[] = [
+      {
+        id: 'assistant-numbering',
+        role: 'assistant',
+        content: 'ignored',
+        timestamp: new Date('2026-03-08T08:40:00.000Z'),
+        isTyping: false,
+        metadata: {
+          presentation: {
+            version: 1,
+            sections: [
+              {
+                heading: null,
+                lines: [
+                  { kind: 'ordered', order: 1, text: 'Gather all relevant documents' },
+                  { kind: 'bullet', text: 'Employment contract and payslips.' },
+                  { kind: 'ordered', order: 2, text: 'Check the qualifying period' },
+                  { kind: 'bullet', text: 'Review your service dates.' },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    ]
+
+    const { container, getByText } = render(
+      <ChatMessageList
+        messages={messages}
+        feedbackState={{}}
+        parseAssistantResponse={() => {
+          throw new Error('parseAssistantResponse should not be called for finished messages with cached presentation')
+        }}
+        renderMessageContent={(content) => [content]}
+        onCopyMessage={() => {}}
+        formatAssistantResponse={(text) => text}
+        onRegenerate={() => {}}
+        onFeedback={() => {}}
+        loading={false}
+        loadingLabel={null}
+        messagesEndRef={createRef<HTMLDivElement>()}
+        TypingIndicatorComponent={() => <div>typing...</div>}
+      />
+    )
+
+    const orderedItems = Array.from(container.querySelectorAll('li.assistant-list-item[value]'))
+    expect(orderedItems).toHaveLength(2)
+    expect(orderedItems[0]).toHaveAttribute('value', '1')
+    expect(orderedItems[1]).toHaveAttribute('value', '2')
+    expect(getByText('Gather all relevant documents')).toBeInTheDocument()
+    expect(getByText('Check the qualifying period')).toBeInTheDocument()
+  })
 })

@@ -42,10 +42,19 @@ describe('/api/chat route', () => {
     authUser = { id: 'user-1', email: 'user@example.com' },
     planData = { plan: 'basic', paidAccess: true, planStatus: 'active' },
     incrementedTurnCount = 1,
+    searchByTextImpl,
+    processMessageResult = {
+      task: 'legal_procedure',
+      contextType: 'general',
+      urgency: 'normal',
+      caseId: null,
+    },
   }: {
     authUser?: { id: string; email?: string | null } | null
     planData?: { plan?: string | null; paidAccess?: boolean; planStatus?: string | null }
     incrementedTurnCount?: number
+    searchByTextImpl?: (...args: any[]) => Promise<any[]>
+    processMessageResult?: { task: string; contextType: string; urgency: string; caseId: string | null }
   } = {}) => {
     const chatMemoryQuery = createQuery({
       data: { memory_summary: null, key_facts: [], open_questions: [], user_turn_count: incrementedTurnCount },
@@ -73,16 +82,32 @@ describe('/api/chat route', () => {
         conversationId: 'conv-1',
         activeCaseId: null,
       })),
-      processMessage: vi.fn(async () => ({
-        task: 'legal_procedure',
-        contextType: 'general',
-        urgency: 'normal',
-        caseId: null,
-      })),
+      processMessage: vi.fn(async () => processMessageResult),
       getCaseData: vi.fn(async () => null),
       shouldPersistMessages: vi.fn(() => false),
       storeRawMessage: vi.fn(async () => null),
     }
+
+    const legalAgentMocks = {
+      decidePremiumSearchNeedWithGenerator: vi.fn(async () => null) as any,
+      decidePremiumPlusToolPlanWithClaude: vi.fn(async () => null) as any,
+      invokeBasicLegalAgent: vi.fn(async () => ({
+        response: 'Basic answer',
+        guidance_provided: [],
+        next_steps: [],
+      })) as any,
+      invokePremiumLegalAgent: vi.fn(async () => ({
+        response: 'Premium answer',
+        guidance_provided: [],
+        next_steps: [],
+      })) as any,
+      invokePremiumPlusLegalAgent: vi.fn(async () => ({
+        response: 'Premium answer',
+        guidance_provided: [],
+        next_steps: [],
+      })) as any,
+    }
+    const searchByTextMock = vi.fn(searchByTextImpl || (async () => []))
 
     vi.doMock('@/lib/database/supabase-route', () => ({
       createSupabaseRouteClient: vi.fn(async () => ({
@@ -138,22 +163,9 @@ describe('/api/chat route', () => {
     vi.doMock('@/lib/payments/user-plan', () => ({
       getUserPlanData: vi.fn(async () => planData),
     }))
-    vi.doMock('@/lib/ai/agents/legal-agent', () => ({
-      decidePremiumSearchNeedWithGenerator: vi.fn(async () => null),
-      decideRetrievalWithGenerator: vi.fn(async () => null),
-      invokeBasicLegalAgent: vi.fn(async () => ({
-        response: 'Basic answer',
-        guidance_provided: [],
-        next_steps: [],
-      })),
-      invokeLegalAgent: vi.fn(async () => ({
-        response: 'Premium answer',
-        guidance_provided: [],
-        next_steps: [],
-      })),
-    }))
+    vi.doMock('@/lib/ai/agents/legal-agent', () => legalAgentMocks)
     vi.doMock('@/lib/vector/milvus', () => ({
-      searchByText: vi.fn(async () => []),
+      searchByText: searchByTextMock,
     }))
     vi.doMock('@/lib/chat/text-extraction', () => ({
       extractTextFromBuffer: vi.fn(async () => ''),
@@ -167,6 +179,8 @@ describe('/api/chat route', () => {
       POST: routeModule.POST,
       supabaseAdmin,
       chatManagerInstance,
+      legalAgentMocks,
+      searchByTextMock,
     }
   }
 
@@ -224,6 +238,122 @@ describe('/api/chat route', () => {
       'increment_chat_memory_turn_count',
       expect.objectContaining({
         p_conversation_id: 'conv-1',
+      })
+    )
+  })
+
+  it('skips premium web-routing decisions for premium plus requests', { timeout: 15000 }, async () => {
+    process.env.PREMIUM_PLUS_CLAUDE_MODEL = 'claude-opus-4-6'
+
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'premium +', paidAccess: true, planStatus: 'active' },
+      processMessageResult: { task: 'case_lookup', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    legalAgentMocks.decidePremiumPlusToolPlanWithClaude.mockResolvedValue({
+      retrievalMode: 'web_only',
+      tools: [
+        {
+          tool: 'web_search_procedure',
+          query: 'promissory estoppel practical effect England and Wales',
+          rationale: 'Use a procedure-focused web lookup for practical framing',
+        },
+      ],
+      decomposition: 'Break the question into legal meaning and practical framing.',
+      subIssues: [
+        {
+          issue: 'Explain promissory estoppel in plain English',
+          retrievalMode: 'direct',
+          tools: [{ tool: 'direct_knowledge' }],
+        },
+        {
+          issue: 'Check the practical framing the user is really asking about',
+          retrievalMode: 'web_only',
+          tools: [{ tool: 'web_search_procedure', query: 'promissory estoppel practical effect England and Wales' }],
+          webQuery: 'promissory estoppel practical effect England and Wales',
+        },
+      ],
+      confidence: 0.92,
+      reasons: ['stable-legal-concept'],
+    })
+
+    const response = await POST(buildChatRequest({ message: 'Explain promissory estoppel in plain English', history: [] }))
+
+    expect(response.status).toBe(200)
+    expect(legalAgentMocks.decidePremiumSearchNeedWithGenerator).not.toHaveBeenCalled()
+    expect(legalAgentMocks.decidePremiumPlusToolPlanWithClaude).toHaveBeenCalledTimes(1)
+    expect(legalAgentMocks.invokePremiumPlusLegalAgent).toHaveBeenCalledWith(
+      expect.stringContaining('Issue breakdown'),
+      expect.any(String),
+      'user-1',
+      [],
+      '',
+      expect.objectContaining({
+        useSearch: true,
+        searchModeOverride: 'procedure',
+        anthropicModel: 'claude-opus-4-6',
+        anthropicFallbackModel: 'claude-sonnet-4-20250514',
+      })
+    )
+  })
+
+  it('falls back when premium plus case-law retrieval exceeds the timeout budget', { timeout: 15000 }, async () => {
+    process.env.PREMIUM_PLUS_CLAUDE_MODEL = 'claude-opus-4-6'
+    process.env.PREMIUM_PLUS_CASELAW_TIMEOUT_MS = '1'
+    process.env.MILVUS_HOST = 'localhost'
+
+    const neverResolvingSearch = () => new Promise<any[]>(() => {})
+    const { POST, legalAgentMocks, searchByTextMock } = await loadRoute({
+      planData: { plan: 'premium +', paidAccess: true, planStatus: 'active' },
+      searchByTextImpl: neverResolvingSearch,
+      processMessageResult: { task: 'case_lookup', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    legalAgentMocks.decidePremiumPlusToolPlanWithClaude.mockResolvedValue({
+      retrievalMode: 'vector_only',
+      tools: [
+        {
+          tool: 'case_law_rag',
+          query: 'reasonable responses unfair dismissal case law',
+          rationale: 'Need authority extracts',
+        },
+        {
+          tool: 'case_law_suggestions',
+          query: 'reasonable responses unfair dismissal case law',
+          rationale: 'Surface shortlist of authorities too',
+        },
+      ],
+      decomposition: 'Break the request into legal principle and supporting authorities.',
+      subIssues: [
+        {
+          issue: 'Find authorities on unfair dismissal reasoning',
+          retrievalMode: 'vector_only',
+          tools: [{ tool: 'case_law_rag', query: 'reasonable responses unfair dismissal case law' }],
+          vectorQuery: 'reasonable responses unfair dismissal case law',
+        },
+      ],
+      vectorQuery: 'reasonable responses unfair dismissal case law',
+      confidence: 0.91,
+      reasons: ['authority-heavy'],
+    })
+
+    const response = await POST(buildChatRequest({ message: 'What does case law say about unfair dismissal?', history: [] }))
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.response).toContain('Premium answer')
+    expect(searchByTextMock).toHaveBeenCalled()
+    expect(legalAgentMocks.decidePremiumPlusToolPlanWithClaude).toHaveBeenCalledTimes(1)
+    expect(legalAgentMocks.invokePremiumPlusLegalAgent).toHaveBeenCalledWith(
+      expect.stringContaining('Issue breakdown'),
+      expect.any(String),
+      'user-1',
+      [],
+      '',
+      expect.objectContaining({
+        useSearch: true,
+        anthropicModel: 'claude-opus-4-6',
+        anthropicFallbackModel: 'claude-sonnet-4-20250514',
       })
     )
   })

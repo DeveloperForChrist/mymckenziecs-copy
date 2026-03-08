@@ -509,9 +509,17 @@ function ChatMessageRow({
                               if (!orderedBuffer.length) return
                               const first = orderedBuffer[0]
                               elements.push(
-                                <ol key={`section-${sectionIndex}-olist-${first.lineIndex}`} className="assistant-list assistant-list-ordered">
+                                <ol
+                                  key={`section-${sectionIndex}-olist-${first.lineIndex}`}
+                                  className="assistant-list assistant-list-ordered"
+                                  start={typeof first.line.order === 'number' ? first.line.order : undefined}
+                                >
                                   {orderedBuffer.map(({ line, lineIndex }) => (
-                                    <li key={`section-${sectionIndex}-oli-${lineIndex}`} className="assistant-list-item whitespace-pre-wrap">
+                                    <li
+                                      key={`section-${sectionIndex}-oli-${lineIndex}`}
+                                      className="assistant-list-item whitespace-pre-wrap"
+                                      value={typeof line.order === 'number' ? line.order : undefined}
+                                    >
                                       {renderAssistantText(line.text)}
                                     </li>
                                   ))}

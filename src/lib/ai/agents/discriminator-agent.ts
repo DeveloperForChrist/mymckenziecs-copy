@@ -3,14 +3,42 @@ import { logClaudeUsage } from '@/lib/utils/claude-usage'
 import { neutralizeLegalAdviceTone } from './legal-tone'
 
 const DISCRIMINATOR_MODEL =
-  process.env.PREMIUM_PLUS_DISCRIMINATOR_CLAUDE_MODEL ||
   process.env.PREMIUM_PLUS_CLAUDE_MODEL ||
   'claude-opus-4-5-20251101'
 const DISCRIMINATOR_CLAUDE_FALLBACK_MODEL =
-  process.env.PREMIUM_PLUS_DISCRIMINATOR_CLAUDE_FALLBACK_MODEL ||
   process.env.PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL ||
   ''
 const DISCRIMINATOR_MAX_TOKENS = 800
+
+class DiscriminatorTimeoutError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'DiscriminatorTimeoutError'
+  }
+}
+
+const withDiscriminatorTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, modelName: string): Promise<T> => {
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) return promise
+
+  let timeoutId: NodeJS.Timeout | null = null
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(new DiscriminatorTimeoutError(`Discriminator model ${modelName} timed out after ${timeoutMs}ms`))
+        }, timeoutMs)
+      }),
+    ])
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId)
+  }
+}
+
+const getDiscriminatorTimeoutMs = () =>
+  Number.isFinite(Number(process.env.PREMIUM_PLUS_DISCRIMINATOR_TIMEOUT_MS))
+    ? Math.max(1000, Math.floor(Number(process.env.PREMIUM_PLUS_DISCRIMINATOR_TIMEOUT_MS)))
+    : 10000
 
 const stripMarkdown = (text: string): string => {
   return text
@@ -110,16 +138,21 @@ Provide ONLY the final streamlined answer. No explanations needed.`
   const runClaudeDiscriminator = async (modelName: string, apiKey: string): Promise<string> => {
     const startedAt = Date.now()
     const claudeLegalClient = new Anthropic({ apiKey })
+    const discriminatorTimeoutMs = getDiscriminatorTimeoutMs()
     try {
-      const completion = await claudeLegalClient.messages.create({
-        model: modelName,
-        max_tokens: DISCRIMINATOR_MAX_TOKENS,
-        temperature: 0.5,
-        system: systemPrompt,
-        messages: [
-          { role: 'user', content: streamlinePrompt }
-        ]
-      })
+      const completion = await withDiscriminatorTimeout(
+        claudeLegalClient.messages.create({
+          model: modelName,
+          max_tokens: DISCRIMINATOR_MAX_TOKENS,
+          temperature: 0.5,
+          system: systemPrompt,
+          messages: [
+            { role: 'user', content: streamlinePrompt }
+          ]
+        }),
+        discriminatorTimeoutMs,
+        modelName
+      )
       logClaudeUsage({
         model: modelName,
         usage: (completion as any)?.usage,

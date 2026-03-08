@@ -50,6 +50,7 @@ export type ParsedLineKind = 'paragraph' | 'bullet' | 'ordered' | 'subheading' |
 export type ParsedLine = {
   text: string
   kind: ParsedLineKind
+  order?: number
 }
 
 export type ParsedSection = {

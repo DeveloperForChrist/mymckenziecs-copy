@@ -1,10 +1,12 @@
 // Import OpenAI client for all LLM calls
 import { OpenAI } from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
 import { supabaseAdmin } from '../../database/supabase-server';
 import { DocGeneratorTool } from '../tools/doc-generator-tool';
 import { SearchTool } from '../tools/search-tool';
 import { createDiscriminatorAgent } from './discriminator-agent';
 import { neutralizeLegalAdviceTone } from './legal-tone';
+import { logClaudeUsage } from '@/lib/utils/claude-usage';
 
 // Simplified system prompt
 const SYSTEM_PROMPT: string = `You are MyMckenzieCS Assistant, a highly knowledgeable and conversational legal assistant created to help UK legal users with their legal issues, cases and queries.
@@ -168,6 +170,10 @@ const BASIC_GROQ_FALLBACK_MODEL =
   process.env.GROQ_BASIC_FALLBACK_MODEL ||
   process.env.GROQ_CHAT_FALLBACK_MODEL ||
   'llama-3.3-70b-versatile'
+const ANTHROPIC_MODEL = process.env.PREMIUM_PLUS_CLAUDE_MODEL || 'claude-opus-4-5-20251101'
+const ANTHROPIC_FALLBACK_MODEL =
+  process.env.PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL ||
+  ANTHROPIC_MODEL
 const MAX_TOKENS = 1000
 const PREMIUM_TARGET_TOKENS = Number.isFinite(Number(process.env.PREMIUM_TARGET_TOKENS))
   ? Math.max(600, Math.floor(Number(process.env.PREMIUM_TARGET_TOKENS)))
@@ -178,6 +184,9 @@ const PREMIUM_MAX_TOKENS = Number.isFinite(Number(process.env.PREMIUM_MAX_TOKENS
 const PREMIUM_LENGTH_TAIL_TOKENS = Number.isFinite(Number(process.env.PREMIUM_LENGTH_TAIL_TOKENS))
   ? Math.max(100, Math.floor(Number(process.env.PREMIUM_LENGTH_TAIL_TOKENS)))
   : 300
+const PREMIUM_PLUS_MAX_SUB_ISSUES = Number.isFinite(Number(process.env.PREMIUM_PLUS_MAX_SUB_ISSUES))
+  ? Math.max(4, Math.min(12, Math.floor(Number(process.env.PREMIUM_PLUS_MAX_SUB_ISSUES))))
+  : 8
 const COMPREHENSIVE_TOKEN_BONUS = 0
 const BASIC_MAX_TOKENS = Number.isFinite(Number(process.env.BASIC_AGENT_MAX_TOKENS))
   ? Math.max(1000, Number(process.env.BASIC_AGENT_MAX_TOKENS))
@@ -197,19 +206,74 @@ const GROQ_RATE_LIMIT_COOLDOWN_MS = Number.isFinite(Number(process.env.GROQ_RATE
   : 3000
 let groqRateLimitedUntil = 0
 
+class RoutingTimeoutError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'RoutingTimeoutError'
+  }
+}
+
+const withRoutingTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, stage: string): Promise<T> => {
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) return promise
+
+  let timeoutId: NodeJS.Timeout | null = null
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(new RoutingTimeoutError(`${stage} timed out after ${timeoutMs}ms`))
+        }, timeoutMs)
+      }),
+    ])
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId)
+  }
+}
+
+const getRoutingDecisionTimeoutMs = () =>
+  Number.isFinite(Number(process.env.ROUTING_DECISION_TIMEOUT_MS))
+    ? Math.max(1000, Math.floor(Number(process.env.ROUTING_DECISION_TIMEOUT_MS)))
+    : 3500
+
 // =====================================================
 // SIMPLE HELPERS
 // =====================================================
 
-type RetrievalMode = 'education' | 'general'
-type LlmProvider = 'openai' | 'groq'
+export type LegalSearchMode = 'education' | 'procedure' | 'case_specific' | 'document_review' | 'general'
+type LlmProvider = 'openai' | 'groq' | 'anthropic'
 type LengthRecoveryMode = 'none' | 'continue' | 'compress'
 export type GeneratorRetrievalMode = 'direct' | 'web_only' | 'vector_only' | 'hybrid'
+export type PremiumPlusToolName =
+  | 'direct_knowledge'
+  | 'web_search_education'
+  | 'web_search_procedure'
+  | 'web_search_case_specific'
+  | 'web_search_document_review'
+  | 'web_search_general'
+  | 'case_law_suggestions'
+  | 'case_law_rag'
+export type PremiumPlusToolSelection = {
+  tool: PremiumPlusToolName
+  query?: string
+  rationale?: string
+}
+export type PremiumPlusSubIssue = {
+  issue: string
+  retrievalMode?: GeneratorRetrievalMode
+  webQuery?: string
+  vectorQuery?: string
+  rationale?: string
+  tools?: PremiumPlusToolSelection[]
+}
 export type GeneratorRetrievalDecision = {
   retrievalMode: GeneratorRetrievalMode
   webQuery?: string
   vectorQuery?: string
   confidence?: number
+  decomposition?: string
+  subIssues?: PremiumPlusSubIssue[]
+  tools?: PremiumPlusToolSelection[]
   reasons: string[]
 }
 export type PremiumSearchMode = 'direct' | 'web'
@@ -229,12 +293,15 @@ type LegalAgentOptions = {
   openaiFallbackModel?: string
   groqModel?: string
   groqFallbackModel?: string
+  anthropicModel?: string
+  anthropicFallbackModel?: string
   maxTokens?: number
   autoContinueOnLength?: boolean
   maxAutoContinues?: number
   lengthRecoveryMode?: LengthRecoveryMode
   maxCompressionRetries?: number
   searchQueryOverride?: string
+  searchModeOverride?: LegalSearchMode
   discriminatorModel?: string
   discriminatorFallbackModel?: string
 }
@@ -284,6 +351,217 @@ function buildHistoryContext(history: Array<{ role: 'user' | 'assistant'; conten
   return `Recent conversation:\n${lines.join('\n')}\n`
 }
 
+const PREMIUM_PLUS_WEB_SEARCH_TOOLS: PremiumPlusToolName[] = [
+  'web_search_education',
+  'web_search_procedure',
+  'web_search_case_specific',
+  'web_search_document_review',
+  'web_search_general',
+]
+const PREMIUM_PLUS_WEB_SEARCH_TOOL_SET = new Set<PremiumPlusToolName>(PREMIUM_PLUS_WEB_SEARCH_TOOLS)
+const PREMIUM_PLUS_CASELAW_TOOL_SET = new Set<PremiumPlusToolName>([
+  'case_law_suggestions',
+  'case_law_rag',
+])
+
+const normalizeLegalSearchMode = (value: any): LegalSearchMode | null => {
+  const normalized = String(value || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
+  switch (normalized) {
+    case 'education':
+      return 'education'
+    case 'procedure':
+      return 'procedure'
+    case 'case_specific':
+    case 'case':
+      return 'case_specific'
+    case 'document_review':
+    case 'documents':
+      return 'document_review'
+    case 'general':
+      return 'general'
+    default:
+      return null
+  }
+}
+
+const webSearchToolNameFromMode = (mode: LegalSearchMode): PremiumPlusToolName => {
+  switch (mode) {
+    case 'education':
+      return 'web_search_education'
+    case 'procedure':
+      return 'web_search_procedure'
+    case 'case_specific':
+      return 'web_search_case_specific'
+    case 'document_review':
+      return 'web_search_document_review'
+    case 'general':
+    default:
+      return 'web_search_general'
+  }
+}
+
+const normalizePremiumPlusToolName = (toolValue: any, modeValue?: any): PremiumPlusToolName | null => {
+  const normalizedTool = String(toolValue || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
+  const normalizedMode = normalizeLegalSearchMode(modeValue)
+
+  switch (normalizedTool) {
+    case 'direct':
+    case 'direct_answer':
+    case 'direct_knowledge':
+    case 'direct_response':
+      return 'direct_knowledge'
+    case 'web':
+    case 'web_search':
+    case 'internet_search':
+    case 'search':
+      return webSearchToolNameFromMode(normalizedMode || 'general')
+    case 'web_search_education':
+    case 'web_education':
+      return 'web_search_education'
+    case 'web_search_procedure':
+    case 'web_procedure':
+      return 'web_search_procedure'
+    case 'web_search_case_specific':
+    case 'web_case_specific':
+      return 'web_search_case_specific'
+    case 'web_search_document_review':
+    case 'web_document_review':
+      return 'web_search_document_review'
+    case 'web_search_general':
+    case 'web_general':
+      return 'web_search_general'
+    case 'case_law_suggestions':
+    case 'authority_suggestions':
+    case 'precedent_suggestions':
+      return 'case_law_suggestions'
+    case 'case_law':
+    case 'case_law_rag':
+    case 'vector_case_law_rag':
+    case 'vector_rag':
+    case 'authority_rag':
+    case 'case_law_retrieval':
+      return 'case_law_rag'
+    default:
+      return null
+  }
+}
+
+const dedupePremiumPlusTools = (
+  selections: PremiumPlusToolSelection[],
+  limit: number = 8
+): PremiumPlusToolSelection[] => {
+  const seen = new Set<string>()
+  const deduped: PremiumPlusToolSelection[] = []
+
+  for (const selection of selections) {
+    const tool = normalizePremiumPlusToolName(selection?.tool)
+    if (!tool) continue
+    const query = String(selection?.query || '').trim()
+    const rationale = String(selection?.rationale || '').trim()
+    const key = `${tool}|${query.toLowerCase()}|${rationale.toLowerCase()}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    deduped.push({
+      tool,
+      query: query || undefined,
+      rationale: rationale || undefined,
+    })
+    if (deduped.length >= limit) break
+  }
+
+  return deduped
+}
+
+const parsePremiumPlusTools = (rawValue: any): PremiumPlusToolSelection[] => {
+  if (!Array.isArray(rawValue)) return []
+
+  const parsed = rawValue
+    .map((item: any): PremiumPlusToolSelection | null => {
+      if (typeof item === 'string') {
+        const tool = normalizePremiumPlusToolName(item)
+        return tool ? { tool } : null
+      }
+      if (!item || typeof item !== 'object') return null
+
+      const tool = normalizePremiumPlusToolName(
+        item.tool ?? item.name ?? item.type ?? item.id,
+        item.mode ?? item.search_mode ?? item.searchMode
+      )
+      if (!tool) return null
+
+      const query = String(
+        item.query ??
+        item.web_query ??
+        item.webQuery ??
+        item.vector_query ??
+        item.vectorQuery ??
+        ''
+      ).trim()
+      const rationale = String(item.rationale ?? item.reason ?? item.why ?? '').trim()
+
+      return {
+        tool,
+        query: query || undefined,
+        rationale: rationale || undefined,
+      }
+    })
+    .filter((item: PremiumPlusToolSelection | null): item is PremiumPlusToolSelection => Boolean(item))
+
+  return dedupePremiumPlusTools(parsed)
+}
+
+const deriveRetrievalModeFromTools = (
+  tools: PremiumPlusToolSelection[] | undefined
+): GeneratorRetrievalMode | null => {
+  if (!Array.isArray(tools) || tools.length === 0) return null
+
+  const hasWeb = tools.some((item) => PREMIUM_PLUS_WEB_SEARCH_TOOL_SET.has(item.tool))
+  const hasCaseLaw = tools.some((item) => PREMIUM_PLUS_CASELAW_TOOL_SET.has(item.tool))
+
+  if (hasWeb && hasCaseLaw) return 'hybrid'
+  if (hasCaseLaw) return 'vector_only'
+  if (hasWeb) return 'web_only'
+  return 'direct'
+}
+
+const firstToolQuery = (
+  tools: PremiumPlusToolSelection[] | undefined,
+  kind: 'web' | 'case_law'
+): string => {
+  if (!Array.isArray(tools) || tools.length === 0) return ''
+  const matched = tools.find((item) =>
+    kind === 'web'
+      ? PREMIUM_PLUS_WEB_SEARCH_TOOL_SET.has(item.tool)
+      : PREMIUM_PLUS_CASELAW_TOOL_SET.has(item.tool)
+  )
+  return String(matched?.query || '').trim()
+}
+
+const buildFallbackPremiumPlusTools = (
+  retrievalMode: GeneratorRetrievalMode,
+  webQuery?: string,
+  vectorQuery?: string
+): PremiumPlusToolSelection[] => {
+  switch (retrievalMode) {
+    case 'web_only':
+      return [{ tool: 'web_search_general', query: webQuery || undefined }]
+    case 'vector_only':
+      return dedupePremiumPlusTools([
+        { tool: 'case_law_rag', query: vectorQuery || undefined },
+        { tool: 'case_law_suggestions', query: vectorQuery || undefined },
+      ])
+    case 'hybrid':
+      return dedupePremiumPlusTools([
+        { tool: 'web_search_general', query: webQuery || undefined },
+        { tool: 'case_law_rag', query: vectorQuery || undefined },
+        { tool: 'case_law_suggestions', query: vectorQuery || undefined },
+      ])
+    case 'direct':
+    default:
+      return [{ tool: 'direct_knowledge' }]
+  }
+}
+
 const parseGeneratorRetrievalJson = (raw: string): GeneratorRetrievalDecision | null => {
   const trimmed = (raw || '').trim()
   if (!trimmed) return null
@@ -295,16 +573,21 @@ const parseGeneratorRetrievalJson = (raw: string): GeneratorRetrievalDecision | 
     try {
       const parsed = JSON.parse(candidate) as any
       const retrievalModeRaw = String(parsed?.retrieval_mode || parsed?.retrievalMode || '').trim().toLowerCase()
+      const parsedTools = parsePremiumPlusTools(parsed?.tools ?? parsed?.tool_plan ?? parsed?.toolPlan)
       const retrievalMode = (
         retrievalModeRaw === 'direct' ||
         retrievalModeRaw === 'web_only' ||
         retrievalModeRaw === 'vector_only' ||
         retrievalModeRaw === 'hybrid'
-      ) ? retrievalModeRaw : null
+      ) ? retrievalModeRaw : deriveRetrievalModeFromTools(parsedTools)
       if (!retrievalMode) continue
 
-      const webQuery = String(parsed?.web_query || parsed?.webQuery || '').trim()
-      const vectorQuery = String(parsed?.vector_query || parsed?.vectorQuery || '').trim()
+      const webQuery = String(parsed?.web_query || parsed?.webQuery || firstToolQuery(parsedTools, 'web')).trim()
+      const vectorQuery = String(parsed?.vector_query || parsed?.vectorQuery || firstToolQuery(parsedTools, 'case_law')).trim()
+      const rawDecomposition = parsed?.decomposition ?? parsed?.issue_breakdown ?? parsed?.breakdown ?? ''
+      const decomposition = Array.isArray(rawDecomposition)
+        ? rawDecomposition.map((value: any) => String(value || '').trim()).filter(Boolean).join('\n')
+        : String(rawDecomposition || '').trim()
       const rawConfidence = Number(
         parsed?.confidence ??
         parsed?.routing_confidence ??
@@ -317,12 +600,55 @@ const parseGeneratorRetrievalJson = (raw: string): GeneratorRetrievalDecision | 
       const reasons = Array.isArray(parsed?.reasons)
         ? parsed.reasons.map((value: any) => String(value).trim()).filter(Boolean).slice(0, 8)
         : []
+      const rawSubIssues = Array.isArray(parsed?.sub_issues)
+        ? parsed.sub_issues
+        : Array.isArray(parsed?.subIssues)
+          ? parsed.subIssues
+          : []
+      const subIssues = rawSubIssues
+        .map((item: any): PremiumPlusSubIssue | null => {
+          if (typeof item === 'string') {
+            const issue = item.trim()
+            return issue ? { issue } : null
+          }
+          if (!item || typeof item !== 'object') return null
+          const issue = String(item.issue || item.question || item.topic || '').trim()
+          if (!issue) return null
+          const subTools = parsePremiumPlusTools(item.tools ?? item.tool_plan ?? item.toolPlan)
+          const subModeRaw = String(item.retrieval_mode || item.retrievalMode || '').trim().toLowerCase()
+          const subMode = (
+            subModeRaw === 'direct' ||
+            subModeRaw === 'web_only' ||
+            subModeRaw === 'vector_only' ||
+            subModeRaw === 'hybrid'
+          ) ? subModeRaw : (deriveRetrievalModeFromTools(subTools) || undefined)
+          const subWebQuery = String(item.web_query || item.webQuery || firstToolQuery(subTools, 'web')).trim()
+          const subVectorQuery = String(item.vector_query || item.vectorQuery || firstToolQuery(subTools, 'case_law')).trim()
+          const rationale = String(item.rationale || item.reason || item.why || '').trim()
+          return {
+            issue,
+            retrievalMode: subMode,
+            webQuery: subWebQuery || undefined,
+            vectorQuery: subVectorQuery || undefined,
+            rationale: rationale || undefined,
+            tools: subTools.length > 0 ? subTools : undefined,
+          }
+        })
+        .filter((item: PremiumPlusSubIssue | null): item is PremiumPlusSubIssue => Boolean(item))
+        .slice(0, PREMIUM_PLUS_MAX_SUB_ISSUES)
+
+      const tools = parsedTools.length > 0
+        ? parsedTools
+        : buildFallbackPremiumPlusTools(retrievalMode, webQuery || undefined, vectorQuery || undefined)
 
       return {
         retrievalMode,
         webQuery: webQuery || undefined,
         vectorQuery: vectorQuery || undefined,
         confidence,
+        decomposition: decomposition || undefined,
+        subIssues: subIssues.length > 0 ? subIssues : undefined,
+        tools,
         reasons,
       }
     } catch {
@@ -683,7 +1009,7 @@ async function callLLM(
   model: string = OPENAI_MODEL,
   maxTokens: number = MAX_TOKENS,
   provider: LlmProvider = 'openai',
-  openAiFallbackModel: string = OPENAI_FALLBACK_MODEL,
+  fallbackModel: string = OPENAI_FALLBACK_MODEL,
   autoContinueOnLength: boolean = false,
   maxAutoContinues: number = 0,
   compressOnLength: boolean = false,
@@ -710,7 +1036,7 @@ async function callLLM(
 
     if (Date.now() < groqRateLimitedUntil) {
       // Temporary circuit breaker after Groq 429 bursts.
-      return callLLM(prompt, systemPrompt, openAiFallbackModel, maxTokens, 'openai', openAiFallbackModel)
+      return callLLM(prompt, systemPrompt, fallbackModel, maxTokens, 'openai', fallbackModel)
     }
 
     try {
@@ -762,7 +1088,7 @@ async function callLLM(
       let continueCount = 0
       let endedByLengthWithoutRecovery = false
 
-      const activeGroqFallbackModel = (openAiFallbackModel || '').trim()
+      const activeGroqFallbackModel = (fallbackModel || '').trim()
 
       const runGroqWithFallback = async (messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>) => {
         try {
@@ -810,7 +1136,7 @@ async function callLLM(
             model,
             tailTokenLimit,
             provider,
-            openAiFallbackModel,
+            fallbackModel,
             false,
             0,
             false,
@@ -828,7 +1154,7 @@ async function callLLM(
             model,
             maxTokens,
             provider,
-            openAiFallbackModel,
+            fallbackModel,
             false,
             0,
             compressOnLength,
@@ -848,10 +1174,10 @@ async function callLLM(
         return await callLLM(
           prompt,
           systemPrompt,
-          openAiFallbackModel,
+          fallbackModel,
           maxTokens,
           'openai',
-          openAiFallbackModel,
+          fallbackModel,
           autoContinueOnLength,
           continuationLimit,
           compressOnLength,
@@ -863,6 +1189,148 @@ async function callLLM(
         console.error('OpenAI fallback after Groq failure also failed:', openAiFallbackError)
         return "I'm unable to respond right now because the base model is unavailable. Please try again shortly."
       }
+    }
+  }
+
+  if (provider === 'anthropic') {
+    const anthropicApiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
+    if (!anthropicApiKey) {
+      console.error('ANTHROPIC_API_KEY is not set for Anthropic provider request')
+      return "I'm unable to respond right now because the Premium+ model is unavailable. Please try again shortly."
+    }
+
+    const anthropic = new Anthropic({ apiKey: anthropicApiKey })
+    const transcript: Array<{ role: 'user' | 'assistant'; content: string }> = [
+      { role: 'user', content: prompt },
+    ]
+    const chunks: string[] = []
+    let continueCount = 0
+    let endedByLengthWithoutRecovery = false
+
+    const runAnthropicModel = async (
+      modelName: string,
+      messages: Array<{ role: 'user' | 'assistant'; content: string }>
+    ) => {
+      const startedAt = Date.now()
+      try {
+        const completion = await anthropic.messages.create({
+          model: modelName,
+          max_tokens: maxTokens,
+          temperature: 0.4,
+          system: systemPrompt,
+          messages,
+        })
+        logClaudeUsage({
+          model: modelName,
+          usage: (completion as any)?.usage,
+          success: true,
+          latencyMs: Date.now() - startedAt,
+          requestType: 'chat',
+        })
+        const rawResponse = Array.isArray(completion.content)
+          ? completion.content
+              .filter((block: any) => block?.type === 'text')
+              .map((block: any) => String(block?.text || ''))
+              .join('\n')
+          : ''
+        const stopReason = (completion as any)?.stop_reason || null
+        return {
+          rawResponse: rawResponse || "I couldn't generate a response.",
+          stopReason,
+        }
+      } catch (error: any) {
+        logClaudeUsage({
+          model: modelName,
+          success: false,
+          latencyMs: Date.now() - startedAt,
+          requestType: 'chat',
+          error: error?.message || String(error),
+        })
+        throw error
+      }
+    }
+
+    const activeAnthropicFallbackModel = (fallbackModel || '').trim()
+    const runAnthropicWithFallback = async (messages: Array<{ role: 'user' | 'assistant'; content: string }>) => {
+      try {
+        return await runAnthropicModel(model, messages)
+      } catch (primaryError) {
+        if (activeAnthropicFallbackModel && activeAnthropicFallbackModel !== model) {
+          console.error('Anthropic primary model failed, trying fallback model', {
+            primaryModel: model,
+            fallbackModel: activeAnthropicFallbackModel,
+          })
+          return await runAnthropicModel(activeAnthropicFallbackModel, messages)
+        }
+        throw primaryError
+      }
+    }
+
+    try {
+      while (true) {
+        const { rawResponse, stopReason } = await runAnthropicWithFallback(transcript)
+        const cleanedChunk = rawResponse.trim()
+        if (cleanedChunk) {
+          chunks.push(cleanedChunk)
+          transcript.push({ role: 'assistant', content: cleanedChunk })
+        }
+
+        const canContinue =
+          autoContinueOnLength &&
+          stopReason === 'max_tokens' &&
+          continueCount < continuationLimit &&
+          endsMidSentenceOrSection(cleanedChunk)
+        if (!canContinue) {
+          if (stopReason === 'max_tokens') endedByLengthWithoutRecovery = true
+          break
+        }
+
+        continueCount += 1
+        transcript.push({ role: 'user', content: continuationPrompt })
+      }
+
+      let combined = chunks.join('\n\n').trim()
+      if (endedByLengthWithoutRecovery && !autoContinueOnLength && tailTokenLimit > 0 && combined) {
+        const tailPrompt =
+          `Current partial response:\n${combined}\n\n` +
+          `Provide only the remaining conclusion in no more than ${tailTokenLimit} tokens. Do not repeat prior text. End cleanly.`
+        const tail = await callLLM(
+          tailPrompt,
+          systemPrompt,
+          model,
+          tailTokenLimit,
+          provider,
+          fallbackModel,
+          false,
+          0,
+          false,
+          0,
+          0,
+          0
+        )
+        combined = `${combined}\n\n${tail}`.trim()
+        endedByLengthWithoutRecovery = false
+      }
+      if (endedByLengthWithoutRecovery && canAttemptCompression) {
+        return await callLLM(
+          compressionPrompt,
+          systemPrompt,
+          model,
+          maxTokens,
+          provider,
+          fallbackModel,
+          false,
+          0,
+          compressOnLength,
+          compressionLimit,
+          compressionAttempt + 1,
+          0
+        )
+      }
+      return stripMarkdown(stripUrlsFromText(combined || "I couldn't generate a response."))
+    } catch (error: any) {
+      console.error('Anthropic API Error:', error)
+      return "I'm having a problem. Please try again later."
     }
   }
 
@@ -923,13 +1391,13 @@ async function callLLM(
       try {
         return await runOpenAiModel(model, messages)
       } catch (primaryError) {
-        const fallbackModel = (openAiFallbackModel || '').trim()
-        if (fallbackModel && fallbackModel !== model) {
+        const activeFallbackModel = (fallbackModel || '').trim()
+        if (activeFallbackModel && activeFallbackModel !== model) {
           console.error('OpenAI primary model failed, trying fallback model', {
             primaryModel: model,
-            fallbackModel,
+            fallbackModel: activeFallbackModel,
           })
-          return await runOpenAiModel(fallbackModel, messages)
+          return await runOpenAiModel(activeFallbackModel, messages)
         }
         throw primaryError
       }
@@ -975,7 +1443,7 @@ async function callLLM(
         model,
         tailTokenLimit,
         provider,
-        openAiFallbackModel,
+        fallbackModel,
         false,
         0,
         false,
@@ -993,7 +1461,7 @@ async function callLLM(
         model,
         maxTokens,
         provider,
-        openAiFallbackModel,
+        fallbackModel,
         false,
         0,
         compressOnLength,
@@ -1025,6 +1493,7 @@ export async function decideRetrievalWithGenerator(
   const historyContext = buildHistoryContext(trimmedHistory)
   const model = (options?.openaiModel || OPENAI_MODEL).trim() || OPENAI_MODEL
   const fallbackModel = (options?.openaiFallbackModel || OPENAI_FALLBACK_MODEL).trim()
+  const routingTimeoutMs = getRoutingDecisionTimeoutMs()
   const systemPrompt = [
     'You are the MyMckenzieCS generator deciding what retrieval is needed before answering.',
     'Decide whether the answer should use web retrieval, case-law retrieval, or both.',
@@ -1045,15 +1514,28 @@ Rules:
 6. If attachment excerpts are present, prefer web_only or hybrid unless authority-heavy analysis is clearly dominant.
 7. web_query must be a short focused web search query when web retrieval is needed. Leave it blank for direct or vector_only.
 8. vector_query must be a short focused case-law retrieval query when case-law retrieval is needed. Leave it blank for direct or web_only.
-9. confidence must be 0 to 1 for routing certainty.
-10. reasons should briefly explain the routing choice.
-11. Do not answer the user. Only choose retrieval.
+9. Freely decompose the request into all material legal, procedural, factual, and practical sub-issues. Do not force the request into a single short summary if it clearly has multiple moving parts.
+10. decomposition may be a paragraph, compact multiline string, or ordered breakdown that explains how the request was split.
+11. sub_issues should contain as many material issues as needed, up to ${PREMIUM_PLUS_MAX_SUB_ISSUES}. Keep them in the order the final answer should follow. Each may include retrieval_mode, web_query, vector_query, and rationale where useful.
+12. confidence must be 0 to 1 for routing certainty.
+13. reasons should briefly explain the routing choice.
+14. Do not answer the user. Only choose retrieval.
 
 Output schema:
 {
   "retrieval_mode": "direct|web_only|vector_only|hybrid",
   "web_query": "string",
   "vector_query": "string",
+  "decomposition": "string",
+  "sub_issues": [
+    {
+      "issue": "string",
+      "retrieval_mode": "direct|web_only|vector_only|hybrid",
+      "web_query": "string",
+      "vector_query": "string",
+      "rationale": "string"
+    }
+  ],
   "confidence": 0.0,
   "reasons": ["string"]
 }`
@@ -1102,19 +1584,188 @@ Output schema:
   }
 
   try {
-    const primary = await runModel(model)
+    const primary = await withRoutingTimeout(
+      runModel(model),
+      routingTimeoutMs,
+      'Premium+ retrieval routing'
+    )
     const parsed = parseGeneratorRetrievalJson(primary)
     if (parsed) return parsed
-  } catch {
+  } catch (error) {
+    if (error instanceof RoutingTimeoutError) {
+      console.warn(error.message)
+      return null
+    }
     // try fallback below
   }
 
   if (fallbackModel && fallbackModel !== model) {
     try {
-      const fallback = await runModel(fallbackModel)
+      const fallback = await withRoutingTimeout(
+        runModel(fallbackModel),
+        routingTimeoutMs,
+        'Premium+ retrieval routing fallback'
+      )
       const parsed = parseGeneratorRetrievalJson(fallback)
       if (parsed) return parsed
-    } catch {
+    } catch (error) {
+      if (error instanceof RoutingTimeoutError) {
+        console.warn(error.message)
+      }
+      return null
+    }
+  }
+
+  return null
+}
+
+export async function decidePremiumPlusToolPlanWithClaude(
+  input: string,
+  conversationHistory: Array<{ role: string; content: string }> = [],
+  caseKeywords?: string,
+  options?: {
+    anthropicModel?: string
+    anthropicFallbackModel?: string
+  }
+): Promise<GeneratorRetrievalDecision | null> {
+  const anthropicApiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
+  if (!anthropicApiKey) return null
+
+  const trimmedHistory = sanitizeConversationHistory(conversationHistory, 12)
+  const historyContext = buildHistoryContext(trimmedHistory)
+  const model = (options?.anthropicModel || ANTHROPIC_MODEL).trim() || ANTHROPIC_MODEL
+  const fallbackModel = (options?.anthropicFallbackModel || ANTHROPIC_FALLBACK_MODEL).trim()
+  const routingTimeoutMs = getRoutingDecisionTimeoutMs()
+  const systemPrompt = [
+    'You are the MyMckenzieCS Premium+ planner deciding what tools are needed before answering.',
+    'Decide whether the answer should use web retrieval, case-law retrieval, or neither.',
+    'Return JSON only. No prose, no markdown, no code fences.',
+  ].join(' ')
+  const userPrompt = `Choose the retrieval mode for this Premium+ user request before answer generation.
+User message:
+${input}
+
+${caseKeywords ? `Case context: ${caseKeywords}\n` : ''}${historyContext}
+
+Rules:
+1. retrieval_mode must be one of: direct, web_only, vector_only, hybrid.
+2. Use direct when the answer can be given safely from stable general legal knowledge or plain-English explanation without needing current source verification or case-law retrieval.
+3. Use web_only when current procedure, forms, deadlines, official guidance, or practical next steps are dominant.
+4. Use vector_only when case law, precedent, legal authorities, or analogical reasoning from authorities are dominant.
+5. Use hybrid when both current practical guidance and legal authorities materially matter.
+6. tools must be an array drawn from: direct_knowledge, web_search_education, web_search_procedure, web_search_case_specific, web_search_document_review, web_search_general, case_law_suggestions, case_law_rag.
+7. Use the smallest tool set that materially improves the answer.
+8. Use direct_knowledge when stable explanation is sufficient without retrieval.
+9. Choose the specific web search tool that best matches the need. Use education for definitions, procedure for filing/deadlines/forms/steps, case_specific for fact-pattern guidance, document_review for document-led lookup, and general when none of the narrower modes fit.
+10. Use case_law_suggestions when surfacing likely authorities or offering a shortlist of relevant decisions is useful.
+11. Use case_law_rag when the answer should actively rely on retrieved authorities, summaries, or extracts.
+12. Each tool entry may include query and rationale.
+13. web_query must be a short focused web search query when a web search tool is used. Leave it blank for direct or case-law-only plans.
+14. vector_query must be a short focused case-law retrieval query when a case-law tool is used. Leave it blank for direct or web-only plans.
+15. Freely decompose the request into all material legal, procedural, factual, and practical sub-issues. Do not force the request into a single short summary if it clearly has multiple moving parts.
+16. decomposition may be a paragraph, compact multiline string, or ordered breakdown that explains how the request was split.
+17. sub_issues should contain as many material issues as needed, up to ${PREMIUM_PLUS_MAX_SUB_ISSUES}. Keep them in the order the final answer should follow. Each may include retrieval_mode, tools, web_query, vector_query, and rationale where useful.
+18. confidence must be 0 to 1 for routing certainty.
+19. reasons should briefly explain the routing choice.
+20. Do not answer the user. Only choose retrieval.
+
+Output schema:
+{
+  "retrieval_mode": "direct|web_only|vector_only|hybrid",
+  "web_query": "string",
+  "vector_query": "string",
+  "tools": [
+    {
+      "tool": "direct_knowledge|web_search_education|web_search_procedure|web_search_case_specific|web_search_document_review|web_search_general|case_law_suggestions|case_law_rag",
+      "query": "string",
+      "rationale": "string"
+    }
+  ],
+  "decomposition": "string",
+  "sub_issues": [
+    {
+      "issue": "string",
+      "retrieval_mode": "direct|web_only|vector_only|hybrid",
+      "tools": [
+        {
+          "tool": "direct_knowledge|web_search_education|web_search_procedure|web_search_case_specific|web_search_document_review|web_search_general|case_law_suggestions|case_law_rag",
+          "query": "string",
+          "rationale": "string"
+        }
+      ],
+      "web_query": "string",
+      "vector_query": "string",
+      "rationale": "string"
+    }
+  ],
+  "confidence": 0.0,
+  "reasons": ["string"]
+}`
+
+  const anthropic = new Anthropic({ apiKey: anthropicApiKey })
+  const runModel = async (modelName: string): Promise<string> => {
+    const startedAt = Date.now()
+    try {
+      const completion = await anthropic.messages.create({
+        model: modelName,
+        max_tokens: 220,
+        temperature: 0,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
+      })
+      logClaudeUsage({
+        model: modelName,
+        usage: (completion as any)?.usage,
+        success: true,
+        latencyMs: Date.now() - startedAt,
+        requestType: 'premium_plus_tool_plan',
+      })
+      return Array.isArray(completion.content)
+        ? completion.content
+            .filter((block: any) => block?.type === 'text')
+            .map((block: any) => String(block?.text || ''))
+            .join('\n')
+        : ''
+    } catch (error: any) {
+      logClaudeUsage({
+        model: modelName,
+        success: false,
+        latencyMs: Date.now() - startedAt,
+        requestType: 'premium_plus_tool_plan',
+        error: error?.message || String(error),
+      })
+      throw error
+    }
+  }
+
+  try {
+    const primary = await withRoutingTimeout(
+      runModel(model),
+      routingTimeoutMs,
+      'Premium+ Claude tool planning'
+    )
+    const parsed = parseGeneratorRetrievalJson(primary)
+    if (parsed) return parsed
+  } catch (error) {
+    if (error instanceof RoutingTimeoutError) {
+      console.warn(error.message)
+      return null
+    }
+  }
+
+  if (fallbackModel && fallbackModel !== model) {
+    try {
+      const fallback = await withRoutingTimeout(
+        runModel(fallbackModel),
+        routingTimeoutMs,
+        'Premium+ Claude tool planning fallback'
+      )
+      const parsed = parseGeneratorRetrievalJson(fallback)
+      if (parsed) return parsed
+    } catch (error) {
+      if (error instanceof RoutingTimeoutError) {
+        console.warn(error.message)
+      }
       return null
     }
   }
@@ -1138,6 +1789,7 @@ export async function decidePremiumSearchNeedWithGenerator(
   const historyContext = buildHistoryContext(trimmedHistory)
   const model = (options?.openaiModel || OPENAI_MODEL).trim() || OPENAI_MODEL
   const fallbackModel = (options?.openaiFallbackModel || OPENAI_FALLBACK_MODEL).trim()
+  const routingTimeoutMs = getRoutingDecisionTimeoutMs()
   const systemPrompt = [
     'You are the MyMckenzieCS generator deciding whether web retrieval is needed before answering.',
     'Decide whether the model should answer directly from stable legal knowledge or use web retrieval first.',
@@ -1211,19 +1863,34 @@ Output schema:
   }
 
   try {
-    const primary = await runModel(model)
+    const primary = await withRoutingTimeout(
+      runModel(model),
+      routingTimeoutMs,
+      'Premium search routing'
+    )
     const parsed = parsePremiumSearchJson(primary)
     if (parsed) return parsed
-  } catch {
+  } catch (error) {
+    if (error instanceof RoutingTimeoutError) {
+      console.warn(error.message)
+      return null
+    }
     // try fallback below
   }
 
   if (fallbackModel && fallbackModel !== model) {
     try {
-      const fallback = await runModel(fallbackModel)
+      const fallback = await withRoutingTimeout(
+        runModel(fallbackModel),
+        routingTimeoutMs,
+        'Premium search routing fallback'
+      )
       const parsed = parsePremiumSearchJson(fallback)
       if (parsed) return parsed
-    } catch {
+    } catch (error) {
+      if (error instanceof RoutingTimeoutError) {
+        console.warn(error.message)
+      }
       return null
     }
   }
@@ -1273,10 +1940,13 @@ export async function createLegalAgent(
   const openaiFallbackModel = options?.openaiFallbackModel || OPENAI_FALLBACK_MODEL
   const groqModel = options?.groqModel || BASIC_GROQ_MODEL
   const groqFallbackModel = options?.groqFallbackModel || BASIC_GROQ_FALLBACK_MODEL
+  const anthropicModel = options?.anthropicModel || ANTHROPIC_MODEL
+  const anthropicFallbackModel = options?.anthropicFallbackModel || ANTHROPIC_FALLBACK_MODEL
   const llmProvider: LlmProvider = options?.provider || 'openai'
   const discriminatorModel = options?.discriminatorModel
   const discriminatorFallbackModel = options?.discriminatorFallbackModel
   const searchQueryOverride = (options?.searchQueryOverride || '').trim()
+  const searchModeOverride = options?.searchModeOverride
   const requestedMaxTokens = Number.isFinite(Number(options?.maxTokens))
     ? Math.max(250, Number(options?.maxTokens))
     : MAX_TOKENS
@@ -1340,14 +2010,25 @@ export async function createLegalAgent(
           const historyContext = buildHistoryContext(trimmedHistory)
           const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
           const directPrompt = `${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
-          const modelForProvider = llmProvider === 'groq' ? groqModel : openaiModel
+          const modelForProvider =
+            llmProvider === 'groq'
+              ? groqModel
+              : llmProvider === 'anthropic'
+                ? anthropicModel
+                : openaiModel
+          const fallbackModelForProvider =
+            llmProvider === 'groq'
+              ? groqFallbackModel
+              : llmProvider === 'anthropic'
+                ? anthropicFallbackModel
+                : openaiFallbackModel
           const directAnswer = await callLLM(
             directPrompt,
             systemPrompt,
             modelForProvider,
             maxTokens,
             llmProvider,
-            llmProvider === 'groq' ? groqFallbackModel : openaiFallbackModel,
+            fallbackModelForProvider,
             useAutoContinue,
             maxAutoContinues,
             useCompression,
@@ -1387,7 +2068,7 @@ export async function createLegalAgent(
 
         // 4. LEGAL AGENT: Comprehensive web search and answer generation
         const isDefinition = isDefinitionQuery(latestQuestion)
-        const mode: RetrievalMode = isDefinition ? 'education' : 'general'
+        const mode: LegalSearchMode = searchModeOverride || (isDefinition ? 'education' : 'general')
 
         // Build search query with case context if available.
         let searchQuery = searchQueryOverride || latestQuestion
@@ -1429,14 +2110,25 @@ export async function createLegalAgent(
           : 'Do not include any source citations.'
         const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\nUser question: "${latestQuestion}"\n\nGenerate a thorough, detailed answer that comprehensively covers this topic using ALL relevant information from the sources. ${citationInstruction} Create a complete answer that covers all aspects and angles of the question. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
         
-        const modelForProvider = llmProvider === 'groq' ? groqModel : openaiModel
+        const modelForProvider =
+          llmProvider === 'groq'
+            ? groqModel
+            : llmProvider === 'anthropic'
+              ? anthropicModel
+              : openaiModel
+        const fallbackModelForProvider =
+          llmProvider === 'groq'
+            ? groqFallbackModel
+            : llmProvider === 'anthropic'
+              ? anthropicFallbackModel
+              : openaiFallbackModel
         let comprehensiveAnswer = await callLLM(
           comprehensivePrompt,
           systemPrompt,
           modelForProvider,
           maxTokens + COMPREHENSIVE_TOKEN_BONUS,
           llmProvider,
-          llmProvider === 'groq' ? groqFallbackModel : openaiFallbackModel,
+          fallbackModelForProvider,
           false,
           0,
           useCompression,
@@ -1454,7 +2146,7 @@ export async function createLegalAgent(
             modelForProvider,
             PREMIUM_MAX_TOKENS,
             llmProvider,
-            llmProvider === 'groq' ? groqFallbackModel : openaiFallbackModel,
+            fallbackModelForProvider,
             false,
             0,
             true,
@@ -1561,12 +2253,15 @@ export async function invokeLegalAgent(
     openaiFallbackModel?: string
     groqModel?: string
     groqFallbackModel?: string
+    anthropicModel?: string
+    anthropicFallbackModel?: string
     maxTokens?: number
     autoContinueOnLength?: boolean
     maxAutoContinues?: number
     lengthRecoveryMode?: LengthRecoveryMode
     maxCompressionRetries?: number
     searchQueryOverride?: string
+    searchModeOverride?: LegalSearchMode
     discriminatorModel?: string
     discriminatorFallbackModel?: string
   }
@@ -1580,6 +2275,66 @@ export async function invokeLegalAgent(
     next_steps: [],
     sources: response.sources
   }
+}
+
+export async function invokePremiumLegalAgent(
+  message: string,
+  threadId: string,
+  userId?: string,
+  conversationHistory: Array<{ role: string; content: string }> = [],
+  caseKeywords?: string,
+  options?: {
+    useSearch?: boolean
+    searchQueryOverride?: string
+    searchModeOverride?: LegalSearchMode
+    openaiModel?: string
+    openaiFallbackModel?: string
+    maxTokens?: number
+    maxCompressionRetries?: number
+  }
+): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
+  return invokeLegalAgent(message, threadId, userId, conversationHistory, caseKeywords, {
+    useDiscriminator: false,
+    useSearch: options?.useSearch,
+    includeCitations: false,
+    provider: 'openai',
+    openaiModel: options?.openaiModel || OPENAI_MODEL,
+    openaiFallbackModel: options?.openaiFallbackModel || OPENAI_FALLBACK_MODEL,
+    maxTokens: options?.maxTokens,
+    maxCompressionRetries: options?.maxCompressionRetries,
+    searchQueryOverride: options?.searchQueryOverride,
+    searchModeOverride: options?.searchModeOverride,
+  })
+}
+
+export async function invokePremiumPlusLegalAgent(
+  message: string,
+  threadId: string,
+  userId?: string,
+  conversationHistory: Array<{ role: string; content: string }> = [],
+  caseKeywords?: string,
+  options?: {
+    useSearch?: boolean
+    searchQueryOverride?: string
+    searchModeOverride?: LegalSearchMode
+    anthropicModel?: string
+    anthropicFallbackModel?: string
+    maxTokens?: number
+    maxCompressionRetries?: number
+  }
+): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
+  return invokeLegalAgent(message, threadId, userId, conversationHistory, caseKeywords, {
+    useDiscriminator: false,
+    useSearch: options?.useSearch,
+    includeCitations: true,
+    provider: 'anthropic',
+    anthropicModel: options?.anthropicModel || ANTHROPIC_MODEL,
+    anthropicFallbackModel: options?.anthropicFallbackModel || ANTHROPIC_FALLBACK_MODEL,
+    maxTokens: options?.maxTokens,
+    maxCompressionRetries: options?.maxCompressionRetries,
+    searchQueryOverride: options?.searchQueryOverride,
+    searchModeOverride: options?.searchModeOverride,
+  })
 }
 
 export async function invokeBasicLegalAgent(

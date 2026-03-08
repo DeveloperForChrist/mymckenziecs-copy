@@ -8,7 +8,7 @@ describe('ChatInterface typing formatting', () => {
     expect(parsed).toEqual([
       {
         heading: null,
-        lines: [{ text: 'Next steps', kind: 'ordered' }],
+        lines: [{ text: 'Next steps', kind: 'ordered', order: 1 }],
       },
     ])
   })
@@ -22,8 +22,8 @@ describe('ChatInterface typing formatting', () => {
       {
         heading: 'Next steps',
         lines: [
-          { text: 'File the claim', kind: 'ordered' },
-          { text: 'Serve the papers', kind: 'ordered' },
+          { text: 'File the claim', kind: 'ordered', order: 1 },
+          { text: 'Serve the papers', kind: 'ordered', order: 2 },
           { text: 'Keep proof of service', kind: 'bullet' },
         ],
       },

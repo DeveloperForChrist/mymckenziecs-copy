@@ -25,6 +25,12 @@ const stripLinePrefix = (line: string) =>
   line.replace(/^(?:[\*\-•]\s+|\d+\.\s+|\d+\)\s+)/, '').trim()
 
 const stripNumberPrefix = (line: string) => line.replace(/^\d+(?:\.|\))\s+/, '').trim()
+const extractNumberPrefix = (line: string): number | undefined => {
+  const match = line.trim().match(/^(\d+)(?:\.|\))\s+/)
+  if (!match) return undefined
+  const parsed = Number.parseInt(match[1], 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
+}
 
 const isSummaryLine = (line: string) => /^(in short|summary|takeaway)\s*:/i.test(line.trim())
 
@@ -80,6 +86,9 @@ const sanitizeParsedLine = (value: unknown): ParsedLine | null => {
   return {
     text: value.text,
     kind: value.kind as ParsedLine['kind'],
+    ...(typeof value.order === 'number' && Number.isFinite(value.order) && value.order > 0
+      ? { order: value.order }
+      : {}),
   }
 }
 
@@ -235,7 +244,11 @@ export const parseAssistantResponse = (text: string, allowHeadings: boolean = tr
       if (hasNumberPrefix(singleLine)) {
         return {
           heading: null,
-          lines: [{ text: stripNumberPrefix(singleLine), kind: 'ordered' as const }],
+          lines: [{
+            text: stripNumberPrefix(singleLine),
+            kind: 'ordered' as const,
+            ...(extractNumberPrefix(singleLine) ? { order: extractNumberPrefix(singleLine) } : {}),
+          }],
         }
       }
       if (hasUnorderedBulletPrefix(singleLine)) {
@@ -284,7 +297,11 @@ export const parseAssistantResponse = (text: string, allowHeadings: boolean = tr
         continue
       }
       if (hasNumberPrefix(line)) {
-        lines.push({ text: stripNumberPrefix(line), kind: 'ordered' as const })
+        lines.push({
+          text: stripNumberPrefix(line),
+          kind: 'ordered' as const,
+          ...(extractNumberPrefix(line) ? { order: extractNumberPrefix(line) } : {}),
+        })
         continue
       }
       if (hasUnorderedBulletPrefix(line)) {
@@ -330,7 +347,9 @@ export const formatAssistantResponse = (text: string) => {
             return [`${BULLET_PREFIX}${line.text}`]
           }
           if (line.kind === 'ordered') {
-            return [`${orderedIndex++}. ${line.text}`]
+            const displayOrder = typeof line.order === 'number' ? line.order : orderedIndex
+            orderedIndex = displayOrder + 1
+            return [`${displayOrder}. ${line.text}`]
           }
           orderedIndex = 1
           return [line.text]

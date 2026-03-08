@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   attachAssistantPresentationMetadata,
   buildAssistantResponsePayload,
+  formatAssistantResponse,
   normalizeAssistantResponsePayload,
   stripAssistantPresentationMetadata,
 } from '@/lib/chat/assistant-presentation'
@@ -19,7 +20,7 @@ describe('assistant presentation helpers', () => {
       sections: [
         {
           heading: 'Next steps',
-          lines: [{ kind: 'ordered', text: 'File the claim' }],
+          lines: [{ kind: 'ordered', order: 1, text: 'File the claim' }],
         },
       ],
     })
@@ -70,10 +71,20 @@ describe('assistant presentation helpers', () => {
       sections: [
         {
           heading: 'Next steps',
-          lines: [{ kind: 'ordered', text: 'File the claim' }],
+          lines: [{ kind: 'ordered', order: 1, text: 'File the claim' }],
         },
       ],
     })
+  })
+
+  it('preserves explicit numbering when ordered steps are separated by bullet detail', () => {
+    const formatted = formatAssistantResponse(
+      '1. Gather documents\n\n• Contract\n\n2. Check the qualifying period\n\n• Service dates'
+    )
+
+    expect(formatted).toContain('1. Gather documents')
+    expect(formatted).toContain('2. Check the qualifying period')
+    expect(formatted).not.toContain('1. Check the qualifying period')
   })
 
   it('normalizes loose assistant payloads into the shared contract', () => {

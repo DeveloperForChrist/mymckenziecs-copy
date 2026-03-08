@@ -8,6 +8,9 @@ vi.mock('openai', () => {
           const combinedContent = Array.isArray(payload?.messages)
             ? payload.messages.map((message: any) => String(message?.content || '')).join('\n')
             : ''
+          if (combinedContent.includes('routing timeout sentinel')) {
+            return new Promise<any>(() => {})
+          }
           const isCaseStudy = combinedContent.includes('Please provide a comprehensive educational case study analysis')
           const isRoutingDecision = combinedContent.includes('Choose the retrieval mode for this user request before answer generation.')
           const isPremiumSearchDecision = combinedContent.includes('Choose whether web retrieval is needed before answering this user request.')
@@ -88,11 +91,46 @@ vi.mock('@anthropic-ai/sdk', () => {
     messages = {
       create: vi.fn(async (payload: any) => {
         const userPrompt = String(payload?.messages?.[0]?.content || '')
+        if (userPrompt.includes('discriminator timeout sentinel')) {
+          return new Promise<any>(() => {})
+        }
         const isDecompose = userPrompt.includes('Output schema')
         const text = isDecompose
           ? JSON.stringify({
               retrieval_mode: 'hybrid',
+              tools: [
+                {
+                  tool: 'web_search_procedure',
+                  query: 'current UK procedure guidance',
+                  rationale: 'Practical process may depend on current guidance',
+                },
+                {
+                  tool: 'case_law_rag',
+                  query: 'relevant UK precedent',
+                  rationale: 'Authority reasoning matters too',
+                },
+                {
+                  tool: 'case_law_suggestions',
+                  query: 'relevant UK precedent',
+                  rationale: 'Useful to surface a shortlist of authorities',
+                },
+              ],
               decomposition: 'User asks about facts and procedure.',
+              sub_issues: [
+                {
+                  issue: 'Explain the legal concept in plain English',
+                  retrieval_mode: 'direct',
+                  tools: [{ tool: 'direct_knowledge' }],
+                  rationale: 'Stable legal definition question',
+                },
+                {
+                  issue: 'Check whether current procedure matters',
+                  retrieval_mode: 'web_only',
+                  tools: [{ tool: 'web_search_procedure', query: 'current UK procedure guidance' }],
+                  web_query: 'current UK procedure guidance',
+                  rationale: 'Procedural angle may need current sources',
+                },
+              ],
               vector_query: 'relevant UK precedent',
               web_query: 'current UK procedure guidance',
               confidence: 0.78,
@@ -111,10 +149,17 @@ vi.mock('@anthropic-ai/sdk', () => {
   return { default: MockAnthropic }
 })
 
-import { invokeBasicLegalAgent, invokeLegalAgent } from './legal-agent'
+import {
+  decidePremiumPlusToolPlanWithClaude,
+  decidePremiumSearchNeedWithGenerator,
+  decideRetrievalWithGenerator,
+  invokeBasicLegalAgent,
+  invokeLegalAgent,
+  invokePremiumLegalAgent,
+  invokePremiumPlusLegalAgent,
+} from './legal-agent'
 import { CaseStudyAgent } from './case-study-agent'
 import { createDiscriminatorAgent } from './discriminator-agent'
-import { decidePremiumSearchNeedWithGenerator, decideRetrievalWithGenerator } from './legal-agent'
 
 describe('agent smoke checks', () => {
   const originalEnv = { ...process.env }
@@ -132,6 +177,10 @@ describe('agent smoke checks', () => {
             message: {
               content: JSON.stringify({
                 retrieval_mode: 'hybrid',
+                tools: [
+                  { tool: 'web_search_general', query: 'current UK procedure guidance' },
+                  { tool: 'case_law_rag', query: 'relevant UK precedent' },
+                ],
                 decomposition: 'User asks about facts and procedure.',
                 vector_query: 'relevant UK precedent',
                 web_query: 'current UK procedure guidance',
@@ -181,6 +230,77 @@ describe('agent smoke checks', () => {
     expect(result.response).toContain('In short:')
   })
 
+  it('legal agent can answer through the anthropic provider without a discriminator pass', async () => {
+    const result = await invokeLegalAgent(
+      'Explain promissory estoppel in plain English.',
+      'thread_smoke_anthropic',
+      'user_smoke_anthropic',
+      [],
+      'contract law',
+      {
+        useSearch: false,
+        useDiscriminator: false,
+        provider: 'anthropic',
+        anthropicModel: 'claude-opus-4-6',
+        anthropicFallbackModel: 'claude-sonnet-4-20250514',
+      }
+    )
+
+    expect(typeof result.response).toBe('string')
+    expect(result.response.trim().length).toBeGreaterThan(0)
+  })
+
+  it('premium plan uses its own premium agent wrapper', async () => {
+    const result = await invokePremiumLegalAgent(
+      'What does claimant mean in a small claim?',
+      'thread_smoke_premium',
+      'user_smoke_premium',
+      [],
+      'small claims',
+      { useSearch: false }
+    )
+
+    expect(typeof result.response).toBe('string')
+    expect(result.response.trim().length).toBeGreaterThan(0)
+  })
+
+  it('premium plus plan can build a Claude tool plan before generation', async () => {
+    const result = await decidePremiumPlusToolPlanWithClaude(
+      'What does claimant mean in a small claim?',
+      [],
+      'small claims',
+      {
+        anthropicModel: 'claude-opus-4-6',
+        anthropicFallbackModel: 'claude-sonnet-4-20250514',
+      }
+    )
+
+    expect(result).not.toBeNull()
+    expect(result?.retrievalMode).toBe('hybrid')
+    expect(result?.decomposition).toContain('facts and procedure')
+    expect(result?.subIssues?.length).toBeGreaterThan(0)
+    expect(result?.tools?.map((item) => item.tool)).toContain('web_search_procedure')
+    expect(result?.tools?.map((item) => item.tool)).toContain('case_law_rag')
+  })
+
+  it('premium plus plan uses its own Premium+ agent wrapper', async () => {
+    const result = await invokePremiumPlusLegalAgent(
+      'Explain promissory estoppel in plain English.',
+      'thread_smoke_premium_plus',
+      'user_smoke_premium_plus',
+      [],
+      'contract law',
+      {
+        useSearch: false,
+        anthropicModel: 'claude-opus-4-6',
+        anthropicFallbackModel: 'claude-sonnet-4-20250514',
+      }
+    )
+
+    expect(typeof result.response).toBe('string')
+    expect(result.response.trim().length).toBeGreaterThan(0)
+  })
+
   it('generator retrieval routing returns a routing decision', async () => {
     const result = await decideRetrievalWithGenerator(
       'My landlord kept my deposit and ignored my letter before action. What next?',
@@ -218,6 +338,18 @@ describe('agent smoke checks', () => {
     expect(result?.webQuery).toBeUndefined()
   })
 
+  it('generator retrieval routing falls back quickly when the routing model stalls', async () => {
+    process.env.ROUTING_DECISION_TIMEOUT_MS = '1'
+
+    const result = await decideRetrievalWithGenerator(
+      'routing timeout sentinel',
+      [],
+      'small claims'
+    )
+
+    expect(result).toBeNull()
+  })
+
   it('discriminator final-pass agent returns a streamlined reply', async () => {
     const agent = await createDiscriminatorAgent([], 'small claims', false)
     const result = await agent.invoke({
@@ -228,6 +360,24 @@ describe('agent smoke checks', () => {
 
     expect(typeof result.streamlinedAnswer).toBe('string')
     expect(result.streamlinedAnswer.trim().length).toBeGreaterThan(0)
+  })
+
+  it('legal agent falls back to the generator answer when the discriminator times out', async () => {
+    process.env.PREMIUM_PLUS_DISCRIMINATOR_TIMEOUT_MS = '1'
+
+    const result = await invokeLegalAgent(
+      'discriminator timeout sentinel',
+      'thread_smoke_discriminator_timeout',
+      'user_smoke_discriminator_timeout',
+      [],
+      'small claims',
+      { useSearch: false, useDiscriminator: true }
+    )
+
+    expect(typeof result.response).toBe('string')
+    expect(result.response.trim().length).toBeGreaterThan(0)
+    expect(result.response).toContain('Overview')
+    expect(result.response).not.toContain('Structured Answer')
   })
 
   it('case study agent returns educational content', async () => {

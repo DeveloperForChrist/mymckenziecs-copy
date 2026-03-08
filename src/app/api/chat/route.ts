@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
   decidePremiumSearchNeedWithGenerator,
-  decideRetrievalWithGenerator,
+  decidePremiumPlusToolPlanWithClaude,
+  type LegalSearchMode,
+  type PremiumPlusSubIssue,
+  type PremiumPlusToolSelection,
   invokeBasicLegalAgent,
-  invokeLegalAgent,
+  invokePremiumLegalAgent,
+  invokePremiumPlusLegalAgent,
 } from '@/lib/ai/agents/legal-agent'
 import { ChatManager } from '@/lib/ai/chat-manager'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
@@ -97,28 +101,17 @@ const getPremiumOpenAiModel = (): string =>
 const getPremiumOpenAiFallbackModel = (primaryModel: string): string =>
   getEnvModelValue('OPENAI_PREMIUM_FALLBACK_MODEL', 'OPENAI_BASIC_MODEL') || primaryModel
 
-const getPremiumPlusOpenAiModel = (): string | null =>
-  getEnvModelValue('OPENAI_PREMIUM_PLUS_MODEL')
+const getPremiumPlusClaudeModel = (): string | null =>
+  getEnvModelValue('PREMIUM_PLUS_CLAUDE_MODEL')
 
-const getPremiumPlusOpenAiFallbackModel = (primaryModel: string): string =>
-  getEnvModelValue(
-    'OPENAI_PREMIUM_PLUS_FALLBACK_MODEL',
-    'OPENAI_PREMIUM_FALLBACK_MODEL',
-    'OPENAI_BASIC_MODEL'
-  ) || primaryModel
-
-const getPremiumPlusDiscriminatorModel = (): string | null =>
-  getEnvModelValue('PREMIUM_PLUS_DISCRIMINATOR_CLAUDE_MODEL', 'PREMIUM_PLUS_CLAUDE_MODEL')
-
-const getPremiumPlusDiscriminatorFallbackModel = (primaryModel: string): string =>
-  getEnvModelValue('PREMIUM_PLUS_DISCRIMINATOR_CLAUDE_FALLBACK_MODEL', 'PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL') || primaryModel
+const getPremiumPlusClaudeFallbackModel = (primaryModel: string): string =>
+  getEnvModelValue('PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL') || primaryModel
 
 const PREMIUM_GENERATOR_ROUTING_ENABLED =
   (getEnvModelValue('PREMIUM_GENERATOR_ROUTING_ENABLED') || 'true').toLowerCase() !== 'false'
-const PREMIUM_PLUS_GENERATOR_ROUTING_ENABLED =
-  (getEnvModelValue('PREMIUM_PLUS_GENERATOR_ROUTING_ENABLED') || 'true').toLowerCase() !== 'false'
-const PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED =
-  (getEnvModelValue('PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED') || 'true').toLowerCase() !== 'false'
+const PREMIUM_PLUS_CASELAW_TIMEOUT_MS = Number.isFinite(Number(process.env.PREMIUM_PLUS_CASELAW_TIMEOUT_MS))
+  ? Math.max(1000, Math.floor(Number(process.env.PREMIUM_PLUS_CASELAW_TIMEOUT_MS)))
+  : 4000
 const CHAT_THREAD_MAX_USER_TURNS_DEFAULT = Number.isFinite(Number(process.env.CHAT_THREAD_MAX_USER_TURNS))
   ? Math.max(10, Math.floor(Number(process.env.CHAT_THREAD_MAX_USER_TURNS)))
   : 80
@@ -166,6 +159,30 @@ const isAllowedOrigin = (request: NextRequest) => {
   }
 
   return false
+}
+
+const withStageTimeout = async <T,>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  stageName: string,
+  fallbackValue: T
+): Promise<T> => {
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) return promise
+
+  let timeoutId: NodeJS.Timeout | null = null
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((resolve) => {
+        timeoutId = setTimeout(() => {
+          console.warn(`${stageName} timed out after ${timeoutMs}ms; using fallback.`)
+          resolve(fallbackValue)
+        }, timeoutMs)
+      }),
+    ])
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId)
+  }
 }
 
 const tokenizeChunkRanking = (text: string): Set<string> => {
@@ -952,6 +969,172 @@ const evaluateRetrievalFocus = ({
   return { focus, ownCaseNarrative, precedentScore, procedureScore, reasons }
 }
 
+const shouldUsePremiumPlusDirectAnswer = ({
+  message,
+  history,
+  task,
+  hasAttachments,
+  retrievalFocusDecision,
+}: {
+  message: string
+  history: Array<{ role: string; content: string }>
+  task?: string
+  hasAttachments?: boolean
+  retrievalFocusDecision: {
+    ownCaseNarrative: boolean
+    precedentScore: number
+    procedureScore: number
+  }
+}) => {
+  if (hasAttachments) return false
+  if (task === 'document_review' || task === 'deadline_query' || task === 'form_guidance') return false
+  if (retrievalFocusDecision.ownCaseNarrative) return false
+
+  const recentUserText = history
+    .filter((entry) => entry.role === 'user')
+    .slice(-4)
+    .map((entry) => normalizeCompactText(entry.content || ''))
+    .filter(Boolean)
+    .join(' ')
+
+  const aggregate = normalizeCompactText(`${recentUserText} ${message}`.toLowerCase())
+  if (!aggregate) return false
+
+  const wordCount = aggregate.split(/\s+/).filter(Boolean).length
+  const definitionPattern = /^(what is|what does|define|definition of|meaning of|explain|difference between|compare)\b/
+  const actionPattern = /\b(can i|should i|what should i do|how do i|how can i|next steps?|what happens if|will i|would i)\b/
+  const freshnessPattern = /\b(current|latest|updated|today|now|new rules?|recent)\b/
+  const authorityPattern =
+    /\b(case law|precedent|authority|judgment|neutral citation|uksc|ewca|ewhc|cpr|practice direction|section\s+\d+|article\s+\d+|act\s+\d{4})\b/
+  const procedurePattern =
+    /\b(deadline|time limit|form|n244|claim form|particulars|serve|service|file|filing|hmcts|gov\.uk|procedure|process|hearing|defence|defense|order|appeal)\b/
+
+  if (actionPattern.test(aggregate)) return false
+  if (freshnessPattern.test(aggregate)) return false
+  if (authorityPattern.test(aggregate)) return false
+  if (procedurePattern.test(aggregate)) return false
+
+  if (definitionPattern.test(aggregate) && wordCount <= 28) return true
+
+  return (
+    wordCount <= 12 &&
+    retrievalFocusDecision.precedentScore <= 0 &&
+    retrievalFocusDecision.procedureScore <= 0
+  )
+}
+
+const PREMIUM_PLUS_WEB_SEARCH_MODE_BY_TOOL: Partial<Record<PremiumPlusToolSelection['tool'], LegalSearchMode>> = {
+  web_search_education: 'education',
+  web_search_procedure: 'procedure',
+  web_search_case_specific: 'case_specific',
+  web_search_document_review: 'document_review',
+  web_search_general: 'general',
+}
+
+const hasPlannerTool = (
+  tools: PremiumPlusToolSelection[] | undefined,
+  toolName: PremiumPlusToolSelection['tool']
+) => {
+  return Array.isArray(tools) && tools.some((item) => item.tool === toolName)
+}
+
+const hasPlannerWebSearchTool = (tools: PremiumPlusToolSelection[] | undefined) => {
+  return Array.isArray(tools) && tools.some((item) => item.tool in PREMIUM_PLUS_WEB_SEARCH_MODE_BY_TOOL)
+}
+
+const hasPlannerCaseLawTool = (tools: PremiumPlusToolSelection[] | undefined) => {
+  return Array.isArray(tools) && tools.some((item) => item.tool === 'case_law_suggestions' || item.tool === 'case_law_rag')
+}
+
+const getPremiumPlusSearchModeFromTools = (
+  tools: PremiumPlusToolSelection[] | undefined
+): LegalSearchMode | undefined => {
+  if (!Array.isArray(tools) || tools.length === 0) return undefined
+
+  const priority: PremiumPlusToolSelection['tool'][] = [
+    'web_search_document_review',
+    'web_search_case_specific',
+    'web_search_procedure',
+    'web_search_education',
+    'web_search_general',
+  ]
+
+  for (const toolName of priority) {
+    if (hasPlannerTool(tools, toolName)) {
+      return PREMIUM_PLUS_WEB_SEARCH_MODE_BY_TOOL[toolName]
+    }
+  }
+
+  return undefined
+}
+
+const buildPlannerQueryFromTools = (
+  tools: PremiumPlusToolSelection[] | undefined,
+  target: 'web' | 'case_law'
+): string => {
+  if (!Array.isArray(tools) || tools.length === 0) return ''
+
+  const values = tools
+    .filter((item) =>
+      target === 'web'
+        ? item.tool in PREMIUM_PLUS_WEB_SEARCH_MODE_BY_TOOL
+        : item.tool === 'case_law_suggestions' || item.tool === 'case_law_rag'
+    )
+    .flatMap((item) => [item.query, item.rationale])
+    .map((value) => normalizeCompactText(String(value || '')))
+    .filter(Boolean)
+
+  return truncateText(Array.from(new Set(values)).join(' | '), 520)
+}
+
+const buildPlannerQueryFromSubIssues = (
+  subIssues: PremiumPlusSubIssue[] | undefined,
+  target: 'web' | 'vector'
+): string => {
+  if (!Array.isArray(subIssues) || subIssues.length === 0) return ''
+
+  const values = subIssues
+    .slice(0, 8)
+    .flatMap((item) => {
+      const directQuery = target === 'web' ? item.webQuery : item.vectorQuery
+      const fallbackIssue = item.issue
+      return [directQuery, fallbackIssue]
+    })
+    .map((value) => normalizeCompactText(String(value || '')))
+    .filter(Boolean)
+
+  return truncateText(Array.from(new Set(values)).join(' | '), 520)
+}
+
+const buildPremiumPlusDecompositionContext = (
+  decomposition: string | undefined,
+  subIssues: PremiumPlusSubIssue[] | undefined
+) => {
+  const lines: string[] = []
+  const cleanDecomposition = String(decomposition || '').trim()
+  if (cleanDecomposition) {
+    lines.push(`Issue breakdown summary: ${cleanDecomposition}`)
+  }
+
+  if (Array.isArray(subIssues) && subIssues.length > 0) {
+    lines.push('Issue breakdown:')
+    subIssues.slice(0, 8).forEach((item, index) => {
+      const parts = [`${index + 1}. ${item.issue}`]
+      if (item.retrievalMode) parts.push(`mode=${item.retrievalMode}`)
+      if (Array.isArray(item.tools) && item.tools.length > 0) {
+        parts.push(`tools=${item.tools.map((tool) => tool.tool).join(',')}`)
+      }
+      if (item.webQuery) parts.push(`web="${item.webQuery}"`)
+      if (item.vectorQuery) parts.push(`case-law="${item.vectorQuery}"`)
+      if (item.rationale) parts.push(`why=${item.rationale}`)
+      lines.push(parts.join(' | '))
+    })
+    lines.push('Use this issue breakdown to structure the final answer in the same order.')
+  }
+
+  return lines.length > 0 ? `\n\n${lines.join('\n')}` : ''
+}
+
 const buildCaseLawSuggestionQuery = ({
   message,
   history,
@@ -1115,6 +1298,19 @@ const buildVectorCaseLawRagContext = (items: VectorCaseLawRagItem[]): string => 
   })
 
   return `\n\n${truncateText(lines.join('\n'), 2000)}`
+}
+
+const buildCaseLawSuggestionContext = (items: CaseLawSuggestion[]): string => {
+  if (!Array.isArray(items) || items.length === 0) return ''
+
+  const lines: string[] = ['Case law shortlist (Premium+):']
+  items.slice(0, 3).forEach((item, idx) => {
+    lines.push(`[${idx + 1}] ${item.citation} - ${item.title}`)
+    if (item.summary) lines.push(`Summary: ${truncateText(normalizeCompactText(item.summary), 220)}`)
+    if (item.url) lines.push(`URL: ${item.url}`)
+  })
+
+  return `\n\n${truncateText(lines.join('\n'), 1200)}`
 }
 
 const buildCaseLawSoftNextStep = ({
@@ -1799,9 +1995,9 @@ export async function POST(request: NextRequest) {
     const memoryContext = buildMemoryContext(effectiveMemoryRow)
     const premiumOpenAiModel = getPremiumOpenAiModel()
     const premiumOpenAiFallbackModel = getPremiumOpenAiFallbackModel(premiumOpenAiModel)
-    const premiumPlusOpenAiModel = premiumPlusActive ? getPremiumPlusOpenAiModel() : null
-    if (premiumPlusActive && !premiumPlusOpenAiModel) {
-      console.error('OPENAI_PREMIUM_PLUS_MODEL is missing for a Premium+ chat request')
+    const premiumPlusClaudeModel = premiumPlusActive ? getPremiumPlusClaudeModel() : null
+    if (premiumPlusActive && !premiumPlusClaudeModel) {
+      console.error('PREMIUM_PLUS_CLAUDE_MODEL is missing for a Premium+ chat request')
       return withCookie(
         NextResponse.json(
           buildAssistantResponsePayload('Premium+ chat is temporarily unavailable. Please try again shortly.'),
@@ -1809,21 +2005,8 @@ export async function POST(request: NextRequest) {
         )
       )
     }
-    const premiumPlusOpenAiFallbackModel = premiumPlusOpenAiModel
-      ? getPremiumPlusOpenAiFallbackModel(premiumPlusOpenAiModel)
-      : null
-    const premiumPlusDiscriminatorModel = premiumPlusActive ? getPremiumPlusDiscriminatorModel() : null
-    if (premiumPlusActive && PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED && !premiumPlusDiscriminatorModel) {
-      console.error('Premium+ discriminator model is missing for a Premium+ chat request')
-      return withCookie(
-        NextResponse.json(
-          buildAssistantResponsePayload('Premium+ review is temporarily unavailable. Please try again shortly.'),
-          { status: 503 }
-        )
-      )
-    }
-    const premiumPlusDiscriminatorFallbackModel = premiumPlusDiscriminatorModel
-      ? getPremiumPlusDiscriminatorFallbackModel(premiumPlusDiscriminatorModel)
+    const premiumPlusClaudeFallbackModel = premiumPlusClaudeModel
+      ? getPremiumPlusClaudeFallbackModel(premiumPlusClaudeModel)
       : null
     const caseLawSuggestionDecision = evaluateCaseLawSuggestionNeed({
       message,
@@ -1838,7 +2021,7 @@ export async function POST(request: NextRequest) {
       hasAttachments,
       caseContextData,
     })
-    const generatorRoutingInput = truncateText(
+    const premiumRoutingInput = truncateText(
       attachmentContext
         ? `${message}\n\nUser uploaded documents. Use the excerpts below when deciding retrieval.\n${attachmentContext}`
         : attachmentMetadata
@@ -1850,9 +2033,9 @@ export async function POST(request: NextRequest) {
     let premiumGeneratedWebQuery = ''
     let premiumSearchRoutingConfidence: number | null = null
     let premiumSearchRoutingReasons: string[] = []
-    if (premiumPlanActive && PREMIUM_GENERATOR_ROUTING_ENABLED) {
+    if (premiumPlanActive && !premiumPlusActive && PREMIUM_GENERATOR_ROUTING_ENABLED) {
       premiumSearchRoutingDecision = await decidePremiumSearchNeedWithGenerator(
-        generatorRoutingInput,
+        premiumRoutingInput,
         sanitizedHistory,
         caseKeywords,
         {
@@ -1870,44 +2053,89 @@ export async function POST(request: NextRequest) {
           : [`generator-routing:${premiumSearchRoutingDecision.searchMode}`]
       }
     }
-    let generatorRoutingDecision: Awaited<ReturnType<typeof decideRetrievalWithGenerator>> | null = null
-    let retrievalFocusApplied: AppliedRetrievalFocus = retrievalFocusDecision.focus
+    let premiumPlusToolPlan: Awaited<ReturnType<typeof decidePremiumPlusToolPlanWithClaude>> | null = null
+    const premiumPlusDirectAnswer = premiumPlusActive
+      ? shouldUsePremiumPlusDirectAnswer({
+          message,
+          history: sanitizedHistory,
+          task: processingResult.task,
+          hasAttachments,
+          retrievalFocusDecision,
+        })
+      : false
+    let retrievalFocusApplied: AppliedRetrievalFocus = premiumPlusDirectAnswer ? 'direct' : retrievalFocusDecision.focus
     let generatedWebQuery = ''
     let generatedVectorQuery = ''
-    let generatorRoutingConfidence: number | null = null
+    let premiumPlusDecomposition = ''
+    let premiumPlusSubIssues: PremiumPlusSubIssue[] = []
+    let premiumPlusTools: PremiumPlusToolSelection[] = []
+    let premiumPlusSearchMode: LegalSearchMode | null = null
+    let premiumPlusToolPlanConfidence: number | null = null
     let routingReasonsApplied: string[] = retrievalFocusDecision.reasons.slice()
-
-    if (premiumPlusActive && PREMIUM_PLUS_GENERATOR_ROUTING_ENABLED) {
-      generatorRoutingDecision = await decideRetrievalWithGenerator(
-        generatorRoutingInput,
+    if (premiumPlusActive) {
+      premiumPlusToolPlan = await decidePremiumPlusToolPlanWithClaude(
+        premiumRoutingInput,
         sanitizedHistory,
         caseKeywords,
         {
-          openaiModel: premiumPlusOpenAiModel || undefined,
-          openaiFallbackModel: premiumPlusOpenAiFallbackModel || undefined,
+          anthropicModel: premiumPlusClaudeModel || undefined,
+          anthropicFallbackModel: premiumPlusClaudeFallbackModel || undefined,
         }
       )
 
-      if (generatorRoutingDecision) {
-        retrievalFocusApplied = generatorRoutingDecision.retrievalMode
-        generatedWebQuery = (generatorRoutingDecision.webQuery || '').trim()
-        generatedVectorQuery = (generatorRoutingDecision.vectorQuery || '').trim()
-        generatorRoutingConfidence = Number.isFinite(Number(generatorRoutingDecision.confidence))
-          ? Math.max(0, Math.min(1, Number(generatorRoutingDecision.confidence)))
+      if (premiumPlusToolPlan) {
+        retrievalFocusApplied = premiumPlusToolPlan.retrievalMode
+        premiumPlusTools = Array.isArray(premiumPlusToolPlan.tools)
+          ? premiumPlusToolPlan.tools.slice(0, 8)
+          : []
+        generatedWebQuery = (premiumPlusToolPlan.webQuery || buildPlannerQueryFromTools(premiumPlusTools, 'web')).trim()
+        generatedVectorQuery = (premiumPlusToolPlan.vectorQuery || buildPlannerQueryFromTools(premiumPlusTools, 'case_law')).trim()
+        premiumPlusDecomposition = (premiumPlusToolPlan.decomposition || '').trim()
+        premiumPlusSubIssues = Array.isArray(premiumPlusToolPlan.subIssues)
+          ? premiumPlusToolPlan.subIssues.slice(0, 8)
+          : []
+        premiumPlusSearchMode = getPremiumPlusSearchModeFromTools(premiumPlusTools) || null
+        premiumPlusToolPlanConfidence = Number.isFinite(Number(premiumPlusToolPlan.confidence))
+          ? Math.max(0, Math.min(1, Number(premiumPlusToolPlan.confidence)))
           : null
-        routingReasonsApplied = generatorRoutingDecision.reasons.length > 0
-          ? generatorRoutingDecision.reasons.slice()
-          : [`generator-routing:${retrievalFocusApplied}`]
+        routingReasonsApplied = premiumPlusToolPlan.reasons.length > 0
+          ? premiumPlusToolPlan.reasons.slice()
+          : [`claude-tool-plan:${retrievalFocusApplied}`]
       }
     }
-    const retrievalRoutingSource: 'generator' | 'heuristic' = generatorRoutingDecision ? 'generator' : 'heuristic'
+    if (premiumPlusDirectAnswer && !premiumPlusToolPlan) {
+      routingReasonsApplied = [...routingReasonsApplied, 'heuristic-direct']
+    }
+    const retrievalRoutingSource: 'claude' | 'heuristic' = premiumPlusToolPlan ? 'claude' : 'heuristic'
     const premiumSearchRoutingSource: 'generator' | 'fallback' = premiumSearchRoutingDecision ? 'generator' : 'fallback'
     const premiumPlusNeedsWebRetrieval =
       premiumPlusActive &&
-      (retrievalFocusApplied === 'web_only' || retrievalFocusApplied === 'hybrid')
+      (
+        premiumPlusTools.length > 0
+          ? hasPlannerWebSearchTool(premiumPlusTools)
+          : (retrievalFocusApplied === 'web_only' || retrievalFocusApplied === 'hybrid')
+      )
     const premiumPlusNeedsCaseLawRetrieval =
       premiumPlusActive &&
-      (retrievalFocusApplied === 'vector_only' || retrievalFocusApplied === 'hybrid')
+      (
+        premiumPlusTools.length > 0
+          ? hasPlannerCaseLawTool(premiumPlusTools)
+          : (retrievalFocusApplied === 'vector_only' || retrievalFocusApplied === 'hybrid')
+      )
+    const premiumPlusNeedsCaseLawSuggestions =
+      premiumPlusActive &&
+      (
+        premiumPlusTools.length > 0
+          ? hasPlannerTool(premiumPlusTools, 'case_law_suggestions')
+          : premiumPlusNeedsCaseLawRetrieval
+      )
+    const premiumPlusNeedsCaseLawRag =
+      premiumPlusActive &&
+      (
+        premiumPlusTools.length > 0
+          ? hasPlannerTool(premiumPlusTools, 'case_law_rag')
+          : premiumPlusNeedsCaseLawRetrieval
+      )
 
     const premiumPlusCaseLawBaseDecision = shouldUseCaseLawRetrieval({
       message,
@@ -1917,8 +2145,8 @@ export async function POST(request: NextRequest) {
       suggestionDecision: caseLawSuggestionDecision,
     })
     const shouldUsePremiumPlusCaseLawRetrieval =
-      retrievalRoutingSource === 'generator'
-        ? premiumPlusNeedsCaseLawRetrieval
+      retrievalRoutingSource === 'claude'
+        ? (premiumPlusNeedsCaseLawSuggestions || premiumPlusNeedsCaseLawRag)
         : (
             premiumPlusActive &&
             premiumPlusNeedsCaseLawRetrieval &&
@@ -1936,12 +2164,16 @@ export async function POST(request: NextRequest) {
       premiumShouldUseSearchRetrieval ||
       premiumPlusNeedsWebRetrieval
     let usePremiumPlusVectorRag =
-      premiumPlusActive &&
-      shouldUsePremiumPlusCaseLawRetrieval &&
-      (retrievalRoutingSource === 'generator' || !hasAttachments)
+      retrievalRoutingSource === 'claude'
+        ? (premiumPlusActive && premiumPlusNeedsCaseLawRag)
+        : (
+            premiumPlusActive &&
+            shouldUsePremiumPlusCaseLawRetrieval &&
+            !hasAttachments
+          )
     const shouldLookupCaseLawSuggestions =
-      retrievalRoutingSource === 'generator'
-        ? premiumPlusNeedsCaseLawRetrieval
+      retrievalRoutingSource === 'claude'
+        ? premiumPlusNeedsCaseLawSuggestions
         : (
             premiumPlusActive &&
             shouldUsePremiumPlusCaseLawRetrieval &&
@@ -1954,17 +2186,33 @@ export async function POST(request: NextRequest) {
       caseContextData,
       memoryRow,
     })
-    const caseLawQuery = generatedVectorQuery || baselineCaseLawQuery
+    const plannerVectorQuery =
+      buildPlannerQueryFromTools(premiumPlusTools, 'case_law') ||
+      buildPlannerQueryFromSubIssues(premiumPlusSubIssues, 'vector')
+    const caseLawQuery = generatedVectorQuery || plannerVectorQuery || baselineCaseLawQuery
 
     const caseLawSuggestionPromise = shouldLookupCaseLawSuggestions
-      ? fetchCaseLawSuggestions(caseLawQuery, CASELAW_SUGGESTION_LIMIT)
+      ? withStageTimeout(
+          fetchCaseLawSuggestions(caseLawQuery, CASELAW_SUGGESTION_LIMIT),
+          PREMIUM_PLUS_CASELAW_TIMEOUT_MS,
+          'Premium+ case-law suggestions',
+          [] as CaseLawSuggestion[]
+        )
       : Promise.resolve([] as CaseLawSuggestion[])
 
     const vectorCaseLawRagPromise = usePremiumPlusVectorRag
-      ? fetchPremiumPlusVectorCaseLawRag(caseLawQuery, CASELAW_RAG_LIMIT)
+      ? withStageTimeout(
+          fetchPremiumPlusVectorCaseLawRag(caseLawQuery, CASELAW_RAG_LIMIT),
+          PREMIUM_PLUS_CASELAW_TIMEOUT_MS,
+          'Premium+ vector case-law retrieval',
+          [] as VectorCaseLawRagItem[]
+        )
       : Promise.resolve([] as VectorCaseLawRagItem[])
 
-    const vectorCaseLawRagItems = await vectorCaseLawRagPromise
+    const [caseLawSuggestions, vectorCaseLawRagItems] = await Promise.all([
+      caseLawSuggestionPromise,
+      vectorCaseLawRagPromise,
+    ])
     const vectorOnlyRequested = premiumPlusActive && retrievalFocusApplied === 'vector_only'
     const vectorFallbackToWeb =
       vectorOnlyRequested &&
@@ -1974,21 +2222,15 @@ export async function POST(request: NextRequest) {
       shouldUseSearchRetrieval = true
     }
     const vectorCaseLawRagContext = buildVectorCaseLawRagContext(vectorCaseLawRagItems)
+    const caseLawSuggestionContext = buildCaseLawSuggestionContext(caseLawSuggestions)
+    const premiumPlusDecompositionContext = premiumPlusActive
+      ? buildPremiumPlusDecompositionContext(premiumPlusDecomposition, premiumPlusSubIssues)
+      : ''
     const ownCaseFacts = retrievalFocusDecision.ownCaseNarrative
       ? extractKeyFactsFromMessage(message).slice(0, 6)
       : []
     const ownCaseFactsContext = ownCaseFacts.length > 0
       ? `\n\nUser facts for issue spotting:\n${ownCaseFacts.map((fact) => `- ${fact}`).join('\n')}`
-      : ''
-    const generatorRoutingContext = premiumPlusActive && generatorRoutingDecision
-      ? (
-        `\n\nGenerator retrieval decision:\n` +
-        `- Mode: ${retrievalFocusApplied}\n` +
-        (generatedWebQuery ? `- Web query: ${generatedWebQuery}\n` : '') +
-        (generatedVectorQuery ? `- Case-law query: ${generatedVectorQuery}\n` : '') +
-        (generatorRoutingConfidence !== null ? `- Confidence: ${generatorRoutingConfidence.toFixed(2)}\n` : '') +
-        `- Reasons: ${routingReasonsApplied.join(', ')}`
-      )
       : ''
     const caseLawStyleInstruction = premiumPlusActive
       ? (() => {
@@ -1998,39 +2240,45 @@ export async function POST(request: NextRequest) {
           if (retrievalFocusApplied === 'web_only') {
             return '\n\nExplanation policy (Premium+): Focus on current procedure and practical next steps in plain English. Do not add case authorities unless they are directly relevant.'
           }
-          if (vectorOnlyRequested && !vectorFallbackToWeb) {
+          if (vectorOnlyRequested && usePremiumPlusVectorRag && !vectorFallbackToWeb) {
             return '\n\nExplanation policy (Premium+): Focus on retrieved authorities and explain how courts have generally reasoned in similar situations. Keep practical next steps concise.'
+          }
+          if (premiumPlusNeedsCaseLawSuggestions && !usePremiumPlusVectorRag) {
+            return '\n\nExplanation policy (Premium+): Use the shortlisted authorities as signposts only. Do not imply detailed holdings unless they appear in the authority context provided.'
           }
           return '\n\nExplanation policy (Premium+): Start with a short plain-English answer first. Then add an "Authorities and interpretation" section with no more than 3 authorities, and explain each authority in one sentence.'
         })()
       : ''
 
     const rawMessageForAgent = attachmentContext
-      ? `${message}${ownCaseFactsContext}\n\nThe user uploaded documents. Use the excerpts below in your analysis.${caseContext}${memoryContext}${generatorRoutingContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}\n${attachmentContext}`
-      : `${message}${ownCaseFactsContext}${caseContext}${memoryContext}${generatorRoutingContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}${attachmentMetadata}`
+      ? `${message}${ownCaseFactsContext}\n\nThe user uploaded documents. Use the excerpts below in your analysis.${caseContext}${memoryContext}${premiumPlusDecompositionContext}${caseLawSuggestionContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}\n${attachmentContext}`
+      : `${message}${ownCaseFactsContext}${caseContext}${memoryContext}${premiumPlusDecompositionContext}${caseLawSuggestionContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}${attachmentMetadata}`
 
     const messageForAgent = truncateText(rawMessageForAgent, 12000)
     const threadId = `thread_${Date.now()}_${userId}`
 
     const shouldUseBasicLegalAgent = basicPlanActive
+    const shouldUsePremiumPlusLegalAgent = premiumPlusActive && !shouldUseBasicLegalAgent
     const agentResponse = shouldUseBasicLegalAgent
       ? await invokeBasicLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords)
-      : await invokeLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
-          useDiscriminator: premiumPlusActive && PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED,
-          useSearch: shouldUseSearchRetrieval,
-          includeCitations: premiumPlusActive,
-          searchQueryOverride: premiumPlusActive
-            ? (generatedWebQuery || undefined)
-            : (premiumGeneratedWebQuery || undefined),
-          openaiModel: premiumPlusActive ? (premiumPlusOpenAiModel || undefined) : premiumOpenAiModel,
-          openaiFallbackModel: premiumPlusActive
-            ? (premiumPlusOpenAiFallbackModel || undefined)
-            : premiumOpenAiFallbackModel,
-          discriminatorModel: premiumPlusActive ? (premiumPlusDiscriminatorModel || undefined) : undefined,
-          discriminatorFallbackModel: premiumPlusActive
-            ? (premiumPlusDiscriminatorFallbackModel || undefined)
-            : undefined,
-        })
+      : shouldUsePremiumPlusLegalAgent
+        ? await invokePremiumPlusLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
+            useSearch: shouldUseSearchRetrieval,
+            searchQueryOverride:
+              generatedWebQuery ||
+              buildPlannerQueryFromTools(premiumPlusTools, 'web') ||
+              buildPlannerQueryFromSubIssues(premiumPlusSubIssues, 'web') ||
+              undefined,
+            searchModeOverride: premiumPlusSearchMode || undefined,
+            anthropicModel: premiumPlusClaudeModel || undefined,
+            anthropicFallbackModel: premiumPlusClaudeFallbackModel || undefined,
+          })
+        : await invokePremiumLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
+            useSearch: shouldUseSearchRetrieval,
+            searchQueryOverride: premiumGeneratedWebQuery || undefined,
+            openaiModel: premiumOpenAiModel,
+            openaiFallbackModel: premiumOpenAiFallbackModel,
+          })
 
     const includeDebug = process.env.NODE_ENV !== 'production'
     const sourceCount = Array.isArray(agentResponse.sources) ? agentResponse.sources.length : 0
@@ -2046,10 +2294,8 @@ export async function POST(request: NextRequest) {
         )
       )
     }
-
-    const caseLawSuggestions = await caseLawSuggestionPromise
     const caseLawSuggestionShouldOffer =
-      retrievalRoutingSource === 'generator'
+      retrievalRoutingSource === 'claude'
         ? shouldLookupCaseLawSuggestions
         : caseLawSuggestionDecision.shouldSuggest
     const caseLawSoftNextStep = buildCaseLawSoftNextStep({
@@ -2145,6 +2391,9 @@ export async function POST(request: NextRequest) {
                   basicPlanFlow: basicPlanActive,
                   premiumPlanFlow: premiumPlanActive,
                   premiumPlusFlow: premiumPlusActive,
+                  planAgent: shouldUseBasicLegalAgent
+                    ? 'basic'
+                    : (shouldUsePremiumPlusLegalAgent ? 'premium_plus' : 'premium'),
                   planLabel: activePlanLabel || 'none',
                   sourceCount,
                   hasInlineCitationTags,
@@ -2174,16 +2423,18 @@ export async function POST(request: NextRequest) {
                   retrievalFocus: retrievalFocusDecision.focus,
                   retrievalFocusApplied,
                   retrievalRoutingSource,
+                  premiumPlusToolPlanUsed: Boolean(premiumPlusToolPlan),
+                  premiumPlusToolPlanConfidence,
+                  premiumPlusDecomposition: premiumPlusDecomposition || null,
+                  premiumPlusSubIssueCount: premiumPlusSubIssues.length,
+                  premiumPlusToolPlanTools: premiumPlusTools.map((item) => item.tool),
+                  premiumPlusToolPlanSearchMode: premiumPlusSearchMode,
+                  premiumPlusToolPlanWebQuery: generatedWebQuery || null,
+                  premiumPlusToolPlanVectorQuery: generatedVectorQuery || null,
                   retrievalOwnCaseNarrative: retrievalFocusDecision.ownCaseNarrative,
                   retrievalPrecedentScore: retrievalFocusDecision.precedentScore,
                   retrievalProcedureScore: retrievalFocusDecision.procedureScore,
                   retrievalReasons: routingReasonsApplied,
-                  generatorRoutingEnabled: PREMIUM_PLUS_GENERATOR_ROUTING_ENABLED,
-                  generatorRoutingUsed: Boolean(generatorRoutingDecision),
-                  generatorRoutingConfidence,
-                  generatorWebQuery: generatedWebQuery || null,
-                  generatorVectorQuery: generatedVectorQuery || null,
-                  discriminatorFinalPassEnabled: PREMIUM_PLUS_DISCRIMINATOR_FINAL_PASS_ENABLED,
                   removedUnsupportedAuthorityLines,
                   templateDraftBlocked,
                   templateDraftBlockReason,
