@@ -1,4 +1,18 @@
-import type { AssistantPresentation, ParsedLine, ParsedSection } from '@/components/chatbot/chat-types'
+import type {
+  AssistantMetadata,
+  AssistantPresentation,
+  ParsedLine,
+  ParsedSection,
+  PendingCalendarEntriesMetadata,
+  SourceReference,
+  TimelineEntry,
+} from '@/components/chatbot/chat-types'
+
+export type AssistantResponsePayload = {
+  response: string
+  metadata?: AssistantMetadata
+  [key: string]: unknown
+}
 
 const BULLET_PREFIX = '• '
 
@@ -19,6 +33,126 @@ const isDividerLine = (line: string) => /^(?:-{3,}|_{3,}|\*{3,}|─{6,})$/.test(
 const extractHeadingText = (line: string) => line.trim().replace(/^##\s+/, '').trim()
 const extractSubheadingText = (line: string) => line.trim().replace(/^###\s+/, '').trim()
 const extractBulletText = (line: string) => line.trim().replace(/^(?:[\-*•])\s+/, '').trim()
+
+const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+const sanitizeTimelineEntry = (value: unknown): TimelineEntry | null => {
+  if (!isObjectRecord(value) || typeof value.description !== 'string') return null
+  return {
+    description: value.description,
+    ...(typeof value.date === 'string' ? { date: value.date } : {}),
+    ...(typeof value.daysUntil === 'number' || value.daysUntil === null ? { daysUntil: value.daysUntil as number | null } : {}),
+    ...(typeof value.note === 'string' ? { note: value.note } : {}),
+  }
+}
+
+const sanitizePendingCalendarEntries = (value: unknown): PendingCalendarEntriesMetadata | undefined => {
+  if (!isObjectRecord(value) || typeof value.caseId !== 'string') return undefined
+  const deadlines = Array.isArray(value.deadlines)
+    ? value.deadlines.map(sanitizeTimelineEntry).filter((entry): entry is TimelineEntry => entry !== null)
+    : undefined
+  const hearings = Array.isArray(value.hearings)
+    ? value.hearings.map(sanitizeTimelineEntry).filter((entry): entry is TimelineEntry => entry !== null)
+    : undefined
+
+  return {
+    caseId: value.caseId,
+    ...(typeof value.caseLabel === 'string' ? { caseLabel: value.caseLabel } : {}),
+    ...(deadlines ? { deadlines } : {}),
+    ...(hearings ? { hearings } : {}),
+  }
+}
+
+const sanitizeSourceReference = (value: unknown): SourceReference | null => {
+  if (!isObjectRecord(value)) return null
+  if (typeof value.number !== 'number' || typeof value.title !== 'string' || typeof value.url !== 'string') return null
+  return {
+    number: value.number,
+    title: value.title,
+    url: value.url,
+  }
+}
+
+const sanitizeParsedLine = (value: unknown): ParsedLine | null => {
+  if (!isObjectRecord(value) || typeof value.text !== 'string' || typeof value.kind !== 'string') return null
+  if (!['paragraph', 'bullet', 'ordered', 'subheading', 'divider', 'summary'].includes(value.kind)) return null
+  return {
+    text: value.text,
+    kind: value.kind as ParsedLine['kind'],
+  }
+}
+
+const sanitizeParsedSection = (value: unknown): ParsedSection | null => {
+  if (!isObjectRecord(value)) return null
+  const heading = value.heading === null || typeof value.heading === 'string' ? value.heading : null
+  const lines = Array.isArray(value.lines)
+    ? value.lines.map(sanitizeParsedLine).filter((line): line is ParsedLine => line !== null)
+    : null
+  if (!lines) return null
+  return { heading, lines }
+}
+
+const sanitizeAssistantPresentation = (value: unknown): AssistantPresentation | undefined => {
+  if (!isObjectRecord(value) || value.version !== 1 || !Array.isArray(value.sections)) return undefined
+  const sections = value.sections
+    .map(sanitizeParsedSection)
+    .filter((section): section is ParsedSection => section !== null)
+  return { version: 1, sections }
+}
+
+export const sanitizeAssistantMetadata = (metadata?: unknown): AssistantMetadata | undefined => {
+  if (!isObjectRecord(metadata)) return undefined
+
+  const normalized: AssistantMetadata = { ...metadata }
+
+  if ('pendingCalendarEntries' in normalized) {
+    const next = sanitizePendingCalendarEntries(normalized.pendingCalendarEntries)
+    if (next) normalized.pendingCalendarEntries = next
+    else delete normalized.pendingCalendarEntries
+  }
+
+  if ('activeCaseId' in normalized) {
+    if (typeof normalized.activeCaseId !== 'string' && normalized.activeCaseId !== null && normalized.activeCaseId !== undefined) {
+      delete normalized.activeCaseId
+    }
+  }
+
+  if ('sources' in normalized) {
+    const next = Array.isArray(normalized.sources)
+      ? normalized.sources.map(sanitizeSourceReference).filter((source): source is SourceReference => source !== null)
+      : undefined
+    if (next) normalized.sources = next
+    else delete normalized.sources
+  }
+
+  if ('presentation' in normalized) {
+    const next = sanitizeAssistantPresentation(normalized.presentation)
+    if (next) normalized.presentation = next
+    else delete normalized.presentation
+  }
+
+  return Object.keys(normalized).length > 0 ? normalized : undefined
+}
+
+export const stripAssistantPresentationMetadata = (metadata?: unknown): AssistantMetadata | undefined => {
+  const normalized = sanitizeAssistantMetadata(metadata)
+  if (!normalized) return undefined
+  const { presentation: _presentation, ...rest } = normalized
+  return Object.keys(rest).length > 0 ? rest : undefined
+}
+
+export const normalizeAssistantResponsePayload = (payload: unknown): AssistantResponsePayload | null => {
+  if (!isObjectRecord(payload) || typeof payload.response !== 'string') return null
+  const rest: Record<string, unknown> = { ...payload }
+  delete rest.metadata
+  const metadata = sanitizeAssistantMetadata(payload.metadata)
+  return {
+    ...rest,
+    response: payload.response,
+    ...(metadata ? { metadata } : {}),
+  }
+}
 
 const isHeadingLine = (line: string) => {
   const trimmed = line.trim()
@@ -215,34 +349,35 @@ export const buildAssistantPresentation = (text: string): AssistantPresentation 
 
 export const attachAssistantPresentationMetadata = (
   text: string,
-  metadata?: Record<string, any>,
+  metadata?: unknown,
   options: { reuseExistingPresentation?: boolean } = {}
-): Record<string, any> | undefined => {
+): AssistantMetadata | undefined => {
+  const normalizedMetadata = sanitizeAssistantMetadata(metadata)
   const existingPresentation =
     options.reuseExistingPresentation &&
-    metadata?.presentation &&
-    typeof metadata.presentation === 'object' &&
-    metadata.presentation.version === 1 &&
-    Array.isArray(metadata.presentation.sections)
-      ? metadata.presentation
+    normalizedMetadata?.presentation &&
+    normalizedMetadata.presentation.version === 1 &&
+    Array.isArray(normalizedMetadata.presentation.sections)
+      ? normalizedMetadata.presentation
       : undefined
   const presentation = existingPresentation || buildAssistantPresentation(text)
-  if (!metadata && !presentation) return undefined
-  return {
-    ...(metadata || {}),
+  if (!normalizedMetadata && !presentation) return undefined
+  const nextMetadata: AssistantMetadata = {
+    ...(normalizedMetadata || {}),
     ...(presentation ? { presentation } : {}),
   }
+  return Object.keys(nextMetadata).length > 0 ? nextMetadata : undefined
 }
 
 export const buildAssistantResponsePayload = (
   response: string,
-  metadata?: Record<string, any>,
-  extra: Record<string, any> = {}
-) => {
+  metadata?: unknown,
+  extra: Record<string, unknown> = {}
+): AssistantResponsePayload => {
   const nextMetadata = attachAssistantPresentationMetadata(response, metadata)
-  return {
+  return normalizeAssistantResponsePayload({
     ...extra,
     response,
     ...(nextMetadata ? { metadata: nextMetadata } : {}),
-  }
+  }) as AssistantResponsePayload
 }

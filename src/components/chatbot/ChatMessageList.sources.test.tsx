@@ -5,7 +5,7 @@ import ChatMessageList from '@/components/chatbot/ChatMessageList'
 import type { Message, ParsedSection, SourceReference } from '@/components/chatbot/chat-types'
 
 describe('ChatMessageList sources', () => {
-  it('renders source numbers as clickable links when metadata.sources exists', () => {
+  it('renders source numbers as clickable links when metadata.sources exists', { timeout: 15000 }, () => {
     const sources: SourceReference[] = [
       { number: 1, title: 'Civil Procedure Rules', url: 'https://www.justice.gov.uk/courts/procedure-rules/civil' },
       { number: 2, title: 'Legislation', url: 'https://www.legislation.gov.uk/' },

@@ -10,8 +10,10 @@ import ChatMessageList from '@/components/chatbot/ChatMessageList'
 import {
   attachAssistantPresentationMetadata,
   formatAssistantResponse,
+  normalizeAssistantResponsePayload,
   parseAssistantResponse,
 } from '@/lib/chat/assistant-presentation'
+import { fetchConversationHistoryPage } from '@/lib/chat/history-client'
 import { useChatAuthPlan, type InitialChatPlanState } from '@/components/chatbot/hooks/useChatAuthPlan'
 import { useConversationBootstrap } from '@/components/chatbot/hooks/useConversationBootstrap'
 import { hasCaseProfileAccess } from '@/lib/plans/access'
@@ -441,6 +443,19 @@ type UploadedAttachment = {
   mimeType?: string | null;
 };
 
+const getMessageIdentity = (message: Pick<Message, 'id' | 'role' | 'content' | 'timestamp'>) => {
+  if (typeof message.id === 'string' && message.id.trim()) {
+    return `id:${message.id}`
+  }
+
+  const timestampValue =
+    message.timestamp instanceof Date
+      ? message.timestamp.toISOString()
+      : new Date(message.timestamp).toISOString()
+
+  return `fallback:${message.role}:${timestampValue}:${message.content}`
+}
+
 const normalizeUserId = (value?: string | null) => {
   const trimmed = value?.trim()
   if (!trimmed) return null
@@ -548,6 +563,9 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   const [guestUploadWarning, setGuestUploadWarning] = useState<string | null>(null)
   const [showGuestSignupModal, setShowGuestSignupModal] = useState(false)
   const [isConversationBootstrapping, setIsConversationBootstrapping] = useState(true)
+  const [historyCursor, setHistoryCursor] = useState<string | null>(null)
+  const [hasMoreHistory, setHasMoreHistory] = useState(false)
+  const [loadingOlderHistory, setLoadingOlderHistory] = useState(false)
   const [noticeModal, setNoticeModal] = useState<{ title: string; message: string } | null>(null)
   const isSignedInPlanLocked = Boolean(supabaseUser) && planLoaded && !paidAccess
   
@@ -557,6 +575,8 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   const prevLineCountRef = useRef<number>(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const conversationIdRef = useRef('')
+  const loadingOlderHistoryRef = useRef(false)
   const lastScrollTopRef = useRef(0)
   const lastWindowScrollYRef = useRef(0)
   const isNearBottomRef = useRef(true)
@@ -577,6 +597,65 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     isNearBottomRef.current = true
     setShowScrollToBottomButton(false)
     setShowScrollToBottomButtonByWindow(false)
+  }
+
+  useEffect(() => {
+    conversationIdRef.current = conversationId.trim()
+    loadingOlderHistoryRef.current = false
+    setLoadingOlderHistory(false)
+  }, [conversationId])
+
+  const loadOlderMessages = async () => {
+    const requestedConversationId = conversationIdRef.current
+    if (!requestedConversationId || !historyCursor || !hasMoreHistory || isConversationBootstrapping) {
+      return
+    }
+
+    if (loadingOlderHistoryRef.current) {
+      return
+    }
+
+    const container = scrollContainerRef.current
+    const previousScrollHeight = container?.scrollHeight ?? 0
+    const previousScrollTop = container?.scrollTop ?? 0
+
+    loadingOlderHistoryRef.current = true
+    setLoadingOlderHistory(true)
+
+    try {
+      const data = await fetchConversationHistoryPage({
+        conversationId: requestedConversationId,
+        before: historyCursor,
+      })
+
+      if (conversationIdRef.current !== requestedConversationId) {
+        return
+      }
+
+      setHistoryCursor(data.nextCursor)
+      setHasMoreHistory(data.hasMoreOlder)
+      setMessages((prev) => {
+        if (!data.messages.length) return prev
+        const existingKeys = new Set(prev.map((message) => getMessageIdentity(message)))
+        const olderMessages = data.messages.filter((message) => !existingKeys.has(getMessageIdentity(message)))
+        return olderMessages.length > 0 ? [...olderMessages, ...prev] : prev
+      })
+
+      requestAnimationFrame(() => {
+        const nextContainer = scrollContainerRef.current
+        if (!nextContainer || conversationIdRef.current !== requestedConversationId) return
+        const scrollDelta = nextContainer.scrollHeight - previousScrollHeight
+        nextContainer.scrollTop = previousScrollTop + scrollDelta
+        lastScrollTopRef.current = nextContainer.scrollTop
+      })
+    } catch (error: any) {
+      console.error('Failed to load older history:', error)
+    } finally {
+      if (conversationIdRef.current === requestedConversationId) {
+        loadingOlderHistoryRef.current = false
+        setLoadingOlderHistory(false)
+      }
+    }
   }
 
   const handleScroll = () => {
@@ -609,6 +688,16 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       setShowScrollToBottomButton(false)
     }
     lastScrollTopRef.current = currentTop
+
+    if (
+      currentTop <= 80 &&
+      hasMoreHistory &&
+      !loadingOlderHistoryRef.current &&
+      !isConversationBootstrapping &&
+      conversationIdRef.current
+    ) {
+      void loadOlderMessages()
+    }
   }
 
   const jumpToLatest = () => {
@@ -656,6 +745,21 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     window.addEventListener('scroll', onWindowScroll, { passive: true })
     return () => window.removeEventListener('scroll', onWindowScroll)
   }, [messages.length])
+
+  useEffect(() => {
+    if (isConversationBootstrapping || loadingOlderHistory || !hasMoreHistory || messages.length === 0) {
+      return
+    }
+
+    const container = scrollContainerRef.current
+    if (!container || !conversationIdRef.current) {
+      return
+    }
+
+    if (container.scrollHeight <= container.clientHeight + 48) {
+      void loadOlderMessages()
+    }
+  }, [conversationId, hasMoreHistory, isConversationBootstrapping, loadingOlderHistory, messages.length])
 
   const handleCopy = async (content: string) => {
     try {
@@ -897,7 +1001,8 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
         }),
       })
 
-      const data = await response.json()
+      const rawData = await response.json()
+      const data = normalizeAssistantResponsePayload(rawData) || rawData
 
       if (!response.ok) {
         const message =
@@ -1066,6 +1171,8 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     setUserId,
     setMessages,
     setConversationId,
+    setHistoryCursor,
+    setHasMoreHistory,
     setIsConversationBootstrapping
   })
 
@@ -1246,13 +1353,14 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       })
 
       const raw = await response.text()
-      const data = (() => {
+      const parsedData = (() => {
         try {
           return raw ? JSON.parse(raw) : null
         } catch {
           return null
         }
       })()
+      const data = normalizeAssistantResponsePayload(parsedData) || parsedData
 
       if (!response.ok) {
         const serverMessage =
@@ -1364,6 +1472,17 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
               onScroll={handleScroll}
               style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingLeft: 0, paddingRight: 0 }}
             >
+            {loadingOlderHistory && messages.length > 0 && (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  padding: '8px 0 12px',
+                }}
+              >
+                <TypingIndicator label="Loading older messages" compact />
+              </div>
+            )}
             {messages.length === 0 && !isConversationBootstrapping && (
               <ChatEmptyState authLoaded={authLoaded} hasUser={Boolean(supabaseUser)} />
             )}
@@ -1385,6 +1504,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
               loadingLabel={loadingLabel}
               messagesEndRef={messagesEndRef}
               TypingIndicatorComponent={TypingIndicator}
+              scrollContainerRef={scrollContainerRef}
             />
             </div>
           </div>

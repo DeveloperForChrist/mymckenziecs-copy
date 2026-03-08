@@ -13,10 +13,10 @@ export interface PendingCalendarEntriesMetadata {
 
 export interface AssistantMetadata {
   pendingCalendarEntries?: PendingCalendarEntriesMetadata
-  activeCaseId?: string
+  activeCaseId?: string | null
   sources?: SourceReference[]
   presentation?: AssistantPresentation
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export type AttachmentDisplay = {

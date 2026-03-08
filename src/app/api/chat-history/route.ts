@@ -3,6 +3,11 @@ import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { isPaidPlan } from '@/lib/plans/access';
+import { attachAssistantPresentationMetadata, sanitizeAssistantMetadata } from '@/lib/chat/assistant-presentation';
+import {
+  decodeMessageHistoryCursor,
+  sliceMessageHistoryPage,
+} from '@/lib/chat/history-pagination';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -22,12 +27,28 @@ type ConversationMessageRow = {
   role: string;
   content: string | null;
   timestamp: string | null;
-  metadata?: any;
+  metadata?: unknown;
 };
 
+export function serializeConversationMessageRow(msg: ConversationMessageRow) {
+  const baseMetadata = sanitizeAssistantMetadata(msg.metadata);
+  const message = msg.content || '';
+  return {
+    id: msg.id,
+    role: msg.role,
+    message,
+    timestamp: msg.timestamp || new Date().toISOString(),
+    metadata:
+      msg.role === 'assistant'
+        ? attachAssistantPresentationMetadata(message, baseMetadata, { reuseExistingPresentation: true })
+        : baseMetadata,
+  };
+}
+
 const MAX_THREADS = 60;
-const DEFAULT_MESSAGE_LIMIT = 400;
-const MAX_MESSAGE_LIMIT = 1200;
+const DEFAULT_MESSAGE_LIMIT = 100;
+const MAX_MESSAGE_LIMIT = 300;
+const MESSAGE_PAGE_OVERSCAN = 80;
 
 function normalizeTimestamp(value: any): string {
   if (!value) {
@@ -174,6 +195,10 @@ function parseMessageLimit(value: any): number {
   const parsed = Number.parseInt(String(value ?? ''), 10);
   if (!Number.isFinite(parsed) || parsed <= 0) return DEFAULT_MESSAGE_LIMIT;
   return Math.min(parsed, MAX_MESSAGE_LIMIT);
+}
+
+function buildMessageHistoryCursorFilter(timestamp: string, id: string): string {
+  return `timestamp.lt.${timestamp},and(timestamp.eq.${timestamp},id.lt.${id})`;
 }
 
 async function fetchMessagesByConversationIds(
@@ -408,12 +433,13 @@ export async function POST(request: NextRequest) {
 
     const limited = false;
     const scopedUserIds = await resolveScopedUserIds(authUid, authEmail);
-    const { caseId, conversationId, sessionId, limit } = await request.json();
+    const { caseId, conversationId, sessionId, limit, before } = await request.json();
     const resolvedConversationId = conversationId || sessionId;
     const messageLimit = parseMessageLimit(limit);
+    const historyCursor = decodeMessageHistoryCursor(typeof before === 'string' ? before : null);
 
     if (!caseId && !resolvedConversationId) {
-      return NextResponse.json({ messages: [], total: 0, limited });
+      return NextResponse.json({ messages: [], total: 0, limited, nextCursor: null, hasMoreOlder: false, pageLimit: messageLimit });
     }
 
     const caseIds = await getOwnedCaseIds(scopedUserIds);
@@ -422,19 +448,24 @@ export async function POST(request: NextRequest) {
       .from('messages')
       .select('id, role, content, timestamp, metadata')
       .order('timestamp', { ascending: false })
-      .limit(messageLimit);
+      .order('id', { ascending: false })
+      .limit(messageLimit + MESSAGE_PAGE_OVERSCAN);
 
     if (resolvedConversationId) {
       const allowed = await canAccessConversation(scopedUserIds, resolvedConversationId, caseIds);
       if (!allowed) {
-        return NextResponse.json({ messages: [], total: 0, limited });
+        return NextResponse.json({ messages: [], total: 0, limited, nextCursor: null, hasMoreOlder: false, pageLimit: messageLimit });
       }
       query = query.eq('conversation_id', resolvedConversationId);
     } else if (caseId) {
       if (!caseIds.includes(caseId)) {
-        return NextResponse.json({ messages: [], total: 0, limited });
+        return NextResponse.json({ messages: [], total: 0, limited, nextCursor: null, hasMoreOlder: false, pageLimit: messageLimit });
       }
       query = query.eq('case_id', caseId);
+    }
+
+    if (historyCursor) {
+      query = query.or(buildMessageHistoryCursorFilter(historyCursor.timestamp, historyCursor.id));
     }
 
     const { data: messagesData, error: messagesError } = await query;
@@ -443,24 +474,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
     }
 
-    const descendingEntries = (messagesData || []).map((msg: any) => ({
-      id: msg.id,
-      role: msg.role,
-      message: msg.content || '',
-      timestamp: msg.timestamp || new Date().toISOString(),
-      metadata:
-        msg.metadata && typeof msg.metadata === 'object' && !Array.isArray(msg.metadata)
-          ? msg.metadata
-          : undefined,
-    }));
-    const messageEntries = descendingEntries.reverse();
+    const descendingEntries = (messagesData || []).map((msg: any) => serializeConversationMessageRow(msg));
+    const { pageRows, hasMoreOlder, nextCursor } = sliceMessageHistoryPage(descendingEntries, messageLimit, historyCursor);
+    const messageEntries = pageRows.reverse();
 
     return NextResponse.json({
       messages: messageEntries,
       total: messageEntries.length,
       limited,
       pageLimit: messageLimit,
-      hasMoreOlder: (messagesData || []).length >= messageLimit,
+      hasMoreOlder,
+      nextCursor,
     });
   } catch (error: any) {
     console.error('Error fetching messages:', error);

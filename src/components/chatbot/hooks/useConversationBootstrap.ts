@@ -2,16 +2,9 @@
 
 import { useEffect } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
-import { buildAssistantPresentation } from '@/lib/chat/assistant-presentation'
 import type { AssistantMetadata, Message } from '@/components/chatbot/chat-types'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
-
-type StoredMessage = {
-  role: 'user' | 'assistant'
-  message: string
-  timestamp: string
-  metadata?: AssistantMetadata
-}
+import { fetchConversationHistoryPage } from '@/lib/chat/history-client'
 
 type UseConversationBootstrapArgs = {
   normalizeUserId: (value?: string | null) => string | null
@@ -19,6 +12,8 @@ type UseConversationBootstrapArgs = {
   setUserId: Dispatch<SetStateAction<string>>
   setMessages: Dispatch<SetStateAction<Message[]>>
   setConversationId: Dispatch<SetStateAction<string>>
+  setHistoryCursor: Dispatch<SetStateAction<string | null>>
+  setHasMoreHistory: Dispatch<SetStateAction<boolean>>
   setIsConversationBootstrapping: Dispatch<SetStateAction<boolean>>
 }
 
@@ -28,6 +23,8 @@ export function useConversationBootstrap({
   setUserId,
   setMessages,
   setConversationId,
+  setHistoryCursor,
+  setHasMoreHistory,
   setIsConversationBootstrapping
 }: UseConversationBootstrapArgs) {
   useEffect(() => {
@@ -35,46 +32,24 @@ export function useConversationBootstrap({
     const lastSignInAtStorageKey = 'chatbotLastSignInAt'
     let cancelled = false
 
-    const loadMessagesForConversation = async (storedUserId: string, targetConversationId: string): Promise<number> => {
+    const loadMessagesForConversation = async (targetConversationId: string): Promise<number> => {
       try {
-        const response = await fetch('/api/chat-history', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: storedUserId, sessionId: targetConversationId, limit: 400 })
+        const data = await fetchConversationHistoryPage({
+          conversationId: targetConversationId,
         })
 
-        const data = await response.json()
-        if (response.ok && Array.isArray(data.messages)) {
-          const loadedMessages: Message[] = data.messages.map((msg: StoredMessage) => {
-            const baseMetadata =
+        if (Array.isArray(data.messages)) {
+          const loadedMessages: Message[] = data.messages.map((msg) => ({
+            ...msg,
+            metadata:
               msg.metadata && typeof msg.metadata === 'object' && !Array.isArray(msg.metadata)
-                ? msg.metadata
+                ? (msg.metadata as AssistantMetadata)
                 : undefined
-            const presentation =
-              msg.role === 'assistant'
-                ? baseMetadata?.presentation || buildAssistantPresentation(msg.message || '')
-                : undefined
-            const metadata =
-              msg.role === 'assistant'
-                ? (() => {
-                    const nextMetadata = {
-                      ...(baseMetadata || {}),
-                      ...(presentation ? { presentation } : {}),
-                    }
-                    return Object.keys(nextMetadata).length > 0 ? nextMetadata : undefined
-                  })()
-                : baseMetadata
-
-            return {
-              id: `msg_${msg.timestamp}_${Math.random().toString(36).slice(2, 6)}`,
-              role: msg.role,
-              content: msg.message,
-              timestamp: new Date(msg.timestamp),
-              metadata
-            }
-          })
+          }))
           if (!cancelled) {
             setMessages(loadedMessages)
+            setHistoryCursor(data.nextCursor)
+            setHasMoreHistory(data.hasMoreOlder)
           }
           return loadedMessages.length
         }
@@ -130,6 +105,8 @@ export function useConversationBootstrap({
         )
         if (!conversationId && !isNew && (switchedFromGuest || switchedAccounts || signedInAgain)) {
           setMessages([])
+          setHistoryCursor(null)
+          setHasMoreHistory(false)
           const newConversationId = generateUUID()
           setConversationId(newConversationId)
           localStorage.setItem(conversationStorageKey, newConversationId)
@@ -150,9 +127,13 @@ export function useConversationBootstrap({
       setUserId(storedUserId)
 
       setMessages([])
+      setHistoryCursor(null)
+      setHasMoreHistory(false)
 
       if (isNew) {
         setMessages([])
+        setHistoryCursor(null)
+        setHasMoreHistory(false)
         const newConversationId = generateUUID()
         setConversationId(newConversationId)
         localStorage.setItem(conversationStorageKey, newConversationId)
@@ -163,18 +144,18 @@ export function useConversationBootstrap({
       if (conversationId) {
         setConversationId(conversationId)
         localStorage.setItem(conversationStorageKey, conversationId)
-        await loadMessagesForConversation(storedUserId, conversationId)
+        await loadMessagesForConversation(conversationId)
       } else {
         const storedConvId = localStorage.getItem(conversationStorageKey)
         if (storedConvId) {
           setConversationId(storedConvId)
-          const loadedCount = await loadMessagesForConversation(storedUserId, storedConvId)
+          const loadedCount = await loadMessagesForConversation(storedConvId)
           if (loadedCount === 0) {
             const fallbackConversationId = await findFallbackConversationId(storedConvId)
             if (fallbackConversationId) {
               setConversationId(fallbackConversationId)
               localStorage.setItem(conversationStorageKey, fallbackConversationId)
-              await loadMessagesForConversation(storedUserId, fallbackConversationId)
+              await loadMessagesForConversation(fallbackConversationId)
             }
           }
         } else {
@@ -205,6 +186,8 @@ export function useConversationBootstrap({
     setUserId,
     setMessages,
     setConversationId,
+    setHistoryCursor,
+    setHasMoreHistory,
     setIsConversationBootstrapping
   ])
 }
