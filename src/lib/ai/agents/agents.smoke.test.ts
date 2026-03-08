@@ -13,24 +13,6 @@ vi.mock('openai', () => {
           }
           const isCaseStudy = combinedContent.includes('Please provide a comprehensive educational case study analysis')
           const isRoutingDecision = combinedContent.includes('Choose the retrieval mode for this user request before answer generation.')
-          const isPremiumSearchDecision = combinedContent.includes('Choose whether web retrieval is needed before answering this user request.')
-          if (isPremiumSearchDecision) {
-            return {
-              choices: [
-                {
-                  message: {
-                    content: JSON.stringify({
-                      search_mode: 'direct',
-                      web_query: '',
-                      confidence: 0.82,
-                      reasons: ['stable-legal-concept'],
-                    }),
-                  },
-                  finish_reason: 'stop',
-                },
-              ],
-            }
-          }
           if (isRoutingDecision) {
             if (combinedContent.includes('What does claimant mean')) {
               return {
@@ -150,8 +132,7 @@ vi.mock('@anthropic-ai/sdk', () => {
 })
 
 import {
-  decidePremiumPlusToolPlanWithClaude,
-  decidePremiumSearchNeedWithGenerator,
+  decidePremiumPlusPlanWithGroq,
   decideRetrievalWithGenerator,
   invokeBasicLegalAgent,
   invokeLegalAgent,
@@ -159,7 +140,6 @@ import {
   invokePremiumPlusLegalAgent,
 } from './legal-agent'
 import { CaseStudyAgent } from './case-study-agent'
-import { createDiscriminatorAgent } from './discriminator-agent'
 
 describe('agent smoke checks', () => {
   const originalEnv = { ...process.env }
@@ -169,9 +149,44 @@ describe('agent smoke checks', () => {
     process.env.ANTHROPIC_API_KEY = 'test-key'
     process.env.GROQ_API_KEY = 'test-key'
     process.env.BASIC_OPENAI_ROUTING_PERCENT = '100'
-    vi.stubGlobal('fetch', vi.fn(async () => ({
-      ok: true,
-      json: async () => ({
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url.includes('api.groq.com/openai/v1/chat/completions')) {
+        const body = typeof init?.body === 'string' ? init.body : ''
+        const isSimpleQuestion = body.includes('What does claimant mean in a small claim?')
+        return new Response(JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify(
+                  isSimpleQuestion
+                    ? {
+                        action: 'answer',
+                        answer: 'A claimant is the person bringing the claim.\n\nIn short: It is the person asking the court or tribunal for a remedy.',
+                        confidence: 0.92,
+                        reasons: ['simple-stable-definition'],
+                      }
+                    : {
+                        action: 'execute',
+                        retrieval_mode: 'hybrid',
+                        tools: [
+                          { tool: 'web_search', web_mode: 'general', query: 'current UK procedure guidance' },
+                          { tool: 'case_law', query: 'relevant UK precedent' },
+                        ],
+                        decomposition: 'User asks about facts and procedure.',
+                        vector_query: 'relevant UK precedent',
+                        web_query: 'current UK procedure guidance',
+                        confidence: 0.78,
+                        reasons: ['mixed-signals'],
+                      }
+                ),
+              },
+            },
+          ],
+        }), { status: 200, headers: { 'content-type': 'application/json' } })
+      }
+
+      return new Response(JSON.stringify({
         choices: [
           {
             message: {
@@ -190,10 +205,8 @@ describe('agent smoke checks', () => {
             },
           },
         ],
-      }),
-      text: async () => '',
-      headers: { get: () => null },
-    })))
+      }), { status: 200, headers: { 'content-type': 'application/json' } })
+    }))
   })
 
   afterEach(() => {
@@ -215,14 +228,14 @@ describe('agent smoke checks', () => {
     expect(result.response.trim().length).toBeGreaterThan(0)
   })
 
-  it('direct legal agent path can still use discriminator review', async () => {
+  it('direct legal agent path returns a usable answer', async () => {
     const result = await invokeLegalAgent(
       'What does claimant mean in a small claim?',
       'thread_smoke_direct_review',
       'user_smoke_direct_review',
       [],
       'small claims',
-      { useSearch: false, useDiscriminator: true }
+      { useSearch: false }
     )
 
     expect(typeof result.response).toBe('string')
@@ -239,7 +252,6 @@ describe('agent smoke checks', () => {
       'contract law',
       {
         useSearch: false,
-        useDiscriminator: false,
         provider: 'anthropic',
         anthropicModel: 'claude-opus-4-6',
         anthropicFallbackModel: 'claude-sonnet-4-20250514',
@@ -264,25 +276,6 @@ describe('agent smoke checks', () => {
     expect(result.response.trim().length).toBeGreaterThan(0)
   })
 
-  it('premium plus plan can build a Claude tool plan before generation', async () => {
-    const result = await decidePremiumPlusToolPlanWithClaude(
-      'What does claimant mean in a small claim?',
-      [],
-      'small claims',
-      {
-        anthropicModel: 'claude-opus-4-6',
-        anthropicFallbackModel: 'claude-sonnet-4-20250514',
-      }
-    )
-
-    expect(result).not.toBeNull()
-    expect(result?.retrievalMode).toBe('hybrid')
-    expect(result?.decomposition).toContain('facts and procedure')
-    expect(result?.subIssues?.length).toBeGreaterThan(0)
-    expect(result?.tools?.map((item) => item.tool)).toContain('web_search_procedure')
-    expect(result?.tools?.map((item) => item.tool)).toContain('case_law_rag')
-  })
-
   it('premium plus plan uses its own Premium+ agent wrapper', async () => {
     const result = await invokePremiumPlusLegalAgent(
       'Explain promissory estoppel in plain English.',
@@ -299,6 +292,17 @@ describe('agent smoke checks', () => {
 
     expect(typeof result.response).toBe('string')
     expect(result.response.trim().length).toBeGreaterThan(0)
+  })
+
+  it('premium plus groq planner can return a direct answer for a simple question', async () => {
+    const result = await decidePremiumPlusPlanWithGroq(
+      'What does claimant mean in a small claim?',
+      [],
+      'small claims'
+    )
+
+    expect(result).not.toBeNull()
+    expect(result?.action).toBe('answer')
   })
 
   it('generator retrieval routing returns a routing decision', async () => {
@@ -326,18 +330,6 @@ describe('agent smoke checks', () => {
     expect(result?.vectorQuery).toBeUndefined()
   })
 
-  it('premium search routing can skip web retrieval for direct questions', async () => {
-    const result = await decidePremiumSearchNeedWithGenerator(
-      'What does claimant mean in a small claim?',
-      [],
-      'small claims'
-    )
-
-    expect(result).not.toBeNull()
-    expect(result?.searchMode).toBe('direct')
-    expect(result?.webQuery).toBeUndefined()
-  })
-
   it('generator retrieval routing falls back quickly when the routing model stalls', async () => {
     process.env.ROUTING_DECISION_TIMEOUT_MS = '1'
 
@@ -350,34 +342,19 @@ describe('agent smoke checks', () => {
     expect(result).toBeNull()
   })
 
-  it('discriminator final-pass agent returns a streamlined reply', async () => {
-    const agent = await createDiscriminatorAgent([], 'small claims', false)
-    const result = await agent.invoke({
-      input: 'What should I understand here?',
-      comprehensiveAnswer: 'A longer draft answer from generator.',
-      allSources: ['https://www.gov.uk/example'],
-    })
-
-    expect(typeof result.streamlinedAnswer).toBe('string')
-    expect(result.streamlinedAnswer.trim().length).toBeGreaterThan(0)
-  })
-
-  it('legal agent falls back to the generator answer when the discriminator times out', async () => {
-    process.env.PREMIUM_PLUS_DISCRIMINATOR_TIMEOUT_MS = '1'
-
+  it('legal agent returns the generator answer directly on the direct path', async () => {
     const result = await invokeLegalAgent(
-      'discriminator timeout sentinel',
-      'thread_smoke_discriminator_timeout',
-      'user_smoke_discriminator_timeout',
+      'What does claimant mean in a small claim?',
+      'thread_smoke_direct_only',
+      'user_smoke_direct_only',
       [],
       'small claims',
-      { useSearch: false, useDiscriminator: true }
+      { useSearch: false }
     )
 
     expect(typeof result.response).toBe('string')
     expect(result.response.trim().length).toBeGreaterThan(0)
     expect(result.response).toContain('Overview')
-    expect(result.response).not.toContain('Structured Answer')
   })
 
   it('case study agent returns educational content', async () => {

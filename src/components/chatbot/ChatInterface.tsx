@@ -571,6 +571,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const chatRequestAbortRef = useRef<AbortController | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const prevLineCountRef = useRef<number>(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -985,9 +986,15 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       const attachmentsOnly = regenAttachments.length > 0 && userMsg.content.trim() === 'Uploaded documents for review.'
       activeCaseOverride = canUseCaseContext ? pendingActiveCaseOverrideRef.current : null
       pendingActiveCaseOverrideRef.current = null
+      const controller = new AbortController()
+      chatRequestAbortRef.current = controller
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-mymckenzie-stream': '1',
+        },
+        signal: controller.signal,
         body: JSON.stringify({ 
           message: regenMessage, 
           history: messages.slice(0, messageIndex - 1),
@@ -1000,6 +1007,30 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
           sessionStartedAt: sessionStart
         }),
       })
+
+      const isStreamResponse = (response.headers.get('content-type') || '').includes('application/x-ndjson')
+      if (isStreamResponse) {
+        const assistantMessageId = `assistant_regen_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+        const assistantMessage: Message = {
+          id: assistantMessageId,
+          role: 'assistant',
+          content: '',
+          timestamp: new Date(),
+          isTyping: true,
+        }
+
+        setMessages((prev) => [...prev, assistantMessage])
+
+        if (!response.ok) {
+          throw new Error('Streaming request failed')
+        }
+
+        await consumeAssistantStream(response, assistantMessageId)
+        chatRequestAbortRef.current = null
+        setLoading(false)
+        setLoadingLabel(null)
+        return
+      }
 
       const rawData = await response.json()
       const data = normalizeAssistantResponsePayload(rawData) || rawData
@@ -1035,7 +1066,15 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       setMessages((prev) => [...prev, assistantMessage])
 
       typeMessageById(assistantText, assistantMessageId)
+      chatRequestAbortRef.current = null
     } catch (error: any) {
+      chatRequestAbortRef.current = null
+      if (error?.name === 'AbortError') {
+        if (activeCaseOverride) pendingActiveCaseOverrideRef.current = activeCaseOverride
+        setLoading(false)
+        setLoadingLabel(null)
+        return
+      }
       if (activeCaseOverride) pendingActiveCaseOverrideRef.current = activeCaseOverride
       const errorText = 'MyMcKenzieCS is unavailable to help right now. Please try again later.'
       const errorMessageId = `assistant_regen_error_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
@@ -1165,6 +1204,97 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     })
   }
 
+  const appendStreamDeltaById = (messageId: string, delta: string) => {
+    if (!delta) return
+    setMessages((prev) => {
+      const targetIndex = prev.findIndex((m) => m.id === messageId)
+      if (targetIndex < 0) return prev
+
+      const target = prev[targetIndex]
+      const updated = [...prev]
+      updated[targetIndex] = {
+        ...target,
+        content: `${target.content || ''}${delta}`,
+        isTyping: true,
+      }
+      return updated
+    })
+  }
+
+  const finalizeStreamedMessageById = (
+    messageId: string,
+    fullText: string,
+    metadata?: AssistantMetadata
+  ) => {
+    const assistantText = stripAssistantSourcesBlock(String(fullText || ''))
+    setMessages((prev) => {
+      const targetIndex = prev.findIndex((m) => m.id === messageId)
+      if (targetIndex < 0) return prev
+
+      const target = prev[targetIndex]
+      const updated = [...prev]
+      updated[targetIndex] = {
+        ...target,
+        content: assistantText,
+        isTyping: false,
+        metadata: attachAssistantPresentationMetadata(
+          assistantText,
+          metadata || target.metadata,
+          { reuseExistingPresentation: true }
+        ) as AssistantMetadata | undefined,
+      }
+      return updated
+    })
+  }
+
+  const consumeAssistantStream = async (response: Response, assistantMessageId: string) => {
+    const reader = response.body?.getReader()
+    if (!reader) throw new Error('Streaming response body was unavailable')
+
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    while (true) {
+      const { value, done } = await reader.read()
+      buffer += decoder.decode(value || new Uint8Array(), { stream: !done })
+
+      let newlineIndex = buffer.indexOf('\n')
+      while (newlineIndex >= 0) {
+        const line = buffer.slice(0, newlineIndex).trim()
+        buffer = buffer.slice(newlineIndex + 1)
+
+        if (line) {
+          const event = JSON.parse(line) as {
+            type?: string
+            delta?: string
+            message?: string
+            payload?: unknown
+          }
+
+          if (event.type === 'delta' && typeof event.delta === 'string') {
+            appendStreamDeltaById(assistantMessageId, event.delta)
+          } else if (event.type === 'done') {
+            const data = normalizeAssistantResponsePayload(event.payload) || event.payload
+            if (!data || typeof (data as any).response !== 'string') {
+              throw new Error('Streaming response completed with an invalid payload')
+            }
+            const payload = data as { response: string; metadata?: AssistantMetadata }
+            finalizeStreamedMessageById(assistantMessageId, payload.response, payload.metadata)
+            return payload
+          } else if (event.type === 'error') {
+            throw new Error(event.message || 'Streaming request failed')
+          }
+        }
+
+        newlineIndex = buffer.indexOf('\n')
+      }
+
+      if (done) break
+    }
+
+    throw new Error('Streaming response ended before completion')
+  }
+
   useConversationBootstrap({
     normalizeUserId,
     generateUUID,
@@ -1214,6 +1344,10 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   }
 
   const handleStopGeneration = () => {
+    if (chatRequestAbortRef.current) {
+      chatRequestAbortRef.current.abort()
+      chatRequestAbortRef.current = null
+    }
     if (typingIntervalRef.current) {
       clearInterval(typingIntervalRef.current)
       typingIntervalRef.current = null
@@ -1336,9 +1470,15 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     try {
       activeCaseOverride = canUseCaseContext ? pendingActiveCaseOverrideRef.current : null
       pendingActiveCaseOverrideRef.current = null
+      const controller = new AbortController()
+      chatRequestAbortRef.current = controller
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-mymckenzie-stream': '1',
+        },
+        signal: controller.signal,
         body: JSON.stringify({ 
           message: composedMessage, 
           history: messages,
@@ -1351,6 +1491,30 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
           sessionStartedAt: sessionStart
         }),
       })
+
+      const isStreamResponse = (response.headers.get('content-type') || '').includes('application/x-ndjson')
+      if (isStreamResponse) {
+        const assistantMessageId = `assistant_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+        const assistantMessage: Message = {
+          id: assistantMessageId,
+          role: 'assistant',
+          content: '',
+          timestamp: new Date(),
+          isTyping: true,
+        }
+
+        setMessages((prev) => [...prev, assistantMessage])
+
+        if (!response.ok) {
+          throw new Error('Streaming request failed')
+        }
+
+        await consumeAssistantStream(response, assistantMessageId)
+        chatRequestAbortRef.current = null
+        setLoading(false)
+        setLoadingLabel(null)
+        return
+      }
 
       const raw = await response.text()
       const parsedData = (() => {
@@ -1392,7 +1556,15 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
 
       setMessages((prev) => [...prev, assistantMessage])
       typeMessageById(assistantText, assistantMessageId)
+      chatRequestAbortRef.current = null
     } catch (error: any) {
+      chatRequestAbortRef.current = null
+      if (error?.name === 'AbortError') {
+        if (activeCaseOverride) pendingActiveCaseOverrideRef.current = activeCaseOverride
+        setLoading(false)
+        setLoadingLabel(null)
+        return
+      }
       if (activeCaseOverride) pendingActiveCaseOverrideRef.current = activeCaseOverride
       const errorText = error instanceof Error && error.message
         ? error.message

@@ -3,8 +3,7 @@ import { OpenAI } from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { supabaseAdmin } from '../../database/supabase-server';
 import { DocGeneratorTool } from '../tools/doc-generator-tool';
-import { SearchTool } from '../tools/search-tool';
-import { createDiscriminatorAgent } from './discriminator-agent';
+import { SearchTool, type SearchEngine } from '../tools/search-tool';
 import { neutralizeLegalAdviceTone } from './legal-tone';
 import { logClaudeUsage } from '@/lib/utils/claude-usage';
 
@@ -170,6 +169,12 @@ const BASIC_GROQ_FALLBACK_MODEL =
   process.env.GROQ_BASIC_FALLBACK_MODEL ||
   process.env.GROQ_CHAT_FALLBACK_MODEL ||
   'llama-3.3-70b-versatile'
+const PREMIUM_PLUS_PLANNER_GROQ_MODEL =
+  process.env.PREMIUM_PLUS_PLANNER_GROQ_MODEL ||
+  BASIC_GROQ_MODEL
+const PREMIUM_PLUS_PLANNER_GROQ_FALLBACK_MODEL =
+  process.env.PREMIUM_PLUS_PLANNER_GROQ_FALLBACK_MODEL ||
+  BASIC_GROQ_FALLBACK_MODEL
 const ANTHROPIC_MODEL = process.env.PREMIUM_PLUS_CLAUDE_MODEL || 'claude-opus-4-5-20251101'
 const ANTHROPIC_FALLBACK_MODEL =
   process.env.PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL ||
@@ -181,6 +186,12 @@ const PREMIUM_TARGET_TOKENS = Number.isFinite(Number(process.env.PREMIUM_TARGET_
 const PREMIUM_MAX_TOKENS = Number.isFinite(Number(process.env.PREMIUM_MAX_TOKENS))
   ? Math.max(PREMIUM_TARGET_TOKENS, Math.floor(Number(process.env.PREMIUM_MAX_TOKENS)))
   : 1500
+const PREMIUM_PLUS_CONCISE_TARGET_TOKENS = Number.isFinite(Number(process.env.PREMIUM_PLUS_CONCISE_TARGET_TOKENS))
+  ? Math.max(450, Math.floor(Number(process.env.PREMIUM_PLUS_CONCISE_TARGET_TOKENS)))
+  : 900
+const PREMIUM_PLUS_CONCISE_MAX_TOKENS = Number.isFinite(Number(process.env.PREMIUM_PLUS_CONCISE_MAX_TOKENS))
+  ? Math.max(PREMIUM_PLUS_CONCISE_TARGET_TOKENS, Math.floor(Number(process.env.PREMIUM_PLUS_CONCISE_MAX_TOKENS)))
+  : 1200
 const PREMIUM_LENGTH_TAIL_TOKENS = Number.isFinite(Number(process.env.PREMIUM_LENGTH_TAIL_TOKENS))
   ? Math.max(100, Math.floor(Number(process.env.PREMIUM_LENGTH_TAIL_TOKENS)))
   : 300
@@ -253,6 +264,10 @@ export type PremiumPlusToolName =
   | 'web_search_general'
   | 'case_law_suggestions'
   | 'case_law_rag'
+
+const buildLengthInstruction = (_question: string): string => {
+  return 'Keep the answer disciplined and useful: usually about 220 to 450 words, with no more than 5 short sections or 6 bullets unless genuinely necessary.'
+}
 export type PremiumPlusToolSelection = {
   tool: PremiumPlusToolName
   query?: string
@@ -276,15 +291,24 @@ export type GeneratorRetrievalDecision = {
   tools?: PremiumPlusToolSelection[]
   reasons: string[]
 }
-export type PremiumSearchMode = 'direct' | 'web'
-export type PremiumSearchDecision = {
-  searchMode: PremiumSearchMode
-  webQuery?: string
-  confidence?: number
-  reasons: string[]
-}
+export type PremiumPlusPlannerDecision =
+  | ({
+      action: 'answer'
+      answer: string
+      confidence?: number
+      reasons: string[]
+      decomposition?: string
+      subIssues?: PremiumPlusSubIssue[]
+    })
+  | ({
+      action: 'execute'
+      confidence?: number
+      reasons: string[]
+      decomposition?: string
+      subIssues?: PremiumPlusSubIssue[]
+      plan: GeneratorRetrievalDecision
+    })
 type LegalAgentOptions = {
-  useDiscriminator?: boolean
   useSearch?: boolean
   systemPrompt?: string
   includeCitations?: boolean
@@ -302,8 +326,9 @@ type LegalAgentOptions = {
   maxCompressionRetries?: number
   searchQueryOverride?: string
   searchModeOverride?: LegalSearchMode
-  discriminatorModel?: string
-  discriminatorFallbackModel?: string
+  searchEngineOverride?: SearchEngine
+  targetTokensFloor?: number
+  maxTokensCap?: number
 }
 
 function stableBucketPercent(input: string): number {
@@ -659,7 +684,7 @@ const parseGeneratorRetrievalJson = (raw: string): GeneratorRetrievalDecision | 
   return null
 }
 
-const parsePremiumSearchJson = (raw: string): PremiumSearchDecision | null => {
+const parsePremiumPlusPlannerJson = (raw: string): PremiumPlusPlannerDecision | null => {
   const trimmed = (raw || '').trim()
   if (!trimmed) return null
 
@@ -669,11 +694,7 @@ const parsePremiumSearchJson = (raw: string): PremiumSearchDecision | null => {
   for (const candidate of candidates) {
     try {
       const parsed = JSON.parse(candidate) as any
-      const searchModeRaw = String(parsed?.search_mode || parsed?.searchMode || '').trim().toLowerCase()
-      const searchMode = (searchModeRaw === 'direct' || searchModeRaw === 'web') ? searchModeRaw : null
-      if (!searchMode) continue
-
-      const webQuery = String(parsed?.web_query || parsed?.webQuery || '').trim()
+      const action = String(parsed?.action || parsed?.mode || '').trim().toLowerCase()
       const rawConfidence = Number(
         parsed?.confidence ??
         parsed?.routing_confidence ??
@@ -687,11 +708,70 @@ const parsePremiumSearchJson = (raw: string): PremiumSearchDecision | null => {
         ? parsed.reasons.map((value: any) => String(value).trim()).filter(Boolean).slice(0, 8)
         : []
 
+      const rawDecomposition = parsed?.decomposition ?? parsed?.issue_breakdown ?? parsed?.breakdown ?? ''
+      const decomposition = Array.isArray(rawDecomposition)
+        ? rawDecomposition.map((value: any) => String(value || '').trim()).filter(Boolean).join('\n')
+        : String(rawDecomposition || '').trim()
+
+      const rawSubIssues = Array.isArray(parsed?.sub_issues)
+        ? parsed.sub_issues
+        : Array.isArray(parsed?.subIssues)
+          ? parsed.subIssues
+          : []
+      const subIssues = rawSubIssues
+        .map((item: any): PremiumPlusSubIssue | null => {
+          if (typeof item === 'string') {
+            const issue = item.trim()
+            return issue ? { issue } : null
+          }
+          if (!item || typeof item !== 'object') return null
+          const issue = String(item.issue || item.question || item.topic || '').trim()
+          if (!issue) return null
+          const subTools = parsePremiumPlusTools(item.tools ?? item.tool_plan ?? item.toolPlan)
+          const subModeRaw = String(item.retrieval_mode || item.retrievalMode || '').trim().toLowerCase()
+          const subMode = (
+            subModeRaw === 'direct' ||
+            subModeRaw === 'web_only' ||
+            subModeRaw === 'vector_only' ||
+            subModeRaw === 'hybrid'
+          ) ? subModeRaw : (deriveRetrievalModeFromTools(subTools) || undefined)
+          const subWebQuery = String(item.web_query || item.webQuery || firstToolQuery(subTools, 'web')).trim()
+          const subVectorQuery = String(item.vector_query || item.vectorQuery || firstToolQuery(subTools, 'case_law')).trim()
+          const rationale = String(item.rationale || item.reason || item.why || '').trim()
+          return {
+            issue,
+            retrievalMode: subMode,
+            webQuery: subWebQuery || undefined,
+            vectorQuery: subVectorQuery || undefined,
+            rationale: rationale || undefined,
+            tools: subTools.length > 0 ? subTools : undefined,
+          }
+        })
+        .filter((item: PremiumPlusSubIssue | null): item is PremiumPlusSubIssue => Boolean(item))
+        .slice(0, PREMIUM_PLUS_MAX_SUB_ISSUES)
+
+      if (action === 'answer') {
+        const answer = String(parsed?.answer || parsed?.response || '').trim()
+        if (!answer) continue
+        return {
+          action: 'answer',
+          answer,
+          confidence,
+          reasons,
+          decomposition: decomposition || undefined,
+          subIssues: subIssues.length > 0 ? subIssues : undefined,
+        }
+      }
+
+      const plan = parseGeneratorRetrievalJson(candidate)
+      if (!plan) continue
       return {
-        searchMode,
-        webQuery: webQuery || undefined,
+        action: 'execute',
         confidence,
-        reasons,
+        reasons: reasons.length > 0 ? reasons : plan.reasons,
+        decomposition: decomposition || plan.decomposition,
+        subIssues: subIssues.length > 0 ? subIssues : plan.subIssues,
+        plan,
       }
     } catch {
       // try next candidate
@@ -1619,64 +1699,73 @@ Output schema:
   return null
 }
 
-export async function decidePremiumPlusToolPlanWithClaude(
+export async function decidePremiumPlusPlanWithGroq(
   input: string,
   conversationHistory: Array<{ role: string; content: string }> = [],
   caseKeywords?: string,
   options?: {
-    anthropicModel?: string
-    anthropicFallbackModel?: string
+    groqModel?: string
+    groqFallbackModel?: string
   }
-): Promise<GeneratorRetrievalDecision | null> {
-  const anthropicApiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
-  if (!anthropicApiKey) return null
+): Promise<PremiumPlusPlannerDecision | null> {
+  const groqApiKey = (process.env.GROQ_API_KEY || '').trim()
+  if (!groqApiKey) return null
 
   const trimmedHistory = sanitizeConversationHistory(conversationHistory, 12)
   const historyContext = buildHistoryContext(trimmedHistory)
-  const model = (options?.anthropicModel || ANTHROPIC_MODEL).trim() || ANTHROPIC_MODEL
-  const fallbackModel = (options?.anthropicFallbackModel || ANTHROPIC_FALLBACK_MODEL).trim()
+  const model = (options?.groqModel || PREMIUM_PLUS_PLANNER_GROQ_MODEL).trim() || PREMIUM_PLUS_PLANNER_GROQ_MODEL
+  const fallbackModel = (options?.groqFallbackModel || PREMIUM_PLUS_PLANNER_GROQ_FALLBACK_MODEL).trim()
   const routingTimeoutMs = getRoutingDecisionTimeoutMs()
   const systemPrompt = [
-    'You are the MyMckenzieCS Premium+ planner deciding what tools are needed before answering.',
-    'Decide whether the answer should use web retrieval, case-law retrieval, or neither.',
+    'You are the MyMckenzieCS Premium+ planner.',
+    'You may either answer a truly simple stable legal question directly, or produce an execution plan for the Claude executor.',
+    'Freely decompose the request into all material issues before deciding.',
     'Return JSON only. No prose, no markdown, no code fences.',
   ].join(' ')
-  const userPrompt = `Choose the retrieval mode for this Premium+ user request before answer generation.
+  const userPrompt = `Decide whether to answer directly yourself or send this Premium+ request to the executor.
 User message:
 ${input}
 
 ${caseKeywords ? `Case context: ${caseKeywords}\n` : ''}${historyContext}
 
 Rules:
-1. retrieval_mode must be one of: direct, web_only, vector_only, hybrid.
-2. Use direct when the answer can be given safely from stable general legal knowledge or plain-English explanation without needing current source verification or case-law retrieval.
-3. Use web_only when current procedure, forms, deadlines, official guidance, or practical next steps are dominant.
-4. Use vector_only when case law, precedent, legal authorities, or analogical reasoning from authorities are dominant.
-5. Use hybrid when both current practical guidance and legal authorities materially matter.
-6. tools must be an array drawn from: direct_knowledge, web_search_education, web_search_procedure, web_search_case_specific, web_search_document_review, web_search_general, case_law_suggestions, case_law_rag.
-7. Use the smallest tool set that materially improves the answer.
-8. Use direct_knowledge when stable explanation is sufficient without retrieval.
-9. Choose the specific web search tool that best matches the need. Use education for definitions, procedure for filing/deadlines/forms/steps, case_specific for fact-pattern guidance, document_review for document-led lookup, and general when none of the narrower modes fit.
-10. Use case_law_suggestions when surfacing likely authorities or offering a shortlist of relevant decisions is useful.
-11. Use case_law_rag when the answer should actively rely on retrieved authorities, summaries, or extracts.
-12. Each tool entry may include query and rationale.
-13. web_query must be a short focused web search query when a web search tool is used. Leave it blank for direct or case-law-only plans.
-14. vector_query must be a short focused case-law retrieval query when a case-law tool is used. Leave it blank for direct or web-only plans.
-15. Freely decompose the request into all material legal, procedural, factual, and practical sub-issues. Do not force the request into a single short summary if it clearly has multiple moving parts.
-16. decomposition may be a paragraph, compact multiline string, or ordered breakdown that explains how the request was split.
-17. sub_issues should contain as many material issues as needed, up to ${PREMIUM_PLUS_MAX_SUB_ISSUES}. Keep them in the order the final answer should follow. Each may include retrieval_mode, tools, web_query, vector_query, and rationale where useful.
-18. confidence must be 0 to 1 for routing certainty.
-19. reasons should briefly explain the routing choice.
-20. Do not answer the user. Only choose retrieval.
+1. action must be either "answer" or "execute".
+2. Choose action="answer" only for truly simple stable questions that can be answered safely without current verification, web retrieval, or case-law retrieval.
+3. If action="answer", provide a complete plain-text answer in "answer". Keep it concise, clear, and practical. Do not include markdown.
+4. Choose action="execute" for anything that needs current procedure, practical steps, case-law reasoning, mixed issues, user-fact issue spotting, or retrieval.
+5. If action="execute", retrieval_mode must be one of: direct, web_only, vector_only, hybrid.
+6. Freely decompose the request into all material legal, procedural, factual, and practical sub-issues. Do not force the request into a short summary if it has multiple moving parts.
+7. decomposition may be a paragraph, compact multiline string, or ordered breakdown.
+8. sub_issues may be as detailed as needed, up to ${PREMIUM_PLUS_MAX_SUB_ISSUES}. Keep them in the order the final answer should follow.
+9. tools must be an array drawn from this smaller planner set only: direct_knowledge, web_search, case_law.
+10. If using web_search, also set web_mode to one of: education, procedure, case_specific, document_review, general.
+11. Use the smallest tool set that materially improves the answer.
+12. web_query must be a short focused web search query when a web search tool is used. Leave it blank otherwise.
+13. vector_query must be a short focused case-law retrieval query when a case-law tool is used. Leave it blank otherwise.
+14. confidence must be 0 to 1.
+15. reasons should briefly explain the choice.
+16. Do not mix final user answer text into action="execute".
 
-Output schema:
+Output schema for action="answer":
 {
+  "action": "answer",
+  "answer": "plain text answer",
+  "decomposition": "string",
+  "sub_issues": ["string"],
+  "confidence": 0.0,
+  "reasons": ["string"]
+}
+
+Output schema for action="execute":
+{
+  "action": "execute",
   "retrieval_mode": "direct|web_only|vector_only|hybrid",
   "web_query": "string",
   "vector_query": "string",
   "tools": [
     {
-      "tool": "direct_knowledge|web_search_education|web_search_procedure|web_search_case_specific|web_search_document_review|web_search_general|case_law_suggestions|case_law_rag",
+      "tool": "direct_knowledge|web_search|case_law",
+      "web_mode": "education|procedure|case_specific|document_review|general",
       "query": "string",
       "rationale": "string"
     }
@@ -1688,7 +1777,8 @@ Output schema:
       "retrieval_mode": "direct|web_only|vector_only|hybrid",
       "tools": [
         {
-          "tool": "direct_knowledge|web_search_education|web_search_procedure|web_search_case_specific|web_search_document_review|web_search_general|case_law_suggestions|case_law_rag",
+          "tool": "direct_knowledge|web_search|case_law",
+          "web_mode": "education|procedure|case_specific|document_review|general",
           "query": "string",
           "rationale": "string"
         }
@@ -1702,49 +1792,43 @@ Output schema:
   "reasons": ["string"]
 }`
 
-  const anthropic = new Anthropic({ apiKey: anthropicApiKey })
-  const runModel = async (modelName: string): Promise<string> => {
-    const startedAt = Date.now()
-    try {
-      const completion = await anthropic.messages.create({
+  const runGroqModel = async (modelName: string): Promise<string> => {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${groqApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         model: modelName,
-        max_tokens: 220,
-        temperature: 0,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }],
-      })
-      logClaudeUsage({
-        model: modelName,
-        usage: (completion as any)?.usage,
-        success: true,
-        latencyMs: Date.now() - startedAt,
-        requestType: 'premium_plus_tool_plan',
-      })
-      return Array.isArray(completion.content)
-        ? completion.content
-            .filter((block: any) => block?.type === 'text')
-            .map((block: any) => String(block?.text || ''))
-            .join('\n')
-        : ''
-    } catch (error: any) {
-      logClaudeUsage({
-        model: modelName,
-        success: false,
-        latencyMs: Date.now() - startedAt,
-        requestType: 'premium_plus_tool_plan',
-        error: error?.message || String(error),
-      })
-      throw error
+        max_tokens: 500,
+        temperature: 0.1,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+      }),
+    })
+
+    if (!response.ok) {
+      const details = await response.text().catch(() => '')
+      throw new Error(`Groq planner model ${modelName} failed (${response.status}): ${details}`)
     }
+
+    const completion = await response.json() as {
+      choices?: Array<{ message?: { content?: string | null } }>
+    }
+
+    return completion.choices?.[0]?.message?.content || ''
   }
 
   try {
     const primary = await withRoutingTimeout(
-      runModel(model),
+      runGroqModel(model),
       routingTimeoutMs,
-      'Premium+ Claude tool planning'
+      'Premium+ Groq planning'
     )
-    const parsed = parseGeneratorRetrievalJson(primary)
+    const parsed = parsePremiumPlusPlannerJson(primary)
     if (parsed) return parsed
   } catch (error) {
     if (error instanceof RoutingTimeoutError) {
@@ -1756,136 +1840,11 @@ Output schema:
   if (fallbackModel && fallbackModel !== model) {
     try {
       const fallback = await withRoutingTimeout(
-        runModel(fallbackModel),
+        runGroqModel(fallbackModel),
         routingTimeoutMs,
-        'Premium+ Claude tool planning fallback'
+        'Premium+ Groq planning fallback'
       )
-      const parsed = parseGeneratorRetrievalJson(fallback)
-      if (parsed) return parsed
-    } catch (error) {
-      if (error instanceof RoutingTimeoutError) {
-        console.warn(error.message)
-      }
-      return null
-    }
-  }
-
-  return null
-}
-
-export async function decidePremiumSearchNeedWithGenerator(
-  input: string,
-  conversationHistory: Array<{ role: string; content: string }> = [],
-  caseKeywords?: string,
-  options?: {
-    openaiModel?: string
-    openaiFallbackModel?: string
-  }
-): Promise<PremiumSearchDecision | null> {
-  const apiKey = (process.env.OPENAI_API_KEY || '').trim()
-  if (!apiKey) return null
-
-  const trimmedHistory = sanitizeConversationHistory(conversationHistory, 12)
-  const historyContext = buildHistoryContext(trimmedHistory)
-  const model = (options?.openaiModel || OPENAI_MODEL).trim() || OPENAI_MODEL
-  const fallbackModel = (options?.openaiFallbackModel || OPENAI_FALLBACK_MODEL).trim()
-  const routingTimeoutMs = getRoutingDecisionTimeoutMs()
-  const systemPrompt = [
-    'You are the MyMckenzieCS generator deciding whether web retrieval is needed before answering.',
-    'Decide whether the model should answer directly from stable legal knowledge or use web retrieval first.',
-    'Return JSON only. No prose, no markdown, no code fences.',
-  ].join(' ')
-  const userPrompt = `Choose whether web retrieval is needed before answering this user request.
-User message:
-${input}
-
-${caseKeywords ? `Case context: ${caseKeywords}\n` : ''}${historyContext}
-
-Rules:
-1. search_mode must be one of: direct, web.
-2. Use direct when the answer can be given safely from stable general legal knowledge, plain-English explanation, or common procedural concepts without needing current source verification.
-3. Use web when current procedure, official guidance, forms, deadlines, recent legal changes, or source-grounded practical next steps materially matter.
-4. If attachment excerpts are present and the answer depends on current rules, official forms, or source-grounded analysis, prefer web.
-5. web_query must be a short focused web search query when search_mode is web. Leave it blank when search_mode is direct.
-6. confidence must be 0 to 1 for routing certainty.
-7. reasons should briefly explain the routing choice.
-8. Do not answer the user. Only choose whether to use web retrieval.
-
-Output schema:
-{
-  "search_mode": "direct|web",
-  "web_query": "string",
-  "confidence": 0.0,
-  "reasons": ["string"]
-}`
-
-  const openai = new OpenAI({ apiKey })
-  const buildPayload = (modelName: string) => {
-    const normalizedModel = modelName.trim().toLowerCase()
-    const payload: Record<string, any> = {
-      model: modelName,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-    }
-    if (normalizedModel.startsWith('o') || normalizedModel.startsWith('gpt-5')) {
-      payload.max_completion_tokens = 180
-    } else {
-      payload.max_tokens = 180
-      payload.temperature = 0.1
-    }
-    return payload
-  }
-
-  const runModel = async (modelName: string): Promise<string> => {
-    try {
-      const completion = await openai.chat.completions.create(buildPayload(modelName) as any)
-      return completion.choices?.[0]?.message?.content || ''
-    } catch (error: any) {
-      const unsupportedTokenParam =
-        error?.code === 'unsupported_parameter' &&
-        (error?.param === 'max_tokens' || error?.param === 'max_completion_tokens')
-      if (!unsupportedTokenParam) throw error
-
-      const retryPayload = buildPayload(modelName)
-      if ('max_tokens' in retryPayload) {
-        delete retryPayload.max_tokens
-        retryPayload.max_completion_tokens = 180
-      } else {
-        delete retryPayload.max_completion_tokens
-        retryPayload.max_tokens = 180
-        retryPayload.temperature = 0.1
-      }
-      const completion = await openai.chat.completions.create(retryPayload as any)
-      return completion.choices?.[0]?.message?.content || ''
-    }
-  }
-
-  try {
-    const primary = await withRoutingTimeout(
-      runModel(model),
-      routingTimeoutMs,
-      'Premium search routing'
-    )
-    const parsed = parsePremiumSearchJson(primary)
-    if (parsed) return parsed
-  } catch (error) {
-    if (error instanceof RoutingTimeoutError) {
-      console.warn(error.message)
-      return null
-    }
-    // try fallback below
-  }
-
-  if (fallbackModel && fallbackModel !== model) {
-    try {
-      const fallback = await withRoutingTimeout(
-        runModel(fallbackModel),
-        routingTimeoutMs,
-        'Premium search routing fallback'
-      )
-      const parsed = parsePremiumSearchJson(fallback)
+      const parsed = parsePremiumPlusPlannerJson(fallback)
       if (parsed) return parsed
     } catch (error) {
       if (error instanceof RoutingTimeoutError) {
@@ -1933,7 +1892,6 @@ export async function createLegalAgent(
   const trimmedHistory = sanitizeConversationHistory(fullHistory, 40)
   const tools = [new DocGeneratorTool()]
   const systemPrompt = options?.systemPrompt || SYSTEM_PROMPT
-  const useDiscriminator = options?.useDiscriminator !== false
   const useSearch = options?.useSearch !== false
   const includeCitations = options?.includeCitations === true
   const openaiModel = options?.openaiModel || OPENAI_MODEL
@@ -1943,15 +1901,20 @@ export async function createLegalAgent(
   const anthropicModel = options?.anthropicModel || ANTHROPIC_MODEL
   const anthropicFallbackModel = options?.anthropicFallbackModel || ANTHROPIC_FALLBACK_MODEL
   const llmProvider: LlmProvider = options?.provider || 'openai'
-  const discriminatorModel = options?.discriminatorModel
-  const discriminatorFallbackModel = options?.discriminatorFallbackModel
   const searchQueryOverride = (options?.searchQueryOverride || '').trim()
   const searchModeOverride = options?.searchModeOverride
+  const searchEngineOverride = options?.searchEngineOverride || 'auto'
   const requestedMaxTokens = Number.isFinite(Number(options?.maxTokens))
     ? Math.max(250, Number(options?.maxTokens))
     : MAX_TOKENS
+  const targetTokensFloor = Number.isFinite(Number(options?.targetTokensFloor))
+    ? Math.max(250, Number(options?.targetTokensFloor))
+    : PREMIUM_TARGET_TOKENS
+  const maxTokensCap = Number.isFinite(Number(options?.maxTokensCap))
+    ? Math.max(targetTokensFloor, Number(options?.maxTokensCap))
+    : PREMIUM_MAX_TOKENS
   const maxTokens = useSearch
-    ? Math.min(PREMIUM_MAX_TOKENS, Math.max(PREMIUM_TARGET_TOKENS, requestedMaxTokens))
+    ? Math.min(maxTokensCap, Math.max(targetTokensFloor, requestedMaxTokens))
     : requestedMaxTokens
   const autoContinueOnLength = options?.autoContinueOnLength === true
   const maxAutoContinues = Number.isFinite(Number(options?.maxAutoContinues))
@@ -1969,7 +1932,7 @@ export async function createLegalAgent(
     tools,
     systemPrompt,
     /**
-     * Flow: greeting → document → SEARCH + ANSWER → DISCRIMINATOR REVIEW + IMPROVE
+     * Flow: greeting → document → answer
      */
     async invoke({ input }: { input: string }): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; sources?: Array<{ number: number; title: string; url: string }> }> {
       try {
@@ -2005,11 +1968,12 @@ export async function createLegalAgent(
           }
         }
 
-        // 3. LEGAL AGENT: Direct answer (no search, optional discriminator review)
+        // 3. LEGAL AGENT: Direct answer (no search)
         if (!useSearch) {
           const historyContext = buildHistoryContext(trimmedHistory)
           const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
-          const directPrompt = `${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
+          const lengthInstruction = buildLengthInstruction(latestQuestion)
+          const directPrompt = `${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. ${lengthInstruction} Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
           const modelForProvider =
             llmProvider === 'groq'
               ? groqModel
@@ -2034,30 +1998,7 @@ export async function createLegalAgent(
             useCompression,
             maxCompressionRetries
           )
-          let finalDirectAnswer = neutralizeLegalAdviceTone(directAnswer)
-          if (useDiscriminator) {
-            try {
-              const discriminatorAgent = await createDiscriminatorAgent(
-                trimmedHistory,
-                caseKeywords,
-                false,
-                {
-                  discriminatorModel,
-                  discriminatorFallbackModel,
-                }
-              )
-              const reviewed = await discriminatorAgent.invoke({
-                input: latestQuestion,
-                comprehensiveAnswer: finalDirectAnswer,
-                allSources: [],
-              })
-              if (reviewed?.streamlinedAnswer?.trim()) {
-                finalDirectAnswer = reviewed.streamlinedAnswer.trim()
-              }
-            } catch (discriminatorError) {
-              console.error('Direct-answer discriminator review failed:', discriminatorError)
-            }
-          }
+          const finalDirectAnswer = neutralizeLegalAdviceTone(directAnswer)
           return {
             response: finalDirectAnswer,
             document_generated: false,
@@ -2077,8 +2018,8 @@ export async function createLegalAgent(
         }
 
         // Perform comprehensive search for all relevant information.
-        const searchTool = new SearchTool()
-        const searchPayload = JSON.stringify({ query: searchQuery, mode })
+        const searchTool = new SearchTool({ engine: searchEngineOverride })
+        const searchPayload = JSON.stringify({ query: searchQuery, mode, engine: searchEngineOverride })
         const searchResult = await searchTool._call(searchPayload)
 
         let sources: string[] = []
@@ -2108,7 +2049,8 @@ export async function createLegalAgent(
         const citationInstruction = effectiveIncludeCitations
           ? 'Include inline citations in square brackets that match the sources list above, like [1] or [2]. Use citations on factual statements.'
           : 'Do not include any source citations.'
-        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\nUser question: "${latestQuestion}"\n\nGenerate a thorough, detailed answer that comprehensively covers this topic using ALL relevant information from the sources. ${citationInstruction} Create a complete answer that covers all aspects and angles of the question. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
+        const lengthInstruction = buildLengthInstruction(latestQuestion)
+        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\nUser question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} ${citationInstruction} This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
         
         const modelForProvider =
           llmProvider === 'groq'
@@ -2156,54 +2098,6 @@ export async function createLegalAgent(
           )
         }
 
-        // 5. DISCRIMINATOR: Critic/revise/verify the comprehensive answer for the user
-        if (useDiscriminator) {
-          try {
-            const discriminatorAgent = await createDiscriminatorAgent(
-              trimmedHistory,
-              caseKeywords,
-              effectiveIncludeCitations,
-              {
-                discriminatorModel,
-                discriminatorFallbackModel,
-              }
-            )
-            const streamlined = await discriminatorAgent.invoke({
-              input: latestQuestion,
-              comprehensiveAnswer: comprehensiveAnswer,
-              allSources: sources
-            })
-
-            const final = ensureCitationsForPremium(
-              neutralizeLegalAdviceTone(streamlined.streamlinedAnswer),
-              sources,
-              effectiveIncludeCitations
-            )
-            const finalResponse = final.responseText
-            const citedSources = final.sources || streamlined.citedSources
-
-            return {
-              response: finalResponse,
-              document_generated: false,
-              guidance_provided: true,
-              sources: citedSources
-            }
-          } catch (discriminatorError: any) {
-            console.error('Discriminator unavailable; falling back to primary legal answer', discriminatorError)
-            const fallback = ensureCitationsForPremium(
-              neutralizeLegalAdviceTone(comprehensiveAnswer),
-              sources,
-              effectiveIncludeCitations
-            )
-            return {
-              response: fallback.responseText,
-              document_generated: false,
-              guidance_provided: true,
-              sources: fallback.sources
-            }
-          }
-        }
-
         const finalNoEngineCitations = ensureCitationsForPremium(
           neutralizeLegalAdviceTone(comprehensiveAnswer),
           sources,
@@ -2244,27 +2138,7 @@ export async function invokeLegalAgent(
   _userId?: string,
   conversationHistory: Array<{ role: string; content: string }> = [],
   caseKeywords?: string,
-  options?: {
-    useDiscriminator?: boolean
-    useSearch?: boolean
-    includeCitations?: boolean
-    provider?: LlmProvider
-    openaiModel?: string
-    openaiFallbackModel?: string
-    groqModel?: string
-    groqFallbackModel?: string
-    anthropicModel?: string
-    anthropicFallbackModel?: string
-    maxTokens?: number
-    autoContinueOnLength?: boolean
-    maxAutoContinues?: number
-    lengthRecoveryMode?: LengthRecoveryMode
-    maxCompressionRetries?: number
-    searchQueryOverride?: string
-    searchModeOverride?: LegalSearchMode
-    discriminatorModel?: string
-    discriminatorFallbackModel?: string
-  }
+  options?: LegalAgentOptions
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
   const agent = await createLegalAgent(conversationHistory, caseKeywords, undefined, options)
   const response = await agent.invoke({ input: message })
@@ -2287,6 +2161,7 @@ export async function invokePremiumLegalAgent(
     useSearch?: boolean
     searchQueryOverride?: string
     searchModeOverride?: LegalSearchMode
+    searchEngineOverride?: SearchEngine
     openaiModel?: string
     openaiFallbackModel?: string
     maxTokens?: number
@@ -2294,7 +2169,6 @@ export async function invokePremiumLegalAgent(
   }
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
   return invokeLegalAgent(message, threadId, userId, conversationHistory, caseKeywords, {
-    useDiscriminator: false,
     useSearch: options?.useSearch,
     includeCitations: false,
     provider: 'openai',
@@ -2304,7 +2178,259 @@ export async function invokePremiumLegalAgent(
     maxCompressionRetries: options?.maxCompressionRetries,
     searchQueryOverride: options?.searchQueryOverride,
     searchModeOverride: options?.searchModeOverride,
+    searchEngineOverride: options?.searchEngineOverride || 'brave',
   })
+}
+
+export async function invokePremiumLegalAgentStream(
+  message: string,
+  _threadId: string,
+  _userId?: string,
+  conversationHistory: Array<{ role: string; content: string }> = [],
+  caseKeywords?: string,
+  options?: {
+    useSearch?: boolean
+    searchQueryOverride?: string
+    searchModeOverride?: LegalSearchMode
+    searchEngineOverride?: SearchEngine
+    openaiModel?: string
+    openaiFallbackModel?: string
+    maxTokens?: number
+    maxCompressionRetries?: number
+    onToken?: (chunk: string) => void
+  }
+): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
+  const apiKey = (process.env.OPENAI_API_KEY || '').trim()
+  if (!apiKey) {
+    return {
+      response: "I'm unable to respond right now because the Premium model is unavailable. Please try again shortly.",
+      document_generated: false,
+      guidance_provided: false,
+      next_steps: [],
+      sources: undefined,
+    }
+  }
+
+  const trimmedHistory = sanitizeConversationHistory(conversationHistory, 40)
+  const systemPrompt = SYSTEM_PROMPT
+  const useSearch = options?.useSearch !== false
+  const openaiModel = options?.openaiModel || OPENAI_MODEL
+  const openaiFallbackModel = options?.openaiFallbackModel || OPENAI_FALLBACK_MODEL
+  const searchQueryOverride = (options?.searchQueryOverride || '').trim()
+  const searchModeOverride = options?.searchModeOverride
+  const searchEngineOverride = options?.searchEngineOverride || 'brave'
+  const requestedMaxTokens = Number.isFinite(Number(options?.maxTokens))
+    ? Math.max(250, Number(options?.maxTokens))
+    : MAX_TOKENS
+  const maxTokens = useSearch
+    ? Math.min(PREMIUM_MAX_TOKENS, Math.max(PREMIUM_TARGET_TOKENS, requestedMaxTokens))
+    : requestedMaxTokens
+
+  const openai = new OpenAI({ apiKey })
+  const continuationPrompt = 'Continue exactly from where you stopped. Do not repeat prior text. Keep the same structure and style.'
+  const continuationLimit = 1
+
+  const streamOpenAiText = async (prompt: string): Promise<string> => {
+    const transcript: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: prompt },
+    ]
+    const chunks: string[] = []
+    let continueCount = 0
+
+    const buildPayload = (
+      modelName: string,
+      messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>
+    ) => {
+      const normalizedModel = modelName.trim().toLowerCase()
+      const payload: Record<string, any> = {
+        model: modelName,
+        messages,
+        stream: true,
+      }
+      if (normalizedModel.startsWith('o') || normalizedModel.startsWith('gpt-5')) {
+        payload.max_completion_tokens = maxTokens
+      } else {
+        payload.max_tokens = maxTokens
+        payload.temperature = 0.7
+      }
+      return payload
+    }
+
+    const runModel = async (
+      modelName: string,
+      messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>
+    ) => {
+      let streamedText = ''
+      let finishReason: string | null = null
+      try {
+        const stream = await openai.chat.completions.create(buildPayload(modelName, messages) as any)
+        for await (const chunk of stream as unknown as AsyncIterable<any>) {
+          const delta = chunk?.choices?.[0]?.delta?.content || ''
+          if (delta) {
+            streamedText += delta
+            options?.onToken?.(delta)
+          }
+          const candidateFinish = chunk?.choices?.[0]?.finish_reason
+          if (candidateFinish) finishReason = candidateFinish
+        }
+        return {
+          rawResponse: streamedText || "I couldn't generate a response.",
+          finishReason,
+        }
+      } catch (error: any) {
+        const unsupportedTokenParam =
+          error?.code === 'unsupported_parameter' &&
+          (error?.param === 'max_tokens' || error?.param === 'max_completion_tokens')
+        if (!unsupportedTokenParam) throw error
+
+        const retryPayload = buildPayload(modelName, messages)
+        if ('max_tokens' in retryPayload) {
+          delete retryPayload.max_tokens
+          retryPayload.max_completion_tokens = maxTokens
+        } else {
+          delete retryPayload.max_completion_tokens
+          retryPayload.max_tokens = maxTokens
+          retryPayload.temperature = 0.7
+        }
+
+        const retryStream = await openai.chat.completions.create(retryPayload as any)
+        streamedText = ''
+        finishReason = null
+        for await (const chunk of retryStream as unknown as AsyncIterable<any>) {
+          const delta = chunk?.choices?.[0]?.delta?.content || ''
+          if (delta) {
+            streamedText += delta
+            options?.onToken?.(delta)
+          }
+          const candidateFinish = chunk?.choices?.[0]?.finish_reason
+          if (candidateFinish) finishReason = candidateFinish
+        }
+        return {
+          rawResponse: streamedText || "I couldn't generate a response.",
+          finishReason,
+        }
+      }
+    }
+
+    const runWithFallback = async (messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>) => {
+      try {
+        return await runModel(openaiModel, messages)
+      } catch (primaryError) {
+        if (openaiFallbackModel && openaiFallbackModel !== openaiModel) {
+          console.error('OpenAI streaming primary model failed, trying fallback model', {
+            primaryModel: openaiModel,
+            fallbackModel: openaiFallbackModel,
+          })
+          return await runModel(openaiFallbackModel, messages)
+        }
+        throw primaryError
+      }
+    }
+
+    while (true) {
+      const { rawResponse, finishReason } = await runWithFallback(transcript)
+      const cleanedChunk = rawResponse.trim()
+      if (cleanedChunk) {
+        chunks.push(cleanedChunk)
+        transcript.push({ role: 'assistant', content: cleanedChunk })
+      }
+
+      const canContinue =
+        finishReason === 'length' &&
+        continueCount < continuationLimit &&
+        endsMidSentenceOrSection(cleanedChunk)
+      if (!canContinue) break
+
+      continueCount += 1
+      transcript.push({ role: 'user', content: continuationPrompt })
+    }
+
+    return stripMarkdown(stripUrlsFromText(chunks.join('\n\n').trim() || "I couldn't generate a response."))
+  }
+
+  const latestQuestion = (message || '').trim()
+
+  if (isBasicGreeting(latestQuestion)) {
+    return {
+      response: "Hello! I'm MyMcKenzieCS. How can I help with your legal question?",
+      document_generated: false,
+      guidance_provided: true,
+      next_steps: [],
+      sources: undefined,
+    }
+  }
+
+  if (wantsDocumentDraftRequest(latestQuestion)) {
+    if (!wantsTemplateFillOnly(latestQuestion)) {
+      return {
+        response: templateOnlyRefusalMessage(),
+        document_generated: false,
+        guidance_provided: true,
+        next_steps: [],
+        sources: undefined,
+      }
+    }
+    const contextForTools = buildHistoryContext(trimmedHistory) + latestQuestion
+    const docResult = await new DocGeneratorTool()._call(contextForTools)
+    return {
+      response: stripMarkdown(docResult).trim(),
+      document_generated: true,
+      guidance_provided: false,
+      next_steps: [],
+      sources: undefined,
+    }
+  }
+
+  if (!useSearch) {
+    const historyContext = buildHistoryContext(trimmedHistory)
+    const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
+    const lengthInstruction = buildLengthInstruction(latestQuestion)
+    const directPrompt = `${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. ${lengthInstruction} Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
+    return {
+      response: neutralizeLegalAdviceTone(await streamOpenAiText(directPrompt)),
+      document_generated: false,
+      guidance_provided: true,
+      next_steps: [],
+      sources: undefined,
+    }
+  }
+
+  const isDefinition = isDefinitionQuery(latestQuestion)
+  const mode: LegalSearchMode = searchModeOverride || (isDefinition ? 'education' : 'general')
+
+  let searchQuery = searchQueryOverride || latestQuestion
+  if (caseKeywords && caseKeywords.trim()) {
+    searchQuery = `${searchQuery} | Case context: ${caseKeywords}`
+  }
+
+  const searchTool = new SearchTool({ engine: searchEngineOverride })
+  const searchPayload = JSON.stringify({ query: searchQuery, mode, engine: searchEngineOverride })
+  const searchResult = await searchTool._call(searchPayload)
+
+  let sources: string[] = []
+  let searchedInfo = ''
+  try {
+    const parsed = JSON.parse(searchResult) as { sources?: any[]; packet?: string }
+    sources = Array.isArray(parsed.sources) ? parsed.sources.filter((u: any): u is string => typeof u === 'string') : []
+    searchedInfo = typeof parsed.packet === 'string' ? parsed.packet : ''
+  } catch {
+    searchedInfo = searchResult
+  }
+
+  const sourceBlock = sources.length > 0
+    ? `All available sources to reference:\n${sources.map((url, i) => `[${i + 1}] ${url}`).join('\n')}`
+    : 'No sources available.'
+  const lengthInstruction = buildLengthInstruction(latestQuestion)
+  const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\nUser question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} Do not include any source citations. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
+
+  return {
+    response: neutralizeLegalAdviceTone(await streamOpenAiText(comprehensivePrompt)),
+    document_generated: false,
+    guidance_provided: true,
+    next_steps: [],
+    sources: undefined,
+  }
 }
 
 export async function invokePremiumPlusLegalAgent(
@@ -2317,6 +2443,7 @@ export async function invokePremiumPlusLegalAgent(
     useSearch?: boolean
     searchQueryOverride?: string
     searchModeOverride?: LegalSearchMode
+    searchEngineOverride?: SearchEngine
     anthropicModel?: string
     anthropicFallbackModel?: string
     maxTokens?: number
@@ -2324,17 +2451,278 @@ export async function invokePremiumPlusLegalAgent(
   }
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
   return invokeLegalAgent(message, threadId, userId, conversationHistory, caseKeywords, {
-    useDiscriminator: false,
     useSearch: options?.useSearch,
     includeCitations: true,
     provider: 'anthropic',
     anthropicModel: options?.anthropicModel || ANTHROPIC_MODEL,
     anthropicFallbackModel: options?.anthropicFallbackModel || ANTHROPIC_FALLBACK_MODEL,
     maxTokens: options?.maxTokens,
+    autoContinueOnLength: true,
+    maxAutoContinues: 1,
+    targetTokensFloor: PREMIUM_PLUS_CONCISE_TARGET_TOKENS,
+    maxTokensCap: PREMIUM_PLUS_CONCISE_MAX_TOKENS,
     maxCompressionRetries: options?.maxCompressionRetries,
     searchQueryOverride: options?.searchQueryOverride,
     searchModeOverride: options?.searchModeOverride,
+    searchEngineOverride: options?.searchEngineOverride || 'perplexity',
   })
+}
+
+export async function invokePremiumPlusLegalAgentStream(
+  message: string,
+  _threadId: string,
+  _userId?: string,
+  conversationHistory: Array<{ role: string; content: string }> = [],
+  caseKeywords?: string,
+  options?: {
+    useSearch?: boolean
+    searchQueryOverride?: string
+    searchModeOverride?: LegalSearchMode
+    searchEngineOverride?: SearchEngine
+    anthropicModel?: string
+    anthropicFallbackModel?: string
+    maxTokens?: number
+    maxCompressionRetries?: number
+    onToken?: (chunk: string) => void
+  }
+): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
+  const trimmedHistory = sanitizeConversationHistory(conversationHistory, 40)
+  const systemPrompt = SYSTEM_PROMPT
+  const useSearch = options?.useSearch !== false
+  const includeCitations = true
+  const anthropicModel = options?.anthropicModel || ANTHROPIC_MODEL
+  const anthropicFallbackModel = options?.anthropicFallbackModel || ANTHROPIC_FALLBACK_MODEL
+  const searchQueryOverride = (options?.searchQueryOverride || '').trim()
+  const searchModeOverride = options?.searchModeOverride
+  const searchEngineOverride = options?.searchEngineOverride || 'perplexity'
+  const requestedMaxTokens = Number.isFinite(Number(options?.maxTokens))
+    ? Math.max(250, Number(options?.maxTokens))
+    : MAX_TOKENS
+  const targetTokensFloor = PREMIUM_PLUS_CONCISE_TARGET_TOKENS
+  const maxTokensCap = PREMIUM_PLUS_CONCISE_MAX_TOKENS
+  const maxTokens = useSearch
+    ? Math.min(maxTokensCap, Math.max(targetTokensFloor, requestedMaxTokens))
+    : requestedMaxTokens
+
+  const anthropicApiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
+  if (!anthropicApiKey) {
+    return {
+      response: "I'm unable to respond right now because the Premium+ model is unavailable. Please try again shortly.",
+      document_generated: false,
+      guidance_provided: false,
+      next_steps: [],
+      sources: undefined,
+    }
+  }
+
+  const anthropic = new Anthropic({ apiKey: anthropicApiKey })
+  const continuationPrompt = 'Continue exactly from where you stopped. Do not repeat prior text. Keep the same structure and style.'
+  const continuationLimit = 1
+
+  const streamAnthropicText = async (prompt: string): Promise<string> => {
+    const transcript: Array<{ role: 'user' | 'assistant'; content: string }> = [
+      { role: 'user', content: prompt },
+    ]
+    const chunks: string[] = []
+    let continueCount = 0
+    let endedByLengthWithoutRecovery = false
+
+    const runModel = async (
+      modelName: string,
+      messages: Array<{ role: 'user' | 'assistant'; content: string }>
+    ) => {
+      const startedAt = Date.now()
+      let streamedText = ''
+      const stream = anthropic.messages
+        .stream({
+          model: modelName,
+          max_tokens: maxTokens,
+          temperature: 0.4,
+          system: systemPrompt,
+          messages,
+        })
+        .on('text', (text) => {
+          if (!text) return
+          streamedText += text
+          options?.onToken?.(text)
+        })
+
+      try {
+        const finalMessage = await stream.finalMessage()
+        logClaudeUsage({
+          model: modelName,
+          usage: (finalMessage as any)?.usage,
+          success: true,
+          latencyMs: Date.now() - startedAt,
+          requestType: 'chat',
+        })
+        const rawResponse = Array.isArray(finalMessage.content)
+          ? finalMessage.content
+              .filter((block: any) => block?.type === 'text')
+              .map((block: any) => String(block?.text || ''))
+              .join('\n')
+          : ''
+        const stopReason = (finalMessage as any)?.stop_reason || null
+        return {
+          rawResponse: rawResponse || streamedText || "I couldn't generate a response.",
+          stopReason,
+        }
+      } catch (error: any) {
+        logClaudeUsage({
+          model: modelName,
+          success: false,
+          latencyMs: Date.now() - startedAt,
+          requestType: 'chat',
+          error: error?.message || String(error),
+        })
+        throw error
+      }
+    }
+
+    const runWithFallback = async (messages: Array<{ role: 'user' | 'assistant'; content: string }>) => {
+      try {
+        return await runModel(anthropicModel, messages)
+      } catch (primaryError) {
+        if (anthropicFallbackModel && anthropicFallbackModel !== anthropicModel) {
+          console.error('Anthropic streaming primary model failed, trying fallback model', {
+            primaryModel: anthropicModel,
+            fallbackModel: anthropicFallbackModel,
+          })
+          return await runModel(anthropicFallbackModel, messages)
+        }
+        throw primaryError
+      }
+    }
+
+    while (true) {
+      const { rawResponse, stopReason } = await runWithFallback(transcript)
+      const cleanedChunk = rawResponse.trim()
+      if (cleanedChunk) {
+        chunks.push(cleanedChunk)
+        transcript.push({ role: 'assistant', content: cleanedChunk })
+      }
+
+      const canContinue =
+        stopReason === 'max_tokens' &&
+        continueCount < continuationLimit &&
+        endsMidSentenceOrSection(cleanedChunk)
+      if (!canContinue) {
+        if (stopReason === 'max_tokens') endedByLengthWithoutRecovery = true
+        break
+      }
+
+      continueCount += 1
+      transcript.push({ role: 'user', content: continuationPrompt })
+    }
+
+    let combined = chunks.join('\n\n').trim()
+    if (endedByLengthWithoutRecovery && combined) {
+      combined = stripMarkdown(stripUrlsFromText(combined))
+    }
+    return combined || "I couldn't generate a response."
+  }
+
+  const latestQuestion = (message || '').trim()
+
+  if (isBasicGreeting(latestQuestion)) {
+    return {
+      response: "Hello! I'm MyMcKenzieCS. How can I help with your legal question?",
+      document_generated: false,
+      guidance_provided: true,
+      next_steps: [],
+      sources: undefined,
+    }
+  }
+
+  if (wantsDocumentDraftRequest(latestQuestion)) {
+    if (!wantsTemplateFillOnly(latestQuestion)) {
+      return {
+        response: templateOnlyRefusalMessage(),
+        document_generated: false,
+        guidance_provided: true,
+        next_steps: [],
+        sources: undefined,
+      }
+    }
+    const contextForTools = buildHistoryContext(trimmedHistory) + latestQuestion
+    const docResult = await new DocGeneratorTool()._call(contextForTools)
+    return {
+      response: stripMarkdown(docResult).trim(),
+      document_generated: true,
+      guidance_provided: false,
+      next_steps: [],
+      sources: undefined,
+    }
+  }
+
+  if (!useSearch) {
+    const historyContext = buildHistoryContext(trimmedHistory)
+    const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
+    const lengthInstruction = buildLengthInstruction(latestQuestion)
+    const directPrompt = `${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. ${lengthInstruction} Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
+    const directAnswer = neutralizeLegalAdviceTone(await streamAnthropicText(directPrompt))
+    return {
+      response: directAnswer,
+      document_generated: false,
+      guidance_provided: true,
+      next_steps: [],
+      sources: undefined,
+    }
+  }
+
+  const isDefinition = isDefinitionQuery(latestQuestion)
+  const mode: LegalSearchMode = searchModeOverride || (isDefinition ? 'education' : 'general')
+
+  let searchQuery = searchQueryOverride || latestQuestion
+  if (caseKeywords && caseKeywords.trim()) {
+    searchQuery = `${searchQuery} | Case context: ${caseKeywords}`
+  }
+
+  const searchTool = new SearchTool({ engine: searchEngineOverride })
+  const searchPayload = JSON.stringify({ query: searchQuery, mode, engine: searchEngineOverride })
+  const searchResult = await searchTool._call(searchPayload)
+
+  let sources: string[] = []
+  let searchedInfo = ''
+  let sourceMode: 'engine' | 'fallback' | 'none' = 'none'
+
+  try {
+    const parsed = JSON.parse(searchResult) as { sources?: any[]; packet?: string; sourceMode?: any }
+    sources = Array.isArray(parsed.sources) ? parsed.sources.filter((u: any): u is string => typeof u === 'string') : []
+    searchedInfo = typeof parsed.packet === 'string' ? parsed.packet : ''
+    if (parsed.sourceMode === 'engine' || parsed.sourceMode === 'fallback' || parsed.sourceMode === 'none') {
+      sourceMode = parsed.sourceMode
+    } else {
+      sourceMode = sources.length > 0 ? 'engine' : 'none'
+    }
+  } catch {
+    searchedInfo = searchResult
+  }
+
+  const effectiveIncludeCitations = includeCitations && sourceMode === 'engine' && sources.length > 0
+  const sourceBlock = sources.length > 0
+    ? `All available sources to reference:\n${sources.map((url, i) => `[${i + 1}] ${url}`).join('\n')}`
+    : 'No sources available.'
+  const citationInstruction = effectiveIncludeCitations
+    ? 'Include inline citations in square brackets that match the sources list above, like [1] or [2]. Use citations on factual statements.'
+    : 'Do not include any source citations.'
+  const lengthInstruction = buildLengthInstruction(latestQuestion)
+  const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\nUser question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} ${citationInstruction} This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
+
+  const comprehensiveAnswer = await streamAnthropicText(comprehensivePrompt)
+  const final = ensureCitationsForPremium(
+    neutralizeLegalAdviceTone(comprehensiveAnswer),
+    sources,
+    effectiveIncludeCitations
+  )
+
+  return {
+    response: final.responseText,
+    document_generated: false,
+    guidance_provided: true,
+    next_steps: [],
+    sources: final.sources,
+  }
 }
 
 export async function invokeBasicLegalAgent(
@@ -2346,7 +2734,6 @@ export async function invokeBasicLegalAgent(
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
   const basicProvider = chooseBasicProvider(userId || threadId)
   const agent = await createLegalAgent(conversationHistory, caseKeywords, undefined, {
-    useDiscriminator: false,
     useSearch: false,
     systemPrompt: SYSTEM_PROMPT_FREE,
     provider: basicProvider,

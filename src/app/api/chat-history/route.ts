@@ -30,7 +30,7 @@ type ConversationMessageRow = {
   metadata?: unknown;
 };
 
-export function serializeConversationMessageRow(msg: ConversationMessageRow) {
+function serializeConversationMessageRow(msg: ConversationMessageRow) {
   const baseMetadata = sanitizeAssistantMetadata(msg.metadata);
   const message = msg.content || '';
   return {

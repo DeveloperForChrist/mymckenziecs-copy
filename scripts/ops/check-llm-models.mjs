@@ -21,9 +21,6 @@ const openAiModels = unique([
   process.env.OPENAI_BASIC_FALLBACK_MODEL,
   process.env.OPENAI_PREMIUM_MODEL,
   process.env.OPENAI_PREMIUM_FALLBACK_MODEL,
-  process.env.OPENAI_PREMIUM_PLUS_MODEL,
-  process.env.OPENAI_PREMIUM_PLUS_FALLBACK_MODEL,
-  process.env.OPENAI_DISCRIMINATOR_FALLBACK_MODEL,
   process.env.OPENAI_CHAT_MODEL,
   process.env.OPENAI_CHAT_FALLBACK_MODEL,
 ])
@@ -38,8 +35,6 @@ const groqModels = unique([
 const claudeModels = unique([
   process.env.CLAUDE_MODEL,
   process.env.CLAUDE_FALLBACK_MODEL,
-  process.env.PREMIUM_PLUS_DISCRIMINATOR_CLAUDE_MODEL,
-  process.env.PREMIUM_PLUS_DISCRIMINATOR_CLAUDE_FALLBACK_MODEL,
   process.env.PREMIUM_PLUS_CLAUDE_MODEL,
   process.env.PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL,
 ])

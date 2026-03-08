@@ -19,15 +19,6 @@ vi.mock('openai', () => {
   return { default: MockOpenAI, OpenAI: MockOpenAI }
 })
 
-vi.mock('./discriminator-agent', () => ({
-  createDiscriminatorAgent: vi.fn(async () => ({
-    invoke: vi.fn(async ({ comprehensiveAnswer }: { comprehensiveAnswer: string }) => ({
-      streamlinedAnswer: comprehensiveAnswer,
-      citedSources: undefined
-    }))
-  }))
-}))
-
 import { invokeLegalAgent } from './legal-agent'
 import { SearchTool } from '../tools/search-tool'
 
@@ -64,7 +55,7 @@ describe('legal-agent citation mapping', () => {
       'user_test',
       [],
       '',
-      { useDiscriminator: false, useSearch: true, includeCitations: true }
+      { useSearch: true, includeCitations: true }
     )
 
     expect(result.sources).toBeDefined()
@@ -72,7 +63,7 @@ describe('legal-agent citation mapping', () => {
     expect(result.response).not.toContain('Reference index:')
   })
 
-  it('keeps citations in premium flow even when discriminator output has no citation tags', async () => {
+  it('keeps citations in premium flow when search returns engine sources', async () => {
     const mockSources = [
       'https://www.gov.uk/example-a',
       'https://www.justice.gov.uk/example-b',
@@ -95,7 +86,7 @@ describe('legal-agent citation mapping', () => {
       'user_test',
       [],
       '',
-      { useDiscriminator: true, useSearch: true, includeCitations: true }
+      { useSearch: true, includeCitations: true }
     )
 
     expect(result.response).toMatch(/\[\d+\]/)
@@ -121,7 +112,7 @@ describe('legal-agent citation mapping', () => {
       'user_test',
       [],
       '',
-      { useDiscriminator: true, useSearch: true, includeCitations: true }
+      { useSearch: true, includeCitations: true }
     )
 
     expect(result.response).not.toMatch(/\[\d+\]/)

@@ -1,10 +1,12 @@
 import { Tool } from "@langchain/core/tools";
 
 export type RetrievalMode = 'education' | 'procedure' | 'case_specific' | 'document_review' | 'general'
+export type SearchEngine = 'auto' | 'brave' | 'perplexity'
 
 export type SearchToolInput = {
   query: string
   mode?: RetrievalMode
+  engine?: SearchEngine
 }
 
 export type SearchToolOutput = {
@@ -20,6 +22,12 @@ type SearchCandidate = {
   url: string
   title: string
   fromQuery?: string
+  snippet?: string
+  publishedDate?: string
+}
+
+type SearchToolOptions = {
+  engine?: SearchEngine
 }
 
 const SEARCH_SUBQUERY_LIMIT = 2
@@ -28,6 +36,8 @@ const SEARCH_ENGINE_TIMEOUT_MS = 8000
 const SEARCH_PAGE_REVIEW_LIMIT = 6
 const SEARCH_PAGE_FETCH_TIMEOUT_MS = 5000
 const SEARCH_PACKET_RESULT_LIMIT = 6
+const PERPLEXITY_MAX_RESULTS = 8
+const PERPLEXITY_MAX_TOKENS_PER_PAGE = 512
 
 const safeJsonParse = <T,>(value: string): T | null => {
   try {
@@ -281,6 +291,11 @@ const fetchText = async (url: string): Promise<{ title?: string; text: string } 
   }
 }
 
+const sanitizeSnippet = (value: unknown): string => {
+  if (typeof value !== 'string') return ''
+  return normalizeWhitespace(stripHtml(value))
+}
+
 const buildExcerpt = (text: string, query: string, maxChars: number) => {
   const cleaned = normalizeWhitespace(text)
   if (!cleaned) return ''
@@ -356,7 +371,8 @@ const searchViaBraveApi = async (query: string): Promise<SearchCandidate[]> => {
       seen.add(href)
       results.push({
         url: href,
-        title: title || getHost(href)
+        title: title || getHost(href),
+        snippet: sanitizeSnippet(entry?.description || entry?.meta_description || entry?.page_age || '')
       })
       if (results.length >= SEARCH_ENGINE_RESULT_LIMIT) break
     }
@@ -425,6 +441,96 @@ const searchViaBraveHtml = async (query: string): Promise<SearchCandidate[]> => 
   }
 }
 
+const flattenPerplexityResults = (payload: any, queries: string[]): SearchCandidate[] => {
+  const candidates: SearchCandidate[] = []
+  const pushResults = (entries: any[], fromQuery?: string) => {
+    for (const entry of entries) {
+      const url = typeof entry?.url === 'string'
+        ? entry.url.trim()
+        : typeof entry?.link === 'string'
+          ? entry.link.trim()
+          : ''
+      if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) continue
+      const title = typeof entry?.title === 'string'
+        ? stripHtml(entry.title)
+        : typeof entry?.name === 'string'
+          ? stripHtml(entry.name)
+          : getHost(url)
+      const snippet = sanitizeSnippet(
+        entry?.snippet ||
+        entry?.text ||
+        entry?.description ||
+        entry?.content
+      )
+      const publishedDate = typeof entry?.date === 'string'
+        ? entry.date
+        : typeof entry?.published_date === 'string'
+          ? entry.published_date
+          : typeof entry?.last_updated === 'string'
+            ? entry.last_updated
+            : undefined
+
+      candidates.push({
+        url,
+        title,
+        snippet,
+        publishedDate,
+        fromQuery,
+      })
+    }
+  }
+
+  const rawResults: any[] = Array.isArray(payload?.results)
+    ? payload.results
+    : Array.isArray(payload?.search_results)
+      ? payload.search_results
+      : []
+
+  if (rawResults.length === 0) return []
+
+  const looksGrouped = rawResults.some((entry) => Array.isArray(entry?.results))
+  if (looksGrouped) {
+    for (const group of rawResults) {
+      const groupQuery = typeof group?.query === 'string' ? group.query : undefined
+      const groupResults = Array.isArray(group?.results) ? group.results : []
+      pushResults(groupResults, groupQuery)
+    }
+    return candidates
+  }
+
+  pushResults(rawResults, queries[0])
+  return candidates
+}
+
+const searchViaPerplexityApi = async (queries: string[]): Promise<SearchCandidate[]> => {
+  const apiKey = (process.env.PERPLEXITY_API_KEY || '').trim()
+  if (!apiKey || queries.length === 0) return []
+
+  try {
+    const response = await fetch('https://api.perplexity.ai/search', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: queries.length === 1 ? queries[0] : queries,
+        max_results: Math.min(PERPLEXITY_MAX_RESULTS, SEARCH_ENGINE_RESULT_LIMIT),
+        max_tokens_per_page: PERPLEXITY_MAX_TOKENS_PER_PAGE,
+        country: 'GB',
+      }),
+      signal: AbortSignal.timeout(SEARCH_ENGINE_TIMEOUT_MS),
+    })
+
+    if (!response.ok) return []
+    const payload = await response.json()
+    return flattenPerplexityResults(payload, queries)
+  } catch {
+    return []
+  }
+}
+
 // Universal search - tries Brave API first, then Brave HTML.
 const universalSearch = async (query: string): Promise<SearchCandidate[]> => {
   let results = await searchViaBraveApi(query)
@@ -437,6 +543,12 @@ const universalSearch = async (query: string): Promise<SearchCandidate[]> => {
 export class SearchTool extends Tool {
   name = "legal_search";
   description = "Searches the internet for legal guidance, case law, and legal information from suitable sources.";
+  private readonly engine: SearchEngine
+
+  constructor(options?: SearchToolOptions) {
+    super()
+    this.engine = options?.engine || 'auto'
+  }
 
   async _call(input: string): Promise<string> {
     try {
@@ -445,17 +557,37 @@ export class SearchTool extends Tool {
       const parsed = safeJsonParse<SearchToolInput>(input)
       const query = (parsed?.query || input || '').trim()
       const mode: RetrievalMode = parsed?.mode || 'general'
+      const preferredEngine: SearchEngine = parsed?.engine || this.engine
 
       const subQueries = buildSearchSubqueries(query, mode)
-      const searchRuns = await Promise.all(
-        subQueries.map(async (subQuery) => {
-          const results = await universalSearch(subQuery)
-          return {
-            subQuery,
-            results: results.map((result) => ({ ...result, fromQuery: subQuery })),
-          }
-        })
-      )
+      let searchRuns: Array<{ subQuery: string; results: SearchCandidate[] }> = []
+      let engineUsed: 'perplexity' | 'brave' | 'none' = 'none'
+
+      if ((preferredEngine === 'perplexity' || preferredEngine === 'auto') && process.env.PERPLEXITY_API_KEY) {
+        const perplexityResults = await searchViaPerplexityApi(subQueries)
+        if (perplexityResults.length > 0) {
+          engineUsed = 'perplexity'
+          searchRuns = [{
+            subQuery: subQueries[0] || query,
+            results: perplexityResults,
+          }]
+        }
+      }
+
+      if (searchRuns.length === 0) {
+        searchRuns = await Promise.all(
+          subQueries.map(async (subQuery) => {
+            const results = await universalSearch(subQuery)
+            return {
+              subQuery,
+              results: results.map((result) => ({ ...result, fromQuery: subQuery })),
+            }
+          })
+        )
+        if (searchRuns.some((run) => run.results.length > 0)) {
+          engineUsed = 'brave'
+        }
+      }
 
       const mergedByUrl = new Map<string, SearchCandidate>()
       for (const run of searchRuns) {
@@ -495,34 +627,58 @@ export class SearchTool extends Tool {
         } as SearchToolOutput)
       }
 
-      // Fetch and process results using a neutral ranking blend.
-      const fetched = await Promise.all(
-        searchPool.slice(0, SEARCH_PAGE_REVIEW_LIMIT).map(async (result) => {
-          const text = await fetchText(result.url)
-          const excerpt = text
-            ? (buildExcerpt(text.text, query, 900) || 'Content extracted but excerpt was minimal.')
-            : 'Unable to fetch full page text at the moment; source retained for citation mapping.'
-          const quality = getDomainQuality(result.url)
-          const title = result.title || text?.title || ''
-          const relevance = computeRelevanceScore(
-            `${query} ${result.fromQuery || ''}`,
-            title,
-            excerpt
+      // Perplexity already returns structured result snippets; use those directly to avoid
+      // the slower page-fetch pass on Premium+ web-backed answers.
+      const fetched = engineUsed === 'perplexity'
+        ? searchPool.slice(0, SEARCH_PAGE_REVIEW_LIMIT).map((result) => {
+            const excerpt = result.snippet || 'Search result summary not available; source retained for citation mapping.'
+            const quality = getDomainQuality(result.url)
+            const title = result.title || ''
+            const relevance = computeRelevanceScore(
+              `${query} ${result.fromQuery || ''}`,
+              title,
+              excerpt
+            )
+            const recency = computeRecencyScore(title, result.url, `${excerpt} ${result.publishedDate || ''}`)
+            const score = Number((relevance * 0.5 + recency * 0.2 + quality * 0.3).toFixed(2))
+            return {
+              url: result.url,
+              title,
+              fromQuery: result.fromQuery,
+              quality,
+              relevance,
+              recency,
+              score,
+              excerpt,
+            }
+          })
+        : await Promise.all(
+            searchPool.slice(0, SEARCH_PAGE_REVIEW_LIMIT).map(async (result) => {
+              const text = await fetchText(result.url)
+              const excerpt = text
+                ? (buildExcerpt(text.text, query, 900) || 'Content extracted but excerpt was minimal.')
+                : 'Unable to fetch full page text at the moment; source retained for citation mapping.'
+              const quality = getDomainQuality(result.url)
+              const title = result.title || text?.title || ''
+              const relevance = computeRelevanceScore(
+                `${query} ${result.fromQuery || ''}`,
+                title,
+                excerpt
+              )
+              const recency = computeRecencyScore(title, result.url, excerpt)
+              const score = Number((relevance * 0.5 + recency * 0.2 + quality * 0.3).toFixed(2))
+              return {
+                url: result.url,
+                title,
+                fromQuery: result.fromQuery,
+                quality,
+                relevance,
+                recency,
+                score,
+                excerpt,
+              }
+            })
           )
-          const recency = computeRecencyScore(title, result.url, excerpt)
-          const score = Number((relevance * 0.5 + recency * 0.2 + quality * 0.3).toFixed(2))
-          return {
-            url: result.url,
-            title,
-            fromQuery: result.fromQuery,
-            quality,
-            relevance,
-            recency,
-            score,
-            excerpt,
-          }
-        })
-      )
 
       const reviewed = fetched.filter((value): value is NonNullable<typeof value> => Boolean(value))
 
@@ -566,7 +722,7 @@ export class SearchTool extends Tool {
         rankedForPacket = fallback
       }
 
-      const packet = `${usedEngineResults ? 'Source mode: engine results.' : 'Source mode: fallback context only (no citation sources).'}\n` +
+      const packet = `${usedEngineResults ? `Source mode: engine results (${engineUsed === 'perplexity' ? 'Perplexity Search API' : 'Brave search'}).` : 'Source mode: fallback context only (no citation sources).'}\n` +
         `Executed searches: ${subQueries.join(' | ')}\n` +
         `Reviewed ${Math.max(reviewed.length, rankedForPacket.length)} sources from across the internet.\n\n` +
         rankedForPacket.map((s, idx) => {

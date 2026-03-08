@@ -24,6 +24,16 @@ const buildChatRequest = (body: Record<string, unknown>) =>
     body: JSON.stringify(body),
   }) as any
 
+const buildStreamingChatRequest = (body: Record<string, unknown>) =>
+  new Request('http://localhost/api/chat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-mymckenzie-stream': '1',
+    },
+    body: JSON.stringify(body),
+  }) as any
+
 describe('/api/chat route', () => {
   const originalEnv = { ...process.env }
 
@@ -89,8 +99,7 @@ describe('/api/chat route', () => {
     }
 
     const legalAgentMocks = {
-      decidePremiumSearchNeedWithGenerator: vi.fn(async () => null) as any,
-      decidePremiumPlusToolPlanWithClaude: vi.fn(async () => null) as any,
+      decidePremiumPlusPlanWithGroq: vi.fn(async () => null) as any,
       invokeBasicLegalAgent: vi.fn(async () => ({
         response: 'Basic answer',
         guidance_provided: [],
@@ -101,11 +110,29 @@ describe('/api/chat route', () => {
         guidance_provided: [],
         next_steps: [],
       })) as any,
+      invokePremiumLegalAgentStream: vi.fn(async (_message: string, _threadId: string, _userId: string, _history: any[], _caseKeywords: string, options?: any) => {
+        options?.onToken?.('Premium ')
+        options?.onToken?.('answer')
+        return {
+          response: 'Premium answer',
+          guidance_provided: [],
+          next_steps: [],
+        }
+      }) as any,
       invokePremiumPlusLegalAgent: vi.fn(async () => ({
         response: 'Premium answer',
         guidance_provided: [],
         next_steps: [],
       })) as any,
+      invokePremiumPlusLegalAgentStream: vi.fn(async (_message: string, _threadId: string, _userId: string, _history: any[], _caseKeywords: string, options?: any) => {
+        options?.onToken?.('Premium+ ')
+        options?.onToken?.('answer')
+        return {
+          response: 'Premium answer',
+          guidance_provided: [],
+          next_steps: [],
+        }
+      }) as any,
     }
     const searchByTextMock = vi.fn(searchByTextImpl || (async () => []))
 
@@ -242,48 +269,113 @@ describe('/api/chat route', () => {
     )
   })
 
-  it('skips premium web-routing decisions for premium plus requests', { timeout: 15000 }, async () => {
+  it('uses Brave-only web search for premium plan requests', { timeout: 15000 }, async () => {
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'premium', paidAccess: true, planStatus: 'active' },
+      processMessageResult: { task: 'legal_procedure', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'I am at the pre-claim stage. What claim form and procedural steps are usually involved?',
+        history: [],
+      })
+    )
+
+    expect(response.status).toBe(200)
+    expect(legalAgentMocks.invokePremiumLegalAgent).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      'user-1',
+      [],
+      '',
+      expect.objectContaining({
+        useSearch: true,
+        searchQueryOverride: undefined,
+        searchEngineOverride: 'brave',
+      })
+    )
+  })
+
+  it('streams premium answers over NDJSON when requested', { timeout: 15000 }, async () => {
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'premium', paidAccess: true, planStatus: 'active' },
+      processMessageResult: { task: 'legal_procedure', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    const response = await POST(
+      buildStreamingChatRequest({
+        message: 'I am at the pre-claim stage. What claim form and procedural steps are usually involved?',
+        history: [],
+      })
+    )
+
+    expect(response.status).toBe(200)
+    expect(legalAgentMocks.invokePremiumLegalAgentStream).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      'user-1',
+      [],
+      '',
+      expect.objectContaining({
+        useSearch: true,
+        searchEngineOverride: 'brave',
+      })
+    )
+    expect(legalAgentMocks.invokePremiumLegalAgent).not.toHaveBeenCalled()
+    expect(response.headers.get('content-type')).toContain('application/x-ndjson')
+
+    const body = await response.text()
+    expect(body).toContain('"type":"start"')
+    expect(body).toContain('"type":"delta"')
+    expect(body).toContain('"type":"done"')
+  })
+
+  it('keeps premium plus definition questions on the direct fast path', { timeout: 15000 }, async () => {
     process.env.PREMIUM_PLUS_CLAUDE_MODEL = 'claude-opus-4-6'
 
-    const { POST, legalAgentMocks } = await loadRoute({
+    const { POST, legalAgentMocks, searchByTextMock } = await loadRoute({
       planData: { plan: 'premium +', paidAccess: true, planStatus: 'active' },
       processMessageResult: { task: 'case_lookup', contextType: 'general', urgency: 'normal', caseId: null },
     })
 
-    legalAgentMocks.decidePremiumPlusToolPlanWithClaude.mockResolvedValue({
-      retrievalMode: 'web_only',
-      tools: [
-        {
-          tool: 'web_search_procedure',
-          query: 'promissory estoppel practical effect England and Wales',
-          rationale: 'Use a procedure-focused web lookup for practical framing',
-        },
-      ],
-      decomposition: 'Break the question into legal meaning and practical framing.',
-      subIssues: [
-        {
-          issue: 'Explain promissory estoppel in plain English',
-          retrievalMode: 'direct',
-          tools: [{ tool: 'direct_knowledge' }],
-        },
-        {
-          issue: 'Check the practical framing the user is really asking about',
-          retrievalMode: 'web_only',
-          tools: [{ tool: 'web_search_procedure', query: 'promissory estoppel practical effect England and Wales' }],
-          webQuery: 'promissory estoppel practical effect England and Wales',
-        },
-      ],
-      confidence: 0.92,
-      reasons: ['stable-legal-concept'],
+    legalAgentMocks.decidePremiumPlusPlanWithGroq.mockResolvedValue({
+      action: 'answer',
+      answer: 'Promissory estoppel is a rule that can stop someone from going back on a clear promise when another person has reasonably relied on it.\n\nIn short: It may prevent unfair backtracking on a promise.',
+      confidence: 0.93,
+      reasons: ['simple-stable-definition'],
     })
 
     const response = await POST(buildChatRequest({ message: 'Explain promissory estoppel in plain English', history: [] }))
+    const payload = await response.json()
 
     expect(response.status).toBe(200)
-    expect(legalAgentMocks.decidePremiumSearchNeedWithGenerator).not.toHaveBeenCalled()
-    expect(legalAgentMocks.decidePremiumPlusToolPlanWithClaude).toHaveBeenCalledTimes(1)
+    expect(payload.response).toContain('Promissory estoppel is a rule')
+    expect(legalAgentMocks.decidePremiumPlusPlanWithGroq).toHaveBeenCalledTimes(1)
+    expect(searchByTextMock).not.toHaveBeenCalled()
+    expect(legalAgentMocks.invokePremiumPlusLegalAgent).not.toHaveBeenCalled()
+  })
+
+  it('keeps premium plus procedural questions on the web-only path without case-law lookup', { timeout: 15000 }, async () => {
+    process.env.PREMIUM_PLUS_CLAUDE_MODEL = 'claude-opus-4-6'
+
+    const { POST, legalAgentMocks, searchByTextMock } = await loadRoute({
+      planData: { plan: 'premium +', paidAccess: true, planStatus: 'active' },
+      processMessageResult: { task: 'legal_procedure', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'I am at the pre-claim stage of an employment tribunal claim. What claim form and procedural steps are usually involved?',
+        history: [],
+      })
+    )
+
+    expect(response.status).toBe(200)
+    expect(legalAgentMocks.decidePremiumPlusPlanWithGroq).toHaveBeenCalledTimes(1)
+    expect(searchByTextMock).not.toHaveBeenCalled()
     expect(legalAgentMocks.invokePremiumPlusLegalAgent).toHaveBeenCalledWith(
-      expect.stringContaining('Issue breakdown'),
+      expect.not.stringContaining('Issue breakdown'),
       expect.any(String),
       'user-1',
       [],
@@ -309,43 +401,15 @@ describe('/api/chat route', () => {
       processMessageResult: { task: 'case_lookup', contextType: 'general', urgency: 'normal', caseId: null },
     })
 
-    legalAgentMocks.decidePremiumPlusToolPlanWithClaude.mockResolvedValue({
-      retrievalMode: 'vector_only',
-      tools: [
-        {
-          tool: 'case_law_rag',
-          query: 'reasonable responses unfair dismissal case law',
-          rationale: 'Need authority extracts',
-        },
-        {
-          tool: 'case_law_suggestions',
-          query: 'reasonable responses unfair dismissal case law',
-          rationale: 'Surface shortlist of authorities too',
-        },
-      ],
-      decomposition: 'Break the request into legal principle and supporting authorities.',
-      subIssues: [
-        {
-          issue: 'Find authorities on unfair dismissal reasoning',
-          retrievalMode: 'vector_only',
-          tools: [{ tool: 'case_law_rag', query: 'reasonable responses unfair dismissal case law' }],
-          vectorQuery: 'reasonable responses unfair dismissal case law',
-        },
-      ],
-      vectorQuery: 'reasonable responses unfair dismissal case law',
-      confidence: 0.91,
-      reasons: ['authority-heavy'],
-    })
-
     const response = await POST(buildChatRequest({ message: 'What does case law say about unfair dismissal?', history: [] }))
     const payload = await response.json()
 
     expect(response.status).toBe(200)
     expect(payload.response).toContain('Premium answer')
     expect(searchByTextMock).toHaveBeenCalled()
-    expect(legalAgentMocks.decidePremiumPlusToolPlanWithClaude).toHaveBeenCalledTimes(1)
+    expect(legalAgentMocks.decidePremiumPlusPlanWithGroq).toHaveBeenCalledTimes(1)
     expect(legalAgentMocks.invokePremiumPlusLegalAgent).toHaveBeenCalledWith(
-      expect.stringContaining('Issue breakdown'),
+      expect.not.stringContaining('Issue breakdown'),
       expect.any(String),
       'user-1',
       [],

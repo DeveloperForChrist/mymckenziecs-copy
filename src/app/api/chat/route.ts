@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
-  decidePremiumSearchNeedWithGenerator,
-  decidePremiumPlusToolPlanWithClaude,
+  decidePremiumPlusPlanWithGroq,
   type LegalSearchMode,
   type PremiumPlusSubIssue,
   type PremiumPlusToolSelection,
   invokeBasicLegalAgent,
   invokePremiumLegalAgent,
+  invokePremiumLegalAgentStream,
   invokePremiumPlusLegalAgent,
+  invokePremiumPlusLegalAgentStream,
 } from '@/lib/ai/agents/legal-agent'
 import { ChatManager } from '@/lib/ai/chat-manager'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
@@ -33,6 +34,14 @@ import {
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const fetchCache = 'force-no-store'
+
+type AgentResponse = {
+  response: string
+  document_generated: boolean
+  guidance_provided: boolean
+  next_steps: string[]
+  sources?: Array<{ number: number; title: string; url: string }>
+}
 
 type ChatAttachment = {
   name?: string
@@ -107,8 +116,6 @@ const getPremiumPlusClaudeModel = (): string | null =>
 const getPremiumPlusClaudeFallbackModel = (primaryModel: string): string =>
   getEnvModelValue('PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL') || primaryModel
 
-const PREMIUM_GENERATOR_ROUTING_ENABLED =
-  (getEnvModelValue('PREMIUM_GENERATOR_ROUTING_ENABLED') || 'true').toLowerCase() !== 'false'
 const PREMIUM_PLUS_CASELAW_TIMEOUT_MS = Number.isFinite(Number(process.env.PREMIUM_PLUS_CASELAW_TIMEOUT_MS))
   ? Math.max(1000, Math.floor(Number(process.env.PREMIUM_PLUS_CASELAW_TIMEOUT_MS)))
   : 4000
@@ -821,6 +828,167 @@ const evaluateCaseLawSuggestionNeed = ({
 type RetrievalFocus = 'web_only' | 'vector_only' | 'hybrid'
 type AppliedRetrievalFocus = RetrievalFocus | 'direct'
 
+const PREMIUM_PLUS_TOOL_BY_SEARCH_MODE: Record<LegalSearchMode, PremiumPlusToolSelection['tool']> = {
+  education: 'web_search_education',
+  procedure: 'web_search_procedure',
+  case_specific: 'web_search_case_specific',
+  document_review: 'web_search_document_review',
+  general: 'web_search_general',
+}
+
+const hasExplicitAuthoritySignal = ({
+  message,
+  history,
+}: {
+  message: string
+  history: Array<{ role: string; content: string }>
+}): boolean => {
+  const recentUserText = history
+    .filter((entry) => entry.role === 'user')
+    .slice(-4)
+    .map((entry) => normalizeCompactText(entry.content || ''))
+    .filter(Boolean)
+    .join(' ')
+
+  const aggregate = normalizeCompactText(`${recentUserText} ${message}`.toLowerCase())
+  if (!aggregate) return false
+
+  const explicitAuthorityPattern =
+    /\b(case law|precedent|authority|citation|neutral citation|judgment|court of appeal|supreme court|uksc|ewca|ewhc|ukut|ewfc|ratio|obiter|holding|practice direction|section\s+\d+|article\s+\d+|act\s+\d{4})\b/
+  const citationOrCaseNamePattern =
+    /\[[12][0-9]{3}\]\s*(uksc|ewca|ewhc|ukut|ewfc)\b|\b[\w'.-]+\s+v\.?\s+[\w'.-]+\b/i
+
+  return explicitAuthorityPattern.test(aggregate) || citationOrCaseNamePattern.test(message)
+}
+
+const resolvePremiumPlusSearchMode = ({
+  message,
+  task,
+  hasAttachments,
+  retrievalFocusDecision,
+}: {
+  message: string
+  task?: string
+  hasAttachments?: boolean
+  retrievalFocusDecision: {
+    ownCaseNarrative: boolean
+  }
+}): LegalSearchMode => {
+  if (hasAttachments || task === 'document_review') return 'document_review'
+  if (task === 'deadline_query' || task === 'form_guidance' || task === 'legal_procedure' || task === 'case_status') {
+    return 'procedure'
+  }
+  if (retrievalFocusDecision.ownCaseNarrative) return 'case_specific'
+
+  const normalized = normalizeCompactText(message.toLowerCase())
+  const educationPattern =
+    /^(what is|what does|define|definition of|meaning of|explain|difference between|compare)\b/
+  return educationPattern.test(normalized) ? 'education' : 'general'
+}
+
+const buildPremiumPlusHeuristicWebQuery = ({
+  message,
+  searchMode,
+}: {
+  message: string
+  searchMode: LegalSearchMode
+}): string => {
+  const normalized = normalizeCompactText(message)
+  if (!normalized) return ''
+
+  switch (searchMode) {
+    case 'procedure':
+      return truncateText(`${normalized} England and Wales procedure`, 260)
+    case 'case_specific':
+      return truncateText(`${normalized} England and Wales practical guidance`, 260)
+    case 'document_review':
+      return truncateText(`${normalized} England and Wales document guidance`, 260)
+    case 'education':
+      return truncateText(`${normalized} plain English England and Wales`, 260)
+    case 'general':
+    default:
+      return truncateText(normalized, 260)
+  }
+}
+
+const shouldUsePremiumPlusCaseLawHeuristically = ({
+  message,
+  history,
+  task,
+  hasAttachments,
+  retrievalFocusApplied,
+  retrievalFocusDecision,
+  suggestionDecision,
+}: {
+  message: string
+  history: Array<{ role: string; content: string }>
+  task?: string
+  hasAttachments?: boolean
+  retrievalFocusApplied: AppliedRetrievalFocus
+  retrievalFocusDecision: {
+    precedentScore: number
+    procedureScore: number
+  }
+  suggestionDecision: {
+    shouldSuggest: boolean
+    shouldRetrieve: boolean
+  }
+}): boolean => {
+  if (hasAttachments) return false
+  if (retrievalFocusApplied === 'direct' || retrievalFocusApplied === 'web_only') return false
+  if (hasExplicitAuthoritySignal({ message, history })) return true
+  if (task === 'case_lookup') return true
+  if (task === 'deadline_query' || task === 'form_guidance' || task === 'legal_procedure') return false
+
+  if (retrievalFocusApplied === 'vector_only') {
+    return suggestionDecision.shouldRetrieve || retrievalFocusDecision.precedentScore >= 4
+  }
+
+  return (
+    suggestionDecision.shouldRetrieve &&
+    retrievalFocusDecision.precedentScore >= Math.max(4, retrievalFocusDecision.procedureScore + 2)
+  )
+}
+
+const buildHeuristicPremiumPlusTools = ({
+  retrievalFocusApplied,
+  searchMode,
+  webQuery,
+  vectorQuery,
+  useCaseLawSuggestions,
+  useCaseLawRag,
+}: {
+  retrievalFocusApplied: AppliedRetrievalFocus
+  searchMode?: LegalSearchMode | null
+  webQuery?: string
+  vectorQuery?: string
+  useCaseLawSuggestions: boolean
+  useCaseLawRag: boolean
+}): PremiumPlusToolSelection[] => {
+  const tools: PremiumPlusToolSelection[] = []
+
+  if (retrievalFocusApplied === 'direct') {
+    tools.push({ tool: 'direct_knowledge' })
+    return tools
+  }
+
+  if (retrievalFocusApplied === 'web_only' || retrievalFocusApplied === 'hybrid') {
+    tools.push({
+      tool: PREMIUM_PLUS_TOOL_BY_SEARCH_MODE[searchMode || 'general'],
+      query: webQuery || undefined,
+    })
+  }
+
+  if (useCaseLawSuggestions) {
+    tools.push({ tool: 'case_law_suggestions', query: vectorQuery || undefined })
+  }
+  if (useCaseLawRag) {
+    tools.push({ tool: 'case_law_rag', query: vectorQuery || undefined })
+  }
+
+  return tools
+}
+
 const evaluateRetrievalFocus = ({
   message,
   history,
@@ -936,13 +1104,23 @@ const evaluateRetrievalFocus = ({
 
   let focus: RetrievalFocus = 'web_only'
 
+  const explicitAuthorityRequested =
+    precedentLanguagePattern.test(aggregate) ||
+    citationOrCaseNamePattern.test(message)
+
   if (ownCaseNarrative && !hasAttachments) {
-    if (procedureScore >= precedentScore + 3 && precedentScore < 2) {
+    if (!explicitAuthorityRequested && (task === 'legal_procedure' || task === 'deadline_query' || task === 'form_guidance' || procedureScore >= precedentScore)) {
       focus = 'web_only'
-      reasons.push('own-case-procedure-heavy')
-    } else {
+      reasons.push('own-case-web-default')
+    } else if (precedentScore >= procedureScore + 3 && precedentScore >= 4) {
+      focus = 'vector_only'
+      reasons.push('own-case-precedent-dominant')
+    } else if (precedentScore >= 3 && procedureScore >= 3) {
       focus = 'hybrid'
-      reasons.push('own-case-hybrid-default')
+      reasons.push('own-case-hybrid')
+    } else {
+      focus = 'web_only'
+      reasons.push('own-case-web-default')
     }
   } else if (precedentScore >= procedureScore + 3 && precedentScore >= 4) {
     focus = 'vector_only'
@@ -2021,6 +2199,12 @@ export async function POST(request: NextRequest) {
       hasAttachments,
       caseContextData,
     })
+    const baselineCaseLawQuery = buildCaseLawSuggestionQuery({
+      message,
+      history: sanitizedHistory,
+      caseContextData,
+      memoryRow,
+    })
     const premiumRoutingInput = truncateText(
       attachmentContext
         ? `${message}\n\nUser uploaded documents. Use the excerpts below when deciding retrieval.\n${attachmentContext}`
@@ -2029,31 +2213,11 @@ export async function POST(request: NextRequest) {
           : message,
       12000
     )
-    let premiumSearchRoutingDecision: Awaited<ReturnType<typeof decidePremiumSearchNeedWithGenerator>> | null = null
     let premiumGeneratedWebQuery = ''
-    let premiumSearchRoutingConfidence: number | null = null
-    let premiumSearchRoutingReasons: string[] = []
-    if (premiumPlanActive && !premiumPlusActive && PREMIUM_GENERATOR_ROUTING_ENABLED) {
-      premiumSearchRoutingDecision = await decidePremiumSearchNeedWithGenerator(
-        premiumRoutingInput,
-        sanitizedHistory,
-        caseKeywords,
-        {
-          openaiModel: premiumOpenAiModel,
-          openaiFallbackModel: premiumOpenAiFallbackModel,
-        }
-      )
-      if (premiumSearchRoutingDecision) {
-        premiumGeneratedWebQuery = (premiumSearchRoutingDecision.webQuery || '').trim()
-        premiumSearchRoutingConfidence = Number.isFinite(Number(premiumSearchRoutingDecision.confidence))
-          ? Math.max(0, Math.min(1, Number(premiumSearchRoutingDecision.confidence)))
-          : null
-        premiumSearchRoutingReasons = premiumSearchRoutingDecision.reasons.length > 0
-          ? premiumSearchRoutingDecision.reasons.slice()
-          : [`generator-routing:${premiumSearchRoutingDecision.searchMode}`]
-      }
-    }
-    let premiumPlusToolPlan: Awaited<ReturnType<typeof decidePremiumPlusToolPlanWithClaude>> | null = null
+    const premiumSearchRoutingConfidence: number | null = null
+    const premiumSearchRoutingReasons: string[] = premiumPlanActive && !premiumPlusActive
+      ? ['premium-direct-web-path']
+      : []
     const premiumPlusDirectAnswer = premiumPlusActive
       ? shouldUsePremiumPlusDirectAnswer({
           message,
@@ -2063,6 +2227,9 @@ export async function POST(request: NextRequest) {
           retrievalFocusDecision,
         })
       : false
+    let premiumPlusPlannerDecision: Awaited<ReturnType<typeof decidePremiumPlusPlanWithGroq>> | null = null
+    let premiumPlusPlannerAnswered = false
+    let premiumPlusPlannerDirectResponse = ''
     let retrievalFocusApplied: AppliedRetrievalFocus = premiumPlusDirectAnswer ? 'direct' : retrievalFocusDecision.focus
     let generatedWebQuery = ''
     let generatedVectorQuery = ''
@@ -2073,70 +2240,70 @@ export async function POST(request: NextRequest) {
     let premiumPlusToolPlanConfidence: number | null = null
     let routingReasonsApplied: string[] = retrievalFocusDecision.reasons.slice()
     if (premiumPlusActive) {
-      premiumPlusToolPlan = await decidePremiumPlusToolPlanWithClaude(
+      premiumPlusPlannerDecision = await decidePremiumPlusPlanWithGroq(
         premiumRoutingInput,
         sanitizedHistory,
-        caseKeywords,
-        {
-          anthropicModel: premiumPlusClaudeModel || undefined,
-          anthropicFallbackModel: premiumPlusClaudeFallbackModel || undefined,
-        }
+        caseKeywords
       )
 
-      if (premiumPlusToolPlan) {
-        retrievalFocusApplied = premiumPlusToolPlan.retrievalMode
-        premiumPlusTools = Array.isArray(premiumPlusToolPlan.tools)
-          ? premiumPlusToolPlan.tools.slice(0, 8)
+      if (premiumPlusPlannerDecision?.action === 'answer') {
+        premiumPlusPlannerAnswered = true
+        premiumPlusPlannerDirectResponse = premiumPlusPlannerDecision.answer.trim()
+        retrievalFocusApplied = 'direct'
+        premiumPlusDecomposition = (premiumPlusPlannerDecision.decomposition || '').trim()
+        premiumPlusSubIssues = Array.isArray(premiumPlusPlannerDecision.subIssues)
+          ? premiumPlusPlannerDecision.subIssues.slice(0, 8)
           : []
-        generatedWebQuery = (premiumPlusToolPlan.webQuery || buildPlannerQueryFromTools(premiumPlusTools, 'web')).trim()
-        generatedVectorQuery = (premiumPlusToolPlan.vectorQuery || buildPlannerQueryFromTools(premiumPlusTools, 'case_law')).trim()
-        premiumPlusDecomposition = (premiumPlusToolPlan.decomposition || '').trim()
-        premiumPlusSubIssues = Array.isArray(premiumPlusToolPlan.subIssues)
-          ? premiumPlusToolPlan.subIssues.slice(0, 8)
-          : []
-        premiumPlusSearchMode = getPremiumPlusSearchModeFromTools(premiumPlusTools) || null
-        premiumPlusToolPlanConfidence = Number.isFinite(Number(premiumPlusToolPlan.confidence))
-          ? Math.max(0, Math.min(1, Number(premiumPlusToolPlan.confidence)))
+        premiumPlusToolPlanConfidence = Number.isFinite(Number(premiumPlusPlannerDecision.confidence))
+          ? Math.max(0, Math.min(1, Number(premiumPlusPlannerDecision.confidence)))
           : null
-        routingReasonsApplied = premiumPlusToolPlan.reasons.length > 0
-          ? premiumPlusToolPlan.reasons.slice()
-          : [`claude-tool-plan:${retrievalFocusApplied}`]
+        routingReasonsApplied = premiumPlusPlannerDecision.reasons.length > 0
+          ? premiumPlusPlannerDecision.reasons.slice()
+          : ['groq-planner-answer']
+      } else if (premiumPlusPlannerDecision?.action === 'execute') {
+        const plannerPlan = premiumPlusPlannerDecision.plan
+        retrievalFocusApplied = plannerPlan.retrievalMode
+        premiumPlusTools = Array.isArray(plannerPlan.tools)
+          ? plannerPlan.tools.slice(0, 8)
+          : []
+        generatedWebQuery = (plannerPlan.webQuery || buildPlannerQueryFromTools(premiumPlusTools, 'web')).trim()
+        generatedVectorQuery = (plannerPlan.vectorQuery || buildPlannerQueryFromTools(premiumPlusTools, 'case_law')).trim()
+        premiumPlusDecomposition = (premiumPlusPlannerDecision.decomposition || plannerPlan.decomposition || '').trim()
+        premiumPlusSubIssues = Array.isArray(premiumPlusPlannerDecision.subIssues)
+          ? premiumPlusPlannerDecision.subIssues.slice(0, 8)
+          : Array.isArray(plannerPlan.subIssues)
+            ? plannerPlan.subIssues.slice(0, 8)
+            : []
+        premiumPlusSearchMode = getPremiumPlusSearchModeFromTools(premiumPlusTools) || null
+        premiumPlusToolPlanConfidence = Number.isFinite(Number(premiumPlusPlannerDecision.confidence ?? plannerPlan.confidence))
+          ? Math.max(0, Math.min(1, Number(premiumPlusPlannerDecision.confidence ?? plannerPlan.confidence)))
+          : null
+        routingReasonsApplied = premiumPlusPlannerDecision.reasons.length > 0
+          ? premiumPlusPlannerDecision.reasons.slice()
+          : plannerPlan.reasons.length > 0
+            ? plannerPlan.reasons.slice()
+            : [`groq-planner-execute:${retrievalFocusApplied}`]
+      } else {
+        premiumPlusSearchMode = premiumPlusDirectAnswer
+          ? null
+          : resolvePremiumPlusSearchMode({
+              message,
+              task: processingResult.task,
+              hasAttachments,
+              retrievalFocusDecision,
+            })
+        generatedWebQuery = premiumPlusSearchMode
+          ? buildPremiumPlusHeuristicWebQuery({
+              message,
+              searchMode: premiumPlusSearchMode,
+            })
+          : ''
+        routingReasonsApplied = [
+          ...routingReasonsApplied,
+          premiumPlusDirectAnswer ? 'heuristic-direct' : `heuristic-${retrievalFocusApplied}`,
+        ]
       }
     }
-    if (premiumPlusDirectAnswer && !premiumPlusToolPlan) {
-      routingReasonsApplied = [...routingReasonsApplied, 'heuristic-direct']
-    }
-    const retrievalRoutingSource: 'claude' | 'heuristic' = premiumPlusToolPlan ? 'claude' : 'heuristic'
-    const premiumSearchRoutingSource: 'generator' | 'fallback' = premiumSearchRoutingDecision ? 'generator' : 'fallback'
-    const premiumPlusNeedsWebRetrieval =
-      premiumPlusActive &&
-      (
-        premiumPlusTools.length > 0
-          ? hasPlannerWebSearchTool(premiumPlusTools)
-          : (retrievalFocusApplied === 'web_only' || retrievalFocusApplied === 'hybrid')
-      )
-    const premiumPlusNeedsCaseLawRetrieval =
-      premiumPlusActive &&
-      (
-        premiumPlusTools.length > 0
-          ? hasPlannerCaseLawTool(premiumPlusTools)
-          : (retrievalFocusApplied === 'vector_only' || retrievalFocusApplied === 'hybrid')
-      )
-    const premiumPlusNeedsCaseLawSuggestions =
-      premiumPlusActive &&
-      (
-        premiumPlusTools.length > 0
-          ? hasPlannerTool(premiumPlusTools, 'case_law_suggestions')
-          : premiumPlusNeedsCaseLawRetrieval
-      )
-    const premiumPlusNeedsCaseLawRag =
-      premiumPlusActive &&
-      (
-        premiumPlusTools.length > 0
-          ? hasPlannerTool(premiumPlusTools, 'case_law_rag')
-          : premiumPlusNeedsCaseLawRetrieval
-      )
-
     const premiumPlusCaseLawBaseDecision = shouldUseCaseLawRetrieval({
       message,
       task: processingResult.task,
@@ -2144,52 +2311,86 @@ export async function POST(request: NextRequest) {
       premiumFlow: premiumPlusActive,
       suggestionDecision: caseLawSuggestionDecision,
     })
-    const shouldUsePremiumPlusCaseLawRetrieval =
-      retrievalRoutingSource === 'claude'
-        ? (premiumPlusNeedsCaseLawSuggestions || premiumPlusNeedsCaseLawRag)
-        : (
-            premiumPlusActive &&
-            premiumPlusNeedsCaseLawRetrieval &&
-            (
-              premiumPlusCaseLawBaseDecision ||
-              retrievalFocusDecision.ownCaseNarrative ||
-              retrievalFocusDecision.precedentScore >= retrievalFocusDecision.procedureScore
+    let shouldUsePremiumPlusCaseLawRetrieval =
+      premiumPlusActive &&
+      (
+        premiumPlusPlannerDecision?.action === 'execute'
+          ? (premiumPlusTools.some((tool) => tool.tool === 'case_law_suggestions' || tool.tool === 'case_law_rag'))
+          : (
+              premiumPlusCaseLawBaseDecision &&
+              shouldUsePremiumPlusCaseLawHeuristically({
+                message,
+                history: sanitizedHistory,
+                task: processingResult.task,
+                hasAttachments,
+                retrievalFocusApplied,
+                retrievalFocusDecision,
+                suggestionDecision: caseLawSuggestionDecision,
+              })
             )
-          )
+      )
+
+    if (premiumPlusActive && retrievalFocusApplied === 'hybrid' && !shouldUsePremiumPlusCaseLawRetrieval) {
+      retrievalFocusApplied = 'web_only'
+      routingReasonsApplied = [...routingReasonsApplied, 'latency-optimized-web-only']
+    }
+    if (premiumPlusActive && retrievalFocusApplied === 'vector_only' && !shouldUsePremiumPlusCaseLawRetrieval) {
+      retrievalFocusApplied = 'web_only'
+      routingReasonsApplied = [...routingReasonsApplied, 'vector-fallback-web-only']
+    }
+
+    generatedVectorQuery =
+      shouldUsePremiumPlusCaseLawRetrieval
+        ? (generatedVectorQuery || baselineCaseLawQuery)
+        : ''
+
+    const premiumPlusNeedsCaseLawSuggestions =
+      premiumPlusActive &&
+      shouldUsePremiumPlusCaseLawRetrieval &&
+      (
+        premiumPlusPlannerDecision?.action === 'execute'
+          ? hasPlannerTool(premiumPlusTools, 'case_law_suggestions')
+          : caseLawSuggestionDecision.shouldSuggest
+      )
+    const premiumPlusNeedsCaseLawRag =
+      premiumPlusActive &&
+      shouldUsePremiumPlusCaseLawRetrieval &&
+      (
+        premiumPlusPlannerDecision?.action === 'execute'
+          ? hasPlannerTool(premiumPlusTools, 'case_law_rag')
+          : true
+      )
+    premiumPlusTools = premiumPlusActive && premiumPlusPlannerDecision?.action !== 'execute'
+      ? buildHeuristicPremiumPlusTools({
+          retrievalFocusApplied,
+          searchMode: premiumPlusSearchMode,
+          webQuery: generatedWebQuery || undefined,
+          vectorQuery: generatedVectorQuery || undefined,
+          useCaseLawSuggestions: premiumPlusNeedsCaseLawSuggestions,
+          useCaseLawRag: premiumPlusNeedsCaseLawRag,
+        })
+      : premiumPlusTools
+    const retrievalRoutingSource: 'groq' | 'heuristic' =
+      premiumPlusPlannerDecision ? 'groq' : 'heuristic'
+    const premiumSearchRoutingSource: 'direct' = 'direct'
+    const premiumPlusNeedsWebRetrieval =
+      premiumPlusActive &&
+      hasPlannerWebSearchTool(premiumPlusTools)
 
     const premiumShouldUseSearchRetrieval =
-      premiumPlanActive &&
-      (premiumSearchRoutingDecision ? premiumSearchRoutingDecision.searchMode === 'web' : true)
+      premiumPlanActive
     let shouldUseSearchRetrieval =
       premiumShouldUseSearchRetrieval ||
       premiumPlusNeedsWebRetrieval
     let usePremiumPlusVectorRag =
-      retrievalRoutingSource === 'claude'
-        ? (premiumPlusActive && premiumPlusNeedsCaseLawRag)
-        : (
-            premiumPlusActive &&
-            shouldUsePremiumPlusCaseLawRetrieval &&
-            !hasAttachments
-          )
+      premiumPlusActive &&
+      premiumPlusNeedsCaseLawRag &&
+      !hasAttachments
     const shouldLookupCaseLawSuggestions =
-      retrievalRoutingSource === 'claude'
-        ? premiumPlusNeedsCaseLawSuggestions
-        : (
-            premiumPlusActive &&
-            shouldUsePremiumPlusCaseLawRetrieval &&
-            (caseLawSuggestionDecision.shouldSuggest || premiumPlusNeedsCaseLawRetrieval)
-          )
+      premiumPlusActive &&
+      premiumPlusNeedsCaseLawSuggestions
 
-    const baselineCaseLawQuery = buildCaseLawSuggestionQuery({
-      message,
-      history: sanitizedHistory,
-      caseContextData,
-      memoryRow,
-    })
-    const plannerVectorQuery =
-      buildPlannerQueryFromTools(premiumPlusTools, 'case_law') ||
-      buildPlannerQueryFromSubIssues(premiumPlusSubIssues, 'vector')
-    const caseLawQuery = generatedVectorQuery || plannerVectorQuery || baselineCaseLawQuery
+    const caseLawQuery = generatedVectorQuery || baselineCaseLawQuery
 
     const caseLawSuggestionPromise = shouldLookupCaseLawSuggestions
       ? withStageTimeout(
@@ -2259,193 +2460,282 @@ export async function POST(request: NextRequest) {
 
     const shouldUseBasicLegalAgent = basicPlanActive
     const shouldUsePremiumPlusLegalAgent = premiumPlusActive && !shouldUseBasicLegalAgent
-    const agentResponse = shouldUseBasicLegalAgent
+    const finalizeAgentResponse = async (agentResponse: AgentResponse) => {
+      const includeDebug = process.env.NODE_ENV !== 'production'
+      const sourceCount = Array.isArray(agentResponse.sources) ? agentResponse.sources.length : 0
+      const hasInlineCitationTags = /\[\d+\]/.test(agentResponse.response || '')
+
+      if (!agentResponse.response || !agentResponse.response.trim()) {
+        return buildAssistantResponsePayload('I had trouble generating a response. Please try again in a moment.', {
+          emptyResponse: true,
+        })
+      }
+
+      const caseLawSuggestionShouldOffer = shouldLookupCaseLawSuggestions
+      const caseLawSoftNextStep = buildCaseLawSoftNextStep({
+        shouldSuggest: caseLawSuggestionShouldOffer,
+        suggestions: caseLawSuggestions,
+        existingResponse: agentResponse.response || '',
+      })
+      const responseWithSoftStep = caseLawSoftNextStep
+        ? `${agentResponse.response.trim()}\n\n${caseLawSoftNextStep}`
+        : agentResponse.response
+      const allowedAuthorityTokens = buildAllowedAuthorityTokens(vectorCaseLawRagItems, caseLawSuggestions)
+      const scrubbedCaseLaw = premiumPlusActive
+        ? scrubUnsupportedCaseLawClaims(responseWithSoftStep || '', allowedAuthorityTokens)
+        : { text: responseWithSoftStep || '', removedCount: 0 }
+      const templateGuardResult = enforceTemplateOnlyFinalResponse(message, scrubbedCaseLaw.text)
+      const finalAssistantResponse = templateGuardResult.responseText
+      const templateDraftBlocked = templateGuardResult.blocked
+      const templateDraftBlockReason = templateGuardResult.reason || null
+      const removedUnsupportedAuthorityLines = scrubbedCaseLaw.removedCount
+      const actionItems = extractActionItems(`${message}\n${finalAssistantResponse}`)
+      if (actionItems.length > 0) {
+        const rows = actionItems.map((item) => ({
+          memory_key: memoryKey,
+          user_id: authUserId || null,
+          guest_id: guestId || null,
+          case_id: resolvedCaseId || null,
+          conversation_id: sessionInfo.conversationId || conversationId || null,
+          title: item.title,
+          due_date: item.dueDate,
+          status: 'pending',
+          source_text: truncateText(message, 400),
+        }))
+        await supabaseAdmin.from('chat_action_items').insert(rows)
+      }
+
+      const mergedFacts = mergeFacts(effectiveMemoryRow?.key_facts, initialFacts)
+      await supabaseAdmin.from('chat_memory').upsert(
+        {
+          memory_key: memoryKey,
+          user_id: authUserId || null,
+          guest_id: guestId || null,
+          case_id: resolvedCaseId || null,
+          conversation_id: activeConversationId,
+          memory_summary: truncateText(`User: ${message} | Assistant: ${finalAssistantResponse}`, 480),
+          key_facts: mergedFacts,
+          open_questions: [],
+          last_intent: processingResult.task,
+        },
+        { onConflict: 'memory_key' }
+      )
+
+      if (chatManager.shouldPersistMessages()) {
+        await chatManager.storeRawMessage(
+          finalAssistantResponse,
+          'assistant',
+          stripAssistantPresentationMetadata({
+            autoGenerated: true,
+            type: 'legal_agent_response',
+            caseId: processingResult.caseId || null,
+            sources: agentResponse.sources || [],
+            caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
+            caseLawSoftNextStep,
+            templateDraftBlocked,
+            templateDraftBlockReason,
+            actionItems,
+          }) || {},
+          processingResult.caseId || sessionInfo.activeCaseId || null
+        )
+      }
+
+      return buildAssistantResponsePayload(finalAssistantResponse, {
+        guidanceProvided: agentResponse.guidance_provided,
+        nextSteps: agentResponse.next_steps,
+        sources: agentResponse.sources || [],
+        caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
+        caseLawSoftNextStep,
+        caseProcessing: processingResult,
+        activeCaseId: processingResult.caseId || sessionInfo.activeCaseId,
+        pendingCalendarEntries: (processingResult as any).pendingCalendarEntries || null,
+        task: processingResult.task,
+        contextType: processingResult.contextType,
+        urgency: processingResult.urgency,
+        followUpQuestion,
+        actionItems,
+        templateDraftBlocked,
+        templateDraftBlockReason,
+        ...(includeDebug
+            ? {
+              debug: {
+                premiumFlow: !shouldUseBasicLegalAgent,
+                basicPlanFlow: basicPlanActive,
+                premiumPlanFlow: premiumPlanActive,
+                premiumPlusFlow: premiumPlusActive,
+                planAgent: shouldUseBasicLegalAgent
+                  ? 'basic'
+                  : (shouldUsePremiumPlusLegalAgent ? 'premium_plus' : 'premium'),
+                planLabel: activePlanLabel || 'none',
+                sourceCount,
+                hasInlineCitationTags,
+                citationMode: premiumPlusActive
+                  ? (shouldUseSearchRetrieval ? 'search+citations' : 'direct-no-search')
+                  : (premiumPlanActive
+                      ? (shouldUseSearchRetrieval ? 'search-no-citations' : 'direct-no-search')
+                      : 'basic-no-search'),
+                retrievalEnabled: shouldUseSearchRetrieval,
+                premiumSearchRoutingSource,
+                premiumSearchRoutingUsed: premiumPlanActive && !premiumPlusActive,
+                premiumSearchRoutingConfidence,
+                premiumSearchRoutingReasons,
+                premiumSearchModeApplied: premiumPlanActive && !premiumPlusActive ? 'web' : 'n/a',
+                premiumSearchQuery: premiumGeneratedWebQuery || null,
+                premiumPlusCaseLawRetrievalEnabled: shouldUsePremiumPlusCaseLawRetrieval,
+                vectorCaseLawRagEnabled: usePremiumPlusVectorRag,
+                vectorCaseLawRagCount: vectorCaseLawRagItems.length,
+                caseLawSuggestionTriggered: shouldLookupCaseLawSuggestions,
+                caseLawSuggestionCount: caseLawSuggestions.length,
+                caseLawSuggestionScore: caseLawSuggestionDecision.score,
+                caseLawSuggestionReasons: caseLawSuggestionDecision.reasons,
+                caseLawSuggestionThreshold: CASELAW_SUGGESTION_MIN_TRIGGER_SCORE,
+                caseLawRetrievalThreshold: CASELAW_RETRIEVAL_MIN_SCORE,
+                caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
+                retrievalFocus: retrievalFocusDecision.focus,
+                retrievalFocusApplied,
+                retrievalRoutingSource,
+                premiumPlusToolPlanUsed: Boolean(premiumPlusPlannerDecision),
+                premiumPlusToolPlanConfidence,
+                premiumPlusDecomposition: premiumPlusDecomposition || null,
+                premiumPlusSubIssueCount: premiumPlusSubIssues.length,
+                premiumPlusToolPlanTools: premiumPlusTools.map((item) => item.tool),
+                premiumPlusToolPlanSearchMode: premiumPlusSearchMode,
+                premiumPlusToolPlanWebQuery: generatedWebQuery || null,
+                premiumPlusToolPlanVectorQuery: generatedVectorQuery || null,
+                retrievalOwnCaseNarrative: retrievalFocusDecision.ownCaseNarrative,
+                retrievalPrecedentScore: retrievalFocusDecision.precedentScore,
+                retrievalProcedureScore: retrievalFocusDecision.procedureScore,
+                retrievalReasons: routingReasonsApplied,
+                removedUnsupportedAuthorityLines,
+                templateDraftBlocked,
+                templateDraftBlockReason,
+                caseScopedMemoryFallbackUsed,
+                vectorFallbackToWeb,
+              },
+            }
+          : {}),
+      })
+    }
+
+    const shouldStreamResponse = request.headers.get('x-mymckenzie-stream') === '1'
+    const shouldStreamPremium = premiumPlanActive && !premiumPlusActive && !shouldUseBasicLegalAgent && shouldStreamResponse
+    const shouldStreamPremiumPlus =
+      shouldUsePremiumPlusLegalAgent &&
+      !premiumPlusPlannerAnswered &&
+      shouldStreamResponse
+
+    if (shouldStreamPremium || shouldStreamPremiumPlus) {
+      const encoder = new TextEncoder()
+      const streamHeaders = new Headers({
+        'Content-Type': 'application/x-ndjson; charset=utf-8',
+        'Cache-Control': 'no-store, no-transform',
+        Connection: 'keep-alive',
+        'X-Accel-Buffering': 'no',
+      })
+
+      const stream = new ReadableStream<Uint8Array>({
+        start: async (controller) => {
+          const sendEvent = (event: Record<string, unknown>) => {
+            controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`))
+          }
+
+          try {
+            sendEvent({ type: 'start' })
+            const agentResponse = shouldStreamPremium
+              ? await invokePremiumLegalAgentStream(
+                  messageForAgent,
+                  threadId,
+                  userId,
+                  sanitizedHistory,
+                  caseKeywords,
+                  {
+                    useSearch: shouldUseSearchRetrieval,
+                    searchQueryOverride: premiumGeneratedWebQuery || undefined,
+                    searchEngineOverride: 'brave',
+                    openaiModel: premiumOpenAiModel,
+                    openaiFallbackModel: premiumOpenAiFallbackModel,
+                    onToken: (chunk) => {
+                      if (chunk) sendEvent({ type: 'delta', delta: chunk })
+                    },
+                  }
+                )
+              : await invokePremiumPlusLegalAgentStream(
+                  messageForAgent,
+                  threadId,
+                  userId,
+                  sanitizedHistory,
+                  caseKeywords,
+                  {
+                    useSearch: shouldUseSearchRetrieval,
+                    searchQueryOverride:
+                      generatedWebQuery ||
+                      buildPlannerQueryFromTools(premiumPlusTools, 'web') ||
+                      buildPlannerQueryFromSubIssues(premiumPlusSubIssues, 'web') ||
+                      undefined,
+                    searchModeOverride: premiumPlusSearchMode || undefined,
+                    searchEngineOverride: 'perplexity',
+                    anthropicModel: premiumPlusClaudeModel || undefined,
+                    anthropicFallbackModel: premiumPlusClaudeFallbackModel || undefined,
+                    onToken: (chunk) => {
+                      if (chunk) sendEvent({ type: 'delta', delta: chunk })
+                    },
+                  }
+                )
+            const payload = await finalizeAgentResponse(agentResponse)
+            sendEvent({ type: 'done', payload })
+          } catch (error: any) {
+            console.error(shouldStreamPremium ? 'Premium streaming failed:' : 'Premium+ streaming failed:', error)
+            sendEvent({
+              type: 'error',
+              message: error instanceof Error && error.message
+                ? error.message
+                : 'MyMcKenzieCS is unavailable to help right now. Please try again later.',
+            })
+          } finally {
+            controller.close()
+          }
+        },
+      })
+
+      return new Response(stream, { status: 200, headers: streamHeaders })
+    }
+
+    const agentResponse: AgentResponse = shouldUseBasicLegalAgent
       ? await invokeBasicLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords)
       : shouldUsePremiumPlusLegalAgent
-        ? await invokePremiumPlusLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
-            useSearch: shouldUseSearchRetrieval,
-            searchQueryOverride:
-              generatedWebQuery ||
-              buildPlannerQueryFromTools(premiumPlusTools, 'web') ||
-              buildPlannerQueryFromSubIssues(premiumPlusSubIssues, 'web') ||
-              undefined,
-            searchModeOverride: premiumPlusSearchMode || undefined,
-            anthropicModel: premiumPlusClaudeModel || undefined,
-            anthropicFallbackModel: premiumPlusClaudeFallbackModel || undefined,
-          })
+        ? (
+            premiumPlusPlannerAnswered && premiumPlusPlannerDirectResponse
+              ? {
+                  response: premiumPlusPlannerDirectResponse,
+                  document_generated: false,
+                  guidance_provided: true,
+                  next_steps: [],
+                  sources: undefined,
+                }
+              : await invokePremiumPlusLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
+                  useSearch: shouldUseSearchRetrieval,
+                  searchQueryOverride:
+                    generatedWebQuery ||
+                    buildPlannerQueryFromTools(premiumPlusTools, 'web') ||
+                    buildPlannerQueryFromSubIssues(premiumPlusSubIssues, 'web') ||
+                    undefined,
+                  searchModeOverride: premiumPlusSearchMode || undefined,
+                  anthropicModel: premiumPlusClaudeModel || undefined,
+                  anthropicFallbackModel: premiumPlusClaudeFallbackModel || undefined,
+                })
+          )
         : await invokePremiumLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
             useSearch: shouldUseSearchRetrieval,
             searchQueryOverride: premiumGeneratedWebQuery || undefined,
+            searchEngineOverride: 'brave',
             openaiModel: premiumOpenAiModel,
             openaiFallbackModel: premiumOpenAiFallbackModel,
           })
 
-    const includeDebug = process.env.NODE_ENV !== 'production'
-    const sourceCount = Array.isArray(agentResponse.sources) ? agentResponse.sources.length : 0
-    const hasInlineCitationTags = /\[\d+\]/.test(agentResponse.response || '')
-
-    if (!agentResponse.response || !agentResponse.response.trim()) {
-      return withCookie(
-        NextResponse.json(
-          buildAssistantResponsePayload('I had trouble generating a response. Please try again in a moment.', {
-            emptyResponse: true,
-          }),
-          { status: 200 }
-        )
-      )
-    }
-    const caseLawSuggestionShouldOffer =
-      retrievalRoutingSource === 'claude'
-        ? shouldLookupCaseLawSuggestions
-        : caseLawSuggestionDecision.shouldSuggest
-    const caseLawSoftNextStep = buildCaseLawSoftNextStep({
-      shouldSuggest: caseLawSuggestionShouldOffer,
-      suggestions: caseLawSuggestions,
-      existingResponse: agentResponse.response || '',
-    })
-    const responseWithSoftStep = caseLawSoftNextStep
-      ? `${agentResponse.response.trim()}\n\n${caseLawSoftNextStep}`
-      : agentResponse.response
-    const allowedAuthorityTokens = buildAllowedAuthorityTokens(vectorCaseLawRagItems, caseLawSuggestions)
-    const scrubbedCaseLaw = premiumPlusActive
-      ? scrubUnsupportedCaseLawClaims(responseWithSoftStep || '', allowedAuthorityTokens)
-      : { text: responseWithSoftStep || '', removedCount: 0 }
-    const templateGuardResult = enforceTemplateOnlyFinalResponse(message, scrubbedCaseLaw.text)
-    const finalAssistantResponse = templateGuardResult.responseText
-    const templateDraftBlocked = templateGuardResult.blocked
-    const templateDraftBlockReason = templateGuardResult.reason || null
-    const removedUnsupportedAuthorityLines = scrubbedCaseLaw.removedCount
-    const actionItems = extractActionItems(`${message}\n${finalAssistantResponse}`)
-    if (actionItems.length > 0) {
-      const rows = actionItems.map((item) => ({
-        memory_key: memoryKey,
-        user_id: authUserId || null,
-        guest_id: guestId || null,
-        case_id: resolvedCaseId || null,
-        conversation_id: sessionInfo.conversationId || conversationId || null,
-        title: item.title,
-        due_date: item.dueDate,
-        status: 'pending',
-        source_text: truncateText(message, 400),
-      }))
-      await supabaseAdmin.from('chat_action_items').insert(rows)
-    }
-
-    const mergedFacts = mergeFacts(effectiveMemoryRow?.key_facts, initialFacts)
-    await supabaseAdmin.from('chat_memory').upsert(
-      {
-        memory_key: memoryKey,
-        user_id: authUserId || null,
-        guest_id: guestId || null,
-        case_id: resolvedCaseId || null,
-        conversation_id: activeConversationId,
-        memory_summary: truncateText(`User: ${message} | Assistant: ${finalAssistantResponse}`, 480),
-        key_facts: mergedFacts,
-        open_questions: [],
-        last_intent: processingResult.task,
-      },
-      { onConflict: 'memory_key' }
-    )
-
-    if (chatManager.shouldPersistMessages()) {
-      await chatManager.storeRawMessage(
-        finalAssistantResponse,
-        'assistant',
-        stripAssistantPresentationMetadata({
-          autoGenerated: true,
-          type: 'legal_agent_response',
-          caseId: processingResult.caseId || null,
-          sources: agentResponse.sources || [],
-          caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
-          caseLawSoftNextStep,
-          templateDraftBlocked,
-          templateDraftBlockReason,
-          actionItems,
-        }) || {},
-        processingResult.caseId || sessionInfo.activeCaseId || null
-      )
-    }
+    const payload = await finalizeAgentResponse(agentResponse)
 
     return withCookie(
-      NextResponse.json(
-        buildAssistantResponsePayload(finalAssistantResponse, {
-          guidanceProvided: agentResponse.guidance_provided,
-          nextSteps: agentResponse.next_steps,
-          sources: agentResponse.sources || [],
-          caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
-          caseLawSoftNextStep,
-          caseProcessing: processingResult,
-          activeCaseId: processingResult.caseId || sessionInfo.activeCaseId,
-          pendingCalendarEntries: (processingResult as any).pendingCalendarEntries || null,
-          task: processingResult.task,
-          contextType: processingResult.contextType,
-          urgency: processingResult.urgency,
-          followUpQuestion,
-          actionItems,
-          templateDraftBlocked,
-          templateDraftBlockReason,
-          ...(includeDebug
-              ? {
-                debug: {
-                  premiumFlow: !shouldUseBasicLegalAgent,
-                  basicPlanFlow: basicPlanActive,
-                  premiumPlanFlow: premiumPlanActive,
-                  premiumPlusFlow: premiumPlusActive,
-                  planAgent: shouldUseBasicLegalAgent
-                    ? 'basic'
-                    : (shouldUsePremiumPlusLegalAgent ? 'premium_plus' : 'premium'),
-                  planLabel: activePlanLabel || 'none',
-                  sourceCount,
-                  hasInlineCitationTags,
-                  citationMode: premiumPlusActive
-                    ? (shouldUseSearchRetrieval ? 'search+citations' : 'direct-no-search')
-                    : (premiumPlanActive
-                        ? (shouldUseSearchRetrieval ? 'search-no-citations' : 'direct-no-search')
-                        : 'basic-no-search'),
-                  retrievalEnabled: shouldUseSearchRetrieval,
-                  premiumGeneratorRoutingEnabled: PREMIUM_GENERATOR_ROUTING_ENABLED,
-                  premiumSearchRoutingSource,
-                  premiumSearchRoutingUsed: Boolean(premiumSearchRoutingDecision),
-                  premiumSearchRoutingConfidence,
-                  premiumSearchRoutingReasons,
-                  premiumSearchModeApplied: premiumSearchRoutingDecision?.searchMode || 'fallback-search',
-                  premiumSearchQuery: premiumGeneratedWebQuery || null,
-                  premiumPlusCaseLawRetrievalEnabled: shouldUsePremiumPlusCaseLawRetrieval,
-                  vectorCaseLawRagEnabled: usePremiumPlusVectorRag,
-                  vectorCaseLawRagCount: vectorCaseLawRagItems.length,
-                  caseLawSuggestionTriggered: shouldLookupCaseLawSuggestions,
-                  caseLawSuggestionCount: caseLawSuggestions.length,
-                  caseLawSuggestionScore: caseLawSuggestionDecision.score,
-                  caseLawSuggestionReasons: caseLawSuggestionDecision.reasons,
-                  caseLawSuggestionThreshold: CASELAW_SUGGESTION_MIN_TRIGGER_SCORE,
-                  caseLawRetrievalThreshold: CASELAW_RETRIEVAL_MIN_SCORE,
-                  caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
-                  retrievalFocus: retrievalFocusDecision.focus,
-                  retrievalFocusApplied,
-                  retrievalRoutingSource,
-                  premiumPlusToolPlanUsed: Boolean(premiumPlusToolPlan),
-                  premiumPlusToolPlanConfidence,
-                  premiumPlusDecomposition: premiumPlusDecomposition || null,
-                  premiumPlusSubIssueCount: premiumPlusSubIssues.length,
-                  premiumPlusToolPlanTools: premiumPlusTools.map((item) => item.tool),
-                  premiumPlusToolPlanSearchMode: premiumPlusSearchMode,
-                  premiumPlusToolPlanWebQuery: generatedWebQuery || null,
-                  premiumPlusToolPlanVectorQuery: generatedVectorQuery || null,
-                  retrievalOwnCaseNarrative: retrievalFocusDecision.ownCaseNarrative,
-                  retrievalPrecedentScore: retrievalFocusDecision.precedentScore,
-                  retrievalProcedureScore: retrievalFocusDecision.procedureScore,
-                  retrievalReasons: routingReasonsApplied,
-                  removedUnsupportedAuthorityLines,
-                  templateDraftBlocked,
-                  templateDraftBlockReason,
-                  caseScopedMemoryFallbackUsed,
-                  vectorFallbackToWeb,
-                },
-              }
-            : {}),
-        }),
-        { status: 200 }
-      )
+      NextResponse.json(payload, { status: 200 })
     )
   } catch (error: any) {
     await captureServerException(error, {

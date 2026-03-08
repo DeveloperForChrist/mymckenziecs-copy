@@ -4,6 +4,7 @@ import { SearchTool } from './search-tool'
 describe('search-tool source capture', () => {
   afterEach(() => {
     vi.restoreAllMocks()
+    delete process.env.PERPLEXITY_API_KEY
   })
 
   it('keeps all successfully-read pages in output.sources', async () => {
@@ -222,6 +223,61 @@ describe('search-tool source capture', () => {
     expect(usedNonBraveSearch).toBe(false)
   })
 
+  it('uses the Perplexity Search API when requested and skips page fetches', async () => {
+    process.env.PERPLEXITY_API_KEY = 'perplexity-test-key'
+    let perplexityBody: any = null
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input.toString()
+
+      if (url === 'https://api.perplexity.ai/search') {
+        perplexityBody = init?.body ? JSON.parse(String(init.body)) : null
+        return new Response(
+          JSON.stringify({
+            results: [
+              {
+                url: 'https://www.gov.uk/employment-tribunals',
+                title: 'Employment tribunals',
+                snippet: 'Government guidance on making a claim to an employment tribunal.',
+                date: '2026-02-15',
+              },
+              {
+                url: 'https://www.acas.org.uk/early-conciliation',
+                title: 'Early conciliation',
+                snippet: 'ACAS explains when early conciliation is required before a tribunal claim.',
+                date: '2025-11-20',
+              },
+            ],
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } }
+        )
+      }
+
+      return new Response('unexpected page fetch', { status: 500 })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    const tool = new SearchTool({ engine: 'perplexity' })
+    const raw = await tool._call(JSON.stringify({ query: 'employment tribunal early conciliation', mode: 'procedure' }))
+    const parsed = JSON.parse(raw) as { sources: string[]; sourceMode?: string; packet: string; reviewedCount: number }
+
+    expect(parsed.sourceMode).toBe('engine')
+    expect(parsed.reviewedCount).toBe(2)
+    expect(parsed.sources).toEqual([
+      'https://www.gov.uk/employment-tribunals',
+      'https://www.acas.org.uk/early-conciliation',
+    ])
+    expect(parsed.packet).toContain('Perplexity Search API')
+    expect(Array.isArray(perplexityBody?.query)).toBe(true)
+    expect(perplexityBody?.query).toContain('employment tribunal early conciliation')
+    expect(perplexityBody?.max_results).toBe(8)
+    expect(perplexityBody?.max_tokens_per_page).toBe(512)
+    expect(perplexityBody?.country).toBe('GB')
+    expect(perplexityBody).not.toHaveProperty('search_mode')
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
   it('keeps packet ranking query-driven without forced authority injection', async () => {
     const pageHtml = (title: string, body: string) =>
       `<html><head><title>${title}</title></head><body>${body}</body></html>`
@@ -274,7 +330,7 @@ describe('search-tool source capture', () => {
     const parsed = JSON.parse(raw) as { packet: string; sourceMode?: string; reviewedCount: number }
 
     expect(parsed.sourceMode).toBe('engine')
-    expect(parsed.reviewedCount).toBeGreaterThanOrEqual(8)
+    expect(parsed.reviewedCount).toBe(6)
     expect(parsed.packet).toContain('https://blog1.example.com/p1')
   })
 })
