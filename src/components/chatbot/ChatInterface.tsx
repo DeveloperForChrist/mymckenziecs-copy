@@ -159,54 +159,8 @@ const convertUrlsToLinks = (segment: string) => {
   return [...parts, ...urlParts]
 }
 
-const legislationLinkCache = new Map<string, string>()
-
-const buildLegislationSearchUrl = (title: string) =>
-  `https://www.legislation.gov.uk/all?title=${encodeURIComponent(title)}`
-
 const buildCourtFormSearchUrl = (refText: string) =>
   `https://www.gov.uk/search/all?keywords=${encodeURIComponent(refText)}`
-
-const resolveCprPartUrl = (part: string) => {
-  const numeric = part.match(/^\d{1,2}$/)
-  if (!numeric) return null
-  const padded = part.padStart(2, '0')
-  return `https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part${padded}`
-}
-
-const resolveCprUrl = (refText: string) => {
-  const text = refText.trim()
-  if (!text) return null
-  const lower = text.toLowerCase()
-  if (!/cpr|civil procedure rules/.test(lower)) return null
-
-  const partMatch = text.match(/\bpart\s*([0-9]{1,2})\b/i)
-  if (partMatch) {
-    return resolveCprPartUrl(partMatch[1])
-  }
-
-  const ruleMatch = text.match(/\br\.?\s*([0-9]{1,2})(?:\.[0-9]+)?\b/i)
-  if (ruleMatch) {
-    return resolveCprPartUrl(ruleMatch[1])
-  }
-
-  return 'https://www.justice.gov.uk/courts/procedure-rules/civil'
-}
-
-const resolvePracticeDirectionUrl = (refText: string) => {
-  const text = refText.trim()
-  if (!text) return null
-  if (!/\bpractice direction\b|\bpd\b/i.test(text)) return null
-  return 'https://www.justice.gov.uk/courts/procedure-rules/civil/rules/pd'
-}
-
-const buildReferenceSearchUrl = (refText: string) => {
-  const cprUrl = resolveCprUrl(refText)
-  if (cprUrl) return cprUrl
-  const pdUrl = resolvePracticeDirectionUrl(refText)
-  if (pdUrl) return pdUrl
-  return buildLegislationSearchUrl(refText)
-}
 
 const BULLET_PREFIX = '• '
 
@@ -409,62 +363,6 @@ const stripAssistantSourcesBlock = (text: string) => {
   return withoutReferenceIndex.trim()
 }
 
-const LegislationLink = ({ refText, hrefOverride }: { refText: string; hrefOverride?: string }) => {
-  const [href, setHref] = useState(() => {
-    if (hrefOverride) return hrefOverride
-    return legislationLinkCache.get(refText) || buildReferenceSearchUrl(refText)
-  })
-
-  useEffect(() => {
-    let cancelled = false
-    const cprUrl = resolveCprUrl(refText)
-    const pdUrl = resolvePracticeDirectionUrl(refText)
-    const lockedUrl = hrefOverride || cprUrl || pdUrl
-    if (lockedUrl || legislationLinkCache.has(refText)) {
-      if (lockedUrl && !legislationLinkCache.has(refText)) {
-        legislationLinkCache.set(refText, lockedUrl)
-        setHref(lockedUrl)
-      }
-      return
-    }
-
-    const resolveLink = async () => {
-      try {
-        const response = await fetch(`/api/legislation-lookup?title=${encodeURIComponent(refText)}`)
-        const data = await response.json()
-        const resolved = response.ok && data?.url ? data.url : buildReferenceSearchUrl(refText)
-        legislationLinkCache.set(refText, resolved)
-        if (!cancelled) {
-          setHref(resolved)
-        }
-      } catch {
-        const fallback = buildReferenceSearchUrl(refText)
-        legislationLinkCache.set(refText, fallback)
-        if (!cancelled) {
-          setHref(fallback)
-        }
-      }
-    }
-
-    resolveLink()
-
-    return () => {
-      cancelled = true
-    }
-  }, [refText, hrefOverride])
-
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      style={linkStyle}
-    >
-      {refText}
-    </a>
-  )
-}
-
 const resourceLinks: Array<{ pattern: RegExp; url: string }> = [
   { pattern: /\bPractice Direction\s*7A\b|\bPD\s*7A\b/i, url: 'https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part07/pd_part07a' },
   { pattern: /\bPre-Action Protocol for Small Claims\b/i, url: 'https://www.justice.gov.uk/courts/procedure-rules/civil/rules/pd_pre-action_conduct' },
@@ -652,13 +550,7 @@ const renderLegalReferences = (text: string) => {
       const trailing = text.slice(next.end)
       const urlMatch = trailing.match(urlAfterPattern)
       if (next.type === 'legislation' || next.type === 'rule' || next.type === 'practice_direction') {
-        if (urlMatch) {
-          const urlText = urlMatch[1]
-          parts.push(<LegislationLink key={`leg-${keyCounter++}`} refText={next.refText} hrefOverride={urlText} />)
-          cursor = next.end + urlMatch[0].length
-          continue
-        }
-        parts.push(<LegislationLink key={`leg-${keyCounter++}`} refText={next.refText} />)
+        parts.push(next.refText)
       } else if (next.type === 'form') {
         const href = urlMatch?.[1] || buildCourtFormSearchUrl(next.refText)
         parts.push(

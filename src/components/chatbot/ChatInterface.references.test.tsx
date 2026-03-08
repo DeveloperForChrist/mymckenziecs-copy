@@ -15,7 +15,7 @@ describe('ChatInterface reference links', () => {
   it('keeps CPR references clickable when they can be resolved confidently', () => {
     render(<div>{renderMessageContent('CPR Part 7 explains how a claim is started.')}</div>)
 
-    const link = screen.getByRole('link', { name: 'CPR Part 7' })
-    expect(link).toHaveAttribute('href', 'https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part07')
+    expect(screen.queryByRole('link', { name: 'CPR Part 7' })).not.toBeInTheDocument()
+    expect(screen.getByText(/CPR Part 7 explains how a claim is started\./)).toBeInTheDocument()
   })
 })

@@ -6,28 +6,28 @@ import { isBillingEligibleUser } from '@/lib/auth/session-user';
 
 const workspaceFeatures = [
   {
-    title: 'Assistant Workspace',
-    text: 'Ask procedural questions and get structured plain-English guidance.'
+    title: 'Understand your position',
+    text: 'Get plain-English procedural support to help you understand what may matter in your case.'
   },
   {
-    title: 'Chat Context',
-    text: 'Add your case details in chatbot to keep guidance context-aware.'
+    title: 'Keep your case organised',
+    text: 'Keep your facts, evidence, notes, and case context together in one workspace.'
   },
   {
-    title: 'Documents',
-    text: 'Store evidence, upload drafts, and keep material linked to your case.'
+    title: 'Review documents with context',
+    text: 'Upload documents, store evidence, and get support that takes your case details into account.'
   },
   {
-    title: 'Calendar and Deadlines',
-    text: 'Track court dates, tasks, and reminder events from one place.'
+    title: 'Track deadlines',
+    text: 'Manage hearings, tasks, reminders, and important dates from one place.'
   },
   {
-    title: 'Notes and Memory',
-    text: 'Capture your facts, chronology, and strategy as the case evolves.'
+    title: 'Stay focused on what matters',
+    text: 'Separate relevant facts, evidence, and procedure from noise, confusion, and stress.'
   },
   {
-    title: 'Case Law Research',
-    text: 'Search judgments and study relevant authorities on paid plans.'
+    title: 'Research relevant authorities',
+    text: 'Search judgments and study useful case law on paid plans when deeper research is needed.'
   }
 ];
 
@@ -36,7 +36,7 @@ const plans = [
     name: 'Basic',
     price: '18',
     bullets: [
-      'MyMcKenzieCS Basic Assistant',
+      'MyMckenzieCS Basic Assistant',
       '10 document storage',
       'Conversation history included'
     ]
@@ -45,7 +45,7 @@ const plans = [
     name: 'Premium',
     price: '32',
     bullets: [
-      'MyMcKenzieCS Smart Assistant',
+      'MyMckenzieCS Smart Assistant',
       '25 document storage',
       'Conversation history included',
       'Deadline reminder emails'
@@ -56,8 +56,8 @@ const plans = [
     name: 'Premium +',
     price: '199',
     bullets: [
-      'MyMcKenzieCS Intelligent Assistant',
-      '150+ document storage',
+      'MyMckenzieCS Intelligent Assistant',
+      '150 document storage',
       'Persistent chat history',
       'Advanced case law retrieval and study',
       'Enhanced research support',
@@ -131,8 +131,8 @@ export default async function HomePage() {
                     with structure, not stress.
                   </h1>
                   <p className="text-base md:text-xl text-white/85 mt-5 max-w-3xl mx-auto xl:mx-0 leading-relaxed">
-                    MyMcKenzieCS is your AI-assisted case platform: procedural guidance, document support, deadlines tracking,
-                    and legal research in one connected flow.
+                    MyMcKenzieCS is a legal self-help workspace for UK litigants in person: Providing legal procedural support,
+                    document and evidence organisation, deadline tracking, and case law research in one place to navigate your case.
                   </p>
                   <HeroActionButtons hasAccountSession={hasAccountSession} hasPaidAccess={hasPaidAccess} />
                   <div className="mt-4 text-sm text-white/75">
@@ -173,7 +173,7 @@ export default async function HomePage() {
             <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
               <div>
                 <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Inside MyMcKenzieCS</div>
-                <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">Every tool tied to one case workspace</h3>
+                <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">Everything you need to manage a legal matter in one workspace</h3>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -196,7 +196,7 @@ export default async function HomePage() {
             <div className="flex items-end justify-start flex-wrap gap-4 mb-7">
               <div>
                 <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Plans</div>
-                <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">Choose support level by case complexity</h3>
+                <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">Choose the level of support that fits your case</h3>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -234,10 +234,10 @@ export default async function HomePage() {
               <div>
                 <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Get started</div>
                 <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">
-                  Build your next action plan now.
+                  Start building your case plan now.
                 </h3>
                 <p className="text-white/75 mt-3">
-                  Start with one question, then run the whole case from the same workspace.
+                  Start with one question, then organise the rest of your case from the same workspace.
                 </p>
               </div>
             </div>
