@@ -571,6 +571,9 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const streamTypingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const streamTypingMessageIdRef = useRef<string | null>(null)
+  const streamPendingDeltaRef = useRef('')
   const chatRequestAbortRef = useRef<AbortController | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const prevLineCountRef = useRef<number>(0)
@@ -1206,19 +1209,42 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
 
   const appendStreamDeltaById = (messageId: string, delta: string) => {
     if (!delta) return
-    setMessages((prev) => {
-      const targetIndex = prev.findIndex((m) => m.id === messageId)
-      if (targetIndex < 0) return prev
+    streamTypingMessageIdRef.current = messageId
+    streamPendingDeltaRef.current += delta
 
-      const target = prev[targetIndex]
-      const updated = [...prev]
-      updated[targetIndex] = {
-        ...target,
-        content: `${target.content || ''}${delta}`,
-        isTyping: true,
+    if (streamTypingIntervalRef.current) return
+
+    const tickMs = 12
+    streamTypingIntervalRef.current = setInterval(() => {
+      const activeMessageId = streamTypingMessageIdRef.current
+      if (!activeMessageId) return
+
+      const pending = streamPendingDeltaRef.current
+      if (!pending) {
+        if (streamTypingIntervalRef.current) {
+          clearInterval(streamTypingIntervalRef.current)
+          streamTypingIntervalRef.current = null
+        }
+        return
       }
-      return updated
-    })
+
+      const nextChar = pending.slice(0, 1)
+      streamPendingDeltaRef.current = pending.slice(1)
+
+      setMessages((prev) => {
+        const targetIndex = prev.findIndex((m) => m.id === activeMessageId)
+        if (targetIndex < 0) return prev
+
+        const target = prev[targetIndex]
+        const updated = [...prev]
+        updated[targetIndex] = {
+          ...target,
+          content: `${target.content || ''}${nextChar}`,
+          isTyping: true,
+        }
+        return updated
+      })
+    }, tickMs)
   }
 
   const finalizeStreamedMessageById = (
@@ -1226,6 +1252,13 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     fullText: string,
     metadata?: AssistantMetadata
   ) => {
+    streamPendingDeltaRef.current = ''
+    streamTypingMessageIdRef.current = null
+    if (streamTypingIntervalRef.current) {
+      clearInterval(streamTypingIntervalRef.current)
+      streamTypingIntervalRef.current = null
+    }
+
     const assistantText = stripAssistantSourcesBlock(String(fullText || ''))
     setMessages((prev) => {
       const targetIndex = prev.findIndex((m) => m.id === messageId)
@@ -1352,6 +1385,12 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       clearInterval(typingIntervalRef.current)
       typingIntervalRef.current = null
     }
+    if (streamTypingIntervalRef.current) {
+      clearInterval(streamTypingIntervalRef.current)
+      streamTypingIntervalRef.current = null
+    }
+    streamPendingDeltaRef.current = ''
+    streamTypingMessageIdRef.current = null
     setMessages(prev => {
       const updated = [...prev]
       const lastIndex = updated.length - 1

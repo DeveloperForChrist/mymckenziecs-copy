@@ -2175,6 +2175,8 @@ export async function invokePremiumLegalAgent(
     openaiModel: options?.openaiModel || OPENAI_MODEL,
     openaiFallbackModel: options?.openaiFallbackModel || OPENAI_FALLBACK_MODEL,
     maxTokens: options?.maxTokens,
+    autoContinueOnLength: true,
+    maxAutoContinues: 1,
     maxCompressionRetries: options?.maxCompressionRetries,
     searchQueryOverride: options?.searchQueryOverride,
     searchModeOverride: options?.searchModeOverride,
