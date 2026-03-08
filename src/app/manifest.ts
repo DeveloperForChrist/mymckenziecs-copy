@@ -11,7 +11,7 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#270427',
     icons: [
       {
-        src: '/assets/mymckenzie-high-resolution-logo (7) 1.svg',
+        src: '/favicon-circle-padded.svg',
         type: 'image/svg+xml',
       },
       {
@@ -27,5 +27,4 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
   }
 }
-
 

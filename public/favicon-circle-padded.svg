@@ -1,0 +1,20 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="512"
+  height="512"
+  viewBox="0 0 512 512"
+  role="img"
+  aria-label="MyMcKenzieCS favicon"
+>
+  <title>MyMcKenzieCS favicon</title>
+  <!-- Keep only a small transparent bleed so the white ring is not clipped. -->
+  <rect width="512" height="512" fill="none" />
+  <image
+    href="/favicon-source.png"
+    x="8"
+    y="8"
+    width="496"
+    height="496"
+    preserveAspectRatio="xMidYMid meet"
+  />
+</svg>

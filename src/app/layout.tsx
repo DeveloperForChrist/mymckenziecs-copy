@@ -9,7 +9,7 @@ const normalizeSiteUrl = (value: string) =>
 const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL || 'https://mymckenziecs.com')
 const APP_FULL_NAME = 'MyMcKenzie Court Support'
 const APP_SHORT_NAME = 'MyMcKenzieCS'
-const FAVICON_SVG_PATH = '/assets/mymckenzie-high-resolution-logo (7) 1.svg'
+const FAVICON_SVG_PATH = '/favicon-circle-padded.svg'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
