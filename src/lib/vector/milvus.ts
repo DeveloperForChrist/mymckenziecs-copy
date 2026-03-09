@@ -5,6 +5,7 @@ import path from 'path';
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 let pythonMilvusCheckComplete = false;
 let pythonMilvusAvailable = true;
+const PYTHON_BIN = process.env.PYTHON_BIN || 'python3';
 
 const MILVUS_DEPENDENCY_MISSING_PREFIX = 'MILVUS_DEPENDENCY_MISSING';
 
@@ -16,7 +17,7 @@ const ensurePythonMilvusAvailable = async (): Promise<boolean> => {
 
   try {
     await new Promise<void>((resolve, reject) => {
-      const child = spawn('python3', ['-c', 'import pymilvus'], { stdio: ['ignore', 'pipe', 'pipe'] });
+      const child = spawn(PYTHON_BIN, ['-c', 'import pymilvus'], { stdio: ['ignore', 'pipe', 'pipe'] });
       let stderr = '';
 
       child.stderr.on('data', (chunk) => {
@@ -83,7 +84,7 @@ export async function searchVectorsByEmbedding(embedding: number[], topk: number
 
   try {
     const { stdout, stderr } = await new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
-      const child = spawn('python3', [pyPath], { stdio: ['pipe', 'pipe', 'pipe'] });
+      const child = spawn(PYTHON_BIN, [pyPath], { stdio: ['pipe', 'pipe', 'pipe'] });
       let stdout = '';
       let stderr = '';
 

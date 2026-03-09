@@ -193,8 +193,27 @@ const openAiMockState = vi.hoisted(() => ({
   }),
 }))
 
+const milvusMockState = vi.hoisted(() => ({
+  searchByTextMock: vi.fn(async () => [] as any[]),
+}))
+
 const supabaseMockState = vi.hoisted(() => {
   const tables: string[] = []
+  const caseLawRows = [
+    {
+      id: 'fallback-case-1',
+      citation: '[2024] EWHC 123',
+      title: 'Driver Hit My Car and Ran Away v Example',
+      url: 'https://example.com/fallback-authority',
+      summary: 'A fallback authority summary about a driver hitting a car and leaving the scene.',
+      extracts: ['Driver hit my car and ran away after a confrontation.'],
+      case_type: 'general',
+      year: 2024,
+      court: 'High Court',
+      outcome: 'Claim partly allowed',
+      updated_at: '2025-01-01T00:00:00Z',
+    },
+  ]
 
   const buildCasesQuery = () => {
     const filters: Record<string, any> = {}
@@ -252,10 +271,43 @@ const supabaseMockState = vi.hoisted(() => {
     }
   }
 
+  const buildCaseLawQuery = () => {
+    const filters: Record<string, any> = {}
+    return {
+      select(this: any, _fields: string) {
+        return this
+      },
+      order(this: any, _field: string, _options?: any) {
+        return this
+      },
+      limit(this: any, _limit: number) {
+        return this
+      },
+      in(this: any, field: string, values: any[]) {
+        filters[`in:${field}`] = Array.isArray(values) ? values : []
+        return this
+      },
+      then: (resolve: (value: any) => any, reject?: (reason: any) => any) => {
+        const rows =
+          Array.isArray(filters['in:id']) && filters['in:id'].length > 0
+            ? caseLawRows.filter((row) => filters['in:id'].includes(row.id))
+            : Array.isArray(filters['in:citation']) && filters['in:citation'].length > 0
+              ? caseLawRows.filter((row) => filters['in:citation'].includes(row.citation))
+              : caseLawRows
+
+        return Promise.resolve({
+          data: rows,
+          error: null,
+        }).then(resolve, reject)
+      },
+    }
+  }
+
   const from = vi.fn((table: string) => {
     tables.push(table)
     if (table === 'cases') return buildCasesQuery()
     if (table === 'messages') return buildMessagesQuery()
+    if (table === 'case_law') return buildCaseLawQuery()
     throw new Error(`Unexpected Supabase table in test: ${table}`)
   })
 
@@ -290,6 +342,10 @@ vi.mock('openai', () => {
   return { default: MockOpenAI, OpenAI: MockOpenAI }
 })
 
+vi.mock('@/lib/vector/milvus', () => ({
+  searchByText: milvusMockState.searchByTextMock,
+}))
+
 vi.mock('../../database/supabase-server', () => ({
   supabaseAdmin: {
     from: supabaseMockState.from,
@@ -320,6 +376,8 @@ describe('agent smoke checks', () => {
     anthropicMockState.anthropicMessagesCreateMock.mockClear()
     anthropicMockState.anthropicMessagesStreamMock.mockClear()
     openAiMockState.openAiCreateMock.mockClear()
+    milvusMockState.searchByTextMock.mockClear()
+    milvusMockState.searchByTextMock.mockResolvedValue([])
     supabaseMockState.reset()
     vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
@@ -655,6 +713,44 @@ describe('agent smoke checks', () => {
     expect(onStatus).toHaveBeenCalledWith('Retrieving case law...')
     expect(onStatus).toHaveBeenCalledWith('Writing answer...')
     expect(onToken).toHaveBeenCalled()
+  })
+
+  it('premium plus case-law tool degrades cleanly when Milvus runtime dependencies are missing', async () => {
+    process.env.MILVUS_HOST = 'localhost'
+    milvusMockState.searchByTextMock.mockRejectedValueOnce(
+      new Error('MILVUS_DEPENDENCY_MISSING: pymilvus is not installed on this runtime')
+    )
+
+    await invokePremiumPlusLegalAgent(
+      'Can you give case law on this?',
+      'thread_smoke_premium_plus_milvus_missing',
+      'user_smoke_premium_plus_milvus_missing',
+      [],
+      'road traffic incident',
+      {
+        useSearch: true,
+        anthropicModel: 'claude-sonnet-4-6',
+        anthropicFallbackModel: 'claude-opus-4-6',
+      }
+    )
+
+    const secondCallPayload = (anthropicMockState.anthropicMessagesCreateMock.mock.calls[1] || [])[0] as any
+    const toolResultMessage = Array.isArray(secondCallPayload?.messages)
+      ? secondCallPayload.messages.find(
+          (message: any) =>
+            Array.isArray(message?.content) &&
+            message.content.some((block: any) => block?.type === 'tool_result')
+        )
+      : null
+    const toolResultContent = Array.isArray(toolResultMessage?.content)
+      ? String(toolResultMessage.content[0]?.content || '')
+      : ''
+
+    expect(toolResultContent).toContain('Case-law fallback results:')
+    expect(toolResultContent).toContain('[2024] EWHC 123')
+    expect(toolResultContent).toContain('Driver Hit My Car and Ran Away v Example')
+    expect(toolResultContent).not.toContain('MILVUS_DEPENDENCY_MISSING')
+    expect(toolResultContent).not.toContain('pymilvus')
   })
 
   it('premium plus agent uses earlier conversation history in its own tool path', async () => {

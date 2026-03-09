@@ -5,7 +5,7 @@ import { supabaseAdmin } from '../../database/supabase-server';
 import { DocGeneratorTool } from '../tools/doc-generator-tool';
 import { SearchTool, type SearchEngine, type SearchToolOutput } from '../tools/search-tool';
 import { neutralizeLegalAdviceTone } from './legal-tone';
-import { searchByText } from '@/lib/vector/milvus';
+import { searchCaseLawWithFallback } from '@/lib/case-law/runtime-search';
 import { logClaudeUsage } from '@/lib/utils/claude-usage';
 
 // Shared legal-support system prompts
@@ -2087,24 +2087,24 @@ const executePremiumPlusCaseLawSearch = async (
   scope: 'suggestions' | 'analysis' | 'both',
   limit: number
 ): Promise<PremiumPlusToolExecutionResult> => {
-  if (!process.env.MILVUS_HOST) {
-    return {
-      content: 'Case-law retrieval is currently unavailable.',
-    }
-  }
+  const runtimeSearch = await searchCaseLawWithFallback(query, Math.max(6, limit * 3))
+  const rawResults = runtimeSearch.results
 
-  const rawResults = await searchByText(query, Math.max(6, limit * 3))
   const mapped = Array.isArray(rawResults)
     ? rawResults.slice(0, limit).map((row, index) => mapPremiumPlusCaseLawItem(row, index))
     : []
 
   if (mapped.length === 0) {
     return {
-      content: 'No closely relevant case-law results were found.',
+      content: runtimeSearch.warning
+        ? 'Case-law retrieval fallback did not return any closely relevant authorities.'
+        : 'No closely relevant case-law results were found.',
     }
   }
 
-  const lines: string[] = ['Case-law results:']
+  const lines: string[] = runtimeSearch.warning
+    ? ['Case-law fallback results:', `Note: ${runtimeSearch.warning}`]
+    : ['Case-law results:']
   mapped.forEach((item, index) => {
     lines.push(`[${index + 1}] ${item.citation} - ${item.title}`)
     if (scope !== 'suggestions' && item.summary) lines.push(`Summary: ${item.summary}`)

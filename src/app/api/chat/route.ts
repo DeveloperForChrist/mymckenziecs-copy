@@ -130,6 +130,24 @@ const getPremiumPlusAnthropicModel = (): string =>
 const getPremiumPlusAnthropicFallbackModel = (primaryModel: string): string =>
   getEnvModelValue('PREMIUM_PLUS_ANTHROPIC_FALLBACK_MODEL') || primaryModel
 
+const sanitizeChatErrorMessage = (error: unknown): string => {
+  const message = error instanceof Error
+    ? error.message
+    : typeof error === 'string'
+      ? error
+      : ''
+
+  if (
+    message.includes('MILVUS_DEPENDENCY_MISSING') ||
+    /pymilvus/i.test(message) ||
+    /MILVUS_HOST missing/i.test(message)
+  ) {
+    return 'Case-law retrieval is unavailable right now. Please try again later.'
+  }
+
+  return message || 'MyMcKenzieCS is unavailable to help right now. Please try again later.'
+}
+
 const PREMIUM_PLUS_CASELAW_TIMEOUT_MS = Number.isFinite(Number(process.env.PREMIUM_PLUS_CASELAW_TIMEOUT_MS))
   ? Math.max(1000, Math.floor(Number(process.env.PREMIUM_PLUS_CASELAW_TIMEOUT_MS)))
   : 4000
@@ -2392,9 +2410,7 @@ export async function POST(request: NextRequest) {
             console.error(shouldStreamPremium ? 'Premium streaming failed:' : 'Premium+ streaming failed:', error)
             sendEvent({
               type: 'error',
-              message: error instanceof Error && error.message
-                ? error.message
-                : 'MyMcKenzieCS is unavailable to help right now. Please try again later.',
+              message: sanitizeChatErrorMessage(error),
             })
           } finally {
             controller.close()
@@ -2450,9 +2466,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       buildAssistantResponsePayload(
-        'I apologize, but I encountered an error. Please try again or rephrase your question.',
+        sanitizeChatErrorMessage(error) === 'MyMcKenzieCS is unavailable to help right now. Please try again later.'
+          ? 'I apologize, but I encountered an error. Please try again or rephrase your question.'
+          : sanitizeChatErrorMessage(error),
         undefined,
-        { message: error?.message || 'Chat failed' }
+        { message: sanitizeChatErrorMessage(error) || 'Chat failed' }
       ),
       { status: 500 }
     )

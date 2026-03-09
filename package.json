@@ -6,6 +6,8 @@
     "dev": "next dev",
     "dev:py": "python3 scripts/case-law/milvus_bridge.py",
     "build": "next build --webpack",
+    "render:build": "bash scripts/render/build.sh",
+    "render:start": "bash scripts/render/start.sh",
     "start": "next start",
     "lint": "eslint src instrumentation.ts instrumentation-client.ts sentry.server.config.ts sentry.edge.config.ts --ext .ts,.tsx",
     "type-check": "tsc --noEmit",
