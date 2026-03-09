@@ -96,6 +96,103 @@ const anthropicMockState = vi.hoisted(() => {
   }
 })
 
+const openAiMockState = vi.hoisted(() => ({
+  openAiCreateMock: vi.fn(async (payload: any) => {
+    const combinedContent = Array.isArray(payload?.messages)
+      ? payload.messages.map((message: any) => String(message?.content || '')).join('\n')
+      : ''
+    if (combinedContent.includes('routing timeout sentinel')) {
+      return new Promise<any>(() => {})
+    }
+    if (combinedContent.includes('Earlier conversation marker: driver hit my car and ran away')) {
+      return {
+        choices: [
+          {
+            message: {
+              content: 'I remember the earlier conversation about the driver hitting your car and leaving the scene.',
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      }
+    }
+    const isCaseStudy = combinedContent.includes('Please provide a comprehensive educational case study analysis')
+    const isRoutingDecision = combinedContent.includes('Choose the retrieval mode for this user request before answer generation.')
+    if (isRoutingDecision) {
+      if (combinedContent.includes('What does claimant mean')) {
+        return {
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  retrieval_mode: 'direct',
+                  vector_query: '',
+                  web_query: '',
+                  confidence: 0.81,
+                  reasons: ['stable-legal-concept'],
+                }),
+              },
+              finish_reason: 'stop',
+            },
+          ],
+        }
+      }
+      return {
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                retrieval_mode: 'hybrid',
+                vector_query: 'relevant UK precedent',
+                web_query: 'current UK procedure guidance',
+                confidence: 0.78,
+                reasons: ['mixed-signals'],
+              }),
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      }
+    }
+    const content = isCaseStudy
+      ? `CASE SUMMARY\n${'learning '.repeat(1200)}\n\nIn short: This is educational information only.`
+      : 'Overview\n1. General guidance point.\n2. Practical note.\nIn short: This is general legal information support.'
+    if (payload?.stream) {
+      const chunks = content.match(/.{1,24}/g) || [content]
+      return {
+        [Symbol.asyncIterator]: async function* () {
+          for (const chunk of chunks) {
+            yield {
+              choices: [
+                {
+                  delta: { content: chunk },
+                  finish_reason: null,
+                },
+              ],
+            }
+          }
+          yield {
+            choices: [
+              {
+                delta: {},
+                finish_reason: 'stop',
+              },
+            ],
+          }
+        },
+      }
+    }
+    return {
+      choices: [
+        {
+          message: { content },
+          finish_reason: 'stop',
+        },
+      ],
+    }
+  }),
+}))
+
 const supabaseMockState = vi.hoisted(() => {
   const tables: string[] = []
 
@@ -185,100 +282,7 @@ vi.mock('openai', () => {
   class MockOpenAI {
     chat = {
       completions: {
-        create: vi.fn(async (payload: any) => {
-          const combinedContent = Array.isArray(payload?.messages)
-            ? payload.messages.map((message: any) => String(message?.content || '')).join('\n')
-            : ''
-          if (combinedContent.includes('routing timeout sentinel')) {
-            return new Promise<any>(() => {})
-          }
-          if (combinedContent.includes('Earlier conversation marker: driver hit my car and ran away')) {
-            return {
-              choices: [
-                {
-                  message: {
-                    content: 'I remember the earlier conversation about the driver hitting your car and leaving the scene.',
-                  },
-                  finish_reason: 'stop',
-                },
-              ],
-            }
-          }
-          const isCaseStudy = combinedContent.includes('Please provide a comprehensive educational case study analysis')
-          const isRoutingDecision = combinedContent.includes('Choose the retrieval mode for this user request before answer generation.')
-          if (isRoutingDecision) {
-            if (combinedContent.includes('What does claimant mean')) {
-              return {
-                choices: [
-                  {
-                    message: {
-                      content: JSON.stringify({
-                        retrieval_mode: 'direct',
-                        vector_query: '',
-                        web_query: '',
-                        confidence: 0.81,
-                        reasons: ['stable-legal-concept'],
-                      }),
-                    },
-                    finish_reason: 'stop',
-                  },
-                ],
-              }
-            }
-            return {
-              choices: [
-                {
-                  message: {
-                    content: JSON.stringify({
-                      retrieval_mode: 'hybrid',
-                      vector_query: 'relevant UK precedent',
-                      web_query: 'current UK procedure guidance',
-                      confidence: 0.78,
-                      reasons: ['mixed-signals'],
-                    }),
-                  },
-                  finish_reason: 'stop',
-                },
-              ],
-            }
-          }
-          const content = isCaseStudy
-            ? `CASE SUMMARY\n${'learning '.repeat(1200)}\n\nIn short: This is educational information only.`
-            : 'Overview\n1. General guidance point.\n2. Practical note.\nIn short: This is general legal information support.'
-          if (payload?.stream) {
-            const chunks = content.match(/.{1,24}/g) || [content]
-            return {
-              [Symbol.asyncIterator]: async function* () {
-                for (const chunk of chunks) {
-                  yield {
-                    choices: [
-                      {
-                        delta: { content: chunk },
-                        finish_reason: null,
-                      },
-                    ],
-                  }
-                }
-                yield {
-                  choices: [
-                    {
-                      delta: {},
-                      finish_reason: 'stop',
-                    },
-                  ],
-                }
-              },
-            }
-          }
-          return {
-            choices: [
-              {
-                message: { content },
-                finish_reason: 'stop',
-              },
-            ],
-          }
-        }),
+        create: openAiMockState.openAiCreateMock,
       },
     }
   }
@@ -315,6 +319,7 @@ describe('agent smoke checks', () => {
     process.env.BASIC_OPENAI_ROUTING_PERCENT = '100'
     anthropicMockState.anthropicMessagesCreateMock.mockClear()
     anthropicMockState.anthropicMessagesStreamMock.mockClear()
+    openAiMockState.openAiCreateMock.mockClear()
     supabaseMockState.reset()
     vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
@@ -461,6 +466,26 @@ describe('agent smoke checks', () => {
     expect(result.response.trim().length).toBeGreaterThan(0)
   })
 
+  it('premium prompt does not claim direct tool access', async () => {
+    await invokePremiumLegalAgent(
+      'What does claimant mean in a small claim?',
+      'thread_smoke_premium_prompt_split',
+      'user_smoke_premium_prompt_split',
+      [],
+      'small claims',
+      { useSearch: false }
+    )
+
+    const [payload] = (openAiMockState.openAiCreateMock.mock.calls[0] || []) as any[]
+    const systemPrompt = Array.isArray(payload?.messages)
+      ? String(payload.messages.find((message: any) => message?.role === 'system')?.content || '')
+      : ''
+
+    expect(systemPrompt).toContain('You are MyMckenzieCS Assistant')
+    expect(systemPrompt).not.toContain('You have access to web_search')
+    expect(systemPrompt).not.toContain('case_law_search')
+  })
+
   it('premium agent can decide to answer directly without web search when search is not forced', async () => {
     const searchSpy = vi.spyOn(SearchTool.prototype, '_call')
 
@@ -558,6 +583,29 @@ describe('agent smoke checks', () => {
 
     expect(typeof result.response).toBe('string')
     expect(result.response.trim().length).toBeGreaterThan(0)
+  })
+
+  it('premium plus tool path explicitly includes tool instructions', async () => {
+    await invokePremiumPlusLegalAgent(
+      'Can you give case law on this?',
+      'thread_smoke_premium_plus_prompt_split',
+      'user_smoke_premium_plus_prompt_split',
+      [],
+      'road traffic incident',
+      {
+        useSearch: true,
+        anthropicModel: 'claude-sonnet-4-6',
+        anthropicFallbackModel: 'claude-opus-4-6',
+      }
+    )
+
+    const [payload] = (anthropicMockState.anthropicMessagesCreateMock.mock.calls[0] || []) as any[]
+    const systemPrompt = Array.isArray(payload?.system)
+      ? String(payload.system[0]?.text || '')
+      : String(payload?.system || '')
+
+    expect(systemPrompt).toContain('TOOL EXECUTION')
+    expect(systemPrompt).toContain('You have access to web_search and case_law_search.')
   })
 
   it('premium plus stream bypasses the tool loop for stable explanatory questions', async () => {

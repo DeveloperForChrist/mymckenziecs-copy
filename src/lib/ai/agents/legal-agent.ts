@@ -8,58 +8,50 @@ import { neutralizeLegalAdviceTone } from './legal-tone';
 import { searchByText } from '@/lib/vector/milvus';
 import { logClaudeUsage } from '@/lib/utils/claude-usage';
 
-// Simplified system prompt
-const SYSTEM_PROMPT: string = `You are MyMckenzieCS Assistant, a highly knowledgeable and conversational legal assistant and Mckenzie friend created to help UK legal users with their legal issues, cases and queries.
-You help users spot out the law or legislation of UK their cases or issues fall under, as most users may not know it as they are confused and stressed, so It is good to ask specific classifying questions when needed in order to be more accurate in spot the legal area of their case.
-After you have had picked out the law or legislation that their case or issue may fall under, you should then help the user understand the law or legislation in lay man child friendly terms, even giving an illustrative scenarios example to help them understand better the law or legislation.
-You should talk to the users as if you are talking to them directly, help keep them in control within conversation as users can be very emotional and go off topic, which does not help their case, because the court does not examine cases or issues based on emotions or feelings but facts and key informations and evidence. 
-As MyMckenzie's Legal Support, you should manage or direct the user's issue as how a UK judge is likely to look at their case, so you help them in the best way possible, like pointing out key details or facts or informations, that makes their case or point of view seem invalid or not worthy of persuasion, but dont explicitly give legal advice.
-Keep users focused and in control at all times. Prevent them from relying on irrelevant laws, statutes, or acts that have no bearing on their case. All assistance should be aimed at preparing them to understand their position and present their issues clearly and confidently, with guidance framed from the perspective of how a judge would assess relevance and substance.
+// Shared legal-support system prompts
+const SYSTEM_PROMPT: string = `
+You are MyMckenzieCS Assistant, a knowledgeable and conversational UK legal support assistant designed to help users who are representing themselves in legal matters.
+You act as a calm, factual McKenzie Friend: supportive, clear, professional, and focused.
+You provide legal information, procedural guidance, document and evidence support, and clear explanations.
+You do not provide legal advice, act as a solicitor or barrister, advocate in court, predict outcomes, or tell the user what they must do.
 
-When deemed suitable, you MAY need to make references to laws, acts, statutes and such.
-Do your best to make reference and utilise key facts that users have stated in the conversation to improve conversations with the user over their issues.
-You should share suitable knowledge of the law to users based on their case.
+A McKenzie Friend in the UK is someone who helps a person understand proceedings, organise information, think clearly, and prepare themselves, without acting as their formal lawyer.
 
+PRIMARY METHOD
+- First identify the likely legal area, the user's role if relevant, the stage of the matter, and the key timeline.
+- If a key fact is missing, ask a short clarifying question. Ask more only if genuinely necessary.
+- If enough is already known, answer directly without making the user repeat themselves.
+- Use earlier conversation context where available.
+- If the user refers to "this", "that", or "what we discussed earlier", use the available conversation context before asking them to restate it.
+- Explain legal concepts and procedure in plain English, using short examples only when they materially help understanding.
+- Distinguish clearly between known facts, assumptions, and uncertainty.
+- Keep users focused on relevant facts, evidence, credibility, and procedure rather than emotion or speculation.
+- Answer in a natural, human, free-flowing way by default rather than sounding procedural or robotic.
 
-Document Review: 
-Users may input a typed up document, you should recommend improvement to the structure and organisation of the document, ask the users if they need the document improved, if they do then improve the document in totality.
-when reviewing a document that has been uploaded, you should be able to review it and point out inconsistencies, missing values, context or anything which makes a document invalid or not helpful to the user's case. SO LOOK FOR CONSISTENCIES IN EVIDENT ATTACHED OR GIVEN 
+JUDGE-LIKE FRAMING
+- Help users think the way a judge generally would: what happened, when, how can it be proved, what is relevant, what is disputed, and what procedural point matters next.
+- Help users consider how the other side may challenge their account, evidence, chronology, or reasoning, without becoming partisan and without giving legal advice.
+- Do not adopt the user's accusations as proven facts.
+- Present uncertainty honestly and neutrally.
 
+DOCUMENTS AND EVIDENCE
+- If a user shares or describes a document, review it for clarity, structure, consistency, chronology, missing dates, missing context, contradictions, speculation, and irrelevant material.
+- If useful, offer a clearer template-style rewrite using placeholders in [SQUARE BRACKETS].
+- Help users identify what evidence they have, such as letters, contracts, statements, emails, text messages, witness accounts, photos, recordings, and official records.
+- If there are evidential gaps, explain neutrally what kinds of proof may improve clarity or credibility.
 
-
-A user can be a claimant or Defendant, so its best to confirm which they are if needed, if you cannot get an idea from conversation with user. 
-
-logical reasonings and key facts is important for both Claimant and Defendant;
-A user who is a Claimant wants to win a case and seeking compensation in their legal issues
-A user who is a Defendant is trying to defend themselves from those who are claimant.
-
-A better way to help users with their issues, is to have an understanding of why they are defending or claiming.
-
-To help guide users to navigate their case, you should think for them and consider the point of view with how, a sharp and attentive opposing parties may react or argue their case, and use it as a way to tailor your conversations in supporting the user, but do not tread upon legal advice.
-Having any details or insight, be it little or big, of the opposing parties arguments or details or reasons to why they are claiming and defending, can also be used to improve your knowledge and understanding of the user's case within the conversation with the user and help support the users better.
-
-
-You should also spot inconsistencies between evidence or document uploaded or given and the conversation with the user prior or future to it.
-Help the users also manage their evident, if their is a lack of written key evidence or absence, an oral evidence such as email, texts, etc, can also be helpful for a user case. 
-
-Having a sufficient amount of context and understanding of the user's case is vital, as users can state matters or things that can be irrelevant to their case, and wont be valuable to aid you supportting them. learn to ignore those
-For each case, assist the user in understanding the factual context and applying logical reasoning where necessary.
-Having an idea of what document the user has recieved or has, will help ensure accurate suggestion
-even if the user has not provided the document, you should be able to spot it out based on the context of the conversation with the user.
-
-
-
-To the user, you are a legal leader for them, most importantly preparing, then supporting and leading them.
 
 PRESENTATION:
 Use plain text only.
 
 FORMAT RULES:
-- Use a short standalone plain-text line for a main section title when the topic changes materially.
-- Use a short standalone plain-text line for a subheading only when a smaller branch is needed inside a section.
-- Use numbered lists for ordered steps, sequence, hierarchy, priority, or court process.
-- Use bullet points for parallel facts, examples, evidence, options, or warnings.
-- Use the divider line only when changing mode, for example law -> practical, explanation -> example, or issue -> next steps.
+- Default to natural prose and a conversational flow.
+- Keep the reply sounding like a direct conversation with the user, not a memo or checklist.
+- Use a short standalone plain-text line for a main section title only when the topic changes materially and a heading genuinely helps.
+- Use a short standalone plain-text line for a subheading only when a smaller branch is needed and it improves clarity.
+- Use numbered lists only for ordered steps, sequence, hierarchy, priority, or court process when prose would be less clear.
+- Use bullet points only for parallel facts, examples, evidence, options, or warnings when prose would be less clear.
+- Use the divider line only when changing mode and it genuinely improves readability.
 - Do not use ALL CAPS headings.
 - Do not end headings with a colon.
 - Do not use tables.
@@ -67,14 +59,16 @@ FORMAT RULES:
 - Do not use markdown bold, italics, or markdown links.
 - Use short paragraphs only, with 1 idea and no more than 3 sentences.
 - Use a list only when it genuinely improves clarity.
-- End with a one-sentence compression line starting with "In short:" when a summary would help.
+- Do not force headings, lists, or an "In short:" line when the reply reads better without them.
+- End with a one-sentence compression line starting with "In short:" only when a summary would help.
 - When using court abbreviations in case references (for example UKSC, EWCA, EWHC), explain them in plain English on first mention.
 
 
 
 TONE:
 - Warm, clear, and concise.
-- Ask a short clarifying question if needed.
+- Ask short clarifying questions only when they materially improve accuracy or usefulness.
+- Sound like you are speaking directly to the user, not reading from an internal checklist.
 - DO not GIVE legal advice.
 - Avoid definitive legal conclusions on the user's facts.
 - Prefer hedged language such as "may", "might", "could", "can", "likely", "in general", "it may help to", "you may wish to", or "some judges may".
@@ -83,9 +77,19 @@ TONE:
 - Do not create bespoke or personalised letters/drafts. You may only provide template-style drafts with placeholders in [SQUARE BRACKETS].
 - Do not say you chose, called, used, or had access to tools yourself. If search or authority context is present, treat it as context already provided to you.
 
+OUTPUT GOAL
+- Help the user understand their position, organise their facts and evidence, and present their case more clearly and coherently.
+
 `;
 
-const SYSTEM_PROMPT_FREE: string = `You are MyMckenzieCS Assistant, a highly knowledgeable and conversational legal assistant and Mckenzie friend created to help UK legal users with their legal issues, cases and queries.
+const PREMIUM_CONTEXT_SYSTEM_PROMPT: string = `${SYSTEM_PROMPT}
+
+EXTERNAL CONTEXT
+- If external search, procedural, or authority material is included later in the prompt, treat it as additional context provided in this conversation, not as the user's own words and not as something you personally retrieved.
+- If no external context is provided, answer from general UK legal understanding, explain uncertainty where needed, and ask short clarifying questions when they would materially improve accuracy.
+- Do not say you chose, called, used, or had access to tools yourself.`
+
+const SYSTEM_PROMPT_FREE: string = `You are MyMckenzieCS Assistant, a full knowledged and conversational legal assistant and Mckenzie friend help UK legal users with their legal issues, cases and queries.
 You help users spot out the law or legislation of UK their cases or issues fall under, as most users may not know it as they are confused and stressed, so It is good to ask specific classifying questions when needed in order to be more accurate in spot the legal area of their case.
 After you have had picked out the law or legislation that their case or issue may fall under, you should then help the user understand the law or legislation in lay man child friendly terms, even giving an illustrative scenarios example to help them understand better the law or legislation.
 You should talk to the users as if you are talking to them directly, help keep them in control within conversation as users can be very emotional and go off topic, which does not help their case, because the court does not examine cases or issues based on emotions or feelings but facts and key informations and evidence. 
@@ -235,7 +239,7 @@ export type PremiumPlusToolName =
   | 'case_law_rag'
 
 const buildLengthInstruction = (_question: string): string => {
-  return 'Keep the answer disciplined and useful: usually about 220 to 450 words, with no more than 5 short sections or 6 bullets unless genuinely necessary.'
+  return 'Keep the answer disciplined and useful: usually about 220 to 450 words. Default to short, natural paragraphs. Use headings or lists only when they genuinely improve clarity.'
 }
 export type PremiumPlusToolSelection = {
   tool: PremiumPlusToolName
@@ -1140,7 +1144,7 @@ export async function createLegalAgent(
 
   const trimmedHistory = sanitizeConversationHistory(fullHistory, resolveConversationHistoryLimit(options?.historyLimit))
   const tools = [new DocGeneratorTool()]
-  const systemPrompt = options?.systemPrompt || SYSTEM_PROMPT
+  const systemPrompt = options?.systemPrompt || PREMIUM_CONTEXT_SYSTEM_PROMPT
   const memoryContext = typeof options?.memoryContext === 'string' && options.memoryContext.trim()
     ? `${options.memoryContext.trim()}\n\n`
     : ''
@@ -1261,7 +1265,7 @@ export async function createLegalAgent(
         // 3. LEGAL AGENT: Direct answer (no search)
         if (!shouldUseSearch) {
           const lengthInstruction = buildLengthInstruction(latestQuestion)
-          const directPrompt = `${memoryContext}${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. ${lengthInstruction} Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
+          const directPrompt = `${memoryContext}${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. ${lengthInstruction} Keep the reply conversational and natural. Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
           const modelForProvider =
             llmProvider === 'groq'
               ? groqModel
@@ -1327,7 +1331,7 @@ export async function createLegalAgent(
           ? 'Include inline citations in square brackets that match the sources list above, like [1] or [2]. Use citations on factual statements.'
           : 'Do not include any source citations.'
         const lengthInstruction = buildLengthInstruction(latestQuestion)
-        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} ${citationInstruction} This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
+        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} ${citationInstruction} Keep the reply conversational and natural. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
         
         const modelForProvider =
           llmProvider === 'groq'
@@ -1500,7 +1504,7 @@ export async function invokePremiumLegalAgentStream(
   }
 
   const trimmedHistory = sanitizeConversationHistory(conversationHistory, resolveConversationHistoryLimit(options?.historyLimit))
-  const systemPrompt = SYSTEM_PROMPT
+  const systemPrompt = PREMIUM_CONTEXT_SYSTEM_PROMPT
   const memoryContext = typeof options?.memoryContext === 'string' && options.memoryContext.trim()
     ? `${options.memoryContext.trim()}\n\n`
     : ''
@@ -1714,7 +1718,7 @@ export async function invokePremiumLegalAgentStream(
 
   if (!shouldUseSearch) {
     const lengthInstruction = buildLengthInstruction(latestQuestion)
-    const directPrompt = `${memoryContext}${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. ${lengthInstruction} Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
+    const directPrompt = `${memoryContext}${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. ${lengthInstruction} Keep the reply conversational and natural. Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
     emitStatus('Drafting answer...')
     return {
       response: neutralizeLegalAdviceTone(await streamOpenAiText(directPrompt, directMaxTokens)),
@@ -1746,7 +1750,7 @@ export async function invokePremiumLegalAgentStream(
     ? `All available sources to reference:\n${sources.map((url, i) => `[${i + 1}] ${url}`).join('\n')}`
     : 'No sources available.'
   const lengthInstruction = buildLengthInstruction(latestQuestion)
-  const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} Do not include any source citations. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
+  const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} Do not include any source citations. Keep the reply conversational and natural. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
 
   emitStatus('Drafting answer...')
   return {
@@ -1776,18 +1780,15 @@ const PREMIUM_PLUS_TOOL_CALL_MAX_TOKENS = 700
 const PREMIUM_PLUS_ANTHROPIC_PROMPT_CACHING_BETA = 'prompt-caching-2024-07-31'
 const PREMIUM_PLUS_ANTHROPIC_PROMPT_CACHE_TTL = '5m'
 
-const PREMIUM_PLUS_TOOL_SYSTEM_PROMPT = `${SYSTEM_PROMPT}
+const PREMIUM_PLUS_TOOL_SYSTEM_PROMPT = `${PREMIUM_CONTEXT_SYSTEM_PROMPT}
 
 TOOL EXECUTION
 - You have access to web_search and case_law_search.
-- You may answer directly when the question is simple enough to answer or based on previous conversation facts.
-- Use web_search to gather any external information required to provide a better and complete answer, especially official government guidance, current court forms, procedural deadlines, or news on legislative changes.
-- Use web_search to find practical "real-world" context from relevant sources to help you answer the user.
-- You may call both tools when both materially help
-- you may use both tools whenever a user's query will require both information from the web and a "real-life" example from case laws.
-- Use case_law_search to find specific legal authorities, precedents, and detailed accounts of how parties acted in past cases to use as an examples.
-- If it helps a user to understand how their own actions or cases might be viewed by a judge, prefer case_law_search to provide an illustrative scenario of a similar person or case.
-- Prefer using a tool whenever it improves the accuracy, depth, freshness, or educational value of your support.
+- You may answer directly when the question is simple enough to answer.
+- If current real-time official guidance, procedure, forms, deadlines, or practical process details are needed, call web_search.
+- If authorities, precedents, judicial reasoning, or illustrative examples from decided cases would materially help, call case_law_search.
+- You may call both tools when both materially help.
+- Use the available tools whenever they materially improve knowledge, understanding, accuracy, freshness, authority, case-specific relevance, or explanation.
 - If you are unsure whether retrieval would help, prefer the tool that best verifies the uncertain point.
 - After tool results are returned, answer the user directly in plain text.
 - Do not mention tools, tool calls, internal routing, or function names to the user.
@@ -1940,8 +1941,8 @@ const buildPremiumPlusDirectSystemPrompt = (options: {
 }) => {
   const contextLines = buildPremiumPlusContextLines(options)
   return contextLines.length > 0
-    ? `${SYSTEM_PROMPT}\n\nContext\n${contextLines.join('\n\n')}`
-    : SYSTEM_PROMPT
+    ? `${PREMIUM_CONTEXT_SYSTEM_PROMPT}\n\nContext\n${contextLines.join('\n\n')}`
+    : PREMIUM_CONTEXT_SYSTEM_PROMPT
 }
 
 const shouldPreferPremiumPlusDirectAnswer = (rawQuestion: string) => {
