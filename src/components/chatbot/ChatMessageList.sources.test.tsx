@@ -42,7 +42,7 @@ describe('ChatMessageList sources', () => {
         loading={false}
         loadingLabel={null}
         messagesEndRef={createRef<HTMLDivElement>()}
-        TypingIndicatorComponent={() => <div>typing...</div>}
+        StatusIndicatorComponent={() => <div>typing...</div>}
       />
     )
 

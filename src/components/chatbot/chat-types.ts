@@ -34,6 +34,7 @@ export interface Message {
   content: string
   timestamp: Date
   isTyping?: boolean
+  streamStatusLabel?: string | null
   metadata?: AssistantMetadata
   attachments?: AttachmentDisplay[]
 }

@@ -47,7 +47,7 @@ describe('ChatMessageList formatting', () => {
         loading={false}
         loadingLabel={null}
         messagesEndRef={createRef<HTMLDivElement>()}
-        TypingIndicatorComponent={() => <div>typing...</div>}
+        StatusIndicatorComponent={() => <div>typing...</div>}
       />
     )
 
@@ -72,7 +72,7 @@ describe('ChatMessageList formatting', () => {
       throw new Error('parseAssistantResponse should not be called while an assistant message is still typing')
     }
 
-    const { container, getByText } = render(
+    const { container } = render(
       <ChatMessageList
         messages={messages}
         feedbackState={{}}
@@ -85,7 +85,7 @@ describe('ChatMessageList formatting', () => {
         loading={false}
         loadingLabel={null}
         messagesEndRef={createRef<HTMLDivElement>()}
-        TypingIndicatorComponent={() => <div>typing...</div>}
+        StatusIndicatorComponent={() => <div>typing...</div>}
       />
     )
 
@@ -94,6 +94,43 @@ describe('ChatMessageList formatting', () => {
     expect(typingParagraph?.textContent).toBe('Next steps\n\n1. File the claim form')
     expect(container.querySelector('ol.assistant-list-ordered')).toBeNull()
     expect(container.querySelector('.assistant-heading')).toBeNull()
+  })
+
+  it('renders inline stream status inside the assistant message area before answer text arrives', () => {
+    const messages: Message[] = [
+      {
+        id: 'assistant-status',
+        role: 'assistant',
+        content: '',
+        timestamp: new Date('2026-03-08T08:36:00.000Z'),
+        isTyping: true,
+        streamStatusLabel: 'Checking web sources...',
+      },
+    ]
+
+    const parseAssistantResponse = (): ParsedSection[] => {
+      throw new Error('parseAssistantResponse should not be called while the assistant is showing a stream status')
+    }
+
+    const { getByText, queryByText } = render(
+      <ChatMessageList
+        messages={messages}
+        feedbackState={{}}
+        parseAssistantResponse={parseAssistantResponse}
+        renderMessageContent={(content) => [content]}
+        onCopyMessage={() => {}}
+        formatAssistantResponse={(text) => text}
+        onRegenerate={() => {}}
+        onFeedback={() => {}}
+        loading={false}
+        loadingLabel={null}
+        messagesEndRef={createRef<HTMLDivElement>()}
+        StatusIndicatorComponent={({ label }) => <div>{label}</div>}
+      />
+    )
+
+    expect(getByText('Checking web sources')).toBeInTheDocument()
+    expect(queryByText('Working')).toBeNull()
   })
 
   it('preserves ordered numbering when bullet detail appears between steps', () => {
@@ -138,7 +175,7 @@ describe('ChatMessageList formatting', () => {
         loading={false}
         loadingLabel={null}
         messagesEndRef={createRef<HTMLDivElement>()}
-        TypingIndicatorComponent={() => <div>typing...</div>}
+        StatusIndicatorComponent={() => <div>typing...</div>}
       />
     )
 

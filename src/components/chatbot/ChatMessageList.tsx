@@ -4,7 +4,7 @@ import { Fragment, startTransition, useEffect, useLayoutEffect, useMemo, useRef,
 import type { CSSProperties, MutableRefObject, RefObject } from 'react'
 import type { Message, ParsedLine, ParsedSection, SourceReference } from '@/components/chatbot/chat-types'
 
-type TypingIndicatorComponentType = (props: { label?: string; compact?: boolean }) => JSX.Element
+type StatusIndicatorComponentType = (props: { label?: string; compact?: boolean }) => JSX.Element
 
 type ChatMessageListProps = {
   messages: Message[]
@@ -18,7 +18,7 @@ type ChatMessageListProps = {
   loading: boolean
   loadingLabel: string | null
   messagesEndRef: MutableRefObject<HTMLDivElement | null>
-  TypingIndicatorComponent: TypingIndicatorComponentType
+  StatusIndicatorComponent: StatusIndicatorComponentType
   scrollContainerRef?: RefObject<HTMLDivElement | null>
 }
 
@@ -255,11 +255,12 @@ export const calculateVirtualMessageWindow = ({
   }
 }
 
-type ChatMessageRowProps = Omit<ChatMessageListProps, 'messages' | 'loading' | 'loadingLabel' | 'messagesEndRef' | 'TypingIndicatorComponent' | 'scrollContainerRef'> & {
+type ChatMessageRowProps = Omit<ChatMessageListProps, 'messages' | 'loading' | 'loadingLabel' | 'messagesEndRef' | 'StatusIndicatorComponent' | 'scrollContainerRef'> & {
   message: Message
   index: number
   style?: CSSProperties
   onMeasured?: (height: number) => void
+  StatusIndicatorComponent: StatusIndicatorComponentType
 }
 
 function ChatMessageRow({
@@ -274,6 +275,7 @@ function ChatMessageRow({
   onFeedback,
   style,
   onMeasured,
+  StatusIndicatorComponent,
 }: ChatMessageRowProps) {
   const rowRef = useRef<HTMLDivElement>(null)
   const messageSideInsetPx = 0
@@ -291,6 +293,9 @@ function ChatMessageRow({
   const visibleSources = message.isTyping ? [] : messageSources
   const renderAssistantText = (text: string) =>
     message.isTyping ? [text] : renderMessageContent(text, visibleSources)
+  const inlineStreamStatusLabel = !isUser && message.isTyping && !assistantDisplayContent.trim()
+    ? String(message.streamStatusLabel || '').trim()
+    : ''
 
   useLayoutEffect(() => {
     if (!onMeasured || !rowRef.current) return
@@ -466,7 +471,14 @@ function ChatMessageRow({
                     ))}
                   </div>
                 )}
-                {message.isTyping ? (
+                {inlineStreamStatusLabel ? (
+                  <div style={{ padding: '2px 0 6px' }}>
+                    <StatusIndicatorComponent
+                      label={inlineStreamStatusLabel.replace(/\.+$/, '')}
+                      compact
+                    />
+                  </div>
+                ) : message.isTyping ? (
                   <p className="assistant-paragraph whitespace-pre-wrap">
                     {renderAssistantText(assistantDisplayContent)}
                   </p>
@@ -761,7 +773,7 @@ export default function ChatMessageList({
   loading,
   loadingLabel,
   messagesEndRef,
-  TypingIndicatorComponent,
+  StatusIndicatorComponent,
   scrollContainerRef,
 }: ChatMessageListProps) {
   const [scrollMetrics, setScrollMetrics] = useState({ top: 0, height: 0 })
@@ -876,11 +888,12 @@ export default function ChatMessageList({
               renderMessageContent={renderMessageContent}
               onCopyMessage={onCopyMessage}
               formatAssistantResponse={formatAssistantResponse}
-              onRegenerate={onRegenerate}
-              onFeedback={onFeedback}
-              style={{
-                position: 'absolute',
-                top: `${row.top}px`,
+                onRegenerate={onRegenerate}
+                onFeedback={onFeedback}
+                StatusIndicatorComponent={StatusIndicatorComponent}
+                style={{
+                  position: 'absolute',
+                  top: `${row.top}px`,
                 left: 0,
                 right: 0,
               }}
@@ -904,6 +917,7 @@ export default function ChatMessageList({
                 formatAssistantResponse={formatAssistantResponse}
                 onRegenerate={onRegenerate}
                 onFeedback={onFeedback}
+                StatusIndicatorComponent={StatusIndicatorComponent}
                 onMeasured={virtualizationEnabled ? (height) => handleMeasuredHeight(rowKey, height) : undefined}
               />
             )
@@ -913,7 +927,7 @@ export default function ChatMessageList({
 
       {loading && (
         <div style={{ margin: '10px 0 6px', display: 'flex', justifyContent: 'flex-start', marginLeft: '8px' }}>
-          <TypingIndicatorComponent label={(loadingLabel || 'Working').replace(/\.+$/, '')} compact />
+          <StatusIndicatorComponent label={(loadingLabel || 'Thinking').replace(/\.+$/, '')} compact />
         </div>
       )}
 

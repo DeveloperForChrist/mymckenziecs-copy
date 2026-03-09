@@ -41,8 +41,9 @@ const linkStyle: CSSProperties = {
   fontWeight: 600
 }
 
-const TypingIndicator = ({ label = 'Working', compact = false }: { label?: string; compact?: boolean }) => {
-  const dotSize = compact ? 6 : 8
+const typingAccentColor = 'rgba(236, 72, 153, 0.95)'
+
+const StatusIndicator = ({ label = 'Thinking', compact = false }: { label?: string; compact?: boolean }) => {
   const padding = compact ? '6px 8px' : '8px 10px'
   return (
     <div
@@ -51,37 +52,23 @@ const TypingIndicator = ({ label = 'Working', compact = false }: { label?: strin
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 8,
         padding,
         borderRadius: 999,
         background: 'transparent',
-        color: '#f8fafc',
+        color: typingAccentColor,
       }}
     >
-      <span className="mm-dot" />
-      <span className="mm-dot mm-dot2" />
-      <span className="mm-dot mm-dot3" />
-
-      <style>{`
-        .mm-dot {
-          width: ${dotSize}px;
-          height: ${dotSize}px;
-          border-radius: 999px;
-          background: rgba(236, 72, 153, 0.95);
-          box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 6px 14px rgba(236,72,153,0.12);
-          animation: mmDot 1.05s infinite;
-          display: inline-block;
-        }
-
-        .mm-dot2 { animation-delay: 0.15s; }
-        .mm-dot3 { animation-delay: 0.3s; }
-
-        @keyframes mmDot {
-          0%, 20% { transform: translateY(0); opacity: 0.55; }
-          50% { transform: translateY(-4px); opacity: 1; }
-          80%, 100% { transform: translateY(0); opacity: 0.55; }
-        }
-      `}</style>
+      <span
+        style={{
+          color: typingAccentColor,
+          fontSize: compact ? '0.84rem' : '0.92rem',
+          fontWeight: 600,
+          letterSpacing: '0.01em',
+          lineHeight: 1.2,
+        }}
+      >
+        {label}
+      </span>
     </div>
   )
 }
@@ -567,6 +554,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   const [hasMoreHistory, setHasMoreHistory] = useState(false)
   const [loadingOlderHistory, setLoadingOlderHistory] = useState(false)
   const [noticeModal, setNoticeModal] = useState<{ title: string; message: string } | null>(null)
+  const [activeInlineStreamMessageId, setActiveInlineStreamMessageId] = useState<string | null>(null)
   const isSignedInPlanLocked = Boolean(supabaseUser) && planLoaded && !paidAccess
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -593,6 +581,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   const [autoScroll, setAutoScroll] = useState(true)
   const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false)
   const [showScrollToBottomButtonByWindow, setShowScrollToBottomButtonByWindow] = useState(false)
+  const initialPendingStatusLabel = 'Thinking...'
 
   const scrollToBottom = (behavior: 'auto' | 'smooth' = 'smooth') => {
     const container = scrollContainerRef.current
@@ -970,7 +959,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     
     // Resend the user's message
     setLoading(true)
-    setLoadingLabel('Working...')
+    setLoadingLabel(initialPendingStatusLabel)
 
     const sessionStart = getOrInitSessionStart(supabaseUser?.id || 'anonymous')
     const sessionUserMessageCount =
@@ -986,6 +975,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     }
 
     let activeCaseOverride: string | null = null
+    let streamedAssistantMessageId: string | null = null
     try {
       const regenAttachments = userMsg.attachments || []
       const regenMessage = regenAttachments.length
@@ -1019,21 +1009,28 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       const isStreamResponse = (response.headers.get('content-type') || '').includes('application/x-ndjson')
       if (isStreamResponse) {
         const assistantMessageId = `assistant_regen_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+        streamedAssistantMessageId = assistantMessageId
         const assistantMessage: Message = {
           id: assistantMessageId,
           role: 'assistant',
           content: '',
           timestamp: new Date(),
           isTyping: true,
+          streamStatusLabel: 'Thinking...',
         }
 
         setMessages((prev) => [...prev, assistantMessage])
+        setActiveInlineStreamMessageId(assistantMessageId)
 
         if (!response.ok) {
           throw new Error('Streaming request failed')
         }
 
-        await consumeAssistantStream(response, assistantMessageId)
+        try {
+          await consumeAssistantStream(response, assistantMessageId)
+        } finally {
+          setActiveInlineStreamMessageId((current) => current === assistantMessageId ? null : current)
+        }
         chatRequestAbortRef.current = null
         setLoading(false)
         setLoadingLabel(null)
@@ -1079,23 +1076,20 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       chatRequestAbortRef.current = null
       if (error?.name === 'AbortError') {
         if (activeCaseOverride) pendingActiveCaseOverrideRef.current = activeCaseOverride
+        setActiveInlineStreamMessageId(null)
         setLoading(false)
         setLoadingLabel(null)
         return
       }
       if (activeCaseOverride) pendingActiveCaseOverrideRef.current = activeCaseOverride
-      const errorText = 'MyMcKenzieCS is unavailable to help right now. Please try again later.'
-      const errorMessageId = `assistant_regen_error_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-      const errorMessage: Message = {
-        id: errorMessageId,
-        role: 'assistant',
-        content: '',
-        timestamp: new Date(),
-        isTyping: true
-      }
-      setMessages((prev) => [...prev, errorMessage])
-
-      typeMessageById(errorText, errorMessageId)
+      setActiveInlineStreamMessageId(null)
+      setLoading(false)
+      setLoadingLabel(null)
+      const errorText = error instanceof Error && error.message
+        ? error.message
+        : 'MyMcKenzieCS is unavailable to help right now. Please try again later.'
+      const targetMessageId = streamedAssistantMessageId || `assistant_regen_error_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+      replaceStreamedMessageWithTypedErrorById(targetMessageId, errorText)
     }
   }
 
@@ -1219,15 +1213,22 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
 
     if (streamTypingIntervalRef.current) return
 
-    const tickMs = 12
-    streamTypingIntervalRef.current = setInterval(() => {
+    const resolveTickMs = (pendingLength: number) => {
+      if (pendingLength > 1800) return 4
+      if (pendingLength > 900) return 6
+      if (pendingLength > 320) return 8
+      return 12
+    }
+
+    const tick = () => {
+      streamTypingIntervalRef.current = null
       const activeMessageId = streamTypingMessageIdRef.current
       if (!activeMessageId) return
 
       const pending = streamPendingDeltaRef.current
       if (!pending) {
         if (streamTypingIntervalRef.current) {
-          clearInterval(streamTypingIntervalRef.current)
+          clearTimeout(streamTypingIntervalRef.current)
           streamTypingIntervalRef.current = null
         }
         const pendingFinalize = pendingStreamFinalizeRef.current
@@ -1270,10 +1271,18 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
           ...target,
           content: `${target.content || ''}${nextChar}`,
           isTyping: true,
+          streamStatusLabel: null,
         }
         return updated
       })
-    }, tickMs)
+
+      streamTypingIntervalRef.current = setTimeout(
+        tick,
+        resolveTickMs(streamPendingDeltaRef.current.length)
+      )
+    }
+
+    tick()
   }
 
   const finalizeStreamedMessageById = (
@@ -1309,6 +1318,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
         ...target,
         content: assistantText,
         isTyping: false,
+        streamStatusLabel: null,
         metadata: attachAssistantPresentationMetadata(
           assistantText,
           metadata || target.metadata,
@@ -1317,6 +1327,81 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       }
       return updated
     })
+  }
+
+  const updateInlineStreamStatusById = (messageId: string, statusLabel: string | null) => {
+    const normalizedStatus = String(statusLabel || '').trim()
+
+    setMessages((prev) => {
+      const targetIndex = prev.findIndex((m) => m.id === messageId)
+      if (targetIndex < 0) return prev
+
+      const target = prev[targetIndex]
+      if ((target.content || '').trim()) {
+        if (!target.streamStatusLabel) return prev
+        const updated = [...prev]
+        updated[targetIndex] = {
+          ...target,
+          streamStatusLabel: null,
+        }
+        return updated
+      }
+
+      const nextStatus = normalizedStatus || null
+      if ((target.streamStatusLabel || null) === nextStatus) return prev
+
+      const updated = [...prev]
+      updated[targetIndex] = {
+        ...target,
+        streamStatusLabel: nextStatus,
+      }
+      return updated
+    })
+  }
+
+  const replaceStreamedMessageWithTypedErrorById = (messageId: string, errorText: string) => {
+    if (streamTypingIntervalRef.current) {
+      clearTimeout(streamTypingIntervalRef.current)
+      streamTypingIntervalRef.current = null
+    }
+    if (streamTypingMessageIdRef.current === messageId) {
+      streamTypingMessageIdRef.current = null
+    }
+    if (pendingStreamFinalizeRef.current?.messageId === messageId) {
+      pendingStreamFinalizeRef.current = null
+    }
+    streamPendingDeltaRef.current = ''
+
+    setMessages((prev) => {
+      const targetIndex = prev.findIndex((m) => m.id === messageId)
+      if (targetIndex < 0) {
+        return [
+          ...prev,
+          {
+            id: messageId,
+            role: 'assistant',
+            content: '',
+            timestamp: new Date(),
+            isTyping: true,
+            streamStatusLabel: null,
+            metadata: undefined,
+          },
+        ]
+      }
+
+      const target = prev[targetIndex]
+      const updated = [...prev]
+      updated[targetIndex] = {
+        ...target,
+        content: '',
+        isTyping: true,
+        streamStatusLabel: null,
+        metadata: undefined,
+      }
+      return updated
+    })
+
+    typeMessageById(errorText, messageId)
   }
 
   const consumeAssistantStream = async (response: Response, assistantMessageId: string) => {
@@ -1344,7 +1429,12 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
           }
 
           if (event.type === 'delta' && typeof event.delta === 'string') {
+            setLoadingLabel(null)
+            updateInlineStreamStatusById(assistantMessageId, null)
             appendStreamDeltaById(assistantMessageId, event.delta)
+          } else if (event.type === 'status' && typeof event.message === 'string') {
+            setLoadingLabel(event.message)
+            updateInlineStreamStatusById(assistantMessageId, event.message)
           } else if (event.type === 'done') {
             const data = normalizeAssistantResponsePayload(event.payload) || event.payload
             if (!data || typeof (data as any).response !== 'string') {
@@ -1470,7 +1560,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     const rawInput = input
     setGuestUploadWarning(null)
     setLoading(true)
-    setLoadingLabel('Working...')
+    setLoadingLabel(initialPendingStatusLabel)
     const displayMessage = hasText ? rawInput.trim() : 'Uploaded documents for review.'
     const filesToUpload = [...attachedFiles]
     const optimisticAttachments: AttachmentDisplay[] = filesToUpload.map((file) => ({
@@ -1546,6 +1636,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       messages.filter((msg) => msg.role === 'user').length + 1
 
     let activeCaseOverride: string | null = null
+    let streamedAssistantMessageId: string | null = null
     try {
       activeCaseOverride = canUseCaseContext ? pendingActiveCaseOverrideRef.current : null
       pendingActiveCaseOverrideRef.current = null
@@ -1574,21 +1665,28 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       const isStreamResponse = (response.headers.get('content-type') || '').includes('application/x-ndjson')
       if (isStreamResponse) {
         const assistantMessageId = `assistant_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+        streamedAssistantMessageId = assistantMessageId
         const assistantMessage: Message = {
           id: assistantMessageId,
           role: 'assistant',
           content: '',
           timestamp: new Date(),
           isTyping: true,
+          streamStatusLabel: 'Thinking...',
         }
 
         setMessages((prev) => [...prev, assistantMessage])
+        setActiveInlineStreamMessageId(assistantMessageId)
 
         if (!response.ok) {
           throw new Error('Streaming request failed')
         }
 
-        await consumeAssistantStream(response, assistantMessageId)
+        try {
+          await consumeAssistantStream(response, assistantMessageId)
+        } finally {
+          setActiveInlineStreamMessageId((current) => current === assistantMessageId ? null : current)
+        }
         chatRequestAbortRef.current = null
         setLoading(false)
         setLoadingLabel(null)
@@ -1640,24 +1738,20 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       chatRequestAbortRef.current = null
       if (error?.name === 'AbortError') {
         if (activeCaseOverride) pendingActiveCaseOverrideRef.current = activeCaseOverride
+        setActiveInlineStreamMessageId(null)
         setLoading(false)
         setLoadingLabel(null)
         return
       }
       if (activeCaseOverride) pendingActiveCaseOverrideRef.current = activeCaseOverride
+      setActiveInlineStreamMessageId(null)
+      setLoading(false)
+      setLoadingLabel(null)
       const errorText = error instanceof Error && error.message
         ? error.message
         : 'MyMcKenzieCS is unavailable to help right now. Please try again later.'
-      const errorMessageId = `assistant_error_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-      const errorMessage: Message = {
-        id: errorMessageId,
-        role: 'assistant',
-        content: '',
-        timestamp: new Date(),
-        isTyping: true
-      }
-      setMessages((prev) => [...prev, errorMessage])
-      typeMessageById(errorText, errorMessageId)
+      const targetMessageId = streamedAssistantMessageId || `assistant_error_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+      replaceStreamedMessageWithTypedErrorById(targetMessageId, errorText)
     }
   }
 
@@ -1731,7 +1825,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
                   padding: '8px 0 12px',
                 }}
               >
-                <TypingIndicator label="Loading older messages" compact />
+                <StatusIndicator label="Loading older messages" compact />
               </div>
             )}
             {messages.length === 0 && !isConversationBootstrapping && (
@@ -1751,10 +1845,10 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
               onFeedback={(messageIndex, type, content) => {
                 void handleFeedback(messageIndex, type, content)
               }}
-              loading={loading}
+              loading={loading && !activeInlineStreamMessageId}
               loadingLabel={loadingLabel}
               messagesEndRef={messagesEndRef}
-              TypingIndicatorComponent={TypingIndicator}
+              StatusIndicatorComponent={StatusIndicator}
               scrollContainerRef={scrollContainerRef}
             />
             </div>

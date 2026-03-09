@@ -204,6 +204,7 @@ describe('/api/chat route', () => {
         next_steps: [],
       })) as any,
       invokePremiumLegalAgentStream: vi.fn(async (_message: string, _threadId: string, _userId: string, _history: any[], _caseKeywords: string, options?: any) => {
+        options?.onStatus?.('Checking web sources...')
         options?.onToken?.('Premium ')
         options?.onToken?.('answer')
         return {
@@ -218,6 +219,7 @@ describe('/api/chat route', () => {
         next_steps: [],
       })) as any,
       invokePremiumPlusLegalAgentStream: vi.fn(async (_message: string, _threadId: string, _userId: string, _history: any[], _caseKeywords: string, options?: any) => {
+        options?.onStatus?.('Checking web sources...')
         options?.onToken?.('Premium+ ')
         options?.onToken?.('answer')
         return {
@@ -392,7 +394,7 @@ describe('/api/chat route', () => {
     )
   })
 
-  it('uses Brave-only web search for premium plan requests', { timeout: 15000 }, async () => {
+  it('lets the premium agent decide search while constraining web search to Brave', { timeout: 15000 }, async () => {
     const { POST, legalAgentMocks } = await loadRoute({
       planData: { plan: 'premium', paidAccess: true, planStatus: 'active' },
       processMessageResult: { task: 'legal_procedure', contextType: 'general', urgency: 'normal', caseId: null },
@@ -413,8 +415,7 @@ describe('/api/chat route', () => {
       [],
       '',
       expect.objectContaining({
-        useSearch: true,
-        searchQueryOverride: undefined,
+        autoDecideSearch: true,
         searchEngineOverride: 'brave',
       })
     )
@@ -469,6 +470,38 @@ describe('/api/chat route', () => {
     )
   })
 
+  it('passes the full current thread history into the premium plus agent', { timeout: 15000 }, async () => {
+    process.env.PREMIUM_PLUS_ANTHROPIC_MODEL = 'claude-opus-4-6'
+
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'premium +', paidAccess: true, planStatus: 'active' },
+      processMessageResult: { task: 'case_lookup', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    const history = Array.from({ length: 12 }, (_, index) => ({
+      role: index % 2 === 0 ? 'user' : 'assistant',
+      content: `Turn ${index + 1}`,
+    }))
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'Can I have case law on this?',
+        history,
+        conversationId: 'conv-1',
+      })
+    )
+
+    expect(response.status).toBe(200)
+    const call = (legalAgentMocks.invokePremiumPlusLegalAgent as any).mock.calls[0]
+    expect(call).toBeTruthy()
+    expect(call[3]).toHaveLength(12)
+    expect(call[3][0]).toEqual({ role: 'user', content: 'Turn 1' })
+    expect(call[3][11]).toEqual({ role: 'assistant', content: 'Turn 12' })
+    expect(call[5]).toEqual(expect.objectContaining({
+      historyLimit: expect.any(Number),
+    }))
+  })
+
   it('streams premium answers over NDJSON when requested', { timeout: 15000 }, async () => {
     const { POST, legalAgentMocks } = await loadRoute({
       planData: { plan: 'premium', paidAccess: true, planStatus: 'active' },
@@ -490,7 +523,7 @@ describe('/api/chat route', () => {
       [],
       '',
       expect.objectContaining({
-        useSearch: true,
+        autoDecideSearch: true,
         searchEngineOverride: 'brave',
       })
     )
@@ -499,12 +532,47 @@ describe('/api/chat route', () => {
 
     const body = await response.text()
     expect(body).toContain('"type":"start"')
+    expect(body).toContain('"type":"status"')
+    expect(body).toContain('Checking web sources...')
+    expect(body).toContain('"type":"delta"')
+    expect(body).toContain('"type":"done"')
+  })
+
+  it('streams premium plus status events over NDJSON when requested', { timeout: 15000 }, async () => {
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'premium +', paidAccess: true, planStatus: 'active' },
+      processMessageResult: { task: 'legal_procedure', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    const response = await POST(
+      buildStreamingChatRequest({
+        message: 'I am at the pre-claim stage of an employment tribunal claim. What claim form and procedural steps are usually involved?',
+        history: [],
+      })
+    )
+
+    expect(response.status).toBe(200)
+    expect(legalAgentMocks.invokePremiumPlusLegalAgentStream).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      'user-1',
+      [],
+      '',
+      expect.objectContaining({
+        autoDecideSearch: true,
+        searchEngineOverride: 'perplexity',
+      })
+    )
+
+    const body = await response.text()
+    expect(body).toContain('"type":"status"')
+    expect(body).toContain('Checking web sources...')
     expect(body).toContain('"type":"delta"')
     expect(body).toContain('"type":"done"')
   })
 
   it('keeps premium plus definition questions on the direct fast path', { timeout: 15000 }, async () => {
-    process.env.PREMIUM_PLUS_OPENAI_MODEL = 'gpt-5.2'
+    process.env.PREMIUM_PLUS_ANTHROPIC_MODEL = 'claude-opus-4-6'
 
     const { POST, legalAgentMocks, searchByTextMock } = await loadRoute({
       planData: { plan: 'premium +', paidAccess: true, planStatus: 'active' },
@@ -524,14 +592,14 @@ describe('/api/chat route', () => {
       [],
       '',
       expect.objectContaining({
-        useSearch: true,
-        openaiModel: 'gpt-5.2',
+        autoDecideSearch: true,
+        anthropicModel: 'claude-opus-4-6',
       })
     )
   })
 
   it('keeps premium plus procedural questions on the web-only path without case-law lookup', { timeout: 15000 }, async () => {
-    process.env.PREMIUM_PLUS_OPENAI_MODEL = 'gpt-5.2'
+    process.env.PREMIUM_PLUS_ANTHROPIC_MODEL = 'claude-opus-4-6'
 
     const { POST, legalAgentMocks, searchByTextMock } = await loadRoute({
       planData: { plan: 'premium +', paidAccess: true, planStatus: 'active' },
@@ -554,14 +622,14 @@ describe('/api/chat route', () => {
       [],
       '',
       expect.objectContaining({
-        useSearch: true,
-        openaiModel: 'gpt-5.2',
+        autoDecideSearch: true,
+        anthropicModel: 'claude-opus-4-6',
       })
     )
   })
 
   it('falls back when premium plus case-law retrieval exceeds the timeout budget', { timeout: 15000 }, async () => {
-    process.env.PREMIUM_PLUS_OPENAI_MODEL = 'gpt-5.2'
+    process.env.PREMIUM_PLUS_ANTHROPIC_MODEL = 'claude-opus-4-6'
     process.env.PREMIUM_PLUS_CASELAW_TIMEOUT_MS = '1'
     process.env.MILVUS_HOST = 'localhost'
 
@@ -585,8 +653,8 @@ describe('/api/chat route', () => {
       [],
       '',
       expect.objectContaining({
-        useSearch: true,
-        openaiModel: 'gpt-5.2',
+        autoDecideSearch: true,
+        anthropicModel: 'claude-opus-4-6',
       })
     )
   })

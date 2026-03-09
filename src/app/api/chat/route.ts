@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
   type LegalSearchMode,
-  type PremiumPlusSubIssue,
   type PremiumPlusToolSelection,
   invokeBasicLegalAgent,
   invokePremiumLegalAgent,
@@ -22,7 +21,6 @@ import { chatMessageSchema } from '@/validators/index'
 import { z } from 'zod'
 import { captureServerException } from '@/lib/monitoring/error-logger'
 import { isBasicPlan, isPremiumPlan, isPremiumPlusPlan } from '@/lib/plans/access'
-import { searchByText } from '@/lib/vector/milvus'
 import { getUserPlanData } from '@/lib/payments/user-plan'
 import { extractTextFromBuffer } from '@/lib/chat/text-extraction'
 import {
@@ -126,11 +124,11 @@ const getPremiumOpenAiModel = (): string =>
 const getPremiumOpenAiFallbackModel = (primaryModel: string): string =>
   getEnvModelValue('OPENAI_PREMIUM_FALLBACK_MODEL', 'OPENAI_BASIC_MODEL') || primaryModel
 
-const getPremiumPlusOpenAiModel = (): string =>
-  getEnvModelValue('PREMIUM_PLUS_OPENAI_MODEL') || 'gpt-5.2'
+const getPremiumPlusAnthropicModel = (): string =>
+  getEnvModelValue('PREMIUM_PLUS_ANTHROPIC_MODEL') || 'claude-opus-4-6'
 
-const getPremiumPlusOpenAiFallbackModel = (primaryModel: string): string =>
-  getEnvModelValue('PREMIUM_PLUS_OPENAI_FALLBACK_MODEL', 'OPENAI_PREMIUM_MODEL') || primaryModel
+const getPremiumPlusAnthropicFallbackModel = (primaryModel: string): string =>
+  getEnvModelValue('PREMIUM_PLUS_ANTHROPIC_FALLBACK_MODEL') || primaryModel
 
 const PREMIUM_PLUS_CASELAW_TIMEOUT_MS = Number.isFinite(Number(process.env.PREMIUM_PLUS_CASELAW_TIMEOUT_MS))
   ? Math.max(1000, Math.floor(Number(process.env.PREMIUM_PLUS_CASELAW_TIMEOUT_MS)))
@@ -444,8 +442,14 @@ const truncateText = (value: string, maxChars: number) => {
   return `${value.slice(0, maxChars - 1)}…`
 }
 
-const AGENT_HISTORY_LIMIT = 40
-const AGENT_HISTORY_FETCH_LIMIT = 80
+const AGENT_HISTORY_MIN_LIMIT = 40
+const AGENT_HISTORY_MIN_FETCH_LIMIT = 80
+
+const resolveAgentHistoryLimit = (threadTurnLimit: number) =>
+  Math.max(AGENT_HISTORY_MIN_LIMIT, Math.floor(Math.max(1, threadTurnLimit) * 2))
+
+const resolveAgentHistoryFetchLimit = (agentHistoryLimit: number) =>
+  Math.max(AGENT_HISTORY_MIN_FETCH_LIMIT, agentHistoryLimit * 2)
 
 const normalizeConversationHistoryEntry = (entry: any) => {
   if (!entry || typeof entry.role !== 'string' || typeof entry.content !== 'string') return null
@@ -460,7 +464,8 @@ const normalizeConversationHistoryEntry = (entry: any) => {
 const mergeConversationHistoryEntries = (
   persistedHistory: Array<{ role: string; content: string }> = [],
   clientHistory: Array<{ role: string; content: string }> = [],
-  currentMessage?: string
+  currentMessage?: string,
+  limit: number = AGENT_HISTORY_MIN_LIMIT
 ) => {
   const merged = [...persistedHistory, ...clientHistory]
     .map(normalizeConversationHistoryEntry)
@@ -481,10 +486,13 @@ const mergeConversationHistoryEntries = (
     }
   }
 
-  return deduped.slice(-AGENT_HISTORY_LIMIT)
+  return deduped.slice(-Math.max(1, limit))
 }
 
-const loadPersistedConversationHistory = async (conversationId: string | null) => {
+const loadPersistedConversationHistory = async (
+  conversationId: string | null,
+  fetchLimit: number = AGENT_HISTORY_MIN_FETCH_LIMIT
+) => {
   if (!conversationId) return []
 
   const { data, error } = await supabaseAdmin
@@ -493,7 +501,7 @@ const loadPersistedConversationHistory = async (conversationId: string | null) =
     .eq('conversation_id', conversationId)
     .order('timestamp', { ascending: false })
     .order('id', { ascending: false })
-    .limit(AGENT_HISTORY_FETCH_LIMIT)
+    .limit(Math.max(1, fetchLimit))
 
   if (error) {
     console.warn('Failed to load persisted conversation history for Premium+ agent:', error)
@@ -589,116 +597,6 @@ const CASELAW_SUGGESTION_MIN_TRIGGER_SCORE = Number(
 const CASELAW_RETRIEVAL_MIN_SCORE = Number(
   process.env.CASELAW_RETRIEVAL_MIN_SCORE || process.env.CASELAW_SUGGESTION_MIN_TRIGGER_SCORE || '4'
 )
-const CASELAW_VECTOR_RETRIEVAL_TOPK = Math.max(
-  8,
-  Number.parseInt(process.env.CASELAW_VECTOR_RETRIEVAL_TOPK || '', 10) || 24
-)
-const CASELAW_SUGGESTION_LIMIT = Math.max(
-  1,
-  Number.parseInt(process.env.CASELAW_SUGGESTION_LIMIT || '', 10) || 3
-)
-const CASELAW_RAG_LIMIT = Math.max(
-  1,
-  Number.parseInt(process.env.CASELAW_RAG_LIMIT || '', 10) || 4
-)
-const CASELAW_MIN_LEXICAL_SCORE = Math.max(
-  0,
-  Math.min(1, Number.parseFloat(process.env.CASELAW_MIN_LEXICAL_SCORE || '0.08'))
-)
-const CASELAW_MIN_COMBINED_SCORE = Math.max(
-  0,
-  Math.min(1, Number.parseFloat(process.env.CASELAW_MIN_COMBINED_SCORE || '0.24'))
-)
-const CASELAW_MIN_SIMILARITY = Number.parseFloat(process.env.CASELAW_MIN_SIMILARITY || '-1')
-
-const CASELAW_STOPWORDS = new Set([
-  'the', 'and', 'for', 'with', 'that', 'this', 'from', 'have', 'what', 'when', 'where', 'which', 'about',
-  'into', 'under', 'over', 'your', 'their', 'them', 'they', 'were', 'been', 'will', 'would', 'could',
-  'should', 'there', 'here', 'then', 'than', 'because', 'while', 'also', 'just', 'does', 'did', 'dont',
-  'cant', 'onto', 'between', 'after', 'before', 'against', 'through', 'about', 'case', 'court'
-])
-
-const tokenizeCaseLawText = (value: string): string[] => {
-  return normalizeCompactText((value || '').toLowerCase())
-    .split(/[^a-z0-9]+/)
-    .map((token) => token.trim())
-    .filter((token) => token.length >= 3 && !CASELAW_STOPWORDS.has(token))
-}
-
-const lexicalOverlapScore = (queryTokens: Set<string>, candidateText: string): number => {
-  if (!queryTokens.size) return 0
-  const candidateTokens = new Set(tokenizeCaseLawText(candidateText))
-  if (!candidateTokens.size) return 0
-
-  let overlap = 0
-  for (const token of queryTokens) {
-    if (candidateTokens.has(token)) overlap += 1
-  }
-
-  const denominator = Math.max(1, Math.min(queryTokens.size, 10))
-  return overlap / denominator
-}
-
-const normalizeSimilarityScore = (raw: number): number => {
-  if (!Number.isFinite(raw)) return 0
-  if (raw <= 0) return 0
-  if (raw <= 1) return raw
-  // Handle high-magnitude ranking scores without overpowering lexical signal.
-  return Math.min(1, raw / 100)
-}
-
-type RankedCaseLawItem = {
-  citation: string
-  title: string
-  summary?: string
-  extracts?: string
-  url?: string
-  similarity?: number
-}
-
-const rankCaseLawCandidates = <T extends RankedCaseLawItem>(query: string, items: T[], limit: number): T[] => {
-  if (!items.length) return []
-  const queryTokens = new Set(tokenizeCaseLawText(query))
-  const explicitAuthorityRequest =
-    /\b(case law|precedent|authority|citation|neutral citation|judgment|court of appeal|supreme court|uksc|ewca|ewhc|cpr part|civil procedure rules|practice direction|section\s+\d+|article\s+\d+|act\s+\d{4})\b/i.test(
-      query
-    )
-
-  const ranked = items
-    .slice()
-    .sort((a, b) => (b.similarity || 0) - (a.similarity || 0))
-    .map((item, index, arr) => {
-      const lexical = lexicalOverlapScore(
-        queryTokens,
-        `${item.title} ${item.citation} ${item.summary || ''} ${item.extracts || ''}`.trim()
-      )
-      const rankScore = 1 - index / Math.max(1, arr.length)
-      const similarityScore = normalizeSimilarityScore(Number(item.similarity || 0))
-      const combinedScore = lexical * 0.6 + rankScore * 0.25 + similarityScore * 0.15
-      return { item, lexical, combinedScore }
-    })
-
-  const combinedThreshold = explicitAuthorityRequest
-    ? CASELAW_MIN_COMBINED_SCORE * 0.7
-    : CASELAW_MIN_COMBINED_SCORE
-
-  const filtered = ranked.filter((entry) => {
-    const similarityPass =
-      !Number.isFinite(CASELAW_MIN_SIMILARITY) ||
-      Number(entry.item.similarity || 0) >= CASELAW_MIN_SIMILARITY
-    if (!similarityPass) return false
-    if (entry.combinedScore < combinedThreshold) return false
-    if (entry.lexical < CASELAW_MIN_LEXICAL_SCORE && !explicitAuthorityRequest) return false
-    return true
-  })
-
-  const picked = filtered
-    .sort((a, b) => b.combinedScore - a.combinedScore)
-    .slice(0, limit)
-    .map((entry) => entry.item)
-
-  return picked
-}
 
 const shouldUseCaseLawRetrieval = ({
   message,
@@ -1288,108 +1186,8 @@ const PREMIUM_PLUS_WEB_SEARCH_MODE_BY_TOOL: Partial<Record<PremiumPlusToolSelect
   web_search_general: 'general',
 }
 
-const hasPlannerTool = (
-  tools: PremiumPlusToolSelection[] | undefined,
-  toolName: PremiumPlusToolSelection['tool']
-) => {
-  return Array.isArray(tools) && tools.some((item) => item.tool === toolName)
-}
-
-const hasPlannerWebSearchTool = (tools: PremiumPlusToolSelection[] | undefined) => {
+const hasPremiumPlusWebSearchTool = (tools: PremiumPlusToolSelection[] | undefined) => {
   return Array.isArray(tools) && tools.some((item) => item.tool in PREMIUM_PLUS_WEB_SEARCH_MODE_BY_TOOL)
-}
-
-const hasPlannerCaseLawTool = (tools: PremiumPlusToolSelection[] | undefined) => {
-  return Array.isArray(tools) && tools.some((item) => item.tool === 'case_law_suggestions' || item.tool === 'case_law_rag')
-}
-
-const getPremiumPlusSearchModeFromTools = (
-  tools: PremiumPlusToolSelection[] | undefined
-): LegalSearchMode | undefined => {
-  if (!Array.isArray(tools) || tools.length === 0) return undefined
-
-  const priority: PremiumPlusToolSelection['tool'][] = [
-    'web_search_document_review',
-    'web_search_case_specific',
-    'web_search_procedure',
-    'web_search_education',
-    'web_search_general',
-  ]
-
-  for (const toolName of priority) {
-    if (hasPlannerTool(tools, toolName)) {
-      return PREMIUM_PLUS_WEB_SEARCH_MODE_BY_TOOL[toolName]
-    }
-  }
-
-  return undefined
-}
-
-const buildPlannerQueryFromTools = (
-  tools: PremiumPlusToolSelection[] | undefined,
-  target: 'web' | 'case_law'
-): string => {
-  if (!Array.isArray(tools) || tools.length === 0) return ''
-
-  const values = tools
-    .filter((item) =>
-      target === 'web'
-        ? item.tool in PREMIUM_PLUS_WEB_SEARCH_MODE_BY_TOOL
-        : item.tool === 'case_law_suggestions' || item.tool === 'case_law_rag'
-    )
-    .flatMap((item) => [item.query, item.rationale])
-    .map((value) => normalizeCompactText(String(value || '')))
-    .filter(Boolean)
-
-  return truncateText(Array.from(new Set(values)).join(' | '), 520)
-}
-
-const buildPlannerQueryFromSubIssues = (
-  subIssues: PremiumPlusSubIssue[] | undefined,
-  target: 'web' | 'vector'
-): string => {
-  if (!Array.isArray(subIssues) || subIssues.length === 0) return ''
-
-  const values = subIssues
-    .slice(0, 8)
-    .flatMap((item) => {
-      const directQuery = target === 'web' ? item.webQuery : item.vectorQuery
-      const fallbackIssue = item.issue
-      return [directQuery, fallbackIssue]
-    })
-    .map((value) => normalizeCompactText(String(value || '')))
-    .filter(Boolean)
-
-  return truncateText(Array.from(new Set(values)).join(' | '), 520)
-}
-
-const buildPremiumPlusDecompositionContext = (
-  decomposition: string | undefined,
-  subIssues: PremiumPlusSubIssue[] | undefined
-) => {
-  const lines: string[] = []
-  const cleanDecomposition = String(decomposition || '').trim()
-  if (cleanDecomposition) {
-    lines.push(`Issue breakdown summary: ${cleanDecomposition}`)
-  }
-
-  if (Array.isArray(subIssues) && subIssues.length > 0) {
-    lines.push('Issue breakdown:')
-    subIssues.slice(0, 8).forEach((item, index) => {
-      const parts = [`${index + 1}. ${item.issue}`]
-      if (item.retrievalMode) parts.push(`mode=${item.retrievalMode}`)
-      if (Array.isArray(item.tools) && item.tools.length > 0) {
-        parts.push(`tools=${item.tools.map((tool) => tool.tool).join(',')}`)
-      }
-      if (item.webQuery) parts.push(`web="${item.webQuery}"`)
-      if (item.vectorQuery) parts.push(`case-law="${item.vectorQuery}"`)
-      if (item.rationale) parts.push(`why=${item.rationale}`)
-      lines.push(parts.join(' | '))
-    })
-    lines.push('Use this issue breakdown to structure the final answer in the same order.')
-  }
-
-  return lines.length > 0 ? `\n\n${lines.join('\n')}` : ''
 }
 
 const buildCaseLawSuggestionQuery = ({
@@ -1435,112 +1233,11 @@ const buildCaseLawSuggestionQuery = ({
   return truncateText(deduped.join(' | '), 720)
 }
 
-const mapCaseLawSuggestion = (row: any, index: number): CaseLawSuggestion | null => {
-  if (!row || typeof row !== 'object') return null
-
-  const title = firstDefinedString(row.title, row.case_name, row.name)
-  if (!title) return null
-
-  const citation = firstDefinedString(row.citation, row.neutralCitation, row.neutral_citation) || `Case ${index + 1}`
-  const similarityRaw = Number(row.score ?? row.similarity_score ?? row.similarity ?? 0)
-  const similarity = Number.isFinite(similarityRaw) ? similarityRaw : 0
-  const url = firstDefinedString(row.url, row.link) || undefined
-  const summary = firstDefinedString(row.summary, row.snippet, row.excerpt)
-  const id =
-    firstDefinedString(row.id) ||
-    `${citation}-${title}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 80)
-
-  return {
-    id,
-    citation,
-    title,
-    url,
-    summary: summary || undefined,
-    similarity,
-  }
-}
-
-const fetchCaseLawSuggestions = async (query: string, limit: number = 3): Promise<CaseLawSuggestion[]> => {
-  if (!query.trim()) return []
-  if (!process.env.MILVUS_HOST) return []
-
-  try {
-    const rawResults = await searchByText(query, Math.max(CASELAW_VECTOR_RETRIEVAL_TOPK, limit * 3))
-    if (!Array.isArray(rawResults) || rawResults.length === 0) return []
-
-    const mapped = rawResults
-      .map((row, index) => mapCaseLawSuggestion(row, index))
-      .filter((row): row is CaseLawSuggestion => Boolean(row))
-
-    if (mapped.length === 0) return []
-
-    const deduped = new Map<string, CaseLawSuggestion>()
-    for (const suggestion of mapped) {
-      const key = `${suggestion.citation}|${suggestion.title}`.toLowerCase()
-      const existing = deduped.get(key)
-      if (!existing || (suggestion.similarity || 0) > (existing.similarity || 0)) {
-        deduped.set(key, suggestion)
-      }
-    }
-
-    return rankCaseLawCandidates(query, Array.from(deduped.values()), limit)
-  } catch (error) {
-    console.warn('Case law suggestion lookup failed:', error)
-    return []
-  }
-}
-
 const normalizeRagText = (value: any, maxLen: number): string => {
   if (typeof value !== 'string') return ''
   const compact = normalizeCompactText(value)
   if (!compact) return ''
   return compact.length > maxLen ? `${compact.slice(0, maxLen - 1)}…` : compact
-}
-
-const mapVectorCaseLawRagItem = (row: any): VectorCaseLawRagItem | null => {
-  if (!row || typeof row !== 'object') return null
-
-  const title = firstDefinedString(row.title, row.case_name, row.name)
-  if (!title) return null
-
-  const citation = firstDefinedString(row.citation, row.neutralCitation, row.neutral_citation) || 'Authority'
-  const summary = normalizeRagText(row.summary, 420) || undefined
-  const extracts = normalizeRagText(row.extracts, 900) || undefined
-  const url = firstDefinedString(row.url, row.link) || undefined
-  const similarityRaw = Number(row.score ?? row.similarity_score ?? row.similarity ?? 0)
-  const similarity = Number.isFinite(similarityRaw) ? similarityRaw : undefined
-
-  return { citation, title, summary, extracts, url, similarity }
-}
-
-const fetchPremiumPlusVectorCaseLawRag = async (query: string, limit: number = 4): Promise<VectorCaseLawRagItem[]> => {
-  if (!query.trim()) return []
-  if (!process.env.MILVUS_HOST) return []
-
-  try {
-    const rawResults = await searchByText(query, Math.max(CASELAW_VECTOR_RETRIEVAL_TOPK, limit * 3))
-    if (!Array.isArray(rawResults) || rawResults.length === 0) return []
-
-    const mapped = rawResults
-      .map((row) => mapVectorCaseLawRagItem(row))
-      .filter((row): row is VectorCaseLawRagItem => Boolean(row))
-
-    if (mapped.length === 0) return []
-
-    const deduped = new Map<string, VectorCaseLawRagItem>()
-    for (const item of mapped) {
-      const key = `${item.citation}|${item.title}`.toLowerCase()
-      const existing = deduped.get(key)
-      if (!existing || (item.similarity || 0) > (existing.similarity || 0)) {
-        deduped.set(key, item)
-      }
-    }
-
-    return rankCaseLawCandidates(query, Array.from(deduped.values()), limit)
-  } catch (error) {
-    console.warn('Premium+ vector case law RAG lookup failed:', error)
-    return []
-  }
 }
 
 const buildVectorCaseLawRagContext = (items: VectorCaseLawRagItem[]): string => {
@@ -2059,7 +1756,6 @@ export async function POST(request: NextRequest) {
             role: entry.role === 'assistant' ? 'assistant' : 'user',
             content: truncateText(entry.content, 600),
           }))
-          .slice(-6)
       : []
 
     let hasPaidPlan = false
@@ -2091,6 +1787,14 @@ export async function POST(request: NextRequest) {
 
     }
 
+    const threadTurnLimit = resolveThreadTurnLimit({
+      basicPlanActive,
+      premiumPlanActive,
+      premiumPlusActive,
+    })
+    const agentHistoryLimit = resolveAgentHistoryLimit(threadTurnLimit)
+    const agentHistoryFetchLimit = resolveAgentHistoryFetchLimit(agentHistoryLimit)
+
     const sessionInfo = await chatManager.initializeSession()
     if (sessionInfo.requiresCaseSelection) {
       const caseSelectionResponse =
@@ -2114,12 +1818,13 @@ export async function POST(request: NextRequest) {
     const activeConversationId = sessionInfo.conversationId || safeConversationId || null
     const persistedConversationHistory =
       chatManager.shouldPersistMessages()
-        ? await loadPersistedConversationHistory(activeConversationId)
+        ? await loadPersistedConversationHistory(activeConversationId, agentHistoryFetchLimit)
         : []
     const effectiveConversationHistory = mergeConversationHistoryEntries(
       persistedConversationHistory,
       sanitizedHistory,
-      message
+      message,
+      agentHistoryLimit
     )
 
     const hasAttachments = Array.isArray(attachments) && attachments.length > 0
@@ -2135,11 +1840,6 @@ export async function POST(request: NextRequest) {
       sessionStartedAt: typeof sessionStartedAt === 'string' ? sessionStartedAt : null,
     })
 
-    const threadTurnLimit = resolveThreadTurnLimit({
-      basicPlanActive,
-      premiumPlanActive,
-      premiumPlusActive,
-    })
     if (authUserId && (premiumPlanActive || premiumPlusActive)) {
       const providerCapacity = await acquirePremiumProviderCapacity()
       if (!providerCapacity.success) {
@@ -2301,9 +2001,9 @@ export async function POST(request: NextRequest) {
     const caseKeywords = caseContextData ? extractCaseKeywords(caseContextData) : ''
     const premiumOpenAiModel = getPremiumOpenAiModel()
     const premiumOpenAiFallbackModel = getPremiumOpenAiFallbackModel(premiumOpenAiModel)
-    const premiumPlusOpenAiModel = premiumPlusActive ? getPremiumPlusOpenAiModel() : null
-    const premiumPlusOpenAiFallbackModel = premiumPlusOpenAiModel
-      ? getPremiumPlusOpenAiFallbackModel(premiumPlusOpenAiModel)
+    const premiumPlusAnthropicModel = premiumPlusActive ? getPremiumPlusAnthropicModel() : null
+    const premiumPlusAnthropicFallbackModel = premiumPlusAnthropicModel
+      ? getPremiumPlusAnthropicFallbackModel(premiumPlusAnthropicModel)
       : null
     const caseLawSuggestionDecision = evaluateCaseLawSuggestionNeed({
       message,
@@ -2324,10 +2024,9 @@ export async function POST(request: NextRequest) {
       caseContextData,
       memoryRow,
     })
-    let premiumGeneratedWebQuery = ''
     const premiumSearchRoutingConfidence: number | null = null
     const premiumSearchRoutingReasons: string[] = premiumPlanActive && !premiumPlusActive
-      ? ['premium-direct-web-path']
+      ? ['premium-agent-autonomous-search-decision']
       : []
     const premiumPlusDirectAnswer = premiumPlusActive
       ? shouldUsePremiumPlusDirectAnswer({
@@ -2341,11 +2040,8 @@ export async function POST(request: NextRequest) {
     let retrievalFocusApplied: AppliedRetrievalFocus = premiumPlusDirectAnswer ? 'direct' : retrievalFocusDecision.focus
     let generatedWebQuery = ''
     let generatedVectorQuery = ''
-    let premiumPlusDecomposition = ''
-    let premiumPlusSubIssues: PremiumPlusSubIssue[] = []
     let premiumPlusTools: PremiumPlusToolSelection[] = []
     let premiumPlusSearchMode: LegalSearchMode | null = null
-    let premiumPlusToolPlanConfidence: number | null = null
     let routingReasonsApplied: string[] = retrievalFocusDecision.reasons.slice()
     if (premiumPlusActive) {
       premiumPlusSearchMode = premiumPlusDirectAnswer
@@ -2422,10 +2118,10 @@ export async function POST(request: NextRequest) {
         })
       : premiumPlusTools
     const retrievalRoutingSource: 'heuristic' = 'heuristic'
-    const premiumSearchRoutingSource: 'direct' = 'direct'
+    const premiumSearchRoutingSource: 'agent_auto' = 'agent_auto'
     const premiumPlusNeedsWebRetrieval =
       premiumPlusActive &&
-      hasPlannerWebSearchTool(premiumPlusTools)
+      hasPremiumPlusWebSearchTool(premiumPlusTools)
 
     const premiumShouldUseSearchRetrieval =
       premiumPlanActive
@@ -2440,32 +2136,8 @@ export async function POST(request: NextRequest) {
       premiumPlusActive &&
       premiumPlusNeedsCaseLawSuggestions
 
-    const caseLawQuery = generatedVectorQuery || baselineCaseLawQuery
-
-    const caseLawSuggestionPromise = shouldLookupCaseLawSuggestions
-      && !premiumPlusActive
-      ? withStageTimeout(
-          fetchCaseLawSuggestions(caseLawQuery, CASELAW_SUGGESTION_LIMIT),
-          PREMIUM_PLUS_CASELAW_TIMEOUT_MS,
-          'Premium+ case-law suggestions',
-          [] as CaseLawSuggestion[]
-        )
-      : Promise.resolve([] as CaseLawSuggestion[])
-
-    const vectorCaseLawRagPromise = usePremiumPlusVectorRag
-      && !premiumPlusActive
-      ? withStageTimeout(
-          fetchPremiumPlusVectorCaseLawRag(caseLawQuery, CASELAW_RAG_LIMIT),
-          PREMIUM_PLUS_CASELAW_TIMEOUT_MS,
-          'Premium+ vector case-law retrieval',
-          [] as VectorCaseLawRagItem[]
-        )
-      : Promise.resolve([] as VectorCaseLawRagItem[])
-
-    const [caseLawSuggestions, vectorCaseLawRagItems] = await Promise.all([
-      caseLawSuggestionPromise,
-      vectorCaseLawRagPromise,
-    ])
+    const caseLawSuggestions: CaseLawSuggestion[] = []
+    const vectorCaseLawRagItems: VectorCaseLawRagItem[] = []
     const vectorOnlyRequested = premiumPlusActive && retrievalFocusApplied === 'vector_only'
     const vectorFallbackToWeb =
       vectorOnlyRequested &&
@@ -2476,18 +2148,16 @@ export async function POST(request: NextRequest) {
     }
     const vectorCaseLawRagContext = buildVectorCaseLawRagContext(vectorCaseLawRagItems)
     const caseLawSuggestionContext = buildCaseLawSuggestionContext(caseLawSuggestions)
-    const premiumPlusDecompositionContext = ''
     const ownCaseFacts = retrievalFocusDecision.ownCaseNarrative
       ? extractKeyFactsFromMessage(message).slice(0, 6)
       : []
     const ownCaseFactsContext = ownCaseFacts.length > 0
       ? `\n\nUser facts for issue spotting:\n${ownCaseFacts.map((fact) => `- ${fact}`).join('\n')}`
       : ''
-    const caseLawStyleInstruction = ''
 
     const rawMessageForAgent = attachmentContext
-      ? `${message}${ownCaseFactsContext}\n\nThe user uploaded documents. Use the excerpts below in your analysis.${caseContext}${premiumPlusDecompositionContext}${caseLawSuggestionContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}\n${attachmentContext}`
-      : `${message}${ownCaseFactsContext}${caseContext}${premiumPlusDecompositionContext}${caseLawSuggestionContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}${attachmentMetadata}`
+      ? `${message}${ownCaseFactsContext}\n\nThe user uploaded documents. Use the excerpts below in your analysis.${caseContext}${caseLawSuggestionContext}${vectorCaseLawRagContext}\n${attachmentContext}`
+      : `${message}${ownCaseFactsContext}${caseContext}${caseLawSuggestionContext}${vectorCaseLawRagContext}${attachmentMetadata}`
 
     const messageForAgent = truncateText(rawMessageForAgent, 12000)
     const threadId = `thread_${Date.now()}_${userId}`
@@ -2614,7 +2284,7 @@ export async function POST(request: NextRequest) {
                 premiumSearchRoutingConfidence,
                 premiumSearchRoutingReasons,
                 premiumSearchModeApplied: premiumPlanActive && !premiumPlusActive ? 'web' : 'n/a',
-                premiumSearchQuery: premiumGeneratedWebQuery || null,
+                premiumSearchQuery: null,
                 premiumPlusCaseLawRetrievalEnabled: shouldUsePremiumPlusCaseLawRetrieval,
                 vectorCaseLawRagEnabled: usePremiumPlusVectorRag,
                 vectorCaseLawRagCount: vectorCaseLawRagItems.length,
@@ -2628,14 +2298,10 @@ export async function POST(request: NextRequest) {
                 retrievalFocus: retrievalFocusDecision.focus,
                 retrievalFocusApplied,
                 retrievalRoutingSource,
-                premiumPlusToolPlanUsed: false,
-                premiumPlusToolPlanConfidence,
-                premiumPlusDecomposition: premiumPlusDecomposition || null,
-                premiumPlusSubIssueCount: premiumPlusSubIssues.length,
-                premiumPlusToolPlanTools: premiumPlusTools.map((item) => item.tool),
-                premiumPlusToolPlanSearchMode: premiumPlusSearchMode,
-                premiumPlusToolPlanWebQuery: generatedWebQuery || null,
-                premiumPlusToolPlanVectorQuery: generatedVectorQuery || null,
+                premiumPlusTools: premiumPlusTools.map((item) => item.tool),
+                premiumPlusSearchMode,
+                premiumPlusWebQuery: generatedWebQuery || null,
+                premiumPlusVectorQuery: generatedVectorQuery || null,
                 retrievalOwnCaseNarrative: retrievalFocusDecision.ownCaseNarrative,
                 retrievalPrecedentScore: retrievalFocusDecision.precedentScore,
                 retrievalProcedureScore: retrievalFocusDecision.procedureScore,
@@ -2686,11 +2352,14 @@ export async function POST(request: NextRequest) {
                   caseKeywords,
                   {
                     memoryContext: relatedThreadMemoryContext || undefined,
-                    useSearch: shouldUseSearchRetrieval,
-                    searchQueryOverride: premiumGeneratedWebQuery || undefined,
+                    autoDecideSearch: true,
                     searchEngineOverride: 'brave',
                     openaiModel: premiumOpenAiModel,
                     openaiFallbackModel: premiumOpenAiFallbackModel,
+                    historyLimit: agentHistoryLimit,
+                    onStatus: (status) => {
+                      if (status) sendEvent({ type: 'status', message: status })
+                    },
                     onToken: (chunk) => {
                       if (chunk) sendEvent({ type: 'delta', delta: chunk })
                     },
@@ -2704,10 +2373,14 @@ export async function POST(request: NextRequest) {
                   caseKeywords,
                   {
                     memoryContext: relatedThreadMemoryContext || undefined,
-                    useSearch: true,
+                    autoDecideSearch: true,
                     searchEngineOverride: 'perplexity',
-                    openaiModel: premiumPlusOpenAiModel || undefined,
-                    openaiFallbackModel: premiumPlusOpenAiFallbackModel || undefined,
+                    anthropicModel: premiumPlusAnthropicModel || undefined,
+                    anthropicFallbackModel: premiumPlusAnthropicFallbackModel || undefined,
+                    historyLimit: agentHistoryLimit,
+                    onStatus: (status) => {
+                      if (status) sendEvent({ type: 'status', message: status })
+                    },
                     onToken: (chunk) => {
                       if (chunk) sendEvent({ type: 'delta', delta: chunk })
                     },
@@ -2735,21 +2408,23 @@ export async function POST(request: NextRequest) {
     const agentResponse: AgentResponse = shouldUseBasicLegalAgent
       ? await invokeBasicLegalAgent(messageForAgent, threadId, userId, effectiveConversationHistory, caseKeywords, {
           memoryContext: relatedThreadMemoryContext || undefined,
+          historyLimit: agentHistoryLimit,
         })
       : shouldUsePremiumPlusLegalAgent
         ? await invokePremiumPlusLegalAgent(messageForAgent, threadId, userId, effectiveConversationHistory, caseKeywords, {
             memoryContext: relatedThreadMemoryContext || undefined,
-            useSearch: true,
-            openaiModel: premiumPlusOpenAiModel || undefined,
-            openaiFallbackModel: premiumPlusOpenAiFallbackModel || undefined,
+            autoDecideSearch: true,
+            anthropicModel: premiumPlusAnthropicModel || undefined,
+            anthropicFallbackModel: premiumPlusAnthropicFallbackModel || undefined,
+            historyLimit: agentHistoryLimit,
           })
         : await invokePremiumLegalAgent(messageForAgent, threadId, userId, effectiveConversationHistory, caseKeywords, {
             memoryContext: relatedThreadMemoryContext || undefined,
-            useSearch: shouldUseSearchRetrieval,
-            searchQueryOverride: premiumGeneratedWebQuery || undefined,
+            autoDecideSearch: true,
             searchEngineOverride: 'brave',
             openaiModel: premiumOpenAiModel,
             openaiFallbackModel: premiumOpenAiFallbackModel,
+            historyLimit: agentHistoryLimit,
           })
 
     const payload = await finalizeAgentResponse(agentResponse)

@@ -72,7 +72,7 @@ export function invalidateUserPlanCache(authUid: string) {
   userPlanCache.delete(cacheKey);
 }
 
-async function resolveUserPlanData(authUid: string, authEmail?: string | null): Promise<UserPlanData> {
+async function resolveUserPlanData(authUid: string): Promise<UserPlanData> {
   const snapshot = await getOrSyncUserEntitlementSnapshot(authUid);
   const rawPlan = snapshot?.plan_type || 'No plan';
   const planPrice = entitlementPlanPrice(rawPlan);
@@ -95,12 +95,12 @@ async function resolveUserPlanData(authUid: string, authEmail?: string | null): 
 
 export async function getUserPlanData(
   authUid: string,
-  authEmail?: string | null,
+  _authEmail?: string | null,
   options?: GetUserPlanOptions
 ): Promise<UserPlanData> {
   if (options?.bypassCache) {
     const startedAt = Date.now();
-    const value = await resolveUserPlanData(authUid, authEmail);
+    const value = await resolveUserPlanData(authUid);
     logPlanPerf('resolve-nocache', startedAt, {
       user: authUid,
       paidAccess: value.paidAccess,
@@ -119,7 +119,7 @@ export async function getUserPlanData(
 
   const resolvePromise = (async () => {
     const startedAt = Date.now();
-    const value = await resolveUserPlanData(authUid, authEmail);
+    const value = await resolveUserPlanData(authUid);
     writeCachedPlan(cacheKey, value);
     logPlanPerf('resolve', startedAt, {
       user: authUid,
