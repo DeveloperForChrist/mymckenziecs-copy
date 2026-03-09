@@ -5,6 +5,12 @@ import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { isPaidPlan } from '@/lib/plans/access';
 import { attachAssistantPresentationMetadata, sanitizeAssistantMetadata } from '@/lib/chat/assistant-presentation';
 import {
+  canAccessConversation,
+  getOwnedCaseIds,
+  resolveScopedUserIds,
+  resolveUserIdsByEmail,
+} from '@/lib/chat/conversation-access';
+import {
   decodeMessageHistoryCursor,
   sliceMessageHistoryPage,
 } from '@/lib/chat/history-pagination';
@@ -130,24 +136,6 @@ function isPlaceholderTitle(value: string | null | undefined): boolean {
 
 const dedupe = <T,>(items: T[]): T[] => Array.from(new Set(items.filter(Boolean) as T[]));
 
-async function resolveUserIdsByEmail(email: string | null): Promise<string[]> {
-  if (!email) return [];
-  const normalizedEmail = email.trim();
-  if (!normalizedEmail) return [];
-
-  const { data } = await supabaseAdmin
-    .from('users')
-    .select('id')
-    .ilike('email', normalizedEmail);
-
-  return dedupe((data || []).map((row: any) => row.id).filter(Boolean));
-}
-
-async function resolveScopedUserIds(authUid: string, authEmail: string | null): Promise<string[]> {
-  const emailUserIds = await resolveUserIdsByEmail(authEmail);
-  return dedupe([authUid, ...emailUserIds]);
-}
-
 async function hasPaidPlanAccess(authUid: string, authEmail: string | null): Promise<boolean> {
   const hasPaidForUserIds = async (userIds: string[]) => {
     if (userIds.length === 0) return false;
@@ -168,18 +156,6 @@ async function hasPaidPlanAccess(authUid: string, authEmail: string | null): Pro
   const emailUserIds = await resolveUserIdsByEmail(authEmail);
   if (emailUserIds.length === 0) return false;
   return hasPaidForUserIds(emailUserIds);
-}
-
-async function getOwnedCaseIds(userIds: string[]): Promise<string[]> {
-  if (userIds.length === 0) return [];
-
-  const { data } = await supabaseAdmin
-    .from('cases')
-    .select('id')
-    .in('user_id', userIds)
-    .is('deleted_at', null);
-
-  return dedupe((data || []).map((row: any) => row.id).filter(Boolean));
 }
 
 function chunkArray<T>(items: T[], size: number): T[][] {
@@ -246,67 +222,6 @@ async function fetchMessagesByCaseIds(caseIds: string[], maxRows = 1200): Promis
   }
 
   return (data || []) as ConversationMessageRow[];
-}
-
-async function canAccessConversation(
-  scopedUserIds: string[],
-  conversationId: string,
-  caseIds: string[]
-): Promise<boolean> {
-  if (scopedUserIds.length === 0) return false;
-
-  const { data: memoryRow } = await supabaseAdmin
-    .from('chat_memory')
-    .select('conversation_id')
-    .in('user_id', scopedUserIds)
-    .eq('conversation_id', conversationId)
-    .limit(1)
-    .maybeSingle();
-
-  if (memoryRow?.conversation_id) return true;
-
-  const { data: actionRow } = await supabaseAdmin
-    .from('chat_action_items')
-    .select('id')
-    .in('user_id', scopedUserIds)
-    .eq('conversation_id', conversationId)
-    .limit(1)
-    .maybeSingle();
-
-  if (actionRow?.id) return true;
-
-  if (caseIds.length > 0) {
-    const { data: messageRow } = await supabaseAdmin
-      .from('messages')
-      .select('id')
-      .eq('conversation_id', conversationId)
-      .in('case_id', caseIds)
-      .limit(1)
-      .maybeSingle();
-
-    if (messageRow?.id) return true;
-  }
-
-  // Fallback for conversations persisted without case links but tagged by owner in metadata.
-  const { data: conversationRows, error: conversationRowsError } = await supabaseAdmin
-    .from('messages')
-    .select('metadata')
-    .eq('conversation_id', conversationId)
-    .order('timestamp', { ascending: false })
-    .limit(60);
-
-  if (!conversationRowsError && Array.isArray(conversationRows)) {
-    const ownsConversation = conversationRows.some((row: any) => {
-      const ownerId =
-        row?.metadata && typeof row.metadata === 'object' && typeof row.metadata.owner_user_id === 'string'
-          ? row.metadata.owner_user_id
-          : null;
-      return Boolean(ownerId && scopedUserIds.includes(ownerId));
-    });
-    if (ownsConversation) return true;
-  }
-
-  return false;
 }
 
 function mergeConversations(

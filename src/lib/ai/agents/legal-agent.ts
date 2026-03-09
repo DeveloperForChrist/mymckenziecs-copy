@@ -313,6 +313,7 @@ type LegalAgentOptions = {
   useSearch?: boolean
   systemPrompt?: string
   includeCitations?: boolean
+  memoryContext?: string
   provider?: LlmProvider
   openaiModel?: string
   openaiFallbackModel?: string
@@ -1749,6 +1750,9 @@ export async function createLegalAgent(
   const trimmedHistory = sanitizeConversationHistory(fullHistory, 40)
   const tools = [new DocGeneratorTool()]
   const systemPrompt = options?.systemPrompt || SYSTEM_PROMPT
+  const memoryContext = typeof options?.memoryContext === 'string' && options.memoryContext.trim()
+    ? `${options.memoryContext.trim()}\n\n`
+    : ''
   const useSearch = options?.useSearch !== false
   const includeCitations = options?.includeCitations === true
   const openaiModel = options?.openaiModel || OPENAI_MODEL
@@ -1813,7 +1817,7 @@ export async function createLegalAgent(
               sources: undefined
             }
           }
-          const contextForTools = buildHistoryContext(trimmedHistory) + latestQuestion
+          const contextForTools = `${memoryContext}${buildHistoryContext(trimmedHistory)}${latestQuestion}`
           const docResult = await tools[0]._call(contextForTools)
           return {
             response: stripMarkdown(docResult).trim(),
@@ -1828,7 +1832,7 @@ export async function createLegalAgent(
           const historyContext = buildHistoryContext(trimmedHistory)
           const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
           const lengthInstruction = buildLengthInstruction(latestQuestion)
-          const directPrompt = `${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. ${lengthInstruction} Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
+          const directPrompt = `${memoryContext}${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. ${lengthInstruction} Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
           const modelForProvider =
             llmProvider === 'groq'
               ? groqModel
@@ -1901,7 +1905,8 @@ export async function createLegalAgent(
           ? 'Include inline citations in square brackets that match the sources list above, like [1] or [2]. Use citations on factual statements.'
           : 'Do not include any source citations.'
         const lengthInstruction = buildLengthInstruction(latestQuestion)
-        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\nUser question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} ${citationInstruction} This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
+        const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
+        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} ${citationInstruction} This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
         
         const modelForProvider =
           llmProvider === 'groq'
@@ -2006,6 +2011,7 @@ export async function invokePremiumLegalAgent(
   caseKeywords?: string,
   options?: {
     useSearch?: boolean
+    memoryContext?: string
     searchQueryOverride?: string
     searchModeOverride?: LegalSearchMode
     searchEngineOverride?: SearchEngine
@@ -2018,6 +2024,7 @@ export async function invokePremiumLegalAgent(
   return invokeLegalAgent(message, threadId, userId, conversationHistory, caseKeywords, {
     useSearch: options?.useSearch,
     includeCitations: false,
+    memoryContext: options?.memoryContext,
     provider: 'openai',
     openaiModel: options?.openaiModel || OPENAI_MODEL,
     openaiFallbackModel: options?.openaiFallbackModel || OPENAI_FALLBACK_MODEL,
@@ -2039,6 +2046,7 @@ export async function invokePremiumLegalAgentStream(
   caseKeywords?: string,
   options?: {
     useSearch?: boolean
+    memoryContext?: string
     searchQueryOverride?: string
     searchModeOverride?: LegalSearchMode
     searchEngineOverride?: SearchEngine
@@ -2062,6 +2070,9 @@ export async function invokePremiumLegalAgentStream(
 
   const trimmedHistory = sanitizeConversationHistory(conversationHistory, 40)
   const systemPrompt = SYSTEM_PROMPT
+  const memoryContext = typeof options?.memoryContext === 'string' && options.memoryContext.trim()
+    ? `${options.memoryContext.trim()}\n\n`
+    : ''
   const useSearch = options?.useSearch !== false
   const openaiModel = options?.openaiModel || OPENAI_MODEL
   const openaiFallbackModel = options?.openaiFallbackModel || OPENAI_FALLBACK_MODEL
@@ -2220,7 +2231,7 @@ export async function invokePremiumLegalAgentStream(
         sources: undefined,
       }
     }
-    const contextForTools = buildHistoryContext(trimmedHistory) + latestQuestion
+    const contextForTools = `${memoryContext}${buildHistoryContext(trimmedHistory)}${latestQuestion}`
     const docResult = await new DocGeneratorTool()._call(contextForTools)
     return {
       response: stripMarkdown(docResult).trim(),
@@ -2235,7 +2246,7 @@ export async function invokePremiumLegalAgentStream(
     const historyContext = buildHistoryContext(trimmedHistory)
     const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
     const lengthInstruction = buildLengthInstruction(latestQuestion)
-    const directPrompt = `${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. ${lengthInstruction} Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
+    const directPrompt = `${memoryContext}${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. ${lengthInstruction} Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
     return {
       response: neutralizeLegalAdviceTone(await streamOpenAiText(directPrompt)),
       document_generated: false,
@@ -2271,7 +2282,8 @@ export async function invokePremiumLegalAgentStream(
     ? `All available sources to reference:\n${sources.map((url, i) => `[${i + 1}] ${url}`).join('\n')}`
     : 'No sources available.'
   const lengthInstruction = buildLengthInstruction(latestQuestion)
-  const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\nUser question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} Do not include any source citations. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
+  const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
+  const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} Do not include any source citations. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
 
   return {
     response: neutralizeLegalAdviceTone(await streamOpenAiText(comprehensivePrompt)),
@@ -2563,11 +2575,29 @@ const runPremiumPlusToolLoop = async (
     openaiModel: string
     openaiFallbackModel: string
     searchEngineOverride: SearchEngine
+    conversationHistory?: Array<{ role: string; content: string }>
+    caseKeywords?: string
+    memoryContext?: string
   }
 ): Promise<PremiumPlusToolLoopState> => {
   const client = createPremiumPlusOpenAi()
+  const trimmedHistory = sanitizeConversationHistory(options.conversationHistory, 40)
+  const historyContext = buildHistoryContext(trimmedHistory)
+  const contextLines: string[] = []
+  if (options.caseKeywords?.trim()) {
+    contextLines.push(`Case context: ${options.caseKeywords.trim()}`)
+  }
+  if (options.memoryContext?.trim()) {
+    contextLines.push(options.memoryContext.trim())
+  }
+  if (historyContext) {
+    contextLines.push(historyContext.trim())
+  }
   const messages: Array<Record<string, any>> = [
     { role: 'system', content: PREMIUM_PLUS_TOOL_SYSTEM_PROMPT },
+    ...(contextLines.length > 0
+      ? [{ role: 'system', content: contextLines.join('\n\n') }]
+      : []),
     { role: 'user', content: prompt },
   ]
   const aggregatedSources: string[] = []
@@ -2634,10 +2664,11 @@ export async function invokePremiumPlusLegalAgent(
   message: string,
   _threadId: string,
   _userId?: string,
-  _conversationHistory: Array<{ role: string; content: string }> = [],
-  _caseKeywords?: string,
+  conversationHistory: Array<{ role: string; content: string }> = [],
+  caseKeywords?: string,
   options?: {
     useSearch?: boolean
+    memoryContext?: string
     searchQueryOverride?: string
     searchModeOverride?: LegalSearchMode
     searchEngineOverride?: SearchEngine
@@ -2649,8 +2680,9 @@ export async function invokePremiumPlusLegalAgent(
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
   const useSearch = options?.useSearch !== false
   if (!useSearch) {
-    return invokePremiumLegalAgent(message, '', undefined, [], '', {
+    return invokePremiumLegalAgent(message, '', undefined, conversationHistory, caseKeywords, {
       useSearch: false,
+      memoryContext: options?.memoryContext,
       openaiModel: options?.openaiModel || PREMIUM_PLUS_OPENAI_MODEL,
       openaiFallbackModel: options?.openaiFallbackModel || PREMIUM_PLUS_OPENAI_FALLBACK_MODEL,
       maxTokens: options?.maxTokens,
@@ -2664,6 +2696,9 @@ export async function invokePremiumPlusLegalAgent(
     openaiModel,
     openaiFallbackModel,
     searchEngineOverride: options?.searchEngineOverride || 'perplexity',
+    conversationHistory,
+    caseKeywords,
+    memoryContext: options?.memoryContext,
   })
 
   if (toolLoop.directResponse) {
@@ -2719,10 +2754,11 @@ export async function invokePremiumPlusLegalAgentStream(
   message: string,
   _threadId: string,
   _userId?: string,
-  _conversationHistory: Array<{ role: string; content: string }> = [],
-  _caseKeywords?: string,
+  conversationHistory: Array<{ role: string; content: string }> = [],
+  caseKeywords?: string,
   options?: {
     useSearch?: boolean
+    memoryContext?: string
     searchQueryOverride?: string
     searchModeOverride?: LegalSearchMode
     searchEngineOverride?: SearchEngine
@@ -2735,8 +2771,9 @@ export async function invokePremiumPlusLegalAgentStream(
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
   const useSearch = options?.useSearch !== false
   if (!useSearch) {
-    return invokePremiumLegalAgentStream(message, '', undefined, [], '', {
+    return invokePremiumLegalAgentStream(message, '', undefined, conversationHistory, caseKeywords, {
       useSearch: false,
+      memoryContext: options?.memoryContext,
       openaiModel: options?.openaiModel || PREMIUM_PLUS_OPENAI_MODEL,
       openaiFallbackModel: options?.openaiFallbackModel || PREMIUM_PLUS_OPENAI_FALLBACK_MODEL,
       maxTokens: options?.maxTokens,
@@ -2751,6 +2788,9 @@ export async function invokePremiumPlusLegalAgentStream(
     openaiModel,
     openaiFallbackModel,
     searchEngineOverride: options?.searchEngineOverride || 'perplexity',
+    conversationHistory,
+    caseKeywords,
+    memoryContext: options?.memoryContext,
   })
 
   const emitSyntheticStream = (text: string) => {
@@ -2826,12 +2866,16 @@ export async function invokeBasicLegalAgent(
   threadId: string,
   userId?: string,
   conversationHistory: Array<{ role: string; content: string }> = [],
-  caseKeywords?: string
+  caseKeywords?: string,
+  options?: {
+    memoryContext?: string
+  }
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
   const basicProvider = chooseBasicProvider(userId || threadId)
   const agent = await createLegalAgent(conversationHistory, caseKeywords, undefined, {
     useSearch: false,
     systemPrompt: SYSTEM_PROMPT_FREE,
+    memoryContext: options?.memoryContext,
     provider: basicProvider,
     openaiModel: OPENAI_BASIC_MODEL,
     openaiFallbackModel: OPENAI_BASIC_FALLBACK_MODEL,

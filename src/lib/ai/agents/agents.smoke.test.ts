@@ -11,6 +11,18 @@ vi.mock('openai', () => {
           if (combinedContent.includes('routing timeout sentinel')) {
             return new Promise<any>(() => {})
           }
+          if (combinedContent.includes('Earlier conversation marker: driver hit my car and ran away')) {
+            return {
+              choices: [
+                {
+                  message: {
+                    content: 'I remember the earlier conversation about the driver hitting your car and leaving the scene.',
+                  },
+                  finish_reason: 'stop',
+                },
+              ],
+            }
+          }
           const isCaseStudy = combinedContent.includes('Please provide a comprehensive educational case study analysis')
           const isRoutingDecision = combinedContent.includes('Choose the retrieval mode for this user request before answer generation.')
           if (isRoutingDecision) {
@@ -164,6 +176,22 @@ describe('agent smoke checks', () => {
     expect(result.response.trim().length).toBeGreaterThan(0)
   })
 
+  it('direct legal agent can use supplied earlier-thread memory context', async () => {
+    const result = await invokeLegalAgent(
+      'Can you give case law on this?',
+      'thread_smoke_direct_memory',
+      'user_smoke_direct_memory',
+      [],
+      '',
+      {
+        useSearch: false,
+        memoryContext: 'Relevant earlier thread memory:\n- Earlier conversation marker: driver hit my car and ran away',
+      }
+    )
+
+    expect(result.response).toContain('I remember the earlier conversation')
+  })
+
   it('direct legal agent path returns a usable answer', async () => {
     const result = await invokeLegalAgent(
       'What does claimant mean in a small claim?',
@@ -209,6 +237,32 @@ describe('agent smoke checks', () => {
 
     expect(typeof result.response).toBe('string')
     expect(result.response.trim().length).toBeGreaterThan(0)
+  })
+
+  it('premium plus agent uses earlier conversation history in its own tool path', async () => {
+    const result = await invokePremiumPlusLegalAgent(
+      'Can you give case law on this?',
+      'thread_smoke_premium_plus_history',
+      'user_smoke_premium_plus_history',
+      [
+        {
+          role: 'user',
+          content: 'Earlier conversation marker: driver hit my car and ran away',
+        },
+        {
+          role: 'assistant',
+          content: 'We discussed fail to stop, fail to report, and assault issues.',
+        },
+      ],
+      'road traffic incident',
+      {
+        useSearch: true,
+        openaiModel: 'gpt-5.2',
+        openaiFallbackModel: 'gpt-4.1',
+      }
+    )
+
+    expect(result.response).toContain('I remember the earlier conversation')
   })
 
   it('premium plus groq planner can return a direct answer for a simple question', async () => {

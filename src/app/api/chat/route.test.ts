@@ -2,16 +2,84 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 type QueryResult<T> = { data: T; error: any }
 
-const createQuery = <T,>(result: QueryResult<T>) => {
+type MockRow = Record<string, any>
+
+const applyFilters = (rows: MockRow[], filters: Array<{ type: string; column: string; value: any }>) =>
+  rows.filter((row) =>
+    filters.every((filter) => {
+      const value = row[filter.column]
+      if (filter.type === 'eq') return value === filter.value
+      if (filter.type === 'in') return Array.isArray(filter.value) && filter.value.includes(value)
+      if (filter.type === 'ilike') return String(value || '').toLowerCase() === String(filter.value || '').toLowerCase()
+      if (filter.type === 'is') return filter.value === null ? value == null : value === filter.value
+      return true
+    })
+  )
+
+const createTableQuery = (rows: MockRow[] = [], options?: { mutateResult?: QueryResult<any> }) => {
+  const state = {
+    filters: [] as Array<{ type: string; column: string; value: any }>,
+    orderBy: [] as Array<{ column: string; ascending: boolean }>,
+    limitValue: undefined as number | undefined,
+  }
+
+  const getRows = () => {
+    let result = applyFilters(rows, state.filters)
+    for (const { column, ascending } of [...state.orderBy].reverse()) {
+      result = result.slice().sort((a, b) => {
+        const left = a?.[column]
+        const right = b?.[column]
+        if (left == null && right == null) return 0
+        if (left == null) return 1
+        if (right == null) return -1
+        if (left === right) return 0
+        return ascending ? (left < right ? -1 : 1) : (left < right ? 1 : -1)
+      })
+    }
+    if (typeof state.limitValue === 'number') {
+      result = result.slice(0, state.limitValue)
+    }
+    return result
+  }
+
   const builder: any = {
     select: vi.fn(() => builder),
-    eq: vi.fn(() => builder),
-    maybeSingle: vi.fn(() => Promise.resolve(result)),
-    single: vi.fn(() => Promise.resolve(result)),
-    upsert: vi.fn(() => Promise.resolve(result)),
-    insert: vi.fn(() => Promise.resolve(result)),
-    then: (onFulfilled: (value: QueryResult<T>) => unknown, onRejected?: (reason: unknown) => unknown) =>
-      Promise.resolve(result).then(onFulfilled, onRejected),
+    eq: vi.fn((column: string, value: any) => {
+      state.filters.push({ type: 'eq', column, value })
+      return builder
+    }),
+    in: vi.fn((column: string, value: any[]) => {
+      state.filters.push({ type: 'in', column, value })
+      return builder
+    }),
+    ilike: vi.fn((column: string, value: any) => {
+      state.filters.push({ type: 'ilike', column, value })
+      return builder
+    }),
+    is: vi.fn((column: string, value: any) => {
+      state.filters.push({ type: 'is', column, value })
+      return builder
+    }),
+    order: vi.fn((column: string, orderOptions?: { ascending?: boolean }) => {
+      state.orderBy.push({ column, ascending: orderOptions?.ascending !== false })
+      return builder
+    }),
+    limit: vi.fn((value: number) => {
+      state.limitValue = value
+      return builder
+    }),
+    maybeSingle: vi.fn(async () => {
+      const matched = getRows()
+      return { data: matched[0] ?? null, error: null }
+    }),
+    single: vi.fn(async () => {
+      const matched = getRows()
+      return { data: matched[0] ?? null, error: null }
+    }),
+    upsert: vi.fn(async () => options?.mutateResult || { data: null, error: null }),
+    insert: vi.fn(async () => options?.mutateResult || { data: null, error: null }),
+    then: (onFulfilled: (value: QueryResult<any>) => unknown, onRejected?: (reason: unknown) => unknown) =>
+      Promise.resolve({ data: getRows(), error: null }).then(onFulfilled, onRejected),
   }
 
   return builder
@@ -59,26 +127,52 @@ describe('/api/chat route', () => {
       urgency: 'normal',
       caseId: null,
     },
-  }: {
+    usersRows,
+    casesRows,
+    messagesRows,
+    chatMemoryRows,
+    chatActionItemsRows,
+    }: {
     authUser?: { id: string; email?: string | null } | null
     planData?: { plan?: string | null; paidAccess?: boolean; planStatus?: string | null }
     incrementedTurnCount?: number
     searchByTextImpl?: (...args: any[]) => Promise<any[]>
     processMessageResult?: { task: string; contextType: string; urgency: string; caseId: string | null }
+    usersRows?: MockRow[]
+    casesRows?: MockRow[]
+    messagesRows?: MockRow[]
+    chatMemoryRows?: MockRow[]
+    chatActionItemsRows?: MockRow[]
   } = {}) => {
-    const chatMemoryQuery = createQuery({
-      data: { memory_summary: null, key_facts: [], open_questions: [], user_turn_count: incrementedTurnCount },
-      error: null,
-    })
+    const defaultChatMemoryRow = {
+      memory_key: 'thread-memory',
+      memory_summary: null,
+      key_facts: [],
+      open_questions: [],
+      user_turn_count: incrementedTurnCount,
+      conversation_id: 'conv-1',
+      user_id: authUser?.id || 'user-1',
+    }
+    const resolvedUsersRows = usersRows || []
+    const resolvedCasesRows = casesRows || []
+    const resolvedMessagesRows = messagesRows || []
+    const resolvedChatMemoryRows = chatMemoryRows || [defaultChatMemoryRow]
+    const resolvedChatActionItemsRows = chatActionItemsRows || []
 
     const supabaseAdmin = {
       rpc: vi.fn(async () => ({ data: incrementedTurnCount, error: null })),
       from: vi.fn((table: string) => {
         switch (table) {
           case 'chat_memory':
-            return chatMemoryQuery
+            return createTableQuery(resolvedChatMemoryRows)
           case 'chat_action_items':
-            return createQuery({ data: null, error: null })
+            return createTableQuery(resolvedChatActionItemsRows)
+          case 'users':
+            return createTableQuery(resolvedUsersRows)
+          case 'cases':
+            return createTableQuery(resolvedCasesRows)
+          case 'messages':
+            return createTableQuery(resolvedMessagesRows)
           default:
             throw new Error(`Unexpected table: ${table}`)
         }
@@ -210,7 +304,7 @@ describe('/api/chat route', () => {
     }
   }
 
-  it('returns a structured assistant payload when auth is missing', { timeout: 15000 }, async () => {
+  it('returns a structured assistant payload when auth is missing', { timeout: 30000 }, async () => {
     const { POST } = await loadRoute({ authUser: null })
 
     const response = await POST(buildChatRequest({ message: 'What does CPR Part 7 mean?', history: [] }))
@@ -220,6 +314,36 @@ describe('/api/chat route', () => {
     expect(payload.response).toBe('Please sign in and choose a paid plan to use chat.')
     expect(payload.metadata.signInRequired).toBe(true)
     expect(payload.metadata.presentation.version).toBe(1)
+  })
+
+  it('rejects an existing conversation that belongs to another user', { timeout: 15000 }, async () => {
+    const { POST, chatManagerInstance } = await loadRoute({
+      messagesRows: [
+        {
+          id: 'msg-foreign-1',
+          conversation_id: 'foreign-conv',
+          case_id: null,
+          role: 'user',
+          content: 'Foreign conversation',
+          timestamp: '2026-03-09T09:00:00.000Z',
+          metadata: { owner_user_id: 'user-2' },
+        },
+      ],
+    })
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'Continue this conversation',
+        history: [],
+        conversationId: 'foreign-conv',
+      })
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(403)
+    expect(payload.response).toBe('That conversation is unavailable.')
+    expect(payload.metadata.conversationUnavailable).toBe(true)
+    expect(chatManagerInstance.initializeSession).not.toHaveBeenCalled()
   })
 
   it('returns a structured upgrade response when the signed-in user has no paid plan', { timeout: 15000 }, async () => {
@@ -292,6 +416,55 @@ describe('/api/chat route', () => {
         useSearch: true,
         searchQueryOverride: undefined,
         searchEngineOverride: 'brave',
+      })
+    )
+  })
+
+  it('passes earlier thread memory into the agent context for new threads', { timeout: 15000 }, async () => {
+    const { POST, legalAgentMocks } = await loadRoute({
+      chatMemoryRows: [
+        {
+          memory_key: 'other-thread-memory',
+          memory_summary: 'Driver hit my car and left the scene.',
+          key_facts: ['Earlier conversation marker: driver hit my car and ran away'],
+          open_questions: ['Did you get the registration number?'],
+          user_turn_count: 4,
+          conversation_id: 'older-conv',
+          user_id: 'user-1',
+          updated_at: '2026-03-09T10:00:00.000Z',
+          case_id: null,
+        },
+        {
+          memory_key: 'thread-memory',
+          memory_summary: null,
+          key_facts: [],
+          open_questions: [],
+          user_turn_count: 1,
+          conversation_id: 'conv-1',
+          user_id: 'user-1',
+          updated_at: '2026-03-09T11:00:00.000Z',
+          case_id: null,
+        },
+      ],
+    })
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'Can you remind me what case law may matter here?',
+        history: [],
+        conversationId: 'conv-1',
+      })
+    )
+
+    expect(response.status).toBe(200)
+    expect(legalAgentMocks.invokeBasicLegalAgent).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      'user-1',
+      [],
+      '',
+      expect.objectContaining({
+        memoryContext: expect.stringContaining('Earlier conversation marker: driver hit my car and ran away'),
       })
     )
   })

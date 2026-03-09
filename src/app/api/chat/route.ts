@@ -26,6 +26,11 @@ import { searchByText } from '@/lib/vector/milvus'
 import { getUserPlanData } from '@/lib/payments/user-plan'
 import { extractTextFromBuffer } from '@/lib/chat/text-extraction'
 import {
+  getConversationAccess,
+  getOwnedCaseIds,
+  resolveScopedUserIds,
+} from '@/lib/chat/conversation-access'
+import {
   buildAssistantResponsePayload,
   stripAssistantPresentationMetadata,
 } from '@/lib/chat/assistant-presentation'
@@ -71,6 +76,18 @@ type VectorCaseLawRagItem = {
   extracts?: string
   url?: string
   similarity?: number
+}
+
+type ThreadMemorySnapshot = {
+  memory_summary: string | null
+  key_facts: string[]
+  open_questions: string[]
+  user_turn_count: number | null
+}
+
+type RelatedThreadMemorySnapshot = ThreadMemorySnapshot & {
+  conversationCount: number
+  sameCaseMatch: boolean
 }
 
 const chatAttachmentSchema = z.object({
@@ -425,6 +442,69 @@ const truncateText = (value: string, maxChars: number) => {
   if (!value) return ''
   if (value.length <= maxChars) return value
   return `${value.slice(0, maxChars - 1)}…`
+}
+
+const AGENT_HISTORY_LIMIT = 40
+const AGENT_HISTORY_FETCH_LIMIT = 80
+
+const normalizeConversationHistoryEntry = (entry: any) => {
+  if (!entry || typeof entry.role !== 'string' || typeof entry.content !== 'string') return null
+  const content = truncateText(String(entry.content || '').trim(), 600)
+  if (!content) return null
+  return {
+    role: entry.role === 'assistant' ? 'assistant' : 'user',
+    content,
+  } as { role: 'user' | 'assistant'; content: string }
+}
+
+const mergeConversationHistoryEntries = (
+  persistedHistory: Array<{ role: string; content: string }> = [],
+  clientHistory: Array<{ role: string; content: string }> = [],
+  currentMessage?: string
+) => {
+  const merged = [...persistedHistory, ...clientHistory]
+    .map(normalizeConversationHistoryEntry)
+    .filter((entry): entry is { role: 'user' | 'assistant'; content: string } => Boolean(entry))
+
+  const deduped: Array<{ role: 'user' | 'assistant'; content: string }> = []
+  for (const entry of merged) {
+    const previous = deduped[deduped.length - 1]
+    if (previous && previous.role === entry.role && previous.content === entry.content) continue
+    deduped.push(entry)
+  }
+
+  const normalizedCurrentMessage = typeof currentMessage === 'string' ? truncateText(currentMessage.trim(), 600) : ''
+  if (normalizedCurrentMessage) {
+    const lastEntry = deduped[deduped.length - 1]
+    if (lastEntry?.role === 'user' && lastEntry.content === normalizedCurrentMessage) {
+      deduped.pop()
+    }
+  }
+
+  return deduped.slice(-AGENT_HISTORY_LIMIT)
+}
+
+const loadPersistedConversationHistory = async (conversationId: string | null) => {
+  if (!conversationId) return []
+
+  const { data, error } = await supabaseAdmin
+    .from('messages')
+    .select('role, content, timestamp, id')
+    .eq('conversation_id', conversationId)
+    .order('timestamp', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(AGENT_HISTORY_FETCH_LIMIT)
+
+  if (error) {
+    console.warn('Failed to load persisted conversation history for Premium+ agent:', error)
+    return []
+  }
+
+  return (data || [])
+    .slice()
+    .reverse()
+    .map((row: any) => normalizeConversationHistoryEntry(row))
+    .filter((entry): entry is { role: 'user' | 'assistant'; content: string } => Boolean(entry))
 }
 
 const firstDefinedString = (...values: any[]) => {
@@ -1745,7 +1825,7 @@ const resolveThreadTurnLimit = ({
   return CHAT_THREAD_MAX_USER_TURNS_DEFAULT
 }
 
-const buildMemoryContext = (memory: any) => {
+const buildMemoryContext = (memory: any, heading: string = 'Conversation memory') => {
   if (!memory) return ''
   const lines: string[] = []
 
@@ -1762,7 +1842,7 @@ const buildMemoryContext = (memory: any) => {
   }
 
   if (!lines.length) return ''
-  return `\n\nConversation memory:\n${lines.join('\n')}`
+  return `${heading}:\n${lines.join('\n')}`
 }
 
 const hasUsefulMemory = (memory: any): boolean => {
@@ -1786,7 +1866,7 @@ const normalizeMemoryList = (value: any, maxItems: number, maxChars: number): st
   return out
 }
 
-const loadCaseScopedMemoryFallback = async ({
+const loadRelatedThreadMemory = async ({
   authUserId,
   guestId,
   caseId,
@@ -1794,18 +1874,16 @@ const loadCaseScopedMemoryFallback = async ({
 }: {
   authUserId?: string | null
   guestId?: string | null
-  caseId: string
+  caseId?: string | null
   excludeConversationId?: string | null
-}): Promise<{ memory_summary: string | null; key_facts: string[]; open_questions: string[]; user_turn_count: number | null } | null> => {
-  if (!caseId) return null
+}): Promise<RelatedThreadMemorySnapshot | null> => {
   if (!authUserId && !guestId) return null
 
   let query = supabaseAdmin
     .from('chat_memory')
-    .select('memory_summary,key_facts,open_questions,conversation_id,updated_at')
-    .eq('case_id', caseId)
+    .select('memory_summary,key_facts,open_questions,conversation_id,updated_at,case_id')
     .order('updated_at', { ascending: false })
-    .limit(6)
+    .limit(caseId ? 10 : 6)
 
   if (authUserId) {
     query = query.eq('user_id', authUserId)
@@ -1813,20 +1891,26 @@ const loadCaseScopedMemoryFallback = async ({
     query = query.eq('guest_id', guestId)
   }
 
-  if (excludeConversationId) {
-    query = query.neq('conversation_id', excludeConversationId)
-  }
-
   const { data, error } = await query
   if (error) {
-    console.warn('Case-scoped memory fallback lookup failed:', error)
+    console.warn('Related thread memory lookup failed:', error)
     return null
   }
 
-  const rows = Array.isArray(data) ? data : []
+  const rows = (Array.isArray(data) ? data : []).filter((row: any) => {
+    if (!row || typeof row !== 'object') return false
+    if (excludeConversationId && row.conversation_id === excludeConversationId) return false
+    return true
+  })
   if (rows.length === 0) return null
 
-  const summaryCandidates = rows
+  const sameCaseRows = caseId
+    ? rows.filter((row: any) => row?.case_id === caseId)
+    : []
+  const selectedRows = (sameCaseRows.length > 0 ? sameCaseRows : rows).slice(0, 4)
+  const sameCaseMatch = sameCaseRows.length > 0
+
+  const summaryCandidates = selectedRows
     .map((row: any) => truncateText(String(row?.memory_summary || '').trim(), 220))
     .filter(Boolean)
     .slice(0, 2)
@@ -1834,7 +1918,7 @@ const loadCaseScopedMemoryFallback = async ({
   const keyFacts: string[] = []
   const openQuestions: string[] = []
 
-  for (const row of rows) {
+  for (const row of selectedRows) {
     for (const fact of normalizeMemoryList((row as any)?.key_facts, 8, 150)) {
       if (!keyFacts.includes(fact)) keyFacts.push(fact)
       if (keyFacts.length >= 12) break
@@ -1850,11 +1934,13 @@ const loadCaseScopedMemoryFallback = async ({
     ? truncateText(summaryCandidates.join(' | '), 320)
     : null
 
-  const fallbackMemory = {
+  const fallbackMemory: RelatedThreadMemorySnapshot = {
     memory_summary: summary,
     key_facts: keyFacts.slice(0, 12),
     open_questions: openQuestions.slice(0, 4),
     user_turn_count: null,
+    conversationCount: selectedRows.length,
+    sameCaseMatch,
   }
 
   return hasUsefulMemory(fallbackMemory) ? fallbackMemory : null
@@ -1946,7 +2032,25 @@ export async function POST(request: NextRequest) {
       return withCookie(NextResponse.json({ message: 'Message is required' }, { status: 400 }))
     }
 
-    const chatManager = new ChatManager(userId, activeCaseId, conversationId, authData?.user?.email || null)
+    let safeConversationId = conversationId
+    if (typeof conversationId === 'string' && conversationId.trim()) {
+      const scopedUserIds = await resolveScopedUserIds(authUserId, authData?.user?.email || null)
+      const caseIds = await getOwnedCaseIds(scopedUserIds)
+      const access = await getConversationAccess(scopedUserIds, conversationId.trim(), caseIds)
+      if (access === 'forbidden') {
+        return withCookie(
+          NextResponse.json(
+            buildAssistantResponsePayload('That conversation is unavailable.', {
+              conversationUnavailable: true,
+            }),
+            { status: 403 }
+          )
+        )
+      }
+      safeConversationId = conversationId.trim()
+    }
+
+    const chatManager = new ChatManager(userId, activeCaseId, safeConversationId, authData?.user?.email || null)
 
     const sanitizedHistory = Array.isArray(history)
       ? history
@@ -2007,7 +2111,16 @@ export async function POST(request: NextRequest) {
     const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || ''
     const proto = request.headers.get('x-forwarded-proto') || 'http'
     const baseUrl = host ? `${proto}://${host}` : ''
-    const activeConversationId = sessionInfo.conversationId || conversationId || null
+    const activeConversationId = sessionInfo.conversationId || safeConversationId || null
+    const persistedConversationHistory =
+      chatManager.shouldPersistMessages()
+        ? await loadPersistedConversationHistory(activeConversationId)
+        : []
+    const effectiveConversationHistory = mergeConversationHistoryEntries(
+      persistedConversationHistory,
+      sanitizedHistory,
+      message
+    )
 
     const hasAttachments = Array.isArray(attachments) && attachments.length > 0
     const cookieHeader = request.headers.get('cookie')
@@ -2115,23 +2228,40 @@ export async function POST(request: NextRequest) {
         )
       )
     }
+    const relatedThreadMemory = await loadRelatedThreadMemory({
+      authUserId: authUserId || null,
+      guestId,
+      caseId: resolvedCaseId,
+      excludeConversationId: activeConversationId,
+    })
     let effectiveMemoryRow = memoryRow
-    let caseScopedMemoryFallbackUsed = false
-    if (!hasUsefulMemory(effectiveMemoryRow) && resolvedCaseId) {
-      const fallbackMemory = await loadCaseScopedMemoryFallback({
-        authUserId: authUserId || null,
-        guestId,
-        caseId: resolvedCaseId,
-        excludeConversationId: activeConversationId,
-      })
-      if (hasUsefulMemory(fallbackMemory)) {
-        effectiveMemoryRow = fallbackMemory
-        caseScopedMemoryFallbackUsed = true
-      }
+    let relatedThreadMemoryUsed = false
+    if (!hasUsefulMemory(effectiveMemoryRow) && hasUsefulMemory(relatedThreadMemory)) {
+      effectiveMemoryRow = relatedThreadMemory
+      relatedThreadMemoryUsed = true
     }
+    const relatedThreadMemoryContext =
+      hasUsefulMemory(relatedThreadMemory) &&
+      (
+        relatedThreadMemoryUsed ||
+        relatedThreadMemory?.sameCaseMatch ||
+        effectiveConversationHistory.length <= 8
+      )
+        ? buildMemoryContext(
+            relatedThreadMemory,
+            relatedThreadMemory?.sameCaseMatch
+              ? 'Relevant earlier thread memory for this case'
+              : 'Relevant earlier thread memory'
+          )
+        : ''
 
     const followUpQuestion = inferFollowUpQuestion(processingResult.task, message)
-    const shouldShortCircuitToQuestion = Boolean(followUpQuestion && !hasAttachments && sanitizedHistory.length <= 1)
+    const shouldShortCircuitToQuestion = Boolean(
+      followUpQuestion &&
+      !hasAttachments &&
+      effectiveConversationHistory.length <= 1 &&
+      !relatedThreadMemoryContext
+    )
 
     if (shouldShortCircuitToQuestion) {
       const clarificationQuestion = followUpQuestion || 'Can you clarify the main point you need help with?'
@@ -2169,7 +2299,6 @@ export async function POST(request: NextRequest) {
 
     const caseContext = caseContextData ? buildCaseContext(caseContextData) : ''
     const caseKeywords = caseContextData ? extractCaseKeywords(caseContextData) : ''
-    const memoryContext = buildMemoryContext(effectiveMemoryRow)
     const premiumOpenAiModel = getPremiumOpenAiModel()
     const premiumOpenAiFallbackModel = getPremiumOpenAiFallbackModel(premiumOpenAiModel)
     const premiumPlusOpenAiModel = premiumPlusActive ? getPremiumPlusOpenAiModel() : null
@@ -2178,20 +2307,20 @@ export async function POST(request: NextRequest) {
       : null
     const caseLawSuggestionDecision = evaluateCaseLawSuggestionNeed({
       message,
-      history: sanitizedHistory,
+      history: effectiveConversationHistory,
       task: processingResult.task,
       hasAttachments,
     })
     const retrievalFocusDecision = evaluateRetrievalFocus({
       message,
-      history: sanitizedHistory,
+      history: effectiveConversationHistory,
       task: processingResult.task,
       hasAttachments,
       caseContextData,
     })
     const baselineCaseLawQuery = buildCaseLawSuggestionQuery({
       message,
-      history: sanitizedHistory,
+      history: effectiveConversationHistory,
       caseContextData,
       memoryRow,
     })
@@ -2203,7 +2332,7 @@ export async function POST(request: NextRequest) {
     const premiumPlusDirectAnswer = premiumPlusActive
       ? shouldUsePremiumPlusDirectAnswer({
           message,
-          history: sanitizedHistory,
+          history: effectiveConversationHistory,
           task: processingResult.task,
           hasAttachments,
           retrievalFocusDecision,
@@ -2251,7 +2380,7 @@ export async function POST(request: NextRequest) {
         premiumPlusCaseLawBaseDecision &&
         shouldUsePremiumPlusCaseLawHeuristically({
           message,
-          history: sanitizedHistory,
+          history: effectiveConversationHistory,
           task: processingResult.task,
           hasAttachments,
           retrievalFocusApplied,
@@ -2357,8 +2486,8 @@ export async function POST(request: NextRequest) {
     const caseLawStyleInstruction = ''
 
     const rawMessageForAgent = attachmentContext
-      ? `${message}${ownCaseFactsContext}\n\nThe user uploaded documents. Use the excerpts below in your analysis.${caseContext}${memoryContext}${premiumPlusDecompositionContext}${caseLawSuggestionContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}\n${attachmentContext}`
-      : `${message}${ownCaseFactsContext}${caseContext}${memoryContext}${premiumPlusDecompositionContext}${caseLawSuggestionContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}${attachmentMetadata}`
+      ? `${message}${ownCaseFactsContext}\n\nThe user uploaded documents. Use the excerpts below in your analysis.${caseContext}${premiumPlusDecompositionContext}${caseLawSuggestionContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}\n${attachmentContext}`
+      : `${message}${ownCaseFactsContext}${caseContext}${premiumPlusDecompositionContext}${caseLawSuggestionContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}${attachmentMetadata}`
 
     const messageForAgent = truncateText(rawMessageForAgent, 12000)
     const threadId = `thread_${Date.now()}_${userId}`
@@ -2401,7 +2530,7 @@ export async function POST(request: NextRequest) {
           user_id: authUserId || null,
           guest_id: guestId || null,
           case_id: resolvedCaseId || null,
-          conversation_id: sessionInfo.conversationId || conversationId || null,
+          conversation_id: sessionInfo.conversationId || safeConversationId || null,
           title: item.title,
           due_date: item.dueDate,
           status: 'pending',
@@ -2514,7 +2643,10 @@ export async function POST(request: NextRequest) {
                 removedUnsupportedAuthorityLines,
                 templateDraftBlocked,
                 templateDraftBlockReason,
-                caseScopedMemoryFallbackUsed,
+                relatedThreadMemoryUsed,
+                relatedThreadMemoryContextUsed: Boolean(relatedThreadMemoryContext),
+                relatedThreadMemoryConversationCount: relatedThreadMemory?.conversationCount || 0,
+                relatedThreadMemorySameCaseMatch: relatedThreadMemory?.sameCaseMatch || false,
                 vectorFallbackToWeb,
               },
             }
@@ -2550,9 +2682,10 @@ export async function POST(request: NextRequest) {
                   messageForAgent,
                   threadId,
                   userId,
-                  sanitizedHistory,
+                  effectiveConversationHistory,
                   caseKeywords,
                   {
+                    memoryContext: relatedThreadMemoryContext || undefined,
                     useSearch: shouldUseSearchRetrieval,
                     searchQueryOverride: premiumGeneratedWebQuery || undefined,
                     searchEngineOverride: 'brave',
@@ -2567,9 +2700,10 @@ export async function POST(request: NextRequest) {
                   messageForAgent,
                   threadId,
                   userId,
-                  sanitizedHistory,
+                  effectiveConversationHistory,
                   caseKeywords,
                   {
+                    memoryContext: relatedThreadMemoryContext || undefined,
                     useSearch: true,
                     searchEngineOverride: 'perplexity',
                     openaiModel: premiumPlusOpenAiModel || undefined,
@@ -2599,14 +2733,18 @@ export async function POST(request: NextRequest) {
     }
 
     const agentResponse: AgentResponse = shouldUseBasicLegalAgent
-      ? await invokeBasicLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords)
+      ? await invokeBasicLegalAgent(messageForAgent, threadId, userId, effectiveConversationHistory, caseKeywords, {
+          memoryContext: relatedThreadMemoryContext || undefined,
+        })
       : shouldUsePremiumPlusLegalAgent
-        ? await invokePremiumPlusLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
+        ? await invokePremiumPlusLegalAgent(messageForAgent, threadId, userId, effectiveConversationHistory, caseKeywords, {
+            memoryContext: relatedThreadMemoryContext || undefined,
             useSearch: true,
             openaiModel: premiumPlusOpenAiModel || undefined,
             openaiFallbackModel: premiumPlusOpenAiFallbackModel || undefined,
           })
-        : await invokePremiumLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
+        : await invokePremiumLegalAgent(messageForAgent, threadId, userId, effectiveConversationHistory, caseKeywords, {
+            memoryContext: relatedThreadMemoryContext || undefined,
             useSearch: shouldUseSearchRetrieval,
             searchQueryOverride: premiumGeneratedWebQuery || undefined,
             searchEngineOverride: 'brave',

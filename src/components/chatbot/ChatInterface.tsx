@@ -574,6 +574,11 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   const streamTypingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const streamTypingMessageIdRef = useRef<string | null>(null)
   const streamPendingDeltaRef = useRef('')
+  const pendingStreamFinalizeRef = useRef<{
+    messageId: string
+    fullText: string
+    metadata?: AssistantMetadata
+  } | null>(null)
   const chatRequestAbortRef = useRef<AbortController | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const prevLineCountRef = useRef<number>(0)
@@ -1225,6 +1230,30 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
           clearInterval(streamTypingIntervalRef.current)
           streamTypingIntervalRef.current = null
         }
+        const pendingFinalize = pendingStreamFinalizeRef.current
+        if (pendingFinalize && pendingFinalize.messageId === activeMessageId) {
+          pendingStreamFinalizeRef.current = null
+          streamTypingMessageIdRef.current = null
+          const assistantText = stripAssistantSourcesBlock(String(pendingFinalize.fullText || ''))
+          setMessages((prev) => {
+            const targetIndex = prev.findIndex((m) => m.id === activeMessageId)
+            if (targetIndex < 0) return prev
+
+            const target = prev[targetIndex]
+            const updated = [...prev]
+            updated[targetIndex] = {
+              ...target,
+              content: assistantText,
+              isTyping: false,
+              metadata: attachAssistantPresentationMetadata(
+                assistantText,
+                pendingFinalize.metadata || target.metadata,
+                { reuseExistingPresentation: true }
+              ) as AssistantMetadata | undefined,
+            }
+            return updated
+          })
+        }
         return
       }
 
@@ -1252,14 +1281,24 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     fullText: string,
     metadata?: AssistantMetadata
   ) => {
-    streamPendingDeltaRef.current = ''
+    const assistantText = stripAssistantSourcesBlock(String(fullText || ''))
+    pendingStreamFinalizeRef.current = {
+      messageId,
+      fullText: assistantText,
+      metadata,
+    }
+
+    if (streamPendingDeltaRef.current) {
+      return
+    }
+
+    pendingStreamFinalizeRef.current = null
     streamTypingMessageIdRef.current = null
     if (streamTypingIntervalRef.current) {
       clearInterval(streamTypingIntervalRef.current)
       streamTypingIntervalRef.current = null
     }
 
-    const assistantText = stripAssistantSourcesBlock(String(fullText || ''))
     setMessages((prev) => {
       const targetIndex = prev.findIndex((m) => m.id === messageId)
       if (targetIndex < 0) return prev
@@ -1391,6 +1430,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     }
     streamPendingDeltaRef.current = ''
     streamTypingMessageIdRef.current = null
+    pendingStreamFinalizeRef.current = null
     setMessages(prev => {
       const updated = [...prev]
       const lastIndex = updated.length - 1
