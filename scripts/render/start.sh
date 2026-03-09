@@ -23,4 +23,11 @@ if [ "${START_PY_BRIDGE}" = "1" ]; then
   fi
 fi
 
+if [ -f ".next/standalone/server.js" ]; then
+  echo "Starting Next.js standalone server"
+  export HOSTNAME="${HOSTNAME:-0.0.0.0}"
+  exec node .next/standalone/server.js
+fi
+
+echo "Standalone server not found; falling back to npm start"
 exec npm start
