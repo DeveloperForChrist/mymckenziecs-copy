@@ -296,6 +296,15 @@ function ChatMessageRow({
   const inlineStreamStatusLabel = !isUser && message.isTyping && !assistantDisplayContent.trim()
     ? String(message.streamStatusLabel || '').trim()
     : ''
+  const assistantSections = !isUser && assistantDisplayContent.trim()
+    ? (
+        !message.isTyping &&
+        message.metadata?.presentation?.version === 1 &&
+        Array.isArray(message.metadata.presentation.sections)
+          ? message.metadata.presentation.sections
+          : parseAssistantResponse(assistantDisplayContent, true)
+      )
+    : []
 
   useLayoutEffect(() => {
     if (!onMeasured || !rowRef.current) return
@@ -478,18 +487,9 @@ function ChatMessageRow({
                       compact
                     />
                   </div>
-                ) : message.isTyping ? (
-                  <p className="assistant-paragraph whitespace-pre-wrap">
-                    {renderAssistantText(assistantDisplayContent)}
-                  </p>
-                ) : (
+                ) : assistantSections.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    {(
-                      message.metadata?.presentation?.version === 1 &&
-                      Array.isArray(message.metadata.presentation.sections)
-                        ? message.metadata.presentation.sections
-                        : parseAssistantResponse(assistantDisplayContent, true)
-                    ).map((section, sectionIndex) => (
+                    {assistantSections.map((section, sectionIndex) => (
                       <Fragment key={`section-${sectionIndex}`}>
                         <div className="assistant-section">
                           {section.heading && (
@@ -591,7 +591,11 @@ function ChatMessageRow({
                       </Fragment>
                     ))}
                   </div>
-                )}
+                ) : assistantDisplayContent.trim() ? (
+                  <p className="assistant-paragraph whitespace-pre-wrap">
+                    {renderAssistantText(assistantDisplayContent)}
+                  </p>
+                ) : null}
                 {visibleSources.length > 0 && (
                   <div
                     style={{

@@ -14,6 +14,20 @@ install_python_deps() {
   "${PYTHON_VENV_DIR}/bin/pip" install -r "${PYTHON_REQUIREMENTS}"
 }
 
+install_node_deps() {
+  if [ -d "node_modules" ]; then
+    echo "Node dependencies already present; skipping install"
+    return
+  fi
+
+  echo "Installing Node dependencies"
+  if [ -f "package-lock.json" ]; then
+    npm ci
+  else
+    npm install
+  fi
+}
+
 if command -v python3 >/dev/null 2>&1; then
   if ! install_python_deps; then
     echo "WARNING: Python dependency installation failed. Milvus runtime helpers may be unavailable on this deploy."
@@ -30,8 +44,7 @@ else
   fi
 fi
 
-echo "Installing Node dependencies"
-npm install
+install_node_deps
 
 echo "Building Next.js app"
 npm run build

@@ -57,22 +57,38 @@ describe('ChatMessageList formatting', () => {
     expect(getByText('Serve the defendant')).toBeInTheDocument()
   })
 
-  it('renders typing assistant messages as raw plain text without parsing sections', () => {
+  it('renders typing assistant messages with parsed headings, lists, and dividers', () => {
     const messages: Message[] = [
       {
         id: 'assistant-typing',
         role: 'assistant',
-        content: 'Next steps\n\n1. File the claim form',
+        content: 'Next steps\n\n1. File the claim form\n\n────────────────────\n\nIn short: Keep proof of service.',
         timestamp: new Date('2026-03-08T08:35:00.000Z'),
         isTyping: true,
       },
     ]
 
-    const parseAssistantResponse = (): ParsedSection[] => {
-      throw new Error('parseAssistantResponse should not be called while an assistant message is still typing')
+    const parseAssistantResponse = (text: string): ParsedSection[] => {
+      expect(text).toContain('Next steps')
+      return [
+        {
+          heading: 'Next steps',
+          lines: [
+            { kind: 'ordered', order: 1, text: 'File the claim form' },
+          ],
+        },
+        {
+          heading: null,
+          lines: [{ kind: 'divider', text: '---' }],
+        },
+        {
+          heading: null,
+          lines: [{ kind: 'summary', text: 'In short: Keep proof of service.' }],
+        },
+      ]
     }
 
-    const { container } = render(
+    const { container, getByText } = render(
       <ChatMessageList
         messages={messages}
         feedbackState={{}}
@@ -89,11 +105,11 @@ describe('ChatMessageList formatting', () => {
       />
     )
 
-    const typingParagraph = container.querySelector('p.assistant-paragraph')
-    expect(typingParagraph).not.toBeNull()
-    expect(typingParagraph?.textContent).toBe('Next steps\n\n1. File the claim form')
-    expect(container.querySelector('ol.assistant-list-ordered')).toBeNull()
-    expect(container.querySelector('.assistant-heading')).toBeNull()
+    expect(container.querySelector('ol.assistant-list-ordered')).not.toBeNull()
+    expect(container.querySelector('.assistant-heading')).not.toBeNull()
+    expect(container.querySelector('.assistant-divider')).not.toBeNull()
+    expect(getByText('File the claim form')).toBeInTheDocument()
+    expect(getByText('In short: Keep proof of service.')).toBeInTheDocument()
   })
 
   it('renders inline stream status inside the assistant message area before answer text arrives', () => {

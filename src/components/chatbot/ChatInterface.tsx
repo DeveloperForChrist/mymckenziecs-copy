@@ -42,6 +42,8 @@ const linkStyle: CSSProperties = {
 }
 
 const typingAccentColor = 'rgba(236, 72, 153, 0.95)'
+const streamStatusReplayHoldMs = 1400
+const streamStatusReplayRestartMs = 120
 
 const StatusIndicator = ({ label = 'Thinking', compact = false }: { label?: string; compact?: boolean }) => {
   const padding = compact ? '6px 8px' : '8px 10px'
@@ -562,6 +564,9 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   const streamTypingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const streamTypingMessageIdRef = useRef<string | null>(null)
   const streamPendingDeltaRef = useRef('')
+  const streamStatusTypingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const streamStatusTypingMessageIdRef = useRef<string | null>(null)
+  const streamStatusPendingLabelRef = useRef('')
   const pendingStreamFinalizeRef = useRef<{
     messageId: string
     fullText: string
@@ -1016,11 +1021,12 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
           content: '',
           timestamp: new Date(),
           isTyping: true,
-          streamStatusLabel: 'Thinking...',
+          streamStatusLabel: null,
         }
 
         setMessages((prev) => [...prev, assistantMessage])
         setActiveInlineStreamMessageId(assistantMessageId)
+        typeStreamStatusById(assistantMessageId, initialPendingStatusLabel)
 
         if (!response.ok) {
           throw new Error('Streaming request failed')
@@ -1208,6 +1214,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
 
   const appendStreamDeltaById = (messageId: string, delta: string) => {
     if (!delta) return
+    clearTypedStreamStatusById(messageId)
     streamTypingMessageIdRef.current = messageId
     streamPendingDeltaRef.current += delta
 
@@ -1285,12 +1292,118 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     tick()
   }
 
+  const setInlineStreamStatusById = (messageId: string, statusLabel: string | null) => {
+    const normalizedStatus = String(statusLabel || '').trim()
+
+    setMessages((prev) => {
+      const targetIndex = prev.findIndex((m) => m.id === messageId)
+      if (targetIndex < 0) return prev
+
+      const target = prev[targetIndex]
+      if ((target.content || '').trim()) {
+        if (!target.streamStatusLabel) return prev
+        const updated = [...prev]
+        updated[targetIndex] = {
+          ...target,
+          streamStatusLabel: null,
+        }
+        return updated
+      }
+
+      const nextStatus = normalizedStatus || null
+      if ((target.streamStatusLabel || null) === nextStatus) return prev
+
+      const updated = [...prev]
+      updated[targetIndex] = {
+        ...target,
+        streamStatusLabel: nextStatus,
+      }
+      return updated
+    })
+  }
+
+  const stopTypedStreamStatus = () => {
+    if (streamStatusTypingIntervalRef.current) {
+      clearTimeout(streamStatusTypingIntervalRef.current)
+      streamStatusTypingIntervalRef.current = null
+    }
+    streamStatusTypingMessageIdRef.current = null
+    streamStatusPendingLabelRef.current = ''
+  }
+
+  const clearTypedStreamStatusById = (messageId: string) => {
+    if (streamStatusTypingMessageIdRef.current === messageId) {
+      stopTypedStreamStatus()
+    }
+    setLoadingLabel(null)
+    setInlineStreamStatusById(messageId, null)
+  }
+
+  const typeStreamStatusById = (messageId: string, statusLabel: string | null) => {
+    const normalizedStatus = String(statusLabel || '').trim()
+
+    clearTypedStreamStatusById(messageId)
+    if (!normalizedStatus) return
+
+    streamStatusTypingMessageIdRef.current = messageId
+    streamStatusPendingLabelRef.current = normalizedStatus
+    let cursor = 0
+
+    const resolveTickMs = (remainingLength: number) => {
+      if (remainingLength > 20) return 10
+      if (remainingLength > 8) return 14
+      return 18
+    }
+
+    const tick = () => {
+      streamStatusTypingIntervalRef.current = null
+      if (streamStatusTypingMessageIdRef.current !== messageId) return
+
+      const targetLabel = streamStatusPendingLabelRef.current
+      if (!targetLabel) {
+        clearTypedStreamStatusById(messageId)
+        return
+      }
+
+      cursor = Math.min(targetLabel.length, cursor + 1)
+      const nextStatus = targetLabel.slice(0, cursor)
+      setLoadingLabel(nextStatus)
+      setInlineStreamStatusById(messageId, nextStatus)
+
+      if (cursor >= targetLabel.length) {
+        streamStatusTypingIntervalRef.current = setTimeout(() => {
+          streamStatusTypingIntervalRef.current = null
+          if (streamStatusTypingMessageIdRef.current !== messageId) return
+          if (streamStatusPendingLabelRef.current !== targetLabel) return
+
+          setLoadingLabel(null)
+          setInlineStreamStatusById(messageId, null)
+          cursor = 0
+
+          streamStatusTypingIntervalRef.current = setTimeout(
+            tick,
+            streamStatusReplayRestartMs
+          )
+        }, streamStatusReplayHoldMs)
+        return
+      }
+
+      streamStatusTypingIntervalRef.current = setTimeout(
+        tick,
+        resolveTickMs(targetLabel.length - cursor)
+      )
+    }
+
+    tick()
+  }
+
   const finalizeStreamedMessageById = (
     messageId: string,
     fullText: string,
     metadata?: AssistantMetadata
   ) => {
     const assistantText = stripAssistantSourcesBlock(String(fullText || ''))
+    clearTypedStreamStatusById(messageId)
     pendingStreamFinalizeRef.current = {
       messageId,
       fullText: assistantText,
@@ -1329,36 +1442,6 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     })
   }
 
-  const updateInlineStreamStatusById = (messageId: string, statusLabel: string | null) => {
-    const normalizedStatus = String(statusLabel || '').trim()
-
-    setMessages((prev) => {
-      const targetIndex = prev.findIndex((m) => m.id === messageId)
-      if (targetIndex < 0) return prev
-
-      const target = prev[targetIndex]
-      if ((target.content || '').trim()) {
-        if (!target.streamStatusLabel) return prev
-        const updated = [...prev]
-        updated[targetIndex] = {
-          ...target,
-          streamStatusLabel: null,
-        }
-        return updated
-      }
-
-      const nextStatus = normalizedStatus || null
-      if ((target.streamStatusLabel || null) === nextStatus) return prev
-
-      const updated = [...prev]
-      updated[targetIndex] = {
-        ...target,
-        streamStatusLabel: nextStatus,
-      }
-      return updated
-    })
-  }
-
   const replaceStreamedMessageWithTypedErrorById = (messageId: string, errorText: string) => {
     if (streamTypingIntervalRef.current) {
       clearTimeout(streamTypingIntervalRef.current)
@@ -1371,6 +1454,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       pendingStreamFinalizeRef.current = null
     }
     streamPendingDeltaRef.current = ''
+    clearTypedStreamStatusById(messageId)
 
     setMessages((prev) => {
       const targetIndex = prev.findIndex((m) => m.id === messageId)
@@ -1429,12 +1513,9 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
           }
 
           if (event.type === 'delta' && typeof event.delta === 'string') {
-            setLoadingLabel(null)
-            updateInlineStreamStatusById(assistantMessageId, null)
             appendStreamDeltaById(assistantMessageId, event.delta)
           } else if (event.type === 'status' && typeof event.message === 'string') {
-            setLoadingLabel(event.message)
-            updateInlineStreamStatusById(assistantMessageId, event.message)
+            typeStreamStatusById(assistantMessageId, event.message)
           } else if (event.type === 'done') {
             const data = normalizeAssistantResponsePayload(event.payload) || event.payload
             if (!data || typeof (data as any).response !== 'string') {
@@ -1518,6 +1599,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       clearInterval(streamTypingIntervalRef.current)
       streamTypingIntervalRef.current = null
     }
+    stopTypedStreamStatus()
     streamPendingDeltaRef.current = ''
     streamTypingMessageIdRef.current = null
     pendingStreamFinalizeRef.current = null
@@ -1672,11 +1754,12 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
           content: '',
           timestamp: new Date(),
           isTyping: true,
-          streamStatusLabel: 'Thinking...',
+          streamStatusLabel: null,
         }
 
         setMessages((prev) => [...prev, assistantMessage])
         setActiveInlineStreamMessageId(assistantMessageId)
+        typeStreamStatusById(assistantMessageId, initialPendingStatusLabel)
 
         if (!response.ok) {
           throw new Error('Streaming request failed')
