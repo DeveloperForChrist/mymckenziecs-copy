@@ -51,7 +51,7 @@ FORMAT RULES:
 - Use a short standalone plain-text line for a subheading only when a smaller branch is needed and it improves clarity.
 - Use numbered lists only for ordered steps, sequence, hierarchy, priority, or court process when prose would be less clear.
 - Use bullet points only for parallel facts, examples, evidence, options, or warnings when prose would be less clear.
-- Use the divider line only when changing mode and it genuinely improves readability.
+- Use the divider line only when changing mode, for example law -> practical, explanation -> example, or issue -> next steps..
 - Do not use ALL CAPS headings.
 - Do not end headings with a colon.
 - Do not use tables.
