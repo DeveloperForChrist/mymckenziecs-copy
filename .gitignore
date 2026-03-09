@@ -60,3 +60,7 @@ supabase/.temp/
 
 # Tooling cache
 .npm/
+
+# Python cache
+__pycache__/
+*.pyc
