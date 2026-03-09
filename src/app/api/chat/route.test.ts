@@ -99,7 +99,6 @@ describe('/api/chat route', () => {
     }
 
     const legalAgentMocks = {
-      decidePremiumPlusPlanWithGroq: vi.fn(async () => null) as any,
       invokeBasicLegalAgent: vi.fn(async () => ({
         response: 'Basic answer',
         guidance_provided: [],
@@ -332,32 +331,34 @@ describe('/api/chat route', () => {
   })
 
   it('keeps premium plus definition questions on the direct fast path', { timeout: 15000 }, async () => {
-    process.env.PREMIUM_PLUS_CLAUDE_MODEL = 'claude-opus-4-6'
+    process.env.PREMIUM_PLUS_OPENAI_MODEL = 'gpt-5.2'
 
     const { POST, legalAgentMocks, searchByTextMock } = await loadRoute({
       planData: { plan: 'premium +', paidAccess: true, planStatus: 'active' },
       processMessageResult: { task: 'case_lookup', contextType: 'general', urgency: 'normal', caseId: null },
     })
 
-    legalAgentMocks.decidePremiumPlusPlanWithGroq.mockResolvedValue({
-      action: 'answer',
-      answer: 'Promissory estoppel is a rule that can stop someone from going back on a clear promise when another person has reasonably relied on it.\n\nIn short: It may prevent unfair backtracking on a promise.',
-      confidence: 0.93,
-      reasons: ['simple-stable-definition'],
-    })
-
     const response = await POST(buildChatRequest({ message: 'Explain promissory estoppel in plain English', history: [] }))
     const payload = await response.json()
 
     expect(response.status).toBe(200)
-    expect(payload.response).toContain('Promissory estoppel is a rule')
-    expect(legalAgentMocks.decidePremiumPlusPlanWithGroq).toHaveBeenCalledTimes(1)
+    expect(payload.response).toContain('Premium answer')
     expect(searchByTextMock).not.toHaveBeenCalled()
-    expect(legalAgentMocks.invokePremiumPlusLegalAgent).not.toHaveBeenCalled()
+    expect(legalAgentMocks.invokePremiumPlusLegalAgent).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      'user-1',
+      [],
+      '',
+      expect.objectContaining({
+        useSearch: true,
+        openaiModel: 'gpt-5.2',
+      })
+    )
   })
 
   it('keeps premium plus procedural questions on the web-only path without case-law lookup', { timeout: 15000 }, async () => {
-    process.env.PREMIUM_PLUS_CLAUDE_MODEL = 'claude-opus-4-6'
+    process.env.PREMIUM_PLUS_OPENAI_MODEL = 'gpt-5.2'
 
     const { POST, legalAgentMocks, searchByTextMock } = await loadRoute({
       planData: { plan: 'premium +', paidAccess: true, planStatus: 'active' },
@@ -372,7 +373,6 @@ describe('/api/chat route', () => {
     )
 
     expect(response.status).toBe(200)
-    expect(legalAgentMocks.decidePremiumPlusPlanWithGroq).toHaveBeenCalledTimes(1)
     expect(searchByTextMock).not.toHaveBeenCalled()
     expect(legalAgentMocks.invokePremiumPlusLegalAgent).toHaveBeenCalledWith(
       expect.not.stringContaining('Issue breakdown'),
@@ -382,15 +382,13 @@ describe('/api/chat route', () => {
       '',
       expect.objectContaining({
         useSearch: true,
-        searchModeOverride: 'procedure',
-        anthropicModel: 'claude-opus-4-6',
-        anthropicFallbackModel: 'claude-sonnet-4-20250514',
+        openaiModel: 'gpt-5.2',
       })
     )
   })
 
   it('falls back when premium plus case-law retrieval exceeds the timeout budget', { timeout: 15000 }, async () => {
-    process.env.PREMIUM_PLUS_CLAUDE_MODEL = 'claude-opus-4-6'
+    process.env.PREMIUM_PLUS_OPENAI_MODEL = 'gpt-5.2'
     process.env.PREMIUM_PLUS_CASELAW_TIMEOUT_MS = '1'
     process.env.MILVUS_HOST = 'localhost'
 
@@ -406,8 +404,7 @@ describe('/api/chat route', () => {
 
     expect(response.status).toBe(200)
     expect(payload.response).toContain('Premium answer')
-    expect(searchByTextMock).toHaveBeenCalled()
-    expect(legalAgentMocks.decidePremiumPlusPlanWithGroq).toHaveBeenCalledTimes(1)
+    expect(searchByTextMock).not.toHaveBeenCalled()
     expect(legalAgentMocks.invokePremiumPlusLegalAgent).toHaveBeenCalledWith(
       expect.not.stringContaining('Issue breakdown'),
       expect.any(String),
@@ -416,8 +413,7 @@ describe('/api/chat route', () => {
       '',
       expect.objectContaining({
         useSearch: true,
-        anthropicModel: 'claude-opus-4-6',
-        anthropicFallbackModel: 'claude-sonnet-4-20250514',
+        openaiModel: 'gpt-5.2',
       })
     )
   })

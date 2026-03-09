@@ -1,11 +1,10 @@
 // Import OpenAI client for all LLM calls
 import { OpenAI } from 'openai';
-import Anthropic from '@anthropic-ai/sdk';
 import { supabaseAdmin } from '../../database/supabase-server';
 import { DocGeneratorTool } from '../tools/doc-generator-tool';
-import { SearchTool, type SearchEngine } from '../tools/search-tool';
+import { SearchTool, type SearchEngine, type SearchToolOutput } from '../tools/search-tool';
 import { neutralizeLegalAdviceTone } from './legal-tone';
-import { logClaudeUsage } from '@/lib/utils/claude-usage';
+import { searchByText } from '@/lib/vector/milvus';
 
 // Simplified system prompt
 const SYSTEM_PROMPT: string = `You are MyMckenzieCS Assistant, a highly knowledgeable and conversational legal assistant created to help UK legal users with their legal issues, cases and queries.
@@ -80,6 +79,7 @@ TONE:
 - Prefer neutral phrasing instead of direct instructions.
 - Do not say "you should", "you must", "you need to", "the court will", "the judge will", "you will win", or "you will lose" unless directly quoting a rule or source. Rephrase those into neutral support language.
 - Do not create bespoke or personalised letters/drafts. You may only provide template-style drafts with placeholders in [SQUARE BRACKETS].
+- Do not say you chose, called, used, or had access to tools yourself. If search or authority context is present, treat it as context already provided to you.
 
 `;
 
@@ -153,6 +153,7 @@ TONE:
 - Prefer neutral phrasing instead of direct instructions.
 - Do not say "you should", "you must", "you need to", "the court will", "the judge will", "you will win", or "you will lose" unless directly quoting a rule or source. Rephrase those into neutral support language.
 - Do not create bespoke or personalised letters/drafts. You may only provide template-style drafts with placeholders in [SQUARE BRACKETS].
+- Do not say you chose, called, used, or had access to tools yourself. If search or authority context is present, treat it as context already provided to you.
 
 
 `;
@@ -173,16 +174,12 @@ const BASIC_GROQ_FALLBACK_MODEL =
   process.env.GROQ_BASIC_FALLBACK_MODEL ||
   process.env.GROQ_CHAT_FALLBACK_MODEL ||
   'llama-3.3-70b-versatile'
-const PREMIUM_PLUS_PLANNER_GROQ_MODEL =
-  process.env.PREMIUM_PLUS_PLANNER_GROQ_MODEL ||
-  BASIC_GROQ_MODEL
-const PREMIUM_PLUS_PLANNER_GROQ_FALLBACK_MODEL =
-  process.env.PREMIUM_PLUS_PLANNER_GROQ_FALLBACK_MODEL ||
-  BASIC_GROQ_FALLBACK_MODEL
-const ANTHROPIC_MODEL = process.env.PREMIUM_PLUS_CLAUDE_MODEL || 'claude-opus-4-5-20251101'
-const ANTHROPIC_FALLBACK_MODEL =
-  process.env.PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL ||
-  ANTHROPIC_MODEL
+const PREMIUM_PLUS_OPENAI_MODEL =
+  process.env.PREMIUM_PLUS_OPENAI_MODEL ||
+  'gpt-5.2'
+const PREMIUM_PLUS_OPENAI_FALLBACK_MODEL =
+  process.env.PREMIUM_PLUS_OPENAI_FALLBACK_MODEL ||
+  OPENAI_MODEL
 const MAX_TOKENS = 1000
 const PREMIUM_TARGET_TOKENS = Number.isFinite(Number(process.env.PREMIUM_TARGET_TOKENS))
   ? Math.max(600, Math.floor(Number(process.env.PREMIUM_TARGET_TOKENS)))
@@ -256,7 +253,7 @@ const getRoutingDecisionTimeoutMs = () =>
 // =====================================================
 
 export type LegalSearchMode = 'education' | 'procedure' | 'case_specific' | 'document_review' | 'general'
-type LlmProvider = 'openai' | 'groq' | 'anthropic'
+type LlmProvider = 'openai' | 'groq'
 type LengthRecoveryMode = 'none' | 'continue' | 'compress'
 export type GeneratorRetrievalMode = 'direct' | 'web_only' | 'vector_only' | 'hybrid'
 export type PremiumPlusToolName =
@@ -321,8 +318,6 @@ type LegalAgentOptions = {
   openaiFallbackModel?: string
   groqModel?: string
   groqFallbackModel?: string
-  anthropicModel?: string
-  anthropicFallbackModel?: string
   maxTokens?: number
   autoContinueOnLength?: boolean
   maxAutoContinues?: number
@@ -1276,148 +1271,6 @@ async function callLLM(
     }
   }
 
-  if (provider === 'anthropic') {
-    const anthropicApiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
-    if (!anthropicApiKey) {
-      console.error('ANTHROPIC_API_KEY is not set for Anthropic provider request')
-      return "I'm unable to respond right now because the Premium+ model is unavailable. Please try again shortly."
-    }
-
-    const anthropic = new Anthropic({ apiKey: anthropicApiKey })
-    const transcript: Array<{ role: 'user' | 'assistant'; content: string }> = [
-      { role: 'user', content: prompt },
-    ]
-    const chunks: string[] = []
-    let continueCount = 0
-    let endedByLengthWithoutRecovery = false
-
-    const runAnthropicModel = async (
-      modelName: string,
-      messages: Array<{ role: 'user' | 'assistant'; content: string }>
-    ) => {
-      const startedAt = Date.now()
-      try {
-        const completion = await anthropic.messages.create({
-          model: modelName,
-          max_tokens: maxTokens,
-          temperature: 0.4,
-          system: systemPrompt,
-          messages,
-        })
-        logClaudeUsage({
-          model: modelName,
-          usage: (completion as any)?.usage,
-          success: true,
-          latencyMs: Date.now() - startedAt,
-          requestType: 'chat',
-        })
-        const rawResponse = Array.isArray(completion.content)
-          ? completion.content
-              .filter((block: any) => block?.type === 'text')
-              .map((block: any) => String(block?.text || ''))
-              .join('\n')
-          : ''
-        const stopReason = (completion as any)?.stop_reason || null
-        return {
-          rawResponse: rawResponse || "I couldn't generate a response.",
-          stopReason,
-        }
-      } catch (error: any) {
-        logClaudeUsage({
-          model: modelName,
-          success: false,
-          latencyMs: Date.now() - startedAt,
-          requestType: 'chat',
-          error: error?.message || String(error),
-        })
-        throw error
-      }
-    }
-
-    const activeAnthropicFallbackModel = (fallbackModel || '').trim()
-    const runAnthropicWithFallback = async (messages: Array<{ role: 'user' | 'assistant'; content: string }>) => {
-      try {
-        return await runAnthropicModel(model, messages)
-      } catch (primaryError) {
-        if (activeAnthropicFallbackModel && activeAnthropicFallbackModel !== model) {
-          console.error('Anthropic primary model failed, trying fallback model', {
-            primaryModel: model,
-            fallbackModel: activeAnthropicFallbackModel,
-          })
-          return await runAnthropicModel(activeAnthropicFallbackModel, messages)
-        }
-        throw primaryError
-      }
-    }
-
-    try {
-      while (true) {
-        const { rawResponse, stopReason } = await runAnthropicWithFallback(transcript)
-        const cleanedChunk = rawResponse.trim()
-        if (cleanedChunk) {
-          chunks.push(cleanedChunk)
-          transcript.push({ role: 'assistant', content: cleanedChunk })
-        }
-
-        const canContinue =
-          autoContinueOnLength &&
-          stopReason === 'max_tokens' &&
-          continueCount < continuationLimit &&
-          endsMidSentenceOrSection(cleanedChunk)
-        if (!canContinue) {
-          if (stopReason === 'max_tokens') endedByLengthWithoutRecovery = true
-          break
-        }
-
-        continueCount += 1
-        transcript.push({ role: 'user', content: continuationPrompt })
-      }
-
-      let combined = chunks.join('\n\n').trim()
-      if (endedByLengthWithoutRecovery && !autoContinueOnLength && tailTokenLimit > 0 && combined) {
-        const tailPrompt =
-          `Current partial response:\n${combined}\n\n` +
-          `Provide only the remaining conclusion in no more than ${tailTokenLimit} tokens. Do not repeat prior text. End cleanly.`
-        const tail = await callLLM(
-          tailPrompt,
-          systemPrompt,
-          model,
-          tailTokenLimit,
-          provider,
-          fallbackModel,
-          false,
-          0,
-          false,
-          0,
-          0,
-          0
-        )
-        combined = `${combined}\n\n${tail}`.trim()
-        endedByLengthWithoutRecovery = false
-      }
-      if (endedByLengthWithoutRecovery && canAttemptCompression) {
-        return await callLLM(
-          compressionPrompt,
-          systemPrompt,
-          model,
-          maxTokens,
-          provider,
-          fallbackModel,
-          false,
-          0,
-          compressOnLength,
-          compressionLimit,
-          compressionAttempt + 1,
-          0
-        )
-      }
-      return stripMarkdown(stripUrlsFromText(combined || "I couldn't generate a response."))
-    } catch (error: any) {
-      console.error('Anthropic API Error:', error)
-      return "I'm having a problem. Please try again later."
-    }
-  }
-
   try {
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
@@ -1717,8 +1570,8 @@ export async function decidePremiumPlusPlanWithGroq(
 
   const trimmedHistory = sanitizeConversationHistory(conversationHistory, 12)
   const historyContext = buildHistoryContext(trimmedHistory)
-  const model = (options?.groqModel || PREMIUM_PLUS_PLANNER_GROQ_MODEL).trim() || PREMIUM_PLUS_PLANNER_GROQ_MODEL
-  const fallbackModel = (options?.groqFallbackModel || PREMIUM_PLUS_PLANNER_GROQ_FALLBACK_MODEL).trim()
+  const model = (options?.groqModel || BASIC_GROQ_MODEL).trim() || BASIC_GROQ_MODEL
+  const fallbackModel = (options?.groqFallbackModel || BASIC_GROQ_FALLBACK_MODEL).trim()
   const routingTimeoutMs = getRoutingDecisionTimeoutMs()
   const systemPrompt = [
     'You are the MyMckenzieCS Premium+ planner.',
@@ -1902,8 +1755,6 @@ export async function createLegalAgent(
   const openaiFallbackModel = options?.openaiFallbackModel || OPENAI_FALLBACK_MODEL
   const groqModel = options?.groqModel || BASIC_GROQ_MODEL
   const groqFallbackModel = options?.groqFallbackModel || BASIC_GROQ_FALLBACK_MODEL
-  const anthropicModel = options?.anthropicModel || ANTHROPIC_MODEL
-  const anthropicFallbackModel = options?.anthropicFallbackModel || ANTHROPIC_FALLBACK_MODEL
   const llmProvider: LlmProvider = options?.provider || 'openai'
   const searchQueryOverride = (options?.searchQueryOverride || '').trim()
   const searchModeOverride = options?.searchModeOverride
@@ -1981,15 +1832,11 @@ export async function createLegalAgent(
           const modelForProvider =
             llmProvider === 'groq'
               ? groqModel
-              : llmProvider === 'anthropic'
-                ? anthropicModel
-                : openaiModel
+              : openaiModel
           const fallbackModelForProvider =
             llmProvider === 'groq'
               ? groqFallbackModel
-              : llmProvider === 'anthropic'
-                ? anthropicFallbackModel
-                : openaiFallbackModel
+              : openaiFallbackModel
           const directAnswer = await callLLM(
             directPrompt,
             systemPrompt,
@@ -2059,15 +1906,11 @@ export async function createLegalAgent(
         const modelForProvider =
           llmProvider === 'groq'
             ? groqModel
-            : llmProvider === 'anthropic'
-              ? anthropicModel
-              : openaiModel
+            : openaiModel
         const fallbackModelForProvider =
           llmProvider === 'groq'
             ? groqFallbackModel
-            : llmProvider === 'anthropic'
-              ? anthropicFallbackModel
-              : openaiFallbackModel
+            : openaiFallbackModel
         let comprehensiveAnswer = await callLLM(
           comprehensivePrompt,
           systemPrompt,
@@ -2439,287 +2282,534 @@ export async function invokePremiumLegalAgentStream(
   }
 }
 
+type PremiumPlusToolExecutionResult = {
+  content: string
+  sources?: string[]
+}
+
+type PremiumPlusToolLoopState = {
+  messages: Array<Record<string, any>>
+  sources: string[]
+  directResponse: string
+  toolsUsed: string[]
+}
+
+const PREMIUM_PLUS_TOOL_LOOP_LIMIT = 4
+const PREMIUM_PLUS_TOOL_CALL_MAX_TOKENS = 700
+
+const PREMIUM_PLUS_TOOL_SYSTEM_PROMPT = `${SYSTEM_PROMPT}
+
+TOOL EXECUTION
+- You may answer directly when the question is simple and stable.
+- If current official guidance, procedure, forms, deadlines, or practical process are needed, call web_search.
+- If authorities, precedents, or how courts have generally reasoned are needed, call case_law_search.
+- You may call both tools when both materially help.
+- After tool results are returned, answer the user directly in plain text.
+- Do not mention tools, tool calls, internal routing, or function names to the user.
+- Treat tool outputs as context already provided to you.`
+
+const PREMIUM_PLUS_OPENAI_TOOLS = [
+  {
+    type: 'function',
+    function: {
+      name: 'web_search',
+      description: 'Search current web sources for legal guidance, procedure, forms, deadlines, or practical context.',
+      parameters: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          query: { type: 'string' },
+          mode: {
+            type: 'string',
+            enum: ['education', 'procedure', 'case_specific', 'document_review', 'general'],
+          },
+        },
+        required: ['query'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'case_law_search',
+      description: 'Retrieve case-law authorities, summaries, and extracts relevant to the user query.',
+      parameters: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          query: { type: 'string' },
+          scope: {
+            type: 'string',
+            enum: ['suggestions', 'analysis', 'both'],
+          },
+          limit: { type: 'integer', minimum: 1, maximum: 5 },
+        },
+        required: ['query'],
+      },
+    },
+  },
+] as const
+
+const parseToolArguments = (raw: string | undefined) => {
+  if (!raw) return {}
+  try {
+    return JSON.parse(raw) as Record<string, any>
+  } catch {
+    return {}
+  }
+}
+
+const premiumPlusCompact = (value: string) => value.replace(/\s+/g, ' ').trim()
+const premiumPlusTruncate = (value: string, maxChars: number) =>
+  value.length <= maxChars ? value : `${value.slice(0, Math.max(0, maxChars - 1))}…`
+const premiumPlusFirstDefinedString = (...values: any[]) => {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value.trim()
+  }
+  return ''
+}
+
+const buildPremiumPlusToolCallPayload = (
+  modelName: string,
+  messages: Array<Record<string, any>>,
+  options?: {
+    stream?: boolean
+    toolsEnabled?: boolean
+    maxTokens?: number
+  }
+) => {
+  const normalizedModel = modelName.trim().toLowerCase()
+  const payload: Record<string, any> = {
+    model: modelName,
+    messages,
+  }
+
+  if (options?.stream) payload.stream = true
+  if (options?.toolsEnabled) payload.tools = PREMIUM_PLUS_OPENAI_TOOLS as any
+  if (options?.toolsEnabled) payload.tool_choice = 'auto'
+
+  const maxTokens = options?.maxTokens || PREMIUM_PLUS_TOOL_CALL_MAX_TOKENS
+  if (normalizedModel.startsWith('o') || normalizedModel.startsWith('gpt-5')) {
+    payload.max_completion_tokens = maxTokens
+  } else {
+    payload.max_tokens = maxTokens
+    payload.temperature = 0.2
+  }
+
+  return payload
+}
+
+const createPremiumPlusOpenAi = () => {
+  const apiKey = (process.env.OPENAI_API_KEY || '').trim()
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not set for Premium+ tool calling')
+  }
+  return new OpenAI({ apiKey })
+}
+
+const mapPremiumPlusCaseLawItem = (row: any, index: number) => {
+  const title = premiumPlusFirstDefinedString(row?.title, row?.case_name, row?.name) || `Authority ${index + 1}`
+  const citation = premiumPlusFirstDefinedString(row?.citation, row?.neutralCitation, row?.neutral_citation) || `Authority ${index + 1}`
+  const summary = premiumPlusTruncate(premiumPlusCompact(String(row?.summary || row?.snippet || row?.excerpt || '')), 320)
+  const extracts = premiumPlusTruncate(premiumPlusCompact(String(row?.extracts || '')), 420)
+  const url = premiumPlusFirstDefinedString(row?.url, row?.link) || ''
+  return {
+    citation,
+    title,
+    summary,
+    extracts,
+    url,
+  }
+}
+
+const executePremiumPlusWebSearch = async (
+  query: string,
+  mode: LegalSearchMode,
+  engine: SearchEngine
+): Promise<PremiumPlusToolExecutionResult> => {
+  const searchTool = new SearchTool({ engine })
+  const searchPayload = JSON.stringify({ query, mode, engine })
+  const raw = await searchTool._call(searchPayload)
+  const parsed = JSON.parse(raw) as SearchToolOutput
+  const sources = Array.isArray(parsed.sources) ? parsed.sources.filter((item): item is string => typeof item === 'string') : []
+  const packet = typeof parsed.packet === 'string' ? parsed.packet : raw
+  const sourceBlock = sources.length > 0
+    ? `Sources:\n${sources.map((url, index) => `[${index + 1}] ${url}`).join('\n')}\n\n`
+    : ''
+
+  return {
+    content: `${sourceBlock}${premiumPlusTruncate(packet, 7000)}`.trim(),
+    sources,
+  }
+}
+
+const executePremiumPlusCaseLawSearch = async (
+  query: string,
+  scope: 'suggestions' | 'analysis' | 'both',
+  limit: number
+): Promise<PremiumPlusToolExecutionResult> => {
+  if (!process.env.MILVUS_HOST) {
+    return {
+      content: 'Case-law retrieval is currently unavailable.',
+    }
+  }
+
+  const rawResults = await searchByText(query, Math.max(6, limit * 3))
+  const mapped = Array.isArray(rawResults)
+    ? rawResults.slice(0, limit).map((row, index) => mapPremiumPlusCaseLawItem(row, index))
+    : []
+
+  if (mapped.length === 0) {
+    return {
+      content: 'No closely relevant case-law results were found.',
+    }
+  }
+
+  const lines: string[] = ['Case-law results:']
+  mapped.forEach((item, index) => {
+    lines.push(`[${index + 1}] ${item.citation} - ${item.title}`)
+    if (scope !== 'suggestions' && item.summary) lines.push(`Summary: ${item.summary}`)
+    if (scope !== 'suggestions' && item.extracts) lines.push(`Extract: ${item.extracts}`)
+    if (item.url) lines.push(`URL: ${item.url}`)
+  })
+
+  return {
+    content: premiumPlusTruncate(lines.join('\n'), 5000),
+  }
+}
+
+const executePremiumPlusToolCall = async (
+  toolName: string,
+  args: Record<string, any>,
+  searchEngineOverride: SearchEngine
+): Promise<PremiumPlusToolExecutionResult> => {
+  if (toolName === 'web_search') {
+    const query = String(args.query || '').trim()
+    const mode = normalizeLegalSearchMode(args.mode) || 'general'
+    if (!query) return { content: 'Web search was skipped because no query was provided.' }
+    return executePremiumPlusWebSearch(query, mode, searchEngineOverride)
+  }
+
+  if (toolName === 'case_law_search') {
+    const query = String(args.query || '').trim()
+    const scopeRaw = String(args.scope || 'both').trim().toLowerCase()
+    const scope = scopeRaw === 'suggestions' || scopeRaw === 'analysis' || scopeRaw === 'both'
+      ? scopeRaw
+      : 'both'
+    const limit = Number.isFinite(Number(args.limit))
+      ? Math.max(1, Math.min(5, Math.floor(Number(args.limit))))
+      : 3
+    if (!query) return { content: 'Case-law search was skipped because no query was provided.' }
+    return executePremiumPlusCaseLawSearch(query, scope, limit)
+  }
+
+  return {
+    content: `Tool ${toolName} is not available.`,
+  }
+}
+
+const callPremiumPlusOpenAi = async (
+  client: OpenAI,
+  model: string,
+  fallbackModel: string,
+  messages: Array<Record<string, any>>,
+  options?: {
+    stream?: boolean
+    toolsEnabled?: boolean
+    maxTokens?: number
+  }
+) => {
+  const runModel = async (modelName: string) => {
+    try {
+      return await client.chat.completions.create(
+        buildPremiumPlusToolCallPayload(modelName, messages, options) as any
+      )
+    } catch (error: any) {
+      const unsupportedTokenParam =
+        error?.code === 'unsupported_parameter' &&
+        (error?.param === 'max_tokens' || error?.param === 'max_completion_tokens')
+      if (!unsupportedTokenParam) throw error
+
+      const retryPayload = buildPremiumPlusToolCallPayload(modelName, messages, options)
+      if ('max_tokens' in retryPayload) {
+        delete retryPayload.max_tokens
+        retryPayload.max_completion_tokens = options?.maxTokens || PREMIUM_PLUS_TOOL_CALL_MAX_TOKENS
+      } else {
+        delete retryPayload.max_completion_tokens
+        retryPayload.max_tokens = options?.maxTokens || PREMIUM_PLUS_TOOL_CALL_MAX_TOKENS
+        retryPayload.temperature = 0.2
+      }
+      return await client.chat.completions.create(retryPayload as any)
+    }
+  }
+
+  try {
+    return await runModel(model)
+  } catch (primaryError) {
+    if (fallbackModel && fallbackModel !== model) {
+      console.error('Premium+ OpenAI primary model failed, trying fallback model', {
+        primaryModel: model,
+        fallbackModel,
+      })
+      return await runModel(fallbackModel)
+    }
+    throw primaryError
+  }
+}
+
+const runPremiumPlusToolLoop = async (
+  prompt: string,
+  options: {
+    openaiModel: string
+    openaiFallbackModel: string
+    searchEngineOverride: SearchEngine
+  }
+): Promise<PremiumPlusToolLoopState> => {
+  const client = createPremiumPlusOpenAi()
+  const messages: Array<Record<string, any>> = [
+    { role: 'system', content: PREMIUM_PLUS_TOOL_SYSTEM_PROMPT },
+    { role: 'user', content: prompt },
+  ]
+  const aggregatedSources: string[] = []
+  const usedTools: string[] = []
+
+  for (let round = 0; round < PREMIUM_PLUS_TOOL_LOOP_LIMIT; round += 1) {
+    const completion = await callPremiumPlusOpenAi(
+      client,
+      options.openaiModel,
+      options.openaiFallbackModel,
+      messages,
+      {
+        toolsEnabled: true,
+        maxTokens: PREMIUM_PLUS_TOOL_CALL_MAX_TOKENS,
+      }
+    ) as any
+
+    const assistantMessage = completion?.choices?.[0]?.message
+    if (!assistantMessage) break
+
+    const toolCalls = Array.isArray(assistantMessage.tool_calls) ? assistantMessage.tool_calls : []
+    messages.push({
+      role: 'assistant',
+      content: assistantMessage.content || '',
+      ...(toolCalls.length > 0 ? { tool_calls: toolCalls } : {}),
+    })
+
+    if (toolCalls.length === 0) {
+      return {
+        messages,
+        sources: aggregatedSources,
+        directResponse: String(assistantMessage.content || '').trim(),
+        toolsUsed: usedTools,
+      }
+    }
+
+    for (const toolCall of toolCalls.slice(0, 3)) {
+      const toolName = String(toolCall?.function?.name || '').trim()
+      const args = parseToolArguments(toolCall?.function?.arguments)
+      const result = await executePremiumPlusToolCall(toolName, args, options.searchEngineOverride)
+      if (Array.isArray(result.sources)) {
+        for (const source of result.sources) {
+          if (!aggregatedSources.includes(source)) aggregatedSources.push(source)
+        }
+      }
+      usedTools.push(toolName)
+      messages.push({
+        role: 'tool',
+        tool_call_id: toolCall.id,
+        content: result.content,
+      })
+    }
+  }
+
+  return {
+    messages,
+    sources: aggregatedSources,
+    directResponse: '',
+    toolsUsed: usedTools,
+  }
+}
+
 export async function invokePremiumPlusLegalAgent(
   message: string,
-  threadId: string,
-  userId?: string,
-  conversationHistory: Array<{ role: string; content: string }> = [],
-  caseKeywords?: string,
+  _threadId: string,
+  _userId?: string,
+  _conversationHistory: Array<{ role: string; content: string }> = [],
+  _caseKeywords?: string,
   options?: {
     useSearch?: boolean
     searchQueryOverride?: string
     searchModeOverride?: LegalSearchMode
     searchEngineOverride?: SearchEngine
-    anthropicModel?: string
-    anthropicFallbackModel?: string
+    openaiModel?: string
+    openaiFallbackModel?: string
     maxTokens?: number
     maxCompressionRetries?: number
   }
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
-  return invokeLegalAgent(message, threadId, userId, conversationHistory, caseKeywords, {
-    useSearch: options?.useSearch,
-    includeCitations: true,
-    provider: 'anthropic',
-    anthropicModel: options?.anthropicModel || ANTHROPIC_MODEL,
-    anthropicFallbackModel: options?.anthropicFallbackModel || ANTHROPIC_FALLBACK_MODEL,
-    maxTokens: options?.maxTokens,
-    autoContinueOnLength: true,
-    maxAutoContinues: 1,
-    targetTokensFloor: PREMIUM_PLUS_CONCISE_TARGET_TOKENS,
-    maxTokensCap: PREMIUM_PLUS_CONCISE_MAX_TOKENS,
-    maxCompressionRetries: options?.maxCompressionRetries,
-    searchQueryOverride: options?.searchQueryOverride,
-    searchModeOverride: options?.searchModeOverride,
+  const useSearch = options?.useSearch !== false
+  if (!useSearch) {
+    return invokePremiumLegalAgent(message, '', undefined, [], '', {
+      useSearch: false,
+      openaiModel: options?.openaiModel || PREMIUM_PLUS_OPENAI_MODEL,
+      openaiFallbackModel: options?.openaiFallbackModel || PREMIUM_PLUS_OPENAI_FALLBACK_MODEL,
+      maxTokens: options?.maxTokens,
+      maxCompressionRetries: options?.maxCompressionRetries,
+    })
+  }
+
+  const openaiModel = options?.openaiModel || PREMIUM_PLUS_OPENAI_MODEL
+  const openaiFallbackModel = options?.openaiFallbackModel || PREMIUM_PLUS_OPENAI_FALLBACK_MODEL
+  const toolLoop = await runPremiumPlusToolLoop(message, {
+    openaiModel,
+    openaiFallbackModel,
     searchEngineOverride: options?.searchEngineOverride || 'perplexity',
   })
+
+  if (toolLoop.directResponse) {
+    const finalDirect = ensureCitationsForPremium(
+      neutralizeLegalAdviceTone(stripMarkdown(stripUrlsFromText(toolLoop.directResponse))),
+      toolLoop.sources,
+      toolLoop.sources.length > 0
+    )
+    return {
+      response: finalDirect.responseText,
+      document_generated: false,
+      guidance_provided: true,
+      next_steps: [],
+      sources: finalDirect.sources,
+    }
+  }
+
+  const client = createPremiumPlusOpenAi()
+  const finalMessages = [
+    ...toolLoop.messages,
+    {
+      role: 'user',
+      content: 'Now answer the user directly in plain text using any tool results already provided. Do not call any more tools.',
+    },
+  ]
+  const finalCompletion = await callPremiumPlusOpenAi(
+    client,
+    openaiModel,
+    openaiFallbackModel,
+    finalMessages,
+    {
+      toolsEnabled: false,
+      maxTokens: options?.maxTokens || PREMIUM_PLUS_CONCISE_MAX_TOKENS,
+    }
+  ) as any
+  const finalText = String(finalCompletion?.choices?.[0]?.message?.content || '').trim()
+  const final = ensureCitationsForPremium(
+    neutralizeLegalAdviceTone(stripMarkdown(stripUrlsFromText(finalText || "I couldn't generate a response."))),
+    toolLoop.sources,
+    toolLoop.sources.length > 0
+  )
+
+  return {
+    response: final.responseText,
+    document_generated: false,
+    guidance_provided: true,
+    next_steps: [],
+    sources: final.sources,
+  }
 }
 
 export async function invokePremiumPlusLegalAgentStream(
   message: string,
   _threadId: string,
   _userId?: string,
-  conversationHistory: Array<{ role: string; content: string }> = [],
-  caseKeywords?: string,
+  _conversationHistory: Array<{ role: string; content: string }> = [],
+  _caseKeywords?: string,
   options?: {
     useSearch?: boolean
     searchQueryOverride?: string
     searchModeOverride?: LegalSearchMode
     searchEngineOverride?: SearchEngine
-    anthropicModel?: string
-    anthropicFallbackModel?: string
+    openaiModel?: string
+    openaiFallbackModel?: string
     maxTokens?: number
     maxCompressionRetries?: number
     onToken?: (chunk: string) => void
   }
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
-  const trimmedHistory = sanitizeConversationHistory(conversationHistory, 40)
-  const systemPrompt = SYSTEM_PROMPT
   const useSearch = options?.useSearch !== false
-  const includeCitations = true
-  const anthropicModel = options?.anthropicModel || ANTHROPIC_MODEL
-  const anthropicFallbackModel = options?.anthropicFallbackModel || ANTHROPIC_FALLBACK_MODEL
-  const searchQueryOverride = (options?.searchQueryOverride || '').trim()
-  const searchModeOverride = options?.searchModeOverride
-  const searchEngineOverride = options?.searchEngineOverride || 'perplexity'
-  const requestedMaxTokens = Number.isFinite(Number(options?.maxTokens))
-    ? Math.max(250, Number(options?.maxTokens))
-    : MAX_TOKENS
-  const targetTokensFloor = PREMIUM_PLUS_CONCISE_TARGET_TOKENS
-  const maxTokensCap = PREMIUM_PLUS_CONCISE_MAX_TOKENS
-  const maxTokens = useSearch
-    ? Math.min(maxTokensCap, Math.max(targetTokensFloor, requestedMaxTokens))
-    : requestedMaxTokens
-
-  const anthropicApiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
-  if (!anthropicApiKey) {
-    return {
-      response: "I'm unable to respond right now because the Premium+ model is unavailable. Please try again shortly.",
-      document_generated: false,
-      guidance_provided: false,
-      next_steps: [],
-      sources: undefined,
-    }
-  }
-
-  const anthropic = new Anthropic({ apiKey: anthropicApiKey })
-  const continuationPrompt = 'Continue exactly from where you stopped. Do not repeat prior text. Keep the same structure and style.'
-  const continuationLimit = 1
-
-  const streamAnthropicText = async (prompt: string): Promise<string> => {
-    const transcript: Array<{ role: 'user' | 'assistant'; content: string }> = [
-      { role: 'user', content: prompt },
-    ]
-    const chunks: string[] = []
-    let continueCount = 0
-    let endedByLengthWithoutRecovery = false
-
-    const runModel = async (
-      modelName: string,
-      messages: Array<{ role: 'user' | 'assistant'; content: string }>
-    ) => {
-      const startedAt = Date.now()
-      let streamedText = ''
-      const stream = anthropic.messages
-        .stream({
-          model: modelName,
-          max_tokens: maxTokens,
-          temperature: 0.4,
-          system: systemPrompt,
-          messages,
-        })
-        .on('text', (text) => {
-          if (!text) return
-          streamedText += text
-          options?.onToken?.(text)
-        })
-
-      try {
-        const finalMessage = await stream.finalMessage()
-        logClaudeUsage({
-          model: modelName,
-          usage: (finalMessage as any)?.usage,
-          success: true,
-          latencyMs: Date.now() - startedAt,
-          requestType: 'chat',
-        })
-        const rawResponse = Array.isArray(finalMessage.content)
-          ? finalMessage.content
-              .filter((block: any) => block?.type === 'text')
-              .map((block: any) => String(block?.text || ''))
-              .join('\n')
-          : ''
-        const stopReason = (finalMessage as any)?.stop_reason || null
-        return {
-          rawResponse: rawResponse || streamedText || "I couldn't generate a response.",
-          stopReason,
-        }
-      } catch (error: any) {
-        logClaudeUsage({
-          model: modelName,
-          success: false,
-          latencyMs: Date.now() - startedAt,
-          requestType: 'chat',
-          error: error?.message || String(error),
-        })
-        throw error
-      }
-    }
-
-    const runWithFallback = async (messages: Array<{ role: 'user' | 'assistant'; content: string }>) => {
-      try {
-        return await runModel(anthropicModel, messages)
-      } catch (primaryError) {
-        if (anthropicFallbackModel && anthropicFallbackModel !== anthropicModel) {
-          console.error('Anthropic streaming primary model failed, trying fallback model', {
-            primaryModel: anthropicModel,
-            fallbackModel: anthropicFallbackModel,
-          })
-          return await runModel(anthropicFallbackModel, messages)
-        }
-        throw primaryError
-      }
-    }
-
-    while (true) {
-      const { rawResponse, stopReason } = await runWithFallback(transcript)
-      const cleanedChunk = rawResponse.trim()
-      if (cleanedChunk) {
-        chunks.push(cleanedChunk)
-        transcript.push({ role: 'assistant', content: cleanedChunk })
-      }
-
-      const canContinue =
-        stopReason === 'max_tokens' &&
-        continueCount < continuationLimit &&
-        endsMidSentenceOrSection(cleanedChunk)
-      if (!canContinue) {
-        if (stopReason === 'max_tokens') endedByLengthWithoutRecovery = true
-        break
-      }
-
-      continueCount += 1
-      transcript.push({ role: 'user', content: continuationPrompt })
-    }
-
-    let combined = chunks.join('\n\n').trim()
-    if (endedByLengthWithoutRecovery && combined) {
-      combined = stripMarkdown(stripUrlsFromText(combined))
-    }
-    return combined || "I couldn't generate a response."
-  }
-
-  const latestQuestion = (message || '').trim()
-
-  if (isBasicGreeting(latestQuestion)) {
-    return {
-      response: "Hello! I'm MyMcKenzieCS. How can I help with your legal question?",
-      document_generated: false,
-      guidance_provided: true,
-      next_steps: [],
-      sources: undefined,
-    }
-  }
-
-  if (wantsDocumentDraftRequest(latestQuestion)) {
-    if (!wantsTemplateFillOnly(latestQuestion)) {
-      return {
-        response: templateOnlyRefusalMessage(),
-        document_generated: false,
-        guidance_provided: true,
-        next_steps: [],
-        sources: undefined,
-      }
-    }
-    const contextForTools = buildHistoryContext(trimmedHistory) + latestQuestion
-    const docResult = await new DocGeneratorTool()._call(contextForTools)
-    return {
-      response: stripMarkdown(docResult).trim(),
-      document_generated: true,
-      guidance_provided: false,
-      next_steps: [],
-      sources: undefined,
-    }
-  }
-
   if (!useSearch) {
-    const historyContext = buildHistoryContext(trimmedHistory)
-    const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
-    const lengthInstruction = buildLengthInstruction(latestQuestion)
-    const directPrompt = `${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. ${lengthInstruction} Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
-    const directAnswer = neutralizeLegalAdviceTone(await streamAnthropicText(directPrompt))
+    return invokePremiumLegalAgentStream(message, '', undefined, [], '', {
+      useSearch: false,
+      openaiModel: options?.openaiModel || PREMIUM_PLUS_OPENAI_MODEL,
+      openaiFallbackModel: options?.openaiFallbackModel || PREMIUM_PLUS_OPENAI_FALLBACK_MODEL,
+      maxTokens: options?.maxTokens,
+      maxCompressionRetries: options?.maxCompressionRetries,
+      onToken: options?.onToken,
+    })
+  }
+
+  const openaiModel = options?.openaiModel || PREMIUM_PLUS_OPENAI_MODEL
+  const openaiFallbackModel = options?.openaiFallbackModel || PREMIUM_PLUS_OPENAI_FALLBACK_MODEL
+  const toolLoop = await runPremiumPlusToolLoop(message, {
+    openaiModel,
+    openaiFallbackModel,
+    searchEngineOverride: options?.searchEngineOverride || 'perplexity',
+  })
+
+  const emitSyntheticStream = (text: string) => {
+    if (!text) return
+    for (const chunk of text.match(/.{1,24}/g) || []) {
+      options?.onToken?.(chunk)
+    }
+  }
+
+  if (toolLoop.directResponse) {
+    const finalDirect = ensureCitationsForPremium(
+      neutralizeLegalAdviceTone(stripMarkdown(stripUrlsFromText(toolLoop.directResponse))),
+      toolLoop.sources,
+      toolLoop.sources.length > 0
+    )
+    emitSyntheticStream(finalDirect.responseText)
     return {
-      response: directAnswer,
+      response: finalDirect.responseText,
       document_generated: false,
       guidance_provided: true,
       next_steps: [],
-      sources: undefined,
+      sources: finalDirect.sources,
     }
   }
 
-  const isDefinition = isDefinitionQuery(latestQuestion)
-  const mode: LegalSearchMode = searchModeOverride || (isDefinition ? 'education' : 'general')
+  const client = createPremiumPlusOpenAi()
+  const finalMessages = [
+    ...toolLoop.messages,
+    {
+      role: 'user',
+      content: 'Now answer the user directly in plain text using any tool results already provided. Do not call any more tools.',
+    },
+  ]
 
-  let searchQuery = searchQueryOverride || latestQuestion
-  if (caseKeywords && caseKeywords.trim()) {
-    searchQuery = `${searchQuery} | Case context: ${caseKeywords}`
-  }
-
-  const searchTool = new SearchTool({ engine: searchEngineOverride })
-  const searchPayload = JSON.stringify({ query: searchQuery, mode, engine: searchEngineOverride })
-  const searchResult = await searchTool._call(searchPayload)
-
-  let sources: string[] = []
-  let searchedInfo = ''
-  let sourceMode: 'engine' | 'fallback' | 'none' = 'none'
-
-  try {
-    const parsed = JSON.parse(searchResult) as { sources?: any[]; packet?: string; sourceMode?: any }
-    sources = Array.isArray(parsed.sources) ? parsed.sources.filter((u: any): u is string => typeof u === 'string') : []
-    searchedInfo = typeof parsed.packet === 'string' ? parsed.packet : ''
-    if (parsed.sourceMode === 'engine' || parsed.sourceMode === 'fallback' || parsed.sourceMode === 'none') {
-      sourceMode = parsed.sourceMode
-    } else {
-      sourceMode = sources.length > 0 ? 'engine' : 'none'
+  const stream = await callPremiumPlusOpenAi(
+    client,
+    openaiModel,
+    openaiFallbackModel,
+    finalMessages,
+    {
+      stream: true,
+      toolsEnabled: false,
+      maxTokens: options?.maxTokens || PREMIUM_PLUS_CONCISE_MAX_TOKENS,
     }
-  } catch {
-    searchedInfo = searchResult
+  ) as unknown as AsyncIterable<any>
+
+  let finalText = ''
+  for await (const chunk of stream) {
+    const delta = chunk?.choices?.[0]?.delta?.content || ''
+    if (delta) {
+      finalText += delta
+      options?.onToken?.(delta)
+    }
   }
 
-  const effectiveIncludeCitations = includeCitations && sourceMode === 'engine' && sources.length > 0
-  const sourceBlock = sources.length > 0
-    ? `All available sources to reference:\n${sources.map((url, i) => `[${i + 1}] ${url}`).join('\n')}`
-    : 'No sources available.'
-  const citationInstruction = effectiveIncludeCitations
-    ? 'Include inline citations in square brackets that match the sources list above, like [1] or [2]. Use citations on factual statements.'
-    : 'Do not include any source citations.'
-  const lengthInstruction = buildLengthInstruction(latestQuestion)
-  const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\nUser question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} ${citationInstruction} This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Follow the presentation rules. Use standalone heading lines instead of markdown headings, and do not use tables, markdown bold, italics, or markdown links.`
-
-  const comprehensiveAnswer = await streamAnthropicText(comprehensivePrompt)
   const final = ensureCitationsForPremium(
-    neutralizeLegalAdviceTone(comprehensiveAnswer),
-    sources,
-    effectiveIncludeCitations
+    neutralizeLegalAdviceTone(stripMarkdown(stripUrlsFromText(finalText || "I couldn't generate a response."))),
+    toolLoop.sources,
+    toolLoop.sources.length > 0
   )
 
   return {

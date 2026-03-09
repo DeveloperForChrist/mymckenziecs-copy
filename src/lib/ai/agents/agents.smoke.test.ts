@@ -68,69 +68,6 @@ vi.mock('openai', () => {
   return { default: MockOpenAI, OpenAI: MockOpenAI }
 })
 
-vi.mock('@anthropic-ai/sdk', () => {
-  class MockAnthropic {
-    messages = {
-      create: vi.fn(async (payload: any) => {
-        const userPrompt = String(payload?.messages?.[0]?.content || '')
-        if (userPrompt.includes('discriminator timeout sentinel')) {
-          return new Promise<any>(() => {})
-        }
-        const isDecompose = userPrompt.includes('Output schema')
-        const text = isDecompose
-          ? JSON.stringify({
-              retrieval_mode: 'hybrid',
-              tools: [
-                {
-                  tool: 'web_search_procedure',
-                  query: 'current UK procedure guidance',
-                  rationale: 'Practical process may depend on current guidance',
-                },
-                {
-                  tool: 'case_law_rag',
-                  query: 'relevant UK precedent',
-                  rationale: 'Authority reasoning matters too',
-                },
-                {
-                  tool: 'case_law_suggestions',
-                  query: 'relevant UK precedent',
-                  rationale: 'Useful to surface a shortlist of authorities',
-                },
-              ],
-              decomposition: 'User asks about facts and procedure.',
-              sub_issues: [
-                {
-                  issue: 'Explain the legal concept in plain English',
-                  retrieval_mode: 'direct',
-                  tools: [{ tool: 'direct_knowledge' }],
-                  rationale: 'Stable legal definition question',
-                },
-                {
-                  issue: 'Check whether current procedure matters',
-                  retrieval_mode: 'web_only',
-                  tools: [{ tool: 'web_search_procedure', query: 'current UK procedure guidance' }],
-                  web_query: 'current UK procedure guidance',
-                  rationale: 'Procedural angle may need current sources',
-                },
-              ],
-              vector_query: 'relevant UK precedent',
-              web_query: 'current UK procedure guidance',
-              confidence: 0.78,
-              reasons: ['mixed-signals'],
-            })
-          : 'Structured Answer\n────────────────────\nIn short: This is refined legal guidance.'
-
-        return {
-          content: [{ type: 'text', text }],
-          usage: { input_tokens: 120, output_tokens: 80 },
-        }
-      }),
-    }
-  }
-
-  return { default: MockAnthropic }
-})
-
 import {
   decidePremiumPlusPlanWithGroq,
   decideRetrievalWithGenerator,
@@ -146,7 +83,6 @@ describe('agent smoke checks', () => {
 
   beforeEach(() => {
     process.env.OPENAI_API_KEY = 'test-key'
-    process.env.ANTHROPIC_API_KEY = 'test-key'
     process.env.GROQ_API_KEY = 'test-key'
     process.env.BASIC_OPENAI_ROUTING_PERCENT = '100'
     vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -243,25 +179,6 @@ describe('agent smoke checks', () => {
     expect(result.response).toContain('In short:')
   })
 
-  it('legal agent can answer through the anthropic provider without a discriminator pass', async () => {
-    const result = await invokeLegalAgent(
-      'Explain promissory estoppel in plain English.',
-      'thread_smoke_anthropic',
-      'user_smoke_anthropic',
-      [],
-      'contract law',
-      {
-        useSearch: false,
-        provider: 'anthropic',
-        anthropicModel: 'claude-opus-4-6',
-        anthropicFallbackModel: 'claude-sonnet-4-20250514',
-      }
-    )
-
-    expect(typeof result.response).toBe('string')
-    expect(result.response.trim().length).toBeGreaterThan(0)
-  })
-
   it('premium plan uses its own premium agent wrapper', async () => {
     const result = await invokePremiumLegalAgent(
       'What does claimant mean in a small claim?',
@@ -285,8 +202,8 @@ describe('agent smoke checks', () => {
       'contract law',
       {
         useSearch: false,
-        anthropicModel: 'claude-opus-4-6',
-        anthropicFallbackModel: 'claude-sonnet-4-20250514',
+        openaiModel: 'gpt-5.2',
+        openaiFallbackModel: 'gpt-4.1',
       }
     )
 

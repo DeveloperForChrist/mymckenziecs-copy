@@ -12,7 +12,6 @@ for (const file of ['.env.local', '.env']) {
 
 const OPENAI_API_KEY = (process.env.OPENAI_API_KEY || '').trim()
 const GROQ_API_KEY = (process.env.GROQ_API_KEY || '').trim()
-const ANTHROPIC_API_KEY = (process.env.ANTHROPIC_API_KEY || '').trim()
 
 const unique = (items) => Array.from(new Set(items.filter(Boolean).map((v) => String(v).trim()).filter(Boolean)))
 
@@ -30,13 +29,6 @@ const groqModels = unique([
   process.env.BASIC_GROQ_FALLBACK_MODEL,
   process.env.GROQ_BASIC_MODEL,
   process.env.GROQ_BASIC_FALLBACK_MODEL,
-])
-
-const claudeModels = unique([
-  process.env.CLAUDE_MODEL,
-  process.env.CLAUDE_FALLBACK_MODEL,
-  process.env.PREMIUM_PLUS_CLAUDE_MODEL,
-  process.env.PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL,
 ])
 
 const shorten = (value, max = 140) => {
@@ -92,35 +84,14 @@ async function checkGroqModel(model) {
   }
 }
 
-async function checkAnthropicModel(model) {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 12,
-      messages: [{ role: 'user', content: 'Reply with OK.' }],
-    }),
-  })
-  if (!response.ok) {
-    const body = await response.text().catch(() => '')
-    throw new Error(`HTTP ${response.status}: ${shorten(body)}`)
-  }
-}
-
 const checks = []
 if (OPENAI_API_KEY) {
-  for (const model of openAiModels) checks.push({ provider: 'openai', model, run: () => checkOpenAiModel(model) })
+  for (const model of [...openAiModels, process.env.PREMIUM_PLUS_OPENAI_MODEL, process.env.PREMIUM_PLUS_OPENAI_FALLBACK_MODEL].filter(Boolean)) {
+    checks.push({ provider: 'openai', model, run: () => checkOpenAiModel(model) })
+  }
 }
 if (GROQ_API_KEY) {
   for (const model of groqModels) checks.push({ provider: 'groq', model, run: () => checkGroqModel(model) })
-}
-if (ANTHROPIC_API_KEY) {
-  for (const model of claudeModels) checks.push({ provider: 'anthropic', model, run: () => checkAnthropicModel(model) })
 }
 
 if (checks.length === 0) {

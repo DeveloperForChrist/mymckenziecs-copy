@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
-  decidePremiumPlusPlanWithGroq,
   type LegalSearchMode,
   type PremiumPlusSubIssue,
   type PremiumPlusToolSelection,
@@ -110,11 +109,11 @@ const getPremiumOpenAiModel = (): string =>
 const getPremiumOpenAiFallbackModel = (primaryModel: string): string =>
   getEnvModelValue('OPENAI_PREMIUM_FALLBACK_MODEL', 'OPENAI_BASIC_MODEL') || primaryModel
 
-const getPremiumPlusClaudeModel = (): string | null =>
-  getEnvModelValue('PREMIUM_PLUS_CLAUDE_MODEL')
+const getPremiumPlusOpenAiModel = (): string =>
+  getEnvModelValue('PREMIUM_PLUS_OPENAI_MODEL') || 'gpt-5.2'
 
-const getPremiumPlusClaudeFallbackModel = (primaryModel: string): string =>
-  getEnvModelValue('PREMIUM_PLUS_CLAUDE_FALLBACK_MODEL') || primaryModel
+const getPremiumPlusOpenAiFallbackModel = (primaryModel: string): string =>
+  getEnvModelValue('PREMIUM_PLUS_OPENAI_FALLBACK_MODEL', 'OPENAI_PREMIUM_MODEL') || primaryModel
 
 const PREMIUM_PLUS_CASELAW_TIMEOUT_MS = Number.isFinite(Number(process.env.PREMIUM_PLUS_CASELAW_TIMEOUT_MS))
   ? Math.max(1000, Math.floor(Number(process.env.PREMIUM_PLUS_CASELAW_TIMEOUT_MS)))
@@ -2173,18 +2172,9 @@ export async function POST(request: NextRequest) {
     const memoryContext = buildMemoryContext(effectiveMemoryRow)
     const premiumOpenAiModel = getPremiumOpenAiModel()
     const premiumOpenAiFallbackModel = getPremiumOpenAiFallbackModel(premiumOpenAiModel)
-    const premiumPlusClaudeModel = premiumPlusActive ? getPremiumPlusClaudeModel() : null
-    if (premiumPlusActive && !premiumPlusClaudeModel) {
-      console.error('PREMIUM_PLUS_CLAUDE_MODEL is missing for a Premium+ chat request')
-      return withCookie(
-        NextResponse.json(
-          buildAssistantResponsePayload('Premium+ chat is temporarily unavailable. Please try again shortly.'),
-          { status: 503 }
-        )
-      )
-    }
-    const premiumPlusClaudeFallbackModel = premiumPlusClaudeModel
-      ? getPremiumPlusClaudeFallbackModel(premiumPlusClaudeModel)
+    const premiumPlusOpenAiModel = premiumPlusActive ? getPremiumPlusOpenAiModel() : null
+    const premiumPlusOpenAiFallbackModel = premiumPlusOpenAiModel
+      ? getPremiumPlusOpenAiFallbackModel(premiumPlusOpenAiModel)
       : null
     const caseLawSuggestionDecision = evaluateCaseLawSuggestionNeed({
       message,
@@ -2205,14 +2195,6 @@ export async function POST(request: NextRequest) {
       caseContextData,
       memoryRow,
     })
-    const premiumRoutingInput = truncateText(
-      attachmentContext
-        ? `${message}\n\nUser uploaded documents. Use the excerpts below when deciding retrieval.\n${attachmentContext}`
-        : attachmentMetadata
-          ? `${message}\n\n${attachmentMetadata}`
-          : message,
-      12000
-    )
     let premiumGeneratedWebQuery = ''
     const premiumSearchRoutingConfidence: number | null = null
     const premiumSearchRoutingReasons: string[] = premiumPlanActive && !premiumPlusActive
@@ -2227,9 +2209,6 @@ export async function POST(request: NextRequest) {
           retrievalFocusDecision,
         })
       : false
-    let premiumPlusPlannerDecision: Awaited<ReturnType<typeof decidePremiumPlusPlanWithGroq>> | null = null
-    let premiumPlusPlannerAnswered = false
-    let premiumPlusPlannerDirectResponse = ''
     let retrievalFocusApplied: AppliedRetrievalFocus = premiumPlusDirectAnswer ? 'direct' : retrievalFocusDecision.focus
     let generatedWebQuery = ''
     let generatedVectorQuery = ''
@@ -2240,69 +2219,24 @@ export async function POST(request: NextRequest) {
     let premiumPlusToolPlanConfidence: number | null = null
     let routingReasonsApplied: string[] = retrievalFocusDecision.reasons.slice()
     if (premiumPlusActive) {
-      premiumPlusPlannerDecision = await decidePremiumPlusPlanWithGroq(
-        premiumRoutingInput,
-        sanitizedHistory,
-        caseKeywords
-      )
-
-      if (premiumPlusPlannerDecision?.action === 'answer') {
-        premiumPlusPlannerAnswered = true
-        premiumPlusPlannerDirectResponse = premiumPlusPlannerDecision.answer.trim()
-        retrievalFocusApplied = 'direct'
-        premiumPlusDecomposition = (premiumPlusPlannerDecision.decomposition || '').trim()
-        premiumPlusSubIssues = Array.isArray(premiumPlusPlannerDecision.subIssues)
-          ? premiumPlusPlannerDecision.subIssues.slice(0, 8)
-          : []
-        premiumPlusToolPlanConfidence = Number.isFinite(Number(premiumPlusPlannerDecision.confidence))
-          ? Math.max(0, Math.min(1, Number(premiumPlusPlannerDecision.confidence)))
-          : null
-        routingReasonsApplied = premiumPlusPlannerDecision.reasons.length > 0
-          ? premiumPlusPlannerDecision.reasons.slice()
-          : ['groq-planner-answer']
-      } else if (premiumPlusPlannerDecision?.action === 'execute') {
-        const plannerPlan = premiumPlusPlannerDecision.plan
-        retrievalFocusApplied = plannerPlan.retrievalMode
-        premiumPlusTools = Array.isArray(plannerPlan.tools)
-          ? plannerPlan.tools.slice(0, 8)
-          : []
-        generatedWebQuery = (plannerPlan.webQuery || buildPlannerQueryFromTools(premiumPlusTools, 'web')).trim()
-        generatedVectorQuery = (plannerPlan.vectorQuery || buildPlannerQueryFromTools(premiumPlusTools, 'case_law')).trim()
-        premiumPlusDecomposition = (premiumPlusPlannerDecision.decomposition || plannerPlan.decomposition || '').trim()
-        premiumPlusSubIssues = Array.isArray(premiumPlusPlannerDecision.subIssues)
-          ? premiumPlusPlannerDecision.subIssues.slice(0, 8)
-          : Array.isArray(plannerPlan.subIssues)
-            ? plannerPlan.subIssues.slice(0, 8)
-            : []
-        premiumPlusSearchMode = getPremiumPlusSearchModeFromTools(premiumPlusTools) || null
-        premiumPlusToolPlanConfidence = Number.isFinite(Number(premiumPlusPlannerDecision.confidence ?? plannerPlan.confidence))
-          ? Math.max(0, Math.min(1, Number(premiumPlusPlannerDecision.confidence ?? plannerPlan.confidence)))
-          : null
-        routingReasonsApplied = premiumPlusPlannerDecision.reasons.length > 0
-          ? premiumPlusPlannerDecision.reasons.slice()
-          : plannerPlan.reasons.length > 0
-            ? plannerPlan.reasons.slice()
-            : [`groq-planner-execute:${retrievalFocusApplied}`]
-      } else {
-        premiumPlusSearchMode = premiumPlusDirectAnswer
-          ? null
-          : resolvePremiumPlusSearchMode({
-              message,
-              task: processingResult.task,
-              hasAttachments,
-              retrievalFocusDecision,
-            })
-        generatedWebQuery = premiumPlusSearchMode
-          ? buildPremiumPlusHeuristicWebQuery({
-              message,
-              searchMode: premiumPlusSearchMode,
-            })
-          : ''
-        routingReasonsApplied = [
-          ...routingReasonsApplied,
-          premiumPlusDirectAnswer ? 'heuristic-direct' : `heuristic-${retrievalFocusApplied}`,
-        ]
-      }
+      premiumPlusSearchMode = premiumPlusDirectAnswer
+        ? null
+        : resolvePremiumPlusSearchMode({
+            message,
+            task: processingResult.task,
+            hasAttachments,
+            retrievalFocusDecision,
+          })
+      generatedWebQuery = premiumPlusSearchMode
+        ? buildPremiumPlusHeuristicWebQuery({
+            message,
+            searchMode: premiumPlusSearchMode,
+          })
+        : ''
+      routingReasonsApplied = [
+        ...routingReasonsApplied,
+        premiumPlusDirectAnswer ? 'single-pass-direct' : `single-pass-${retrievalFocusApplied}`,
+      ]
     }
     const premiumPlusCaseLawBaseDecision = shouldUseCaseLawRetrieval({
       message,
@@ -2314,20 +2248,16 @@ export async function POST(request: NextRequest) {
     let shouldUsePremiumPlusCaseLawRetrieval =
       premiumPlusActive &&
       (
-        premiumPlusPlannerDecision?.action === 'execute'
-          ? (premiumPlusTools.some((tool) => tool.tool === 'case_law_suggestions' || tool.tool === 'case_law_rag'))
-          : (
-              premiumPlusCaseLawBaseDecision &&
-              shouldUsePremiumPlusCaseLawHeuristically({
-                message,
-                history: sanitizedHistory,
-                task: processingResult.task,
-                hasAttachments,
-                retrievalFocusApplied,
-                retrievalFocusDecision,
-                suggestionDecision: caseLawSuggestionDecision,
-              })
-            )
+        premiumPlusCaseLawBaseDecision &&
+        shouldUsePremiumPlusCaseLawHeuristically({
+          message,
+          history: sanitizedHistory,
+          task: processingResult.task,
+          hasAttachments,
+          retrievalFocusApplied,
+          retrievalFocusDecision,
+          suggestionDecision: caseLawSuggestionDecision,
+        })
       )
 
     if (premiumPlusActive && retrievalFocusApplied === 'hybrid' && !shouldUsePremiumPlusCaseLawRetrieval) {
@@ -2347,20 +2277,12 @@ export async function POST(request: NextRequest) {
     const premiumPlusNeedsCaseLawSuggestions =
       premiumPlusActive &&
       shouldUsePremiumPlusCaseLawRetrieval &&
-      (
-        premiumPlusPlannerDecision?.action === 'execute'
-          ? hasPlannerTool(premiumPlusTools, 'case_law_suggestions')
-          : caseLawSuggestionDecision.shouldSuggest
-      )
+      caseLawSuggestionDecision.shouldSuggest
     const premiumPlusNeedsCaseLawRag =
       premiumPlusActive &&
       shouldUsePremiumPlusCaseLawRetrieval &&
-      (
-        premiumPlusPlannerDecision?.action === 'execute'
-          ? hasPlannerTool(premiumPlusTools, 'case_law_rag')
-          : true
-      )
-    premiumPlusTools = premiumPlusActive && premiumPlusPlannerDecision?.action !== 'execute'
+      true
+    premiumPlusTools = premiumPlusActive
       ? buildHeuristicPremiumPlusTools({
           retrievalFocusApplied,
           searchMode: premiumPlusSearchMode,
@@ -2370,8 +2292,7 @@ export async function POST(request: NextRequest) {
           useCaseLawRag: premiumPlusNeedsCaseLawRag,
         })
       : premiumPlusTools
-    const retrievalRoutingSource: 'groq' | 'heuristic' =
-      premiumPlusPlannerDecision ? 'groq' : 'heuristic'
+    const retrievalRoutingSource: 'heuristic' = 'heuristic'
     const premiumSearchRoutingSource: 'direct' = 'direct'
     const premiumPlusNeedsWebRetrieval =
       premiumPlusActive &&
@@ -2393,6 +2314,7 @@ export async function POST(request: NextRequest) {
     const caseLawQuery = generatedVectorQuery || baselineCaseLawQuery
 
     const caseLawSuggestionPromise = shouldLookupCaseLawSuggestions
+      && !premiumPlusActive
       ? withStageTimeout(
           fetchCaseLawSuggestions(caseLawQuery, CASELAW_SUGGESTION_LIMIT),
           PREMIUM_PLUS_CASELAW_TIMEOUT_MS,
@@ -2402,6 +2324,7 @@ export async function POST(request: NextRequest) {
       : Promise.resolve([] as CaseLawSuggestion[])
 
     const vectorCaseLawRagPromise = usePremiumPlusVectorRag
+      && !premiumPlusActive
       ? withStageTimeout(
           fetchPremiumPlusVectorCaseLawRag(caseLawQuery, CASELAW_RAG_LIMIT),
           PREMIUM_PLUS_CASELAW_TIMEOUT_MS,
@@ -2424,32 +2347,14 @@ export async function POST(request: NextRequest) {
     }
     const vectorCaseLawRagContext = buildVectorCaseLawRagContext(vectorCaseLawRagItems)
     const caseLawSuggestionContext = buildCaseLawSuggestionContext(caseLawSuggestions)
-    const premiumPlusDecompositionContext = premiumPlusActive
-      ? buildPremiumPlusDecompositionContext(premiumPlusDecomposition, premiumPlusSubIssues)
-      : ''
+    const premiumPlusDecompositionContext = ''
     const ownCaseFacts = retrievalFocusDecision.ownCaseNarrative
       ? extractKeyFactsFromMessage(message).slice(0, 6)
       : []
     const ownCaseFactsContext = ownCaseFacts.length > 0
       ? `\n\nUser facts for issue spotting:\n${ownCaseFacts.map((fact) => `- ${fact}`).join('\n')}`
       : ''
-    const caseLawStyleInstruction = premiumPlusActive
-      ? (() => {
-          if (retrievalFocusApplied === 'direct') {
-            return '\n\nExplanation policy (Premium+): Answer directly in plain English from stable legal knowledge. Keep it practical and do not add authorities unless the user specifically asks for them or they are already provided in context.'
-          }
-          if (retrievalFocusApplied === 'web_only') {
-            return '\n\nExplanation policy (Premium+): Focus on current procedure and practical next steps in plain English. Do not add case authorities unless they are directly relevant.'
-          }
-          if (vectorOnlyRequested && usePremiumPlusVectorRag && !vectorFallbackToWeb) {
-            return '\n\nExplanation policy (Premium+): Focus on retrieved authorities and explain how courts have generally reasoned in similar situations. Keep practical next steps concise.'
-          }
-          if (premiumPlusNeedsCaseLawSuggestions && !usePremiumPlusVectorRag) {
-            return '\n\nExplanation policy (Premium+): Use the shortlisted authorities as signposts only. Do not imply detailed holdings unless they appear in the authority context provided.'
-          }
-          return '\n\nExplanation policy (Premium+): Start with a short plain-English answer first. Then add an "Authorities and interpretation" section with no more than 3 authorities, and explain each authority in one sentence.'
-        })()
-      : ''
+    const caseLawStyleInstruction = ''
 
     const rawMessageForAgent = attachmentContext
       ? `${message}${ownCaseFactsContext}\n\nThe user uploaded documents. Use the excerpts below in your analysis.${caseContext}${memoryContext}${premiumPlusDecompositionContext}${caseLawSuggestionContext}${vectorCaseLawRagContext}${caseLawStyleInstruction}\n${attachmentContext}`
@@ -2594,7 +2499,7 @@ export async function POST(request: NextRequest) {
                 retrievalFocus: retrievalFocusDecision.focus,
                 retrievalFocusApplied,
                 retrievalRoutingSource,
-                premiumPlusToolPlanUsed: Boolean(premiumPlusPlannerDecision),
+                premiumPlusToolPlanUsed: false,
                 premiumPlusToolPlanConfidence,
                 premiumPlusDecomposition: premiumPlusDecomposition || null,
                 premiumPlusSubIssueCount: premiumPlusSubIssues.length,
@@ -2621,7 +2526,6 @@ export async function POST(request: NextRequest) {
     const shouldStreamPremium = premiumPlanActive && !premiumPlusActive && !shouldUseBasicLegalAgent && shouldStreamResponse
     const shouldStreamPremiumPlus =
       shouldUsePremiumPlusLegalAgent &&
-      !premiumPlusPlannerAnswered &&
       shouldStreamResponse
 
     if (shouldStreamPremium || shouldStreamPremiumPlus) {
@@ -2666,16 +2570,10 @@ export async function POST(request: NextRequest) {
                   sanitizedHistory,
                   caseKeywords,
                   {
-                    useSearch: shouldUseSearchRetrieval,
-                    searchQueryOverride:
-                      generatedWebQuery ||
-                      buildPlannerQueryFromTools(premiumPlusTools, 'web') ||
-                      buildPlannerQueryFromSubIssues(premiumPlusSubIssues, 'web') ||
-                      undefined,
-                    searchModeOverride: premiumPlusSearchMode || undefined,
+                    useSearch: true,
                     searchEngineOverride: 'perplexity',
-                    anthropicModel: premiumPlusClaudeModel || undefined,
-                    anthropicFallbackModel: premiumPlusClaudeFallbackModel || undefined,
+                    openaiModel: premiumPlusOpenAiModel || undefined,
+                    openaiFallbackModel: premiumPlusOpenAiFallbackModel || undefined,
                     onToken: (chunk) => {
                       if (chunk) sendEvent({ type: 'delta', delta: chunk })
                     },
@@ -2703,27 +2601,11 @@ export async function POST(request: NextRequest) {
     const agentResponse: AgentResponse = shouldUseBasicLegalAgent
       ? await invokeBasicLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords)
       : shouldUsePremiumPlusLegalAgent
-        ? (
-            premiumPlusPlannerAnswered && premiumPlusPlannerDirectResponse
-              ? {
-                  response: premiumPlusPlannerDirectResponse,
-                  document_generated: false,
-                  guidance_provided: true,
-                  next_steps: [],
-                  sources: undefined,
-                }
-              : await invokePremiumPlusLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
-                  useSearch: shouldUseSearchRetrieval,
-                  searchQueryOverride:
-                    generatedWebQuery ||
-                    buildPlannerQueryFromTools(premiumPlusTools, 'web') ||
-                    buildPlannerQueryFromSubIssues(premiumPlusSubIssues, 'web') ||
-                    undefined,
-                  searchModeOverride: premiumPlusSearchMode || undefined,
-                  anthropicModel: premiumPlusClaudeModel || undefined,
-                  anthropicFallbackModel: premiumPlusClaudeFallbackModel || undefined,
-                })
-          )
+        ? await invokePremiumPlusLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
+            useSearch: true,
+            openaiModel: premiumPlusOpenAiModel || undefined,
+            openaiFallbackModel: premiumPlusOpenAiFallbackModel || undefined,
+          })
         : await invokePremiumLegalAgent(messageForAgent, threadId, userId, sanitizedHistory, caseKeywords, {
             useSearch: shouldUseSearchRetrieval,
             searchQueryOverride: premiumGeneratedWebQuery || undefined,
