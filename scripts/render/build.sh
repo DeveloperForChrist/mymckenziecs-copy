@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PYTHON_VENV_DIR="${PYTHON_VENV_DIR:-.render-python}"
+PYTHON_VENV_DIR="${PYTHON_VENV_DIR:-render-python}"
 PYTHON_REQUIREMENTS="${PYTHON_REQUIREMENTS:-scripts/case-law/requirements-milvus.txt}"
 RENDER_STRICT_PYTHON_DEPS="${RENDER_STRICT_PYTHON_DEPS:-0}"
 
 install_python_deps() {
   echo "Creating Python virtualenv at ${PYTHON_VENV_DIR}"
-  python3 -m venv "${PYTHON_VENV_DIR}"
+  python3 -m venv --clear --copies "${PYTHON_VENV_DIR}"
 
   echo "Installing Python dependencies from ${PYTHON_REQUIREMENTS}"
   "${PYTHON_VENV_DIR}/bin/python" -m pip install --upgrade pip setuptools wheel

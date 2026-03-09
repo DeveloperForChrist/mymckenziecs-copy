@@ -64,3 +64,5 @@ supabase/.temp/
 # Python cache
 __pycache__/
 *.pyc
+.render-python/
+render-python/
