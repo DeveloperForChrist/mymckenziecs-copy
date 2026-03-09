@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PYTHON_VENV_DIR="${PYTHON_VENV_DIR:-render-python}"
+PYTHON_VENV_DIR="${PYTHON_VENV_DIR:-.render-python}"
 START_PY_BRIDGE="${START_PY_BRIDGE:-1}"
 PY_BRIDGE_HOST="${PY_BRIDGE_HOST:-127.0.0.1}"
 PY_BRIDGE_PORT="${PY_BRIDGE_PORT:-8000}"
@@ -19,7 +19,7 @@ if [ "${START_PY_BRIDGE}" = "1" ]; then
     PY_BRIDGE_HOST="${PY_BRIDGE_HOST}" PY_BRIDGE_PORT="${PY_BRIDGE_PORT}" \
       "${PYTHON_BIN}" scripts/case-law/milvus_bridge.py &
   else
-    echo "WARNING: Render Python virtualenv is unavailable at runtime; Python Milvus bridge will not start."
+    echo "WARNING: Python runtime is unavailable; Python Milvus bridge will not start."
   fi
 fi
 
