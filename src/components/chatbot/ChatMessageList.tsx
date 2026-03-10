@@ -877,6 +877,16 @@ export default function ChatMessageList({
         height: measuredHeightsRef.current.get(getMessageRenderKey(message, index)) ?? estimateMessageHeight(message),
       }))
 
+  const hasVisibleAssistantTyping = messages.some(
+    (message) =>
+      message.role === 'assistant' &&
+      message.isTyping &&
+      typeof message.content === 'string' &&
+      message.content.trim().length > 0
+  )
+
+  const showFooterLoadingIndicator = loading && !hasVisibleAssistantTyping
+
   return (
     <>
       <style>{messageStyles}</style>
@@ -929,7 +939,7 @@ export default function ChatMessageList({
         </>
       )}
 
-      {loading && (
+      {showFooterLoadingIndicator && (
         <div style={{ margin: '10px 0 6px', display: 'flex', justifyContent: 'flex-start', marginLeft: '8px' }}>
           <StatusIndicatorComponent label={(loadingLabel || 'Thinking').replace(/\.+$/, '')} compact />
         </div>
