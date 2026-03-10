@@ -5,6 +5,9 @@ import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout';
 import { flushNotesDraftNow } from '@/lib/notes/flush-notes-draft';
 import type { User } from '@supabase/supabase-js';
 import styles from './settingsPage.module.css';
+import CookiePreferencesSection from './CookiePreferencesSection';
+
+const googleAnalyticsMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim()
 
 export default function AccountSection() {
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -405,6 +408,7 @@ export default function AccountSection() {
           <p className={styles.helpText} style={{ marginTop: '8px' }}>Sign out from your current session.</p>
         </div>
       </section>
+      <CookiePreferencesSection measurementId={googleAnalyticsMeasurementId} />
       <div className={styles.bottomActions}>
         <button 
           className={styles.primaryBtn}

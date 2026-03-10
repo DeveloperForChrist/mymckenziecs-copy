@@ -1,6 +1,8 @@
+import CookiePreferencesSection from '@/components/settings/CookiePreferencesSection';
 import LegalPageLayout from '@/components/layout/LegalPageLayout';
 
 export const revalidate = 86400;
+const googleAnalyticsMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim()
 
 export default function CookiePolicyPage() {
   return (
@@ -109,13 +111,18 @@ export default function CookiePolicyPage() {
           <p className="mt-2">You can manage or disable cookies through:</p>
           <ul className="list-disc pl-6 mt-1">
             <li>Your browser settings</li>
-            <li>Our cookie consent banner (for analytics cookies)</li>
+            <li>Our cookie consent banner</li>
+            <li>Your account settings page when signed in</li>
+            <li>The controls on this Cookie Policy page</li>
           </ul>
           <p className="mt-2">However:</p>
           <ul className="list-disc pl-6 mt-1">
             <li>Disabling essential cookies will prevent the Platform from functioning</li>
             <li>Analytics cookies will only run if you opt in</li>
           </ul>
+          <div className="mt-4">
+            <CookiePreferencesSection measurementId={googleAnalyticsMeasurementId} />
+          </div>
         </li>
         <li>
           <b>Changes to This Cookie Policy</b>
