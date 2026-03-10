@@ -1194,7 +1194,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       const target = prev[targetIndex]
       const nextIsTyping = !isDone
       const nextMetadata = isDone
-        ? (attachAssistantPresentationMetadata(text, target.metadata, { reuseExistingPresentation: true }) as AssistantMetadata | undefined)
+        ? (attachAssistantPresentationMetadata(text, target.metadata) as AssistantMetadata | undefined)
         : target.metadata
 
       if (target.content === text && target.isTyping === nextIsTyping && target.metadata === nextMetadata) {
@@ -1255,8 +1255,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
               isTyping: false,
               metadata: attachAssistantPresentationMetadata(
                 assistantText,
-                pendingFinalize.metadata || target.metadata,
-                { reuseExistingPresentation: true }
+                pendingFinalize.metadata || target.metadata
               ) as AssistantMetadata | undefined,
             }
             return updated
@@ -1434,8 +1433,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
         streamStatusLabel: null,
         metadata: attachAssistantPresentationMetadata(
           assistantText,
-          metadata || target.metadata,
-          { reuseExistingPresentation: true }
+          metadata || target.metadata
         ) as AssistantMetadata | undefined,
       }
       return updated
