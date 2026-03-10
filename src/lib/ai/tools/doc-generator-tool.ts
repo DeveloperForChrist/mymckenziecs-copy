@@ -3,33 +3,12 @@ import openaiClient from '../providers/openai-client';
 
 export class DocGeneratorTool extends Tool {
   name = "document_generator";
-  description = "A template filler for UK litigation documents. Only fills approved template-style structures with placeholders. Never writes bespoke/personalized letters or drafts.";
+  description = "Drafts UK litigation documents in plain text using the user's request and conversation context. Uses placeholders only where necessary for missing facts.";
 
-  private isTemplateFillIntent(input: string): boolean {
-    const text = (input || '').toLowerCase()
-    if (!text.trim()) return false
-
-    const mentionsTemplateOrForm =
-      /\b(template|pro forma|standard form|form|n1|n9|n180|n244|witness statement template|letter template)\b/.test(text)
-    const fillVerb =
-      /\b(fill|populate|complete|slot in|insert|use template|template fill)\b/.test(text)
-
-    return mentionsTemplateOrForm || fillVerb
-  }
-
-  private enforceTemplateOnlyOutput(output: string): string {
+  private normalizeDraftOutput(output: string): string {
     const text = (output || '').trim()
     if (!text) {
-      return "I can only help with template-based document filling. Please provide a template type and key fields to fill."
-    }
-
-    const hasPlaceholder = /\[[^\]\n]{2,80}\]/.test(text)
-    const looksPersonalizedLetter =
-      /\bdear\s+(mr|mrs|ms|sir|madam|[a-z])/i.test(text) ||
-      /\byours\s+(sincerely|faithfully)\b/i.test(text)
-
-    if (!hasPlaceholder || looksPersonalizedLetter) {
-      return "I cannot produce bespoke or personalised letters. I can fill template documents only, using placeholders like [CLAIMANT NAME], [DATE], and [REFERENCE]."
+      return "I could not generate a draft from that request. Please tell me the document type and the main facts you want included."
     }
 
     return text
@@ -39,26 +18,20 @@ export class DocGeneratorTool extends Tool {
     try {
       console.log("🔍 Analyzing document request with AI...");
 
-      if (!this.isTemplateFillIntent(input)) {
-        return "I cannot produce bespoke or personalised letters. I can help fill template documents only. Please name the template/form and the fields you want filled."
-      }
-      
-      const prompt = `You are a UK legal template assistant. Based on the user's request: "${input}"
+      const prompt = `You are a UK legal document drafting assistant for England and Wales. Based on the user's request: "${input}"
 
 ROLE AND SAFETY:
-- You must NEVER produce bespoke/personalised letters or custom advocacy drafts.
-- You may ONLY output template-fill content.
-- Keep user-specific items as placeholders in [SQUARE BRACKETS].
-- If a detail is missing, keep a placeholder; do not invent.
-- Do not include addresses, names, signatures, or salutations unless represented as placeholders.
+- Draft the specific document the user has asked for.
+- Tailor the draft to the facts and context provided.
+- If a necessary factual detail is missing, use a short placeholder in [SQUARE BRACKETS].
+- Do not invent names, dates, addresses, references, or factual allegations that were not provided.
+- Keep the draft practical, coherent, and ready for the user to adapt.
+- Plain text only. No markdown links, tables, or code fences.
 
-OUTPUT FORMAT (plain text only, no markdown):
-1) TEMPLATE TYPE: one short line
-2) TEMPLATE FIELDS NEEDED: bullet list of placeholders
-3) TEMPLATE DRAFT: structured template text with placeholders
-4) CHECKLIST: short list of what the user should provide to complete placeholders
-
-Generate template-fill output only.`
+OUTPUT FORMAT:
+- First line: the document type or short heading if useful.
+- Then provide the draft itself.
+- If useful, end with a short "Missing details:" line listing only the key blanks the user may want to complete.`
 
       const completion = await openaiClient.chat.completions.create({
         messages: [{ role: "user", content: prompt }],
@@ -67,7 +40,7 @@ Generate template-fill output only.`
         max_tokens: 1600
       });
       const raw = completion.choices[0]?.message?.content || "Failed to generate document."
-      return this.enforceTemplateOnlyOutput(raw)
+      return this.normalizeDraftOutput(raw)
     } catch (error: any) {
       if (error.message?.includes('rate limit') || error.status === 429) {
         return "⚠️ Rate limit exceeded. Please wait a minute and try again, or upgrade your API plan for higher limits.";

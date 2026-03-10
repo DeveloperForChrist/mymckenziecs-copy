@@ -530,6 +530,38 @@ describe('/api/chat route', () => {
     expect(payload.response).toContain('Hassam v Rabot [2023] UKSC 19')
   })
 
+  it('does not replace a procedural follow-up with the template-only refusal when the agent drifts into draft-style output', { timeout: 15000 }, async () => {
+    process.env.PREMIUM_PLUS_ANTHROPIC_MODEL = 'claude-opus-4-6'
+
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'premium +', paidAccess: true, planStatus: 'active' },
+      processMessageResult: { task: 'legal_procedure', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    ;(legalAgentMocks.invokePremiumPlusLegalAgent as any).mockResolvedValueOnce({
+      response: 'Dear Sir or Madam,\n\nI want to sue the defendant for the money owed.\n\nYours faithfully,',
+      guidance_provided: [],
+      next_steps: [],
+    })
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'What do I do if I want to sue a person?',
+        history: [
+          { role: 'user', content: 'Can you draft a statement for me?' },
+          { role: 'assistant', content: 'Witness statement\n[CLAIMANT NAME]\n[DATE]' },
+        ],
+      })
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.response).not.toBe(
+      'I cannot create bespoke or personalised letters/drafts. I can help fill template documents only. Please tell me the template/form and the fields to populate.'
+    )
+    expect(payload.response).toContain('Dear Sir or Madam')
+  })
+
   it('keeps verified authority headings and strips unmatched ones in premium plus responses', { timeout: 15000 }, async () => {
     process.env.PREMIUM_PLUS_ANTHROPIC_MODEL = 'claude-opus-4-6'
 

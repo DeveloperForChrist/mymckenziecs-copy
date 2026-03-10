@@ -83,7 +83,7 @@ describe('ChatInterface stream status replay', () => {
     vi.restoreAllMocks()
   })
 
-  it('replays a long-running inline stream status until the next stream event arrives', async () => {
+  it('holds a long-running inline stream status steady until the next stream event arrives', async () => {
     const encoder = new TextEncoder()
     let streamController: ReadableStreamDefaultController<Uint8Array> | null = null
 
@@ -148,8 +148,7 @@ describe('ChatInterface stream status replay', () => {
       await Promise.resolve()
     })
 
-    expect(getStatusText().startsWith('W')).toBe(true)
-    expect(getStatusText()).not.toBe('Working')
+    expect(getStatusText()).toBe('Working')
 
     await act(async () => {
       streamController!.enqueue(
@@ -160,7 +159,7 @@ describe('ChatInterface stream status replay', () => {
     })
 
     expect(screen.getByText('Done')).toBeInTheDocument()
-  })
+  }, 10000)
 
   it('renders heading and ordered structure before the streaming response completes', async () => {
     const encoder = new TextEncoder()

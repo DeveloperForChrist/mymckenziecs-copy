@@ -42,8 +42,6 @@ const linkStyle: CSSProperties = {
 }
 
 const typingAccentColor = 'rgba(236, 72, 153, 0.95)'
-const streamStatusReplayHoldMs = 2200
-const streamStatusReplayRestartMs = 320
 
 const StatusIndicator = ({ label = 'Thinking', compact = false }: { label?: string; compact?: boolean }) => {
   const padding = compact ? '6px 8px' : '8px 10px'
@@ -153,9 +151,6 @@ const convertUrlsToLinks = (segment: string) => {
   return [...parts, ...urlParts]
 }
 
-const buildCourtFormSearchUrl = (refText: string) =>
-  `https://www.gov.uk/search/all?keywords=${encodeURIComponent(refText)}`
-
 const stripAssistantSourcesBlock = (text: string) => {
   if (!text) return text
   const sourcesBlockRegex =
@@ -165,34 +160,6 @@ const stripAssistantSourcesBlock = (text: string) => {
     .replace(/^\s*Reference\s+index:\s*[^\n]*$/gim, '')
     .replace(/\n{3,}/g, '\n\n')
   return withoutReferenceIndex.trim()
-}
-
-const resourceLinks: Array<{ pattern: RegExp; url: string }> = [
-  { pattern: /\bPractice Direction\s*7A\b|\bPD\s*7A\b/i, url: 'https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part07/pd_part07a' },
-  { pattern: /\bPre-Action Protocol for Small Claims\b/i, url: 'https://www.justice.gov.uk/courts/procedure-rules/civil/rules/pd_pre-action_conduct' },
-  { pattern: /Civil Procedure Rules\s*\(CPR\)|Civil Procedure Rules|\bCPR\b/i, url: 'https://www.justice.gov.uk/courts/procedure-rules/civil' },
-  { pattern: /Practice Directions?\s*\(PD\)|\bPD\b/i, url: 'https://www.justice.gov.uk/courts/procedure-rules/civil/rules/pd' },
-  { pattern: /\bCitizens Advice\b/i, url: 'https://www.citizensadvice.org.uk/law-and-courts/' },
-  { pattern: /\bGOV\.UK\b|the GOV\.UK website/i, url: 'https://www.gov.uk/' },
-  { pattern: /\bCounty Court\b/i, url: 'https://www.gov.uk/courts-tribunals/county-court' }
-]
-
-const findNextResourceMatch = (text: string, startIndex: number) => {
-  let bestMatch: { index: number; end: number; text: string; url: string } | null = null
-
-  for (const entry of resourceLinks) {
-    const slice = text.slice(startIndex)
-    const match = slice.match(entry.pattern)
-    if (!match || match.index === undefined) continue
-    const index = startIndex + match.index
-    const textValue = match[0]
-    const end = index + textValue.length
-    if (!bestMatch || index < bestMatch.index || (index === bestMatch.index && textValue.length > bestMatch.text.length)) {
-      bestMatch = { index, end, text: textValue, url: entry.url }
-    }
-  }
-
-  return bestMatch
 }
 
 // Helper function to render numbered citations with hover tooltips
@@ -258,170 +225,20 @@ const renderSourceCitations = (text: string | JSX.Element, sources?: SourceRefer
   return parts.length > 0 ? parts : [text]
 }
 
-// Comprehensive rendering function that processes citations and legal references
+// Render citations first, then only convert explicit URLs to links.
 export const renderMessageContent = (text: string, sources?: SourceReference[]): (string | JSX.Element)[] => {
-  // Process citations first
   const citationProcessed = renderSourceCitations(text, sources)
-  
-  // Then process each citation part for legal references
   const finalParts: (string | JSX.Element)[] = []
-  
+
   for (const citPart of citationProcessed) {
     if (typeof citPart === 'string') {
-      finalParts.push(...renderLegalReferences(citPart))
+      finalParts.push(...convertUrlsToLinks(citPart))
     } else {
       finalParts.push(citPart)
     }
   }
-  
+
   return finalParts
-}
-
-// Helper function to convert legal references to clickable links
-const renderLegalReferences = (text: string) => {
-  const legislationPattern = /\b((?:[A-Z][A-Za-z&]+(?:\s+[A-Z][A-Za-z&]+)*)\s+(?:Act|Rules|Regulations|Order)\s+\d{4})(?:\s*(?:\(|,)?\s*(?:Section|s\.?|Part)\s*[0-9A-Z]+(?:\)|,)?)?/g
-  const caseLawPattern = /\b([A-Z][A-Za-z&'.-]+(?:\s+[A-Z][A-Za-z&'.-]+)*\s+v\s+[A-Z][A-Za-z&'.-]+(?:\s+[A-Z][A-Za-z&'.-]+)*\s*\[[0-9]{4}\][A-Za-z0-9\s\.\-]*?)\b/g
-  const formPattern = /\b((?:Form\s+)?[A-Z]{1,3}\d{1,4}[A-Z]?)(?:\s+(?:Application|Notice|Claim|Statement|Order|Certificate|Request|Response|Acknowledg(?:e)?ment|Defence|Defense|Appeal|Schedule|Witness|Bundle|Questionnaire))?/g
-  const rulePattern = /\b((?:CPR|Civil Procedure Rules|FPR|Family Procedure Rules|Tribunal Procedure Rules)\s*(?:Part\s*\d+[A-Za-z]?|r\.?\s*\d+(?:\.\d+)?|\d+)(?:\s*\([^)]+\))?)\b/gi
-  const practiceDirectionPattern = /\b((?:Practice Direction|PD)\s*[A-Za-z0-9]+(?:\s*[A-Za-z0-9]+)?)\b/gi
-  const urlAfterPattern = /^\s*(?:\(|\[)?\s*(https?:\/\/[^\s)\]]+)/
-  const parts: (string | JSX.Element)[] = []
-  let cursor = 0
-  let keyCounter = 0
-
-  while (cursor < text.length) {
-    legislationPattern.lastIndex = cursor
-    caseLawPattern.lastIndex = cursor
-    formPattern.lastIndex = cursor
-    rulePattern.lastIndex = cursor
-    practiceDirectionPattern.lastIndex = cursor
-    const legMatch = legislationPattern.exec(text)
-    const caseMatch = caseLawPattern.exec(text)
-    const formMatch = formPattern.exec(text)
-    const ruleMatch = rulePattern.exec(text)
-    const pdMatch = practiceDirectionPattern.exec(text)
-    const resourceMatch = findNextResourceMatch(text, cursor)
-
-      type LegalMatch =
-        | { index: number; end: number; type: 'legislation' | 'case' | 'form' | 'rule' | 'practice_direction'; refText: string }
-        | { index: number; end: number; type: 'resource'; refText: string; url: string };
-      let next: LegalMatch | null = null
-
-    const rawMatches = [
-      legMatch
-        ? { index: legMatch.index, end: legislationPattern.lastIndex, type: 'legislation' as const, refText: legMatch[1].trim() }
-        : null,
-      caseMatch
-        ? { index: caseMatch.index, end: caseLawPattern.lastIndex, type: 'case' as const, refText: caseMatch[1].trim() }
-        : null,
-      formMatch
-        ? { index: formMatch.index, end: formPattern.lastIndex, type: 'form' as const, refText: formMatch[1].trim() }
-        : null,
-      ruleMatch
-        ? { index: ruleMatch.index, end: rulePattern.lastIndex, type: 'rule' as const, refText: ruleMatch[1].trim() }
-        : null,
-      pdMatch
-        ? { index: pdMatch.index, end: practiceDirectionPattern.lastIndex, type: 'practice_direction' as const, refText: pdMatch[1].trim() }
-        : null,
-      resourceMatch
-        ? { index: resourceMatch.index, end: resourceMatch.end, type: 'resource' as const, refText: resourceMatch.text, url: resourceMatch.url }
-        : null
-    ];
-    function isLegalMatch(x: any): x is LegalMatch {
-      return x !== null;
-    }
-    const matches = rawMatches.filter(isLegalMatch);
-
-    if (matches.length > 0) {
-      next = matches.reduce<LegalMatch | null>((best, current) => {
-        if (!best) return current;
-        if (current.index < best.index) return current;
-        if (current.index === best.index && current.end > best.end) return current;
-        return best;
-      }, null);
-    }
-
-    if (!next) {
-      parts.push(...convertUrlsToLinks(text.substring(cursor)))
-      break
-    }
-
-    if (next.index > cursor) {
-      parts.push(...convertUrlsToLinks(text.substring(cursor, next.index)))
-    }
-
-    if (next.type === 'legislation' || next.type === 'case' || next.type === 'form' || next.type === 'rule' || next.type === 'practice_direction') {
-      const trailing = text.slice(next.end)
-      const urlMatch = trailing.match(urlAfterPattern)
-      if (next.type === 'legislation' || next.type === 'rule' || next.type === 'practice_direction') {
-        parts.push(next.refText)
-      } else if (next.type === 'form') {
-        const href = urlMatch?.[1] || buildCourtFormSearchUrl(next.refText)
-        parts.push(
-          <a
-            key={`form-${keyCounter++}`}
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={linkStyle}
-          >
-            {next.refText}
-          </a>
-        )
-        if (urlMatch) {
-          cursor = next.end + urlMatch[0].length
-          continue
-        }
-      } else if (urlMatch) {
-        // Only auto-link ambiguous references like case names or form numbers
-        // when the model already supplied an explicit destination URL.
-        const urlText = urlMatch[1]
-        parts.push(
-          <a
-            key={`ref-${keyCounter++}`}
-            href={urlText}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={linkStyle}
-          >
-            {next.refText}
-          </a>
-        )
-        cursor = next.end + urlMatch[0].length
-        continue
-      } else {
-        parts.push(next.refText)
-      }
-    } else {
-      const trailing = text.slice(next.end);
-      const urlMatch = trailing.match(urlAfterPattern);
-      let href: string | undefined = undefined;
-      if (urlMatch) {
-        href = urlMatch[1];
-      } else if (next.type === 'resource') {
-        href = (next as Extract<LegalMatch, { type: 'resource' }>).url;
-      }
-      parts.push(
-        <a
-          key={`res-${keyCounter++}`}
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={linkStyle}
-        >
-          {next.refText}
-        </a>
-      );
-      if (urlMatch) {
-        cursor = next.end + urlMatch[0].length;
-        continue;
-      }
-    }
-
-    cursor = next.end
-  }
-
-  return parts.length > 0 ? parts : convertUrlsToLinks(text)
 }
 
 type UploadedAttachment = {
@@ -1376,20 +1193,6 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       setInlineStreamStatusById(messageId, nextStatus)
 
       if (cursor >= targetLabel.length) {
-        streamStatusTypingIntervalRef.current = setTimeout(() => {
-          streamStatusTypingIntervalRef.current = null
-          if (streamStatusTypingMessageIdRef.current !== messageId) return
-          if (streamStatusPendingLabelRef.current !== targetLabel) return
-
-          setLoadingLabel(null)
-          setInlineStreamStatusById(messageId, null)
-          cursor = 0
-
-          streamStatusTypingIntervalRef.current = setTimeout(
-            tick,
-            streamStatusReplayRestartMs
-          )
-        }, streamStatusReplayHoldMs)
         return
       }
 

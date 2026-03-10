@@ -779,6 +779,43 @@ describe('agent smoke checks', () => {
     expect(result.response).toContain('I remember the earlier conversation')
   })
 
+  it('premium plus agent does not carry earlier drafting turns into a fresh procedural question', async () => {
+    await invokePremiumPlusLegalAgent(
+      'What do I do if I want to sue a person?',
+      'thread_smoke_premium_plus_ignore_draft_history',
+      'user_smoke_premium_plus_ignore_draft_history',
+      [
+        {
+          role: 'user',
+          content: 'Please draft a witness statement for me.',
+        },
+        {
+          role: 'assistant',
+          content: 'Witness statement\n[CLAIMANT NAME]\n[DATE]\nStatement of Truth',
+        },
+        {
+          role: 'user',
+          content: 'I want to recover money from someone who owes me.',
+        },
+      ],
+      'money claim',
+      {
+        useSearch: true,
+        anthropicModel: 'claude-opus-4-6',
+        anthropicFallbackModel: 'claude-sonnet-4-6',
+      }
+    )
+
+    const [payload] = (anthropicMockState.anthropicMessagesCreateMock.mock.calls[0] || []) as any[]
+    const systemText = Array.isArray(payload?.system)
+      ? payload.system.map((block: any) => String(block?.text || '')).join('\n')
+      : String(payload?.system || '')
+
+    expect(systemText).not.toContain('Please draft a witness statement for me.')
+    expect(systemText).not.toContain('Statement of Truth')
+    expect(systemText).toContain('I want to recover money from someone who owes me.')
+  })
+
   it('premium plus tool path returns verified authorities extracted from tool results', async () => {
     milvusMockState.searchByTextMock.mockResolvedValueOnce([
       {
@@ -873,6 +910,35 @@ describe('agent smoke checks', () => {
     )
 
     expect(result.response).toContain('I remember the earlier conversation')
+  })
+
+  it('premium plus agent allows bespoke drafting requests', async () => {
+    const result = await invokePremiumPlusLegalAgent(
+      'Please draft a witness statement for my unpaid invoice claim.',
+      'thread_smoke_premium_plus_bespoke_draft',
+      'user_smoke_premium_plus_bespoke_draft',
+      [
+        {
+          role: 'user',
+          content: 'The defendant has not paid my invoice dated 1 February 2026.',
+        },
+      ],
+      'money claim',
+      {
+        useSearch: true,
+        anthropicModel: 'claude-opus-4-6',
+        anthropicFallbackModel: 'claude-sonnet-4-6',
+      }
+    )
+
+    expect(result.document_generated).toBe(true)
+    expect(result.response).not.toContain('I cannot create bespoke or personalised letters/drafts')
+
+    const [payload] = (openAiMockState.openAiCreateMock.mock.calls[0] || []) as any[]
+    const prompt = String(payload?.messages?.[0]?.content || '')
+    expect(prompt).toContain('Draft the specific document the user has asked for.')
+    expect(prompt).not.toContain('You may ONLY output template-fill content.')
+    expect(prompt).not.toContain('You must NEVER produce bespoke/personalised letters')
   })
 
   it('legal agent returns the generator answer directly on the direct path', async () => {

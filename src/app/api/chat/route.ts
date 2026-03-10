@@ -1490,55 +1490,6 @@ const inferFollowUpQuestion = (task: string, message: string) => {
   return null
 }
 
-const isDraftRequestIntent = (text: string): boolean => {
-  const input = (text || '').toLowerCase()
-  if (!input.trim()) return false
-  const hasDraftVerb = /\b(draft|write|prepare|create|generate|produce)\b/.test(input)
-  const hasDocTarget =
-    /\b(letter|document|witness statement|statement|skeleton argument|defence|defense|application|affidavit|notice|pleading)\b/.test(
-      input
-    )
-  return hasDraftVerb && hasDocTarget
-}
-
-const isTemplateFillIntent = (text: string): boolean => {
-  const input = (text || '').toLowerCase()
-  if (!input.trim()) return false
-  return /\b(template|pro forma|standard form|fill in|populate|complete form|n1|n9|n180|n244)\b/.test(input)
-}
-
-const looksLikePersonalizedDraft = (text: string): boolean => {
-  const input = (text || '').toLowerCase()
-  if (!input.trim()) return false
-  return (
-    /\bdear\s+(sir|madam|mr|mrs|ms|[a-z])/.test(input) ||
-    /\byours\s+(sincerely|faithfully)\b/.test(input) ||
-    /\bletter before action\b/.test(input) ||
-    /\bre:\s*/.test(input)
-  )
-}
-
-const templateOnlyRefusalResponse =
-  'I cannot create bespoke or personalised letters/drafts. I can help fill template documents only. Please tell me the template/form and the fields to populate.'
-
-const enforceTemplateOnlyFinalResponse = (
-  userMessage: string,
-  responseText: string
-): { responseText: string; blocked: boolean; reason?: string } => {
-  const draftIntent = isDraftRequestIntent(userMessage)
-  const templateIntent = isTemplateFillIntent(userMessage)
-
-  if (draftIntent && !templateIntent) {
-    return { responseText: templateOnlyRefusalResponse, blocked: true, reason: 'non-template-draft-intent' }
-  }
-
-  if (!templateIntent && looksLikePersonalizedDraft(responseText)) {
-    return { responseText: templateOnlyRefusalResponse, blocked: true, reason: 'personalized-draft-output' }
-  }
-
-  return { responseText, blocked: false }
-}
-
 const resolveThreadTurnLimit = ({
   basicPlanActive,
   premiumPlanActive,
@@ -2224,10 +2175,7 @@ export async function POST(request: NextRequest) {
       const scrubbedCaseLaw = premiumPlusActive
         ? scrubUnsupportedCaseLawClaims(responseWithSoftStep || '', allowedAuthorityTokens)
         : { text: responseWithSoftStep || '', removedCount: 0 }
-      const templateGuardResult = enforceTemplateOnlyFinalResponse(message, scrubbedCaseLaw.text)
-      const finalAssistantResponse = templateGuardResult.responseText
-      const templateDraftBlocked = templateGuardResult.blocked
-      const templateDraftBlockReason = templateGuardResult.reason || null
+      const finalAssistantResponse = scrubbedCaseLaw.text
       const removedUnsupportedAuthorityLines = scrubbedCaseLaw.removedCount
       const actionItems = extractActionItems(`${message}\n${finalAssistantResponse}`)
       if (actionItems.length > 0) {
@@ -2272,8 +2220,6 @@ export async function POST(request: NextRequest) {
             sources: agentResponse.sources || [],
             caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
             caseLawSoftNextStep,
-            templateDraftBlocked,
-            templateDraftBlockReason,
             actionItems,
           }) || {},
           processingResult.caseId || sessionInfo.activeCaseId || null
@@ -2294,8 +2240,6 @@ export async function POST(request: NextRequest) {
         urgency: processingResult.urgency,
         followUpQuestion,
         actionItems,
-        templateDraftBlocked,
-        templateDraftBlockReason,
         ...(includeDebug
             ? {
               debug: {
@@ -2343,8 +2287,6 @@ export async function POST(request: NextRequest) {
                 retrievalProcedureScore: retrievalFocusDecision.procedureScore,
                 retrievalReasons: routingReasonsApplied,
                 removedUnsupportedAuthorityLines,
-                templateDraftBlocked,
-                templateDraftBlockReason,
                 relatedThreadMemoryUsed,
                 relatedThreadMemoryContextUsed: Boolean(relatedThreadMemoryContext),
                 relatedThreadMemoryConversationCount: relatedThreadMemory?.conversationCount || 0,

@@ -36,7 +36,7 @@ JUDGE-LIKE FRAMING
 
 DOCUMENTS AND EVIDENCE
 - If a user shares or describes a document, review it for clarity, structure, consistency, chronology, missing dates, missing context, contradictions, speculation, and irrelevant material.
-- If useful, offer a clearer template-style rewrite using placeholders in [SQUARE BRACKETS].
+- If useful, offer a clearer rewrite or a draft. Use placeholders in [SQUARE BRACKETS] only for genuinely missing details.
 - Help users identify what evidence they have, such as letters, contracts, statements, emails, text messages, witness accounts, photos, recordings, and official records.
 - If there are evidential gaps, explain neutrally what kinds of proof may improve clarity or credibility.
 
@@ -74,7 +74,6 @@ TONE:
 - Prefer hedged language such as "may", "might", "could", "can", "likely", "in general", "it may help to", "you may wish to", or "some judges may".
 - Prefer neutral phrasing instead of direct instructions.
 - Do not say "you should", "you must", "you need to", "the court will", "the judge will", "you will win", or "you will lose" unless directly quoting a rule or source. Rephrase those into neutral support language.
-- Do not create bespoke or personalised letters/drafts. You may only provide template-style drafts with placeholders in [SQUARE BRACKETS].
 - Do not say you chose, called, used, or had access to tools yourself. If search or authority context is present, treat it as context already provided to you.
 
 OUTPUT GOAL
@@ -87,7 +86,12 @@ const PREMIUM_CONTEXT_SYSTEM_PROMPT: string = `${SYSTEM_PROMPT}
 EXTERNAL CONTEXT
 - If external search, procedural, or authority material is included later in the prompt, treat it as additional context provided in this conversation, not as the user's own words and not as something you personally retrieved.
 - If no external context is provided, answer from general UK legal understanding, explain uncertainty where needed, and ask short clarifying questions when they would materially improve accuracy.
-- Do not say you chose, called, used, or had access to tools yourself.`
+- Do not say you chose, called, used, or had access to tools yourself.
+
+ACTIVE TASK RULE
+- Treat the user's latest message as the active task to answer.
+- Use earlier conversation only as background facts or context.
+- Do not continue, revise, or infer a drafting task from earlier turns unless the latest message clearly asks to draft, fill, continue, or edit a document or template.`
 
 const SYSTEM_PROMPT_FREE: string = `You are MyMckenzieCS Assistant, a full knowledged and conversational legal assistant and Mckenzie friend help UK legal users with their legal issues, cases and queries.
 You help users spot out the law or legislation of UK their cases or issues fall under, as most users may not know it as they are confused and stressed, so It is good to ask specific classifying questions when needed in order to be more accurate in spot the legal area of their case.
@@ -158,7 +162,6 @@ TONE:
 - Prefer hedged language such as "may", "might", "could", "can", "likely", "in general", "it may help to", "you may wish to", or "some judges may".
 - Prefer neutral phrasing instead of direct instructions.
 - Do not say "you should", "you must", "you need to", "the court will", "the judge will", "you will win", or "you will lose" unless directly quoting a rule or source. Rephrase those into neutral support language.
-- Do not create bespoke or personalised letters/drafts. You may only provide template-style drafts with placeholders in [SQUARE BRACKETS].
 - Do not say you chose, called, used, or had access to tools yourself. If search or authority context is present, treat it as context already provided to you.
 
 
@@ -314,11 +317,17 @@ const resolveConversationHistoryLimit = (limit?: number) =>
     : 40
 
 // Build history context
-function buildHistoryContext(history: Array<{ role: 'user' | 'assistant'; content: string }>): string {
+function buildHistoryContext(
+  history: Array<{ role: 'user' | 'assistant'; content: string }>,
+  latestQuestion?: string
+): string {
   if (!history || history.length === 0) return ''
 
-  const lines = history.map(entry => `${entry.role === 'assistant' ? 'Assistant' : 'User'}: ${entry.content}`)
-  return `Recent conversation:\n${lines.join('\n')}\n`
+  const scopedHistory = scopeHistoryForLatestQuestion(history, latestQuestion)
+  if (scopedHistory.length === 0) return ''
+
+  const lines = scopedHistory.map(entry => `${entry.role === 'assistant' ? 'Assistant' : 'User'}: ${entry.content}`)
+  return `Recent conversation (background only; answer the latest user question):\n${lines.join('\n')}\n`
 }
 
 const normalizeLegalSearchMode = (value: any): LegalSearchMode | null => {
@@ -436,7 +445,7 @@ const decidePremiumSearch = async (options: {
   const memoryContext = typeof options.memoryContext === 'string' && options.memoryContext.trim()
     ? `${options.memoryContext.trim()}\n\n`
     : ''
-  const historyContext = buildHistoryContext(options.history)
+  const historyContext = buildHistoryContext(options.history, options.latestQuestion)
   const caseContext = options.caseKeywords ? `Case context: ${options.caseKeywords}\n` : ''
   const routingPrompt =
     `${memoryContext}${historyContext}${caseContext}` +
@@ -533,8 +542,57 @@ function wantsTemplateFillOnly(rawInput: string): boolean {
   return templateSignals.some((signal) => input.includes(signal))
 }
 
-function templateOnlyRefusalMessage(): string {
-  return 'I cannot create bespoke or personalised letters/drafts. I can help fill template documents only. Tell me the template/form name and any fields you want populated, and I will return a placeholder-based template draft.'
+function referencesEarlierDraft(rawInput: string): boolean {
+  if (!rawInput) return false
+
+  const input = rawInput.trim().toLowerCase()
+  if (input.length === 0) return false
+
+  return [
+    /\b(?:the|that|this|my)\s+(?:draft|template|statement|letter|document|defence|defense|application|form)\b/,
+    /\bcontinue\b.{0,24}\b(?:draft|template|statement|letter|document|it)\b/,
+    /\b(?:revise|rewrite|redraft|edit|improve|shorten|expand|amend|update|change)\b.{0,24}\b(?:draft|template|statement|letter|document|it)\b/,
+    /\b(?:add|remove|insert|replace)\b.{0,24}\b(?:paragraph|section|line|wording|it)\b/,
+    /\b(?:fill|populate|complete)\b.{0,24}\b(?:template|form|draft|it)\b/,
+  ].some((pattern) => pattern.test(input))
+}
+
+function looksLikeDraftHistoryTurn(rawInput: string): boolean {
+  if (!rawInput) return false
+
+  const input = rawInput.trim()
+  if (input.length === 0) return false
+
+  const lowered = input.toLowerCase()
+  if (wantsDocumentDraftRequest(input) || wantsTemplateFillOnly(input)) return true
+
+  const hasTemplatePlaceholders =
+    /\[[^\]\n]{2,80}\]/.test(input) &&
+    /\b(claimant|defendant|witness|statement|court|address|date|signature|reference|claim no)\b/i.test(input)
+  const looksLikeLetterDraft =
+    /\bdear\s+(mr|mrs|ms|sir|madam|[a-z])/i.test(input) ||
+    /\byours\s+(sincerely|faithfully)\b/i.test(input)
+
+  return hasTemplatePlaceholders || looksLikeLetterDraft || lowered.startsWith('template draft')
+}
+
+function shouldIsolateLatestQuestionFromDraftHistory(latestQuestion?: string): boolean {
+  const question = String(latestQuestion || '').trim()
+  if (!question) return false
+  if (wantsDocumentDraftRequest(question)) return false
+  if (wantsTemplateFillOnly(question)) return false
+  if (referencesEarlierDraft(question)) return false
+  return true
+}
+
+function scopeHistoryForLatestQuestion(
+  history: Array<{ role: 'user' | 'assistant'; content: string }>,
+  latestQuestion?: string
+): Array<{ role: 'user' | 'assistant'; content: string }> {
+  if (!shouldIsolateLatestQuestionFromDraftHistory(latestQuestion)) return history
+
+  const filtered = history.filter((entry) => !looksLikeDraftHistoryTurn(entry.content))
+  return filtered.length > 0 ? filtered : history
 }
 
 // Remove markdown
@@ -1205,15 +1263,7 @@ export async function createLegalAgent(
 
         // 2. Check document request
         if (wantsDocumentDraftRequest(latestQuestion)) {
-          if (!wantsTemplateFillOnly(latestQuestion)) {
-            return {
-              response: templateOnlyRefusalMessage(),
-              document_generated: false,
-              guidance_provided: true,
-              sources: undefined
-            }
-          }
-          const contextForTools = `${memoryContext}${buildHistoryContext(trimmedHistory)}${latestQuestion}`
+          const contextForTools = `${memoryContext}${buildHistoryContext(trimmedHistory, latestQuestion)}${latestQuestion}`
           const docResult = await tools[0]._call(contextForTools)
           return {
             response: stripMarkdown(docResult).trim(),
@@ -1223,7 +1273,7 @@ export async function createLegalAgent(
           }
         }
 
-        const historyContext = buildHistoryContext(trimmedHistory)
+        const historyContext = buildHistoryContext(trimmedHistory, latestQuestion)
         const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
         const fallbackSearchMode: LegalSearchMode = searchModeOverride || (isDefinitionQuery(latestQuestion) ? 'education' : 'general')
         let shouldUseSearch = explicitUseSearch ?? true
@@ -1331,7 +1381,7 @@ export async function createLegalAgent(
           ? 'Include inline citations in square brackets that match the sources list above, like [1] or [2]. Use citations on factual statements.'
           : 'Do not include any source citations.'
         const lengthInstruction = buildLengthInstruction(latestQuestion)
-        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} ${citationInstruction} Keep the reply conversational and natural. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
+        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory, latestQuestion)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} ${citationInstruction} Keep the reply conversational and natural. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
         
         const modelForProvider =
           llmProvider === 'groq'
@@ -1664,16 +1714,7 @@ export async function invokePremiumLegalAgentStream(
   }
 
   if (wantsDocumentDraftRequest(latestQuestion)) {
-    if (!wantsTemplateFillOnly(latestQuestion)) {
-      return {
-        response: templateOnlyRefusalMessage(),
-        document_generated: false,
-        guidance_provided: true,
-        next_steps: [],
-        sources: undefined,
-      }
-    }
-    const contextForTools = `${memoryContext}${buildHistoryContext(trimmedHistory)}${latestQuestion}`
+    const contextForTools = `${memoryContext}${buildHistoryContext(trimmedHistory, latestQuestion)}${latestQuestion}`
     const docResult = await new DocGeneratorTool()._call(contextForTools)
     return {
       response: stripMarkdown(docResult).trim(),
@@ -1684,7 +1725,7 @@ export async function invokePremiumLegalAgentStream(
     }
   }
 
-  const historyContext = buildHistoryContext(trimmedHistory)
+  const historyContext = buildHistoryContext(trimmedHistory, latestQuestion)
   const caseContext = caseKeywords ? `Case context: ${caseKeywords}\n` : ''
   const fallbackSearchMode: LegalSearchMode = searchModeOverride || (isDefinitionQuery(latestQuestion) ? 'education' : 'general')
   let shouldUseSearch = explicitUseSearch ?? true
@@ -1750,7 +1791,7 @@ export async function invokePremiumLegalAgentStream(
     ? `All available sources to reference:\n${sources.map((url, i) => `[${i + 1}] ${url}`).join('\n')}`
     : 'No sources available.'
   const lengthInstruction = buildLengthInstruction(latestQuestion)
-  const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} Do not include any source citations. Keep the reply conversational and natural. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
+  const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory, latestQuestion)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} Do not include any source citations. Keep the reply conversational and natural. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
 
   emitStatus('Drafting answer...')
   return {
@@ -1988,12 +2029,13 @@ const buildPremiumPlusContextLines = (options: {
   caseKeywords?: string
   memoryContext?: string
   historyLimit?: number
+  latestQuestion?: string
 }) => {
   const trimmedHistory = sanitizeConversationHistory(
     options.conversationHistory,
     resolveConversationHistoryLimit(options.historyLimit)
   )
-  const historyContext = buildHistoryContext(trimmedHistory)
+  const historyContext = buildHistoryContext(trimmedHistory, options.latestQuestion)
   const contextLines: string[] = []
 
   if (options.caseKeywords?.trim()) {
@@ -2014,6 +2056,7 @@ const buildPremiumPlusDirectSystemPrompt = (options: {
   caseKeywords?: string
   memoryContext?: string
   historyLimit?: number
+  latestQuestion?: string
 }) => {
   const contextLines = buildPremiumPlusContextLines(options)
   return contextLines.length > 0
@@ -2061,7 +2104,10 @@ const callPremiumPlusDirectText = async (
   }
 ) => {
   const client = createPremiumPlusAnthropic()
-  const systemPrompt = buildPremiumPlusDirectSystemPrompt(options)
+  const systemPrompt = buildPremiumPlusDirectSystemPrompt({
+    ...options,
+    latestQuestion: message,
+  })
   return callPremiumPlusAnthropicText(
     client,
     options.anthropicModel,
@@ -2087,7 +2133,10 @@ const streamPremiumPlusDirectText = async (
   }
 ) => {
   const client = createPremiumPlusAnthropic()
-  const systemPrompt = buildPremiumPlusDirectSystemPrompt(options)
+  const systemPrompt = buildPremiumPlusDirectSystemPrompt({
+    ...options,
+    latestQuestion: message,
+  })
   return streamPremiumPlusAnthropic(
     client,
     options.anthropicModel,
@@ -2476,7 +2525,10 @@ const runPremiumPlusToolLoop = async (
   }
 ): Promise<PremiumPlusToolLoopState> => {
   const client = createPremiumPlusAnthropic()
-  const contextLines = buildPremiumPlusContextLines(options)
+  const contextLines = buildPremiumPlusContextLines({
+    ...options,
+    latestQuestion: prompt,
+  })
   const systemPrompt = buildPremiumPlusAnthropicSystemPrompt(contextLines)
   const messages: PremiumPlusAnthropicMessage[] = [{ role: 'user', content: prompt }]
   const aggregatedSources: string[] = []
@@ -2584,6 +2636,37 @@ export async function invokePremiumPlusLegalAgent(
     return {
       response: "I'm unable to respond right now because the Premium+ model is unavailable. Please try again shortly.",
       document_generated: false,
+      guidance_provided: false,
+      next_steps: [],
+      sources: undefined,
+    }
+  }
+
+  const trimmedHistory = sanitizeConversationHistory(
+    conversationHistory,
+    resolveConversationHistoryLimit(options?.historyLimit)
+  )
+  const memoryContext = typeof options?.memoryContext === 'string' && options.memoryContext.trim()
+    ? `${options.memoryContext.trim()}\n\n`
+    : ''
+  const latestQuestion = (message || '').trim()
+
+  if (isBasicGreeting(latestQuestion)) {
+    return {
+      response: "Hello! I'm MyMcKenzieCS. How can I help with your legal question?",
+      document_generated: false,
+      guidance_provided: true,
+      next_steps: [],
+      sources: undefined,
+    }
+  }
+
+  if (wantsDocumentDraftRequest(latestQuestion)) {
+    const contextForTools = `${memoryContext}${buildHistoryContext(trimmedHistory, latestQuestion)}${latestQuestion}`
+    const docResult = await new DocGeneratorTool()._call(contextForTools)
+    return {
+      response: stripMarkdown(docResult).trim(),
+      document_generated: true,
       guidance_provided: false,
       next_steps: [],
       sources: undefined,
@@ -2709,6 +2792,38 @@ export async function invokePremiumPlusLegalAgentStream(
     return {
       response: "I'm unable to respond right now because the Premium+ model is unavailable. Please try again shortly.",
       document_generated: false,
+      guidance_provided: false,
+      next_steps: [],
+      sources: undefined,
+    }
+  }
+
+  const trimmedHistory = sanitizeConversationHistory(
+    conversationHistory,
+    resolveConversationHistoryLimit(options?.historyLimit)
+  )
+  const memoryContext = typeof options?.memoryContext === 'string' && options.memoryContext.trim()
+    ? `${options.memoryContext.trim()}\n\n`
+    : ''
+  const latestQuestion = (message || '').trim()
+
+  if (isBasicGreeting(latestQuestion)) {
+    return {
+      response: "Hello! I'm MyMcKenzieCS. How can I help with your legal question?",
+      document_generated: false,
+      guidance_provided: true,
+      next_steps: [],
+      sources: undefined,
+    }
+  }
+
+  if (wantsDocumentDraftRequest(latestQuestion)) {
+    const contextForTools = `${memoryContext}${buildHistoryContext(trimmedHistory, latestQuestion)}${latestQuestion}`
+    const docResult = await new DocGeneratorTool()._call(contextForTools)
+    emitSyntheticStream(stripMarkdown(docResult).trim(), options?.onToken)
+    return {
+      response: stripMarkdown(docResult).trim(),
+      document_generated: true,
       guidance_provided: false,
       next_steps: [],
       sources: undefined,
