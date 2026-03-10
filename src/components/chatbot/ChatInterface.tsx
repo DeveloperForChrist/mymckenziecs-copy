@@ -42,8 +42,8 @@ const linkStyle: CSSProperties = {
 }
 
 const typingAccentColor = 'rgba(236, 72, 153, 0.95)'
-const streamStatusReplayHoldMs = 1400
-const streamStatusReplayRestartMs = 120
+const streamStatusReplayHoldMs = 1600
+const streamStatusReplayRestartMs = 180
 
 const StatusIndicator = ({ label = 'Thinking', compact = false }: { label?: string; compact?: boolean }) => {
   const padding = compact ? '6px 8px' : '8px 10px'
@@ -564,6 +564,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   const streamTypingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const streamTypingMessageIdRef = useRef<string | null>(null)
   const streamPendingDeltaRef = useRef('')
+  const streamRawTextRef = useRef('')
   const streamStatusTypingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const streamStatusTypingMessageIdRef = useRef<string | null>(null)
   const streamStatusPendingLabelRef = useRef('')
@@ -1025,6 +1026,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
         }
 
         setMessages((prev) => [...prev, assistantMessage])
+        streamRawTextRef.current = ''
         setActiveInlineStreamMessageId(assistantMessageId)
         typeStreamStatusById(assistantMessageId, initialPendingStatusLabel)
 
@@ -1166,7 +1168,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       cursor = Math.min(totalLength, cursor + 1)
       const rawChunk = sanitizedText.slice(0, cursor)
       const isDone = cursor >= totalLength
-      const chunk = isDone ? formatAssistantResponse(rawChunk) : rawChunk
+      const chunk = formatAssistantResponse(rawChunk)
 
       setMessages((prev) => applyUpdate(prev, chunk, isDone))
 
@@ -1243,6 +1245,8 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
           pendingStreamFinalizeRef.current = null
           streamTypingMessageIdRef.current = null
           const assistantText = stripAssistantSourcesBlock(String(pendingFinalize.fullText || ''))
+          const formattedAssistantText = formatAssistantResponse(assistantText)
+          streamRawTextRef.current = assistantText
           setMessages((prev) => {
             const targetIndex = prev.findIndex((m) => m.id === activeMessageId)
             if (targetIndex < 0) return prev
@@ -1251,10 +1255,10 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
             const updated = [...prev]
             updated[targetIndex] = {
               ...target,
-              content: assistantText,
+              content: formattedAssistantText,
               isTyping: false,
               metadata: attachAssistantPresentationMetadata(
-                assistantText,
+                formattedAssistantText,
                 pendingFinalize.metadata || target.metadata
               ) as AssistantMetadata | undefined,
             }
@@ -1272,10 +1276,11 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
         if (targetIndex < 0) return prev
 
         const target = prev[targetIndex]
+        streamRawTextRef.current = `${streamRawTextRef.current}${nextChar}`
         const updated = [...prev]
         updated[targetIndex] = {
           ...target,
-          content: `${target.content || ''}${nextChar}`,
+          content: formatAssistantResponse(streamRawTextRef.current),
           isTyping: true,
           streamStatusLabel: null,
         }
@@ -1349,9 +1354,9 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     let cursor = 0
 
     const resolveTickMs = (remainingLength: number) => {
-      if (remainingLength > 20) return 10
-      if (remainingLength > 8) return 14
-      return 18
+      if (remainingLength > 20) return 14
+      if (remainingLength > 8) return 18
+      return 24
     }
 
     const tick = () => {
@@ -1415,11 +1420,13 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
 
     pendingStreamFinalizeRef.current = null
     streamTypingMessageIdRef.current = null
+    streamRawTextRef.current = assistantText
     if (streamTypingIntervalRef.current) {
       clearInterval(streamTypingIntervalRef.current)
       streamTypingIntervalRef.current = null
     }
 
+    const formattedAssistantText = formatAssistantResponse(assistantText)
     setMessages((prev) => {
       const targetIndex = prev.findIndex((m) => m.id === messageId)
       if (targetIndex < 0) return prev
@@ -1428,11 +1435,11 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       const updated = [...prev]
       updated[targetIndex] = {
         ...target,
-        content: assistantText,
+        content: formattedAssistantText,
         isTyping: false,
         streamStatusLabel: null,
         metadata: attachAssistantPresentationMetadata(
-          assistantText,
+          formattedAssistantText,
           metadata || target.metadata
         ) as AssistantMetadata | undefined,
       }
@@ -1452,6 +1459,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       pendingStreamFinalizeRef.current = null
     }
     streamPendingDeltaRef.current = ''
+    streamRawTextRef.current = ''
     clearTypedStreamStatusById(messageId)
 
     setMessages((prev) => {
@@ -1600,6 +1608,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     stopTypedStreamStatus()
     streamPendingDeltaRef.current = ''
     streamTypingMessageIdRef.current = null
+    streamRawTextRef.current = ''
     pendingStreamFinalizeRef.current = null
     setMessages(prev => {
       const updated = [...prev]
@@ -1756,6 +1765,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
         }
 
         setMessages((prev) => [...prev, assistantMessage])
+        streamRawTextRef.current = ''
         setActiveInlineStreamMessageId(assistantMessageId)
         typeStreamStatusById(assistantMessageId, initialPendingStatusLabel)
 

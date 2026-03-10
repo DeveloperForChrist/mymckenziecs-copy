@@ -133,14 +133,14 @@ describe('ChatInterface stream status replay', () => {
     expect(screen.getByText('W')).toBeInTheDocument()
 
     await act(async () => {
-      vi.advanceTimersByTime(60)
+      vi.advanceTimersByTime(90)
       await Promise.resolve()
     })
 
     expect(screen.getByText('Web')).toBeInTheDocument()
 
     await act(async () => {
-      vi.advanceTimersByTime(1500)
+      vi.advanceTimersByTime(1740)
       await Promise.resolve()
     })
 
@@ -155,5 +155,71 @@ describe('ChatInterface stream status replay', () => {
     })
 
     expect(screen.getByText('Done')).toBeInTheDocument()
+  })
+
+  it('renders heading and ordered structure before the streaming response completes', async () => {
+    const encoder = new TextEncoder()
+    let streamController: ReadableStreamDefaultController<Uint8Array> | null = null
+
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        streamController = controller
+      },
+    })
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input) !== '/api/chat') {
+        throw new Error(`Unexpected fetch target: ${String(input)}`)
+      }
+
+      return new Response(stream, {
+        status: 200,
+        headers: { 'Content-Type': 'application/x-ndjson' },
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { container } = render(<ChatInterface />)
+
+    const textarea = screen.getByPlaceholderText(
+      'Talk about your issue, ask for explanations, or request procedural guidance...'
+    )
+    fireEvent.change(textarea, { target: { value: 'hello' } })
+
+    const form = textarea.closest('form')
+    expect(form).not.toBeNull()
+    fireEvent.submit(form!)
+
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    expect(streamController).not.toBeNull()
+
+    await act(async () => {
+      streamController!.enqueue(
+        encoder.encode(`${JSON.stringify({ type: 'delta', delta: 'Next steps\n\n1. File the claim form' })}\n`)
+      )
+      await Promise.resolve()
+    })
+
+    await act(async () => {
+      vi.advanceTimersByTime(600)
+      await Promise.resolve()
+    })
+
+    expect(container.querySelector('.assistant-heading')).not.toBeNull()
+    expect(container.querySelector('ol.assistant-list-ordered')).not.toBeNull()
+    expect(screen.getByText('Next steps')).toBeInTheDocument()
+    expect(screen.getByText('File the claim form')).toBeInTheDocument()
+
+    await act(async () => {
+      streamController!.enqueue(
+        encoder.encode(`${JSON.stringify({ type: 'done', payload: { response: 'Next steps\n\n1. File the claim form' } })}\n`)
+      )
+      streamController!.close()
+      await Promise.resolve()
+    })
   })
 })
