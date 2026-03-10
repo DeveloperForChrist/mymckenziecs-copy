@@ -36,6 +36,11 @@ const isSummaryLine = (line: string) => /^(in short|summary|takeaway)\s*:/i.test
 
 const isDividerLine = (line: string) => /^(?:-{3,}|_{3,}|\*{3,}|─{6,})$/.test(line.trim())
 
+const sentenceCaseHeadingStarterPattern =
+  /^(?:what|how|when|where|why|who|starting|filing|serving|track|practical|key|next|time|court|claim|response|defence|defense|payment|documents|evidence|costs|remedies)\b/i
+const sentenceCaseHeadingTrailingStopwordPattern =
+  /\b(?:and|or|but|because|with|without|to|for|of|the|a|an|if|when|where|which|that)\b$/i
+
 const extractHeadingText = (line: string) => line.trim().replace(/^##\s+/, '').trim()
 const extractSubheadingText = (line: string) => line.trim().replace(/^###\s+/, '').trim()
 const extractBulletText = (line: string) => line.trim().replace(/^(?:[\-*•])\s+/, '').trim()
@@ -176,6 +181,15 @@ const isHeadingLine = (line: string) => {
 
   const wordCount = trimmed.split(/\s+/).length
   if (wordCount < 2 || wordCount > 8 || trimmed.length > 56) return false
+
+  if (
+    wordCount <= 6 &&
+    trimmed.length <= 48 &&
+    sentenceCaseHeadingStarterPattern.test(trimmed) &&
+    !sentenceCaseHeadingTrailingStopwordPattern.test(trimmed)
+  ) {
+    return true
+  }
 
   const words = trimmed.split(/\s+/)
   const capitalWords = words.filter((word) => /^[A-Z]/.test(word)).length

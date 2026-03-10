@@ -87,6 +87,26 @@ describe('assistant presentation helpers', () => {
     expect(formatted).not.toContain('1. Check the qualifying period')
   })
 
+  it('recognizes sentence-case section headings used in streamed legal answers', () => {
+    const payload = buildAssistantResponsePayload(
+      'What the claim form does\n\nThe claim form provides the court with key information.\n\nHow you file it\n\nYou can file it online or by post.'
+    )
+
+    expect(payload.metadata?.presentation).toEqual({
+      version: 1,
+      sections: [
+        {
+          heading: 'What the claim form does',
+          lines: [{ kind: 'paragraph', text: 'The claim form provides the court with key information.' }],
+        },
+        {
+          heading: 'How you file it',
+          lines: [{ kind: 'paragraph', text: 'You can file it online or by post.' }],
+        },
+      ],
+    })
+  })
+
   it('normalizes loose assistant payloads into the shared contract', () => {
     const payload = normalizeAssistantResponsePayload({
       response: 'In short: Keep proof of service.',

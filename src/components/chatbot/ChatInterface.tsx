@@ -561,7 +561,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  const streamTypingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const streamFlushTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const streamTypingMessageIdRef = useRef<string | null>(null)
   const streamPendingDeltaRef = useRef('')
   const streamRawTextRef = useRef('')
@@ -1214,69 +1214,51 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     })
   }
 
-  const appendStreamDeltaById = (messageId: string, delta: string) => {
-    if (!delta) return
-    clearTypedStreamStatusById(messageId)
-    streamTypingMessageIdRef.current = messageId
-    streamPendingDeltaRef.current += delta
-
-    if (streamTypingIntervalRef.current) return
-
-    const resolveTickMs = (pendingLength: number) => {
-      if (pendingLength > 1800) return 4
-      if (pendingLength > 900) return 6
-      if (pendingLength > 320) return 8
-      return 12
+  const commitFinalStreamedMessageById = (
+    messageId: string,
+    fullText: string,
+    metadata?: AssistantMetadata
+  ) => {
+    pendingStreamFinalizeRef.current = null
+    streamTypingMessageIdRef.current = null
+    streamRawTextRef.current = fullText
+    if (streamFlushTimeoutRef.current) {
+      clearTimeout(streamFlushTimeoutRef.current)
+      streamFlushTimeoutRef.current = null
     }
 
-    const tick = () => {
-      streamTypingIntervalRef.current = null
-      const activeMessageId = streamTypingMessageIdRef.current
-      if (!activeMessageId) return
+    const formattedAssistantText = formatAssistantResponse(fullText)
+    setMessages((prev) => {
+      const targetIndex = prev.findIndex((m) => m.id === messageId)
+      if (targetIndex < 0) return prev
 
-      const pending = streamPendingDeltaRef.current
-      if (!pending) {
-        if (streamTypingIntervalRef.current) {
-          clearTimeout(streamTypingIntervalRef.current)
-          streamTypingIntervalRef.current = null
-        }
-        const pendingFinalize = pendingStreamFinalizeRef.current
-        if (pendingFinalize && pendingFinalize.messageId === activeMessageId) {
-          pendingStreamFinalizeRef.current = null
-          streamTypingMessageIdRef.current = null
-          const assistantText = stripAssistantSourcesBlock(String(pendingFinalize.fullText || ''))
-          const formattedAssistantText = formatAssistantResponse(assistantText)
-          streamRawTextRef.current = assistantText
-          setMessages((prev) => {
-            const targetIndex = prev.findIndex((m) => m.id === activeMessageId)
-            if (targetIndex < 0) return prev
-
-            const target = prev[targetIndex]
-            const updated = [...prev]
-            updated[targetIndex] = {
-              ...target,
-              content: formattedAssistantText,
-              isTyping: false,
-              metadata: attachAssistantPresentationMetadata(
-                formattedAssistantText,
-                pendingFinalize.metadata || target.metadata
-              ) as AssistantMetadata | undefined,
-            }
-            return updated
-          })
-        }
-        return
+      const target = prev[targetIndex]
+      const updated = [...prev]
+      updated[targetIndex] = {
+        ...target,
+        content: formattedAssistantText,
+        isTyping: false,
+        streamStatusLabel: null,
+        metadata: attachAssistantPresentationMetadata(
+          formattedAssistantText,
+          metadata || target.metadata
+        ) as AssistantMetadata | undefined,
       }
+      return updated
+    })
+  }
 
-      const nextChar = pending.slice(0, 1)
-      streamPendingDeltaRef.current = pending.slice(1)
+  const flushStreamDeltaBufferById = (messageId: string) => {
+    const pending = streamPendingDeltaRef.current
+    if (pending) {
+      streamPendingDeltaRef.current = ''
+      streamRawTextRef.current = `${streamRawTextRef.current}${pending}`
 
       setMessages((prev) => {
-        const targetIndex = prev.findIndex((m) => m.id === activeMessageId)
+        const targetIndex = prev.findIndex((m) => m.id === messageId)
         if (targetIndex < 0) return prev
 
         const target = prev[targetIndex]
-        streamRawTextRef.current = `${streamRawTextRef.current}${nextChar}`
         const updated = [...prev]
         updated[targetIndex] = {
           ...target,
@@ -1286,14 +1268,33 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
         }
         return updated
       })
-
-      streamTypingIntervalRef.current = setTimeout(
-        tick,
-        resolveTickMs(streamPendingDeltaRef.current.length)
-      )
     }
 
-    tick()
+    const pendingFinalize = pendingStreamFinalizeRef.current
+    if (pendingFinalize && pendingFinalize.messageId === messageId && !streamPendingDeltaRef.current) {
+      const assistantText = stripAssistantSourcesBlock(String(pendingFinalize.fullText || ''))
+      commitFinalStreamedMessageById(messageId, assistantText, pendingFinalize.metadata)
+    }
+  }
+
+  const scheduleStreamFlushById = (messageId: string, delayMs: number = 18) => {
+    streamTypingMessageIdRef.current = messageId
+    if (streamFlushTimeoutRef.current) return
+
+    streamFlushTimeoutRef.current = setTimeout(() => {
+      streamFlushTimeoutRef.current = null
+      const activeMessageId = streamTypingMessageIdRef.current
+      if (!activeMessageId) return
+      flushStreamDeltaBufferById(activeMessageId)
+    }, delayMs)
+  }
+
+  const appendStreamDeltaById = (messageId: string, delta: string) => {
+    if (!delta) return
+    clearTypedStreamStatusById(messageId)
+    streamTypingMessageIdRef.current = messageId
+    streamPendingDeltaRef.current += delta
+    scheduleStreamFlushById(messageId)
   }
 
   const setInlineStreamStatusById = (messageId: string, statusLabel: string | null) => {
@@ -1415,42 +1416,17 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     }
 
     if (streamPendingDeltaRef.current) {
+      scheduleStreamFlushById(messageId, 0)
       return
     }
 
-    pendingStreamFinalizeRef.current = null
-    streamTypingMessageIdRef.current = null
-    streamRawTextRef.current = assistantText
-    if (streamTypingIntervalRef.current) {
-      clearInterval(streamTypingIntervalRef.current)
-      streamTypingIntervalRef.current = null
-    }
-
-    const formattedAssistantText = formatAssistantResponse(assistantText)
-    setMessages((prev) => {
-      const targetIndex = prev.findIndex((m) => m.id === messageId)
-      if (targetIndex < 0) return prev
-
-      const target = prev[targetIndex]
-      const updated = [...prev]
-      updated[targetIndex] = {
-        ...target,
-        content: formattedAssistantText,
-        isTyping: false,
-        streamStatusLabel: null,
-        metadata: attachAssistantPresentationMetadata(
-          formattedAssistantText,
-          metadata || target.metadata
-        ) as AssistantMetadata | undefined,
-      }
-      return updated
-    })
+    commitFinalStreamedMessageById(messageId, assistantText, metadata)
   }
 
   const replaceStreamedMessageWithTypedErrorById = (messageId: string, errorText: string) => {
-    if (streamTypingIntervalRef.current) {
-      clearTimeout(streamTypingIntervalRef.current)
-      streamTypingIntervalRef.current = null
+    if (streamFlushTimeoutRef.current) {
+      clearTimeout(streamFlushTimeoutRef.current)
+      streamFlushTimeoutRef.current = null
     }
     if (streamTypingMessageIdRef.current === messageId) {
       streamTypingMessageIdRef.current = null
@@ -1601,9 +1577,9 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       clearInterval(typingIntervalRef.current)
       typingIntervalRef.current = null
     }
-    if (streamTypingIntervalRef.current) {
-      clearInterval(streamTypingIntervalRef.current)
-      streamTypingIntervalRef.current = null
+    if (streamFlushTimeoutRef.current) {
+      clearTimeout(streamFlushTimeoutRef.current)
+      streamFlushTimeoutRef.current = null
     }
     stopTypedStreamStatus()
     streamPendingDeltaRef.current = ''

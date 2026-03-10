@@ -222,4 +222,207 @@ describe('ChatInterface stream status replay', () => {
       await Promise.resolve()
     })
   })
+
+  it('flushes streamed answer chunks quickly enough for paragraph and list structure to appear without character-by-character lag', async () => {
+    const encoder = new TextEncoder()
+    let streamController: ReadableStreamDefaultController<Uint8Array> | null = null
+
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        streamController = controller
+      },
+    })
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input) !== '/api/chat') {
+        throw new Error(`Unexpected fetch target: ${String(input)}`)
+      }
+
+      return new Response(stream, {
+        status: 200,
+        headers: { 'Content-Type': 'application/x-ndjson' },
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { container } = render(<ChatInterface />)
+
+    const textarea = screen.getByPlaceholderText(
+      'Talk about your issue, ask for explanations, or request procedural guidance...'
+    )
+    fireEvent.change(textarea, { target: { value: 'hello' } })
+
+    const form = textarea.closest('form')
+    expect(form).not.toBeNull()
+    fireEvent.submit(form!)
+
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    expect(streamController).not.toBeNull()
+
+    await act(async () => {
+      streamController!.enqueue(
+        encoder.encode(
+          `${JSON.stringify({
+            type: 'delta',
+            delta: 'Next steps\n\n1. File the claim form\n2. Serve the defendant\n\nIn short: Keep proof of service.',
+          })}\n`
+        )
+      )
+      await Promise.resolve()
+    })
+
+    await act(async () => {
+      vi.advanceTimersByTime(100)
+      await Promise.resolve()
+    })
+
+    expect(container.querySelector('.assistant-heading')).not.toBeNull()
+    expect(container.querySelector('ol.assistant-list-ordered')).not.toBeNull()
+    expect(screen.getByText('File the claim form')).toBeInTheDocument()
+    expect(screen.getByText('Serve the defendant')).toBeInTheDocument()
+    expect(screen.getByText('In short: Keep proof of service.')).toBeInTheDocument()
+  })
+
+  it('renders structure during streaming when replaying real provider chunk boundaries', async () => {
+    const encoder = new TextEncoder()
+    let streamController: ReadableStreamDefaultController<Uint8Array> | null = null
+
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        streamController = controller
+      },
+    })
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input) !== '/api/chat') {
+        throw new Error(`Unexpected fetch target: ${String(input)}`)
+      }
+
+      return new Response(stream, {
+        status: 200,
+        headers: { 'Content-Type': 'application/x-ndjson' },
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { container } = render(<ChatInterface />)
+
+    const textarea = screen.getByPlaceholderText(
+      'Talk about your issue, ask for explanations, or request procedural guidance...'
+    )
+    fireEvent.change(textarea, { target: { value: 'hello' } })
+
+    const form = textarea.closest('form')
+    expect(form).not.toBeNull()
+    fireEvent.submit(form!)
+
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    expect(streamController).not.toBeNull()
+
+    const realProviderChunks = [
+      'What',
+      ' the',
+      ' claim',
+      ' form',
+      ' does',
+      '\n\n',
+      'The',
+      ' claim',
+      ' form',
+      ' provides',
+      ' the',
+      ' court',
+      ' and',
+      ' the',
+      ' defendant',
+      ' with',
+      ' key',
+      ' information',
+      ' about',
+      ' your',
+      ' case',
+      '.',
+      ' This',
+      ' includes',
+      ':\n\n',
+      '-',
+      ' The',
+      ' names',
+      ' and',
+      ' addresses',
+      ' of',
+      ' the',
+      ' parties',
+      ' involved',
+      ' (',
+      'the',
+      ' claimant',
+      ' and',
+      ' the',
+      ' defendant',
+      ').\n',
+      '-',
+      ' The',
+      ' details',
+      ' of',
+      ' what',
+      ' you',
+      '’re',
+      ' claiming',
+      ' for',
+      ' (',
+      'the',
+      ' “',
+      'brief',
+      ' details',
+      ' of',
+      ' claim',
+      '”',
+      ').\n',
+      '-',
+      ' The',
+      ' amount',
+      ' of',
+      ' money',
+      ' claimed',
+      ',',
+      ' if',
+      ' any',
+      ',',
+      ' or',
+      ' the',
+      ' remedy',
+      ' you',
+      ' want',
+      '.',
+    ]
+
+    for (const chunk of realProviderChunks) {
+      await act(async () => {
+        streamController!.enqueue(
+          encoder.encode(`${JSON.stringify({ type: 'delta', delta: chunk })}\n`)
+        )
+        await Promise.resolve()
+      })
+    }
+
+    await act(async () => {
+      vi.advanceTimersByTime(160)
+      await Promise.resolve()
+    })
+
+    expect(container.querySelector('.assistant-heading')).not.toBeNull()
+    expect(screen.getByText('What the claim form does')).toBeInTheDocument()
+    expect(container.querySelector('ul.assistant-list')).not.toBeNull()
+    expect(screen.getByText('The names and addresses of the parties involved (the claimant and the defendant).')).toBeInTheDocument()
+    expect(screen.getByText('The amount of money claimed, if any, or the remedy you want.')).toBeInTheDocument()
+  })
 })
