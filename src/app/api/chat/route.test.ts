@@ -502,6 +502,69 @@ describe('/api/chat route', () => {
     }))
   })
 
+  it('preserves visible case headings in premium plus responses when authority tokens are unavailable', { timeout: 15000 }, async () => {
+    process.env.PREMIUM_PLUS_ANTHROPIC_MODEL = 'claude-opus-4-6'
+
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'premium +', paidAccess: true, planStatus: 'active' },
+      processMessageResult: { task: 'case_lookup', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    ;(legalAgentMocks.invokePremiumPlusLegalAgent as any).mockResolvedValueOnce({
+      response:
+        "Lagden v O'Connor [2003] UKHL 64\nThis case dealt with a hire car that was damaged by a negligent third-party driver.\n\nHassam v Rabot [2023] UKSC 19\nThis is an important case on whiplash injuries from road accidents.",
+      guidance_provided: [],
+      next_steps: [],
+    })
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'Can I get a case law on car accident',
+        history: [],
+      })
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.response).toContain("Lagden v O'Connor [2003] UKHL 64")
+    expect(payload.response).toContain('Hassam v Rabot [2023] UKSC 19')
+  })
+
+  it('keeps verified authority headings and strips unmatched ones in premium plus responses', { timeout: 15000 }, async () => {
+    process.env.PREMIUM_PLUS_ANTHROPIC_MODEL = 'claude-opus-4-6'
+
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'premium +', paidAccess: true, planStatus: 'active' },
+      processMessageResult: { task: 'case_lookup', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    ;(legalAgentMocks.invokePremiumPlusLegalAgent as any).mockResolvedValueOnce({
+      response:
+        "Hassam v Rabot [2023] UKSC 19\nThis is an important whiplash authority.\n\nInvented v Fiction [2025] EWHC 999\nThis is not a real retrieved authority.",
+      guidance_provided: [],
+      next_steps: [],
+      verifiedAuthorities: [
+        {
+          title: 'Hassam v Rabot',
+          citation: '[2023] UKSC 19',
+        },
+      ],
+    })
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'Can I get a case law on car accident',
+        history: [],
+      })
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.response).toContain('Hassam v Rabot [2023] UKSC 19')
+    expect(payload.response).not.toContain('Invented v Fiction [2025] EWHC 999')
+    expect(payload.response).toContain('Note: I removed unverified case-law references.')
+  })
+
   it('streams premium answers over NDJSON when requested', { timeout: 15000 }, async () => {
     const { POST, legalAgentMocks } = await loadRoute({
       planData: { plan: 'premium', paidAccess: true, planStatus: 'active' },

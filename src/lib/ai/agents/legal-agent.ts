@@ -1791,6 +1791,8 @@ TOOL EXECUTION
 - Use the available tools whenever they materially improve knowledge, understanding, accuracy, freshness, authority, case-specific relevance, or explanation.
 - If you are unsure whether retrieval would help, prefer the tool that best verifies the uncertain point.
 - After tool results are returned, answer the user directly in plain text.
+- If you discuss a specific authority from the provided case-law or web context, introduce it with a short standalone line containing the case name and citation before explaining it.
+- Do not use anonymous phrasing like "This case" or "This authority" for a retrieved authority unless the immediately preceding line already names that authority.
 - Do not mention tools, tool calls, internal routing, or function names to the user.
 - Treat tool outputs as context already provided to you.
 - If a tool returns a complex legal ruling, translate it into child-friendly terms before presenting to the user.`
@@ -1836,6 +1838,11 @@ type PremiumPlusAnthropicMessage = {
   content: string | Array<Record<string, any>>
 }
 
+type VerifiedAuthority = {
+  title: string
+  citation: string
+}
+
 const premiumPlusCompact = (value: string) => value.replace(/\s+/g, ' ').trim()
 const premiumPlusTruncate = (value: string, maxChars: number) =>
   value.length <= maxChars ? value : `${value.slice(0, Math.max(0, maxChars - 1))}…`
@@ -1844,6 +1851,75 @@ const premiumPlusFirstDefinedString = (...values: any[]) => {
     if (typeof value === 'string' && value.trim()) return value.trim()
   }
   return ''
+}
+
+const premiumPlusAuthorityKey = (title: string, citation: string) =>
+  `${premiumPlusCompact(title.toLowerCase())}|${premiumPlusCompact(citation.toLowerCase())}`
+
+const premiumPlusCaseNamePattern =
+  /([A-Z][A-Za-z'&.\-]{1,}(?:\s+[A-Za-z][A-Za-z'&.\-]{1,})*\s+v\.?\s+[A-Z][A-Za-z'&.\-]{1,}(?:\s+[A-Za-z][A-Za-z'&.\-]{1,})*)/
+
+const premiumPlusCitationPattern = /\[\d{4}\]\s*[A-Z]{2,8}[A-Za-z0-9\s().-]{0,32}\d+/i
+
+const extractVerifiedAuthoritiesFromText = (text: string): VerifiedAuthority[] => {
+  const results: VerifiedAuthority[] = []
+  const seen = new Set<string>()
+  const pushAuthority = (titleRaw: string, citationRaw: string) => {
+    const title = premiumPlusFirstDefinedString(titleRaw)
+    const citation = premiumPlusFirstDefinedString(citationRaw)
+    if (!title || !citation) return
+    const key = premiumPlusAuthorityKey(title, citation)
+    if (seen.has(key)) return
+    seen.add(key)
+    results.push({ title, citation })
+  }
+
+  for (const rawLine of String(text || '').split('\n')) {
+    const line = rawLine.trim()
+    if (!line) continue
+
+    const numberedLine = line.replace(/^\[\d+\]\s+/, '').trim()
+    const citationFirstMatch = numberedLine.match(/^(\[[^\]]+\][A-Za-z0-9\s().-]{0,32}\d*)\s+-\s+(.+)$/)
+    if (citationFirstMatch && premiumPlusCitationPattern.test(citationFirstMatch[1])) {
+      pushAuthority(citationFirstMatch[2], citationFirstMatch[1])
+      continue
+    }
+
+    const inlineMatch = numberedLine.match(
+      /([A-Z][A-Za-z'&.\-]{1,}(?:\s+[A-Za-z][A-Za-z'&.\-]{1,})*\s+v\.?\s+[A-Z][A-Za-z'&.\-]{1,}(?:\s+[A-Za-z][A-Za-z'&.\-]{1,})*)\s+(\[\d{4}\]\s*[A-Z]{2,8}[A-Za-z0-9\s().-]{0,32}\d+)/i
+    )
+    if (inlineMatch) {
+      pushAuthority(inlineMatch[1], inlineMatch[2])
+    }
+  }
+
+  return results
+}
+
+const extractVerifiedAuthoritiesFromToolMessages = (
+  messages: PremiumPlusAnthropicMessage[]
+): VerifiedAuthority[] => {
+  const collected: VerifiedAuthority[] = []
+  const seen = new Set<string>()
+
+  const mergeAuthorities = (items: VerifiedAuthority[]) => {
+    items.forEach((item) => {
+      const key = premiumPlusAuthorityKey(item.title, item.citation)
+      if (seen.has(key)) return
+      seen.add(key)
+      collected.push(item)
+    })
+  }
+
+  messages.forEach((message) => {
+    if (!Array.isArray(message.content)) return
+    message.content.forEach((block: any) => {
+      if (block?.type !== 'tool_result' || typeof block?.content !== 'string') return
+      mergeAuthorities(extractVerifiedAuthoritiesFromText(block.content))
+    })
+  })
+
+  return collected
 }
 
 const createPremiumPlusAnthropic = () => {
@@ -2502,7 +2578,7 @@ export async function invokePremiumPlusLegalAgent(
     maxTokens?: number
     maxCompressionRetries?: number
   }
-): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
+): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }>; verifiedAuthorities?: VerifiedAuthority[] }> {
   const apiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
   if (!apiKey) {
     return {
@@ -2552,6 +2628,7 @@ export async function invokePremiumPlusLegalAgent(
     memoryContext: options?.memoryContext,
     historyLimit: options?.historyLimit,
   })
+  const verifiedAuthorities = extractVerifiedAuthoritiesFromToolMessages(toolLoop.messages)
 
   if (toolLoop.directResponse) {
     const finalDirect = ensureCitationsForPremium(
@@ -2565,6 +2642,7 @@ export async function invokePremiumPlusLegalAgent(
       guidance_provided: true,
       next_steps: [],
       sources: finalDirect.sources,
+      verifiedAuthorities,
     }
   }
 
@@ -2578,7 +2656,7 @@ export async function invokePremiumPlusLegalAgent(
       ...toolLoop.messages,
       {
         role: 'user',
-        content: 'Now answer the user directly in plain text using any tool results already provided. Do not call any more tools.',
+        content: 'Now answer the user directly in plain text using any tool results already provided. Do not call any more tools. If you discuss a retrieved authority, put a short standalone line with its case name and citation immediately before the explanation.',
       },
     ],
     {
@@ -2600,6 +2678,7 @@ export async function invokePremiumPlusLegalAgent(
     guidance_provided: true,
     next_steps: [],
     sources: final.sources,
+    verifiedAuthorities,
   }
 }
 
@@ -2624,7 +2703,7 @@ export async function invokePremiumPlusLegalAgentStream(
     onToken?: (chunk: string) => void
     onStatus?: (status: string) => void
   }
-): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
+): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }>; verifiedAuthorities?: VerifiedAuthority[] }> {
   const apiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
   if (!apiKey) {
     return {
@@ -2686,6 +2765,7 @@ export async function invokePremiumPlusLegalAgentStream(
     historyLimit: options?.historyLimit,
     onStatus: emitStatus,
   })
+  const verifiedAuthorities = extractVerifiedAuthoritiesFromToolMessages(toolLoop.messages)
 
   if (toolLoop.directResponse) {
     const finalDirect = ensureCitationsForPremium(
@@ -2701,6 +2781,7 @@ export async function invokePremiumPlusLegalAgentStream(
       guidance_provided: true,
       next_steps: [],
       sources: finalDirect.sources,
+      verifiedAuthorities,
     }
   }
 
@@ -2715,7 +2796,7 @@ export async function invokePremiumPlusLegalAgentStream(
       ...toolLoop.messages,
       {
         role: 'user',
-        content: 'Now answer the user directly in plain text using any tool results already provided. Do not call any more tools.',
+        content: 'Now answer the user directly in plain text using any tool results already provided. Do not call any more tools. If you discuss a retrieved authority, put a short standalone line with its case name and citation immediately before the explanation.',
       },
     ],
     {
@@ -2737,6 +2818,7 @@ export async function invokePremiumPlusLegalAgentStream(
     guidance_provided: true,
     next_steps: [],
     sources: final.sources,
+    verifiedAuthorities,
   }
 }
 

@@ -43,6 +43,7 @@ type AgentResponse = {
   guidance_provided: boolean
   next_steps: string[]
   sources?: Array<{ number: number; title: string; url: string }>
+  verifiedAuthorities?: Array<{ title: string; citation: string }>
 }
 
 type ChatAttachment = {
@@ -395,7 +396,8 @@ const hasCaseLawSignal = (line: string): boolean => {
 
 const buildAllowedAuthorityTokens = (
   vectorItems: VectorCaseLawRagItem[],
-  suggestionItems: CaseLawSuggestion[]
+  suggestionItems: CaseLawSuggestion[],
+  verifiedAuthorities: Array<{ title: string; citation: string }> = []
 ): Set<string> => {
   const tokens = new Set<string>()
   const pushToken = (value: string) => {
@@ -413,6 +415,11 @@ const buildAllowedAuthorityTokens = (
     pushToken(item.citation || '')
     pushToken(`${item.title || ''} ${item.citation || ''}`)
   })
+  verifiedAuthorities.forEach((item) => {
+    pushToken(item.title || '')
+    pushToken(item.citation || '')
+    pushToken(`${item.title || ''} ${item.citation || ''}`)
+  })
 
   return tokens
 }
@@ -421,6 +428,13 @@ const scrubUnsupportedCaseLawClaims = (
   text: string,
   allowedAuthorityTokens: Set<string>
 ): { text: string; removedCount: number } => {
+  // If no verified authority tokens were passed through, do not strip visible
+  // case headings from the answer. Otherwise Premium+ responses collapse into
+  // anonymous "This case..." summaries even when the model named the case.
+  if (!allowedAuthorityTokens || allowedAuthorityTokens.size === 0) {
+    return { text: (text || '').trim(), removedCount: 0 }
+  }
+
   const lines = (text || '').split('\n')
   let removedCount = 0
 
@@ -2202,7 +2216,11 @@ export async function POST(request: NextRequest) {
       const responseWithSoftStep = caseLawSoftNextStep
         ? `${agentResponse.response.trim()}\n\n${caseLawSoftNextStep}`
         : agentResponse.response
-      const allowedAuthorityTokens = buildAllowedAuthorityTokens(vectorCaseLawRagItems, caseLawSuggestions)
+      const allowedAuthorityTokens = buildAllowedAuthorityTokens(
+        vectorCaseLawRagItems,
+        caseLawSuggestions,
+        agentResponse.verifiedAuthorities || []
+      )
       const scrubbedCaseLaw = premiumPlusActive
         ? scrubUnsupportedCaseLawClaims(responseWithSoftStep || '', allowedAuthorityTokens)
         : { text: responseWithSoftStep || '', removedCount: 0 }

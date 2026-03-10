@@ -779,6 +779,41 @@ describe('agent smoke checks', () => {
     expect(result.response).toContain('I remember the earlier conversation')
   })
 
+  it('premium plus tool path returns verified authorities extracted from tool results', async () => {
+    milvusMockState.searchByTextMock.mockResolvedValueOnce([
+      {
+        id: 'case-law-1',
+        citation: '[2024] EWHC 123',
+        title: 'Driver Hit My Car and Ran Away v Example',
+        url: 'https://example.com/authority',
+        summary: 'Authority about a driver hitting a car and leaving the scene.',
+        extracts: 'Driver hit my car and ran away after a confrontation.',
+      },
+    ])
+
+    const result = await invokePremiumPlusLegalAgent(
+      'Can you give case law on this?',
+      'thread_smoke_premium_plus_verified_authorities',
+      'user_smoke_premium_plus_verified_authorities',
+      [],
+      'road traffic incident',
+      {
+        useSearch: true,
+        anthropicModel: 'claude-opus-4-6',
+        anthropicFallbackModel: 'claude-sonnet-4-6',
+      }
+    )
+
+    expect(result.verifiedAuthorities).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          citation: '[2024] EWHC 123',
+          title: 'Driver Hit My Car and Ran Away v Example',
+        }),
+      ])
+    )
+  })
+
   it('premium plus agent enables Anthropic prompt caching on its tool path', async () => {
     await invokePremiumPlusLegalAgent(
       'Can you give case law on this?',
