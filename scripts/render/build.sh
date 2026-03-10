@@ -28,6 +28,24 @@ install_node_deps() {
   fi
 }
 
+copy_standalone_assets() {
+  if [ ! -d ".next/standalone" ]; then
+    echo "Standalone output not found; skipping static asset copy"
+    return
+  fi
+
+  if [ -d "public" ]; then
+    echo "Copying public assets into standalone output"
+    cp -R public .next/standalone/
+  fi
+
+  if [ -d ".next/static" ]; then
+    echo "Copying Next static assets into standalone output"
+    mkdir -p .next/standalone/.next
+    cp -R .next/static .next/standalone/.next/
+  fi
+}
+
 if command -v python3 >/dev/null 2>&1; then
   if ! install_python_deps; then
     echo "WARNING: Python dependency installation failed. Milvus runtime helpers may be unavailable on this deploy."
@@ -48,3 +66,4 @@ install_node_deps
 
 echo "Building Next.js app"
 npm run build
+copy_standalone_assets
