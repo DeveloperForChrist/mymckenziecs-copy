@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import {
   ANALYTICS_CONSENT_UPDATED_EVENT,
   readAnalyticsConsent,
@@ -64,9 +64,6 @@ type GoogleAnalyticsProps = {
 export default function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
   const trimmedMeasurementId = measurementId?.trim() || ''
   const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const query = searchParams.toString()
-  const pagePath = query ? `${pathname}?${query}` : pathname
   const lastTrackedPathRef = useRef<string | null>(null)
   const [hasConsent, setHasConsent] = useState(false)
 
@@ -109,6 +106,9 @@ export default function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps)
       return
     }
 
+    const query = window.location.search
+    const pagePath = query ? `${pathname}${query}` : pathname
+
     if (lastTrackedPathRef.current === pagePath) {
       return
     }
@@ -119,7 +119,7 @@ export default function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps)
       page_location: window.location.href,
       page_title: document.title,
     })
-  }, [hasConsent, pagePath, trimmedMeasurementId])
+  }, [hasConsent, pathname, trimmedMeasurementId])
 
   return null
 }

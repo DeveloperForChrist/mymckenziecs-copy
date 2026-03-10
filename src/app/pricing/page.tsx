@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import PricingPageClient from '@/components/pricing/PricingPageClient';
@@ -23,5 +24,9 @@ export default async function PricingPage() {
   const { data: authData } = await supabase.auth.getUser();
   const hasAccountSession = isBillingEligibleUser(authData?.user);
 
-  return <PricingPageClient initialIsSignedIn={hasAccountSession} />;
+  return (
+    <Suspense fallback={null}>
+      <PricingPageClient initialIsSignedIn={hasAccountSession} />
+    </Suspense>
+  );
 }

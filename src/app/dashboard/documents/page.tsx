@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import DocumentsClientNew from "@/components/dashboard/DocumentsClientNew";
@@ -35,7 +36,9 @@ export default async function DocumentsPage() {
   return (
     <div className="purple-gradient-bg app-shell">
       <div className="app-container">
-        <DocumentsClientNew initialCanUpload={initialCanUpload} initialPlanLoaded={initialPlanLoaded} />
+        <Suspense fallback={null}>
+          <DocumentsClientNew initialCanUpload={initialCanUpload} initialPlanLoaded={initialPlanLoaded} />
+        </Suspense>
       </div>
     </div>
   );

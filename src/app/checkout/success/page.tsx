@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createServerClient } from '@supabase/ssr';
@@ -26,5 +27,9 @@ export default async function CheckoutSuccessPage() {
     redirect('/auth/signin?redirect=/checkout/success');
   }
 
-  return <CheckoutSuccessPageClient />;
+  return (
+    <Suspense fallback={null}>
+      <CheckoutSuccessPageClient />
+    </Suspense>
+  );
 }

@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -29,5 +30,9 @@ export default async function SettingsPage() {
   }
 
   const initialBillingPlan = await getUserPlanData(authUser.id, authUser.email ?? null);
-  return <SettingsPageClient initialBillingPlan={initialBillingPlan} />;
+  return (
+    <Suspense fallback={null}>
+      <SettingsPageClient initialBillingPlan={initialBillingPlan} />
+    </Suspense>
+  );
 }
