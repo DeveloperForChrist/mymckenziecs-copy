@@ -133,4 +133,4 @@ if __name__ == '__main__':
     import uvicorn
     host = os.getenv('PY_BRIDGE_HOST', '127.0.0.1')
     port = int(os.getenv('PY_BRIDGE_PORT', '8000'))
-    uvicorn.run(app, host=host, port=port, reload=False)
+    uvicorn.run(app, host=host, port=port, reload=False, workers=1)

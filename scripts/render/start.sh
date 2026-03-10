@@ -23,4 +23,11 @@ if [ "${START_PY_BRIDGE}" = "1" ]; then
   fi
 fi
 
+export HOSTNAME="${HOSTNAME:-0.0.0.0}"
+
+if [ -f ".next/standalone/server.js" ]; then
+  exec node .next/standalone/server.js
+fi
+
+echo "WARNING: .next/standalone/server.js not found; falling back to npm start."
 exec npm start

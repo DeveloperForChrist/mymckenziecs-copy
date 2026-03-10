@@ -8,7 +8,7 @@
     "build": "next build --webpack",
     "render:build": "bash scripts/render/build.sh",
     "render:start": "bash scripts/render/start.sh",
-    "start": "next start",
+    "start": "node .next/standalone/server.js",
     "lint": "eslint src instrumentation.ts instrumentation-client.ts sentry.server.config.ts sentry.edge.config.ts --ext .ts,.tsx",
     "type-check": "tsc --noEmit",
     "launch:check": "node scripts/ops/launch-readiness.mjs",
