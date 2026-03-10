@@ -7,7 +7,7 @@ export default function PrivacyPolicyPage() {
     <LegalPageLayout
       title="Privacy Policy"
       subtitle="How we collect, use, and protect your information under UK GDPR."
-      meta="Owned by Lenjordan Ltd • Last Updated: March 2, 2026"
+      meta="Owned by Lenjordan Ltd • Last Updated: March 10, 2026"
     >
       <ol className="list-decimal pl-6 space-y-6 text-base md:text-lg">
         <li>
@@ -150,7 +150,7 @@ export default function PrivacyPolicyPage() {
             <li>Authentication</li>
             <li>Session management</li>
             <li>Security</li>
-            <li>Analytics (optional)</li>
+            <li>Analytics (optional, only after consent)</li>
           </ul>
           <p className="mt-2">You may disable cookies in your browser, but the Platform may not function correctly. A separate Cookie Policy will provide full details.</p>
         </li>

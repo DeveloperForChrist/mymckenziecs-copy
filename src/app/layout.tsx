@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
 import ClientErrorReporter from '@/components/monitoring/ClientErrorReporter'
+import CookieConsentBanner from '@/components/privacy/CookieConsentBanner'
 import RouteTitleManager from '@/components/seo/RouteTitleManager'
 
 const normalizeSiteUrl = (value: string) =>
@@ -10,6 +12,7 @@ const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL || 'https://my
 const APP_FULL_NAME = 'MyMcKenzie Court Support'
 const APP_SHORT_NAME = 'MyMcKenzieCS'
 const FAVICON_SVG_PATH = '/favicon-circle-padded.svg'
+const googleAnalyticsMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim()
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -108,7 +111,12 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <GoogleAnalytics measurementId={googleAnalyticsMeasurementId} />
         <ClientErrorReporter />
+        <CookieConsentBanner
+          analyticsEnabled={Boolean(googleAnalyticsMeasurementId)}
+          measurementId={googleAnalyticsMeasurementId}
+        />
         <RouteTitleManager />
         {children}
       </body>

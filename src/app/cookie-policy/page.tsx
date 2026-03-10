@@ -7,13 +7,13 @@ export default function CookiePolicyPage() {
     <LegalPageLayout
       title="Cookie Policy"
       subtitle="How we use cookies and local storage to keep the platform secure."
-      meta="Owned by Lenjordan Ltd • Last Updated: February 28, 2026"
+      meta="Owned by Lenjordan Ltd • Last Updated: March 10, 2026"
     >
       <ol className="list-decimal pl-6 space-y-6 text-base md:text-lg">
         <li>
           <b>Introduction</b>
           <p className="mt-2">This Cookie Policy explains how MyMcKenzieCS (&quot;The Platform&quot;, &quot;We&quot;, &quot;Us&quot;) uses cookies and similar technologies on our website and web application.</p>
-          <p>By using the Platform, you agree to the use of cookies as described in this policy.</p>
+          <p>Where consent is required, we only activate optional analytics cookies after you opt in through our cookie controls.</p>
         </li>
         <li>
           <b>What Are Cookies?</b>
@@ -96,6 +96,11 @@ export default function CookiePolicyPage() {
           <ul className="list-disc pl-6 mt-1">
             <li>Anti-spam measures</li>
             <li>Account security and email delivery</li>
+          </ul>
+          <b className="block mt-2">Google Analytics (if enabled)</b>
+          <ul className="list-disc pl-6 mt-1">
+            <li>Aggregated usage measurement</li>
+            <li>Page and journey analysis</li>
           </ul>
           <p className="mt-2">These providers have their own cookie and privacy policies.</p>
         </li>
