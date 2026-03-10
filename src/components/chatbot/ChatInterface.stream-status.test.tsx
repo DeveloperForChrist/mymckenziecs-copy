@@ -130,11 +130,16 @@ describe('ChatInterface stream status replay', () => {
       await Promise.resolve()
     })
 
-    const getStatusText = () =>
+    const getRawStatusText = () =>
       container.querySelector('[aria-live="polite"] span')?.textContent || ''
+    const getStatusText = () => getRawStatusText().replace(/[.\s]+$/g, '')
+    const getStatusDots = () =>
+      (container.querySelector('[data-status-dots="true"]')?.textContent || '').trim()
 
     expect(getStatusText().length).toBeGreaterThan(0)
     expect(getStatusText().length).toBeLessThan('Working'.length)
+
+    const initialDots = getStatusDots()
 
     await act(async () => {
       vi.advanceTimersByTime(340)
@@ -142,9 +147,18 @@ describe('ChatInterface stream status replay', () => {
     })
 
     expect(getStatusText()).toBe('Working')
+    expect(getStatusDots().length).toBeGreaterThan(0)
 
     await act(async () => {
-      vi.advanceTimersByTime(2700)
+      vi.advanceTimersByTime(500)
+      await Promise.resolve()
+    })
+
+    expect(getStatusText()).toBe('Working')
+    expect(getStatusDots()).not.toBe(initialDots)
+
+    await act(async () => {
+      vi.advanceTimersByTime(2200)
       await Promise.resolve()
     })
 

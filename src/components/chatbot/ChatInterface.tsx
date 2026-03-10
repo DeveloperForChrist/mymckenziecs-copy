@@ -42,9 +42,22 @@ const linkStyle: CSSProperties = {
 }
 
 const typingAccentColor = 'rgba(236, 72, 153, 0.95)'
+const statusDotFrames = ['.  ', '.. ', '...']
 
 const StatusIndicator = ({ label = 'Thinking', compact = false }: { label?: string; compact?: boolean }) => {
+  const [dotFrameIndex, setDotFrameIndex] = useState(0)
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setDotFrameIndex((current) => (current + 1) % statusDotFrames.length)
+    }, 420)
+
+    return () => window.clearInterval(intervalId)
+  }, [])
+
   const padding = compact ? '6px 8px' : '8px 10px'
+  const dotFrame = statusDotFrames[dotFrameIndex] || statusDotFrames[0]
+
   return (
     <div
       aria-live="polite"
@@ -68,6 +81,18 @@ const StatusIndicator = ({ label = 'Thinking', compact = false }: { label?: stri
         }}
       >
         {label}
+        <span
+          aria-hidden="true"
+          data-status-dots="true"
+          style={{
+            display: 'inline-block',
+            minWidth: compact ? '1.65em' : '1.9em',
+            whiteSpace: 'pre',
+            textAlign: 'left',
+          }}
+        >
+          {dotFrame}
+        </span>
       </span>
     </div>
   )
