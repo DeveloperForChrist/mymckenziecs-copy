@@ -620,7 +620,7 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
                   <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> Conversation history included
                 </li>
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> Deadline reminder emails
+                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> Scheduled series of deadline reminder emails (21, 14, 7, 5, 3, and 1 day before)
                 </li>
               </ul>
               <button
@@ -664,7 +664,7 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
                   <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> Advanced case law retrieval and study
                 </li>
                 <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> Deadline reminder emails
+                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> Scheduled series of deadline reminder emails (21, 14, 7, 5, 3, and 1 day before)
                 </li>
               </ul>
               <button

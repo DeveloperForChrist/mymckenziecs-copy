@@ -3,6 +3,7 @@ import HeroActionButtons from '@/components/home/HeroActionButtons';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { isBillingEligibleUser } from '@/lib/auth/session-user';
+import { DEADLINE_REMINDER_FEATURE } from '@/constants';
 
 const workspaceFeatures = [
   {
@@ -48,7 +49,7 @@ const plans = [
       'MyMckenzieCS Smart Assistant',
       '25 document storage',
       'Conversation history included',
-      'Deadline reminder emails'
+      DEADLINE_REMINDER_FEATURE
     ],
     highlight: true
   },
@@ -61,7 +62,7 @@ const plans = [
       'Persistent chat history',
       'Advanced case law retrieval and study',
       'Enhanced research support',
-      'Deadline reminder emails'
+      DEADLINE_REMINDER_FEATURE
     ]
   }
 ];

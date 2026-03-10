@@ -1,4 +1,6 @@
 // Stripe price IDs for plans (replace with your actual price IDs if different)
+export const DEADLINE_REMINDER_FEATURE = 'Scheduled series of deadline reminder emails (21, 14, 7, 5, 3, and 1 day before)'
+
 export const PLAN_PRICES = [
   {
     name: 'Basic',
@@ -23,7 +25,7 @@ export const PLAN_PRICES = [
       'MyMcKenzieCS Smart Assistant',
       '25 document storage',
       'Conversation history included',
-      'Deadline reminder emails',
+      DEADLINE_REMINDER_FEATURE,
     ],
   },
   {
@@ -39,7 +41,7 @@ export const PLAN_PRICES = [
       'Persistent chat history',
       'Enhanced research support',
       'Advanced case law retrieval and study',
-      'Deadline reminder emails',
+      DEADLINE_REMINDER_FEATURE,
     ],
   },
 ];

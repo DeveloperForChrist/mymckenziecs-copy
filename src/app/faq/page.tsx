@@ -28,13 +28,13 @@ export default function FaqPage() {
           <article className={styles.card}>
             <h3>What does Premium add?</h3>
             <p>
-              Premium adds larger document storage, conversation history, and deadline reminder emails.
+              Premium adds larger document storage, conversation history, and a scheduled series of deadline reminder emails sent 21, 14, 7, 5, 3, and 1 day before a saved event.
             </p>
           </article>
           <article className={styles.card}>
             <h3>What does Premium + add?</h3>
             <p>
-              Premium + is built for high-volume cases with the MyMcKenzieCS Intelligent Assistant, the largest storage allowance, enhanced research support, and advanced case law tools.
+              Premium + is built for high-volume cases with the MyMcKenzieCS Intelligent Assistant, the largest storage allowance, enhanced research support, advanced case law tools, and a scheduled series of deadline reminder emails sent 21, 14, 7, 5, 3, and 1 day before a saved event.
             </p>
           </article>
           <article className={styles.card}>
