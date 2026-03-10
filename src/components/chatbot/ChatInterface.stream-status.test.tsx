@@ -106,7 +106,7 @@ describe('ChatInterface stream status replay', () => {
 
     vi.stubGlobal('fetch', fetchMock)
 
-    render(<ChatInterface />)
+    const { container } = render(<ChatInterface />)
 
     const textarea = screen.getByPlaceholderText(
       'Talk about your issue, ask for explanations, or request procedural guidance...'
@@ -125,26 +125,31 @@ describe('ChatInterface stream status replay', () => {
 
     await act(async () => {
       streamController!.enqueue(
-        encoder.encode(`${JSON.stringify({ type: 'status', message: 'Web' })}\n`)
+        encoder.encode(`${JSON.stringify({ type: 'status', message: 'Working' })}\n`)
       )
       await Promise.resolve()
     })
 
-    expect(screen.getByText('W')).toBeInTheDocument()
+    const getStatusText = () =>
+      container.querySelector('[aria-live="polite"] span')?.textContent || ''
+
+    expect(getStatusText().length).toBeGreaterThan(0)
+    expect(getStatusText().length).toBeLessThan('Working'.length)
 
     await act(async () => {
-      vi.advanceTimersByTime(90)
+      vi.advanceTimersByTime(340)
       await Promise.resolve()
     })
 
-    expect(screen.getByText('Web')).toBeInTheDocument()
+    expect(getStatusText()).toBe('Working')
 
     await act(async () => {
-      vi.advanceTimersByTime(1740)
+      vi.advanceTimersByTime(2700)
       await Promise.resolve()
     })
 
-    expect(screen.getByText('W')).toBeInTheDocument()
+    expect(getStatusText().startsWith('W')).toBe(true)
+    expect(getStatusText()).not.toBe('Working')
 
     await act(async () => {
       streamController!.enqueue(

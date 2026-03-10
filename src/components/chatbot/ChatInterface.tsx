@@ -42,8 +42,8 @@ const linkStyle: CSSProperties = {
 }
 
 const typingAccentColor = 'rgba(236, 72, 153, 0.95)'
-const streamStatusReplayHoldMs = 1600
-const streamStatusReplayRestartMs = 180
+const streamStatusReplayHoldMs = 2200
+const streamStatusReplayRestartMs = 320
 
 const StatusIndicator = ({ label = 'Thinking', compact = false }: { label?: string; compact?: boolean }) => {
   const padding = compact ? '6px 8px' : '8px 10px'
@@ -1355,9 +1355,9 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     let cursor = 0
 
     const resolveTickMs = (remainingLength: number) => {
-      if (remainingLength > 20) return 14
-      if (remainingLength > 8) return 18
-      return 24
+      if (remainingLength > 20) return 30
+      if (remainingLength > 8) return 38
+      return 48
     }
 
     const tick = () => {
