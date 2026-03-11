@@ -8,6 +8,7 @@ import {
   invokePremiumPlusLegalAgent,
   invokePremiumPlusLegalAgentStream,
 } from '@/lib/ai/agents/legal-agent'
+import { neutralizeLegalAdviceTone } from '@/lib/ai/agents/legal-tone'
 import { ChatManager } from '@/lib/ai/chat-manager'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
@@ -2175,7 +2176,7 @@ export async function POST(request: NextRequest) {
       const scrubbedCaseLaw = premiumPlusActive
         ? scrubUnsupportedCaseLawClaims(responseWithSoftStep || '', allowedAuthorityTokens)
         : { text: responseWithSoftStep || '', removedCount: 0 }
-      const finalAssistantResponse = scrubbedCaseLaw.text
+      const finalAssistantResponse = neutralizeLegalAdviceTone(scrubbedCaseLaw.text || '')
       const removedUnsupportedAuthorityLines = scrubbedCaseLaw.removedCount
       const actionItems = extractActionItems(`${message}\n${finalAssistantResponse}`)
       if (actionItems.length > 0) {

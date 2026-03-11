@@ -41,4 +41,18 @@ describe('neutralizeLegalAdviceTone', () => {
     const output = neutralizeLegalAdviceTone(input)
     expect(output.toLowerCase()).toContain('in general, this depends on the specific facts, evidence, and procedure.')
   })
+
+  it('softens recommendation-led legal advice phrasing', () => {
+    const input = [
+      'I recommend that you file the application now.',
+      'We recommend that you rely on this point.',
+      'It is advisable to send this letter today.',
+    ].join(' ')
+
+    const output = neutralizeLegalAdviceTone(input)
+
+    expect(output).toContain('one option to consider is to file the application now')
+    expect(output).toContain('one option to consider is to rely on this point')
+    expect(output).toContain('it may help to send this letter today')
+  })
 })
