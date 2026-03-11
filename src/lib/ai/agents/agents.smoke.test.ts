@@ -707,6 +707,208 @@ describe('agent smoke checks', () => {
     searchSpy.mockRestore()
   })
 
+  it('premium plus OpenAI fallback replaces placeholder final text with tool-context summary', async () => {
+    process.env.ANTHROPIC_API_KEY = ''
+    const searchSpy = vi.spyOn(SearchTool.prototype, '_call').mockResolvedValue(
+      JSON.stringify({
+        packet: 'Consumer guidance summary from retrieved sources.',
+        sources: ['https://example.com/consumer-rights'],
+        sourceMode: 'engine',
+      })
+    )
+
+    const toolCallResponse = async (_payload: any) => ({
+      choices: [
+        {
+          message: {
+            content: '',
+            tool_calls: [
+              {
+                id: 'call_web_1',
+                type: 'function',
+                function: {
+                  name: 'web_search',
+                  arguments: JSON.stringify({
+                    query: 'consumer rights act dealer faulty car',
+                    mode: 'general',
+                  }),
+                },
+              },
+            ],
+          },
+          finish_reason: 'tool_calls',
+        },
+      ],
+    })
+
+    openAiMockState.openAiCreateMock
+      .mockImplementationOnce(toolCallResponse)
+      .mockImplementationOnce(toolCallResponse)
+      .mockImplementationOnce(toolCallResponse)
+      .mockImplementationOnce(toolCallResponse)
+      .mockImplementationOnce(async (_payload: any) => ({
+        choices: [
+          {
+            message: {
+              content: "I couldn't generate a response.",
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      }))
+      .mockImplementationOnce(async (_payload: any) => ({
+        choices: [
+          {
+            message: {
+              content: "I couldn't generate a response.",
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      }))
+
+    const result = await invokePremiumPlusLegalAgent(
+      'force-openai-placeholder-final check',
+      'thread_smoke_premium_plus_openai_placeholder',
+      'user_smoke_premium_plus_openai_placeholder',
+      [],
+      undefined,
+      {
+        forceOpenAiFallback: true,
+        openaiFallbackModel: 'gpt-5-mini',
+      }
+    )
+
+    expect(result.response).not.toContain("I couldn't generate a response.")
+    expect(result.response).toContain('Consumer guidance summary from retrieved sources.')
+    expect(Array.isArray(result.sources)).toBe(true)
+    expect((result.sources || []).length).toBeGreaterThan(0)
+    searchSpy.mockRestore()
+  })
+
+  it('premium plus OpenAI fallback forces retrieval only once before converging', async () => {
+    process.env.ANTHROPIC_API_KEY = ''
+    const searchSpy = vi.spyOn(SearchTool.prototype, '_call').mockResolvedValue(
+      JSON.stringify({
+        packet: 'Leasehold guidance summary from retrieved sources.',
+        sources: ['https://example.com/leasehold-guidance'],
+        sourceMode: 'engine',
+      })
+    )
+
+    openAiMockState.openAiCreateMock
+      .mockImplementationOnce(async (_payload: any) => ({
+        choices: [
+          {
+            message: {
+              content: "I couldn't generate a response.",
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      }))
+      .mockImplementationOnce(async (_payload: any) => ({
+        choices: [
+          {
+            message: {
+              content: "I couldn't generate a response.",
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      }))
+      .mockImplementationOnce(async (_payload: any) => ({
+        choices: [
+          {
+            message: {
+              content: "I couldn't generate a response.",
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      }))
+      .mockImplementationOnce(async (_payload: any) => ({
+        choices: [
+          {
+            message: {
+              content: "I couldn't generate a response.",
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      }))
+
+    const result = await invokePremiumPlusLegalAgent(
+      'force-openai-single-forced-retrieval check',
+      'thread_smoke_premium_plus_openai_single_forced_retrieval',
+      'user_smoke_premium_plus_openai_single_forced_retrieval',
+      [],
+      undefined,
+      {
+        forceOpenAiFallback: true,
+        openaiFallbackModel: 'gpt-5-mini',
+      }
+    )
+
+    expect(searchSpy).toHaveBeenCalledTimes(1)
+    expect(result.response).toContain('Leasehold guidance summary from retrieved sources.')
+    expect(result.response).not.toContain("I couldn't generate a response.")
+    searchSpy.mockRestore()
+  })
+
+  it('premium plus OpenAI fallback requires a retrieval round when explicit search is requested', async () => {
+    process.env.ANTHROPIC_API_KEY = ''
+    const searchSpy = vi.spyOn(SearchTool.prototype, '_call').mockResolvedValue(
+      JSON.stringify({
+        packet: 'Official Solicitor guidance summary from retrieved sources.',
+        sources: ['https://example.com/official-solicitor-guidance'],
+        sourceMode: 'engine',
+      })
+    )
+
+    openAiMockState.openAiCreateMock
+      .mockImplementationOnce(async (_payload: any) => ({
+        choices: [
+          {
+            message: {
+              content: 'Direct answer attempted before retrieval.',
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      }))
+      .mockImplementationOnce(async (_payload: any) => ({
+        choices: [
+          {
+            message: {
+              content: 'Final answer after retrieval.',
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      }))
+
+    const result = await invokePremiumPlusLegalAgent(
+      'What happens if someone does not cooperate with the Official Solicitor process?',
+      'thread_smoke_premium_plus_openai_explicit_search',
+      'user_smoke_premium_plus_openai_explicit_search',
+      [],
+      undefined,
+      {
+        useSearch: true,
+        autoDecideSearch: false,
+        forceOpenAiFallback: true,
+        openaiFallbackModel: 'gpt-4o',
+      }
+    )
+
+    expect(searchSpy).toHaveBeenCalledTimes(1)
+    expect(result.response).toContain('Final answer after retrieval.')
+    expect(Array.isArray(result.sources)).toBe(true)
+    expect((result.sources || []).length).toBeGreaterThan(0)
+    searchSpy.mockRestore()
+  })
+
   it('premium plus tool path explicitly includes tool instructions', async () => {
     await invokePremiumPlusLegalAgent(
       'Can you give case law on this?',

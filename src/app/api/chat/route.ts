@@ -133,7 +133,7 @@ const getPremiumPlusAnthropicFallbackModel = (primaryModel: string): string =>
   getEnvModelValue('PREMIUM_PLUS_ANTHROPIC_FALLBACK_MODEL') || primaryModel
 
 const getPremiumPlusOpenAiFallbackModel = (): string =>
-  getEnvModelValue('OPENAI_PREMIUM_PLUS_FALLBACK_MODEL', 'OPENAI_PREMIUM_FALLBACK_MODEL', 'OPENAI_BASIC_MODEL') || 'gpt-5-mini'
+  getEnvModelValue('OPENAI_PREMIUM_PLUS_FALLBACK_MODEL', 'OPENAI_PREMIUM_FALLBACK_MODEL') || 'gpt-4.1'
 
 const sanitizeChatErrorMessage = (error: unknown): string => {
   const message = error instanceof Error
@@ -2155,7 +2155,7 @@ export async function POST(request: NextRequest) {
     const invokePremiumPlusWithOpenAiFallback = async (): Promise<AgentResponse> => {
       const anthropicApiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
       if (!anthropicApiKey) {
-        console.warn('Premium+ Anthropic API key missing; falling back to OpenAI gpt-5-mini.')
+        console.warn(`Premium+ Anthropic API key missing; falling back to OpenAI ${premiumPlusOpenAiFallbackModel}.`)
         return invokePremiumPlusLegalAgent(
           messageForAgent,
           threadId,
@@ -2189,7 +2189,7 @@ export async function POST(request: NextRequest) {
           }
         )
       } catch (error) {
-        console.error('Premium+ Anthropic invocation failed; falling back to OpenAI gpt-5-mini.', error)
+        console.error(`Premium+ Anthropic invocation failed; falling back to OpenAI ${premiumPlusOpenAiFallbackModel}.`, error)
         return invokePremiumPlusLegalAgent(
           messageForAgent,
           threadId,
@@ -2215,7 +2215,7 @@ export async function POST(request: NextRequest) {
       let emittedDelta = false
       const anthropicApiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
       if (!anthropicApiKey) {
-        console.warn('Premium+ Anthropic API key missing; using OpenAI gpt-5-mini stream fallback.')
+        console.warn(`Premium+ Anthropic API key missing; using OpenAI ${premiumPlusOpenAiFallbackModel} stream fallback.`)
         return invokePremiumPlusLegalAgentStream(
           messageForAgent,
           threadId,
@@ -2261,7 +2261,7 @@ export async function POST(request: NextRequest) {
         )
       } catch (error) {
         if (emittedDelta) throw error
-        console.error('Premium+ Anthropic streaming failed; falling back to OpenAI gpt-5-mini stream.', error)
+        console.error(`Premium+ Anthropic streaming failed; falling back to OpenAI ${premiumPlusOpenAiFallbackModel} stream.`, error)
         return invokePremiumPlusLegalAgentStream(
           messageForAgent,
           threadId,

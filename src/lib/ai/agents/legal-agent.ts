@@ -196,8 +196,7 @@ const PREMIUM_PLUS_ANTHROPIC_FALLBACK_MODEL =
 const OPENAI_PREMIUM_PLUS_FALLBACK_MODEL =
   process.env.OPENAI_PREMIUM_PLUS_FALLBACK_MODEL ||
   process.env.OPENAI_PREMIUM_FALLBACK_MODEL ||
-  process.env.OPENAI_BASIC_MODEL ||
-  'gpt-5-mini'
+  'gpt-4.1'
 const MAX_TOKENS = 1000
 const PREMIUM_TARGET_TOKENS = Number.isFinite(Number(process.env.PREMIUM_TARGET_TOKENS))
   ? Math.max(600, Math.floor(Number(process.env.PREMIUM_TARGET_TOKENS)))
@@ -1864,10 +1863,10 @@ const generatePremiumPlusOpenAiFallbackFinalText = async (options: {
     PREMIUM_PLUS_MAX_AUTO_CONTINUES
   )
 
-  if (!String(finalText || '').trim()) {
+  if (isPremiumPlusPlaceholderResponse(finalText)) {
     const retryPrompt =
       `${basePrompt}\n\n` +
-      'Your previous reply was empty. Provide at least one short paragraph and one short practical next-step paragraph.'
+      'Your previous reply was empty or unusable. Provide at least one short paragraph and one short practical next-step paragraph.'
     finalText = await callLLM(
       retryPrompt,
       options.systemPrompt,
@@ -1880,7 +1879,7 @@ const generatePremiumPlusOpenAiFallbackFinalText = async (options: {
     )
   }
 
-  if (!String(finalText || '').trim()) {
+  if (isPremiumPlusPlaceholderResponse(finalText)) {
     if (options.toolContext.trim()) {
       return `I had trouble drafting the final answer. Here is the key information retrieved:\n\n${premiumPlusTruncate(options.toolContext, 2400)}`
     }
@@ -1888,6 +1887,38 @@ const generatePremiumPlusOpenAiFallbackFinalText = async (options: {
   }
 
   return finalText
+}
+
+const isPremiumPlusPlaceholderResponse = (text: string) => {
+  const normalized = premiumPlusCompact(String(text || '').toLowerCase())
+  return (
+    !normalized ||
+    normalized === "i couldn't generate a response." ||
+    normalized === "i'm having trouble generating a complete response right now. please try again in a moment."
+  )
+}
+
+const buildPremiumPlusForcedFallbackToolCalls = (prompt: string): Array<{ id: string; name: string; input: Record<string, any> }> => {
+  const query = premiumPlusTruncate(prompt, 600)
+  return [
+    {
+      id: 'forced_web_search',
+      name: 'web_search',
+      input: {
+        query,
+        mode: 'general',
+      },
+    },
+    {
+      id: 'forced_case_law_search',
+      name: 'case_law_search',
+      input: {
+        query,
+        scope: 'both',
+        limit: 3,
+      },
+    },
+  ]
 }
 
 const PREMIUM_PLUS_TOOL_LOOP_LIMIT = Number.isFinite(Number(process.env.PREMIUM_PLUS_TOOL_LOOP_LIMIT))
@@ -2785,6 +2816,7 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
     openaiModel: string
     openaiFallbackModel: string
     searchEngineOverride: SearchEngine
+    requireToolRound?: boolean
     conversationHistory?: Array<{ role: string; content: string }>
     caseKeywords?: string
     memoryContext?: string
@@ -2817,6 +2849,7 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
   const messages: PremiumPlusAnthropicMessage[] = [{ role: 'user', content: prompt }]
   const aggregatedSources: string[] = []
   const usedTools: string[] = []
+  let forcedFallbackToolRoundUsed = false
   const openAiMessages: Array<Record<string, any>> = [
     { role: 'system', content: systemPrompt },
     { role: 'user', content: prompt },
@@ -2915,14 +2948,40 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
     const assistantMessage = completion?.choices?.[0]?.message || {}
     const assistantText = String(assistantMessage?.content || '').trim()
     const toolCalls: any[] = Array.isArray(assistantMessage?.tool_calls) ? assistantMessage.tool_calls : []
+    const shouldForceRequiredToolRound =
+      toolCalls.length === 0 &&
+      usedTools.length === 0 &&
+      options.requireToolRound === true &&
+      !forcedFallbackToolRoundUsed
+    const shouldForceFallbackTools =
+      shouldForceRequiredToolRound ||
+      (
+      toolCalls.length === 0 &&
+      isPremiumPlusPlaceholderResponse(assistantText) &&
+      usedTools.length === 0 &&
+      !forcedFallbackToolRoundUsed
+      )
+    const effectiveToolCalls = toolCalls.length > 0
+      ? toolCalls
+      : shouldForceFallbackTools
+        ? buildPremiumPlusForcedFallbackToolCalls(prompt).map((toolCall) => ({
+            id: toolCall.id,
+            type: 'function',
+            function: {
+              name: toolCall.name,
+              arguments: JSON.stringify(toolCall.input),
+            },
+          }))
+        : []
+    if (shouldForceFallbackTools) forcedFallbackToolRoundUsed = true
 
     openAiMessages.push({
       role: 'assistant',
-      content: assistantMessage?.content || '',
-      tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
+      content: toolCalls.length === 0 && effectiveToolCalls.length > 0 ? '' : assistantMessage?.content || '',
+      tool_calls: effectiveToolCalls.length > 0 ? effectiveToolCalls : undefined,
     })
 
-    if (toolCalls.length === 0) {
+    if (effectiveToolCalls.length === 0 && !isPremiumPlusPlaceholderResponse(assistantText)) {
       return {
         messages,
         sources: aggregatedSources,
@@ -2931,12 +2990,23 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
         systemPrompt,
       }
     }
+    if (effectiveToolCalls.length === 0) {
+      return {
+        messages,
+        sources: aggregatedSources,
+        directResponse: '',
+        toolsUsed: usedTools,
+        systemPrompt,
+      }
+    }
 
-    const normalizedToolCalls: Array<{ id: string; name: string; input: Record<string, any> }> = toolCalls
+    const normalizedToolCalls: Array<{ id: string; name: string; input: Record<string, any> }> = effectiveToolCalls
       .map((toolCall: any) => {
         const id = String(toolCall?.id || '').trim()
-        const toolName = String(toolCall?.function?.name || '').trim()
-        const argsRaw = String(toolCall?.function?.arguments || '{}')
+        const toolName = String(toolCall?.function?.name || toolCall?.name || '').trim()
+        const argsRaw = typeof toolCall?.function?.arguments === 'string'
+          ? toolCall.function.arguments
+          : JSON.stringify(toolCall?.input || {})
         if (!id || !toolName) return null
         let input: Record<string, any> = {}
         try {
@@ -3116,6 +3186,7 @@ export async function invokePremiumPlusLegalAgent(
         openaiModel: openAiFallbackModel,
         openaiFallbackModel: openAiFallbackModel,
         searchEngineOverride: options?.searchEngineOverride || 'perplexity',
+        requireToolRound: explicitUseSearch === true,
         conversationHistory,
         caseKeywords,
         memoryContext: options?.memoryContext,
@@ -3131,6 +3202,7 @@ export async function invokePremiumPlusLegalAgent(
         historyLimit: options?.historyLimit,
       })
   const verifiedAuthorities = extractVerifiedAuthoritiesFromToolMessages(toolLoop.messages)
+  const toolContext = extractPremiumPlusToolResultText(toolLoop.messages)
 
   if (toolLoop.directResponse) {
     const finalDirect = ensureCitationsForPremium(
@@ -3150,7 +3222,6 @@ export async function invokePremiumPlusLegalAgent(
 
   let finalText = ''
   if (useOpenAiFallback) {
-    const toolContext = extractPremiumPlusToolResultText(toolLoop.messages)
     finalText = await generatePremiumPlusOpenAiFallbackFinalText({
       message,
       toolContext,
@@ -3213,6 +3284,11 @@ export async function invokePremiumPlusLegalAgent(
       finalText = `${finalText}\n${continuation}`.trim()
       continueCount += 1
     }
+  }
+  if (isPremiumPlusPlaceholderResponse(finalText)) {
+    finalText = toolContext.trim()
+      ? `I had trouble drafting the final answer. Here is the key information retrieved:\n\n${premiumPlusTruncate(toolContext, 2400)}`
+      : "I'm having trouble generating a complete response right now. Please try again in a moment."
   }
   const final = ensureCitationsForPremium(
     neutralizeLegalAdviceTone(stripMarkdown(stripUrlsFromText(finalText || "I couldn't generate a response."))),
@@ -3355,6 +3431,7 @@ export async function invokePremiumPlusLegalAgentStream(
         openaiModel: openAiFallbackModel,
         openaiFallbackModel: openAiFallbackModel,
         searchEngineOverride: options?.searchEngineOverride || 'perplexity',
+        requireToolRound: explicitUseSearch === true,
         conversationHistory,
         caseKeywords,
         memoryContext: options?.memoryContext,
@@ -3372,6 +3449,7 @@ export async function invokePremiumPlusLegalAgentStream(
         onStatus: emitStatus,
       })
   const verifiedAuthorities = extractVerifiedAuthoritiesFromToolMessages(toolLoop.messages)
+  const toolContext = extractPremiumPlusToolResultText(toolLoop.messages)
 
   if (toolLoop.directResponse) {
     const finalDirect = ensureCitationsForPremium(
@@ -3392,9 +3470,8 @@ export async function invokePremiumPlusLegalAgentStream(
   }
 
   emitStatus('Drafting answer...')
-  const finalText = useOpenAiFallback
+  let finalText = useOpenAiFallback
     ? await (async () => {
-        const toolContext = extractPremiumPlusToolResultText(toolLoop.messages)
         const text = await generatePremiumPlusOpenAiFallbackFinalText({
           message,
           toolContext,
@@ -3430,6 +3507,12 @@ export async function invokePremiumPlusLegalAgentStream(
           options?.onToken
         )
       })()
+  if (isPremiumPlusPlaceholderResponse(finalText)) {
+    finalText = toolContext.trim()
+      ? `I had trouble drafting the final answer. Here is the key information retrieved:\n\n${premiumPlusTruncate(toolContext, 2400)}`
+      : "I'm having trouble generating a complete response right now. Please try again in a moment."
+    emitSyntheticStream(finalText, options?.onToken)
+  }
 
   const final = ensureCitationsForPremium(
     neutralizeLegalAdviceTone(stripMarkdown(stripUrlsFromText(finalText || "I couldn't generate a response."))),
