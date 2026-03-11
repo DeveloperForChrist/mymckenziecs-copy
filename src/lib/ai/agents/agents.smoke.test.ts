@@ -643,6 +643,70 @@ describe('agent smoke checks', () => {
     expect(result.response.trim().length).toBeGreaterThan(0)
   })
 
+  it('premium plus OpenAI fallback can execute tool calls when forced', async () => {
+    process.env.ANTHROPIC_API_KEY = ''
+    const searchSpy = vi.spyOn(SearchTool.prototype, '_call').mockResolvedValue(
+      JSON.stringify({
+        packet: 'Consumer guidance summary',
+        sources: ['https://example.com/consumer-rights'],
+        sourceMode: 'engine',
+      })
+    )
+
+    openAiMockState.openAiCreateMock
+      .mockImplementationOnce(async (_payload: any) => ({
+        choices: [
+          {
+            message: {
+              content: '',
+              tool_calls: [
+                {
+                  id: 'call_web_1',
+                  type: 'function',
+                  function: {
+                    name: 'web_search',
+                    arguments: JSON.stringify({
+                      query: 'consumer rights act dealer faulty car',
+                      mode: 'general',
+                    }),
+                  },
+                },
+              ],
+            },
+            finish_reason: 'tool_calls',
+          },
+        ],
+      }))
+      .mockImplementationOnce(async (_payload: any) => ({
+        choices: [
+          {
+            message: {
+              content: 'Overview\n1. General guidance point.\nIn short: This is general legal information support.',
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      }))
+
+    const result = await invokePremiumPlusLegalAgent(
+      'force-openai-tool-loop check',
+      'thread_smoke_premium_plus_openai_fallback',
+      'user_smoke_premium_plus_openai_fallback',
+      [],
+      undefined,
+      {
+        forceOpenAiFallback: true,
+        openaiFallbackModel: 'gpt-5-mini',
+      }
+    )
+
+    expect(searchSpy).toHaveBeenCalledTimes(1)
+    expect(Array.isArray(result.sources)).toBe(true)
+    expect((result.sources || []).length).toBeGreaterThan(0)
+    expect(result.response.trim().length).toBeGreaterThan(0)
+    searchSpy.mockRestore()
+  })
+
   it('premium plus tool path explicitly includes tool instructions', async () => {
     await invokePremiumPlusLegalAgent(
       'Can you give case law on this?',

@@ -1840,6 +1840,56 @@ const extractPremiumPlusToolResultText = (messages: PremiumPlusAnthropicMessage[
   return lines.join('\n\n').trim()
 }
 
+const buildPremiumPlusOpenAiFallbackFinalPrompt = (message: string, toolContext: string) =>
+  `${message}\n\n` +
+  `Tool results already retrieved for this request:\n${toolContext || 'No tool output available.'}\n\n` +
+  'Now answer the user directly in plain text using the tool results above. Do not mention tools or internal routing.'
+
+const generatePremiumPlusOpenAiFallbackFinalText = async (options: {
+  message: string
+  toolContext: string
+  systemPrompt: string
+  model: string
+  maxTokens: number
+}) => {
+  const basePrompt = buildPremiumPlusOpenAiFallbackFinalPrompt(options.message, options.toolContext)
+  let finalText = await callLLM(
+    basePrompt,
+    options.systemPrompt,
+    options.model,
+    options.maxTokens,
+    'openai',
+    options.model,
+    true,
+    PREMIUM_PLUS_MAX_AUTO_CONTINUES
+  )
+
+  if (!String(finalText || '').trim()) {
+    const retryPrompt =
+      `${basePrompt}\n\n` +
+      'Your previous reply was empty. Provide at least one short paragraph and one short practical next-step paragraph.'
+    finalText = await callLLM(
+      retryPrompt,
+      options.systemPrompt,
+      options.model,
+      options.maxTokens,
+      'openai',
+      options.model,
+      true,
+      PREMIUM_PLUS_MAX_AUTO_CONTINUES
+    )
+  }
+
+  if (!String(finalText || '').trim()) {
+    if (options.toolContext.trim()) {
+      return `I had trouble drafting the final answer. Here is the key information retrieved:\n\n${premiumPlusTruncate(options.toolContext, 2400)}`
+    }
+    return "I'm having trouble generating a complete response right now. Please try again in a moment."
+  }
+
+  return finalText
+}
+
 const PREMIUM_PLUS_TOOL_LOOP_LIMIT = Number.isFinite(Number(process.env.PREMIUM_PLUS_TOOL_LOOP_LIMIT))
   ? Math.min(8, Math.max(1, Math.floor(Number(process.env.PREMIUM_PLUS_TOOL_LOOP_LIMIT))))
   : 4
@@ -3101,23 +3151,19 @@ export async function invokePremiumPlusLegalAgent(
   let finalText = ''
   if (useOpenAiFallback) {
     const toolContext = extractPremiumPlusToolResultText(toolLoop.messages)
-    const fallbackPrompt = `${message}\n\nTool results already retrieved for this request:\n${toolContext || 'No tool output available.'}\n\nNow answer the user directly in plain text using the tool results above. Do not mention tools or internal routing.`
-    finalText = await callLLM(
-      fallbackPrompt,
-      buildPremiumPlusDirectSystemPrompt({
+    finalText = await generatePremiumPlusOpenAiFallbackFinalText({
+      message,
+      toolContext,
+      systemPrompt: buildPremiumPlusDirectSystemPrompt({
         conversationHistory,
         caseKeywords,
         memoryContext: options?.memoryContext,
         historyLimit: options?.historyLimit,
         latestQuestion: message,
       }),
-      openAiFallbackModel,
-      options?.maxTokens || PREMIUM_PLUS_CONCISE_MAX_TOKENS,
-      'openai',
-      openAiFallbackModel,
-      true,
-      PREMIUM_PLUS_MAX_AUTO_CONTINUES
-    )
+      model: openAiFallbackModel,
+      maxTokens: options?.maxTokens || PREMIUM_PLUS_CONCISE_MAX_TOKENS,
+    })
   } else {
     const client = createPremiumPlusAnthropic()
     const finalPromptMessages: PremiumPlusAnthropicMessage[] = [
@@ -3349,23 +3395,19 @@ export async function invokePremiumPlusLegalAgentStream(
   const finalText = useOpenAiFallback
     ? await (async () => {
         const toolContext = extractPremiumPlusToolResultText(toolLoop.messages)
-        const fallbackPrompt = `${message}\n\nTool results already retrieved for this request:\n${toolContext || 'No tool output available.'}\n\nNow answer the user directly in plain text using the tool results above. Do not mention tools or internal routing.`
-        const text = await callLLM(
-          fallbackPrompt,
-          buildPremiumPlusDirectSystemPrompt({
+        const text = await generatePremiumPlusOpenAiFallbackFinalText({
+          message,
+          toolContext,
+          systemPrompt: buildPremiumPlusDirectSystemPrompt({
             conversationHistory,
             caseKeywords,
             memoryContext: options?.memoryContext,
             historyLimit: options?.historyLimit,
             latestQuestion: message,
           }),
-          openAiFallbackModel,
-          options?.maxTokens || PREMIUM_PLUS_CONCISE_MAX_TOKENS,
-          'openai',
-          openAiFallbackModel,
-          true,
-          PREMIUM_PLUS_MAX_AUTO_CONTINUES
-        )
+          model: openAiFallbackModel,
+          maxTokens: options?.maxTokens || PREMIUM_PLUS_CONCISE_MAX_TOKENS,
+        })
         emitSyntheticStream(text, options?.onToken)
         return text
       })()
