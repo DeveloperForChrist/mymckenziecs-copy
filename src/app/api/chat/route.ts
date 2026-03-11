@@ -132,6 +132,9 @@ const getPremiumPlusAnthropicModel = (): string =>
 const getPremiumPlusAnthropicFallbackModel = (primaryModel: string): string =>
   getEnvModelValue('PREMIUM_PLUS_ANTHROPIC_FALLBACK_MODEL') || primaryModel
 
+const getPremiumPlusOpenAiFallbackModel = (): string =>
+  getEnvModelValue('OPENAI_PREMIUM_PLUS_FALLBACK_MODEL', 'OPENAI_PREMIUM_FALLBACK_MODEL', 'OPENAI_BASIC_MODEL') || 'gpt-5-mini'
+
 const sanitizeChatErrorMessage = (error: unknown): string => {
   const message = error instanceof Error
     ? error.message
@@ -1989,6 +1992,7 @@ export async function POST(request: NextRequest) {
     const premiumPlusAnthropicFallbackModel = premiumPlusAnthropicModel
       ? getPremiumPlusAnthropicFallbackModel(premiumPlusAnthropicModel)
       : null
+    const premiumPlusOpenAiFallbackModel = getPremiumPlusOpenAiFallbackModel()
     const caseLawSuggestionDecision = evaluateCaseLawSuggestionNeed({
       message,
       history: effectiveConversationHistory,
@@ -2148,6 +2152,138 @@ export async function POST(request: NextRequest) {
 
     const shouldUseBasicLegalAgent = basicPlanActive
     const shouldUsePremiumPlusLegalAgent = premiumPlusActive && !shouldUseBasicLegalAgent
+    const invokePremiumPlusWithOpenAiFallback = async (): Promise<AgentResponse> => {
+      const anthropicApiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
+      if (!anthropicApiKey) {
+        console.warn('Premium+ Anthropic API key missing; falling back to OpenAI gpt-5-mini.')
+        return invokePremiumLegalAgent(
+          messageForAgent,
+          threadId,
+          userId,
+          effectiveConversationHistory,
+          caseKeywords,
+          {
+            memoryContext: relatedThreadMemoryContext || undefined,
+            autoDecideSearch: true,
+            searchEngineOverride: 'brave',
+            openaiModel: premiumPlusOpenAiFallbackModel,
+            openaiFallbackModel: premiumPlusOpenAiFallbackModel,
+            historyLimit: agentHistoryLimit,
+          }
+        )
+      }
+
+      try {
+        return await invokePremiumPlusLegalAgent(
+          messageForAgent,
+          threadId,
+          userId,
+          effectiveConversationHistory,
+          caseKeywords,
+          {
+            memoryContext: relatedThreadMemoryContext || undefined,
+            autoDecideSearch: true,
+            anthropicModel: premiumPlusAnthropicModel || undefined,
+            anthropicFallbackModel: premiumPlusAnthropicFallbackModel || undefined,
+            historyLimit: agentHistoryLimit,
+          }
+        )
+      } catch (error) {
+        console.error('Premium+ Anthropic invocation failed; falling back to OpenAI gpt-5-mini.', error)
+        return invokePremiumLegalAgent(
+          messageForAgent,
+          threadId,
+          userId,
+          effectiveConversationHistory,
+          caseKeywords,
+          {
+            memoryContext: relatedThreadMemoryContext || undefined,
+            autoDecideSearch: true,
+            searchEngineOverride: 'brave',
+            openaiModel: premiumPlusOpenAiFallbackModel,
+            openaiFallbackModel: premiumPlusOpenAiFallbackModel,
+            historyLimit: agentHistoryLimit,
+          }
+        )
+      }
+    }
+
+    const invokePremiumPlusStreamWithOpenAiFallback = async (
+      onStatus: (status: string) => void,
+      onToken: (chunk: string) => void
+    ): Promise<AgentResponse> => {
+      let emittedDelta = false
+      const anthropicApiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
+      if (!anthropicApiKey) {
+        console.warn('Premium+ Anthropic API key missing; using OpenAI gpt-5-mini stream fallback.')
+        return invokePremiumLegalAgentStream(
+          messageForAgent,
+          threadId,
+          userId,
+          effectiveConversationHistory,
+          caseKeywords,
+          {
+            memoryContext: relatedThreadMemoryContext || undefined,
+            autoDecideSearch: true,
+            searchEngineOverride: 'brave',
+            openaiModel: premiumPlusOpenAiFallbackModel,
+            openaiFallbackModel: premiumPlusOpenAiFallbackModel,
+            historyLimit: agentHistoryLimit,
+            onStatus,
+            onToken: (chunk) => {
+              if (chunk) onToken(chunk)
+            },
+          }
+        )
+      }
+
+      try {
+        return await invokePremiumPlusLegalAgentStream(
+          messageForAgent,
+          threadId,
+          userId,
+          effectiveConversationHistory,
+          caseKeywords,
+          {
+            memoryContext: relatedThreadMemoryContext || undefined,
+            autoDecideSearch: true,
+            searchEngineOverride: 'perplexity',
+            anthropicModel: premiumPlusAnthropicModel || undefined,
+            anthropicFallbackModel: premiumPlusAnthropicFallbackModel || undefined,
+            historyLimit: agentHistoryLimit,
+            onStatus,
+            onToken: (chunk) => {
+              if (!chunk) return
+              emittedDelta = true
+              onToken(chunk)
+            },
+          }
+        )
+      } catch (error) {
+        if (emittedDelta) throw error
+        console.error('Premium+ Anthropic streaming failed; falling back to OpenAI gpt-5-mini stream.', error)
+        return invokePremiumLegalAgentStream(
+          messageForAgent,
+          threadId,
+          userId,
+          effectiveConversationHistory,
+          caseKeywords,
+          {
+            memoryContext: relatedThreadMemoryContext || undefined,
+            autoDecideSearch: true,
+            searchEngineOverride: 'brave',
+            openaiModel: premiumPlusOpenAiFallbackModel,
+            openaiFallbackModel: premiumPlusOpenAiFallbackModel,
+            historyLimit: agentHistoryLimit,
+            onStatus,
+            onToken: (chunk) => {
+              if (chunk) onToken(chunk)
+            },
+          }
+        )
+      }
+    }
+
     const finalizeAgentResponse = async (agentResponse: AgentResponse) => {
       const includeDebug = process.env.NODE_ENV !== 'production'
       const sourceCount = Array.isArray(agentResponse.sources) ? agentResponse.sources.length : 0
@@ -2344,25 +2480,12 @@ export async function POST(request: NextRequest) {
                     },
                   }
                 )
-              : await invokePremiumPlusLegalAgentStream(
-                  messageForAgent,
-                  threadId,
-                  userId,
-                  effectiveConversationHistory,
-                  caseKeywords,
-                  {
-                    memoryContext: relatedThreadMemoryContext || undefined,
-                    autoDecideSearch: true,
-                    searchEngineOverride: 'perplexity',
-                    anthropicModel: premiumPlusAnthropicModel || undefined,
-                    anthropicFallbackModel: premiumPlusAnthropicFallbackModel || undefined,
-                    historyLimit: agentHistoryLimit,
-                    onStatus: (status) => {
-                      if (status) sendEvent({ type: 'status', message: status })
-                    },
-                    onToken: (chunk) => {
-                      if (chunk) sendEvent({ type: 'delta', delta: chunk })
-                    },
+              : await invokePremiumPlusStreamWithOpenAiFallback(
+                  (status) => {
+                    if (status) sendEvent({ type: 'status', message: status })
+                  },
+                  (chunk) => {
+                    if (chunk) sendEvent({ type: 'delta', delta: chunk })
                   }
                 )
             const payload = await finalizeAgentResponse(agentResponse)
@@ -2388,13 +2511,7 @@ export async function POST(request: NextRequest) {
           historyLimit: agentHistoryLimit,
         })
       : shouldUsePremiumPlusLegalAgent
-        ? await invokePremiumPlusLegalAgent(messageForAgent, threadId, userId, effectiveConversationHistory, caseKeywords, {
-            memoryContext: relatedThreadMemoryContext || undefined,
-            autoDecideSearch: true,
-            anthropicModel: premiumPlusAnthropicModel || undefined,
-            anthropicFallbackModel: premiumPlusAnthropicFallbackModel || undefined,
-            historyLimit: agentHistoryLimit,
-          })
+        ? await invokePremiumPlusWithOpenAiFallback()
         : await invokePremiumLegalAgent(messageForAgent, threadId, userId, effectiveConversationHistory, caseKeywords, {
             memoryContext: relatedThreadMemoryContext || undefined,
             autoDecideSearch: true,
