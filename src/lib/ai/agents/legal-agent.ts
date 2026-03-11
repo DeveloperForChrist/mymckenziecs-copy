@@ -202,6 +202,9 @@ const PREMIUM_PLUS_CONCISE_TARGET_TOKENS = Number.isFinite(Number(process.env.PR
 const PREMIUM_PLUS_CONCISE_MAX_TOKENS = Number.isFinite(Number(process.env.PREMIUM_PLUS_CONCISE_MAX_TOKENS))
   ? Math.max(PREMIUM_PLUS_CONCISE_TARGET_TOKENS, Math.floor(Number(process.env.PREMIUM_PLUS_CONCISE_MAX_TOKENS)))
   : 1200
+const PREMIUM_PLUS_MAX_AUTO_CONTINUES = Number.isFinite(Number(process.env.PREMIUM_PLUS_MAX_AUTO_CONTINUES))
+  ? Math.max(0, Math.floor(Number(process.env.PREMIUM_PLUS_MAX_AUTO_CONTINUES)))
+  : 2
 const PREMIUM_LENGTH_TAIL_TOKENS = Number.isFinite(Number(process.env.PREMIUM_LENGTH_TAIL_TOKENS))
   ? Math.max(100, Math.floor(Number(process.env.PREMIUM_LENGTH_TAIL_TOKENS)))
   : 300
@@ -1820,6 +1823,12 @@ const PREMIUM_PLUS_TOOL_LOOP_LIMIT = 4
 const PREMIUM_PLUS_TOOL_CALL_MAX_TOKENS = 700
 const PREMIUM_PLUS_ANTHROPIC_PROMPT_CACHING_BETA = 'prompt-caching-2024-07-31'
 const PREMIUM_PLUS_ANTHROPIC_PROMPT_CACHE_TTL = '5m'
+const PREMIUM_PLUS_CONTINUATION_PROMPT = 'Continue exactly from where you stopped. Do not repeat prior text. Keep the same structure and style.'
+
+type PremiumPlusAnthropicTextResult = {
+  text: string
+  stopReason: string | null
+}
 
 const PREMIUM_PLUS_TOOL_SYSTEM_PROMPT = `${PREMIUM_CONTEXT_SYSTEM_PROMPT}
 
@@ -2137,17 +2146,15 @@ const streamPremiumPlusDirectText = async (
     ...options,
     latestQuestion: message,
   })
-  return streamPremiumPlusAnthropic(
+  return streamPremiumPlusAnthropicTextWithAutoContinue(
     client,
     options.anthropicModel,
     options.anthropicFallbackModel,
     systemPrompt,
     [{ role: 'user', content: message }],
-    {
-      maxTokens: options.maxTokens || PREMIUM_PLUS_CONCISE_MAX_TOKENS,
-      requestType: 'premium_plus_direct_stream',
-      onToken: options.onToken,
-    }
+    options.maxTokens || PREMIUM_PLUS_CONCISE_MAX_TOKENS,
+    'premium_plus_direct_stream',
+    options.onToken
   )
 }
 
@@ -2392,7 +2399,7 @@ const streamPremiumPlusAnthropic = async (
     requestType?: string
     onToken?: (chunk: string) => void
   }
-) => {
+): Promise<PremiumPlusAnthropicTextResult> => {
   const runModel = async (modelName: string) => {
     const startedAt = Date.now()
     let streamedText = ''
@@ -2434,7 +2441,10 @@ const streamPremiumPlusAnthropic = async (
         requestType: options?.requestType,
         endpoint: 'messages.stream',
       })
-      return extractAnthropicTextContent((finalMessage as any)?.content) || streamedText
+      return {
+        text: extractAnthropicTextContent((finalMessage as any)?.content) || streamedText,
+        stopReason: String((finalMessage as any)?.stop_reason || '').trim() || null,
+      }
     } catch (error: any) {
       logClaudeUsage({
         model: modelName,
@@ -2470,9 +2480,10 @@ const callPremiumPlusAnthropicText = async (
   systemPrompt: string,
   prompt: string,
   maxTokens: number,
-  requestType: string
+  requestType: string,
+  maxAutoContinues: number = PREMIUM_PLUS_MAX_AUTO_CONTINUES
 ) => {
-  const completion = await callPremiumPlusAnthropic(
+  let completion = await callPremiumPlusAnthropic(
     client,
     model,
     fallbackModel,
@@ -2485,7 +2496,91 @@ const callPremiumPlusAnthropicText = async (
     }
   )
 
-  return extractAnthropicTextContent((completion as any)?.content)
+  let combinedText = extractAnthropicTextContent((completion as any)?.content)
+  let stopReason = String((completion as any)?.stop_reason || '').trim().toLowerCase()
+  let continueCount = 0
+  const continuationLimit = Math.max(0, Math.floor(maxAutoContinues))
+
+  while (stopReason === 'max_tokens' && continueCount < continuationLimit && combinedText.trim()) {
+    completion = await callPremiumPlusAnthropic(
+      client,
+      model,
+      fallbackModel,
+      systemPrompt,
+      [
+        { role: 'user', content: prompt },
+        { role: 'assistant', content: combinedText },
+        { role: 'user', content: PREMIUM_PLUS_CONTINUATION_PROMPT },
+      ],
+      {
+        toolsEnabled: false,
+        maxTokens,
+        requestType: `${requestType}_continue`,
+      }
+    )
+    const continuation = extractAnthropicTextContent((completion as any)?.content)
+    if (!continuation.trim()) break
+    combinedText = `${combinedText}\n${continuation}`.trim()
+    stopReason = String((completion as any)?.stop_reason || '').trim().toLowerCase()
+    continueCount += 1
+  }
+
+  return combinedText
+}
+
+const streamPremiumPlusAnthropicTextWithAutoContinue = async (
+  client: Anthropic,
+  model: string,
+  fallbackModel: string,
+  systemPrompt: string,
+  initialMessages: PremiumPlusAnthropicMessage[],
+  maxTokens: number,
+  requestType: string,
+  onToken?: (chunk: string) => void,
+  maxAutoContinues: number = PREMIUM_PLUS_MAX_AUTO_CONTINUES
+): Promise<string> => {
+  let result = await streamPremiumPlusAnthropic(
+    client,
+    model,
+    fallbackModel,
+    systemPrompt,
+    initialMessages,
+    {
+      maxTokens,
+      requestType,
+      onToken,
+    }
+  )
+
+  let combinedText = result.text || ''
+  let stopReason = String(result.stopReason || '').trim().toLowerCase()
+  let continueCount = 0
+  const continuationLimit = Math.max(0, Math.floor(maxAutoContinues))
+
+  while (stopReason === 'max_tokens' && continueCount < continuationLimit && combinedText.trim()) {
+    result = await streamPremiumPlusAnthropic(
+      client,
+      model,
+      fallbackModel,
+      systemPrompt,
+      [
+        ...initialMessages,
+        { role: 'assistant', content: combinedText },
+        { role: 'user', content: PREMIUM_PLUS_CONTINUATION_PROMPT },
+      ],
+      {
+        maxTokens,
+        requestType: `${requestType}_continue`,
+        onToken,
+      }
+    )
+    if (!result.text.trim()) break
+    combinedText = `${combinedText}\n${result.text}`.trim()
+    stopReason = String(result.stopReason || '').trim().toLowerCase()
+    continueCount += 1
+  }
+
+  return combinedText
 }
 
 const emitSyntheticStream = (text: string, onToken?: (chunk: string) => void) => {
@@ -2730,25 +2825,53 @@ export async function invokePremiumPlusLegalAgent(
   }
 
   const client = createPremiumPlusAnthropic()
-  const finalCompletion = await callPremiumPlusAnthropic(
+  const finalPromptMessages: PremiumPlusAnthropicMessage[] = [
+    ...toolLoop.messages,
+    {
+      role: 'user',
+      content: 'Now answer the user directly in plain text using any tool results already provided. Do not call any more tools. If you discuss a retrieved authority, put a short standalone line with its case name and citation immediately before the explanation.',
+    },
+  ]
+  let finalCompletion = await callPremiumPlusAnthropic(
     client,
     anthropicModel,
     anthropicFallbackModel,
     toolLoop.systemPrompt,
-    [
-      ...toolLoop.messages,
-      {
-        role: 'user',
-        content: 'Now answer the user directly in plain text using any tool results already provided. Do not call any more tools. If you discuss a retrieved authority, put a short standalone line with its case name and citation immediately before the explanation.',
-      },
-    ],
+    finalPromptMessages,
     {
       toolsEnabled: false,
       maxTokens: options?.maxTokens || PREMIUM_PLUS_CONCISE_MAX_TOKENS,
       requestType: 'premium_plus_final',
     }
   ) as any
-  const finalText = extractAnthropicTextContent(finalCompletion?.content)
+  let finalText = extractAnthropicTextContent(finalCompletion?.content)
+  let continueCount = 0
+  while (
+    String(finalCompletion?.stop_reason || '').trim().toLowerCase() === 'max_tokens' &&
+    continueCount < PREMIUM_PLUS_MAX_AUTO_CONTINUES &&
+    finalText.trim()
+  ) {
+    finalCompletion = await callPremiumPlusAnthropic(
+      client,
+      anthropicModel,
+      anthropicFallbackModel,
+      toolLoop.systemPrompt,
+      [
+        ...finalPromptMessages,
+        { role: 'assistant', content: finalText },
+        { role: 'user', content: PREMIUM_PLUS_CONTINUATION_PROMPT },
+      ],
+      {
+        toolsEnabled: false,
+        maxTokens: options?.maxTokens || PREMIUM_PLUS_CONCISE_MAX_TOKENS,
+        requestType: 'premium_plus_final_continue',
+      }
+    ) as any
+    const continuation = extractAnthropicTextContent(finalCompletion?.content)
+    if (!continuation.trim()) break
+    finalText = `${finalText}\n${continuation}`.trim()
+    continueCount += 1
+  }
   const final = ensureCitationsForPremium(
     neutralizeLegalAdviceTone(stripMarkdown(stripUrlsFromText(finalText || "I couldn't generate a response."))),
     toolLoop.sources,
@@ -2902,7 +3025,7 @@ export async function invokePremiumPlusLegalAgentStream(
 
   const client = createPremiumPlusAnthropic()
   emitStatus('Drafting answer...')
-  const finalText = await streamPremiumPlusAnthropic(
+  const finalText = await streamPremiumPlusAnthropicTextWithAutoContinue(
     client,
     anthropicModel,
     anthropicFallbackModel,
@@ -2914,11 +3037,9 @@ export async function invokePremiumPlusLegalAgentStream(
         content: 'Now answer the user directly in plain text using any tool results already provided. Do not call any more tools. If you discuss a retrieved authority, put a short standalone line with its case name and citation immediately before the explanation.',
       },
     ],
-    {
-      maxTokens: options?.maxTokens || PREMIUM_PLUS_CONCISE_MAX_TOKENS,
-      requestType: 'premium_plus_final_stream',
-      onToken: options?.onToken,
-    }
+    options?.maxTokens || PREMIUM_PLUS_CONCISE_MAX_TOKENS,
+    'premium_plus_final_stream',
+    options?.onToken
   )
 
   const final = ensureCitationsForPremium(
