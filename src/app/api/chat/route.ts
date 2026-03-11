@@ -2156,7 +2156,7 @@ export async function POST(request: NextRequest) {
       const anthropicApiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
       if (!anthropicApiKey) {
         console.warn('Premium+ Anthropic API key missing; falling back to OpenAI gpt-5-mini.')
-        return invokePremiumLegalAgent(
+        return invokePremiumPlusLegalAgent(
           messageForAgent,
           threadId,
           userId,
@@ -2165,9 +2165,9 @@ export async function POST(request: NextRequest) {
           {
             memoryContext: relatedThreadMemoryContext || undefined,
             autoDecideSearch: true,
-            searchEngineOverride: 'brave',
-            openaiModel: premiumPlusOpenAiFallbackModel,
+            searchEngineOverride: 'perplexity',
             openaiFallbackModel: premiumPlusOpenAiFallbackModel,
+            forceOpenAiFallback: true,
             historyLimit: agentHistoryLimit,
           }
         )
@@ -2190,7 +2190,7 @@ export async function POST(request: NextRequest) {
         )
       } catch (error) {
         console.error('Premium+ Anthropic invocation failed; falling back to OpenAI gpt-5-mini.', error)
-        return invokePremiumLegalAgent(
+        return invokePremiumPlusLegalAgent(
           messageForAgent,
           threadId,
           userId,
@@ -2199,9 +2199,9 @@ export async function POST(request: NextRequest) {
           {
             memoryContext: relatedThreadMemoryContext || undefined,
             autoDecideSearch: true,
-            searchEngineOverride: 'brave',
-            openaiModel: premiumPlusOpenAiFallbackModel,
+            searchEngineOverride: 'perplexity',
             openaiFallbackModel: premiumPlusOpenAiFallbackModel,
+            forceOpenAiFallback: true,
             historyLimit: agentHistoryLimit,
           }
         )
@@ -2216,7 +2216,7 @@ export async function POST(request: NextRequest) {
       const anthropicApiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
       if (!anthropicApiKey) {
         console.warn('Premium+ Anthropic API key missing; using OpenAI gpt-5-mini stream fallback.')
-        return invokePremiumLegalAgentStream(
+        return invokePremiumPlusLegalAgentStream(
           messageForAgent,
           threadId,
           userId,
@@ -2225,9 +2225,9 @@ export async function POST(request: NextRequest) {
           {
             memoryContext: relatedThreadMemoryContext || undefined,
             autoDecideSearch: true,
-            searchEngineOverride: 'brave',
-            openaiModel: premiumPlusOpenAiFallbackModel,
+            searchEngineOverride: 'perplexity',
             openaiFallbackModel: premiumPlusOpenAiFallbackModel,
+            forceOpenAiFallback: true,
             historyLimit: agentHistoryLimit,
             onStatus,
             onToken: (chunk) => {
@@ -2262,7 +2262,7 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         if (emittedDelta) throw error
         console.error('Premium+ Anthropic streaming failed; falling back to OpenAI gpt-5-mini stream.', error)
-        return invokePremiumLegalAgentStream(
+        return invokePremiumPlusLegalAgentStream(
           messageForAgent,
           threadId,
           userId,
@@ -2271,9 +2271,9 @@ export async function POST(request: NextRequest) {
           {
             memoryContext: relatedThreadMemoryContext || undefined,
             autoDecideSearch: true,
-            searchEngineOverride: 'brave',
-            openaiModel: premiumPlusOpenAiFallbackModel,
+            searchEngineOverride: 'perplexity',
             openaiFallbackModel: premiumPlusOpenAiFallbackModel,
+            forceOpenAiFallback: true,
             historyLimit: agentHistoryLimit,
             onStatus,
             onToken: (chunk) => {

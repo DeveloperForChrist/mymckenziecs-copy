@@ -1,9 +1,16 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import HeroActionButtons from '@/components/home/HeroActionButtons';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { isBillingEligibleUser } from '@/lib/auth/session-user';
 import { DEADLINE_REMINDER_FEATURE } from '@/constants';
+
+export const metadata: Metadata = {
+  title: {
+    absolute: 'MyMcKenzie Court Support',
+  },
+};
 
 const workspaceFeatures = [
   {
@@ -37,7 +44,7 @@ const plans = [
     name: 'Basic',
     price: '18',
     bullets: [
-      'MyMckenzieCS Basic Assistant',
+      'MyMcKenzie Court Support Basic Assistant',
       '10 document storage',
       'Conversation history included'
     ]
@@ -46,7 +53,7 @@ const plans = [
     name: 'Premium',
     price: '32',
     bullets: [
-      'MyMckenzieCS Smart Assistant',
+      'MyMcKenzie Court Support Smart Assistant',
       '25 document storage',
       'Conversation history included',
       DEADLINE_REMINDER_FEATURE
@@ -57,7 +64,7 @@ const plans = [
     name: 'Premium +',
     price: '199',
     bullets: [
-      'MyMckenzieCS Intelligent Assistant',
+      'MyMcKenzie Court Support Intelligent Assistant',
       '150 document storage',
       'Persistent chat history',
       'Advanced case law retrieval and study',
@@ -132,7 +139,7 @@ export default async function HomePage() {
                     with structure, not stress.
                   </h1>
                   <p className="text-base md:text-xl text-white/85 mt-5 max-w-3xl mx-auto xl:mx-0 leading-relaxed">
-                    MyMcKenzieCS is a legal self-help workspace for UK litigants in person: Providing legal procedural support,
+                    MyMcKenzie Court Support is a legal self-help workspace for UK litigants in person: Providing legal procedural support,
                     document and evidence organisation, deadline tracking, and case law research in one place to navigate your case.
                   </p>
                   <HeroActionButtons hasAccountSession={hasAccountSession} hasPaidAccess={hasPaidAccess} />
@@ -151,7 +158,7 @@ export default async function HomePage() {
                 >
                   <Image
                     src="/assets/mymckenzie-high-resolution-logo (7) 1.svg"
-                    alt="MyMcKenzieCS logo"
+                    alt="MyMcKenzie Court Support logo"
                     width={550}
                     height={550}
                     priority
@@ -173,7 +180,7 @@ export default async function HomePage() {
           <div className="app-container relative z-10 py-4 md:py-6">
             <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
               <div>
-                <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Inside MyMcKenzieCS</div>
+                <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Inside MyMcKenzie Court Support</div>
                 <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">Everything you need to manage a legal matter in one workspace</h3>
               </div>
             </div>
@@ -249,7 +256,7 @@ export default async function HomePage() {
         <div className="app-container py-12">
           <div className="text-base md:text-lg font-medium mb-2"> 2026 Lenjordan Ltd. All rights reserved.</div>
           <div className="text-base md:text-lg font-medium mb-4 text-white/85">
-            MyMcKenzieCS is a product of Lenjordan Ltd.<br/>Company No. 16931933
+            MyMcKenzie Court Support is a product of Lenjordan Ltd.<br/>Company No. 16931933
           </div>
           <div className="flex flex-wrap justify-center gap-3 mb-4 text-sm md:text-base text-white/80">
             <a href="/privacy-policy" className="underline hover:text-purple-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#120117] rounded">Privacy Policy</a>
@@ -265,7 +272,7 @@ export default async function HomePage() {
             <a href="/about" className="underline hover:text-purple-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#120117] rounded">About</a>
           </div>
           <div className="max-w-3xl mx-auto text-sm md:text-base font-semibold opacity-90 mt-4 leading-relaxed text-white/80">
-            MyMcKenzieCS Assistant provides informational and court support only. Not legal advice.
+            MyMcKenzie Court Support Assistant provides informational and court support only. Not legal advice.
           </div>
         </div>
       </footer>
