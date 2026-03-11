@@ -8,8 +8,9 @@ import { DEADLINE_REMINDER_FEATURE } from '@/constants';
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'MyMcKenzie Court Support',
+    absolute: 'MyMcKenzieCS | MyMcKenzie Court Support',
   },
+  description: 'MyMcKenzieCS is the premier legal self-help workspace for UK litigants in person. Manage documents, deadlines, and court support in one place.',
 };
 
 const workspaceFeatures = [
