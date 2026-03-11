@@ -1,8 +1,28 @@
 -- Migration: Enable pgvector and create case_law table
 -- Run this in Supabase SQL Editor first
 
--- Enable pgvector extension
-CREATE EXTENSION IF NOT EXISTS vector;
+-- Keep pgvector out of the public schema to satisfy Supabase advisor 0014.
+CREATE SCHEMA IF NOT EXISTS extensions;
+GRANT USAGE ON SCHEMA extensions TO PUBLIC;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_extension e
+    JOIN pg_namespace n ON n.oid = e.extnamespace
+    WHERE e.extname = 'vector'
+      AND n.nspname = 'public'
+  ) THEN
+    ALTER EXTENSION vector SET SCHEMA extensions;
+  ELSIF NOT EXISTS (
+    SELECT 1
+    FROM pg_extension
+    WHERE extname = 'vector'
+  ) THEN
+    CREATE EXTENSION vector WITH SCHEMA extensions;
+  END IF;
+END
+$$;
 
 -- Create case_law table with vector support
 CREATE TABLE IF NOT EXISTS case_law (
@@ -16,14 +36,14 @@ CREATE TABLE IF NOT EXISTS case_law (
   year INTEGER,
   court TEXT,
   outcome TEXT,
-  embedding VECTOR(1536),
+  embedding extensions.vector(1536),
   raw_data JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_case_law_embedding ON case_law USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+CREATE INDEX IF NOT EXISTS idx_case_law_embedding ON case_law USING ivfflat (embedding extensions.vector_cosine_ops) WITH (lists = 100);
 CREATE INDEX IF NOT EXISTS idx_case_law_citation ON case_law(citation);
 CREATE INDEX IF NOT EXISTS idx_case_law_title ON case_law USING GIN(to_tsvector('english', title));
 CREATE INDEX IF NOT EXISTS idx_case_law_summary ON case_law USING GIN(to_tsvector('english', summary));

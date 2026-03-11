@@ -12,6 +12,9 @@ const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL || 'https://my
 const APP_FULL_NAME = 'MyMcKenzie Court Support'
 const APP_SHORT_NAME = 'MyMcKenzieCS'
 const FAVICON_SVG_PATH = '/favicon-circle-padded.svg'
+const SOCIAL_SHARE_IMAGE_PATH = '/favicon-source.png'
+const SOCIAL_SHARE_IMAGE_WIDTH = 1080
+const SOCIAL_SHARE_IMAGE_HEIGHT = 1080
 const googleAnalyticsMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim()
 
 export const metadata: Metadata = {
@@ -44,9 +47,10 @@ export const metadata: Metadata = {
     siteName: APP_FULL_NAME,
     images: [
       {
-        url: '/logo-mymckenzie.svg',
-        width: 1200,
-        height: 630,
+        url: SOCIAL_SHARE_IMAGE_PATH,
+        width: SOCIAL_SHARE_IMAGE_WIDTH,
+        height: SOCIAL_SHARE_IMAGE_HEIGHT,
+        type: 'image/png',
         alt: APP_FULL_NAME,
       },
     ],
@@ -55,7 +59,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: APP_FULL_NAME,
     description: 'MyMcKenzie Court Support is an AI-assisted workspace for litigants in person.',
-    images: ['/logo-mymckenzie.svg'],
+    images: [SOCIAL_SHARE_IMAGE_PATH],
   },
   manifest: '/manifest.webmanifest',
   icons: {

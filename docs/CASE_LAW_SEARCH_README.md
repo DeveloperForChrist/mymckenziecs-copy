@@ -4,7 +4,7 @@
 
 ### 1. **Vector Database** (✅ Complete)
 - 100 UK Supreme Court cases with semantic embeddings
-- pgvector extension enabled
+- pgvector extension enabled in the `extensions` schema
 - IVFFlat indexes for fast similarity search
 - Case metadata: type, year, court, outcome
 
@@ -85,7 +85,7 @@ case_law (
   year INTEGER,
   court TEXT,
   outcome TEXT,
-  embedding VECTOR(1536),
+  embedding extensions.vector(1536),
   created_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ
 )
