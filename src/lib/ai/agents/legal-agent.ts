@@ -2820,12 +2820,12 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
       messages: openAiMessages,
       tools,
       tool_choice: 'auto',
-      temperature: 0.2,
     }
     if (normalized.startsWith('o') || normalized.startsWith('gpt-5')) {
       payload.max_completion_tokens = PREMIUM_PLUS_TOOL_CALL_MAX_TOKENS
     } else {
       payload.max_tokens = PREMIUM_PLUS_TOOL_CALL_MAX_TOKENS
+      payload.temperature = 0.2
     }
     try {
       return await openai.chat.completions.create(payload as any)
