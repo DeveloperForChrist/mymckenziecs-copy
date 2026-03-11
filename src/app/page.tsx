@@ -133,6 +133,9 @@ export default async function HomePage() {
             <div className="pt-12 pb-4 md:pt-16 md:pb-6">
               <div className="grid grid-cols-1 xl:grid-cols-[1.03fr_0.97fr] gap-8 md:gap-10 items-center">
                 <div className="text-center xl:text-left">
+                  <div className="text-xs md:text-sm font-medium uppercase tracking-[0.2em] text-white/70">
+                    MyMcKenzie Court Support
+                  </div>
                   <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white mt-5 leading-[1.05]">
                     Run your case
                     <br />
