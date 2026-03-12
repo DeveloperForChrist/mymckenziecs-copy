@@ -11,7 +11,6 @@ for (const file of ['.env.local', '.env']) {
 }
 
 const OPENAI_API_KEY = (process.env.OPENAI_API_KEY || '').trim()
-const GROQ_API_KEY = (process.env.GROQ_API_KEY || '').trim()
 const ANTHROPIC_API_KEY = (process.env.ANTHROPIC_API_KEY || '').trim()
 
 const unique = (items) => Array.from(new Set(items.filter(Boolean).map((v) => String(v).trim()).filter(Boolean)))
@@ -23,13 +22,6 @@ const openAiModels = unique([
   process.env.OPENAI_PREMIUM_FALLBACK_MODEL,
   process.env.OPENAI_CHAT_MODEL,
   process.env.OPENAI_CHAT_FALLBACK_MODEL,
-])
-
-const groqModels = unique([
-  process.env.BASIC_GROQ_MODEL,
-  process.env.BASIC_GROQ_FALLBACK_MODEL,
-  process.env.GROQ_BASIC_MODEL,
-  process.env.GROQ_BASIC_FALLBACK_MODEL,
 ])
 
 const anthropicModels = unique([
@@ -70,26 +62,6 @@ async function checkOpenAiModel(model) {
   }
 }
 
-async function checkGroqModel(model) {
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${GROQ_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 12,
-      temperature: 0,
-      messages: [{ role: 'user', content: 'Reply with OK.' }],
-    }),
-  })
-  if (!response.ok) {
-    const body = await response.text().catch(() => '')
-    throw new Error(`HTTP ${response.status}: ${shorten(body)}`)
-  }
-}
-
 async function checkAnthropicModel(model) {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -115,9 +87,6 @@ if (OPENAI_API_KEY) {
   for (const model of openAiModels) {
     checks.push({ provider: 'openai', model, run: () => checkOpenAiModel(model) })
   }
-}
-if (GROQ_API_KEY) {
-  for (const model of groqModels) checks.push({ provider: 'groq', model, run: () => checkGroqModel(model) })
 }
 if (ANTHROPIC_API_KEY) {
   for (const model of anthropicModels) checks.push({ provider: 'anthropic', model, run: () => checkAnthropicModel(model) })

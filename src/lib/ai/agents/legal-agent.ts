@@ -6,6 +6,7 @@ import { DocGeneratorTool } from '../tools/doc-generator-tool';
 import { SearchTool, type SearchEngine, type SearchToolOutput } from '../tools/search-tool';
 import { neutralizeLegalAdviceTone } from './legal-tone';
 import { searchCaseLawWithFallback } from '@/lib/case-law/runtime-search';
+import { getBasicDailyWebSearchLimitReachedNotice } from '@/lib/payments/web-search-usage';
 import { logClaudeUsage } from '@/lib/utils/claude-usage';
 
 // Shared legal-support system prompts
@@ -171,22 +172,13 @@ TONE:
 
 `;
 
-const OPENAI_MODEL = process.env.OPENAI_PREMIUM_MODEL || 'gpt-4o'
+const OPENAI_MODEL = process.env.OPENAI_PREMIUM_MODEL || 'gpt-4.1'
 const OPENAI_FALLBACK_MODEL = process.env.OPENAI_PREMIUM_FALLBACK_MODEL || OPENAI_MODEL
 const OPENAI_BASIC_MODEL = process.env.OPENAI_BASIC_MODEL || process.env.OPENAI_NON_PREMIUM_MODEL || 'gpt-4.1-mini'
 const OPENAI_BASIC_FALLBACK_MODEL =
   process.env.OPENAI_BASIC_FALLBACK_MODEL ||
   process.env.OPENAI_NON_PREMIUM_FALLBACK_MODEL ||
   OPENAI_BASIC_MODEL
-const BASIC_GROQ_MODEL =
-  process.env.BASIC_GROQ_MODEL ||
-  process.env.GROQ_BASIC_MODEL ||
-  'openai/gpt-oss-120b'
-const BASIC_GROQ_FALLBACK_MODEL =
-  process.env.BASIC_GROQ_FALLBACK_MODEL ||
-  process.env.GROQ_BASIC_FALLBACK_MODEL ||
-  process.env.GROQ_CHAT_FALLBACK_MODEL ||
-  'llama-3.3-70b-versatile'
 const PREMIUM_PLUS_ANTHROPIC_MODEL =
   process.env.PREMIUM_PLUS_ANTHROPIC_MODEL ||
   'claude-opus-4-6'
@@ -223,25 +215,20 @@ const BASIC_MAX_TOKENS = Number.isFinite(Number(process.env.BASIC_AGENT_MAX_TOKE
 const BASIC_MAX_AUTO_CONTINUES = Number.isFinite(Number(process.env.BASIC_AGENT_MAX_AUTO_CONTINUES))
   ? Math.max(0, Math.floor(Number(process.env.BASIC_AGENT_MAX_AUTO_CONTINUES)))
   : 2
-const BASIC_OPENAI_ROUTING_PERCENT_RAW =
-  process.env.BASIC_OPENAI_ROUTING_PERCENT ??
-  process.env.NON_PREMIUM_OPENAI_ROUTING_PERCENT ??
-  process.env.FREE_TIER_OPENAI_ROUTING_PERCENT
-const BASIC_OPENAI_ROUTING_PERCENT = Number.isFinite(Number(BASIC_OPENAI_ROUTING_PERCENT_RAW))
-  ? Math.min(100, Math.max(0, Math.floor(Number(BASIC_OPENAI_ROUTING_PERCENT_RAW))))
-  : 20
-const GROQ_RATE_LIMIT_COOLDOWN_MS = Number.isFinite(Number(process.env.GROQ_RATE_LIMIT_COOLDOWN_MS))
-  ? Math.max(250, Number(process.env.GROQ_RATE_LIMIT_COOLDOWN_MS))
-  : 3000
-let groqRateLimitedUntil = 0
 
 // =====================================================
 // SIMPLE HELPERS
 // =====================================================
 
 export type LegalSearchMode = 'education' | 'procedure' | 'case_specific' | 'document_review' | 'general'
-type LlmProvider = 'openai' | 'groq'
 type LengthRecoveryMode = 'none' | 'continue' | 'compress'
+type SearchQuotaResult = {
+  allowed: boolean
+  limit?: number | null
+  used?: number | null
+  remaining?: number | null
+  resetsAt?: string | null
+}
 export type PremiumPlusToolName =
   | 'direct_knowledge'
   | 'web_search_education'
@@ -268,11 +255,8 @@ type LegalAgentOptions = {
   includeCitations?: boolean
   memoryContext?: string
   historyLimit?: number
-  provider?: LlmProvider
   openaiModel?: string
   openaiFallbackModel?: string
-  groqModel?: string
-  groqFallbackModel?: string
   maxTokens?: number
   autoContinueOnLength?: boolean
   maxAutoContinues?: number
@@ -281,28 +265,9 @@ type LegalAgentOptions = {
   searchQueryOverride?: string
   searchModeOverride?: LegalSearchMode
   searchEngineOverride?: SearchEngine
+  consumeSearchQuota?: () => Promise<SearchQuotaResult>
   targetTokensFloor?: number
   maxTokensCap?: number
-}
-
-function stableBucketPercent(input: string): number {
-  let hash = 0
-  for (let i = 0; i < input.length; i += 1) {
-    hash = ((hash * 31) + input.charCodeAt(i)) | 0
-  }
-  return Math.abs(hash) % 100
-}
-
-function chooseBasicProvider(userKey?: string): LlmProvider {
-  if (BASIC_OPENAI_ROUTING_PERCENT <= 0) return 'groq'
-  if (BASIC_OPENAI_ROUTING_PERCENT >= 100) return 'openai'
-
-  const key = (userKey || '').trim()
-  if (!key) {
-    return Math.random() * 100 < BASIC_OPENAI_ROUTING_PERCENT ? 'openai' : 'groq'
-  }
-
-  return stableBucketPercent(key) < BASIC_OPENAI_ROUTING_PERCENT ? 'openai' : 'groq'
 }
 
 // Sanitize history
@@ -423,7 +388,7 @@ const parsePremiumSearchDecision = (
 const decidePremiumSearch = async (options: {
   latestQuestion: string
   systemPrompt: string
-  provider: LlmProvider
+  provider: 'openai'
   model: string
   fallbackModel: string
   memoryContext?: string
@@ -837,7 +802,6 @@ async function callLLM(
   systemPrompt: string = SYSTEM_PROMPT,
   model: string = OPENAI_MODEL,
   maxTokens: number = MAX_TOKENS,
-  provider: LlmProvider = 'openai',
   fallbackModel: string = OPENAI_FALLBACK_MODEL,
   autoContinueOnLength: boolean = false,
   maxAutoContinues: number = 0,
@@ -855,171 +819,6 @@ async function callLLM(
     `${prompt}\n\n` +
     'Your previous draft was cut off due to token limits. Rewrite the full answer so it is complete, self-contained, and fits within the token budget. ' +
     'Prioritize the most important points, remove repetition, and end cleanly.'
-
-  if (provider === 'groq') {
-    const groqApiKey = process.env.GROQ_API_KEY
-    if (!groqApiKey) {
-      console.error('GROQ_API_KEY is not set for Groq provider request')
-      return "I'm unable to respond right now because the base model is unavailable. Please try again shortly."
-    }
-
-    if (Date.now() < groqRateLimitedUntil) {
-      // Temporary circuit breaker after Groq 429 bursts.
-      return callLLM(prompt, systemPrompt, fallbackModel, maxTokens, 'openai', fallbackModel)
-    }
-
-    try {
-      const runGroq = async (
-        modelName: string,
-        messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>
-      ) => {
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${groqApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: modelName,
-            max_tokens: maxTokens,
-            temperature: 0.7,
-            messages,
-          }),
-        })
-
-        if (!response.ok) {
-          if (response.status === 429) {
-            const retryAfterHeader = response.headers.get('retry-after')
-            const retryAfterMs = Number.isFinite(Number(retryAfterHeader))
-              ? Math.max(250, Math.floor(Number(retryAfterHeader) * 1000))
-              : GROQ_RATE_LIMIT_COOLDOWN_MS
-            groqRateLimitedUntil = Math.max(groqRateLimitedUntil, Date.now() + retryAfterMs)
-          }
-          const details = await response.text().catch(() => '')
-          throw new Error(`Groq model ${modelName} failed (${response.status}): ${details}`)
-        }
-
-        const completion = await response.json() as {
-          choices?: Array<{ message?: { content?: string | null }, finish_reason?: string | null }>
-        }
-
-        const rawResponse = completion.choices?.[0]?.message?.content || "I couldn't generate a response."
-        const finishReason = completion.choices?.[0]?.finish_reason || null
-        return { rawResponse, finishReason }
-      }
-
-      const baseMessages: Array<{ role: 'system' | 'user'; content: string }> = [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: prompt },
-      ]
-      const transcript: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [...baseMessages]
-      const chunks: string[] = []
-      let continueCount = 0
-      let endedByLengthWithoutRecovery = false
-
-      const activeGroqFallbackModel = (fallbackModel || '').trim()
-
-      const runGroqWithFallback = async (messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>) => {
-        try {
-          return await runGroq(model, messages)
-        } catch (primaryError) {
-          if (activeGroqFallbackModel && model !== activeGroqFallbackModel) {
-            console.error('Groq primary model failed, trying fallback', primaryError)
-            return await runGroq(activeGroqFallbackModel, messages)
-          }
-          throw primaryError
-        }
-      }
-
-      try {
-        while (true) {
-          const { rawResponse, finishReason } = await runGroqWithFallback(transcript)
-          const cleanedChunk = rawResponse.trim()
-          if (cleanedChunk) {
-            chunks.push(cleanedChunk)
-            transcript.push({ role: 'assistant', content: cleanedChunk })
-          }
-
-          const canContinue =
-            autoContinueOnLength &&
-            finishReason === 'length' &&
-            continueCount < continuationLimit &&
-            endsMidSentenceOrSection(cleanedChunk)
-          if (!canContinue) {
-            if (finishReason === 'length') endedByLengthWithoutRecovery = true
-            break
-          }
-
-          continueCount += 1
-          transcript.push({ role: 'user', content: continuationPrompt })
-        }
-
-        let combined = chunks.join('\n\n').trim()
-        if (endedByLengthWithoutRecovery && !autoContinueOnLength && tailTokenLimit > 0 && combined) {
-          const tailPrompt =
-            `Current partial response:\n${combined}\n\n` +
-            `Provide only the remaining conclusion in no more than ${tailTokenLimit} tokens. Do not repeat prior text. End cleanly.`
-          const tail = await callLLM(
-            tailPrompt,
-            systemPrompt,
-            model,
-            tailTokenLimit,
-            provider,
-            fallbackModel,
-            false,
-            0,
-            false,
-            0,
-            0,
-            0
-          )
-          combined = `${combined}\n\n${tail}`.trim()
-          endedByLengthWithoutRecovery = false
-        }
-        if (endedByLengthWithoutRecovery && canAttemptCompression) {
-          return await callLLM(
-            compressionPrompt,
-            systemPrompt,
-            model,
-            maxTokens,
-            provider,
-            fallbackModel,
-            false,
-            0,
-            compressOnLength,
-            compressionLimit,
-            compressionAttempt + 1,
-            0
-          )
-        }
-        return stripMarkdown(stripUrlsFromText(combined || "I couldn't generate a response."))
-      } catch (primaryError) {
-        throw primaryError
-      }
-    } catch (error: any) {
-      console.error('Groq API Error:', error)
-      try {
-        // Final fallback to OpenAI if Groq is saturated/unavailable.
-        return await callLLM(
-          prompt,
-          systemPrompt,
-          fallbackModel,
-          maxTokens,
-          'openai',
-          fallbackModel,
-          autoContinueOnLength,
-          continuationLimit,
-          compressOnLength,
-          compressionLimit,
-          compressionAttempt,
-          tailTokenLimit
-        )
-      } catch (openAiFallbackError) {
-        console.error('OpenAI fallback after Groq failure also failed:', openAiFallbackError)
-        return "I'm unable to respond right now because the base model is unavailable. Please try again shortly."
-      }
-    }
-  }
 
   try {
     const apiKey = process.env.OPENAI_API_KEY
@@ -1056,7 +855,8 @@ async function callLLM(
       messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>
     ) => {
       const normalizedModel = modelName.trim().toLowerCase()
-      const shouldUseMaxCompletionTokens = normalizedModel.startsWith('o')
+      const shouldUseMaxCompletionTokens =
+        normalizedModel.startsWith('o') || normalizedModel.startsWith('gpt-5')
       try {
         return await openai.chat.completions.create(
           buildPayload(modelName, shouldUseMaxCompletionTokens, messages) as any
@@ -1124,15 +924,14 @@ async function callLLM(
       const tailPrompt =
         `Current partial response:\n${combined}\n\n` +
         `Provide only the remaining conclusion in no more than ${tailTokenLimit} tokens. Do not repeat prior text. End cleanly.`
-      const tail = await callLLM(
-        tailPrompt,
-        systemPrompt,
-        model,
-        tailTokenLimit,
-        provider,
-        fallbackModel,
-        false,
-        0,
+          const tail = await callLLM(
+            tailPrompt,
+            systemPrompt,
+            model,
+            tailTokenLimit,
+            fallbackModel,
+            false,
+            0,
         false,
         0,
         0,
@@ -1142,15 +941,14 @@ async function callLLM(
       endedByLengthWithoutRecovery = false
     }
     if (endedByLengthWithoutRecovery && canAttemptCompression) {
-      return await callLLM(
-        compressionPrompt,
-        systemPrompt,
-        model,
-        maxTokens,
-        provider,
-        fallbackModel,
-        false,
-        0,
+          return await callLLM(
+            compressionPrompt,
+            systemPrompt,
+            model,
+            maxTokens,
+            fallbackModel,
+            false,
+            0,
         compressOnLength,
         compressionLimit,
         compressionAttempt + 1,
@@ -1221,9 +1019,6 @@ export async function createLegalAgent(
   const includeCitations = options?.includeCitations === true
   const openaiModel = options?.openaiModel || OPENAI_MODEL
   const openaiFallbackModel = options?.openaiFallbackModel || OPENAI_FALLBACK_MODEL
-  const groqModel = options?.groqModel || BASIC_GROQ_MODEL
-  const groqFallbackModel = options?.groqFallbackModel || BASIC_GROQ_FALLBACK_MODEL
-  const llmProvider: LlmProvider = options?.provider || 'openai'
   const searchQueryOverride = (options?.searchQueryOverride || '').trim()
   const searchModeOverride = options?.searchModeOverride
   const searchEngineOverride = options?.searchEngineOverride || 'auto'
@@ -1292,22 +1087,15 @@ export async function createLegalAgent(
           searchQueryOverride || latestQuestion,
           caseKeywords
         )
+        let basicDailySearchNotice = ''
 
         if (autoDecideSearch) {
-          const modelForProvider =
-            llmProvider === 'groq'
-              ? groqModel
-              : openaiModel
-          const fallbackModelForProvider =
-            llmProvider === 'groq'
-              ? groqFallbackModel
-              : openaiFallbackModel
           const premiumSearchDecision = await decidePremiumSearch({
             latestQuestion,
             systemPrompt,
-            provider: llmProvider,
-            model: modelForProvider,
-            fallbackModel: fallbackModelForProvider,
+            provider: 'openai',
+            model: openaiModel,
+            fallbackModel: openaiFallbackModel,
             memoryContext: options?.memoryContext,
             history: trimmedHistory,
             caseKeywords,
@@ -1322,25 +1110,30 @@ export async function createLegalAgent(
           )
         }
 
+        if (shouldUseSearch && options?.consumeSearchQuota) {
+          try {
+            const quota = await options.consumeSearchQuota()
+            if (!quota?.allowed) {
+              shouldUseSearch = false
+            } else if (Number(quota?.remaining) === 0) {
+              basicDailySearchNotice = getBasicDailyWebSearchLimitReachedNotice(quota?.resetsAt)
+            }
+          } catch (error) {
+            console.warn('Search quota check failed; falling back to direct answer.', error)
+            shouldUseSearch = false
+          }
+        }
+
         // 3. LEGAL AGENT: Direct answer (no search)
         if (!shouldUseSearch) {
           const lengthInstruction = buildLengthInstruction(latestQuestion)
           const directPrompt = `${memoryContext}${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. ${lengthInstruction} Keep the reply conversational and natural. Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
-          const modelForProvider =
-            llmProvider === 'groq'
-              ? groqModel
-              : openaiModel
-          const fallbackModelForProvider =
-            llmProvider === 'groq'
-              ? groqFallbackModel
-              : openaiFallbackModel
           const directAnswer = await callLLM(
             directPrompt,
             systemPrompt,
-            modelForProvider,
+            openaiModel,
             directMaxTokens,
-            llmProvider,
-            fallbackModelForProvider,
+            openaiFallbackModel,
             useAutoContinue,
             maxAutoContinues,
             useCompression,
@@ -1392,22 +1185,13 @@ export async function createLegalAgent(
           : 'Do not include any source citations.'
         const lengthInstruction = buildLengthInstruction(latestQuestion)
         const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory, latestQuestion)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} ${citationInstruction} Keep the reply conversational and natural. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
-        
-        const modelForProvider =
-          llmProvider === 'groq'
-            ? groqModel
-            : openaiModel
-        const fallbackModelForProvider =
-          llmProvider === 'groq'
-            ? groqFallbackModel
-            : openaiFallbackModel
+
         let comprehensiveAnswer = await callLLM(
           comprehensivePrompt,
           systemPrompt,
-          modelForProvider,
+          openaiModel,
           searchMaxTokens + COMPREHENSIVE_TOKEN_BONUS,
-          llmProvider,
-          fallbackModelForProvider,
+          openaiFallbackModel,
           false,
           0,
           useCompression,
@@ -1444,7 +1228,11 @@ export async function createLegalAgent(
           response: finalNoEngineCitations.responseText,
           document_generated: false,
           guidance_provided: true,
-          sources: finalNoEngineCitations.sources
+          sources: finalNoEngineCitations.sources,
+          basicDailySearchNotice:
+            basicDailySearchNotice && Array.isArray(finalNoEngineCitations.sources) && finalNoEngineCitations.sources.length > 0
+              ? basicDailySearchNotice
+              : undefined
         }
       } catch (error: any) {
         const message = error instanceof Error ? error.message : ''
@@ -1514,7 +1302,7 @@ export async function invokePremiumLegalAgent(
   return invokeLegalAgent(message, threadId, userId, conversationHistory, caseKeywords, {
     useSearch: options?.useSearch,
     autoDecideSearch: options?.autoDecideSearch ?? options?.useSearch === undefined,
-    includeCitations: false,
+    includeCitations: true,
     memoryContext: options?.memoryContext,
     historyLimit: options?.historyLimit,
     provider: 'openai',
@@ -1789,27 +1577,43 @@ export async function invokePremiumLegalAgentStream(
 
   let sources: string[] = []
   let searchedInfo = ''
+  let sourceMode: 'engine' | 'fallback' | 'none' = 'none'
   try {
-    const parsed = JSON.parse(searchResult) as { sources?: any[]; packet?: string }
+    const parsed = JSON.parse(searchResult) as { sources?: any[]; packet?: string; sourceMode?: any }
     sources = Array.isArray(parsed.sources) ? parsed.sources.filter((u: any): u is string => typeof u === 'string') : []
     searchedInfo = typeof parsed.packet === 'string' ? parsed.packet : ''
+    if (parsed.sourceMode === 'engine' || parsed.sourceMode === 'fallback' || parsed.sourceMode === 'none') {
+      sourceMode = parsed.sourceMode
+    } else {
+      sourceMode = sources.length > 0 ? 'engine' : 'none'
+    }
   } catch {
     searchedInfo = searchResult
   }
 
+  const effectiveIncludeCitations = sourceMode === 'engine' && sources.length > 0
   const sourceBlock = sources.length > 0
     ? `All available sources to reference:\n${sources.map((url, i) => `[${i + 1}] ${url}`).join('\n')}`
     : 'No sources available.'
   const lengthInstruction = buildLengthInstruction(latestQuestion)
-  const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory, latestQuestion)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} Do not include any source citations. Keep the reply conversational and natural. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
+  const citationInstruction = effectiveIncludeCitations
+    ? 'Include inline citations in square brackets that match the sources list above, like [1] or [2]. Use citations on factual statements.'
+    : 'Do not include any source citations.'
+  const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory, latestQuestion)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} ${citationInstruction} Keep the reply conversational and natural. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
 
   emitStatus('Drafting answer...')
+  const streamedAnswer = await streamOpenAiText(comprehensivePrompt, searchMaxTokens)
+  const final = ensureCitationsForPremium(
+    neutralizeLegalAdviceTone(streamedAnswer),
+    sources,
+    effectiveIncludeCitations
+  )
   return {
-    response: neutralizeLegalAdviceTone(await streamOpenAiText(comprehensivePrompt, searchMaxTokens)),
+    response: final.responseText,
     document_generated: false,
     guidance_provided: true,
     next_steps: [],
-    sources: undefined,
+    sources: final.sources,
   }
 }
 
@@ -3527,22 +3331,38 @@ export async function invokeBasicLegalAgent(
   conversationHistory: Array<{ role: string; content: string }> = [],
   caseKeywords?: string,
   options?: {
+    useSearch?: boolean
+    autoDecideSearch?: boolean
     memoryContext?: string
     historyLimit?: number
+    searchQueryOverride?: string
+    searchModeOverride?: LegalSearchMode
+    searchEngineOverride?: SearchEngine
+    consumeSearchQuota?: () => Promise<SearchQuotaResult>
   }
-): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
-  const basicProvider = chooseBasicProvider(userId || threadId)
+): Promise<{
+  response: string
+  document_generated: boolean
+  guidance_provided: boolean
+  next_steps: string[]
+  sources?: Array<{ number: number; title: string; url: string }>
+  basicDailySearchNotice?: string
+}> {
   const agent = await createLegalAgent(conversationHistory, caseKeywords, undefined, {
-    useSearch: false,
+    useSearch: options?.useSearch,
+    autoDecideSearch: options?.autoDecideSearch ?? options?.useSearch === undefined,
+    includeCitations: true,
     caseAccessUserId: userId,
     systemPrompt: SYSTEM_PROMPT_FREE,
     memoryContext: options?.memoryContext,
     historyLimit: options?.historyLimit,
-    provider: basicProvider,
+    searchQueryOverride: options?.searchQueryOverride,
+    searchModeOverride: options?.searchModeOverride,
+    searchEngineOverride: options?.searchEngineOverride || 'brave',
+    consumeSearchQuota: options?.consumeSearchQuota,
+    provider: 'openai',
     openaiModel: OPENAI_BASIC_MODEL,
     openaiFallbackModel: OPENAI_BASIC_FALLBACK_MODEL,
-    groqModel: BASIC_GROQ_MODEL,
-    groqFallbackModel: BASIC_GROQ_FALLBACK_MODEL,
     maxTokens: BASIC_MAX_TOKENS,
     autoContinueOnLength: true,
     maxAutoContinues: BASIC_MAX_AUTO_CONTINUES,
@@ -3553,6 +3373,7 @@ export async function invokeBasicLegalAgent(
     document_generated: response.document_generated,
     guidance_provided: response.guidance_provided,
     next_steps: [],
-    sources: response.sources
+    sources: response.sources,
+    basicDailySearchNotice: response.basicDailySearchNotice,
   }
 }

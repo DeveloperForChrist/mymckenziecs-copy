@@ -101,9 +101,9 @@ PREMIUM_PROVIDER_GLOBAL_RPM=240
 PREMIUM_PROVIDER_QUEUE_WAIT_MS=250
 PREMIUM_PROVIDER_QUEUE_RETRIES=2
 
-# Provider split for Basic chat path
-BASIC_OPENAI_ROUTING_PERCENT=20
-
-# OpenAI model used when non-premium path routes to OpenAI
+# OpenAI model used for the Basic chat path
 OPENAI_BASIC_MODEL=gpt-4.1-mini
+
+# OpenAI model used for the Premium chat path
+OPENAI_PREMIUM_MODEL=gpt-4.1
 ```

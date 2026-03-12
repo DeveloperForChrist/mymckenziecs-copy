@@ -23,6 +23,7 @@ import { z } from 'zod'
 import { captureServerException } from '@/lib/monitoring/error-logger'
 import { isBasicPlan, isPremiumPlan, isPremiumPlusPlan } from '@/lib/plans/access'
 import { getUserPlanData } from '@/lib/payments/user-plan'
+import { consumeBasicDailyWebSearchQuota } from '@/lib/payments/web-search-usage'
 import { extractTextFromBuffer } from '@/lib/chat/text-extraction'
 import {
   getConversationAccess,
@@ -45,6 +46,7 @@ type AgentResponse = {
   next_steps: string[]
   sources?: Array<{ number: number; title: string; url: string }>
   verifiedAuthorities?: Array<{ title: string; citation: string }>
+  basicDailySearchNotice?: string
 }
 
 type ChatAttachment = {
@@ -121,7 +123,7 @@ const getEnvModelValue = (...keys: string[]): string | null => {
 }
 
 const getPremiumOpenAiModel = (): string =>
-  getEnvModelValue('OPENAI_PREMIUM_MODEL') || 'gpt-4o'
+  getEnvModelValue('OPENAI_PREMIUM_MODEL') || 'gpt-4.1'
 
 const getPremiumOpenAiFallbackModel = (primaryModel: string): string =>
   getEnvModelValue('OPENAI_PREMIUM_FALLBACK_MODEL', 'OPENAI_BASIC_MODEL') || primaryModel
@@ -2296,10 +2298,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const finalizeAgentResponse = async (agentResponse: AgentResponse) => {
-      const includeDebug = process.env.NODE_ENV !== 'production'
-      const sourceCount = Array.isArray(agentResponse.sources) ? agentResponse.sources.length : 0
-      const hasInlineCitationTags = /\[\d+\]/.test(agentResponse.response || '')
+	    const finalizeAgentResponse = async (agentResponse: AgentResponse) => {
+	      const includeDebug = process.env.NODE_ENV !== 'production'
+	      const sourceCount = Array.isArray(agentResponse.sources) ? agentResponse.sources.length : 0
+	      const hasInlineCitationTags = /\[\d+\]/.test(agentResponse.response || '')
+	      const basicSearchUsed = basicPlanActive && sourceCount > 0
+        const basicDailySearchNotice =
+          typeof agentResponse.basicDailySearchNotice === 'string' && agentResponse.basicDailySearchNotice.trim()
+            ? agentResponse.basicDailySearchNotice.trim()
+            : undefined
 
       if (!agentResponse.response || !agentResponse.response.trim()) {
         return buildAssistantResponsePayload('I had trouble generating a response. Please try again in a moment.', {
@@ -2375,12 +2382,13 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      return buildAssistantResponsePayload(finalAssistantResponse, {
-        guidanceProvided: agentResponse.guidance_provided,
-        nextSteps: agentResponse.next_steps,
-        sources: agentResponse.sources || [],
-        caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
-        caseLawSoftNextStep,
+	      return buildAssistantResponsePayload(finalAssistantResponse, {
+	        guidanceProvided: agentResponse.guidance_provided,
+	        nextSteps: agentResponse.next_steps,
+	        sources: agentResponse.sources || [],
+          ...(basicDailySearchNotice ? { basicDailySearchNotice } : {}),
+	        caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
+	        caseLawSoftNextStep,
         caseProcessing: processingResult,
         activeCaseId: processingResult.caseId || sessionInfo.activeCaseId,
         pendingCalendarEntries: (processingResult as any).pendingCalendarEntries || null,
@@ -2405,9 +2413,9 @@ export async function POST(request: NextRequest) {
                 citationMode: premiumPlusActive
                   ? (shouldUseSearchRetrieval ? 'search+citations' : 'direct-no-search')
                   : (premiumPlanActive
-                      ? (shouldUseSearchRetrieval ? 'search-no-citations' : 'direct-no-search')
-                      : 'basic-no-search'),
-                retrievalEnabled: shouldUseSearchRetrieval,
+                      ? (shouldUseSearchRetrieval ? (hasInlineCitationTags ? 'search+citations' : 'search-no-citations') : 'direct-no-search')
+                      : (basicSearchUsed ? (hasInlineCitationTags ? 'search+citations' : 'search-no-citations') : 'basic-no-search')),
+                retrievalEnabled: shouldUseSearchRetrieval || basicSearchUsed,
                 premiumSearchRoutingSource,
                 premiumSearchRoutingUsed: premiumPlanActive && !premiumPlusActive,
                 premiumSearchRoutingConfidence,
@@ -2519,6 +2527,11 @@ export async function POST(request: NextRequest) {
 
     const agentResponse: AgentResponse = shouldUseBasicLegalAgent
       ? await invokeBasicLegalAgent(messageForAgent, threadId, userId, effectiveConversationHistory, caseKeywords, {
+          autoDecideSearch: true,
+          searchEngineOverride: 'brave',
+          consumeSearchQuota: authUserId
+            ? () => consumeBasicDailyWebSearchQuota(authUserId!)
+            : undefined,
           memoryContext: relatedThreadMemoryContext || undefined,
           historyLimit: agentHistoryLimit,
         })

@@ -371,8 +371,6 @@ describe('agent smoke checks', () => {
     process.env.OPENAI_API_KEY = 'test-key'
     process.env.ANTHROPIC_API_KEY = 'test-key'
     process.env.PREMIUM_PLUS_ANTHROPIC_PROMPT_CACHING = 'true'
-    process.env.GROQ_API_KEY = 'test-key'
-    process.env.BASIC_OPENAI_ROUTING_PERCENT = '100'
     anthropicMockState.anthropicMessagesCreateMock.mockClear()
     anthropicMockState.anthropicMessagesStreamMock.mockClear()
     openAiMockState.openAiCreateMock.mockClear()
@@ -381,41 +379,6 @@ describe('agent smoke checks', () => {
     supabaseMockState.reset()
     vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
-      if (url.includes('api.groq.com/openai/v1/chat/completions')) {
-        const body = typeof init?.body === 'string' ? init.body : ''
-        const isSimpleQuestion = body.includes('What does claimant mean in a small claim?')
-        return new Response(JSON.stringify({
-          choices: [
-            {
-              message: {
-                content: JSON.stringify(
-                  isSimpleQuestion
-                    ? {
-                        action: 'answer',
-                        answer: 'A claimant is the person bringing the claim.\n\nIn short: It is the person asking the court or tribunal for a remedy.',
-                        confidence: 0.92,
-                        reasons: ['simple-stable-definition'],
-                      }
-                    : {
-                        action: 'execute',
-                        retrieval_mode: 'hybrid',
-                        tools: [
-                          { tool: 'web_search', web_mode: 'general', query: 'current UK procedure guidance' },
-                          { tool: 'case_law', query: 'relevant UK precedent' },
-                        ],
-                        decomposition: 'User asks about facts and procedure.',
-                        vector_query: 'relevant UK precedent',
-                        web_query: 'current UK procedure guidance',
-                        confidence: 0.78,
-                        reasons: ['mixed-signals'],
-                      }
-                ),
-              },
-            },
-          ],
-        }), { status: 200, headers: { 'content-type': 'application/json' } })
-      }
-
       return new Response(JSON.stringify({
         choices: [
           {
@@ -456,6 +419,119 @@ describe('agent smoke checks', () => {
 
     expect(typeof result.response).toBe('string')
     expect(result.response.trim().length).toBeGreaterThan(0)
+  })
+
+  it('basic agent can decide to use web search when quota allows it', async () => {
+    const searchSpy = vi.spyOn(SearchTool.prototype, '_call').mockResolvedValue(
+      JSON.stringify({
+        query: 'current UK procedure guidance',
+        mode: 'general',
+        reviewedCount: 1,
+        sources: ['https://www.gov.uk/make-court-claim-for-money'],
+        packet: 'Current UK procedure guidance for early claim steps.',
+        sourceMode: 'engine',
+      })
+    )
+    const consumeSearchQuota = vi.fn(async () => ({
+      allowed: true,
+      limit: 5,
+      used: 1,
+      remaining: 4,
+    }))
+
+    const result = await invokeBasicLegalAgent(
+      'I am at the pre-claim stage. What claim form and procedural steps are usually involved?',
+      'thread_smoke_basic_auto_search',
+      'user_smoke_basic_auto_search',
+      [],
+      'small claims',
+      {
+        autoDecideSearch: true,
+        searchEngineOverride: 'brave',
+        consumeSearchQuota,
+      }
+    )
+
+    expect(typeof result.response).toBe('string')
+    expect(result.response.trim().length).toBeGreaterThan(0)
+    expect(result.response).toMatch(/\[\d+\]/)
+    expect(Array.isArray(result.sources)).toBe(true)
+    expect((result.sources || []).length).toBeGreaterThan(0)
+    expect(consumeSearchQuota).toHaveBeenCalledTimes(1)
+    expect(searchSpy).toHaveBeenCalledTimes(1)
+    const searchPayload = JSON.parse(String(searchSpy.mock.calls[0]?.[0] || '{}'))
+    expect(searchPayload.engine).toBe('brave')
+  })
+
+  it('basic agent returns a one-shot daily limit notice on the final allowed web search', async () => {
+    const searchSpy = vi.spyOn(SearchTool.prototype, '_call').mockResolvedValue(
+      JSON.stringify({
+        query: 'current UK procedure guidance',
+        mode: 'general',
+        reviewedCount: 1,
+        sources: ['https://www.gov.uk/make-court-claim-for-money'],
+        packet: 'Current UK procedure guidance for early claim steps.',
+        sourceMode: 'engine',
+      })
+    )
+    const consumeSearchQuota = vi.fn(async () => ({
+      allowed: true,
+      limit: 5,
+      used: 5,
+      remaining: 0,
+      resetsAt: '2026-03-13T00:00:00.000Z',
+    }))
+
+    const result = await invokeBasicLegalAgent(
+      'I am at the pre-claim stage. What claim form and procedural steps are usually involved?',
+      'thread_smoke_basic_quota_boundary',
+      'user_smoke_basic_quota_boundary',
+      [],
+      'small claims',
+      {
+        autoDecideSearch: true,
+        searchEngineOverride: 'brave',
+        consumeSearchQuota,
+      }
+    )
+
+    expect(result.response).toMatch(/\[\d+\]/)
+    expect((result.sources || []).length).toBeGreaterThan(0)
+    expect((result as any).basicDailySearchNotice).toBe(
+      'Daily web search limit reached. Back to standard answers.'
+    )
+    expect(consumeSearchQuota).toHaveBeenCalledTimes(1)
+    expect(searchSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('basic agent falls back to direct guidance without a repeated cap message when quota is exhausted', async () => {
+    const searchSpy = vi.spyOn(SearchTool.prototype, '_call')
+    const consumeSearchQuota = vi.fn(async () => ({
+      allowed: false,
+      limit: 5,
+      used: 5,
+      remaining: 0,
+      resetsAt: '2026-03-13T00:00:00.000Z',
+    }))
+
+    const result = await invokeBasicLegalAgent(
+      'I am at the pre-claim stage. What claim form and procedural steps are usually involved?',
+      'thread_smoke_basic_quota_exhausted',
+      'user_smoke_basic_quota_exhausted',
+      [],
+      'small claims',
+      {
+        autoDecideSearch: true,
+        searchEngineOverride: 'brave',
+        consumeSearchQuota,
+      }
+    )
+
+    expect(result.response).not.toContain("You've used your 5 searches today. Upgrade for unlimited research.")
+    expect(result.response).not.toContain('Daily web search limit reached. Back to standard answers')
+    expect((result as any).basicDailySearchNotice).toBeUndefined()
+    expect(consumeSearchQuota).toHaveBeenCalledTimes(1)
+    expect(searchSpy).not.toHaveBeenCalled()
   })
 
   it('direct legal agent can use supplied earlier-thread memory context', async () => {
@@ -524,6 +600,27 @@ describe('agent smoke checks', () => {
     expect(result.response.trim().length).toBeGreaterThan(0)
   })
 
+  it('premium OpenAI path uses gpt-5-mini completion token settings when configured', async () => {
+    await invokePremiumLegalAgent(
+      'What does claimant mean in a small claim?',
+      'thread_smoke_premium_gpt5mini',
+      'user_smoke_premium_gpt5mini',
+      [],
+      'small claims',
+      {
+        useSearch: false,
+        openaiModel: 'gpt-5-mini',
+        openaiFallbackModel: 'gpt-4.1',
+      }
+    )
+
+    const [payload] = (openAiMockState.openAiCreateMock.mock.calls[0] || []) as any[]
+
+    expect(payload?.model).toBe('gpt-5-mini')
+    expect(payload?.max_completion_tokens).toBeTypeOf('number')
+    expect(payload?.max_tokens).toBeUndefined()
+  })
+
   it('premium prompt does not claim direct tool access', async () => {
     await invokePremiumLegalAgent(
       'What does claimant mean in a small claim?',
@@ -581,6 +678,9 @@ describe('agent smoke checks', () => {
 
     expect(typeof result.response).toBe('string')
     expect(result.response.trim().length).toBeGreaterThan(0)
+    expect(result.response).toMatch(/\[\d+\]/)
+    expect(Array.isArray(result.sources)).toBe(true)
+    expect((result.sources || []).length).toBeGreaterThan(0)
     expect(searchSpy).toHaveBeenCalledTimes(1)
     const searchPayload = JSON.parse(String(searchSpy.mock.calls[0]?.[0] || '{}'))
     expect(searchPayload.engine).toBe('brave')
@@ -618,6 +718,9 @@ describe('agent smoke checks', () => {
     )
 
     expect(result.response).toContain('In short:')
+    expect(result.response).toMatch(/\[\d+\]/)
+    expect(Array.isArray(result.sources)).toBe(true)
+    expect((result.sources || []).length).toBeGreaterThan(0)
     expect(onStatus).toHaveBeenCalledWith('Thinking...')
     expect(onStatus).toHaveBeenCalledWith('Checking web sources...')
     expect(onStatus).toHaveBeenCalledWith('Drafting answer...')
