@@ -562,6 +562,39 @@ describe('/api/chat route', () => {
     expect(payload.response).toContain('Dear Sir or Madam')
   })
 
+  it('falls back to GPT for premium plus standard responses when Anthropic credit errors occur', { timeout: 15000 }, async () => {
+    process.env.PREMIUM_PLUS_ANTHROPIC_MODEL = 'claude-opus-4-6'
+
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'premium +', paidAccess: true, planStatus: 'active' },
+      processMessageResult: { task: 'legal_procedure', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    ;(legalAgentMocks.invokePremiumPlusLegalAgent as any).mockRejectedValueOnce(
+      new Error('400 {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."},"request_id":"req_test"}')
+    )
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'I am at the pre-claim stage of an employment tribunal claim. What claim form and procedural steps are usually involved?',
+        history: [],
+      })
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.response).toContain('Premium answer')
+    expect(payload.response).not.toContain('credit balance')
+    expect(payload.response).not.toContain('Anthropic')
+    expect(legalAgentMocks.invokePremiumPlusLegalAgent).toHaveBeenCalledTimes(2)
+    expect((legalAgentMocks.invokePremiumPlusLegalAgent as any).mock.calls[1][5]).toEqual(
+      expect.objectContaining({
+        forceOpenAiFallback: true,
+        openaiFallbackModel: 'gpt-4.1',
+      })
+    )
+  })
+
   it('keeps verified authority headings and strips unmatched ones in premium plus responses', { timeout: 15000 }, async () => {
     process.env.PREMIUM_PLUS_ANTHROPIC_MODEL = 'claude-opus-4-6'
 
@@ -664,6 +697,39 @@ describe('/api/chat route', () => {
     expect(body).toContain('Checking web sources...')
     expect(body).toContain('"type":"delta"')
     expect(body).toContain('"type":"done"')
+  })
+
+  it('falls back to GPT for premium plus streaming responses when Anthropic credit errors occur', { timeout: 15000 }, async () => {
+    process.env.PREMIUM_PLUS_ANTHROPIC_MODEL = 'claude-opus-4-6'
+
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'premium +', paidAccess: true, planStatus: 'active' },
+      processMessageResult: { task: 'legal_procedure', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    ;(legalAgentMocks.invokePremiumPlusLegalAgentStream as any).mockRejectedValueOnce(
+      new Error('400 {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."},"request_id":"req_test"}')
+    )
+
+    const response = await POST(
+      buildStreamingChatRequest({
+        message: 'I am at the pre-claim stage of an employment tribunal claim. What claim form and procedural steps are usually involved?',
+        history: [],
+      })
+    )
+    const body = await response.text()
+
+    expect(response.status).toBe(200)
+    expect(body).toContain('Premium answer')
+    expect(body).not.toContain('credit balance')
+    expect(body).not.toContain('Anthropic')
+    expect(legalAgentMocks.invokePremiumPlusLegalAgentStream).toHaveBeenCalledTimes(2)
+    expect((legalAgentMocks.invokePremiumPlusLegalAgentStream as any).mock.calls[1][5]).toEqual(
+      expect.objectContaining({
+        forceOpenAiFallback: true,
+        openaiFallbackModel: 'gpt-4.1',
+      })
+    )
   })
 
   it('keeps premium plus definition questions on the direct fast path', { timeout: 15000 }, async () => {
