@@ -230,6 +230,16 @@ describe('/api/chat route', () => {
       }) as any,
     }
     const searchByTextMock = vi.fn(searchByTextImpl || (async () => []))
+    const webSearchUsageMock = {
+      consumeBasicDailyWebSearchQuota: vi.fn(async () => ({
+        allowed: true,
+        limit: 5,
+        used: 1,
+        remaining: 4,
+        usageDate: '2026-03-12',
+        resetsAt: '2026-03-13T00:00:00.000Z',
+      })),
+    }
 
     vi.doMock('@/lib/database/supabase-route', () => ({
       createSupabaseRouteClient: vi.fn(async () => ({
@@ -285,6 +295,7 @@ describe('/api/chat route', () => {
     vi.doMock('@/lib/payments/user-plan', () => ({
       getUserPlanData: vi.fn(async () => planData),
     }))
+    vi.doMock('@/lib/payments/web-search-usage', () => webSearchUsageMock)
     vi.doMock('@/lib/ai/agents/legal-agent', () => legalAgentMocks)
     vi.doMock('@/lib/vector/milvus', () => ({
       searchByText: searchByTextMock,
@@ -303,6 +314,7 @@ describe('/api/chat route', () => {
       chatManagerInstance,
       legalAgentMocks,
       searchByTextMock,
+      webSearchUsageMock,
     }
   }
 
@@ -421,6 +433,36 @@ describe('/api/chat route', () => {
     )
   })
 
+  it('passes the configured gpt-5-mini premium model into the premium agent', { timeout: 15000 }, async () => {
+    process.env.OPENAI_PREMIUM_MODEL = 'gpt-5-mini'
+    process.env.OPENAI_PREMIUM_FALLBACK_MODEL = 'gpt-4.1'
+
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'premium', paidAccess: true, planStatus: 'active' },
+      processMessageResult: { task: 'legal_procedure', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'I am at the pre-claim stage. What claim form and procedural steps are usually involved?',
+        history: [],
+      })
+    )
+
+    expect(response.status).toBe(200)
+    expect(legalAgentMocks.invokePremiumLegalAgent).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      'user-1',
+      [],
+      '',
+      expect.objectContaining({
+        openaiModel: 'gpt-5-mini',
+        openaiFallbackModel: 'gpt-4.1',
+      })
+    )
+  })
+
   it('passes earlier thread memory into the agent context for new threads', { timeout: 15000 }, async () => {
     const { POST, legalAgentMocks } = await loadRoute({
       chatMemoryRows: [
@@ -465,9 +507,79 @@ describe('/api/chat route', () => {
       [],
       '',
       expect.objectContaining({
+        autoDecideSearch: true,
+        searchEngineOverride: 'brave',
+        consumeSearchQuota: expect.any(Function),
         memoryContext: expect.stringContaining('Earlier conversation marker: driver hit my car and ran away'),
       })
     )
+  })
+
+  it('passes the daily Basic search quota gate into the basic agent', { timeout: 15000 }, async () => {
+    const { POST, legalAgentMocks, webSearchUsageMock } = await loadRoute({
+      planData: { plan: 'basic', paidAccess: true, planStatus: 'active' },
+      processMessageResult: { task: 'legal_procedure', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'I am at the pre-claim stage. What claim form and procedural steps are usually involved?',
+        history: [],
+      })
+    )
+
+    expect(response.status).toBe(200)
+    const call = (legalAgentMocks.invokeBasicLegalAgent as any).mock.calls[0]
+    expect(call).toBeTruthy()
+    expect(call[5]).toEqual(expect.objectContaining({
+      autoDecideSearch: true,
+      searchEngineOverride: 'brave',
+      consumeSearchQuota: expect.any(Function),
+    }))
+
+    await call[5].consumeSearchQuota()
+    expect(webSearchUsageMock.consumeBasicDailyWebSearchQuota).toHaveBeenCalledWith('user-1')
+  })
+
+  it('includes the one-shot Basic daily search notice in assistant metadata when the last allowed search succeeds', { timeout: 15000 }, async () => {
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'basic', paidAccess: true, planStatus: 'active' },
+      processMessageResult: { task: 'legal_procedure', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    ;(legalAgentMocks.invokeBasicLegalAgent as any).mockResolvedValueOnce({
+      response: 'Basic answer [1]',
+      guidance_provided: [],
+      next_steps: [],
+      sources: [
+        {
+          number: 1,
+          title: 'Gov',
+          url: 'https://www.gov.uk/make-court-claim-for-money',
+        },
+      ],
+      basicDailySearchNotice: 'Daily web search limit reached. Back to standard answers.',
+    })
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'I am at the pre-claim stage. What claim form and procedural steps are usually involved?',
+        history: [],
+      })
+    )
+
+    expect(response.status).toBe(200)
+    const payload = await response.json()
+    expect(payload.metadata.basicDailySearchNotice).toBe(
+      'Daily web search limit reached. Back to standard answers.'
+    )
+    expect(payload.metadata.sources).toEqual([
+      {
+        number: 1,
+        title: 'Gov',
+        url: 'https://www.gov.uk/make-court-claim-for-money',
+      },
+    ])
   })
 
   it('passes the full current thread history into the premium plus agent', { timeout: 15000 }, async () => {

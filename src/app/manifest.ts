@@ -2,9 +2,9 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'MyMcKenzie Court Support',
+    name: 'MyMcKenzieCS',
     short_name: 'MyMcKenzieCS',
-    description: 'MyMcKenzie Court Support is an AI-assisted self-help workspace for litigants in person.',
+    description: 'MyMcKenzieCS is an AI-assisted self-help workspace for litigants in person.',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',
@@ -27,4 +27,3 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
   }
 }
-

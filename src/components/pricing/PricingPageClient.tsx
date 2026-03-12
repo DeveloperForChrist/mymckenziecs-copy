@@ -231,6 +231,9 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
   const basicPriceId = PLAN_PRICES.find((plan) => plan.name === 'Basic')?.priceId || '';
   const premiumPriceId = PLAN_PRICES.find((plan) => plan.name === 'Premium')?.priceId || '';
   const premiumPlusPriceId = PLAN_PRICES.find((plan) => plan.name === 'Premium +')?.priceId || '';
+  const basicPlanFeatures = PLAN_PRICES.find((plan) => plan.name === 'Basic')?.features || [];
+  const premiumPlanFeatures = PLAN_PRICES.find((plan) => plan.name === 'Premium')?.features || [];
+  const premiumPlusPlanFeatures = PLAN_PRICES.find((plan) => plan.name === 'Premium +')?.features || [];
 
   useEffect(() => {
     if (!authChecked || !isSignedIn || autoCheckoutStartedRef.current) return;
@@ -575,15 +578,11 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
                 £18<span className="text-xl sm:text-2xl">/Month</span>
               </div>
               <ul className="space-y-3 mb-8 text-left flex-grow">
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#9cc8ff' }}>✓</span> MyMcKenzieCS Basic Assistant
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#9cc8ff' }}>✓</span> 10 document storage
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#9cc8ff' }}>✓</span> Conversation history included
-                </li>
+                {basicPlanFeatures.map((feature) => (
+                  <li key={feature} className="flex items-start text-white">
+                    <span className="mr-2 font-bold" style={{ color: '#9cc8ff' }}>✓</span> {feature}
+                  </li>
+                ))}
               </ul>
               <button
                 className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
@@ -610,18 +609,11 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
                 £32<span className="text-xl sm:text-2xl">/Month</span>
               </div>
               <ul className="space-y-3 mb-8 text-left flex-grow">
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> MyMcKenzieCS Smart Assistant
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> 25 document storage
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> Conversation history included
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> Scheduled series of deadline reminder emails (21, 14, 7, 5, 3, and 1 day before)
-                </li>
+                {premiumPlanFeatures.map((feature) => (
+                  <li key={feature} className="flex items-start text-white">
+                    <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> {feature}
+                  </li>
+                ))}
               </ul>
               <button
                 className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
@@ -648,24 +640,11 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
                 £199<span className="text-xl sm:text-2xl">/Month</span>
               </div>
               <ul className="space-y-3 mb-8 text-left flex-grow">
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> MyMcKenzieCS Intelligent Assistant
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> 150 document storage
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> Persistent chat history
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> Enhanced research support
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> Advanced case law retrieval and study
-                </li>
-                <li className="flex items-start text-white">
-                  <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> Scheduled series of deadline reminder emails (21, 14, 7, 5, 3, and 1 day before)
-                </li>
+                {premiumPlusPlanFeatures.map((feature) => (
+                  <li key={feature} className="flex items-start text-white">
+                    <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> {feature}
+                  </li>
+                ))}
               </ul>
               <button
                 className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"

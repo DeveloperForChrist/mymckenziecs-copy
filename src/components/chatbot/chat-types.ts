@@ -16,6 +16,7 @@ export interface AssistantMetadata {
   activeCaseId?: string | null
   sources?: SourceReference[]
   presentation?: AssistantPresentation
+  basicDailySearchNotice?: string
   [key: string]: unknown
 }
 

@@ -398,6 +398,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   const [hasMoreHistory, setHasMoreHistory] = useState(false)
   const [loadingOlderHistory, setLoadingOlderHistory] = useState(false)
   const [noticeModal, setNoticeModal] = useState<{ title: string; message: string } | null>(null)
+  const [floatingNotice, setFloatingNotice] = useState<string | null>(null)
   const [activeInlineStreamMessageId, setActiveInlineStreamMessageId] = useState<string | null>(null)
   const isSignedInPlanLocked = Boolean(supabaseUser) && planLoaded && !paidAccess
   
@@ -422,12 +423,41 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const conversationIdRef = useRef('')
   const loadingOlderHistoryRef = useRef(false)
+  const floatingNoticeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const lastScrollTopRef = useRef(0)
   const lastWindowScrollYRef = useRef(0)
   const isNearBottomRef = useRef(true)
   const isProgrammaticScrollRef = useRef(false)
   const [autoScroll, setAutoScroll] = useState(true)
   const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false)
+
+  const extractBasicDailySearchNotice = (metadata?: AssistantMetadata): string | null => {
+    const value = metadata?.basicDailySearchNotice
+    return typeof value === 'string' && value.trim() ? value.trim() : null
+  }
+
+  const showFloatingNotice = (message: string | null | undefined) => {
+    const normalized = String(message || '').trim()
+    if (!normalized) return
+    if (floatingNoticeTimeoutRef.current) {
+      clearTimeout(floatingNoticeTimeoutRef.current)
+      floatingNoticeTimeoutRef.current = null
+    }
+    setFloatingNotice(normalized)
+    floatingNoticeTimeoutRef.current = setTimeout(() => {
+      setFloatingNotice(null)
+      floatingNoticeTimeoutRef.current = null
+    }, 5200)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (floatingNoticeTimeoutRef.current) {
+        clearTimeout(floatingNoticeTimeoutRef.current)
+        floatingNoticeTimeoutRef.current = null
+      }
+    }
+  }, [])
   const [showScrollToBottomButtonByWindow, setShowScrollToBottomButtonByWindow] = useState(false)
   const initialPendingStatusLabel = 'Thinking...'
 
@@ -920,7 +950,11 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
 
       setMessages((prev) => [...prev, assistantMessage])
 
-      typeMessageById(assistantText, assistantMessageId)
+      typeMessageById(
+        assistantText,
+        assistantMessageId,
+        () => showFloatingNotice(extractBasicDailySearchNotice(data.metadata as AssistantMetadata | undefined))
+      )
       chatRequestAbortRef.current = null
     } catch (error: any) {
       chatRequestAbortRef.current = null
@@ -983,7 +1017,8 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
 
   const runTypingAnimation = (
     fullText: string,
-    applyUpdate: (prev: Message[], text: string, isDone: boolean) => Message[]
+    applyUpdate: (prev: Message[], text: string, isDone: boolean) => Message[],
+    onDone?: () => void
   ) => {
     const strippedText = stripAssistantSourcesBlock(fullText)
     const fallbackText = typeof fullText === 'string' ? fullText.trim() : ''
@@ -998,6 +1033,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       setMessages((prev) => applyUpdate(prev, '', true))
       setLoading(false)
       setLoadingLabel(null)
+      onDone?.()
       return
     }
 
@@ -1021,6 +1057,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
         }
         setLoading(false)
         setLoadingLabel(null)
+        onDone?.()
       }
     }
 
@@ -1030,7 +1067,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     }
   }
 
-  const typeMessageById = (fullText: string, messageId: string) => {
+  const typeMessageById = (fullText: string, messageId: string, onDone?: () => void) => {
     runTypingAnimation(fullText, (prev, text, isDone) => {
       const targetIndex = prev.findIndex((m) => m.id === messageId)
       if (targetIndex < 0) return prev
@@ -1053,7 +1090,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
         metadata: nextMetadata
       }
       return updated
-    })
+    }, onDone)
   }
 
   const commitFinalStreamedMessageById = (
@@ -1088,6 +1125,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       }
       return updated
     })
+    showFloatingNotice(extractBasicDailySearchNotice(metadata))
   }
 
   const flushStreamDeltaBufferById = (messageId: string) => {
@@ -1627,7 +1665,11 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
       }
 
       setMessages((prev) => [...prev, assistantMessage])
-      typeMessageById(assistantText, assistantMessageId)
+      typeMessageById(
+        assistantText,
+        assistantMessageId,
+        () => showFloatingNotice(extractBasicDailySearchNotice(data.metadata as AssistantMetadata | undefined))
+      )
       chatRequestAbortRef.current = null
     } catch (error: any) {
       chatRequestAbortRef.current = null
@@ -1804,6 +1846,57 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
             isPlanLocked={isSignedInPlanLocked}
             planLockMessage="Plan paused: chat is locked. Your documents remain safe and available in read-only mode."
           />
+
+        {floatingNotice && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              position: 'fixed',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              bottom: 'clamp(108px, 16vh, 146px)',
+              width: 'min(92vw, 540px)',
+              padding: '12px 16px',
+              borderRadius: '16px',
+              border: '1px solid rgba(251, 191, 36, 0.45)',
+              background: 'linear-gradient(135deg, rgba(69, 26, 3, 0.96) 0%, rgba(120, 53, 15, 0.94) 100%)',
+              color: '#fef3c7',
+              boxShadow: '0 18px 48px rgba(15, 23, 42, 0.35)',
+              backdropFilter: 'blur(10px)',
+              zIndex: 140,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+            }}
+          >
+            <span style={{ fontSize: '0.95rem', lineHeight: 1.45 }}>{floatingNotice}</span>
+            <button
+              type="button"
+              onClick={() => {
+                if (floatingNoticeTimeoutRef.current) {
+                  clearTimeout(floatingNoticeTimeoutRef.current)
+                  floatingNoticeTimeoutRef.current = null
+                }
+                setFloatingNotice(null)
+              }}
+              aria-label="Dismiss notice"
+              style={{
+                flex: '0 0 auto',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                lineHeight: 1,
+                padding: 0,
+              }}
+            >
+              ×
+            </button>
+          </div>
+        )}
 
         <ReportIssueModal
           isOpen={showReportModal}

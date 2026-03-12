@@ -9,7 +9,7 @@ const normalizeSiteUrl = (value: string) =>
   value.replace(/^https?:\/\/www\./i, 'https://').replace(/\/+$/, '')
 
 const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL || 'https://mymckenziecs.com')
-const APP_FULL_NAME = 'MyMcKenzie Court Support'
+const APP_FULL_NAME = 'MyMcKenzieCS'
 const APP_SHORT_NAME = 'MyMcKenzieCS'
 const FAVICON_SVG_PATH = '/favicon-circle-padded.svg'
 const SOCIAL_SHARE_IMAGE_PATH = '/favicon-source.png'
