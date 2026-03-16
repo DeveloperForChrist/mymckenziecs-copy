@@ -15,7 +15,7 @@ export default function CookiePolicyPage() {
         <li>
           <b>Introduction</b>
           <p className="mt-2">This Cookie Policy explains how MyMcKenzieCS (&quot;The Platform&quot;, &quot;We&quot;, &quot;Us&quot;) uses cookies and similar technologies on our website and web application.</p>
-          <p>Where consent is required, we only activate optional analytics cookies after you opt in through our cookie controls.</p>
+          <p>Where consent is required, we only activate optional analytics cookies after you opt in through your account settings or the controls on this page.</p>
         </li>
         <li>
           <b>What Are Cookies?</b>
@@ -111,7 +111,6 @@ export default function CookiePolicyPage() {
           <p className="mt-2">You can manage or disable cookies through:</p>
           <ul className="list-disc pl-6 mt-1">
             <li>Your browser settings</li>
-            <li>Our cookie consent banner</li>
             <li>Your account settings page when signed in</li>
             <li>The controls on this Cookie Policy page</li>
           </ul>

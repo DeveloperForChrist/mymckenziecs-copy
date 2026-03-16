@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import './globals.css'
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
 import ClientErrorReporter from '@/components/monitoring/ClientErrorReporter'
-import CookieConsentBanner from '@/components/privacy/CookieConsentBanner'
 import RouteTitleManager from '@/components/seo/RouteTitleManager'
 
 const normalizeSiteUrl = (value: string) =>
@@ -117,10 +116,6 @@ export default function RootLayout({
       <body>
         <GoogleAnalytics measurementId={googleAnalyticsMeasurementId} />
         <ClientErrorReporter />
-        <CookieConsentBanner
-          analyticsEnabled={Boolean(googleAnalyticsMeasurementId)}
-          measurementId={googleAnalyticsMeasurementId}
-        />
         <RouteTitleManager />
         {children}
       </body>
