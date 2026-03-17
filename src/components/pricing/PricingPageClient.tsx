@@ -552,6 +552,9 @@ export default function PricingPageClient() {
               <p style={{ marginTop: '14px', color: '#cbd5f5', fontSize: '0.95rem' }}>
                 Not sure where to start? <a href="/faq" style={{ color: '#f8fafc', textDecoration: 'underline' }}>Read the plan FAQ</a>
               </p>
+              <p style={{ marginTop: '10px', color: '#cbd5f5', fontSize: '0.95rem' }}>
+                New to court? Start with the <a href="/litigant-in-person-uk" style={{ color: '#f8fafc', textDecoration: 'underline' }}>litigant in person guide</a>, the <a href="/mckenzie-friend-support" style={{ color: '#f8fafc', textDecoration: 'underline' }}>McKenzie friend support guide</a>, or the <a href="/case-law-search-uk" style={{ color: '#f8fafc', textDecoration: 'underline' }}>case-law search guide</a>.
+              </p>
             </div>
             <div style={{
               background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02))',

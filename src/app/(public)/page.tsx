@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import Link from 'next/link';
 import HeroActionButtons from '@/components/home/HeroActionButtons';
 import { DEADLINE_REMINDER_FEATURE } from '@/constants';
 import { buildPageMetadata } from '@/lib/seo';
@@ -76,6 +77,29 @@ const plans = [
   }
 ];
 
+const guidePages = [
+  {
+    href: '/litigant-in-person-uk',
+    title: 'Guide for litigants in person',
+    text: 'Understand what self-representation means in the UK and where most pressure points appear.',
+  },
+  {
+    href: '/mckenzie-friend-support',
+    title: 'McKenzie friend support',
+    text: 'Learn what a McKenzie friend can do, what they cannot do, and where digital preparation still matters.',
+  },
+  {
+    href: '/legal-case-management-tool',
+    title: 'Legal case management tool',
+    text: 'See how documents, notes, reminders, and research fit into one case workflow.',
+  },
+  {
+    href: '/case-law-search-uk',
+    title: 'Case law search UK',
+    text: 'Learn how to search judgments and keep authorities tied to the live issues in your case.',
+  },
+];
+
 export default function HomePage() {
   return (
     <div className="homepage">
@@ -147,7 +171,7 @@ export default function HomePage() {
             <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
               <div>
                 <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Inside MyMcKenzieCS</div>
-                <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">Everything you need to manage a legal matter in one workspace</h3>
+                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Everything you need to manage a legal matter in one workspace</h2>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -164,13 +188,36 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section className="w-full">
+          <div className="app-container relative z-10 py-4 md:py-8">
+            <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
+              <div>
+                <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Guides</div>
+                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Helpful guides for UK litigants in person</h2>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {guidePages.map((guide) => (
+                <Link
+                  key={guide.href}
+                  href={guide.href}
+                  className="rounded-3xl border border-white/12 bg-gradient-to-br from-white/10 to-white/5 p-6 text-white shadow-[0_18px_50px_rgba(0,0,0,0.3)] transition-transform hover:-translate-y-1"
+                >
+                  <div className="text-lg font-semibold">{guide.title}</div>
+                  <p className="text-sm md:text-base text-white/75 mt-3 leading-relaxed">{guide.text}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Plans */}
         <section className="w-full">
           <div className="app-container relative z-10 py-9 md:py-12">
             <div className="flex items-end justify-start flex-wrap gap-4 mb-7">
               <div>
                 <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Plans</div>
-                <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">Choose the level of support that fits your case</h3>
+                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Choose the level of support that fits your case</h2>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -207,9 +254,9 @@ export default function HomePage() {
             <div className="rounded-[28px] border border-white/10 bg-gradient-to-r from-white/10 via-white/5 to-white/10 p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
               <div>
                 <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Get started</div>
-                <h3 className="text-2xl md:text-3xl font-semibold text-white mt-2">
+                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">
                   Start building your case plan now.
-                </h3>
+                </h2>
                 <p className="text-white/75 mt-3">
                   Start with one question, then organise the rest of your case from the same workspace.
                 </p>
