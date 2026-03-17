@@ -3,17 +3,18 @@ import './globals.css'
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
 import ClientErrorReporter from '@/components/monitoring/ClientErrorReporter'
 import RouteTitleManager from '@/components/seo/RouteTitleManager'
+import {
+  APP_FULL_NAME,
+  APP_SHORT_NAME,
+  DEFAULT_DESCRIPTION,
+  SOCIAL_SHARE_IMAGE_HEIGHT,
+  SOCIAL_SHARE_IMAGE_PATH,
+  SOCIAL_SHARE_IMAGE_WIDTH,
+  buildFullTitle,
+  siteUrl,
+} from '@/lib/seo'
 
-const normalizeSiteUrl = (value: string) =>
-  value.replace(/^https?:\/\/www\./i, 'https://').replace(/\/+$/, '')
-
-const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL || 'https://mymckenziecs.com')
-const APP_FULL_NAME = 'MyMcKenzieCS'
-const APP_SHORT_NAME = 'MyMcKenzieCS'
 const FAVICON_SVG_PATH = '/favicon-circle-padded.svg'
-const SOCIAL_SHARE_IMAGE_PATH = '/favicon-source.png'
-const SOCIAL_SHARE_IMAGE_WIDTH = 1080
-const SOCIAL_SHARE_IMAGE_HEIGHT = 1080
 const googleAnalyticsMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim()
 
 export const metadata: Metadata = {
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
     default: APP_FULL_NAME,
     template: `%s | ${APP_FULL_NAME}`,
   },
-  description: 'MyMcKenzieCS is the premier legal self-help workspace for UK litigants in person. Manage documents, deadlines, and court support in one place.',
+  description: DEFAULT_DESCRIPTION,
   applicationName: APP_FULL_NAME,
   alternates: {
     canonical: '/',
@@ -40,9 +41,10 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
+    locale: 'en_GB',
     url: siteUrl,
-    title: APP_FULL_NAME,
-    description: 'MyMcKenzieCS is the premier legal self-help workspace for UK litigants in person. Manage documents, deadlines, and court support in one place.',
+    title: buildFullTitle(),
+    description: DEFAULT_DESCRIPTION,
     siteName: APP_FULL_NAME,
     images: [
       {
@@ -57,7 +59,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: APP_FULL_NAME,
-    description: 'MyMcKenzieCS is the premier legal self-help workspace for UK litigants in person. Manage documents, deadlines, and court support in one place.',
+    description: DEFAULT_DESCRIPTION,
     images: [SOCIAL_SHARE_IMAGE_PATH],
   },
   manifest: '/manifest.webmanifest',

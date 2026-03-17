@@ -1,4 +1,13 @@
+import type { Metadata } from 'next';
 import LegalPageLayout from '@/components/layout/LegalPageLayout';
+import { buildPageMetadata } from '@/lib/seo';
+
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Help',
+  description:
+    'Get MyMcKenzieCS help with account access, billing, document uploads, notes, deadlines, and other day-to-day support questions.',
+  path: '/help',
+});
 
 export const revalidate = 86400;
 

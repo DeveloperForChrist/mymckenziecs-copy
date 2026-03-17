@@ -1,4 +1,13 @@
+import type { Metadata } from 'next';
 import LegalPageLayout from '@/components/layout/LegalPageLayout';
+import { buildPageMetadata } from '@/lib/seo';
+
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Privacy Policy',
+  description:
+    'Review how MyMcKenzieCS collects, uses, stores, and protects personal data under UK GDPR.',
+  path: '/privacy-policy',
+});
 
 export const revalidate = 86400;
 

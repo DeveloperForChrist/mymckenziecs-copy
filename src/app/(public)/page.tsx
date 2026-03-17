@@ -1,17 +1,18 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import HeroActionButtons from '@/components/home/HeroActionButtons';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import { isBillingEligibleUser } from '@/lib/auth/session-user';
 import { DEADLINE_REMINDER_FEATURE } from '@/constants';
+import { buildPageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: {
-    absolute: 'MyMcKenzieCS',
-  },
-  description: 'MyMcKenzieCS is the premier legal self-help workspace for UK litigants in person. Manage documents, deadlines, and court support in one place.',
+  ...buildPageMetadata({
+    title: 'Legal Self-Help Workspace for UK Litigants in Person',
+    description:
+      'MyMcKenzieCS helps UK litigants in person organise documents, track deadlines, and get legal procedural support in one place.',
+    path: '/',
+  }),
 };
+export const revalidate = 86400;
 
 const workspaceFeatures = [
   {
@@ -75,46 +76,7 @@ const plans = [
   }
 ];
 
-export default async function HomePage() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {
-          // No-op in server component render context.
-        },
-      },
-    }
-  );
-
-  const { data: authData } = await supabase.auth.getUser();
-  const hasAccountSession = isBillingEligibleUser(authData?.user);
-  let hasPaidAccess = false;
-
-  if (hasAccountSession && authData?.user?.id) {
-    const { data: subscriptions } = await supabase
-      .from('subscriptions')
-      .select('plan_type, status')
-      .eq('user_id', authData.user.id)
-      .order('updated_at', { ascending: false })
-      .limit(5);
-
-    hasPaidAccess = Boolean(
-      (subscriptions || []).some((sub: any) => {
-        const planLabel = String(sub?.plan_type || '').toLowerCase();
-        const status = String(sub?.status || '').toLowerCase();
-        const paidPlan = planLabel.includes('basic') || planLabel.includes('premium');
-        const activeState = status === 'active' || status === 'past_due';
-        return paidPlan && activeState;
-      })
-    );
-  }
-
+export default function HomePage() {
   return (
     <div className="homepage">
       <main
@@ -146,7 +108,7 @@ export default async function HomePage() {
                     MyMcKenzieCS is a legal self-help workspace for UK litigants in person: Providing legal procedural support,
                     document and evidence organisation, deadline tracking, and case law research in one place to navigate your case.
                   </p>
-                  <HeroActionButtons hasAccountSession={hasAccountSession} hasPaidAccess={hasPaidAccess} />
+                  <HeroActionButtons />
                   <div className="mt-4 text-sm text-white/75">
                     Informational and court support only. Not legal advice.
                   </div>

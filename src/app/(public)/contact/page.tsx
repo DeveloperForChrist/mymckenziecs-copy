@@ -1,4 +1,13 @@
+import type { Metadata } from 'next';
 import LegalPageLayout from '@/components/layout/LegalPageLayout';
+import { buildPageMetadata } from '@/lib/seo';
+
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Contact',
+  description:
+    'Contact the MyMcKenzieCS team for support, billing questions, or privacy requests.',
+  path: '/contact',
+});
 
 export default function ContactPage() {
   return (

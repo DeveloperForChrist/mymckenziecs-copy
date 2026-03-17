@@ -1,9 +1,18 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createServerClient } from '@supabase/ssr';
 import CheckoutSuccessPageClient from '@/components/checkout/CheckoutSuccessPageClient';
 import { isBillingEligibleUser } from '@/lib/auth/session-user';
+import { buildPageMetadata } from '@/lib/seo';
+
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Checkout Success',
+  description: 'Your MyMcKenzieCS checkout has completed successfully.',
+  path: '/checkout/success',
+  noIndex: true,
+});
 
 export default async function CheckoutSuccessPage() {
   const cookieStore = await cookies();

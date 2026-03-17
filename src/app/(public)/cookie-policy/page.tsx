@@ -1,5 +1,14 @@
+import type { Metadata } from 'next';
 import CookiePreferencesSection from '@/components/settings/CookiePreferencesSection';
 import LegalPageLayout from '@/components/layout/LegalPageLayout';
+import { buildPageMetadata } from '@/lib/seo';
+
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Cookie Policy',
+  description:
+    'Learn how MyMcKenzieCS uses essential cookies, analytics cookies, and local storage across the website and web app.',
+  path: '/cookie-policy',
+});
 
 export const revalidate = 86400;
 const googleAnalyticsMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim()

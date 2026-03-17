@@ -1,6 +1,15 @@
+import type { Metadata } from 'next'
 import SignUpForm from '@/components/auth/SignUpForm'
 import styles from '@/app/auth/auth.module.css'
 import { Suspense } from 'react'
+import { buildPageMetadata } from '@/lib/seo'
+
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Create Account',
+  description: 'Create a MyMcKenzieCS account and start your legal self-help workspace.',
+  path: '/auth/signup',
+  noIndex: true,
+})
 
 export const revalidate = 86400
 

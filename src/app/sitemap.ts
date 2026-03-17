@@ -1,9 +1,5 @@
 import type { MetadataRoute } from 'next'
-
-const normalizeSiteUrl = (value: string) =>
-  value.replace(/^https?:\/\/www\./i, 'https://').replace(/\/+$/, '')
-
-const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL || 'https://mymckenziecs.com')
+import { siteUrl } from '@/lib/seo'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()

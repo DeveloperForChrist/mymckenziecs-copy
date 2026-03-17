@@ -1,16 +1,24 @@
 import type { MetadataRoute } from 'next'
-
-const normalizeSiteUrl = (value: string) =>
-  value.replace(/^https?:\/\/www\./i, 'https://').replace(/\/+$/, '')
-
-const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL || 'https://mymckenziecs.com')
+import { siteUrl } from '@/lib/seo'
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: {
-      userAgent: '*',
-      allow: '/',
-    },
+    rules: [
+      {
+        userAgent: '*',
+        allow: '/',
+        disallow: [
+          '/api/',
+          '/auth/',
+          '/chatbot',
+          '/checkout/',
+          '/dashboard',
+          '/settings',
+          '/admin',
+          '/jesusistheadmin',
+        ],
+      },
+    ],
     sitemap: `${siteUrl}/sitemap.xml`,
     host: siteUrl,
   }

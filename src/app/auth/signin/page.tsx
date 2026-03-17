@@ -1,6 +1,15 @@
+import type { Metadata } from 'next'
 import SignInForm from '@/components/auth/SignInForm'
 import styles from '@/app/auth/auth.module.css'
 import { Suspense } from 'react'
+import { buildPageMetadata } from '@/lib/seo'
+
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Sign In',
+  description: 'Sign in to your MyMcKenzieCS account to resume your case workspace.',
+  path: '/auth/signin',
+  noIndex: true,
+})
 
 export const revalidate = 86400
 

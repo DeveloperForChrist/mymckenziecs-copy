@@ -1,4 +1,13 @@
+import type { Metadata } from 'next';
 import LegalPageLayout from '@/components/layout/LegalPageLayout';
+import { buildPageMetadata } from '@/lib/seo';
+
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Terms and Conditions',
+  description:
+    'Read the MyMcKenzieCS terms and conditions covering platform access, subscriptions, responsibilities, and service limitations.',
+  path: '/terms',
+});
 
 export const revalidate = 86400;
 

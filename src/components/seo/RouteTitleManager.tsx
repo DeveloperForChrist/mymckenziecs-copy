@@ -6,10 +6,10 @@ import { useLayoutEffect, useMemo } from 'react'
 const APP_NAME = 'MyMcKenzieCS'
 
 const titleByPath: Record<string, string> = {
-  '/': 'Home',
+  '/': 'Legal Self-Help Workspace for UK Litigants in Person',
   '/about': 'About',
   '/contact': 'Contact',
-  '/pricing': 'Pricing',
+  '/pricing': 'Pricing Plans',
   '/faq': 'Plans FAQ',
   '/help': 'Help',
   '/terms': 'Terms and Conditions',
@@ -26,6 +26,7 @@ const titleByPath: Record<string, string> = {
   '/auth/signin': 'Sign In',
   '/auth/signup': 'Create Account',
   '/auth/reset-password': 'Reset Password',
+  '/auth/verify-email': 'Verify Email',
   '/checkout/success': 'Checkout Success',
   '/admin': 'Admin Login',
   '/admin/dashboard': 'Admin Dashboard',
@@ -96,7 +97,7 @@ export default function RouteTitleManager() {
   const pageTitle = useMemo(() => resolveTitle(pathname || '/'), [pathname])
 
   useLayoutEffect(() => {
-    const nextTitle = pageTitle === APP_NAME ? APP_NAME : `${APP_NAME} - ${pageTitle}`
+    const nextTitle = pageTitle === APP_NAME ? APP_NAME : `${pageTitle} | ${APP_NAME}`
     const applyTitle = () => {
       if (document.title !== nextTitle) {
         document.title = nextTitle

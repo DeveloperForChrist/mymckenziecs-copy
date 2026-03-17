@@ -7,13 +7,9 @@ import { isBillingEligibleUser } from '@/lib/auth/session-user';
 import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout';
 import { PLAN_PRICES } from '@/constants';
 
-type PricingPageClientProps = {
-  initialIsSignedIn: boolean;
-};
-
-export default function PricingPageClient({ initialIsSignedIn }: PricingPageClientProps) {
-  const [isSignedIn, setIsSignedIn] = useState(initialIsSignedIn);
-  const [authChecked, setAuthChecked] = useState(true);
+export default function PricingPageClient() {
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const [hasPaidPlan, setHasPaidPlan] = useState(false);
   const [currentPlan, setCurrentPlan] = useState('No plan');
   const [planStatus, setPlanStatus] = useState('inactive');
@@ -53,11 +49,17 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
     const supabase = getSupabaseBrowserClient();
     let cancelled = false;
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (cancelled) return;
-      setIsSignedIn(isBillingEligibleUser(data.session?.user));
-      setAuthChecked(true);
-    });
+    supabase.auth.getSession()
+      .then(({ data }) => {
+        if (cancelled) return;
+        setIsSignedIn(isBillingEligibleUser(data.session?.user));
+        setAuthChecked(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setIsSignedIn(false);
+        setAuthChecked(true);
+      });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (cancelled) return;
@@ -363,7 +365,19 @@ export default function PricingPageClient({ initialIsSignedIn }: PricingPageClie
               }}>MyMcKenzieCS</h2>
             </a>
             <div>
-              {authChecked && isSignedIn ? (
+              {!authChecked ? (
+                <span
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    textDecoration: 'none',
+                    padding: '0.5rem 1rem',
+                    fontSize: 'clamp(0.92rem, 3.1vw, 1.1rem)',
+                    fontWeight: 600
+                  }}
+                >
+                  Loading account
+                </span>
+              ) : isSignedIn ? (
                 isCheckoutFlow ? (
                   <span
                     style={{
