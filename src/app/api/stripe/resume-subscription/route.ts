@@ -15,7 +15,7 @@ import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
 import { isBillingActiveStripeStatus, normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
 import { getStripeSubscriptionPeriodEndIso, getStripeSubscriptionPeriodStartIso } from '@/lib/payments/subscription-period';
 
-const BILLABLE_CANCELABLE_STATUSES = ['active', 'past_due', 'trialing'] as const;
+const RESUMABLE_STATUSES = ['active', 'past_due', 'trialing'] as const;
 
 export async function POST(req: Request) {
   try {
@@ -30,23 +30,23 @@ export async function POST(req: Request) {
 
     const userLimit = await rateLimit(
       billingRateLimiter,
-      `billing:cancel:user:${getIdentifier(authUid, ip)}`,
+      `billing:resume:user:${getIdentifier(authUid, ip)}`,
       10,
       10 * 60 * 1000
     );
     if (!userLimit.success) {
-      return rateLimitExceededResponse(userLimit, 'Too many cancellation requests. Please try again shortly.');
+      return rateLimitExceededResponse(userLimit, 'Too many resume requests. Please try again shortly.');
     }
 
     if (ip) {
       const ipLimit = await rateLimit(
         billingIpRateLimiter,
-        `billing:cancel:ip:${ip}`,
+        `billing:resume:ip:${ip}`,
         30,
         10 * 60 * 1000
       );
       if (!ipLimit.success) {
-        return rateLimitExceededResponse(ipLimit, 'Too many cancellation requests from this network. Please try again shortly.');
+        return rateLimitExceededResponse(ipLimit, 'Too many resume requests from this network. Please try again shortly.');
       }
     }
 
@@ -55,18 +55,19 @@ export async function POST(req: Request) {
       .select('stripe_subscription_id, status, cancel_at_period_end')
       .eq('user_id', authUid)
       .not('stripe_subscription_id', 'is', null)
-      .in('status', [...BILLABLE_CANCELABLE_STATUSES])
+      .in('status', [...RESUMABLE_STATUSES])
+      .eq('cancel_at_period_end', true)
       .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
     const stripeSubscriptionId = subscriptionRow?.stripe_subscription_id || null;
     if (!stripeSubscriptionId) {
-      return NextResponse.json({ error: 'No active paid subscription found' }, { status: 404 });
+      return NextResponse.json({ error: 'No scheduled cancellation found' }, { status: 404 });
     }
 
     const updatedSubscription = await stripe.subscriptions.update(stripeSubscriptionId, {
-      cancel_at_period_end: true,
+      cancel_at_period_end: false,
     });
 
     const normalizedStatus = normalizeStripeSubscriptionStatus(updatedSubscription.status);
@@ -81,8 +82,6 @@ export async function POST(req: Request) {
         current_period_start: currentPeriodStart,
         current_period_end: currentPeriodEnd,
         cancel_at_period_end: Boolean(updatedSubscription.cancel_at_period_end),
-        scheduled_plan_type: null,
-        scheduled_change_at: null,
         ...(isBillingActiveStripeStatus(normalizedStatus)
           ? {
               lifecycle_lapsed_at: null,
@@ -102,7 +101,7 @@ export async function POST(req: Request) {
       .eq('stripe_subscription_id', stripeSubscriptionId);
 
     if (updateError) {
-      console.error('Cancel subscription: failed to update local subscription', updateError);
+      console.error('Resume subscription: failed to update local subscription', updateError);
       return NextResponse.json({ error: 'Failed to update local subscription state' }, { status: 500 });
     }
 
@@ -115,7 +114,7 @@ export async function POST(req: Request) {
       currentPeriodEnd,
     });
   } catch (error: any) {
-    console.error('Cancel subscription error', error);
-    return NextResponse.json({ error: error?.message || 'Failed to cancel subscription' }, { status: 500 });
+    console.error('Resume subscription error', error);
+    return NextResponse.json({ error: error?.message || 'Failed to resume subscription' }, { status: 500 });
   }
 }

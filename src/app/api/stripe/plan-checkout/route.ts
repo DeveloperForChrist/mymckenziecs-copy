@@ -5,6 +5,7 @@ import { stripe } from '@/lib/payments/stripe';
 import { logApiUsage } from '@/lib/utils/api-usage-logger';
 import { billingIpRateLimiter, billingRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 import { getAppUrl } from '@/lib/app-url';
+import { getSubscriptionTrialEndUnix } from '@/lib/payments/trials';
 
 function resolveAppCheckoutSuccessUrl(request: NextRequest): string {
   const base = getAppUrl(request);
@@ -84,13 +85,17 @@ export async function POST(request: NextRequest) {
 
     // Check for existing subscription with stripe_customer_id
     let customerId: string | null = null;
+    let hasPreviousSubscription = false;
     if (userRow) {
       const { data: existingSub } = await supabaseAdmin
         .from('subscriptions')
-        .select('stripe_customer_id')
+        .select('stripe_customer_id, stripe_subscription_id')
         .eq('user_id', userRow.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
       customerId = existingSub?.stripe_customer_id || null;
+      hasPreviousSubscription = Boolean(existingSub?.stripe_subscription_id);
     }
 
     if (!customerId) {
@@ -125,13 +130,18 @@ export async function POST(request: NextRequest) {
     // Create Stripe subscription checkout session
     const sessionStart = Date.now();
     try {
+      const trialApplied = !hasPreviousSubscription;
       const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
         customer: customerId,
         line_items: [
           { price: planId, quantity: 1 },
         ],
-        metadata: { userId: authUid, planId },
+        metadata: { userId: authUid, planId, trialApplied: trialApplied ? 'true' : 'false' },
+        subscription_data: {
+          metadata: { userId: authUid, planId, trialApplied: trialApplied ? 'true' : 'false' },
+          ...(trialApplied ? { trial_end: getSubscriptionTrialEndUnix() } : {}),
+        },
         success_url: successUrl ? withCheckoutParams(successUrl, 'success') : defaultSuccessUrl,
         cancel_url: cancelUrl ? withCheckoutParams(cancelUrl, 'cancelled') : defaultCancelUrl,
       });

@@ -241,7 +241,9 @@ export async function middleware(request: NextRequest) {
           entitlement = {
             plan_type: fallbackSub.plan_type,
             plan_status: fallbackStatus,
-            paid_access: hasPaidPlan(fallbackSub.plan_type) && (fallbackStatus === 'active' || fallbackStatus === 'past_due'),
+            paid_access:
+              hasPaidPlan(fallbackSub.plan_type) &&
+              (fallbackStatus === 'active' || fallbackStatus === 'trialing' || fallbackStatus === 'past_due'),
             archive_at: fallbackSub.lifecycle_archive_at,
           }
         }

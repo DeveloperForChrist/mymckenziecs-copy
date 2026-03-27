@@ -87,7 +87,7 @@ CREATE TABLE subscriptions (
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   stripe_subscription_id TEXT UNIQUE,
   plan_type TEXT NOT NULL,  -- 'Basic', 'Premium', 'Premium +'
-  status TEXT NOT NULL,  -- 'active', 'cancelled', 'expired', 'past_due'
+  status TEXT NOT NULL,  -- 'active', 'trialing', 'cancelled', 'expired', 'past_due'
   current_period_start TIMESTAMPTZ,
   current_period_end TIMESTAMPTZ,
   cancel_at_period_end BOOLEAN DEFAULT false,
@@ -385,7 +385,7 @@ ALTER TABLE messages ADD CONSTRAINT valid_role
 ALTER TABLE subscriptions ADD CONSTRAINT valid_plan_type 
   CHECK (plan_type IN ('Basic', 'Premium', 'Premium +'));
 ALTER TABLE subscriptions ADD CONSTRAINT valid_subscription_status 
-  CHECK (status IN ('active', 'cancelled', 'expired', 'past_due'));
+  CHECK (status IN ('active', 'trialing', 'cancelled', 'expired', 'past_due'));
 
 -- User passes constraints
 ALTER TABLE user_passes ADD CONSTRAINT valid_pass_type 

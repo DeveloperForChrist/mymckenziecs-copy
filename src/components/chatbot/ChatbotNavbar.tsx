@@ -8,6 +8,7 @@ import AppTopbar from '@/components/layout/AppTopbar'
 import ChatConversationHistory from '@/components/chatbot/ChatConversationHistory'
 import DeleteConversationModal from '@/components/chatbot/DeleteConversationModal'
 import { hasCaseProfileAccess } from '@/lib/plans/access'
+import { isTrialingStripeStatus } from '@/lib/payments/subscription-status'
 
 interface Conversation {
   id: string
@@ -599,7 +600,11 @@ export default function ChatbotNavbar({
               {planInfo ? (
                 <>
                   <div><b>Plan:</b> {planInfo.plan || plan || 'No plan'}</div>
-                  {planInfo.nextBillingDate && <div><b>Renews:</b> {formatDate(planInfo.nextBillingDate)}</div>}
+                  {planInfo.nextBillingDate && (
+                    <div>
+                      <b>{isTrialingStripeStatus(planInfo.planStatus) ? 'First charge:' : 'Renews:'}</b> {formatDate(planInfo.nextBillingDate)}
+                    </div>
+                  )}
                   <div><b>Status:</b> {planInfo.planStatus || 'Active'}</div>
                   {canUseCaseProfile && (
                     <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(139,92,246,0.25)' }}>

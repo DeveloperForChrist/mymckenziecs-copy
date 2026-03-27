@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import { hasCaseLawAccess } from '@/lib/plans/access';
+import { isTrialingStripeStatus } from '@/lib/payments/subscription-status';
 
 function formatDateLabel(value?: string | null) {
   if (!value) return '';
@@ -39,6 +40,7 @@ export default function DashboardHomeClient({
   const hasCaseLawFeature = hasCaseLawAccess(plan);
   const normalizedPlanStatus = planStatus.trim().toLowerCase();
   const isPastDueStatus = normalizedPlanStatus === 'past_due';
+  const isTrialingStatus = isTrialingStripeStatus(normalizedPlanStatus);
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -241,6 +243,42 @@ export default function DashboardHomeClient({
               <div style={{ marginTop: 12 }}>
                 <Link
                   href="/settings"
+                  style={{
+                    textDecoration: 'none',
+                    border: '1px solid rgba(255,255,255,0.24)',
+                    background: 'rgba(255,255,255,0.08)',
+                    color: '#fff',
+                    borderRadius: '999px',
+                    padding: '7px 12px',
+                    fontWeight: 700,
+                    fontSize: '0.92rem',
+                  }}
+                >
+                  Open billing settings
+                </Link>
+              </div>
+            </section>
+          )}
+          {isTrialingStatus && (
+            <section
+              style={{
+                marginBottom: '26px',
+                borderRadius: '14px',
+                border: '1px solid rgba(125, 211, 252, 0.42)',
+                background: 'linear-gradient(135deg, rgba(8, 47, 73, 0.38), rgba(15, 23, 42, 0.28))',
+                padding: '14px 16px',
+              }}
+            >
+              <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#dbeafe' }}>
+                Free trial active
+              </h2>
+              <p style={{ margin: '8px 0 0', color: '#bfdbfe', lineHeight: 1.45 }}>
+                Your workspace is fully active during the free trial.
+                {nextBillingDate ? ` First charge date: ${formatDateLabel(nextBillingDate)}.` : ''}
+              </p>
+              <div style={{ marginTop: 12 }}>
+                <Link
+                  href="/settings?tab=billing"
                   style={{
                     textDecoration: 'none',
                     border: '1px solid rgba(255,255,255,0.24)',

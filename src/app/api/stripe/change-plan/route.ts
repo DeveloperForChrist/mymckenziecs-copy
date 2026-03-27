@@ -14,6 +14,12 @@ import {
 import { syncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
 import { isBillingActiveStripeStatus, normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
+import {
+  getStripeSubscriptionPeriodEndIso,
+  getStripeSubscriptionPeriodEndUnix,
+  getStripeSubscriptionPeriodStartIso,
+  getStripeSubscriptionPeriodStartUnix,
+} from '@/lib/payments/subscription-period';
 
 const CHANGEABLE_STATUSES = ['active', 'past_due', 'trialing'] as const;
 
@@ -35,11 +41,6 @@ function planRank(plan: string): number {
   if (normalized.includes('premium')) return 2;
   if (normalized.includes('basic') || normalized.includes('essential') || normalized.includes('premium cheap')) return 1;
   return 0;
-}
-
-function toIsoOrNull(unixSeconds?: number | null) {
-  if (!unixSeconds || !Number.isFinite(unixSeconds)) return null;
-  return new Date(unixSeconds * 1000).toISOString();
 }
 
 async function releaseExistingSchedule(scheduleId?: string | null) {
@@ -156,8 +157,8 @@ export async function POST(req: Request) {
       });
 
       const normalizedStatus = normalizeStripeSubscriptionStatus(updatedSubscription.status);
-      const currentPeriodStart = toIsoOrNull(updatedSubscription.current_period_start);
-      const currentPeriodEnd = toIsoOrNull(updatedSubscription.current_period_end);
+      const currentPeriodStart = getStripeSubscriptionPeriodStartIso(updatedSubscription);
+      const currentPeriodEnd = getStripeSubscriptionPeriodEndIso(updatedSubscription);
 
       const { error: updateError } = await supabaseAdmin
         .from('subscriptions')
@@ -202,8 +203,8 @@ export async function POST(req: Request) {
       });
     }
 
-    const currentPeriodEnd = subscription.current_period_end;
-    const currentPeriodStart = subscription.current_period_start;
+    const currentPeriodEnd = getStripeSubscriptionPeriodEndUnix(subscription);
+    const currentPeriodStart = getStripeSubscriptionPeriodStartUnix(subscription);
     if (!currentPeriodEnd || !currentPeriodStart) {
       return NextResponse.json({ error: 'Subscription is missing billing period dates' }, { status: 400 });
     }

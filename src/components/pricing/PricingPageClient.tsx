@@ -6,6 +6,7 @@ import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import { isBillingEligibleUser } from '@/lib/auth/session-user';
 import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout';
 import { PLAN_PRICES } from '@/constants';
+import { isBillingActiveStripeStatus, isTrialingStripeStatus } from '@/lib/payments/subscription-status';
 
 export default function PricingPageClient() {
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -13,6 +14,7 @@ export default function PricingPageClient() {
   const [hasPaidPlan, setHasPaidPlan] = useState(false);
   const [currentPlan, setCurrentPlan] = useState('No plan');
   const [planStatus, setPlanStatus] = useState('inactive');
+  const [nextBillingDate, setNextBillingDate] = useState<string | null>(null);
   const [scheduledPlan, setScheduledPlan] = useState<string | null>(null);
   const [scheduledChangeDate, setScheduledChangeDate] = useState<string | null>(null);
   const [planChecked, setPlanChecked] = useState(false);
@@ -35,6 +37,14 @@ export default function PricingPageClient() {
       ? 'Go to Dashboard'
       : 'Manage account';
   const isLapsedStatus = planStatus === 'expired' || planStatus === 'cancelled';
+  const isTrialingStatus = isTrialingStripeStatus(planStatus);
+
+  function formatPlanDate(value?: string | null) {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
 
   function userHasPaidPlan(plan: any) {
     const label = String(plan || '').toLowerCase();
@@ -85,7 +95,7 @@ export default function PricingPageClient() {
 
   const getPlanButtonLabel = (priceId: string, planName: string) => {
     if (checkoutLoading === priceId) return 'Updating…';
-    if (!hasPaidPlan) return 'Launch your workspace';
+    if (!hasPaidPlan) return isLapsedStatus ? 'Resume plan' : 'Start free trial';
 
     const normalizedCurrent = currentPlan.trim().toLowerCase();
     const normalizedTarget = planName.trim().toLowerCase();
@@ -206,10 +216,11 @@ export default function PricingPageClient() {
         const refreshed = await planRes.json();
         const status = String(refreshed?.planStatus || '').toLowerCase();
         setPlanStatus(status || 'inactive');
+        setNextBillingDate(typeof refreshed?.nextBillingDate === 'string' ? refreshed.nextBillingDate : null);
         setCurrentPlan(String(refreshed?.plan || 'No plan'));
         setScheduledPlan(refreshed?.scheduledPlan || null);
         setScheduledChangeDate(refreshed?.scheduledChangeDate || null);
-        setHasPaidPlan(Boolean(refreshed?.paidAccess) || (userHasPaidPlan(refreshed?.plan) && (status === 'active' || status === 'past_due')));
+        setHasPaidPlan(Boolean(refreshed?.paidAccess) || (userHasPaidPlan(refreshed?.plan) && isBillingActiveStripeStatus(status)));
       }
     } catch (err: any) {
       setCheckoutError(err.message || 'Failed to change plan');
@@ -269,6 +280,7 @@ export default function PricingPageClient() {
     if (!authChecked) return;
     if (!isSignedIn) {
       setHasPaidPlan(false);
+      setNextBillingDate(null);
       setPlanChecked(true);
       return;
     }
@@ -285,10 +297,11 @@ export default function PricingPageClient() {
         if (cancelled) return;
         const status = String(data?.planStatus || '').toLowerCase();
         setPlanStatus(status || 'inactive');
+        setNextBillingDate(typeof data?.nextBillingDate === 'string' ? data.nextBillingDate : null);
         setCurrentPlan(String(data?.plan || 'No plan'));
         setScheduledPlan(data?.scheduledPlan || null);
         setScheduledChangeDate(data?.scheduledChangeDate || null);
-        setHasPaidPlan(Boolean(data?.paidAccess) || (userHasPaidPlan(data?.plan) && (status === 'active' || status === 'past_due')));
+        setHasPaidPlan(Boolean(data?.paidAccess) || (userHasPaidPlan(data?.plan) && isBillingActiveStripeStatus(status)));
         setPlanChecked(true);
       })
       .catch(() => {
@@ -296,6 +309,7 @@ export default function PricingPageClient() {
         setHasPaidPlan(false);
         setCurrentPlan('No plan');
         setPlanStatus('inactive');
+        setNextBillingDate(null);
         setScheduledPlan(null);
         setScheduledChangeDate(null);
         setPlanChecked(true);
@@ -490,6 +504,22 @@ export default function PricingPageClient() {
               </p>
             </div>
           )}
+          {authChecked && isSignedIn && planChecked && hasPaidPlan && isTrialingStatus && (
+            <div
+              style={{
+                borderRadius: '16px',
+                border: '1px solid rgba(125, 211, 252, 0.35)',
+                background: 'linear-gradient(135deg, rgba(8, 47, 73, 0.35), rgba(15, 23, 42, 0.24))',
+                padding: '14px 16px',
+                marginBottom: '1.5rem',
+              }}
+            >
+              <p style={{ margin: 0, color: '#dbeafe', fontWeight: 600 }}>
+                Free trial active.
+                {nextBillingDate ? ` First charge on ${formatPlanDate(nextBillingDate)} unless you cancel beforehand.` : ''}
+              </p>
+            </div>
+          )}
           {hardLock && (
             <div
               style={{
@@ -549,6 +579,9 @@ export default function PricingPageClient() {
               <p style={{ fontSize: 'clamp(1rem, 3.2vw, 1.2rem)', color: '#cbd5f5', maxWidth: '520px' }}>
                 Choose a plan that keeps you moving with confidence — from first questions to prepared filings.
               </p>
+              <p style={{ marginTop: '14px', color: '#fde68a', fontSize: '0.98rem', fontWeight: 700 }}>
+                Your first paid subscription starts with 1 month free.
+              </p>
               <p style={{ marginTop: '14px', color: '#cbd5f5', fontSize: '0.95rem' }}>
                 Not sure where to start? <a href="/faq" style={{ color: '#f8fafc', textDecoration: 'underline' }}>Read the plan FAQ</a>
               </p>
@@ -594,6 +627,7 @@ export default function PricingPageClient() {
               <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#9cc8ff' }}>
                 £18<span className="text-xl sm:text-2xl">/Month</span>
               </div>
+              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#dbeafe', fontWeight: 700 }}>New subscribers: 1 month free, then £18/month</p>
               <ul className="space-y-3 mb-8 text-left flex-grow">
                 {basicPlanFeatures.map((feature) => (
                   <li key={feature} className="flex items-start text-white">
@@ -625,6 +659,7 @@ export default function PricingPageClient() {
               <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#7bd4c9' }}>
                 £32<span className="text-xl sm:text-2xl">/Month</span>
               </div>
+              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#d1fae5', fontWeight: 700 }}>New subscribers: 1 month free, then £32/month</p>
               <ul className="space-y-3 mb-8 text-left flex-grow">
                 {premiumPlanFeatures.map((feature) => (
                   <li key={feature} className="flex items-start text-white">
@@ -656,6 +691,7 @@ export default function PricingPageClient() {
               <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#f8a76f' }}>
                 £199<span className="text-xl sm:text-2xl">/Month</span>
               </div>
+              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#ffedd5', fontWeight: 700 }}>New subscribers: 1 month free, then £199/month</p>
               <ul className="space-y-3 mb-8 text-left flex-grow">
                 {premiumPlusPlanFeatures.map((feature) => (
                   <li key={feature} className="flex items-start text-white">

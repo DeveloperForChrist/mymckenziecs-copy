@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { isTrialingStripeStatus } from '@/lib/payments/subscription-status';
 
 type SyncState = 'syncing' | 'failed';
 
@@ -32,14 +33,18 @@ export default function CheckoutSuccessPageClient() {
           credentials: 'include',
           body: JSON.stringify({ sessionId }),
         });
+        const payload = await res.json().catch(() => ({}));
 
         if (!res.ok) {
-          const payload = await res.json().catch(() => ({}));
           throw new Error(payload?.error || 'Could not confirm payment status.');
         }
 
         if (cancelled) return;
-        setMessage('Payment confirmed. Redirecting...');
+        setMessage(
+          isTrialingStripeStatus(payload?.status)
+            ? 'Free trial confirmed. Redirecting...'
+            : 'Payment confirmed. Redirecting...'
+        );
         router.replace('/dashboard');
       } catch (error: any) {
         if (cancelled) return;

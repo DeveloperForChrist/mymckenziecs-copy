@@ -4,10 +4,11 @@ import { stripe } from '@/lib/payments/stripe';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { sendResendEmail } from '@/lib/email/resend';
 import { getAppUrl } from '@/lib/app-url';
-import { isBillingActiveStripeStatus, normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
+import { isBillingActiveStripeStatus, isTrialingStripeStatus, normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
 import { buildLifecycleSchedule, getLifecycleArchiveDays, getLifecycleDeleteDays } from '@/lib/payments/subscription-lifecycle';
 import { syncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
+import { getStripeSubscriptionPeriodEndIso, getStripeSubscriptionPeriodEndUnix, getStripeSubscriptionPeriodStartIso } from '@/lib/payments/subscription-period';
 import fs from 'fs';
 import path from 'path';
 import { PLAN_PRICES } from '@/constants';
@@ -217,7 +218,7 @@ async function markSubscriptionLapsed(customerId: string | null, status: 'cancel
   return schedule;
 }
 
-async function clearSubscriptionGrace(customerId: string | null, status: 'active' | 'cancelled' | 'expired' = 'active') {
+async function clearSubscriptionGrace(customerId: string | null, status: 'active' | 'trialing' | 'cancelled' | 'expired' = 'active') {
   if (!customerId) return;
   const now = new Date();
   const payload: Record<string, any> = {
@@ -231,7 +232,7 @@ async function clearSubscriptionGrace(customerId: string | null, status: 'active
     updated_at: now.toISOString(),
   };
 
-  if (status === 'active') {
+  if (status === 'active' || status === 'trialing') {
     payload.lifecycle_lapsed_at = null;
     payload.lifecycle_archive_at = null;
     payload.lifecycle_delete_at = null;
@@ -364,12 +365,8 @@ async function upsertSubscriptionFromStripe(subscription: any) {
   const status = normalizeStripeSubscriptionStatus(subscription?.status);
   const nowIso = new Date().toISOString();
 
-  const currentPeriodStart = subscription?.current_period_start
-    ? new Date(subscription.current_period_start * 1000).toISOString()
-    : null;
-  const currentPeriodEnd = subscription?.current_period_end
-    ? new Date(subscription.current_period_end * 1000).toISOString()
-    : null;
+  const currentPeriodStart = getStripeSubscriptionPeriodStartIso(subscription);
+  const currentPeriodEnd = getStripeSubscriptionPeriodEndIso(subscription);
 
   const { data: existing } = await supabaseAdmin
     .from('subscriptions')
@@ -491,28 +488,64 @@ export async function POST(request: Request) {
       const planId = metadata.planId;
       const checkoutEmail = session?.customer_details?.email || session?.customer_email || null;
       const checkoutName = session?.customer_details?.name || '';
+      let syncedSubscription: any = null;
+
+      // Keep plan state in sync even if subscription.created/updated webhooks are
+      // not configured or delayed.
+      if (session?.subscription) {
+        try {
+          syncedSubscription = await stripe.subscriptions.retrieve(String(session.subscription));
+          await upsertSubscriptionFromStripe(syncedSubscription);
+          await clearSubscriptionGrace(
+            session.customer as string | null,
+            isTrialingStripeStatus(syncedSubscription?.status) ? 'trialing' : 'active'
+          );
+        } catch (syncError) {
+          console.error('Failed to sync subscription on checkout completion', syncError);
+        }
+      }
 
       const user = userId ? await getUserEmail(userId) : null;
       const recipientEmail = user?.email || checkoutEmail;
 
       if (recipientEmail && planId) {
         const planName = resolvePlanNameFromPriceId(planId);
-        const invoicePdfUrl =
-          (session?.invoice && typeof session.invoice === 'object' ? session.invoice.invoice_pdf : null) ||
-          `${getAppUrl(request)}/settings`;
-        const htmlBody = renderTemplate('04-plan-upgrade-receipt.html', {
-          name: user?.name || checkoutName || recipientEmail,
-          txn_id: String(session?.payment_intent || session?.id || '—'),
-          amount: formatAmount(session?.amount_total, session?.currency),
-          new_plan: planName,
-          invoice_pdf_url: String(invoicePdfUrl),
-        });
-        await sendResendEmail({
-          to: recipientEmail,
-          subject: 'Your MyMcKenzieCS plan is being activated',
-          htmlBody,
-          tag: 'billing-plan-upgrade',
-        });
+        if (isTrialingStripeStatus(syncedSubscription?.status)) {
+          const firstChargeDate = formatDateShort(
+            getStripeSubscriptionPeriodEndUnix(syncedSubscription)
+          ) || 'one month from now';
+          const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com';
+          const htmlBody = renderTemplate('27-free-trial-started.html', {
+            name: user?.name || checkoutName || recipientEmail,
+            plan_name: planName,
+            first_charge_date: firstChargeDate,
+            manage_url: `${getAppUrl(request)}/settings`,
+            support_email: supportEmail,
+          });
+          await sendResendEmail({
+            to: recipientEmail,
+            subject: 'Your MyMcKenzieCS free trial has started',
+            htmlBody,
+            tag: 'billing-trial-started',
+          });
+        } else {
+          const invoicePdfUrl =
+            (session?.invoice && typeof session.invoice === 'object' ? session.invoice.invoice_pdf : null) ||
+            `${getAppUrl(request)}/settings`;
+          const htmlBody = renderTemplate('04-plan-upgrade-receipt.html', {
+            name: user?.name || checkoutName || recipientEmail,
+            txn_id: String(session?.payment_intent || session?.id || '—'),
+            amount: formatAmount(session?.amount_total, session?.currency),
+            new_plan: planName,
+            invoice_pdf_url: String(invoicePdfUrl),
+          });
+          await sendResendEmail({
+            to: recipientEmail,
+            subject: 'Your MyMcKenzieCS plan is being activated',
+            htmlBody,
+            tag: 'billing-plan-upgrade',
+          });
+        }
       } else {
         console.warn('Checkout session missing recipient email or planId, skipping upgrade email', {
           hasUserId: Boolean(userId),
@@ -520,21 +553,34 @@ export async function POST(request: Request) {
           hasPlanId: Boolean(planId),
         });
       }
-
-      // Keep plan state in sync even if subscription.created/updated webhooks are
-      // not configured or delayed.
-      if (session?.subscription) {
-        try {
-          const subscription = await stripe.subscriptions.retrieve(String(session.subscription));
-          await upsertSubscriptionFromStripe(subscription);
-          await clearSubscriptionGrace(session.customer as string | null, 'active');
-        } catch (syncError) {
-          console.error('Failed to sync subscription on checkout completion', syncError);
-        }
-      }
     } else if (event.type === 'customer.subscription.created' || event.type === 'customer.subscription.updated') {
       const subscription = event.data.object as any;
       await upsertSubscriptionFromStripe(subscription);
+    } else if (event.type === 'customer.subscription.trial_will_end') {
+      const subscription = event.data.object as any;
+      const customerId = subscription?.customer as string | null;
+      const user = await getUserByStripeCustomerId(customerId);
+      if (user) {
+        const priceId = subscription?.items?.data?.[0]?.price?.id || null;
+        const planName = displayPlanName(normalizePlanTypeFromPrice(priceId));
+        const firstChargeDate = formatDateShort(
+          subscription?.trial_end ? subscription.trial_end * 1000 : subscription?.current_period_end ? subscription.current_period_end * 1000 : null
+        ) || 'soon';
+        const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com';
+        const htmlBody = renderTemplate('28-free-trial-ending.html', {
+          name: user.name || '',
+          plan_name: planName,
+          first_charge_date: firstChargeDate,
+          manage_url: `${getAppUrl()}/settings`,
+          support_email: supportEmail,
+        });
+        await sendResendEmail({
+          to: user.email,
+          subject: 'Your MyMcKenzieCS free trial ends soon',
+          htmlBody,
+          tag: 'billing-trial-ending',
+        });
+      }
     } else if (event.type === 'customer.updated') {
       const customer = event.data.object as any;
       const previousAttributes = (event.data as any)?.previous_attributes as any;
@@ -574,6 +620,17 @@ export async function POST(request: Request) {
       const user = await getUserByStripeCustomerId(customerId);
       if (!user) {
         return NextResponse.json({ received: true });
+      }
+
+      if (invoice?.subscription) {
+        try {
+          const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+          if (isTrialingStripeStatus(subscription?.status)) {
+            return NextResponse.json({ received: true });
+          }
+        } catch (error) {
+          console.error('Failed to inspect subscription for invoice.upcoming', error);
+        }
       }
 
       const nextAttemptTs = invoice?.next_payment_attempt ? invoice.next_payment_attempt * 1000 : null;
@@ -642,15 +699,19 @@ export async function POST(request: Request) {
       }
     } else if (event.type === 'invoice.payment_succeeded') {
       const invoice = event.data.object as any;
-      await clearSubscriptionGrace(invoice.customer as string | null, 'active');
+      let clearedStatus: 'active' | 'trialing' = 'active';
       if (invoice?.subscription) {
         try {
           const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
           await upsertSubscriptionFromStripe(subscription);
+          if (isTrialingStripeStatus(subscription?.status)) {
+            clearedStatus = 'trialing';
+          }
         } catch (error) {
           console.error('Failed to refresh subscription after payment', error);
         }
       }
+      await clearSubscriptionGrace(invoice.customer as string | null, clearedStatus);
 
       const billingReason = invoice?.billing_reason;
       if (billingReason === 'subscription_cycle') {

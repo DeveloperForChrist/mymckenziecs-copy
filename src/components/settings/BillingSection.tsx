@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useTransition } from 'react';
 import styles from './settingsPage.module.css';
+import { isTrialingStripeStatus } from '@/lib/payments/subscription-status';
 
 type UserPlan = {
   plan?: string;
@@ -32,6 +33,10 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
   const [error, setError] = useState<string | null>(null);
   const [portalPending, startPortal] = useTransition();
   const [portalError, setPortalError] = useState<string | null>(null);
+  const [billingActionPending, setBillingActionPending] = useState<'cancel' | 'resume' | null>(null);
+  const [billingActionError, setBillingActionError] = useState<string | null>(null);
+  const [billingActionMessage, setBillingActionMessage] = useState<string | null>(null);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodSummary | null>(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
@@ -42,8 +47,21 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
   const normalizedStatus = (planData?.planStatus || '').toString().toLowerCase();
   const isLapsedStatus = normalizedStatus === 'expired' || normalizedStatus === 'cancelled';
   const isPastDueStatus = normalizedStatus === 'past_due';
+  const isTrialingStatus = isTrialingStripeStatus(normalizedStatus);
   const isCancellationScheduled = Boolean(planData?.paidAccess && planData?.cancelAtPeriodEnd);
   const hasScheduledPlanChange = Boolean(planData?.scheduledPlan && planData?.scheduledChangeDate);
+  const canCancelInApp = Boolean(planData?.paidAccess && !isLapsedStatus && !isCancellationScheduled);
+  const canResumeInApp = Boolean(planData?.paidAccess && isCancellationScheduled);
+
+  const refreshPlanData = async () => {
+    const res = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' });
+    if (!res.ok) {
+      throw new Error('Failed to refresh billing state');
+    }
+    const data = await res.json();
+    setPlanData(data);
+    return data;
+  };
 
   useEffect(() => {
     const shouldShowLoader = !initialPlanData;
@@ -51,6 +69,7 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
       setLoading(true);
     }
     setError(null);
+    setBillingActionError(null);
     
     // Fetch plan from server-side API
     fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' })
@@ -222,6 +241,7 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
 
   const openCustomerPortal = (mode: 'manage' | 'payment_method_update' = 'manage') => {
     setPortalError(null);
+    setBillingActionError(null);
     startPortal(async () => {
       try {
         const res = await fetch('/api/stripe/customer-portal', {
@@ -242,6 +262,59 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
         setPortalError(e?.message || 'We could not open billing management right now. Please try again.');
       }
     });
+  };
+
+  const handleCancelSubscription = async () => {
+    setBillingActionPending('cancel');
+    setBillingActionError(null);
+    setBillingActionMessage(null);
+    try {
+      const res = await fetch('/api/stripe/cancel-subscription', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error || 'Unable to cancel subscription');
+      }
+      await refreshPlanData();
+      setBillingActionMessage(
+        isTrialingStatus
+          ? 'Trial cancellation scheduled. Your trial remains active until the end date shown, and billing will not start.'
+          : 'Cancellation scheduled. Your paid access remains active until the end date shown.'
+      );
+      setCancelConfirmOpen(false);
+    } catch (err: any) {
+      setBillingActionError(err?.message || 'Unable to cancel subscription');
+    } finally {
+      setBillingActionPending(null);
+    }
+  };
+
+  const handleResumeSubscription = async () => {
+    setBillingActionPending('resume');
+    setBillingActionError(null);
+    setBillingActionMessage(null);
+    try {
+      const res = await fetch('/api/stripe/resume-subscription', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error || 'Unable to resume subscription');
+      }
+      await refreshPlanData();
+      setBillingActionMessage(
+        isTrialingStatus
+          ? 'Your free trial will continue and billing will start on the first charge date shown unless you cancel again.'
+          : 'Scheduled cancellation removed. Your subscription will continue renewing normally.'
+      );
+    } catch (err: any) {
+      setBillingActionError(err?.message || 'Unable to resume subscription');
+    } finally {
+      setBillingActionPending(null);
+    }
   };
 
   return (
@@ -266,13 +339,26 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
                 <p className={styles.planHint}>
                   {isLapsedStatus
                     ? `Subscription ended: ${formatNextBillingDate(planData?.nextBillingDate)}`
+                    : isTrialingStatus && isCancellationScheduled
+                      ? `Trial ends: ${formatNextBillingDate(planData?.nextBillingDate)}`
+                      : isTrialingStatus
+                        ? `First charge: ${formatNextBillingDate(planData?.nextBillingDate)}`
                     : isCancellationScheduled
                       ? `Access until: ${formatNextBillingDate(planData?.nextBillingDate)}`
                       : `Next billing: ${formatNextBillingDate(planData?.nextBillingDate)}`}
                 </p>
+                {isTrialingStatus && !isLapsedStatus && (
+                  <p className={styles.planHint} style={{ color: '#bfdbfe' }}>
+                    {isCancellationScheduled
+                      ? 'Your free trial is set to end on the date above. You will not be charged unless you resume before then.'
+                      : 'Your free trial is active. You will be charged on the date above unless you cancel beforehand.'}
+                  </p>
+                )}
                 {isCancellationScheduled && !isLapsedStatus && (
                   <p className={styles.planHint} style={{ color: '#fef3c7' }}>
-                    Cancellation scheduled. Future billing is stopped and paid access remains until the end date above.
+                    {isTrialingStatus
+                      ? 'Cancellation scheduled. Trial access remains until the end date above, and billing will not start.'
+                      : 'Cancellation scheduled. Future billing is stopped and paid access remains until the end date above.'}
                   </p>
                 )}
                 {hasScheduledPlanChange && !isLapsedStatus && (
@@ -306,6 +392,36 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
             <div className={styles.planCardActions}>
               <div className={styles.planButtons}>
                 <a href="/pricing?redirect=%2Fsettings%3Ftab%3Dbilling" className={styles.primaryBtn} style={{ textDecoration: 'none' }}>Change Plan</a>
+                {canResumeInApp && (
+                  <button
+                    type="button"
+                    className={styles.secondaryBtn}
+                    disabled={billingActionPending === 'resume'}
+                    onClick={() => {
+                      void handleResumeSubscription();
+                    }}
+                  >
+                    {billingActionPending === 'resume'
+                      ? 'Resuming...'
+                      : isTrialingStatus
+                        ? 'Continue trial'
+                        : 'Resume renewal'}
+                  </button>
+                )}
+                {canCancelInApp && (
+                  <button
+                    type="button"
+                    className={styles.dangerOutlineBtn}
+                    disabled={billingActionPending === 'cancel'}
+                    onClick={() => {
+                      setBillingActionError(null);
+                      setBillingActionMessage(null);
+                      setCancelConfirmOpen(true);
+                    }}
+                  >
+                    {isTrialingStatus ? 'Cancel trial' : 'Cancel subscription'}
+                  </button>
+                )}
                 {planData?.hasStripeCustomer && (
                   <button
                     type="button"
@@ -322,6 +438,12 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
               </div>
             </div>
           </div>
+        )}
+        {billingActionMessage && (
+          <p className={styles.helpText} style={{ marginTop: 8, color: '#bfdbfe' }}>{billingActionMessage}</p>
+        )}
+        {billingActionError && (
+          <p className={styles.helpText} style={{ marginTop: 8, color: '#dc2626' }}>Billing action error: {billingActionError}</p>
         )}
         {portalError && (
           <p className={styles.helpText} style={{ marginTop: 8, color: '#dc2626' }}>Portal error: {portalError}</p>
@@ -394,6 +516,45 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
           </div>
         )}
       </section>
+
+      {cancelConfirmOpen && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true" aria-labelledby="billing-cancel-title">
+          <div className={styles.modalCard}>
+            <h3 id="billing-cancel-title" className={styles.modalTitle}>
+              {isTrialingStatus ? 'Cancel free trial?' : 'Cancel subscription?'}
+            </h3>
+            <p className={styles.modalBody}>
+              {isTrialingStatus
+                ? 'Your free trial will remain active until the date shown on this page. After that, billing will not start unless you resume before the trial ends.'
+                : 'Your subscription will remain active until the date shown on this page. After that, renewal billing will stop unless you resume before the end date.'}
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.secondaryBtn}
+                disabled={billingActionPending === 'cancel'}
+                onClick={() => setCancelConfirmOpen(false)}
+              >
+                Keep plan
+              </button>
+              <button
+                type="button"
+                className={styles.dangerBtn}
+                disabled={billingActionPending === 'cancel'}
+                onClick={() => {
+                  void handleCancelSubscription();
+                }}
+              >
+                {billingActionPending === 'cancel'
+                  ? 'Cancelling...'
+                  : isTrialingStatus
+                    ? 'Cancel trial'
+                    : 'Cancel subscription'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

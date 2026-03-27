@@ -6,6 +6,7 @@ import { isBillingActiveStripeStatus, normalizeStripeSubscriptionStatus } from '
 import { syncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
 import { PLAN_PRICES } from '@/constants';
+import { getStripeSubscriptionPeriodEndIso, getStripeSubscriptionPeriodStartIso } from '@/lib/payments/subscription-period';
 
 function normalizePlanTypeFromPrice(priceId?: string | null): string {
   if (!priceId) return 'No plan';
@@ -29,12 +30,8 @@ async function upsertSubscriptionForUser(
   const priceId = subscription.items?.data?.[0]?.price?.id || null;
   const planType = normalizePlanTypeFromPrice(priceId);
   const status = normalizeStripeSubscriptionStatus(subscription.status);
-  const currentPeriodStart = subscription.current_period_start
-    ? new Date(subscription.current_period_start * 1000).toISOString()
-    : null;
-  const currentPeriodEnd = subscription.current_period_end
-    ? new Date(subscription.current_period_end * 1000).toISOString()
-    : null;
+  const currentPeriodStart = getStripeSubscriptionPeriodStartIso(subscription);
+  const currentPeriodEnd = getStripeSubscriptionPeriodEndIso(subscription);
   const nowIso = new Date().toISOString();
 
   const { data: existing } = await supabaseAdmin
