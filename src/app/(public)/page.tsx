@@ -7,39 +7,77 @@ import { buildPageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = {
   ...buildPageMetadata({
-    title: 'Legal Self-Help Workspace for UK Litigants in Person',
+    title: 'Court Case Management Tool for Litigants in Person (UK)',
     description:
-      'MyMcKenzieCS helps UK litigants in person organise documents, track deadlines, and get legal procedural support in one place.',
+      'Organise court documents, track deadlines, and prepare your case without a lawyer using MyMcKenzieCS, a court case management tool for UK litigants in person.',
     path: '/',
   }),
 };
 export const revalidate = 86400;
 
-const workspaceFeatures = [
+const commonProblems = [
   {
-    title: 'Understand your position',
-    text: 'Get plain-English procedural support to help you understand what may matter in your case.'
+    title: 'Deadlines slip when papers are scattered',
+    text: 'Court work becomes hard to manage when orders, emails, evidence, and reminders live in different places.',
   },
   {
-    title: 'Keep your case organised',
-    text: 'Keep your facts, evidence, notes, and case context together in one workspace.'
+    title: 'Evidence loses context',
+    text: 'Documents are less useful if you cannot quickly see what happened, what each paper proves, and what still needs a response.',
   },
   {
-    title: 'Review documents with context',
-    text: 'Upload documents, store evidence, and get support that takes your case details into account.'
+    title: 'Preparation gets rebuilt from scratch',
+    text: 'Many litigants in person end up re-reading the same paperwork before every hearing because there is no reliable case system.',
   },
   {
-    title: 'Track deadlines',
-    text: 'Manage hearings, tasks, reminders, and important dates from one place.'
+    title: 'Stress crowds out the next step',
+    text: 'When a live case feels overwhelming, the practical question is usually what to do next and what document actually matters now.',
+  },
+];
+
+const whoItsFor = [
+  {
+    title: 'Litigants in person in the UK',
+    text: 'People representing themselves in court without a solicitor or barrister running the case.',
+  },
+  {
+    title: 'Small claims court users',
+    text: 'People handling county court money disputes, mediation, directions questionnaires, and hearing preparation.',
+  },
+  {
+    title: 'People managing court papers alone',
+    text: 'Users who need one place for documents, evidence, notes, chronology, and deadlines.',
+  },
+  {
+    title: 'People preparing without a lawyer',
+    text: 'Users who want structure and procedural support, while staying clear that the platform is not legal representation.',
+  },
+];
+
+const useCases = [
+  {
+    title: 'Organise court documents',
+    text: 'Keep pleadings, correspondence, evidence, witness material, and court orders in one workspace.',
+  },
+  {
+    title: 'Track hearings and deadlines',
+    text: 'Record service dates, filing dates, mediation appointments, hearings, and follow-up tasks in one place.',
+  },
+  {
+    title: 'Prepare for court without a lawyer',
+    text: 'Build a chronology, keep issue notes, and preserve the context behind the next step in your case.',
+  },
+  {
+    title: 'Review evidence with context',
+    text: 'Upload documents and keep notes tied to the facts, dates, and issues they relate to.',
+  },
+  {
+    title: 'Research procedure and authorities',
+    text: 'Use source-backed research support and case-law tools on paid plans when deeper preparation is needed.',
   },
   {
     title: 'Stay focused on what matters',
-    text: 'Separate relevant facts, evidence, and procedure from noise, confusion, and stress.'
+    text: 'Reduce the noise of a live case by separating working notes, deadlines, and evidence from stress and guesswork.',
   },
-  {
-    title: 'Research relevant authorities',
-    text: 'Search judgments and study useful case law on paid plans when deeper research is needed.'
-  }
 ];
 
 const plans = [
@@ -80,23 +118,33 @@ const plans = [
 const guidePages = [
   {
     href: '/litigant-in-person-uk',
-    title: 'Guide for litigants in person',
-    text: 'Understand what self-representation means in the UK and where most pressure points appear.',
+    title: 'Litigant in person UK guide',
+    text: 'Understand self-representation, your practical role, and the preparation habits that matter most.',
   },
   {
-    href: '/mckenzie-friend-support',
-    title: 'McKenzie friend support',
-    text: 'Learn what a McKenzie friend can do, what they cannot do, and where digital preparation still matters.',
+    href: '/how-to-prepare-small-claims-court-uk',
+    title: 'How to prepare for small claims court UK',
+    text: 'A step-by-step guide to preparing your papers, evidence, deadlines, and hearing file.',
+  },
+  {
+    href: '/organise-court-documents-uk',
+    title: 'How to organise court documents UK',
+    text: 'Learn how to sort pleadings, orders, evidence, service records, and working notes into a usable case file.',
+  },
+  {
+    href: '/court-bundle-preparation-uk',
+    title: 'Court bundle preparation UK',
+    text: 'Learn how to turn the case file into a paginated, indexed hearing bundle when the court or order requires one.',
+  },
+  {
+    href: '/do-you-need-a-lawyer-for-small-claims-court-uk',
+    title: 'Do you need a lawyer for small claims court UK?',
+    text: 'See when people handle small claims without a lawyer and where professional advice may still help.',
   },
   {
     href: '/legal-case-management-tool',
     title: 'Legal case management tool',
-    text: 'See how documents, notes, reminders, and research fit into one case workflow.',
-  },
-  {
-    href: '/case-law-search-uk',
-    title: 'Case law search UK',
-    text: 'Learn how to search judgments and keep authorities tied to the live issues in your case.',
+    text: 'See how documents, notes, reminders, and research fit into one court-preparation workflow.',
   },
 ];
 
@@ -121,18 +169,24 @@ export default function HomePage() {
               <div className="grid grid-cols-1 xl:grid-cols-[1.03fr_0.97fr] gap-8 md:gap-10 items-center">
                 <div className="text-center xl:text-left">
                   <div className="text-xs md:text-sm font-medium uppercase tracking-[0.2em] text-white/70">
-                    MyMcKenzie Court Support
+                    For UK Litigants in Person
                   </div>
                   <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white mt-5 leading-[1.05]">
-                    Run your case
+                    Court case management tool
                     <br />
-                    with structure, not stress.
+                    for litigants in person.
                   </h1>
                   <p className="text-base md:text-xl text-white/85 mt-5 max-w-3xl mx-auto xl:mx-0 leading-relaxed">
-                    MyMcKenzieCS is a legal self-help workspace for UK litigants in person: Providing legal procedural support,
-                    document and evidence organisation, deadline tracking, and case law research in one place to navigate your case.
+                    Organise court documents, track deadlines, and prepare your case with a structured workspace designed for
+                    people representing themselves in UK courts.
                   </p>
                   <HeroActionButtons />
+                  <div className="mt-5 flex flex-wrap justify-center gap-2 text-xs uppercase tracking-[0.16em] text-white/70 xl:justify-start">
+                    <span className="rounded-full border border-white/15 px-3 py-2">Small claims court UK</span>
+                    <span className="rounded-full border border-white/15 px-3 py-2">Witness statements</span>
+                    <span className="rounded-full border border-white/15 px-3 py-2">Directions questionnaires</span>
+                    <span className="rounded-full border border-white/15 px-3 py-2">Court documents</span>
+                  </div>
                   <div className="mt-4 text-sm text-white/75">
                     Informational and court support only. Not legal advice.
                   </div>
@@ -165,17 +219,60 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Product Surface */}
         <section className="w-full">
           <div className="app-container relative z-10 py-4 md:py-6">
             <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
               <div>
-                <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Inside MyMcKenzieCS</div>
-                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Everything you need to manage a legal matter in one workspace</h2>
+                <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Why this matters</div>
+                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Representing yourself in court becomes hard when the case stops being organised</h2>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {workspaceFeatures.map((feature) => (
+              {commonProblems.map((problem) => (
+                <div
+                  key={problem.title}
+                  className="rounded-3xl border border-white/12 bg-gradient-to-br from-white/10 to-white/5 p-6 text-white shadow-[0_18px_50px_rgba(0,0,0,0.3)]"
+                >
+                  <div className="text-lg font-semibold">{problem.title}</div>
+                  <p className="text-sm md:text-base text-white/75 mt-3 leading-relaxed">{problem.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="w-full">
+          <div className="app-container relative z-10 py-4 md:py-8">
+            <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
+              <div>
+                <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Who this is for</div>
+                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Built for people preparing a UK court case without a lawyer</h2>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+              {whoItsFor.map((audience) => (
+                <div
+                  key={audience.title}
+                  className="rounded-3xl border border-white/12 bg-gradient-to-br from-white/10 to-white/5 p-6 text-white shadow-[0_18px_50px_rgba(0,0,0,0.3)]"
+                >
+                  <div className="text-lg font-semibold">{audience.title}</div>
+                  <p className="text-sm md:text-base text-white/75 mt-3 leading-relaxed">{audience.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="w-full">
+          <div className="app-container relative z-10 py-4 md:py-6">
+            <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
+              <div>
+                <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Use MyMcKenzieCS To</div>
+                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Manage the parts of self-representation that usually become overwhelming</h2>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              {useCases.map((feature) => (
                 <div
                   key={feature.title}
                   className="rounded-3xl border border-white/12 bg-gradient-to-br from-white/10 to-white/5 p-6 text-white shadow-[0_18px_50px_rgba(0,0,0,0.3)]"
@@ -196,7 +293,7 @@ export default function HomePage() {
                 <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Helpful guides for UK litigants in person</h2>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {guidePages.map((guide) => (
                 <Link
                   key={guide.href}
@@ -258,8 +355,16 @@ export default function HomePage() {
                   Start building your case plan now.
                 </h2>
                 <p className="text-white/75 mt-3">
-                  Start with one question, then organise the rest of your case from the same workspace.
+                  Start with one question, then organise the rest of your documents, deadlines, and hearing preparation from the same workspace.
                 </p>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <Link href="/litigant-in-person-uk" className="app-button-secondary">
+                    Read the litigant guide
+                  </Link>
+                  <Link href="/pricing" className="app-button-secondary">
+                    Compare plans
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

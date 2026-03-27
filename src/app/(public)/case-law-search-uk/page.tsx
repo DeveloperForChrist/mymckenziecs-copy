@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import GuidePage, { type GuideLink, type GuideSection, type GuideSource, type GuideStat } from '@/components/guides/GuidePage';
+import GuidePage, { type GuideLink, type GuideSection, type GuideStat } from '@/components/guides/GuidePage';
 import { buildPageMetadata } from '@/lib/seo';
 
 const title = 'Case Law Search in the UK: How to Research and Stay Organised';
@@ -94,27 +94,14 @@ const relatedLinks: GuideLink[] = [
     description: 'Understand how notes, documents, and authorities stay usable once research begins.',
   },
   {
+    href: '/court-bundle-preparation-uk',
+    label: 'Court bundle preparation UK',
+    description: 'See how the authorities and essential documents you rely on stay tied to the hearing file.',
+  },
+  {
     href: '/pricing',
     label: 'Compare plans',
     description: 'Review which MyMcKenzieCS plans include broader research support and advanced case-law study features.',
-  },
-];
-
-const sources: GuideSource[] = [
-  {
-    href: 'https://caselaw.nationalarchives.gov.uk/',
-    label: 'The National Archives: Find Case Law',
-    description: 'Official UK judgment service for England and Wales courts and tribunals plus UK-wide Supreme Court and Privy Council cases.',
-  },
-  {
-    href: 'https://caselaw.nationalarchives.gov.uk/how-to-search-find-case-law',
-    label: 'The National Archives: How to search Find Case Law',
-    description: 'Official search guidance covering keywords, party names, judges, courts, dates, and neutral citations.',
-  },
-  {
-    href: 'https://caselaw.nationalarchives.gov.uk/search-tips',
-    label: 'The National Archives: Search tips',
-    description: 'Practical search advice on exact phrases, filters, troubleshooting, and narrowing overly broad results.',
   },
 ];
 
@@ -140,7 +127,10 @@ export default function CaseLawSearchUkPage() {
       stats={stats}
       sections={sections}
       relatedLinks={relatedLinks}
-      sources={sources}
+      ctaTitle="Keep authorities tied to the hearing file"
+      ctaText="Research only helps when the useful cases, extracts, and notes remain connected to the bundle and issue list you will actually use later."
+      primaryCta={{ href: '/court-bundle-preparation-uk', label: 'Prepare the bundle' }}
+      secondaryCta={{ href: '/legal-case-management-tool', label: 'See the workflow' }}
     />
   );
 }

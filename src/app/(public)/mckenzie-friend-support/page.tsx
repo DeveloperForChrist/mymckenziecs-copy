@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import GuidePage, { type GuideLink, type GuideSection, type GuideSource, type GuideStat } from '@/components/guides/GuidePage';
+import GuidePage, { type GuideLink, type GuideSection, type GuideStat } from '@/components/guides/GuidePage';
 import { buildPageMetadata } from '@/lib/seo';
 
 const title = 'McKenzie Friend Support for UK Litigants in Person';
@@ -91,6 +91,11 @@ const relatedLinks: GuideLink[] = [
     description: 'Start with the wider self-representation picture before narrowing down hearing support.',
   },
   {
+    href: '/court-bundle-preparation-uk',
+    label: 'Court bundle preparation UK',
+    description: 'Build the hearing papers that make any supporter more useful on the day.',
+  },
+  {
     href: '/legal-case-management-tool',
     label: 'Legal case management tool',
     description: 'See how document control, reminders, and issue tracking reduce the load between hearings.',
@@ -99,24 +104,6 @@ const relatedLinks: GuideLink[] = [
     href: '/pricing',
     label: 'Compare MyMcKenzieCS plans',
     description: 'Review the plans that add reminder emails, expanded research, and advanced case-law study tools.',
-  },
-];
-
-const sources: GuideSource[] = [
-  {
-    href: 'https://www.gov.uk/represent-yourself-in-court',
-    label: 'GOV.UK: Represent yourself in court',
-    description: 'Official overview of self-representation, including the basic description of a McKenzie friend.',
-  },
-  {
-    href: 'https://www.judiciary.uk/guidance-and-resources/practice-guidance-mckenzie-friends-civil-and-family-courts/',
-    label: 'Judiciary: Practice Guidance on McKenzie Friends',
-    description: 'The core civil and family courts guidance on reasonable assistance, rights of audience, and conduct of litigation.',
-  },
-  {
-    href: 'https://www.gov.uk/government/publications/guide-for-separated-parents-children-and-the-family-courts-cb7/guide-for-separated-parents-children-and-the-family-courts-cb7',
-    label: 'GOV.UK: Guide for separated parents and the family courts',
-    description: 'Useful official explanation of what a McKenzie friend may do, what they cannot do, and the need to tell the court.',
   },
 ];
 
@@ -142,7 +129,10 @@ export default function McKenzieFriendSupportPage() {
       stats={stats}
       sections={sections}
       relatedLinks={relatedLinks}
-      sources={sources}
+      ctaTitle="Give any supporter a usable hearing file"
+      ctaText="A McKenzie friend can only help effectively if the case papers, chronology, issues, and next hearing steps are already organised."
+      primaryCta={{ href: '/court-bundle-preparation-uk', label: 'Prepare the bundle' }}
+      secondaryCta={{ href: '/organise-court-documents-uk', label: 'Organise documents' }}
     />
   );
 }

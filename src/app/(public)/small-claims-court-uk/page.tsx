@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import GuidePage, { type GuideLink, type GuideSection, type GuideSource, type GuideStat } from '@/components/guides/GuidePage';
+import GuidePage, { type GuideLink, type GuideSection, type GuideStat } from '@/components/guides/GuidePage';
 import { buildPageMetadata } from '@/lib/seo';
 
 const title = 'Small Claims Court UK: What Litigants in Person Should Expect';
@@ -77,32 +77,29 @@ const relatedLinks: GuideLink[] = [
     description: 'Return to the main hub for the wider picture of self-representation in England and Wales.',
   },
   {
+    href: '/how-to-prepare-small-claims-court-uk',
+    label: 'How to prepare for small claims court UK',
+    description: 'Move from the overview into a practical preparation checklist for papers, evidence, and the hearing.',
+  },
+  {
+    href: '/do-you-need-a-lawyer-for-small-claims-court-uk',
+    label: 'Do you need a lawyer for small claims court UK?',
+    description: 'See when people handle a small claim alone and where paid legal help may still be useful.',
+  },
+  {
+    href: '/court-bundle-preparation-uk',
+    label: 'Court bundle preparation UK',
+    description: 'See how the case file turns into a hearing bundle when the court or order requires one.',
+  },
+  {
     href: '/directions-questionnaire-uk',
     label: 'Directions questionnaire UK',
     description: 'Understand the form stage that often follows once a small money dispute is defended.',
   },
   {
-    href: '/witness-statement-uk',
-    label: 'Witness statement UK',
-    description: 'Move from the claim stage into evidence preparation and statement deadlines.',
-  },
-];
-
-const sources: GuideSource[] = [
-  {
-    href: 'https://www.gov.uk/make-court-claim-for-money',
-    label: 'GOV.UK: Make a court claim for money',
-    description: 'Official guide explaining what a county court money claim is and the older "small claims court" wording.',
-  },
-  {
-    href: 'https://www.gov.uk/make-court-claim-for-money/after-you-make-your-claim',
-    label: 'GOV.UK: After you make your claim',
-    description: 'Official guidance on what happens after a money claim is issued and how the defendant responds.',
-  },
-  {
-    href: 'https://www.gov.uk/make-court-claim-for-money/mediation',
-    label: 'GOV.UK: Resolve your claim through mediation',
-    description: 'Official mediation guidance for disputed money claims, including the court-organised service.',
+    href: '/organise-court-documents-uk',
+    label: 'How to organise court documents UK',
+    description: 'Build a document system that keeps the claim, response, orders, and evidence readable.',
   },
 ];
 
@@ -128,7 +125,10 @@ export default function SmallClaimsCourtUkPage() {
       stats={stats}
       sections={sections}
       relatedLinks={relatedLinks}
-      sources={sources}
+      ctaTitle="Turn the claim into a usable hearing file"
+      ctaText="Move from the overview into the practical preparation steps, then into the document and bundle work that often follows."
+      primaryCta={{ href: '/how-to-prepare-small-claims-court-uk', label: 'Follow the checklist' }}
+      secondaryCta={{ href: '/court-bundle-preparation-uk', label: 'Learn court bundles' }}
     />
   );
 }

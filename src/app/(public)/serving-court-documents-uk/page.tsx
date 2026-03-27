@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import GuidePage, { type GuideLink, type GuideSection, type GuideSource, type GuideStat } from '@/components/guides/GuidePage';
+import GuidePage, { type GuideLink, type GuideSection, type GuideStat } from '@/components/guides/GuidePage';
 import { buildPageMetadata } from '@/lib/seo';
 
 const title = 'Serving Court Documents in the UK: Service, Addresses and Form N215';
@@ -78,32 +78,19 @@ const relatedLinks: GuideLink[] = [
     description: 'Return to the main hub for the broader process issues around self-representation.',
   },
   {
+    href: '/organise-court-documents-uk',
+    label: 'How to organise court documents UK',
+    description: 'Keep service proof, court orders, and document versions tied to one usable case file.',
+  },
+  {
     href: '/witness-statement-uk',
     label: 'Witness statement UK',
     description: 'See how service rules apply when statements have to be exchanged by the deadline in the order.',
   },
   {
-    href: '/directions-questionnaire-uk',
-    label: 'Directions questionnaire UK',
-    description: 'Move back to the case-management stage that often generates the next round of documents and deadlines.',
-  },
-];
-
-const sources: GuideSource[] = [
-  {
-    href: 'https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part06',
-    label: 'Justice UK: CPR Part 6',
-    description: 'Official rules on service of documents, including methods of service, addresses for service, and certificate requirements.',
-  },
-  {
-    href: 'https://www.gov.uk/government/publications/form-n215-certificate-of-service',
-    label: 'HMCTS: Form N215',
-    description: 'Official certificate of service page explaining what the form records and where it must be delivered.',
-  },
-  {
-    href: 'https://www.justice.gov.uk/courts/procedure-rules/civil/standard-directions/general/evidence',
-    label: 'Justice UK: Factual evidence standard directions',
-    description: 'Official direction showing how service applies when witness statements must be exchanged by a deadline.',
+    href: '/court-bundle-preparation-uk',
+    label: 'Court bundle preparation UK',
+    description: 'See how served documents and proof of service fit into the later hearing bundle.',
   },
 ];
 
@@ -129,7 +116,10 @@ export default function ServingCourtDocumentsUkPage() {
       stats={stats}
       sections={sections}
       relatedLinks={relatedLinks}
-      sources={sources}
+      ctaTitle="Keep service proof tied to the live file"
+      ctaText="Service becomes much easier to manage when the sent document, the proof of sending, and the later hearing papers all stay connected."
+      primaryCta={{ href: '/organise-court-documents-uk', label: 'Organise case papers' }}
+      secondaryCta={{ href: '/court-bundle-preparation-uk', label: 'Prepare the bundle' }}
     />
   );
 }

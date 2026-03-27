@@ -20,12 +20,6 @@ export type GuideLink = {
   description: string;
 };
 
-export type GuideSource = {
-  href: string;
-  label: string;
-  description: string;
-};
-
 export type GuideFaqItem = {
   question: string;
   answer: string;
@@ -37,13 +31,14 @@ type GuidePageProps = {
   subtitle: string;
   meta: string;
   intro: string[];
+  publishedDate?: string;
+  modifiedDate?: string;
   stats?: GuideStat[];
   sections: GuideSection[];
   faqItems?: GuideFaqItem[];
   faqTitle?: string;
   faqIntro?: string;
   relatedLinks?: GuideLink[];
-  sources?: GuideSource[];
   ctaTitle?: string;
   ctaText?: string;
   primaryCta?: {
@@ -56,7 +51,7 @@ type GuidePageProps = {
   };
 };
 
-const articleDate = '2026-03-17';
+const defaultArticleDate = '2026-03-17';
 
 export default function GuidePage({
   path,
@@ -64,13 +59,14 @@ export default function GuidePage({
   subtitle,
   meta,
   intro,
+  publishedDate = defaultArticleDate,
+  modifiedDate = publishedDate,
   stats = [],
   sections,
   faqItems = [],
   faqTitle = 'Common questions',
   faqIntro,
   relatedLinks = [],
-  sources = [],
   ctaTitle = 'Turn guidance into a working case plan',
   ctaText = 'MyMcKenzieCS keeps your notes, documents, deadlines, and research in one place so preparation does not stay scattered.',
   primaryCta = { href: '/pricing', label: 'Compare plans' },
@@ -81,8 +77,8 @@ export default function GuidePage({
     '@type': 'Article',
     headline: title,
     description: subtitle,
-    datePublished: articleDate,
-    dateModified: articleDate,
+    datePublished: publishedDate,
+    dateModified: modifiedDate,
     mainEntityOfPage: buildCanonicalUrl(path),
     author: {
       '@type': 'Organization',
@@ -208,27 +204,6 @@ export default function GuidePage({
                   <p className="text-lg font-semibold text-white">{link.label}</p>
                   <p className="mt-3 text-sm leading-7 text-slate-200">{link.description}</p>
                 </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {sources.length > 0 && (
-          <section className="rounded-[28px] border border-white/10 bg-slate-950/35 p-6 md:p-8">
-            <p className="text-xs uppercase tracking-[0.2em] text-violet-200/75">Official resources</p>
-            <h2 className="mt-2 text-2xl font-semibold text-white md:text-[2rem]">Further reading</h2>
-            <div className="mt-5 space-y-4">
-              {sources.map((source) => (
-                <a
-                  key={source.href}
-                  href={source.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 transition-colors hover:bg-white/[0.06]"
-                >
-                  <p className="text-base font-semibold text-white">{source.label}</p>
-                  <p className="mt-2 text-sm leading-7 text-slate-200">{source.description}</p>
-                </a>
               ))}
             </div>
           </section>

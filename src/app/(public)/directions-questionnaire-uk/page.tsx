@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import GuidePage, { type GuideLink, type GuideSection, type GuideSource, type GuideStat } from '@/components/guides/GuidePage';
+import GuidePage, { type GuideLink, type GuideSection, type GuideStat } from '@/components/guides/GuidePage';
 import { buildPageMetadata } from '@/lib/seo';
 
 const title = 'Directions Questionnaire UK: N180 and N181 Explained';
@@ -88,27 +88,14 @@ const relatedLinks: GuideLink[] = [
     description: 'See where N180 and court-organised mediation usually fit into lower-value money disputes.',
   },
   {
-    href: '/witness-statement-uk',
-    label: 'Witness statement UK',
-    description: 'Follow the process forward into evidence preparation once directions have been set.',
-  },
-];
-
-const sources: GuideSource[] = [
-  {
-    href: 'https://www.gov.uk/government/publications/form-n180-directions-questionnaire-small-claims-track',
-    label: 'HMCTS: Form N180',
-    description: 'Official small claims directions questionnaire page.',
+    href: '/how-to-prepare-small-claims-court-uk',
+    label: 'How to prepare for small claims court UK',
+    description: 'Turn the questionnaire stage into a practical preparation plan for the next deadlines.',
   },
   {
-    href: 'https://www.gov.uk/government/publications/form-n181-directions-questionnaire-fast-track-and-multi-track',
-    label: 'HMCTS: Form N181',
-    description: 'Official directions questionnaire page for fast track, intermediate track, and multi-track disputes.',
-  },
-  {
-    href: 'https://www.gov.uk/make-court-claim-for-money/mediation',
-    label: 'GOV.UK: Resolve your claim through mediation',
-    description: 'Official guidance on mandatory or offered mediation in money claims.',
+    href: '/court-bundle-preparation-uk',
+    label: 'Court bundle preparation UK',
+    description: 'See how the timetable may later feed into bundle preparation for the hearing.',
   },
 ];
 
@@ -134,7 +121,10 @@ export default function DirectionsQuestionnaireUkPage() {
       stats={stats}
       sections={sections}
       relatedLinks={relatedLinks}
-      sources={sources}
+      ctaTitle="Turn the timetable into a preparation plan"
+      ctaText="Once the questionnaire is done, the next value is in converting the court timetable into organised documents, evidence work, and a hearing file."
+      primaryCta={{ href: '/how-to-prepare-small-claims-court-uk', label: 'Follow the checklist' }}
+      secondaryCta={{ href: '/organise-court-documents-uk', label: 'Organise documents' }}
     />
   );
 }

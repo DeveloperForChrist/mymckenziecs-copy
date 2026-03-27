@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import GuidePage, { type GuideLink, type GuideSection, type GuideSource, type GuideStat } from '@/components/guides/GuidePage';
+import GuidePage, { type GuideLink, type GuideSection, type GuideStat } from '@/components/guides/GuidePage';
 import { buildPageMetadata } from '@/lib/seo';
 
 const title = 'Legal Case Management Tool for UK Litigants in Person';
@@ -83,6 +83,16 @@ const relatedLinks: GuideLink[] = [
     description: 'See the wider self-representation context that makes case-management tools valuable.',
   },
   {
+    href: '/organise-court-documents-uk',
+    label: 'How to organise court documents UK',
+    description: 'See the document workflow that sits at the centre of most self-managed court cases.',
+  },
+  {
+    href: '/court-bundle-preparation-uk',
+    label: 'Court bundle preparation UK',
+    description: 'See how the organised file becomes a hearing bundle and core bundle where the process requires one.',
+  },
+  {
     href: '/case-law-search-uk',
     label: 'Case law search UK',
     description: 'Learn how legal research fits into the same workflow as documents and deadlines.',
@@ -91,24 +101,6 @@ const relatedLinks: GuideLink[] = [
     href: '/faq',
     label: 'Plans FAQ',
     description: 'Check what is included in Basic, Premium, and Premium + before choosing a plan.',
-  },
-];
-
-const sources: GuideSource[] = [
-  {
-    href: 'https://supportthroughcourt.org/get-help/how-we-help/',
-    label: 'Support Through Court: Practical support people ask for',
-    description: 'Shows the kinds of tasks self-represented court users commonly need help with, including forms, papers, and process explanation.',
-  },
-  {
-    href: 'https://www.gov.uk/represent-yourself-in-court',
-    label: 'GOV.UK: Represent yourself in court',
-    description: 'Official starting point for the reality that individuals may need to prepare and present their own case.',
-  },
-  {
-    href: 'https://www.judiciary.uk/courts-and-tribunals/business-and-property-courts/chancery-division/litigating-in-the-chancery-division/litigants-in-person/',
-    label: 'Judiciary: Litigants in person support signposting',
-    description: 'Judiciary signposting page pointing litigants in person toward practical support and guidance resources.',
   },
 ];
 
@@ -134,7 +126,10 @@ export default function LegalCaseManagementToolPage() {
       stats={stats}
       sections={sections}
       relatedLinks={relatedLinks}
-      sources={sources}
+      ctaTitle="See the workflow in action"
+      ctaText="The workflow becomes real when it moves from raw documents into an organised file, then into a hearing-ready bundle, issue list, and next-step plan."
+      primaryCta={{ href: '/organise-court-documents-uk', label: 'Organise documents' }}
+      secondaryCta={{ href: '/pricing', label: 'Compare plans' }}
     />
   );
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import GuidePage, { type GuideLink, type GuideSection, type GuideSource, type GuideStat } from '@/components/guides/GuidePage';
+import GuidePage, { type GuideLink, type GuideSection, type GuideStat } from '@/components/guides/GuidePage';
 import { buildPageMetadata } from '@/lib/seo';
 
 const title = 'Witness Statement UK: How to Prepare and Serve One';
@@ -84,32 +84,19 @@ const relatedLinks: GuideLink[] = [
     description: 'Return to the main self-representation hub and the wider process questions around civil cases.',
   },
   {
+    href: '/organise-court-documents-uk',
+    label: 'How to organise court documents UK',
+    description: 'Keep statement drafts, exhibits, chronology, and final evidence inside one case file.',
+  },
+  {
     href: '/serving-court-documents-uk',
     label: 'Serving court documents',
     description: 'See how service works and when Form N215 may matter after witness statements are exchanged.',
   },
   {
-    href: '/directions-questionnaire-uk',
-    label: 'Directions questionnaire',
-    description: 'Understand the case-management stage that often leads into later statement and hearing deadlines.',
-  },
-];
-
-const sources: GuideSource[] = [
-  {
-    href: 'https://www.justice.gov.uk/courts/procedure-rules/civil/standard-directions/general/witness-statements',
-    label: 'Justice UK: Witness statements',
-    description: 'Official civil procedure layout guidance for what a witness statement must contain.',
-  },
-  {
-    href: 'https://www.justice.gov.uk/courts/procedure-rules/civil/standard-directions/general/evidence',
-    label: 'Justice UK: Factual evidence standard directions',
-    description: 'Official direction on serving signed witness statements on the other side by the deadline and the consequences of late service.',
-  },
-  {
-    href: 'https://supportthroughcourt.org/locations/national-helpline/',
-    label: 'Support Through Court: National Helpline',
-    description: 'Practical and emotional support for people preparing civil and family court cases without a lawyer.',
+    href: '/court-bundle-preparation-uk',
+    label: 'Court bundle preparation UK',
+    description: 'See how witness statements and exhibits usually fit into the later hearing bundle.',
   },
 ];
 
@@ -135,7 +122,10 @@ export default function WitnessStatementUkPage() {
       stats={stats}
       sections={sections}
       relatedLinks={relatedLinks}
-      sources={sources}
+      ctaTitle="Keep witness evidence hearing-ready"
+      ctaText="A statement becomes much easier to use when the chronology, exhibits, service proof, and hearing bundle all grow from the same organised file."
+      primaryCta={{ href: '/court-bundle-preparation-uk', label: 'Prepare the bundle' }}
+      secondaryCta={{ href: '/organise-court-documents-uk', label: 'Organise evidence' }}
     />
   );
 }
