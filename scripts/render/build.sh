@@ -4,6 +4,23 @@ set -euo pipefail
 PYTHON_VENV_DIR="${PYTHON_VENV_DIR:-.render-python}"
 PYTHON_REQUIREMENTS="${PYTHON_REQUIREMENTS:-scripts/case-law/requirements-milvus.txt}"
 RENDER_STRICT_PYTHON_DEPS="${RENDER_STRICT_PYTHON_DEPS:-0}"
+NODE_DEPS_STATE_FILE="${NODE_DEPS_STATE_FILE:-.render-node-deps.sha256}"
+
+compute_file_sha256() {
+  local file_path="$1"
+
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "${file_path}" | awk '{print $1}'
+    return
+  fi
+
+  if command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "${file_path}" | awk '{print $1}'
+    return
+  fi
+
+  openssl dgst -sha256 "${file_path}" | awk '{print $NF}'
+}
 
 install_python_deps() {
   echo "Creating Python virtualenv at ${PYTHON_VENV_DIR}"
@@ -15,8 +32,24 @@ install_python_deps() {
 }
 
 install_node_deps() {
-  if [ -d "node_modules" ]; then
-    echo "Node dependencies already present; skipping install"
+  local manifest_file=""
+  if [ -f "package-lock.json" ]; then
+    manifest_file="package-lock.json"
+  elif [ -f "package.json" ]; then
+    manifest_file="package.json"
+  fi
+
+  local current_hash=""
+  local cached_hash=""
+  if [ -n "${manifest_file}" ]; then
+    current_hash="$(compute_file_sha256 "${manifest_file}")"
+    if [ -f "${NODE_DEPS_STATE_FILE}" ]; then
+      cached_hash="$(cat "${NODE_DEPS_STATE_FILE}")"
+    fi
+  fi
+
+  if [ -d "node_modules" ] && [ -n "${current_hash}" ] && [ "${current_hash}" = "${cached_hash}" ]; then
+    echo "Node dependencies already present for current dependency manifest; skipping install"
     return
   fi
 
@@ -25,6 +58,10 @@ install_node_deps() {
     npm ci
   else
     npm install
+  fi
+
+  if [ -n "${current_hash}" ]; then
+    printf '%s\n' "${current_hash}" > "${NODE_DEPS_STATE_FILE}"
   fi
 }
 
