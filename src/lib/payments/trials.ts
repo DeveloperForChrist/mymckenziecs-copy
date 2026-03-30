@@ -1,32 +1,16 @@
-export const SUBSCRIPTION_TRIAL_MONTHS = 1
+export const SUBSCRIPTION_TRIAL_DAYS = 14
 
-function daysInUtcMonth(year: number, monthIndex: number) {
-  return new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate()
-}
+export function addUtcDays(date: Date, days: number) {
+  const wholeDays = Number.isFinite(days) ? Math.trunc(days) : 0
+  if (wholeDays === 0) return new Date(date.getTime())
 
-export function addUtcCalendarMonthsClamped(date: Date, months: number) {
-  const wholeMonths = Number.isFinite(months) ? Math.trunc(months) : 0
-  if (wholeMonths === 0) return new Date(date.getTime())
-
-  const shifted = new Date(
-    Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      1,
-      date.getUTCHours(),
-      date.getUTCMinutes(),
-      date.getUTCSeconds(),
-      date.getUTCMilliseconds()
-    )
-  )
-
-  shifted.setUTCMonth(shifted.getUTCMonth() + wholeMonths)
-  shifted.setUTCDate(Math.min(date.getUTCDate(), daysInUtcMonth(shifted.getUTCFullYear(), shifted.getUTCMonth())))
+  const shifted = new Date(date.getTime())
+  shifted.setUTCDate(shifted.getUTCDate() + wholeDays)
   return shifted
 }
 
 export function getSubscriptionTrialEnd(now: Date = new Date()) {
-  return addUtcCalendarMonthsClamped(now, SUBSCRIPTION_TRIAL_MONTHS)
+  return addUtcDays(now, SUBSCRIPTION_TRIAL_DAYS)
 }
 
 export function getSubscriptionTrialEndUnix(now: Date = new Date()) {

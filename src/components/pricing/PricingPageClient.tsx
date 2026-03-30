@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import { isBillingEligibleUser } from '@/lib/auth/session-user';
-import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout';
 import { PLAN_PRICES } from '@/constants';
 import { isBillingActiveStripeStatus, isTrialingStripeStatus } from '@/lib/payments/subscription-status';
 
@@ -30,12 +29,6 @@ export default function PricingPageClient() {
   const hardLock = (searchParams?.get('hard_lock') || '').trim() === '1';
   const redirectPath = (searchParams?.get('redirect') || '').trim();
   const isCheckoutFlow = checkoutPlanId.length > 0;
-  const navHref = redirectPath.startsWith('/') ? redirectPath : '/dashboard';
-  const navLabel = navHref.startsWith('/settings')
-    ? 'Return to Billing'
-    : navHref.startsWith('/dashboard')
-      ? 'Go to Dashboard'
-      : 'Manage account';
   const isLapsedStatus = planStatus === 'expired' || planStatus === 'cancelled';
   const isTrialingStatus = isTrialingStripeStatus(planStatus);
 
@@ -88,10 +81,19 @@ export default function PricingPageClient() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [checkoutErrorPlanKey, setCheckoutErrorPlanKey] = useState<string | null>(null);
   const [changePlanMessage, setChangePlanMessage] = useState<string | null>(null);
-  const [switchToSignInPending, setSwitchToSignInPending] = useState(false);
 
   const hasConfiguredPriceId = (priceId: string) => priceId.trim().length > 0;
   const isCurrentPlanLabel = (planName: string) => currentPlan.trim().toLowerCase() === planName.trim().toLowerCase();
+  const signedInNavHref = redirectPath.startsWith('/settings')
+    ? redirectPath
+    : hasPaidPlan
+      ? (redirectPath.startsWith('/') ? redirectPath : '/dashboard')
+      : '/settings?tab=billing';
+  const signedInNavLabel = redirectPath.startsWith('/settings')
+    ? 'Return to Billing'
+    : hasPaidPlan && signedInNavHref.startsWith('/dashboard')
+      ? 'Go to Dashboard'
+      : 'Manage account';
 
   const getPlanButtonLabel = (priceId: string, planName: string) => {
     if (checkoutLoading === priceId) return 'Updating…';
@@ -227,17 +229,6 @@ export default function PricingPageClient() {
       setCheckoutErrorPlanKey(planKey);
     } finally {
       setCheckoutLoading(null);
-    }
-  }
-
-  async function handleSwitchToSignIn() {
-    if (switchToSignInPending) return;
-    setSwitchToSignInPending(true);
-    try {
-      const supabase = getSupabaseBrowserClient();
-      await safeBrowserSignOut(supabase);
-    } finally {
-      window.location.href = '/auth/signin?redirect=%2Fdashboard';
     }
   }
 
@@ -435,12 +426,10 @@ export default function PricingPageClient() {
                         fontWeight: 600
                       }}
                     >
-                      {isLapsedStatus ? 'Resume subscription' : 'Complete registration'}
+                      {isLapsedStatus ? 'Resume subscription' : 'Choose a plan'}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => { void handleSwitchToSignIn(); }}
-                      disabled={switchToSignInPending}
+                    <a
+                      href={signedInNavHref}
                       style={{
                         color: '#ffffff',
                         background: 'transparent',
@@ -449,16 +438,15 @@ export default function PricingPageClient() {
                         padding: '0.45rem 0.9rem',
                         fontSize: 'clamp(0.85rem, 2.8vw, 0.98rem)',
                         fontWeight: 600,
-                        cursor: switchToSignInPending ? 'not-allowed' : 'pointer',
-                        opacity: switchToSignInPending ? 0.75 : 1,
+                        textDecoration: 'none',
                       }}
                     >
-                      {switchToSignInPending ? 'Switching...' : 'Already have an account? Sign in'}
-                    </button>
+                      {signedInNavLabel}
+                    </a>
                   </div>
                 ) : (
                   <a
-                    href={navHref}
+                    href={signedInNavHref}
                     style={{
                       color: '#ffffff',
                       textDecoration: 'none',
@@ -468,7 +456,7 @@ export default function PricingPageClient() {
                       fontWeight: 600
                     }}
                   >
-                    {navLabel}
+                    {signedInNavLabel}
                   </a>
                 )
               ) : (
@@ -580,7 +568,7 @@ export default function PricingPageClient() {
                 Choose a plan that keeps you moving with confidence — from first questions to prepared filings.
               </p>
               <p style={{ marginTop: '14px', color: '#fde68a', fontSize: '0.98rem', fontWeight: 700 }}>
-                Your first paid subscription starts with 1 month free.
+                Your first paid subscription starts with 14 days free.
               </p>
               <p style={{ marginTop: '14px', color: '#cbd5f5', fontSize: '0.95rem' }}>
                 Not sure where to start? <a href="/faq" style={{ color: '#f8fafc', textDecoration: 'underline' }}>Read the plan FAQ</a>
@@ -627,7 +615,7 @@ export default function PricingPageClient() {
               <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#9cc8ff' }}>
                 £18<span className="text-xl sm:text-2xl">/Month</span>
               </div>
-              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#dbeafe', fontWeight: 700 }}>New subscribers: 1 month free, then £18/month</p>
+              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#dbeafe', fontWeight: 700 }}>New subscribers: 14 days free, then £18/month</p>
               <ul className="space-y-3 mb-8 text-left flex-grow">
                 {basicPlanFeatures.map((feature) => (
                   <li key={feature} className="flex items-start text-white">
@@ -659,7 +647,7 @@ export default function PricingPageClient() {
               <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#7bd4c9' }}>
                 £32<span className="text-xl sm:text-2xl">/Month</span>
               </div>
-              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#d1fae5', fontWeight: 700 }}>New subscribers: 1 month free, then £32/month</p>
+              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#d1fae5', fontWeight: 700 }}>New subscribers: 14 days free, then £32/month</p>
               <ul className="space-y-3 mb-8 text-left flex-grow">
                 {premiumPlanFeatures.map((feature) => (
                   <li key={feature} className="flex items-start text-white">
@@ -691,7 +679,7 @@ export default function PricingPageClient() {
               <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#f8a76f' }}>
                 £199<span className="text-xl sm:text-2xl">/Month</span>
               </div>
-              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#ffedd5', fontWeight: 700 }}>New subscribers: 1 month free, then £199/month</p>
+              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#ffedd5', fontWeight: 700 }}>New subscribers: 14 days free, then £199/month</p>
               <ul className="space-y-3 mb-8 text-left flex-grow">
                 {premiumPlusPlanFeatures.map((feature) => (
                   <li key={feature} className="flex items-start text-white">

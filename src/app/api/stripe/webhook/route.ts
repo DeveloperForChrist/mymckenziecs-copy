@@ -513,7 +513,7 @@ export async function POST(request: Request) {
         if (isTrialingStripeStatus(syncedSubscription?.status)) {
           const firstChargeDate = formatDateShort(
             getStripeSubscriptionPeriodEndUnix(syncedSubscription)
-          ) || 'one month from now';
+          ) || '14 days from now';
           const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com';
           const htmlBody = renderTemplate('27-free-trial-started.html', {
             name: user?.name || checkoutName || recipientEmail,

@@ -174,6 +174,10 @@
 .planButtons { display:flex; gap:12px; flex-wrap:wrap; }
 .paymentCard { border:1px dashed rgba(255, 255, 255, 0.2); border-radius:16px; padding:20px; background:rgba(15, 23, 42, 0.25); margin-bottom:16px; }
 .cardInfo { display:flex; align-items:center; gap:16px; }
+.paymentModalForm { display:flex; flex-direction:column; gap:18px; }
+.paymentModalSection { display:flex; flex-direction:column; gap:12px; }
+.paymentElementWrap { border:1px solid rgba(255, 255, 255, 0.14); border-radius:14px; padding:14px; background:rgba(15, 23, 42, 0.45); }
+.paymentModalError { margin:0; padding:10px 12px; border-radius:10px; border:1px solid rgba(248, 113, 113, 0.45); background:rgba(127, 29, 29, 0.35); color:#fecaca; font-size:0.85rem; }
 
 /* Contact */
 .contactInfo { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); margin-top:8px; }

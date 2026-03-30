@@ -100,7 +100,7 @@ describe('/api/stripe/plan-checkout route', () => {
     }
   }
 
-  it('applies a one-month trial to the first paid subscription checkout', async () => {
+  it('applies a two-week trial to the first paid subscription checkout', async () => {
     const { POST, checkoutSessionCreate, customerCreate } = await loadRoute()
 
     const response = await POST(

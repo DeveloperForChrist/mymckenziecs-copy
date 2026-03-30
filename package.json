@@ -26,6 +26,8 @@
     "@anthropic-ai/sdk": "^0.72.1",
     "@langchain/core": "^1.1.0",
     "@sentry/nextjs": "^10.32.1",
+    "@stripe/react-stripe-js": "^6.0.0",
+    "@stripe/stripe-js": "^9.0.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.90.0",
     "@testing-library/jest-dom": "^6.9.1",

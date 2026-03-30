@@ -2,6 +2,7 @@
 import { useEffect, useState, useTransition } from 'react';
 import styles from './settingsPage.module.css';
 import { isTrialingStripeStatus } from '@/lib/payments/subscription-status';
+import InAppPaymentMethodModal from './InAppPaymentMethodModal';
 
 type UserPlan = {
   plan?: string;
@@ -40,6 +41,7 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodSummary | null>(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [checkoutSynced, setCheckoutSynced] = useState(false);
   const [billingBackfillChecked, setBillingBackfillChecked] = useState(false);
 
@@ -61,6 +63,33 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
     const data = await res.json();
     setPlanData(data);
     return data;
+  };
+
+  const refreshPaymentMethod = async () => {
+    if (!planData?.hasStripeCustomer) {
+      setPaymentMethod(null);
+      setPaymentLoading(false);
+      setPaymentError(null);
+      return null;
+    }
+
+    setPaymentLoading(true);
+    setPaymentError(null);
+    try {
+      const res = await fetch('/api/stripe/payment-method', { credentials: 'include', cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error || 'Failed to load payment method');
+      }
+      const nextPaymentMethod = data?.paymentMethod || null;
+      setPaymentMethod(nextPaymentMethod);
+      return nextPaymentMethod;
+    } catch (err: any) {
+      setPaymentError(err.message || 'Failed to load payment method');
+      return null;
+    } finally {
+      setPaymentLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -203,26 +232,7 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
       setPaymentError(null);
       return;
     }
-
-    setPaymentLoading(true);
-    setPaymentError(null);
-
-    fetch('/api/stripe/payment-method', { credentials: 'include', cache: 'no-store' })
-      .then(async (res) => {
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data?.error || 'Failed to load payment method');
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setPaymentMethod(data?.paymentMethod || null);
-        setPaymentLoading(false);
-      })
-      .catch((err) => {
-        setPaymentError(err.message);
-        setPaymentLoading(false);
-      });
+    void refreshPaymentMethod();
   }, [planData?.hasStripeCustomer]);
 
   function formatNextBillingDate(value: any): string {
@@ -262,6 +272,19 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
         setPortalError(e?.message || 'We could not open billing management right now. Please try again.');
       }
     });
+  };
+
+  const handlePaymentMethodUpdated = async (nextPaymentMethod: PaymentMethodSummary | null) => {
+    setPaymentMethod(nextPaymentMethod);
+    setPaymentError(null);
+    setPortalError(null);
+    setBillingActionError(null);
+    setBillingActionMessage('Payment method updated. Future renewals will use the new card.');
+    setPaymentModalOpen(false);
+    await refreshPlanData().catch(() => null);
+    if (!nextPaymentMethod) {
+      await refreshPaymentMethod();
+    }
   };
 
   const handleCancelSubscription = async () => {
@@ -498,7 +521,16 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
                 type="button"
                 className={styles.primaryBtn}
                 disabled={portalPending}
-                onClick={() => openCustomerPortal(hasNoPaidPlan ? 'manage' : 'payment_method_update')}
+                onClick={() => {
+                  if (hasNoPaidPlan) {
+                    openCustomerPortal('manage');
+                    return;
+                  }
+                  setBillingActionMessage(null);
+                  setBillingActionError(null);
+                  setPortalError(null);
+                  setPaymentModalOpen(true);
+                }}
               >
                 {portalPending
                   ? 'Opening…'
@@ -555,6 +587,19 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
           </div>
         </div>
       )}
+      <InAppPaymentMethodModal
+        open={paymentModalOpen}
+        hasExistingPaymentMethod={Boolean(paymentMethod)}
+        onClose={() => {
+          setPaymentModalOpen(false);
+        }}
+        onSuccess={handlePaymentMethodUpdated}
+        onOpenPortalFallback={() => {
+          setPaymentModalOpen(false);
+          openCustomerPortal('payment_method_update');
+        }}
+        portalPending={portalPending}
+      />
     </div>
   );
 }

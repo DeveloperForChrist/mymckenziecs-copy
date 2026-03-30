@@ -3,19 +3,19 @@ import { getSubscriptionTrialEnd, getSubscriptionTrialEndUnix } from '@/lib/paym
 import { isBillingActiveStripeStatus, isTrialingStripeStatus } from '@/lib/payments/subscription-status'
 
 describe('subscription trials', () => {
-  it('sets the free trial to the same UTC time one calendar month later', () => {
+  it('sets the free trial to the same UTC time two weeks later', () => {
     const now = new Date('2026-03-27T10:15:00.000Z')
     const trialEnd = getSubscriptionTrialEnd(now)
 
-    expect(trialEnd.toISOString()).toBe('2026-04-27T10:15:00.000Z')
+    expect(trialEnd.toISOString()).toBe('2026-04-10T10:15:00.000Z')
     expect(getSubscriptionTrialEndUnix(now)).toBe(Math.floor(trialEnd.getTime() / 1000))
   })
 
-  it('clamps end-of-month dates to the last valid day of the next month', () => {
+  it('rolls end-of-month dates forward by fourteen days', () => {
     const now = new Date('2026-01-31T08:00:00.000Z')
     const trialEnd = getSubscriptionTrialEnd(now)
 
-    expect(trialEnd.toISOString()).toBe('2026-02-28T08:00:00.000Z')
+    expect(trialEnd.toISOString()).toBe('2026-02-14T08:00:00.000Z')
   })
 
   it('treats trialing subscriptions as active paid access', () => {
