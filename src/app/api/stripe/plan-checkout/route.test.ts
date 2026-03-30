@@ -117,7 +117,9 @@ describe('/api/stripe/plan-checkout route', () => {
     const checkoutArgs = checkoutSessionCreate.mock.calls.at(0)?.[0] as any
     expect(checkoutArgs?.metadata?.trialApplied).toBe('true')
     expect(checkoutArgs?.subscription_data?.metadata?.trialApplied).toBe('true')
-    expect(typeof checkoutArgs?.subscription_data?.trial_end).toBe('number')
+    expect(checkoutArgs?.subscription_data?.trial_period_days).toBe(14)
+    expect(checkoutArgs?.success_url).toContain('session_id={CHECKOUT_SESSION_ID}')
+    expect(checkoutArgs?.success_url).not.toContain('%7BCHECKOUT_SESSION_ID%7D')
   })
 
   it('does not reapply the trial when the user already has subscription history', async () => {
@@ -143,6 +145,6 @@ describe('/api/stripe/plan-checkout route', () => {
     expect(checkoutArgs?.customer).toBe('cus_existing')
     expect(checkoutArgs?.metadata?.trialApplied).toBe('false')
     expect(checkoutArgs?.subscription_data?.metadata?.trialApplied).toBe('false')
-    expect(checkoutArgs?.subscription_data?.trial_end).toBeUndefined()
+    expect(checkoutArgs?.subscription_data?.trial_period_days).toBeUndefined()
   })
 })

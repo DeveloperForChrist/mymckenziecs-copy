@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
 import { stripe } from '@/lib/payments/stripe';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
+import { sendResendEmail } from '@/lib/email/resend';
+import { getAppUrl } from '@/lib/app-url';
 import {
   billingIpRateLimiter,
   billingRateLimiter,
@@ -14,8 +18,30 @@ import { syncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
 import { isBillingActiveStripeStatus, normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
 import { getStripeSubscriptionPeriodEndIso, getStripeSubscriptionPeriodStartIso } from '@/lib/payments/subscription-period';
+import { planDisplayName } from '@/lib/plans/access';
 
 const BILLABLE_CANCELABLE_STATUSES = ['active', 'past_due', 'trialing'] as const;
+const TEMPLATE_DIR = path.join(process.cwd(), 'src', 'emails', 'templates');
+
+function renderTemplate(templateName: string, vars: Record<string, string>) {
+  const templatePath = path.join(TEMPLATE_DIR, templateName);
+  let html = fs.readFileSync(templatePath, 'utf8');
+  for (const [k, v] of Object.entries(vars)) {
+    html = html.split(`{{${k}}}`).join(v);
+  }
+  return html;
+}
+
+function formatDateShort(value?: string | null) {
+  if (!value) return 'the scheduled end date';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'the scheduled end date';
+  return date.toLocaleDateString('en-GB', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  });
+}
 
 export async function POST(req: Request) {
   try {
@@ -52,7 +78,7 @@ export async function POST(req: Request) {
 
     const { data: subscriptionRow } = await supabaseAdmin
       .from('subscriptions')
-      .select('stripe_subscription_id, status, cancel_at_period_end')
+      .select('stripe_subscription_id, status, cancel_at_period_end, plan_type')
       .eq('user_id', authUid)
       .not('stripe_subscription_id', 'is', null)
       .in('status', [...BILLABLE_CANCELABLE_STATUSES])
@@ -63,6 +89,15 @@ export async function POST(req: Request) {
     const stripeSubscriptionId = subscriptionRow?.stripe_subscription_id || null;
     if (!stripeSubscriptionId) {
       return NextResponse.json({ error: 'No active paid subscription found' }, { status: 404 });
+    }
+
+    if (subscriptionRow?.cancel_at_period_end) {
+      return NextResponse.json({
+        ok: true,
+        alreadyScheduled: true,
+        status: String(subscriptionRow?.status || '').toLowerCase() || 'active',
+        cancelAtPeriodEnd: true,
+      });
     }
 
     const updatedSubscription = await stripe.subscriptions.update(stripeSubscriptionId, {
@@ -108,6 +143,46 @@ export async function POST(req: Request) {
 
     await syncUserEntitlementSnapshot(authUid);
     invalidateUserPlanCache(authUid);
+
+    try {
+      const { data: userRow } = await supabaseAdmin
+        .from('users')
+        .select('email, name')
+        .eq('id', authUid)
+        .maybeSingle();
+
+      if (userRow?.email) {
+        const isTrialCancellation = normalizedStatus === 'trialing';
+        const planName = planDisplayName(subscriptionRow?.plan_type || 'No plan');
+        const endDate = formatDateShort(currentPeriodEnd);
+        const appUrl = getAppUrl(req);
+        const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com';
+        const htmlBody = renderTemplate('29-cancellation-scheduled.html', {
+          heading: isTrialCancellation ? 'Your free trial cancellation is confirmed' : 'Your cancellation is confirmed',
+          name: userRow.name || 'there',
+          summary_text: isTrialCancellation
+            ? `This confirms that your <strong>${planName}</strong> free trial has been scheduled to end on <strong>${endDate}</strong>.`
+            : `This confirms that your <strong>${planName}</strong> subscription has been scheduled to end on <strong>${endDate}</strong>.`,
+          detail_text: isTrialCancellation
+            ? 'Your workspace will remain active until that date. Billing will not begin unless you resume the plan before the trial ends.'
+            : 'Your access will remain active until that date. Automatic renewal has been turned off, and no further renewal charges will be made unless you resume before then.',
+          manage_url: `${appUrl}/settings?tab=billing`,
+          support_email: supportEmail,
+        });
+
+        await sendResendEmail({
+          to: userRow.email,
+          subject: isTrialCancellation
+            ? `Your MyMcKenzieCS free trial will end on ${endDate}`
+            : `Your MyMcKenzieCS subscription will end on ${endDate}`,
+          htmlBody,
+          tag: isTrialCancellation ? 'billing-trial-cancellation-scheduled' : 'billing-cancellation-scheduled',
+        });
+      }
+    } catch (emailError) {
+      console.error('Cancel subscription: failed to send cancellation confirmation email', emailError);
+    }
+
     return NextResponse.json({
       ok: true,
       status: normalizedStatus,

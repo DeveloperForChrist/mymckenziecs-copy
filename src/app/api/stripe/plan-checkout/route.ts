@@ -5,7 +5,9 @@ import { stripe } from '@/lib/payments/stripe';
 import { logApiUsage } from '@/lib/utils/api-usage-logger';
 import { billingIpRateLimiter, billingRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 import { getAppUrl } from '@/lib/app-url';
-import { getSubscriptionTrialEndUnix } from '@/lib/payments/trials';
+import { SUBSCRIPTION_TRIAL_DAYS } from '@/lib/payments/trials';
+
+const STRIPE_CHECKOUT_SESSION_PLACEHOLDER = '{CHECKOUT_SESSION_ID}';
 
 function resolveAppCheckoutSuccessUrl(request: NextRequest): string {
   const base = getAppUrl(request);
@@ -22,9 +24,14 @@ function withCheckoutParams(url: string, status: 'success' | 'cancelled') {
   parsed.searchParams.set('checkout_status', status);
   parsed.searchParams.set('checkout', status);
   if (status === 'success') {
-    parsed.searchParams.set('session_id', '{CHECKOUT_SESSION_ID}');
+    parsed.searchParams.set('session_id', STRIPE_CHECKOUT_SESSION_PLACEHOLDER);
   }
-  return parsed.toString();
+  return parsed
+    .toString()
+    .replace(
+      encodeURIComponent(STRIPE_CHECKOUT_SESSION_PLACEHOLDER),
+      STRIPE_CHECKOUT_SESSION_PLACEHOLDER
+    );
 }
 
 export async function POST(request: NextRequest) {
@@ -140,7 +147,7 @@ export async function POST(request: NextRequest) {
         metadata: { userId: authUid, planId, trialApplied: trialApplied ? 'true' : 'false' },
         subscription_data: {
           metadata: { userId: authUid, planId, trialApplied: trialApplied ? 'true' : 'false' },
-          ...(trialApplied ? { trial_end: getSubscriptionTrialEndUnix() } : {}),
+          ...(trialApplied ? { trial_period_days: SUBSCRIPTION_TRIAL_DAYS } : {}),
         },
         success_url: successUrl ? withCheckoutParams(successUrl, 'success') : defaultSuccessUrl,
         cancel_url: cancelUrl ? withCheckoutParams(cancelUrl, 'cancelled') : defaultCancelUrl,

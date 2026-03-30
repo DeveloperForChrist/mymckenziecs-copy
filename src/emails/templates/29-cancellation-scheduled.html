@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Cancellation confirmed</title>
+  </head>
+  <body style="margin: 0; padding: 24px; background: #f6f1f8; font-family: Arial, sans-serif; color: #1f1730; line-height: 1.6;">
+    <div style="max-width: 640px; margin: 0 auto; background: #ffffff; border: 1px solid #e7dff0; border-radius: 18px; overflow: hidden;">
+      <div style="padding: 20px 24px; background: linear-gradient(135deg, #34103b 0%, #4b1456 100%); color: #ffffff;">
+        <div style="font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.8;">Billing update</div>
+        <h2 style="margin: 10px 0 0; font-size: 28px; line-height: 1.15;">{{heading}}</h2>
+      </div>
+      <div style="padding: 24px;">
+        <p style="margin: 0 0 16px;">Hi {{name}},</p>
+        <p style="margin: 0 0 16px;">{{summary_text}}</p>
+        <p style="margin: 0 0 16px;">{{detail_text}}</p>
+        <p style="margin: 0 0 22px;">You can review your billing settings at any time if you want to change this.</p>
+        <p style="margin: 0 0 24px;">
+          <a
+            href="{{manage_url}}"
+            style="display: inline-block; padding: 12px 18px; border-radius: 999px; text-decoration: none; background: #1aa39a; color: #062725; font-weight: 700;"
+          >
+            Open billing settings
+          </a>
+        </p>
+        <p style="margin: 0; color: #5e5270;">
+          If you need help, contact support at {{support_email}}.
+        </p>
+        <p style="margin: 24px 0 0; color: #5e5270;">MyMcKenzieCS</p>
+      </div>
+    </div>
+  </body>
+</html>
