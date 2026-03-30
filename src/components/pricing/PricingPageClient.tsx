@@ -568,7 +568,7 @@ export default function PricingPageClient() {
                 Choose a plan that keeps you moving with confidence — from first questions to prepared filings.
               </p>
               <p style={{ marginTop: '14px', color: '#fde68a', fontSize: '0.98rem', fontWeight: 700 }}>
-                Your first paid subscription starts with 14 days free.
+                Your first paid subscription starts with 7 days free.
               </p>
               <p style={{ marginTop: '14px', color: '#cbd5f5', fontSize: '0.95rem' }}>
                 Not sure where to start? <a href="/faq" style={{ color: '#f8fafc', textDecoration: 'underline' }}>Read the plan FAQ</a>
@@ -615,7 +615,7 @@ export default function PricingPageClient() {
               <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#9cc8ff' }}>
                 £18<span className="text-xl sm:text-2xl">/Month</span>
               </div>
-              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#dbeafe', fontWeight: 700 }}>New subscribers: 14 days free, then £18/month</p>
+              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#dbeafe', fontWeight: 700 }}>New subscribers: 7 days free, then £18/month</p>
               <ul className="space-y-3 mb-8 text-left flex-grow">
                 {basicPlanFeatures.map((feature) => (
                   <li key={feature} className="flex items-start text-white">
@@ -647,7 +647,7 @@ export default function PricingPageClient() {
               <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#7bd4c9' }}>
                 £32<span className="text-xl sm:text-2xl">/Month</span>
               </div>
-              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#d1fae5', fontWeight: 700 }}>New subscribers: 14 days free, then £32/month</p>
+              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#d1fae5', fontWeight: 700 }}>New subscribers: 7 days free, then £32/month</p>
               <ul className="space-y-3 mb-8 text-left flex-grow">
                 {premiumPlanFeatures.map((feature) => (
                   <li key={feature} className="flex items-start text-white">
@@ -679,7 +679,7 @@ export default function PricingPageClient() {
               <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#f8a76f' }}>
                 £199<span className="text-xl sm:text-2xl">/Month</span>
               </div>
-              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#ffedd5', fontWeight: 700 }}>New subscribers: 14 days free, then £199/month</p>
+              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#ffedd5', fontWeight: 700 }}>New subscribers: 7 days free, then £199/month</p>
               <ul className="space-y-3 mb-8 text-left flex-grow">
                 {premiumPlusPlanFeatures.map((feature) => (
                   <li key={feature} className="flex items-start text-white">

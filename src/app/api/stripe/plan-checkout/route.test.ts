@@ -100,7 +100,7 @@ describe('/api/stripe/plan-checkout route', () => {
     }
   }
 
-  it('applies a two-week trial to the first paid subscription checkout', async () => {
+  it('applies a one-week trial to the first paid subscription checkout', async () => {
     const { POST, checkoutSessionCreate, customerCreate } = await loadRoute()
 
     const response = await POST(
@@ -117,7 +117,7 @@ describe('/api/stripe/plan-checkout route', () => {
     const checkoutArgs = checkoutSessionCreate.mock.calls.at(0)?.[0] as any
     expect(checkoutArgs?.metadata?.trialApplied).toBe('true')
     expect(checkoutArgs?.subscription_data?.metadata?.trialApplied).toBe('true')
-    expect(checkoutArgs?.subscription_data?.trial_period_days).toBe(14)
+    expect(checkoutArgs?.subscription_data?.trial_period_days).toBe(7)
     expect(checkoutArgs?.success_url).toContain('session_id={CHECKOUT_SESSION_ID}')
     expect(checkoutArgs?.success_url).not.toContain('%7BCHECKOUT_SESSION_ID%7D')
   })

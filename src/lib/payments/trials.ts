@@ -1,4 +1,4 @@
-export const SUBSCRIPTION_TRIAL_DAYS = 14
+export const SUBSCRIPTION_TRIAL_DAYS = 7
 
 export function addUtcDays(date: Date, days: number) {
   const wholeDays = Number.isFinite(days) ? Math.trunc(days) : 0
