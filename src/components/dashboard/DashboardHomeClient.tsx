@@ -281,12 +281,12 @@ export default function DashboardHomeClient({
               }}
             >
               <h2 style={{ margin: 0, fontSize: '1.08rem', fontWeight: 700, color: '#f8fafc' }}>
-                Your email has been verified
+                Your account has been verified and registered
               </h2>
               <p style={{ margin: '8px 0 0', color: '#cbd5f5', lineHeight: 1.5, maxWidth: '760px' }}>
                 {selectedPlanId
-                  ? `Add your card details to activate your 7 day free trial for ${selectedPlanName} and unlock your workspace.`
-                  : 'Choose a plan and add your card details to activate your 7 day free trial and unlock your workspace.'}
+                  ? `Enter your payment details to activate your 7 day free trial for ${selectedPlanName} and access the platform.`
+                  : 'Choose a plan and enter your payment details to activate your 7 day free trial and access the platform.'}
               </p>
               <p style={{ margin: '10px 0 0', color: '#d1fae5', lineHeight: 1.45, fontWeight: 600 }}>
                 No charge today. Cancel anytime before your trial ends.
