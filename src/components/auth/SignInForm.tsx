@@ -29,7 +29,6 @@ export default function SignInForm() {
   const billingOptOutState = (searchParams?.get('billing_opt_out') || '').trim().toLowerCase()
   const redirectParam = (searchParams?.get('redirect') || '').trim()
   const nextPath = redirectParam.startsWith('/') ? redirectParam : '/dashboard'
-  const billingRedirect = '/pricing?redirect=%2Fsettings%3Ftab%3Dbilling'
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -114,10 +113,7 @@ export default function SignInForm() {
       }
 
       if (!isVerified) {
-        const verifyRedirectTarget =
-          nextPath.startsWith('/pricing')
-            ? nextPath
-            : '/pricing?redirect=%2Fsettings%3Ftab%3Dbilling'
+        const verifyRedirectTarget = nextPath
         const verifyRedirect = `/auth/verify-email?redirect=${encodeURIComponent(verifyRedirectTarget)}`
         router.push(verifyRedirect)
         router.refresh()
@@ -139,7 +135,7 @@ export default function SignInForm() {
       }
 
       if (!hasPaidPlan) {
-        router.push(billingRedirect)
+        router.push(nextPath)
         router.refresh()
         return
       }

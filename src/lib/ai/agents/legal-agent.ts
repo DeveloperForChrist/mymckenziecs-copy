@@ -439,7 +439,6 @@ const decidePremiumSearch = async (options: {
     options.systemPrompt,
     options.model,
     220,
-    options.provider,
     options.fallbackModel
   )
 
@@ -1052,7 +1051,7 @@ export async function createLegalAgent(
     /**
      * Flow: greeting → document → answer
      */
-    async invoke({ input }: { input: string }): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; sources?: Array<{ number: number; title: string; url: string }> }> {
+    async invoke({ input }: { input: string }): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; sources?: Array<{ number: number; title: string; url: string }>; basicDailySearchNotice?: string }> {
       try {
         const latestQuestion = (input || '').trim()
 
@@ -1206,10 +1205,9 @@ export async function createLegalAgent(
           comprehensiveAnswer = await callLLM(
             completeEndingPrompt,
             systemPrompt,
-            modelForProvider,
+            openaiModel,
             PREMIUM_MAX_TOKENS,
-            llmProvider,
-            fallbackModelForProvider,
+            openaiFallbackModel,
             false,
             0,
             true,
@@ -1264,7 +1262,7 @@ export async function invokeLegalAgent(
   conversationHistory: Array<{ role: string; content: string }> = [],
   caseKeywords?: string,
   options?: LegalAgentOptions
-): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
+): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }>; basicDailySearchNotice?: string }> {
   const agent = await createLegalAgent(conversationHistory, caseKeywords, undefined, {
     ...options,
     caseAccessUserId: options?.caseAccessUserId || userId,
@@ -1275,7 +1273,8 @@ export async function invokeLegalAgent(
     document_generated: response.document_generated,
     guidance_provided: response.guidance_provided,
     next_steps: [],
-    sources: response.sources
+    sources: response.sources,
+    basicDailySearchNotice: response.basicDailySearchNotice,
   }
 }
 
@@ -1305,7 +1304,6 @@ export async function invokePremiumLegalAgent(
     includeCitations: true,
     memoryContext: options?.memoryContext,
     historyLimit: options?.historyLimit,
-    provider: 'openai',
     openaiModel: options?.openaiModel || OPENAI_MODEL,
     openaiFallbackModel: options?.openaiFallbackModel || OPENAI_FALLBACK_MODEL,
     maxTokens: options?.maxTokens,
@@ -1670,7 +1668,6 @@ const generatePremiumPlusOpenAiFallbackFinalText = async (options: {
     options.systemPrompt,
     options.model,
     options.maxTokens,
-    'openai',
     options.model,
     true,
     PREMIUM_PLUS_MAX_AUTO_CONTINUES
@@ -1685,7 +1682,6 @@ const generatePremiumPlusOpenAiFallbackFinalText = async (options: {
       options.systemPrompt,
       options.model,
       options.maxTokens,
-      'openai',
       options.model,
       true,
       PREMIUM_PLUS_MAX_AUTO_CONTINUES
@@ -2951,7 +2947,6 @@ export async function invokePremiumPlusLegalAgent(
           }),
           openAiFallbackModel,
           options?.maxTokens || PREMIUM_PLUS_CONCISE_MAX_TOKENS,
-          'openai',
           openAiFallbackModel,
           true,
           PREMIUM_PLUS_MAX_AUTO_CONTINUES
@@ -3190,7 +3185,6 @@ export async function invokePremiumPlusLegalAgentStream(
           }),
           openAiFallbackModel,
           options?.maxTokens || PREMIUM_PLUS_CONCISE_MAX_TOKENS,
-          'openai',
           openAiFallbackModel,
           true,
           PREMIUM_PLUS_MAX_AUTO_CONTINUES
@@ -3360,7 +3354,6 @@ export async function invokeBasicLegalAgent(
     searchModeOverride: options?.searchModeOverride,
     searchEngineOverride: options?.searchEngineOverride || 'brave',
     consumeSearchQuota: options?.consumeSearchQuota,
-    provider: 'openai',
     openaiModel: OPENAI_BASIC_MODEL,
     openaiFallbackModel: OPENAI_BASIC_FALLBACK_MODEL,
     maxTokens: BASIC_MAX_TOKENS,

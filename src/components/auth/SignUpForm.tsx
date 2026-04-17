@@ -63,7 +63,7 @@ export default function SignUpForm() {
   const selectedPlanId = (searchParams?.get('planId') || '').trim()
   const redirectParam = (searchParams?.get('redirect') || '').trim()
   const fallbackRedirect = selectedPlanId
-    ? `/pricing?plan=${encodeURIComponent(selectedPlanId)}`
+    ? `/dashboard?activatePlan=${encodeURIComponent(selectedPlanId)}`
     : '/dashboard'
   const nextRedirect =
     redirectParam.startsWith('/')

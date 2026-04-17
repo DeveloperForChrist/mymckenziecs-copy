@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import { hasCaseLawAccess } from '@/lib/plans/access';
 import { isTrialingStripeStatus } from '@/lib/payments/subscription-status';
+import { PLAN_PRICES } from '@/constants';
 
 function formatDateLabel(value?: string | null) {
   if (!value) return '';
@@ -30,17 +32,29 @@ export default function DashboardHomeClient({
   initialNextBillingDate = null,
   initialPlanLoaded = false,
 }: DashboardHomeClientProps = {}) {
+  const searchParams = useSearchParams();
   const [uid, setUid] = useState<string | null>(null);
   const [plan, setPlan] = useState<string>(initialPlan);
   const [planStatus, setPlanStatus] = useState<string>(initialPlanStatus);
   const [nextBillingDate, setNextBillingDate] = useState<string | null>(initialNextBillingDate);
   const [planLoaded, setPlanLoaded] = useState(Boolean(initialPlanLoaded));
   const [calendarAlertCount, setCalendarAlertCount] = useState(0);
+  const [activationPending, setActivationPending] = useState(false);
+  const [activationError, setActivationError] = useState<string | null>(null);
 
   const hasCaseLawFeature = hasCaseLawAccess(plan);
   const normalizedPlanStatus = planStatus.trim().toLowerCase();
   const isPastDueStatus = normalizedPlanStatus === 'past_due';
   const isTrialingStatus = isTrialingStripeStatus(normalizedPlanStatus);
+  const hasPaidAccess =
+    normalizedPlanStatus === 'active' ||
+    normalizedPlanStatus === 'trialing' ||
+    normalizedPlanStatus === 'past_due';
+  const selectedPlanId = (searchParams?.get('activatePlan') || '').trim();
+  const selectedPlanName =
+    PLAN_PRICES.find((entry) => entry.priceId === selectedPlanId)?.name || 'your selected plan';
+  const showActivationBanner = planLoaded && !hasPaidAccess;
+  const featureAccessLocked = planLoaded && !hasPaidAccess;
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -95,6 +109,39 @@ export default function DashboardHomeClient({
       cancelled = true;
     };
   }, [uid]);
+
+  const handleActivateTrial = async () => {
+    if (!selectedPlanId || activationPending) return;
+
+    setActivationPending(true);
+    setActivationError(null);
+    try {
+      const response = await fetch('/api/stripe/plan-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ planId: selectedPlanId }),
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok && payload?.code === 'EMAIL_VERIFICATION_REQUIRED' && typeof payload?.redirect === 'string') {
+        window.location.href = payload.redirect;
+        return;
+      }
+
+      if (!response.ok || !payload?.url) {
+        throw new Error(payload?.error || 'Unable to start checkout right now.');
+      }
+
+      window.location.href = String(payload.url);
+    } catch (error: any) {
+      setActivationError(error?.message || 'Unable to start checkout right now.');
+    } finally {
+      setActivationPending(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -223,6 +270,87 @@ export default function DashboardHomeClient({
             </p>
           </div>
 
+          {showActivationBanner && (
+            <section
+              style={{
+                marginBottom: '26px',
+                borderRadius: '18px',
+                border: '1px solid rgba(125, 211, 252, 0.38)',
+                background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.82), rgba(30, 41, 59, 0.66))',
+                padding: '18px 18px 16px',
+              }}
+            >
+              <h2 style={{ margin: 0, fontSize: '1.08rem', fontWeight: 700, color: '#f8fafc' }}>
+                Your email has been verified
+              </h2>
+              <p style={{ margin: '8px 0 0', color: '#cbd5f5', lineHeight: 1.5, maxWidth: '760px' }}>
+                {selectedPlanId
+                  ? `Add your card details to activate your 7 day free trial for ${selectedPlanName} and unlock your workspace.`
+                  : 'Choose a plan and add your card details to activate your 7 day free trial and unlock your workspace.'}
+              </p>
+              <p style={{ margin: '10px 0 0', color: '#d1fae5', lineHeight: 1.45, fontWeight: 600 }}>
+                No charge today. Cancel anytime before your trial ends.
+              </p>
+              <div style={{ marginTop: 14, display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                {selectedPlanId ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void handleActivateTrial();
+                    }}
+                    disabled={activationPending}
+                    style={{
+                      border: 'none',
+                      borderRadius: '999px',
+                      background: 'linear-gradient(135deg, #7bd4c9, #3aa79d)',
+                      color: '#052a27',
+                      padding: '10px 16px',
+                      fontWeight: 700,
+                      cursor: activationPending ? 'not-allowed' : 'pointer',
+                      opacity: activationPending ? 0.75 : 1,
+                    }}
+                  >
+                    {activationPending ? 'Opening checkout…' : 'Activate free trial'}
+                  </button>
+                ) : (
+                  <Link
+                    href="/pricing"
+                    style={{
+                      textDecoration: 'none',
+                      borderRadius: '999px',
+                      background: 'linear-gradient(135deg, #7bd4c9, #3aa79d)',
+                      color: '#052a27',
+                      padding: '10px 16px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    Choose plan
+                  </Link>
+                )}
+                <Link
+                  href="/pricing"
+                  style={{
+                    textDecoration: 'none',
+                    border: '1px solid rgba(255,255,255,0.22)',
+                    background: 'rgba(255,255,255,0.06)',
+                    color: '#fff',
+                    borderRadius: '999px',
+                    padding: '9px 14px',
+                    fontWeight: 700,
+                    fontSize: '0.92rem',
+                  }}
+                >
+                  Change plan
+                </Link>
+              </div>
+              {activationError && (
+                <p style={{ margin: '12px 0 0', color: '#fecaca', lineHeight: 1.45 }}>
+                  {activationError}
+                </p>
+              )}
+            </section>
+          )}
+
           {isPastDueStatus && (
             <section
               style={{
@@ -304,18 +432,14 @@ export default function DashboardHomeClient({
               marginBottom: '18px',
             }}
           >
-            {visibleFeatures.map((feature, idx) => (
-                <Link
-                  key={idx}
-                  href={feature.href}
-                  prefetch={feature.href === '/settings' ? false : undefined}
-                  style={{ textDecoration: 'none' }}
-                >
-                  <div style={{
+            {visibleFeatures.map((feature, idx) => {
+              const card = (
+                <div
+                  style={{
                     background: `linear-gradient(135deg, ${feature.color})`,
                     padding: 'clamp(22px, 4.4vw, 36px) clamp(18px, 3.8vw, 28px)',
                     borderRadius: '14px',
-                    cursor: 'pointer',
+                    cursor: featureAccessLocked ? 'not-allowed' : 'pointer',
                     transition: 'all 0.3s ease',
                     border: '1px solid rgba(255,255,255,0.1)',
                     display: 'flex',
@@ -324,52 +448,93 @@ export default function DashboardHomeClient({
                     height: '100%',
                     minHeight: cardMinHeight,
                     position: 'relative',
+                    opacity: featureAccessLocked ? 0.55 : 1,
+                    filter: featureAccessLocked ? 'grayscale(0.12)' : 'none',
                   }}
                   onMouseEnter={(e) => {
+                    if (featureAccessLocked) return;
                     (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-8px)';
                     (e.currentTarget as HTMLDivElement).style.boxShadow = '0 20px 40px rgba(0,0,0,0.3)';
                   }}
                   onMouseLeave={(e) => {
                     (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
                     (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
-                  }}>
-                    <div>
-                      {typeof feature.alertCount === 'number' && feature.alertCount > 0 && (
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: '14px',
-                            right: '14px',
-                            minWidth: '31px',
-                            height: '31px',
-                            borderRadius: '999px',
-                            padding: '0 9px',
-                            background: 'rgba(127, 29, 29, 0.92)',
-                            color: '#fff',
-                            fontSize: '0.82rem',
-                            fontWeight: 800,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: '0 8px 18px rgba(0,0,0,0.24)',
-                          }}
-                          aria-label={`${feature.alertCount} upcoming calendar event${feature.alertCount === 1 ? '' : 's'}`}
-                        >
-                          {feature.alertCount > 99 ? '99+' : feature.alertCount}
-                        </div>
-                      )}
-                      <i className={`bx ${feature.icon}`} style={{ fontSize: 'clamp(1.9rem, 7vw, 2.45rem)', display: 'block', marginBottom: '14px', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))' }} />
-                      <h3 style={{ fontSize: 'clamp(1.2rem, 4.6vw, 1.55rem)', fontWeight: 600, marginBottom: '10px' }}>{feature.title}</h3>
-                      <p style={{ fontSize: 'clamp(0.93rem, 3.1vw, 1.04rem)', opacity: 0.9, marginBottom: '8px', lineHeight: 1.45 }}>{feature.desc}</p>
-                    </div>
-                    {feature.badge && (
-                      <span style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.2)', padding: '5px 10px', borderRadius: '20px', width: 'fit-content' }}>
-                        {feature.badge}
-                      </span>
+                  }}
+                >
+                  <div>
+                    {typeof feature.alertCount === 'number' && feature.alertCount > 0 && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '14px',
+                          right: '14px',
+                          minWidth: '31px',
+                          height: '31px',
+                          borderRadius: '999px',
+                          padding: '0 9px',
+                          background: 'rgba(127, 29, 29, 0.92)',
+                          color: '#fff',
+                          fontSize: '0.82rem',
+                          fontWeight: 800,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 8px 18px rgba(0,0,0,0.24)',
+                        }}
+                        aria-label={`${feature.alertCount} upcoming calendar event${feature.alertCount === 1 ? '' : 's'}`}
+                      >
+                        {feature.alertCount > 99 ? '99+' : feature.alertCount}
+                      </div>
                     )}
+                    {featureAccessLocked && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '14px',
+                          left: '14px',
+                          borderRadius: '999px',
+                          padding: '6px 10px',
+                          background: 'rgba(15, 23, 42, 0.84)',
+                          color: '#f8fafc',
+                          fontSize: '0.77rem',
+                          fontWeight: 700,
+                          letterSpacing: '0.02em',
+                        }}
+                      >
+                        Activate trial first
+                      </div>
+                    )}
+                    <i className={`bx ${feature.icon}`} style={{ fontSize: 'clamp(1.9rem, 7vw, 2.45rem)', display: 'block', marginBottom: '14px', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))' }} />
+                    <h3 style={{ fontSize: 'clamp(1.2rem, 4.6vw, 1.55rem)', fontWeight: 600, marginBottom: '10px' }}>{feature.title}</h3>
+                    <p style={{ fontSize: 'clamp(0.93rem, 3.1vw, 1.04rem)', opacity: 0.9, marginBottom: '8px', lineHeight: 1.45 }}>{feature.desc}</p>
                   </div>
+                  {feature.badge && (
+                    <span style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.2)', padding: '5px 10px', borderRadius: '20px', width: 'fit-content' }}>
+                      {feature.badge}
+                    </span>
+                  )}
+                </div>
+              );
+
+              if (featureAccessLocked) {
+                return (
+                  <div key={idx} aria-disabled="true">
+                    {card}
+                  </div>
+                );
+              }
+
+              return (
+                <Link
+                  key={idx}
+                  href={feature.href}
+                  prefetch={feature.href === '/settings' ? false : undefined}
+                  style={{ textDecoration: 'none' }}
+                >
+                  {card}
                 </Link>
-            ))}
+              );
+            })}
           </div>
         </div>
       </main>

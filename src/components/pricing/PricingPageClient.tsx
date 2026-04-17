@@ -142,7 +142,7 @@ export default function PricingPageClient() {
     const session = (await supabase.auth.getSession()).data.session;
     const idToken = session?.access_token;
     if (!idToken || !isBillingEligibleUser(session?.user)) {
-      const redirectTo = `/pricing?plan=${encodeURIComponent(priceId)}`;
+      const redirectTo = `/dashboard?activatePlan=${encodeURIComponent(priceId)}`;
       window.location.href = `/auth/signup?planId=${encodeURIComponent(priceId)}&redirect=${encodeURIComponent(redirectTo)}`;
       return;
     }

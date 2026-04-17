@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       : Boolean((authData.user as any)?.email_confirmed_at);
 
     if (!isEmailVerified) {
-      const verifyRedirect = `/auth/verify-email?redirect=${encodeURIComponent(`/pricing?plan=${encodeURIComponent(String(planId))}`)}`;
+      const verifyRedirect = `/auth/verify-email?redirect=${encodeURIComponent(`/dashboard?activatePlan=${encodeURIComponent(String(planId))}`)}`;
       return NextResponse.json(
         {
           error: 'Verify your email before checkout',

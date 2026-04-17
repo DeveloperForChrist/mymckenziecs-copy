@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { isBillingEligibleUser } from '@/lib/auth/session-user'
 import { getUserPlanData } from '@/lib/payments/user-plan'
+import { isUserEmailVerified } from '@/lib/auth/account-verification'
 import { NO_INDEX_METADATA } from '@/lib/seo'
 
 export const metadata = NO_INDEX_METADATA
@@ -32,8 +33,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   }
 
   const planData = await getUserPlanData(authUser.id, authUser.email ?? null)
-  if (!planData.paidAccess) {
-    redirect('/pricing?redirect=%2Fdashboard')
+  const emailVerified = await isUserEmailVerified(authUser.id)
+  if (!planData.paidAccess && !emailVerified) {
+    redirect('/auth/verify-email?redirect=%2Fdashboard')
   }
 
   return <>{children}</>

@@ -23,12 +23,12 @@ export default function VerifyEmailScreen() {
   const planId = useMemo(() => (searchParams?.get('planId') || '').trim(), [searchParams])
   const postVerifyRedirect = useMemo(() => {
     if (redirectParam.startsWith('/')) return redirectParam
-    if (planId) return `/pricing?plan=${encodeURIComponent(planId)}`
+    if (planId) return `/dashboard?activatePlan=${encodeURIComponent(planId)}`
     return '/dashboard'
   }, [planId, redirectParam])
   const verifyCopy = useMemo(() => {
-    if (postVerifyRedirect.startsWith('/pricing?plan=')) {
-      return 'Open your inbox, click Verify email, then continue to secure checkout. After payment, you will be taken to your dashboard.'
+    if (postVerifyRedirect.startsWith('/dashboard?activatePlan=')) {
+      return 'Open your inbox, click Verify email, and you will be taken to your dashboard to activate your free trial.'
     }
     return 'Open your inbox, click Verify email, and you will be taken straight to your unlocked dashboard.'
   }, [postVerifyRedirect])
@@ -66,8 +66,11 @@ export default function VerifyEmailScreen() {
             return
           }
           if (verify === 'sent') {
-            setNotice('Your email has been successfully verified in another tab. You may now close this tab.')
-            setLoading(false)
+            setNotice('Email verified successfully. Redirecting you now...')
+            window.setTimeout(() => {
+              router.replace(postVerifyRedirect)
+              router.refresh()
+            }, 900)
             return
           }
           router.replace(postVerifyRedirect)

@@ -265,10 +265,11 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(pricingUrl)
     }
 
-    if (!paid && pathname.startsWith('/dashboard')) {
-      const pricingUrl = new URL('/pricing', request.url)
-      pricingUrl.searchParams.set('redirect', '/settings?tab=billing')
-      return NextResponse.redirect(pricingUrl)
+    if (!paid && isSoftSuspendedPath) {
+      if (pathname === '/dashboard') {
+        return response
+      }
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }
 

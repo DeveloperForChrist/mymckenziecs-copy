@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { isBillingEligibleUser } from '@/lib/auth/session-user'
 import { getUserPlanData } from '@/lib/payments/user-plan'
+import { isUserEmailVerified } from '@/lib/auth/account-verification'
 import { NO_INDEX_METADATA } from '@/lib/seo'
 
 export const dynamic = 'force-dynamic'
@@ -39,5 +40,10 @@ export default async function WorkspacePage() {
     redirect('/dashboard')
   }
 
-  redirect('/pricing?redirect=%2Fdashboard')
+  const emailVerified = await isUserEmailVerified(authUser.id)
+  if (emailVerified) {
+    redirect('/dashboard')
+  }
+
+  redirect('/auth/verify-email?redirect=%2Fdashboard')
 }

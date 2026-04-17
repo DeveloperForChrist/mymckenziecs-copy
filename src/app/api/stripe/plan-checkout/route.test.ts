@@ -114,7 +114,7 @@ describe('/api/stripe/plan-checkout route', () => {
     expect(response.status).toBe(200)
     expect(customerCreate).toHaveBeenCalledTimes(1)
 
-    const checkoutArgs = checkoutSessionCreate.mock.calls.at(0)?.[0] as any
+    const checkoutArgs = (checkoutSessionCreate as any).mock.calls[0]?.[0] as any
     expect(checkoutArgs?.metadata?.trialApplied).toBe('true')
     expect(checkoutArgs?.subscription_data?.metadata?.trialApplied).toBe('true')
     expect(checkoutArgs?.subscription_data?.trial_period_days).toBe(7)
@@ -141,7 +141,7 @@ describe('/api/stripe/plan-checkout route', () => {
     expect(response.status).toBe(200)
     expect(customerCreate).not.toHaveBeenCalled()
 
-    const checkoutArgs = checkoutSessionCreate.mock.calls.at(0)?.[0] as any
+    const checkoutArgs = (checkoutSessionCreate as any).mock.calls[0]?.[0] as any
     expect(checkoutArgs?.customer).toBe('cus_existing')
     expect(checkoutArgs?.metadata?.trialApplied).toBe('false')
     expect(checkoutArgs?.subscription_data?.metadata?.trialApplied).toBe('false')

@@ -252,18 +252,6 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
   const openCustomerPortal = (mode: 'manage' | 'payment_method_update' = 'manage') => {
     setPortalError(null);
     setBillingActionError(null);
-    const portalTab = typeof window !== 'undefined' ? window.open('', '_blank') : null;
-
-    if (portalTab) {
-      try {
-        portalTab.opener = null;
-        portalTab.document.title = 'Opening billing...';
-        portalTab.document.body.innerHTML =
-          '<p style="font-family:system-ui,-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;padding:24px;color:#111827;">Opening billing...</p>';
-      } catch (_) {
-        // Ignore placeholder rendering failures and continue with the portal launch.
-      }
-    }
 
     startPortal(async () => {
       try {
@@ -280,16 +268,8 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
           }
           throw new Error('We could not open billing management right now. Please try again.');
         }
-        if (portalTab && !portalTab.closed) {
-          portalTab.location.href = json.url;
-          portalTab.focus?.();
-          return;
-        }
         window.location.href = json.url;
       } catch (e: any) {
-        if (portalTab && !portalTab.closed) {
-          portalTab.close();
-        }
         setPortalError(e?.message || 'We could not open billing management right now. Please try again.');
       }
     });

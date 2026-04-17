@@ -52,7 +52,7 @@ export default function SignUpPage() {
             <div>
               <h2 className={styles.formTitle}>Create your account</h2>
               <p className={styles.formSubtitle}>
-                Enter your details to create your account. If you selected a plan, payment is collected immediately after this step.
+                Enter your details to create your account. If you selected a plan, you will verify your email first and then activate your free trial from the dashboard.
               </p>
             </div>
             <Suspense fallback={<div className={styles.formSubtitle}>Loading account form...</div>}>

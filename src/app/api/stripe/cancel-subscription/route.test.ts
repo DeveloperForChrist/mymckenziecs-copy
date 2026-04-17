@@ -148,7 +148,7 @@ describe('/api/stripe/cancel-subscription route', () => {
     expect(subscriptionUpdate).toHaveBeenCalledWith('sub_trial', { cancel_at_period_end: true })
     expect(sendResendEmail).toHaveBeenCalledTimes(1)
 
-    const emailArgs = sendResendEmail.mock.calls.at(0)?.[0] as any
+    const emailArgs = (sendResendEmail as any).mock.calls[0]?.[0] as any
     expect(emailArgs?.subject).toContain('free trial will end on')
     expect(emailArgs?.tag).toBe('billing-trial-cancellation-scheduled')
     expect(emailArgs?.htmlBody).toContain('free trial has been scheduled to end')
