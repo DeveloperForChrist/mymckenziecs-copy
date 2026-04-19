@@ -19,30 +19,30 @@ export default function SignUpPage() {
       <main className={styles.page}>
         <div className={styles.shell}>
           <section className={styles.hero}>
-            <span className={styles.heroTag}>Confidence for litigants</span>
+            <span className={styles.heroTag}>For self-represented litigants</span>
             <div>
               <h1 className={styles.heroTitle}>Create your legal workspace.</h1>
               <p className={styles.heroCopy}>
                 MyMcKenzieCS keeps your case notes, deadlines, and document context together so you can
-                move with clarity and momentum.
+                prepare with more clarity and less friction.
               </p>
               <div className={styles.heroList}>
                 <div className={styles.heroListItem}>
                   <span>01</span>
-                  <div>Track key dates, evidence, and next steps without a spreadsheet.</div>
+                  <div>Track key dates, evidence, and next steps in one place.</div>
                 </div>
                 <div className={styles.heroListItem}>
                   <span>02</span>
-                <div>Summaries and next steps tuned for UK civil procedure.</div>
+                <div>Get clear procedural support for your legal matter.</div>
                 </div>
                 <div className={styles.heroListItem}>
                   <span>03</span>
-                  <div>Upgrade anytime to Basic, Premium, or Premium +.</div>
+                  <div>Start using the workspace now and upgrade anytime for expanded features.</div>
                 </div>
               </div>
             </div>
             <div className={styles.heroFooter}>
-              <span className={styles.pill}>Choose a plan anytime for expanded workspace features.</span>
+              <span className={styles.pill}>Start free and choose a plan later if you need more support.</span>
               <a href="/pricing">Plans</a>
               <a href="/faq">Plan FAQ</a>
             </div>
@@ -52,7 +52,7 @@ export default function SignUpPage() {
             <div>
               <h2 className={styles.formTitle}>Create your account</h2>
               <p className={styles.formSubtitle}>
-                Enter your details to create your account. We&apos;ll send a verification email next so you can unlock your dashboard.
+                Enter your details to create your account. We&apos;ll send a verification email next so you can unlock your workspace and start using it.
               </p>
             </div>
             <Suspense fallback={<div className={styles.formSubtitle}>Loading account form...</div>}>

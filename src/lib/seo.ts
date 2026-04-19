@@ -4,7 +4,7 @@ import getAppUrl from '@/lib/app-url'
 export const APP_FULL_NAME = 'MyMcKenzieCS'
 export const APP_SHORT_NAME = 'MyMcKenzieCS'
 export const DEFAULT_DESCRIPTION =
-  'MyMcKenzieCS is the legal self-help workspace for UK litigants in person. Organise case documents, track deadlines, and get procedural support in one place.'
+  'MyMcKenzieCS is the legal self-help workspace for self-represented litigants in the UK and US. Organise case documents, track deadlines, and get procedural support in one place.'
 export const SOCIAL_SHARE_IMAGE_PATH = '/favicon-source.png'
 export const SOCIAL_SHARE_IMAGE_WIDTH = 1080
 export const SOCIAL_SHARE_IMAGE_HEIGHT = 1080

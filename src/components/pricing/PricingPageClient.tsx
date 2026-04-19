@@ -572,12 +572,12 @@ export default function PricingPageClient() {
             <div>
               <p style={{ textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.75rem', color: '#f8a76f', fontWeight: 600 }}>Pricing</p>
               <h1 style={{ fontSize: 'clamp(2rem, 8vw, 3.6rem)', lineHeight: 1.05, margin: '0.8rem 0 1rem 0' }}>
-                Your in-person litigation workspace,
+                Start with the workspace,
                 <br />
-                structured for people.
+                then choose the support level you need.
               </h1>
               <p style={{ fontSize: 'clamp(1rem, 3.2vw, 1.2rem)', color: '#cbd5f5', maxWidth: '520px' }}>
-                Choose a plan that keeps you moving with confidence — from first questions to prepared filings.
+                Compare plans for self-represented litigants in the UK and U.S., then start with the option that fits your workload.
               </p>
               <p style={{ marginTop: '14px', color: '#fde68a', fontSize: '0.98rem', fontWeight: 700 }}>
                 Your first paid subscription starts with 7 days free.
@@ -589,7 +589,7 @@ export default function PricingPageClient() {
                 Not sure where to start? <a href="/faq" style={{ color: '#f8fafc', textDecoration: 'underline' }}>Read the plan FAQ</a>
               </p>
               <p style={{ marginTop: '10px', color: '#cbd5f5', fontSize: '0.95rem' }}>
-                New to court? Start with the <a href="/litigant-in-person-uk" style={{ color: '#f8fafc', textDecoration: 'underline' }}>litigant in person guide</a>, the <a href="/mckenzie-friend-support" style={{ color: '#f8fafc', textDecoration: 'underline' }}>McKenzie friend support guide</a>, or the <a href="/case-law-search-uk" style={{ color: '#f8fafc', textDecoration: 'underline' }}>case-law search guide</a>.
+                New to self-representation? Start with the <a href="/litigant-in-person-uk" style={{ color: '#f8fafc', textDecoration: 'underline' }}>UK self-representation guide</a>, the <a href="/mckenzie-friend-support" style={{ color: '#f8fafc', textDecoration: 'underline' }}>McKenzie friend support guide</a>, or the <a href="/case-law-search-uk" style={{ color: '#f8fafc', textDecoration: 'underline' }}>case-law search guide</a>.
               </p>
             </div>
             <div style={{

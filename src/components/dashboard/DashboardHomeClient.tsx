@@ -381,14 +381,14 @@ export default function DashboardHomeClient({
               }}
             >
               <h2 style={{ margin: 0, fontSize: '1.08rem', fontWeight: 700, color: '#f8fafc' }}>
-                Congratulations, you have been verified and your dashboard is ready
+                Your workspace is ready
               </h2>
               <p style={{ margin: '8px 0 0', color: '#cbd5f5', lineHeight: 1.5, maxWidth: '760px' }}>
                 {trialStartPending && selectedPlanId
                   ? `Your email is verified and your tools are unlocked. We are starting your ${selectedPlanName} free trial now, and you can begin using the platform straight away.`
                   : selectedPlanId
                     ? `Your email is verified and your tools are unlocked. You can start using the platform now, and your ${selectedPlanName} plan will be ready as soon as billing is in place.`
-                  : 'Your email is verified and your tools are unlocked. You can start using the platform now and explore plans later if you want expanded features.'}
+                  : 'Your email is verified and your tools are unlocked. You can start using the platform now and explore paid plans later if you want expanded features.'}
               </p>
               <p style={{ margin: '10px 0 0', color: '#d1fae5', lineHeight: 1.45, fontWeight: 600 }}>
                 Billing and payment methods stay available whenever you decide to review them.
@@ -410,7 +410,7 @@ export default function DashboardHomeClient({
                     fontWeight: 700,
                   }}
                 >
-                  View plans
+                  Try for free
                 </Link>
                 <Link
                   href="/settings?tab=billing"

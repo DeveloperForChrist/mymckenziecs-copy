@@ -7,9 +7,9 @@ import { buildPageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = {
   ...buildPageMetadata({
-    title: 'Court Case Management Tool for Litigants in Person (UK)',
+    title: 'Court Case Management Tool for Self-Represented Litigants',
     description:
-      'Organise court documents, track deadlines, and prepare your case without a lawyer using MyMcKenzieCS, a court case management tool for UK litigants in person.',
+      'Organise court documents, track deadlines, and prepare your case without a lawyer using MyMcKenzieCS, a court case workspace for self-represented litigants in the UK and US.',
     path: '/',
   }),
 };
@@ -36,12 +36,12 @@ const commonProblems = [
 
 const whoItsFor = [
   {
-    title: 'Litigants in person in the UK',
-    text: 'People representing themselves in court without a solicitor or barrister running the case.',
+    title: 'Self-represented litigants in the UK and US',
+    text: 'People handling a court case without a lawyer formally running the matter for them.',
   },
   {
-    title: 'Small claims court users',
-    text: 'People handling county court money disputes, mediation, directions questionnaires, and hearing preparation.',
+    title: 'Small claims and civil court users',
+    text: 'People preparing for filings, hearings, mediation, evidence, and deadline-heavy case steps.',
   },
   {
     title: 'People managing court papers alone',
@@ -169,23 +169,22 @@ export default function HomePage() {
               <div className="grid grid-cols-1 xl:grid-cols-[1.03fr_0.97fr] gap-8 md:gap-10 items-center">
                 <div className="text-center xl:text-left">
                   <div className="text-xs md:text-sm font-medium uppercase tracking-[0.2em] text-white/70">
-                    For UK Litigants in Person
+                    For UK and US Self-Represented Litigants
                   </div>
                   <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white mt-5 leading-[1.05]">
-                    Court case management tool
+                    Court case management
                     <br />
-                    for litigants in person.
+                    for self-represented litigants.
                   </h1>
                   <p className="text-base md:text-xl text-white/85 mt-5 max-w-3xl mx-auto xl:mx-0 leading-relaxed">
-                    Organise court documents, track deadlines, and prepare your case with a structured workspace designed for
-                    people representing themselves in UK courts.
+                    Organise court documents, track deadlines, and prepare your case in one workspace for UK and U.S. legal matters.
                   </p>
                   <HeroActionButtons />
                   <div className="mt-5 flex flex-wrap justify-center gap-2 text-xs uppercase tracking-[0.16em] text-white/70 xl:justify-start">
-                    <span className="rounded-full border border-white/15 px-3 py-2">Small claims court UK</span>
-                    <span className="rounded-full border border-white/15 px-3 py-2">Witness statements</span>
-                    <span className="rounded-full border border-white/15 px-3 py-2">Directions questionnaires</span>
+                    <span className="rounded-full border border-white/15 px-3 py-2">Small claims</span>
                     <span className="rounded-full border border-white/15 px-3 py-2">Court documents</span>
+                    <span className="rounded-full border border-white/15 px-3 py-2">Evidence and notes</span>
+                    <span className="rounded-full border border-white/15 px-3 py-2">Deadlines and hearings</span>
                   </div>
                   <div className="mt-4 text-sm text-white/75">
                     Informational and court support only. Not legal advice.
@@ -246,7 +245,7 @@ export default function HomePage() {
             <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
               <div>
                 <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Who this is for</div>
-                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Built for people preparing a UK court case without a lawyer</h2>
+                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Built for people preparing a court case without a lawyer</h2>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
@@ -290,7 +289,7 @@ export default function HomePage() {
             <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
               <div>
                 <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Guides</div>
-                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Helpful guides for UK litigants in person</h2>
+                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Helpful guides for UK self-representation</h2>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -359,7 +358,7 @@ export default function HomePage() {
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <Link href="/litigant-in-person-uk" className="app-button-secondary">
-                    Read the litigant guide
+                    Learn the basics
                   </Link>
                   <Link href="/pricing" className="app-button-secondary">
                     Compare plans

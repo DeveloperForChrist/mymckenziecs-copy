@@ -23,7 +23,7 @@ export default function SignInPage() {
             <div>
               <h1 className={styles.heroTitle}>Pick up where you left off.</h1>
               <p className={styles.heroCopy}>
-                Review your notes, keep the conversation moving, and stay aligned with court deadlines.
+                Review your notes, continue your case plan, and stay aligned with deadlines and documents.
               </p>
               <div className={styles.heroList}>
                 <div className={styles.heroListItem}>
@@ -36,7 +36,7 @@ export default function SignInPage() {
                 </div>
                 <div className={styles.heroListItem}>
                   <span>03</span>
-                  <div>Ready to scale up? Explore Basic, Premium, and Premium + plans.</div>
+                  <div>Need more support? Add Basic, Premium, or Premium + anytime.</div>
                 </div>
               </div>
             </div>
@@ -50,7 +50,7 @@ export default function SignInPage() {
             <div>
               <h2 className={styles.formTitle}>Welcome back</h2>
               <p className={styles.formSubtitle}>
-                Sign in to resume your case workspace and review updated notes.
+                Sign in to resume your workspace and continue preparing your legal matter.
               </p>
             </div>
             <Suspense fallback={<div className={styles.formSubtitle}>Loading sign in form...</div>}>
@@ -58,8 +58,8 @@ export default function SignInPage() {
             </Suspense>
             <p className={styles.footnote}>
               Don&apos;t have an account?{' '}
-              <a href="/pricing" className={styles.inlineLink}>
-                Register
+              <a href="/auth/signup" className={styles.inlineLink}>
+                Try for free
               </a>
             </p>
           </section>

@@ -7,13 +7,13 @@ export default function HeroActionButtons() {
         href="/pricing"
         className="app-button-secondary text-base sm:text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
       >
-        Choose plan
+        Try for free
       </Link>
       <Link
-        href="/workspace"
+        href="/legal-case-management-tool"
         className="app-button-secondary text-base sm:text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
       >
-        Open workspace
+        How it works
       </Link>
     </div>
   );
