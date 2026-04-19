@@ -16,6 +16,7 @@ import { z } from 'zod';
 import { captureServerException } from '@/lib/monitoring/error-logger';
 import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { hasCaseLawAccess } from '@/lib/plans/access';
+import { getUserLegalContext, isCaseLawAvailableForLegalContext } from '@/lib/legal/user-context';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -43,6 +44,14 @@ export async function POST(req: NextRequest) {
     const { data: authData, error: authError } = await supabase.auth.getUser();
     if (authError || !authData?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const legalContext = await getUserLegalContext(authData.user.id, authData.user.user_metadata as any);
+    if (!isCaseLawAvailableForLegalContext(legalContext)) {
+      return NextResponse.json(
+        { error: 'Case law study is not available for U.S. legal matters yet.' },
+        { status: 403 }
+      );
     }
 
     const snapshot = await getOrSyncUserEntitlementSnapshot(authData.user.id);

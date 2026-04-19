@@ -4,6 +4,7 @@ import { OpenAI } from 'openai';
 import { aiIpRateLimiter, aiRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { hasCaseLawAccess } from '@/lib/plans/access';
+import { getUserLegalContext, isCaseLawAvailableForLegalContext } from '@/lib/legal/user-context';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -20,6 +21,13 @@ export async function POST(request: Request) {
     const { data: authData, error: authError } = await supabase.auth.getUser();
     if (authError || !authData?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const legalContext = await getUserLegalContext(authData.user.id, authData.user.user_metadata as any);
+    if (!isCaseLawAvailableForLegalContext(legalContext)) {
+      return NextResponse.json(
+        { error: 'Case law study chat is not available for U.S. legal matters yet.' },
+        { status: 403 }
+      );
     }
     const planLabel = await resolveActivePlan(authData.user.id);
     if (!planLabel) {

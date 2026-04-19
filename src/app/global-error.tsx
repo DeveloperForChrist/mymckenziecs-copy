@@ -91,8 +91,8 @@ export default function GlobalError({
             >
               Go to homepage
             </Link>
-            <a
-              href="mailto:jordan@lenjordan.tech"
+            <Link
+              href="/contact"
               style={{
                 borderRadius: '10px',
                 padding: '10px 16px',
@@ -103,7 +103,7 @@ export default function GlobalError({
               }}
             >
               Contact support
-            </a>
+            </Link>
           </div>
 
           {error.digest ? (

@@ -582,6 +582,9 @@ export default function PricingPageClient() {
               <p style={{ marginTop: '14px', color: '#fde68a', fontSize: '0.98rem', fontWeight: 700 }}>
                 Your first paid subscription starts with 7 days free.
               </p>
+              <p style={{ marginTop: '14px', color: '#bfdbfe', fontSize: '0.95rem', maxWidth: '560px', lineHeight: 1.6 }}>
+                UK case-law tools are available now. U.S. case-law database access will be introduced soon.
+              </p>
               <p style={{ marginTop: '14px', color: '#cbd5f5', fontSize: '0.95rem' }}>
                 Not sure where to start? <a href="/faq" style={{ color: '#f8fafc', textDecoration: 'underline' }}>Read the plan FAQ</a>
               </p>

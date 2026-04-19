@@ -34,6 +34,7 @@ type DashboardHomeClientProps = {
   initialNextBillingDate?: string | null;
   initialHasStripeCustomer?: boolean;
   initialCancelAtPeriodEnd?: boolean;
+  initialCaseLawAvailable?: boolean;
   initialPlanLoaded?: boolean;
 };
 
@@ -44,6 +45,7 @@ export default function DashboardHomeClient({
   initialNextBillingDate = null,
   initialHasStripeCustomer = false,
   initialCancelAtPeriodEnd = false,
+  initialCaseLawAvailable = false,
   initialPlanLoaded = false,
 }: DashboardHomeClientProps = {}) {
   const searchParams = useSearchParams();
@@ -63,7 +65,7 @@ export default function DashboardHomeClient({
   const [trialReminderDismissed, setTrialReminderDismissed] = useState(false);
   const trialStartAttemptedRef = useRef(false);
 
-  const hasCaseLawFeature = hasCaseLawAccess(plan);
+  const hasCaseLawFeature = initialCaseLawAvailable && hasCaseLawAccess(plan);
   const normalizedPlanStatus = planStatus.trim().toLowerCase();
   const isPastDueStatus = normalizedPlanStatus === 'past_due';
   const isTrialingStatus = isTrialingStripeStatus(normalizedPlanStatus);

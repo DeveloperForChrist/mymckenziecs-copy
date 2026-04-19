@@ -10,6 +10,7 @@ import { searchCaseLawWithFallback } from '@/lib/case-law/runtime-search';
 import { captureServerException } from '@/lib/monitoring/error-logger';
 import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { hasCaseLawAccess } from '@/lib/plans/access';
+import { getUserLegalContext, isCaseLawAvailableForLegalContext } from '@/lib/legal/user-context';
 
 const caseLawRequestSchema = z.object({
   query: z.string(),
@@ -36,6 +37,14 @@ export async function POST(request: NextRequest) {
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const legalContext = await getUserLegalContext(userId, authData.user.user_metadata as any);
+    if (!isCaseLawAvailableForLegalContext(legalContext)) {
+      return NextResponse.json(
+        { error: 'Case law search is not available for U.S. legal matters yet.' },
+        { status: 403 }
+      );
     }
 
     const snapshot = await getOrSyncUserEntitlementSnapshot(userId);

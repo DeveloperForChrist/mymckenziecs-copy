@@ -199,7 +199,7 @@ export default function PrivacyPolicyPage() {
         </li>
         <li>
           <b>Contact Information</b>
-          <p className="mt-2">Lenjordan Ltd<br/>Email: jordan@lenjordan.tech<br/>Registered Office: 66 Chamberlain Way, Pinner HA5 2AT<br/>Data Protection Contact: privacy@mymckenziecs.com</p>
+          <p className="mt-2">Lenjordan Ltd<br/>Email: jordan@lenjordan.tech<br/>Registered Office: 66 Chamberlain Way, Pinner HA5 2AT<br/>Data Protection Contact: jordan@lenjordan.tech</p>
         </li>
       </ol>
     </LegalPageLayout>

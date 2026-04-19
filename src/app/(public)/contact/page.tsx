@@ -22,7 +22,7 @@ export default function ContactPage() {
           <p>
             Email: <a href="mailto:jordan@lenjordan.tech" className="text-blue-600 hover:underline">jordan@lenjordan.tech</a>
           </p>
-          <p className="mt-2">We respond in 1-2 business days.</p>
+          <p className="mt-2">We respond in 3-4 business days.</p>
         </section>
         <section>
           <h2 className="text-2xl font-semibold mb-2">Billing</h2>

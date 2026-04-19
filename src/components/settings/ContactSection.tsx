@@ -45,7 +45,7 @@ export default function ContactSection() {
 
   const planLabel = userPlan.toString();
   const hasPremiumPlusSupport = isPremiumPlusPlan(planLabel);
-  const responseTime = hasPremiumPlusSupport ? 'within 1-2 days' : 'within 2-3 days';
+  const responseTime = hasPremiumPlusSupport ? 'within 1-2 days' : 'within 3-4 days';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,8 +146,8 @@ export default function ContactSection() {
         <h2 className={styles.sectionHeading}>Other Ways to Reach Us</h2>
         <div className={styles.contactInfo}> 
           <div className={styles.contactItem}>
-            <strong>Email</strong>
-            <p>jordan@lenjordan.tech</p>
+            <strong>Contact page</strong>
+            <p>Use the public contact page if you need to send a direct support, billing, or privacy request.</p>
           </div>
           <div className={styles.contactItem}>
             <strong>Response Time</strong>

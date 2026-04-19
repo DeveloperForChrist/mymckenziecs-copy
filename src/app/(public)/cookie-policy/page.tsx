@@ -138,7 +138,7 @@ export default function CookiePolicyPage() {
         </li>
         <li>
           <b>Contact Information</b>
-          <p className="mt-2">Lenjordan Ltd<br/>Email: privacy@mymckenziecs.com<br/>Registered Office: 66 Chamberlain Way, Pinner HA5 2AT</p>
+          <p className="mt-2">Lenjordan Ltd<br/>Email: jordan@lenjordan.tech<br/>Registered Office: 66 Chamberlain Way, Pinner HA5 2AT</p>
         </li>
       </ol>
     </LegalPageLayout>

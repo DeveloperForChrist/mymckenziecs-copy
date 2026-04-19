@@ -1,0 +1,45 @@
+import { supabaseAdmin } from '@/lib/database/supabase-server'
+import {
+  isUnitedKingdomContext,
+  type SupportedCountryCode,
+  type UserLegalContext,
+} from '@/lib/legal/jurisdictions'
+
+type UserMetadataContext = {
+  country_code?: string | null
+  jurisdiction_code?: string | null
+  jurisdiction_label?: string | null
+} | null | undefined
+
+export async function getUserLegalContext(
+  userId: string,
+  fallbackMetadata?: UserMetadataContext
+): Promise<UserLegalContext> {
+  if (!userId) {
+    return {
+      countryCode: null,
+      jurisdictionCode: null,
+      jurisdictionLabel: null,
+    }
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('users')
+    .select('country_code, jurisdiction_code, jurisdiction_label')
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (error) {
+    console.error('Failed to load user legal context', error)
+  }
+
+  return {
+    countryCode: ((data as any)?.country_code || fallbackMetadata?.country_code || null) as SupportedCountryCode | null,
+    jurisdictionCode: (data as any)?.jurisdiction_code || fallbackMetadata?.jurisdiction_code || null,
+    jurisdictionLabel: (data as any)?.jurisdiction_label || fallbackMetadata?.jurisdiction_label || null,
+  }
+}
+
+export function isCaseLawAvailableForLegalContext(context?: UserLegalContext | null): boolean {
+  return isUnitedKingdomContext(context)
+}
