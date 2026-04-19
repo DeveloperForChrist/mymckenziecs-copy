@@ -1,4 +1,5 @@
 import { Tool } from "@langchain/core/tools";
+import type { SupportedCountryCode } from '@/lib/legal/jurisdictions';
 
 export type RetrievalMode = 'education' | 'procedure' | 'case_specific' | 'document_review' | 'general'
 export type SearchEngine = 'auto' | 'brave' | 'perplexity'
@@ -7,6 +8,7 @@ export type SearchToolInput = {
   query: string
   mode?: RetrievalMode
   engine?: SearchEngine
+  countryCode?: SupportedCountryCode
 }
 
 export type SearchToolOutput = {
@@ -28,6 +30,25 @@ type SearchCandidate = {
 
 type SearchToolOptions = {
   engine?: SearchEngine
+  countryCode?: SupportedCountryCode
+}
+
+const getSearchLocaleConfig = (countryCode?: SupportedCountryCode) => {
+  if (countryCode === 'US') {
+    return {
+      countryCode: 'US' as const,
+      braveLang: 'en',
+      braveHtmlLang: 'en_us',
+      acceptLanguage: 'en-US,en;q=0.9',
+    }
+  }
+
+  return {
+    countryCode: 'GB' as const,
+    braveLang: 'en',
+    braveHtmlLang: 'en_gb',
+    acceptLanguage: 'en-GB,en;q=0.9',
+  }
 }
 
 const SEARCH_SUBQUERY_LIMIT = 2
@@ -334,17 +355,18 @@ const getCuratedFallbackSources = (query: string, mode: RetrievalMode): SearchCa
   }).slice(0, 10)
 }
 
-const searchViaBraveApi = async (query: string): Promise<SearchCandidate[]> => {
+const searchViaBraveApi = async (query: string, countryCode?: SupportedCountryCode): Promise<SearchCandidate[]> => {
   const apiKey = process.env.BRAVE_SEARCH_API_KEY
   if (!apiKey) return []
 
   try {
     const encoded = encodeURIComponent(query)
-    const url = `https://api.search.brave.com/res/v1/web/search?q=${encoded}&count=${SEARCH_ENGINE_RESULT_LIMIT}&country=GB&search_lang=en`
+    const locale = getSearchLocaleConfig(countryCode)
+    const url = `https://api.search.brave.com/res/v1/web/search?q=${encoded}&count=${SEARCH_ENGINE_RESULT_LIMIT}&country=${locale.countryCode}&search_lang=${locale.braveLang}`
     const response = await fetchWithTimeout(url, SEARCH_ENGINE_TIMEOUT_MS, {
       headers: {
         'Accept': 'application/json',
-        'Accept-Language': 'en-GB,en;q=0.9',
+        'Accept-Language': locale.acceptLanguage,
         'X-Subscription-Token': apiKey
       }
     })
@@ -384,13 +406,14 @@ const searchViaBraveApi = async (query: string): Promise<SearchCandidate[]> => {
 }
 
 // Fallback: Brave search HTML
-const searchViaBraveHtml = async (query: string): Promise<SearchCandidate[]> => {
+const searchViaBraveHtml = async (query: string, countryCode?: SupportedCountryCode): Promise<SearchCandidate[]> => {
   try {
     const encoded = encodeURIComponent(query)
-    const url = `https://search.brave.com/search?q=${encoded}&source=web&country=GB&lang=en_gb`
+    const locale = getSearchLocaleConfig(countryCode)
+    const url = `https://search.brave.com/search?q=${encoded}&source=web&country=${locale.countryCode}&lang=${locale.braveHtmlLang}`
     const response = await fetchWithTimeout(url, SEARCH_ENGINE_TIMEOUT_MS, {
       headers: {
-        'Accept-Language': 'en-GB,en;q=0.9'
+        'Accept-Language': locale.acceptLanguage
       }
     })
     if (!response.ok) return []
@@ -502,7 +525,7 @@ const flattenPerplexityResults = (payload: any, queries: string[]): SearchCandid
   return candidates
 }
 
-const searchViaPerplexityApi = async (queries: string[]): Promise<SearchCandidate[]> => {
+const searchViaPerplexityApi = async (queries: string[], countryCode?: SupportedCountryCode): Promise<SearchCandidate[]> => {
   const apiKey = (process.env.PERPLEXITY_API_KEY || '').trim()
   if (!apiKey || queries.length === 0) return []
 
@@ -518,7 +541,7 @@ const searchViaPerplexityApi = async (queries: string[]): Promise<SearchCandidat
         query: queries.length === 1 ? queries[0] : queries,
         max_results: Math.min(PERPLEXITY_MAX_RESULTS, SEARCH_ENGINE_RESULT_LIMIT),
         max_tokens_per_page: PERPLEXITY_MAX_TOKENS_PER_PAGE,
-        country: 'GB',
+        country: getSearchLocaleConfig(countryCode).countryCode,
       }),
       signal: AbortSignal.timeout(SEARCH_ENGINE_TIMEOUT_MS),
     })
@@ -532,10 +555,10 @@ const searchViaPerplexityApi = async (queries: string[]): Promise<SearchCandidat
 }
 
 // Universal search - tries Brave API first, then Brave HTML.
-const universalSearch = async (query: string): Promise<SearchCandidate[]> => {
-  let results = await searchViaBraveApi(query)
+const universalSearch = async (query: string, countryCode?: SupportedCountryCode): Promise<SearchCandidate[]> => {
+  let results = await searchViaBraveApi(query, countryCode)
   if (results.length === 0) {
-    results = await searchViaBraveHtml(query)
+    results = await searchViaBraveHtml(query, countryCode)
   }
   return results
 }
@@ -544,10 +567,12 @@ export class SearchTool extends Tool {
   name = "legal_search";
   description = "Searches the internet for legal guidance, case law, and legal information from suitable sources.";
   private readonly engine: SearchEngine
+  private readonly countryCode: SupportedCountryCode
 
   constructor(options?: SearchToolOptions) {
     super()
     this.engine = options?.engine || 'auto'
+    this.countryCode = options?.countryCode || 'GB'
   }
 
   async _call(input: string): Promise<string> {
@@ -558,13 +583,14 @@ export class SearchTool extends Tool {
       const query = (parsed?.query || input || '').trim()
       const mode: RetrievalMode = parsed?.mode || 'general'
       const preferredEngine: SearchEngine = parsed?.engine || this.engine
+      const countryCode = parsed?.countryCode || this.countryCode
 
       const subQueries = buildSearchSubqueries(query, mode)
       let searchRuns: Array<{ subQuery: string; results: SearchCandidate[] }> = []
       let engineUsed: 'perplexity' | 'brave' | 'none' = 'none'
 
       if ((preferredEngine === 'perplexity' || preferredEngine === 'auto') && process.env.PERPLEXITY_API_KEY) {
-        const perplexityResults = await searchViaPerplexityApi(subQueries)
+        const perplexityResults = await searchViaPerplexityApi(subQueries, countryCode)
         if (perplexityResults.length > 0) {
           engineUsed = 'perplexity'
           searchRuns = [{
@@ -577,7 +603,7 @@ export class SearchTool extends Tool {
       if (searchRuns.length === 0) {
         searchRuns = await Promise.all(
           subQueries.map(async (subQuery) => {
-            const results = await universalSearch(subQuery)
+            const results = await universalSearch(subQuery, countryCode)
             return {
               subQuery,
               results: results.map((result) => ({ ...result, fromQuery: subQuery })),

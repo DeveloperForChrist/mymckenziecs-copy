@@ -97,15 +97,54 @@ export async function POST(req: Request) {
 
     const { data: subscriptionRow } = await supabaseAdmin
       .from('subscriptions')
-      .select('stripe_subscription_id, status')
+      .select('id, stripe_subscription_id, status, plan_type, current_period_end, cancel_at_period_end')
       .eq('user_id', authUid)
-      .not('stripe_subscription_id', 'is', null)
       .in('status', [...CHANGEABLE_STATUSES])
       .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
     const stripeSubscriptionId = subscriptionRow?.stripe_subscription_id || null;
+    if (!stripeSubscriptionId && String(subscriptionRow?.status || '').toLowerCase() === 'trialing') {
+      const currentPlan = String(subscriptionRow?.plan_type || 'No plan');
+      const targetPlan = normalizePlanTypeFromPrice(requestedPriceId);
+
+      if (currentPlan === targetPlan) {
+        return NextResponse.json({
+          ok: true,
+          changeTiming: 'unchanged',
+          currentPlan,
+          targetPlan,
+        });
+      }
+
+      const { error: updateError } = await supabaseAdmin
+        .from('subscriptions')
+        .update({
+          plan_type: targetPlan,
+          scheduled_plan_type: null,
+          scheduled_change_at: null,
+          cancel_at_period_end: Boolean(subscriptionRow?.cancel_at_period_end),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', subscriptionRow?.id);
+
+      if (updateError) {
+        console.error('Change plan: failed to update local trial plan', updateError);
+        return NextResponse.json({ error: 'Failed to update trial plan' }, { status: 500 });
+      }
+
+      await syncUserEntitlementSnapshot(authUid);
+      invalidateUserPlanCache(authUid);
+      return NextResponse.json({
+        ok: true,
+        changeTiming: 'immediate',
+        currentPlan,
+        targetPlan,
+        effectiveDate: subscriptionRow?.current_period_end || null,
+      });
+    }
+
     if (!stripeSubscriptionId) {
       return NextResponse.json({ error: 'No active paid subscription found' }, { status: 404 });
     }

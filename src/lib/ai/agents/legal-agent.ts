@@ -8,6 +8,13 @@ import { neutralizeLegalAdviceTone } from './legal-tone';
 import { searchCaseLawWithFallback } from '@/lib/case-law/runtime-search';
 import { getBasicDailyWebSearchLimitReachedNotice } from '@/lib/payments/web-search-usage';
 import { logClaudeUsage } from '@/lib/utils/claude-usage';
+import {
+  buildJurisdictionSearchSuffix,
+  getLegalSystemDescriptor,
+  getSearchCountryCode,
+  isUnitedKingdomContext,
+  type UserLegalContext,
+} from '@/lib/legal/jurisdictions';
 
 // Shared legal-support system prompts
 const SYSTEM_PROMPT: string = `
@@ -252,6 +259,7 @@ type LegalAgentOptions = {
   autoDecideSearch?: boolean
   caseAccessUserId?: string
   systemPrompt?: string
+  legalContext?: UserLegalContext
   includeCitations?: boolean
   memoryContext?: string
   historyLimit?: number
@@ -268,6 +276,42 @@ type LegalAgentOptions = {
   consumeSearchQuota?: () => Promise<SearchQuotaResult>
   targetTokensFloor?: number
   maxTokensCap?: number
+}
+
+const buildJurisdictionSystemPrefix = (legalContext?: UserLegalContext | null) => {
+  if (isUnitedKingdomContext(legalContext)) {
+    return ''
+  }
+
+  if (legalContext?.countryCode === 'US') {
+    const descriptor = getLegalSystemDescriptor(legalContext)
+    return `JURISDICTION FOCUS
+- The user's legal matter is in the ${descriptor}.
+- Treat the user as a self-represented litigant in the United States, not a UK litigant in person.
+- Do not rely on UK procedure, UK courts, UK statutes, UK case citations, or UK terminology unless the user explicitly asks for comparison.
+- Keep explanations anchored to the user's stated U.S. state or district where possible, and be explicit when a point may vary between states or between state and federal procedure.
+`
+  }
+
+  return `JURISDICTION FOCUS
+- The user's exact legal jurisdiction may vary.
+- Do not assume UK-only procedure or authorities unless the user clearly indicates a UK matter.
+- If jurisdiction matters and is unclear, ask a short clarifying question before giving jurisdiction-specific procedural guidance.
+`
+}
+
+const applyLegalContextToSystemPrompt = (basePrompt: string, legalContext?: UserLegalContext | null) => {
+  const prefix = buildJurisdictionSystemPrefix(legalContext)
+  return prefix ? `${prefix}\n${basePrompt}` : basePrompt
+}
+
+const buildJurisdictionAwareSearchQuery = (query: string, legalContext?: UserLegalContext | null) => {
+  const baseQuery = String(query || '').trim()
+  if (!baseQuery) return ''
+  const suffix = buildJurisdictionSearchSuffix(legalContext)
+  if (!suffix) return baseQuery
+  if (baseQuery.toLowerCase().includes(suffix.toLowerCase())) return baseQuery
+  return truncateText(`${baseQuery} ${suffix}`, 260)
 }
 
 // Sanitize history
@@ -1009,7 +1053,11 @@ export async function createLegalAgent(
 
   const trimmedHistory = sanitizeConversationHistory(fullHistory, resolveConversationHistoryLimit(options?.historyLimit))
   const tools = [new DocGeneratorTool()]
-  const systemPrompt = options?.systemPrompt || PREMIUM_CONTEXT_SYSTEM_PROMPT
+  const legalContext = options?.legalContext
+  const systemPrompt = applyLegalContextToSystemPrompt(
+    options?.systemPrompt || PREMIUM_CONTEXT_SYSTEM_PROMPT,
+    legalContext
+  )
   const memoryContext = typeof options?.memoryContext === 'string' && options.memoryContext.trim()
     ? `${options.memoryContext.trim()}\n\n`
     : ''
@@ -1082,10 +1130,10 @@ export async function createLegalAgent(
         const fallbackSearchMode: LegalSearchMode = searchModeOverride || (isDefinitionQuery(latestQuestion) ? 'education' : 'general')
         let shouldUseSearch = explicitUseSearch ?? true
         let resolvedSearchMode = fallbackSearchMode
-        let resolvedSearchQuery = buildSearchQueryWithCaseContext(
+        let resolvedSearchQuery = buildJurisdictionAwareSearchQuery(buildSearchQueryWithCaseContext(
           searchQueryOverride || latestQuestion,
           caseKeywords
-        )
+        ), legalContext)
         let basicDailySearchNotice = ''
 
         if (autoDecideSearch) {
@@ -1103,10 +1151,10 @@ export async function createLegalAgent(
           })
           shouldUseSearch = premiumSearchDecision.useSearch
           resolvedSearchMode = searchModeOverride || premiumSearchDecision.searchMode
-          resolvedSearchQuery = buildSearchQueryWithCaseContext(
+          resolvedSearchQuery = buildJurisdictionAwareSearchQuery(buildSearchQueryWithCaseContext(
             searchQueryOverride || premiumSearchDecision.searchQuery || latestQuestion,
             caseKeywords
-          )
+          ), legalContext)
         }
 
         if (shouldUseSearch && options?.consumeSearchQuota) {
@@ -1151,8 +1199,16 @@ export async function createLegalAgent(
         const mode: LegalSearchMode = resolvedSearchMode
 
         // Perform comprehensive search for all relevant information.
-        const searchTool = new SearchTool({ engine: searchEngineOverride })
-        const searchPayload = JSON.stringify({ query: resolvedSearchQuery, mode, engine: searchEngineOverride })
+        const searchTool = new SearchTool({
+          engine: searchEngineOverride,
+          countryCode: getSearchCountryCode(legalContext),
+        })
+        const searchPayload = JSON.stringify({
+          query: resolvedSearchQuery,
+          mode,
+          engine: searchEngineOverride,
+          countryCode: getSearchCountryCode(legalContext),
+        })
         const searchResult = await searchTool._call(searchPayload)
 
         let sources: string[] = []
@@ -1292,6 +1348,7 @@ export async function invokePremiumLegalAgent(
     searchQueryOverride?: string
     searchModeOverride?: LegalSearchMode
     searchEngineOverride?: SearchEngine
+    legalContext?: UserLegalContext
     openaiModel?: string
     openaiFallbackModel?: string
     maxTokens?: number
@@ -1313,6 +1370,7 @@ export async function invokePremiumLegalAgent(
     searchQueryOverride: options?.searchQueryOverride,
     searchModeOverride: options?.searchModeOverride,
     searchEngineOverride: options?.searchEngineOverride || 'brave',
+    legalContext: options?.legalContext,
   })
 }
 
@@ -1330,6 +1388,7 @@ export async function invokePremiumLegalAgentStream(
     searchQueryOverride?: string
     searchModeOverride?: LegalSearchMode
     searchEngineOverride?: SearchEngine
+    legalContext?: UserLegalContext
     openaiModel?: string
     openaiFallbackModel?: string
     maxTokens?: number
@@ -1350,7 +1409,7 @@ export async function invokePremiumLegalAgentStream(
   }
 
   const trimmedHistory = sanitizeConversationHistory(conversationHistory, resolveConversationHistoryLimit(options?.historyLimit))
-  const systemPrompt = PREMIUM_CONTEXT_SYSTEM_PROMPT
+  const systemPrompt = applyLegalContextToSystemPrompt(PREMIUM_CONTEXT_SYSTEM_PROMPT, options?.legalContext)
   const memoryContext = typeof options?.memoryContext === 'string' && options.memoryContext.trim()
     ? `${options.memoryContext.trim()}\n\n`
     : ''
@@ -1526,10 +1585,10 @@ export async function invokePremiumLegalAgentStream(
   const fallbackSearchMode: LegalSearchMode = searchModeOverride || (isDefinitionQuery(latestQuestion) ? 'education' : 'general')
   let shouldUseSearch = explicitUseSearch ?? true
   let resolvedSearchMode = fallbackSearchMode
-  let resolvedSearchQuery = buildSearchQueryWithCaseContext(
+  let resolvedSearchQuery = buildJurisdictionAwareSearchQuery(buildSearchQueryWithCaseContext(
     searchQueryOverride || latestQuestion,
     caseKeywords
-  )
+  ), options?.legalContext)
 
   emitStatus('Thinking...')
   if (autoDecideSearch) {
@@ -1547,10 +1606,10 @@ export async function invokePremiumLegalAgentStream(
     })
     shouldUseSearch = premiumSearchDecision.useSearch
     resolvedSearchMode = searchModeOverride || premiumSearchDecision.searchMode
-    resolvedSearchQuery = buildSearchQueryWithCaseContext(
+    resolvedSearchQuery = buildJurisdictionAwareSearchQuery(buildSearchQueryWithCaseContext(
       searchQueryOverride || premiumSearchDecision.searchQuery || latestQuestion,
       caseKeywords
-    )
+    ), options?.legalContext)
   }
 
   if (!shouldUseSearch) {
@@ -1568,8 +1627,16 @@ export async function invokePremiumLegalAgentStream(
 
   const mode: LegalSearchMode = resolvedSearchMode
 
-  const searchTool = new SearchTool({ engine: searchEngineOverride })
-  const searchPayload = JSON.stringify({ query: resolvedSearchQuery, mode, engine: searchEngineOverride })
+  const searchTool = new SearchTool({
+    engine: searchEngineOverride,
+    countryCode: getSearchCountryCode(options?.legalContext),
+  })
+  const searchPayload = JSON.stringify({
+    query: resolvedSearchQuery,
+    mode,
+    engine: searchEngineOverride,
+    countryCode: getSearchCountryCode(options?.legalContext),
+  })
   emitStatus('Checking web sources...')
   const searchResult = await searchTool._call(searchPayload)
 
@@ -1943,6 +2010,7 @@ const buildPremiumPlusContextLines = (options: {
   memoryContext?: string
   historyLimit?: number
   latestQuestion?: string
+  legalContext?: UserLegalContext
 }) => {
   const trimmedHistory = sanitizeConversationHistory(
     options.conversationHistory,
@@ -1970,11 +2038,13 @@ const buildPremiumPlusDirectSystemPrompt = (options: {
   memoryContext?: string
   historyLimit?: number
   latestQuestion?: string
+  legalContext?: UserLegalContext
 }) => {
   const contextLines = buildPremiumPlusContextLines(options)
-  return contextLines.length > 0
+  const basePrompt = contextLines.length > 0
     ? `${PREMIUM_CONTEXT_SYSTEM_PROMPT}\n\nContext\n${contextLines.join('\n\n')}`
     : PREMIUM_CONTEXT_SYSTEM_PROMPT
+  return applyLegalContextToSystemPrompt(basePrompt, options.legalContext)
 }
 
 const shouldPreferPremiumPlusDirectAnswer = (rawQuestion: string) => {
@@ -2100,10 +2170,19 @@ const mapPremiumPlusCaseLawItem = (row: any, index: number) => {
 const executePremiumPlusWebSearch = async (
   query: string,
   mode: LegalSearchMode,
-  engine: SearchEngine
+  engine: SearchEngine,
+  legalContext?: UserLegalContext
 ): Promise<PremiumPlusToolExecutionResult> => {
-  const searchTool = new SearchTool({ engine })
-  const searchPayload = JSON.stringify({ query, mode, engine })
+  const searchTool = new SearchTool({
+    engine,
+    countryCode: getSearchCountryCode(legalContext),
+  })
+  const searchPayload = JSON.stringify({
+    query: buildJurisdictionAwareSearchQuery(query, legalContext),
+    mode,
+    engine,
+    countryCode: getSearchCountryCode(legalContext),
+  })
   const raw = await searchTool._call(searchPayload)
   const parsed = JSON.parse(raw) as SearchToolOutput
   const sources = Array.isArray(parsed.sources) ? parsed.sources.filter((item): item is string => typeof item === 'string') : []
@@ -2121,8 +2200,15 @@ const executePremiumPlusWebSearch = async (
 const executePremiumPlusCaseLawSearch = async (
   query: string,
   scope: 'suggestions' | 'analysis' | 'both',
-  limit: number
+  limit: number,
+  legalContext?: UserLegalContext
 ): Promise<PremiumPlusToolExecutionResult> => {
+  if (!isUnitedKingdomContext(legalContext)) {
+    return {
+      content: 'Case-law retrieval is currently configured for UK authorities only. For this user, rely on jurisdiction-aware web sources and explain that U.S. authority coverage is still limited.',
+    }
+  }
+
   const runtimeSearch = await searchCaseLawWithFallback(query, Math.max(6, limit * 3))
   const rawResults = runtimeSearch.results
 
@@ -2156,13 +2242,14 @@ const executePremiumPlusCaseLawSearch = async (
 const executePremiumPlusToolCall = async (
   toolName: string,
   args: Record<string, any>,
-  searchEngineOverride: SearchEngine
+  searchEngineOverride: SearchEngine,
+  legalContext?: UserLegalContext
 ): Promise<PremiumPlusToolExecutionResult> => {
   if (toolName === 'web_search') {
     const query = String(args.query || '').trim()
     const mode = normalizeLegalSearchMode(args.mode) || 'general'
     if (!query) return { content: 'Web search was skipped because no query was provided.' }
-    return executePremiumPlusWebSearch(query, mode, searchEngineOverride)
+    return executePremiumPlusWebSearch(query, mode, searchEngineOverride, legalContext)
   }
 
   if (toolName === 'case_law_search') {
@@ -2175,7 +2262,7 @@ const executePremiumPlusToolCall = async (
       ? Math.max(1, Math.min(5, Math.floor(Number(args.limit))))
       : 3
     if (!query) return { content: 'Case-law search was skipped because no query was provided.' }
-    return executePremiumPlusCaseLawSearch(query, scope, limit)
+    return executePremiumPlusCaseLawSearch(query, scope, limit, legalContext)
   }
 
   return {
@@ -2516,6 +2603,7 @@ const runPremiumPlusToolLoop = async (
     anthropicModel: string
     anthropicFallbackModel: string
     searchEngineOverride: SearchEngine
+    legalContext?: UserLegalContext
     conversationHistory?: Array<{ role: string; content: string }>
     caseKeywords?: string
     memoryContext?: string
@@ -2528,7 +2616,10 @@ const runPremiumPlusToolLoop = async (
     ...options,
     latestQuestion: prompt,
   })
-  const systemPrompt = buildPremiumPlusAnthropicSystemPrompt(contextLines)
+  const systemPrompt = applyLegalContextToSystemPrompt(
+    buildPremiumPlusAnthropicSystemPrompt(contextLines),
+    options.legalContext
+  )
   const messages: PremiumPlusAnthropicMessage[] = [{ role: 'user', content: prompt }]
   const aggregatedSources: string[] = []
   const usedTools: string[] = []
@@ -2574,7 +2665,7 @@ const runPremiumPlusToolLoop = async (
     const executedToolResults = await Promise.all(
       toolUses.map(async (toolUse) => ({
         toolUse,
-        result: await executePremiumPlusToolCall(toolUse.name, toolUse.input, options.searchEngineOverride),
+        result: await executePremiumPlusToolCall(toolUse.name, toolUse.input, options.searchEngineOverride, options.legalContext),
       }))
     )
 
@@ -2616,6 +2707,7 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
     openaiModel: string
     openaiFallbackModel: string
     searchEngineOverride: SearchEngine
+    legalContext?: UserLegalContext
     conversationHistory?: Array<{ role: string; content: string }>
     caseKeywords?: string
     memoryContext?: string
@@ -2630,11 +2722,12 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
       sources: [],
       directResponse: '',
       toolsUsed: [],
-      systemPrompt: buildPremiumPlusAnthropicSystemPrompt(
-        buildPremiumPlusContextLines({
+      systemPrompt: applyLegalContextToSystemPrompt(
+        buildPremiumPlusAnthropicSystemPrompt(buildPremiumPlusContextLines({
           ...options,
           latestQuestion: prompt,
-        })
+        })),
+        options.legalContext
       ),
     }
   }
@@ -2644,7 +2737,10 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
     ...options,
     latestQuestion: prompt,
   })
-  const systemPrompt = buildPremiumPlusAnthropicSystemPrompt(contextLines)
+  const systemPrompt = applyLegalContextToSystemPrompt(
+    buildPremiumPlusAnthropicSystemPrompt(contextLines),
+    options.legalContext
+  )
   const messages: PremiumPlusAnthropicMessage[] = [{ role: 'user', content: prompt }]
   const aggregatedSources: string[] = []
   const usedTools: string[] = []
@@ -2824,7 +2920,12 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
     const executedToolResults: Array<{ toolUse: { id: string; name: string; input: Record<string, any> }; result: PremiumPlusToolExecutionResult }> = await Promise.all(
       normalizedToolCalls.map(async (toolUse: { id: string; name: string; input: Record<string, any> }) => {
         try {
-          const result = await executePremiumPlusToolCall(toolUse.name, toolUse.input, options.searchEngineOverride)
+          const result = await executePremiumPlusToolCall(
+            toolUse.name,
+            toolUse.input,
+            options.searchEngineOverride,
+            options.legalContext
+          )
           return { toolUse, result }
         } catch (error: any) {
           return {
@@ -2883,6 +2984,7 @@ export async function invokePremiumPlusLegalAgent(
     searchQueryOverride?: string
     searchModeOverride?: LegalSearchMode
     searchEngineOverride?: SearchEngine
+    legalContext?: UserLegalContext
     anthropicModel?: string
     anthropicFallbackModel?: string
     openaiFallbackModel?: string
@@ -2943,6 +3045,7 @@ export async function invokePremiumPlusLegalAgent(
             caseKeywords,
             memoryContext: options?.memoryContext,
             historyLimit: options?.historyLimit,
+            legalContext: options?.legalContext,
             latestQuestion: message,
           }),
           openAiFallbackModel,
@@ -2958,6 +3061,7 @@ export async function invokePremiumPlusLegalAgent(
           caseKeywords,
           memoryContext: options?.memoryContext,
           historyLimit: options?.historyLimit,
+          legalContext: options?.legalContext,
         })
 
     return {
@@ -2976,6 +3080,7 @@ export async function invokePremiumPlusLegalAgent(
         openaiModel: openAiFallbackModel,
         openaiFallbackModel: openAiFallbackModel,
         searchEngineOverride: options?.searchEngineOverride || 'perplexity',
+        legalContext: options?.legalContext,
         conversationHistory,
         caseKeywords,
         memoryContext: options?.memoryContext,
@@ -2985,6 +3090,7 @@ export async function invokePremiumPlusLegalAgent(
         anthropicModel,
         anthropicFallbackModel,
         searchEngineOverride: options?.searchEngineOverride || 'perplexity',
+        legalContext: options?.legalContext,
         conversationHistory,
         caseKeywords,
         memoryContext: options?.memoryContext,
@@ -3019,6 +3125,7 @@ export async function invokePremiumPlusLegalAgent(
         caseKeywords,
         memoryContext: options?.memoryContext,
         historyLimit: options?.historyLimit,
+        legalContext: options?.legalContext,
         latestQuestion: message,
       }),
       model: openAiFallbackModel,
@@ -3110,6 +3217,7 @@ export async function invokePremiumPlusLegalAgentStream(
     searchQueryOverride?: string
     searchModeOverride?: LegalSearchMode
     searchEngineOverride?: SearchEngine
+    legalContext?: UserLegalContext
     anthropicModel?: string
     anthropicFallbackModel?: string
     openaiFallbackModel?: string
@@ -3181,6 +3289,7 @@ export async function invokePremiumPlusLegalAgentStream(
             caseKeywords,
             memoryContext: options?.memoryContext,
             historyLimit: options?.historyLimit,
+            legalContext: options?.legalContext,
             latestQuestion: message,
           }),
           openAiFallbackModel,
@@ -3196,6 +3305,7 @@ export async function invokePremiumPlusLegalAgentStream(
           caseKeywords,
           memoryContext: options?.memoryContext,
           historyLimit: options?.historyLimit,
+          legalContext: options?.legalContext,
           maxTokens: options?.maxTokens,
           onToken: options?.onToken,
         })
@@ -3220,6 +3330,7 @@ export async function invokePremiumPlusLegalAgentStream(
         openaiModel: openAiFallbackModel,
         openaiFallbackModel: openAiFallbackModel,
         searchEngineOverride: options?.searchEngineOverride || 'perplexity',
+        legalContext: options?.legalContext,
         conversationHistory,
         caseKeywords,
         memoryContext: options?.memoryContext,
@@ -3230,6 +3341,7 @@ export async function invokePremiumPlusLegalAgentStream(
         anthropicModel,
         anthropicFallbackModel,
         searchEngineOverride: options?.searchEngineOverride || 'perplexity',
+        legalContext: options?.legalContext,
         conversationHistory,
         caseKeywords,
         memoryContext: options?.memoryContext,
@@ -3268,6 +3380,7 @@ export async function invokePremiumPlusLegalAgentStream(
             caseKeywords,
             memoryContext: options?.memoryContext,
             historyLimit: options?.historyLimit,
+            legalContext: options?.legalContext,
             latestQuestion: message,
           }),
           model: openAiFallbackModel,
@@ -3332,6 +3445,7 @@ export async function invokeBasicLegalAgent(
     searchQueryOverride?: string
     searchModeOverride?: LegalSearchMode
     searchEngineOverride?: SearchEngine
+    legalContext?: UserLegalContext
     consumeSearchQuota?: () => Promise<SearchQuotaResult>
   }
 ): Promise<{
@@ -3347,7 +3461,8 @@ export async function invokeBasicLegalAgent(
     autoDecideSearch: options?.autoDecideSearch ?? options?.useSearch === undefined,
     includeCitations: true,
     caseAccessUserId: userId,
-    systemPrompt: SYSTEM_PROMPT_FREE,
+    systemPrompt: applyLegalContextToSystemPrompt(SYSTEM_PROMPT_FREE, options?.legalContext),
+    legalContext: options?.legalContext,
     memoryContext: options?.memoryContext,
     historyLimit: options?.historyLimit,
     searchQueryOverride: options?.searchQueryOverride,

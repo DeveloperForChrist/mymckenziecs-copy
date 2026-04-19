@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import { hasCaseLawAccess } from '@/lib/plans/access';
 import { isTrialingStripeStatus } from '@/lib/payments/subscription-status';
 import { PLAN_PRICES } from '@/constants';
+import InAppPaymentMethodModal from '@/components/settings/InAppPaymentMethodModal';
 
 function formatDateLabel(value?: string | null) {
   if (!value) return '';
@@ -19,11 +20,20 @@ function formatDateLabel(value?: string | null) {
   }).format(date);
 }
 
+function daysUntil(value?: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return Math.ceil((date.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+}
+
 type DashboardHomeClientProps = {
   initialEmailVerified?: boolean;
   initialPlan?: string;
   initialPlanStatus?: string;
   initialNextBillingDate?: string | null;
+  initialHasStripeCustomer?: boolean;
+  initialCancelAtPeriodEnd?: boolean;
   initialPlanLoaded?: boolean;
 };
 
@@ -32,6 +42,8 @@ export default function DashboardHomeClient({
   initialPlan = 'No plan',
   initialPlanStatus = 'inactive',
   initialNextBillingDate = null,
+  initialHasStripeCustomer = false,
+  initialCancelAtPeriodEnd = false,
   initialPlanLoaded = false,
 }: DashboardHomeClientProps = {}) {
   const searchParams = useSearchParams();
@@ -40,10 +52,16 @@ export default function DashboardHomeClient({
   const [plan, setPlan] = useState<string>(initialPlan);
   const [planStatus, setPlanStatus] = useState<string>(initialPlanStatus);
   const [nextBillingDate, setNextBillingDate] = useState<string | null>(initialNextBillingDate);
+  const [hasStripeCustomer, setHasStripeCustomer] = useState(Boolean(initialHasStripeCustomer));
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(Boolean(initialCancelAtPeriodEnd));
   const [planLoaded, setPlanLoaded] = useState(Boolean(initialPlanLoaded));
   const [calendarAlertCount, setCalendarAlertCount] = useState(0);
-  const [activationPending, setActivationPending] = useState(false);
-  const [activationError, setActivationError] = useState<string | null>(null);
+  const [trialStartPending, setTrialStartPending] = useState(false);
+  const [trialStartError, setTrialStartError] = useState<string | null>(null);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [paymentSaveMessage, setPaymentSaveMessage] = useState<string | null>(null);
+  const [trialReminderDismissed, setTrialReminderDismissed] = useState(false);
+  const trialStartAttemptedRef = useRef(false);
 
   const hasCaseLawFeature = hasCaseLawAccess(plan);
   const normalizedPlanStatus = planStatus.trim().toLowerCase();
@@ -54,19 +72,39 @@ export default function DashboardHomeClient({
     normalizedPlanStatus === 'trialing' ||
     normalizedPlanStatus === 'past_due';
   const selectedPlanId = (searchParams?.get('activatePlan') || '').trim();
-  const postVerificationRedirect = selectedPlanId
-    ? `/dashboard?activatePlan=${encodeURIComponent(selectedPlanId)}`
-    : '/dashboard';
   const selectedPlanName =
     PLAN_PRICES.find((entry) => entry.priceId === selectedPlanId)?.name || 'your selected plan';
-  const showVerificationBanner = planLoaded && !emailVerified;
-  const showActivationBanner = planLoaded && emailVerified && !hasPaidAccess;
-  const featureAccessLocked = planLoaded && !emailVerified;
-  const accessLockLabel = 'Verify email first';
+  const showActivationBanner = planLoaded && emailVerified && (!hasPaidAccess || trialStartPending || Boolean(trialStartError));
+  const trialDaysLeft = isTrialingStatus ? daysUntil(nextBillingDate) : null;
+  const showTrialBillingReminderBanner =
+    isTrialingStatus &&
+    !hasStripeCustomer &&
+    !cancelAtPeriodEnd &&
+    typeof trialDaysLeft === 'number' &&
+    trialDaysLeft >= 1 &&
+    trialDaysLeft <= 3 &&
+    !trialReminderDismissed;
+  const trialReminderStorageKey =
+    uid && isTrialingStatus && typeof trialDaysLeft === 'number' && nextBillingDate
+      ? `trial-billing-reminder-dismissed:${uid}:${nextBillingDate}:${trialDaysLeft}`
+      : null;
 
   useEffect(() => {
     setEmailVerified(Boolean(initialEmailVerified));
   }, [initialEmailVerified]);
+
+  useEffect(() => {
+    if (!trialReminderStorageKey) {
+      setTrialReminderDismissed(false);
+      return;
+    }
+
+    try {
+      setTrialReminderDismissed(window.localStorage.getItem(trialReminderStorageKey) === '1');
+    } catch {
+      setTrialReminderDismissed(false);
+    }
+  }, [trialReminderStorageKey]);
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -90,6 +128,8 @@ export default function DashboardHomeClient({
         setPlan((data?.plan || 'No plan').toString());
         setPlanStatus((data?.planStatus || 'inactive').toString().trim().toLowerCase());
         setNextBillingDate(typeof data?.nextBillingDate === 'string' ? data.nextBillingDate : null);
+        setHasStripeCustomer(Boolean(data?.hasStripeCustomer));
+        setCancelAtPeriodEnd(Boolean(data?.cancelAtPeriodEnd));
       } catch {
         // Keep preloaded state on transient fetch failures.
       } finally {
@@ -101,6 +141,27 @@ export default function DashboardHomeClient({
       cancelled = true;
     };
   }, []);
+
+  const refreshPlanState = async () => {
+    const res = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' });
+    const data = await res.json().catch(() => ({}));
+    setPlan((data?.plan || 'No plan').toString());
+    setPlanStatus((data?.planStatus || 'inactive').toString().trim().toLowerCase());
+    setNextBillingDate(typeof data?.nextBillingDate === 'string' ? data.nextBillingDate : null);
+    setHasStripeCustomer(Boolean(data?.hasStripeCustomer));
+    setCancelAtPeriodEnd(Boolean(data?.cancelAtPeriodEnd));
+  };
+
+  const dismissTrialReminderBanner = () => {
+    setTrialReminderDismissed(true);
+    if (!trialReminderStorageKey) return;
+
+    try {
+      window.localStorage.setItem(trialReminderStorageKey, '1');
+    } catch {
+      // Ignore local storage failures and still dismiss for the current view.
+    }
+  };
 
   useEffect(() => {
     const sendWelcomeIfVerified = async () => {
@@ -115,38 +176,70 @@ export default function DashboardHomeClient({
     }
   }, [emailVerified, uid]);
 
-  const handleActivateTrial = async () => {
-    if (!selectedPlanId || activationPending) return;
+  useEffect(() => {
+    trialStartAttemptedRef.current = false;
+    setTrialStartPending(false);
+    setTrialStartError(null);
+  }, [selectedPlanId]);
 
-    setActivationPending(true);
-    setActivationError(null);
-    try {
-      const response = await fetch('/api/stripe/plan-checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ planId: selectedPlanId }),
-      });
-      const payload = await response.json().catch(() => ({}));
-
-      if (!response.ok && payload?.code === 'EMAIL_VERIFICATION_REQUIRED' && typeof payload?.redirect === 'string') {
-        window.location.href = payload.redirect;
-        return;
-      }
-
-      if (!response.ok || !payload?.url) {
-        throw new Error(payload?.error || 'Unable to start checkout right now.');
-      }
-
-      window.location.href = String(payload.url);
-    } catch (error: any) {
-      setActivationError(error?.message || 'Unable to start checkout right now.');
-    } finally {
-      setActivationPending(false);
+  useEffect(() => {
+    if (!selectedPlanId || !emailVerified || !planLoaded || hasPaidAccess || trialStartAttemptedRef.current) {
+      return;
     }
-  };
+
+    let cancelled = false;
+    trialStartAttemptedRef.current = true;
+    setTrialStartPending(true);
+    setTrialStartError(null);
+
+    const startTrial = async () => {
+      try {
+        const response = await fetch('/api/user/start-trial', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ planId: selectedPlanId }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (cancelled) return;
+
+        if (!response.ok) {
+          if (payload?.code === 'EMAIL_VERIFICATION_REQUIRED' && typeof payload?.redirect === 'string') {
+            window.location.href = payload.redirect;
+            return;
+          }
+
+          setTrialStartError(
+            payload?.code === 'TRIAL_ALREADY_USED'
+              ? 'Your previous free trial has already been used. You can still use your dashboard now and add billing information whenever you are ready to continue on this plan.'
+              : payload?.error || 'We could not start your selected free trial automatically. You can still use your dashboard now and review billing whenever you are ready.'
+          );
+          return;
+        }
+
+        const planData = payload?.planData || {};
+        setPlan((planData?.plan || selectedPlanName).toString());
+        setPlanStatus((planData?.planStatus || 'inactive').toString().trim().toLowerCase());
+        setNextBillingDate(typeof planData?.nextBillingDate === 'string' ? planData.nextBillingDate : null);
+        setHasStripeCustomer(Boolean(planData?.hasStripeCustomer));
+        setCancelAtPeriodEnd(Boolean(planData?.cancelAtPeriodEnd));
+      } catch (error: any) {
+        if (cancelled) return;
+        setTrialStartError(error?.message || 'We could not start your selected free trial automatically. You can still use your dashboard now.');
+      } finally {
+        if (!cancelled) {
+          setTrialStartPending(false);
+        }
+      }
+    };
+
+    void startTrial();
+    return () => {
+      cancelled = true;
+    };
+  }, [emailVerified, hasPaidAccess, planLoaded, selectedPlanId, selectedPlanName]);
 
   useEffect(() => {
     let cancelled = false;
@@ -275,60 +368,6 @@ export default function DashboardHomeClient({
             </p>
           </div>
 
-          {showVerificationBanner && (
-            <section
-              style={{
-                marginBottom: '26px',
-                borderRadius: '18px',
-                border: '1px solid rgba(248, 250, 252, 0.22)',
-                background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.88), rgba(15, 23, 42, 0.74))',
-                padding: '18px 18px 16px',
-              }}
-            >
-              <h2 style={{ margin: 0, fontSize: '1.08rem', fontWeight: 700, color: '#f8fafc' }}>
-                Verify your email to continue
-              </h2>
-              <p style={{ margin: '8px 0 0', color: '#cbd5f5', lineHeight: 1.5, maxWidth: '760px' }}>
-                {selectedPlanId
-                  ? `Open the verification email we sent you, then return here to activate your 7 day free trial for ${selectedPlanName}.`
-                  : 'Open the verification email we sent you, then come back here to choose a plan and activate your 7 day free trial.'}
-              </p>
-              <p style={{ margin: '10px 0 0', color: '#dbeafe', lineHeight: 1.45 }}>
-                Need a fresh link? The verification page lets you resend it.
-              </p>
-              <div style={{ marginTop: 14, display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-                <Link
-                  href={`/auth/verify-email?redirect=${encodeURIComponent(postVerificationRedirect)}`}
-                  style={{
-                    textDecoration: 'none',
-                    borderRadius: '999px',
-                    background: 'linear-gradient(135deg, #7bd4c9, #3aa79d)',
-                    color: '#052a27',
-                    padding: '10px 16px',
-                    fontWeight: 700,
-                  }}
-                >
-                  Open verification step
-                </Link>
-                <Link
-                  href="/pricing"
-                  style={{
-                    textDecoration: 'none',
-                    border: '1px solid rgba(255,255,255,0.22)',
-                    background: 'rgba(255,255,255,0.06)',
-                    color: '#fff',
-                    borderRadius: '999px',
-                    padding: '9px 14px',
-                    fontWeight: 700,
-                    fontSize: '0.92rem',
-                  }}
-                >
-                  View plans
-                </Link>
-              </div>
-            </section>
-          )}
-
           {showActivationBanner && (
             <section
               style={{
@@ -340,54 +379,39 @@ export default function DashboardHomeClient({
               }}
             >
               <h2 style={{ margin: 0, fontSize: '1.08rem', fontWeight: 700, color: '#f8fafc' }}>
-                Your account is verified and your dashboard is ready
+                Congratulations, you have been verified and your dashboard is ready
               </h2>
               <p style={{ margin: '8px 0 0', color: '#cbd5f5', lineHeight: 1.5, maxWidth: '760px' }}>
-                {selectedPlanId
-                  ? `You can use the platform now. Add your card details to start your 7 day free trial for ${selectedPlanName} and keep your access uninterrupted.`
-                  : 'You can use the platform now. Choose a plan and add your card details to start your 7 day free trial and keep your access uninterrupted.'}
+                {trialStartPending && selectedPlanId
+                  ? `Your email is verified and your tools are unlocked. We are starting your ${selectedPlanName} free trial now, and you can begin using the platform straight away.`
+                  : selectedPlanId
+                    ? `Your email is verified and your tools are unlocked. You can start using the platform now, and your ${selectedPlanName} plan will be ready as soon as billing is in place.`
+                  : 'Your email is verified and your tools are unlocked. You can start using the platform now and explore plans later if you want expanded features.'}
               </p>
               <p style={{ margin: '10px 0 0', color: '#d1fae5', lineHeight: 1.45, fontWeight: 600 }}>
-                No charge today. Cancel anytime before your trial ends.
+                Billing and payment methods stay available whenever you decide to review them.
               </p>
+              {trialStartError && (
+                <p style={{ margin: '10px 0 0', color: '#fecaca', lineHeight: 1.45 }}>
+                  {trialStartError}
+                </p>
+              )}
               <div style={{ marginTop: 14, display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-                {selectedPlanId ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void handleActivateTrial();
-                    }}
-                    disabled={activationPending}
-                    style={{
-                      border: 'none',
-                      borderRadius: '999px',
-                      background: 'linear-gradient(135deg, #7bd4c9, #3aa79d)',
-                      color: '#052a27',
-                      padding: '10px 16px',
-                      fontWeight: 700,
-                      cursor: activationPending ? 'not-allowed' : 'pointer',
-                      opacity: activationPending ? 0.75 : 1,
-                    }}
-                  >
-                    {activationPending ? 'Opening checkout…' : 'Activate free trial'}
-                  </button>
-                ) : (
-                  <Link
-                    href="/pricing"
-                    style={{
-                      textDecoration: 'none',
-                      borderRadius: '999px',
-                      background: 'linear-gradient(135deg, #7bd4c9, #3aa79d)',
-                      color: '#052a27',
-                      padding: '10px 16px',
-                      fontWeight: 700,
-                    }}
-                  >
-                    Choose plan
-                  </Link>
-                )}
                 <Link
                   href="/pricing"
+                  style={{
+                    textDecoration: 'none',
+                    borderRadius: '999px',
+                    background: 'linear-gradient(135deg, #7bd4c9, #3aa79d)',
+                    color: '#052a27',
+                    padding: '10px 16px',
+                    fontWeight: 700,
+                  }}
+                >
+                  View plans
+                </Link>
+                <Link
+                  href="/settings?tab=billing"
                   style={{
                     textDecoration: 'none',
                     border: '1px solid rgba(255,255,255,0.22)',
@@ -399,14 +423,93 @@ export default function DashboardHomeClient({
                     fontSize: '0.92rem',
                   }}
                 >
-                  Change plan
+                  Open billing settings
                 </Link>
               </div>
-              {activationError && (
-                <p style={{ margin: '12px 0 0', color: '#fecaca', lineHeight: 1.45 }}>
-                  {activationError}
+            </section>
+          )}
+
+          {showTrialBillingReminderBanner && (
+            <section
+              style={{
+                marginBottom: '26px',
+                borderRadius: '14px',
+                border: '1px solid rgba(251, 191, 36, 0.42)',
+                background: 'linear-gradient(135deg, rgba(92, 53, 10, 0.38), rgba(59, 34, 6, 0.28))',
+                padding: '14px 16px',
+                position: 'relative',
+              }}
+            >
+              <button
+                type="button"
+                onClick={dismissTrialReminderBanner}
+                aria-label="Dismiss billing reminder"
+                style={{
+                  position: 'absolute',
+                  top: '10px',
+                  right: '10px',
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'rgba(255,255,255,0.75)',
+                  cursor: 'pointer',
+                  fontSize: '1.05rem',
+                  fontWeight: 700,
+                  lineHeight: 1,
+                  padding: '4px 6px',
+                }}
+              >
+                ×
+              </button>
+              <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#fde68a' }}>
+                Add billing information before your trial ends
+              </h2>
+              <p style={{ margin: '8px 0 0', color: '#fef3c7', lineHeight: 1.45 }}>
+                {trialDaysLeft === 1
+                  ? `Your free trial ends tomorrow on ${formatDateLabel(nextBillingDate)}. Add your billing information now if you want access to continue without interruption.`
+                  : `Your free trial ends in ${trialDaysLeft} days on ${formatDateLabel(nextBillingDate)}. Add your billing information before then if you want access to continue without interruption.`}
+              </p>
+              {paymentSaveMessage && (
+                <p style={{ margin: '10px 0 0', color: '#d1fae5', lineHeight: 1.45 }}>
+                  {paymentSaveMessage}
                 </p>
               )}
+              <div style={{ marginTop: 12 }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPaymentSaveMessage(null);
+                    setPaymentModalOpen(true);
+                  }}
+                  style={{
+                    border: '1px solid rgba(255,255,255,0.24)',
+                    background: 'rgba(255,255,255,0.08)',
+                    color: '#fff',
+                    borderRadius: '999px',
+                    padding: '7px 12px',
+                    fontWeight: 700,
+                    fontSize: '0.92rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Set up billing information
+                </button>
+                <Link
+                  href="/settings?tab=billing"
+                  style={{
+                    textDecoration: 'none',
+                    border: '1px solid rgba(255,255,255,0.24)',
+                    background: 'transparent',
+                    color: '#fff',
+                    borderRadius: '999px',
+                    padding: '7px 12px',
+                    fontWeight: 700,
+                    fontSize: '0.92rem',
+                    marginLeft: '10px',
+                  }}
+                >
+                  Open billing settings
+                </Link>
+              </div>
             </section>
           )}
 
@@ -498,7 +601,7 @@ export default function DashboardHomeClient({
                     background: `linear-gradient(135deg, ${feature.color})`,
                     padding: 'clamp(22px, 4.4vw, 36px) clamp(18px, 3.8vw, 28px)',
                     borderRadius: '14px',
-                    cursor: featureAccessLocked ? 'not-allowed' : 'pointer',
+                    cursor: 'pointer',
                     transition: 'all 0.3s ease',
                     border: '1px solid rgba(255,255,255,0.1)',
                     display: 'flex',
@@ -507,11 +610,10 @@ export default function DashboardHomeClient({
                     height: '100%',
                     minHeight: cardMinHeight,
                     position: 'relative',
-                    opacity: featureAccessLocked ? 0.55 : 1,
-                    filter: featureAccessLocked ? 'grayscale(0.12)' : 'none',
+                    opacity: 1,
+                    filter: 'none',
                   }}
                   onMouseEnter={(e) => {
-                    if (featureAccessLocked) return;
                     (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-8px)';
                     (e.currentTarget as HTMLDivElement).style.boxShadow = '0 20px 40px rgba(0,0,0,0.3)';
                   }}
@@ -545,24 +647,6 @@ export default function DashboardHomeClient({
                         {feature.alertCount > 99 ? '99+' : feature.alertCount}
                       </div>
                     )}
-                    {featureAccessLocked && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '14px',
-                          left: '14px',
-                          borderRadius: '999px',
-                          padding: '6px 10px',
-                          background: 'rgba(15, 23, 42, 0.84)',
-                          color: '#f8fafc',
-                          fontSize: '0.77rem',
-                          fontWeight: 700,
-                          letterSpacing: '0.02em',
-                        }}
-                      >
-                        {accessLockLabel}
-                      </div>
-                    )}
                     <i className={`bx ${feature.icon}`} style={{ fontSize: 'clamp(1.9rem, 7vw, 2.45rem)', display: 'block', marginBottom: '14px', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))' }} />
                     <h3 style={{ fontSize: 'clamp(1.2rem, 4.6vw, 1.55rem)', fontWeight: 600, marginBottom: '10px' }}>{feature.title}</h3>
                     <p style={{ fontSize: 'clamp(0.93rem, 3.1vw, 1.04rem)', opacity: 0.9, marginBottom: '8px', lineHeight: 1.45 }}>{feature.desc}</p>
@@ -574,14 +658,6 @@ export default function DashboardHomeClient({
                   )}
                 </div>
               );
-
-              if (featureAccessLocked) {
-                return (
-                  <div key={idx} aria-disabled="true">
-                    {card}
-                  </div>
-                );
-              }
 
               return (
                 <Link
@@ -597,6 +673,24 @@ export default function DashboardHomeClient({
           </div>
         </div>
       </main>
+      <InAppPaymentMethodModal
+        open={paymentModalOpen}
+        hasExistingPaymentMethod={false}
+        isTrialing={isTrialingStatus}
+        onClose={() => {
+          setPaymentModalOpen(false);
+        }}
+        onSuccess={async () => {
+          setPaymentModalOpen(false);
+          setPaymentSaveMessage('Billing information saved. Your card will be used only if you continue after the free trial ends.');
+          await refreshPlanState().catch(() => null);
+        }}
+        onOpenPortalFallback={() => {
+          setPaymentModalOpen(false);
+          window.location.href = '/settings?tab=billing';
+        }}
+        portalPending={false}
+      />
     </div>
   );
 }

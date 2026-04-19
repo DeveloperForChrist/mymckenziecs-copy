@@ -147,7 +147,7 @@ export default function ContactSection() {
         <div className={styles.contactInfo}> 
           <div className={styles.contactItem}>
             <strong>Email</strong>
-            <p>support@mymckenziecs.com</p>
+            <p>jordan@lenjordan.tech</p>
           </div>
           <div className={styles.contactItem}>
             <strong>Response Time</strong>

@@ -74,7 +74,7 @@ export async function PUT(request: NextRequest) {
 
     const changedAt = new Date()
     const { datePart, timePart } = formatChangedAt(changedAt)
-    const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com'
+    const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech'
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const resetUrl = `${appUrl}/auth/reset-password`
     const firstName =

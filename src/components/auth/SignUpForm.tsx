@@ -1,9 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout'
+import {
+  getCountryOption,
+  getJurisdictionOptions,
+  SUPPORTED_COUNTRIES,
+} from '@/lib/legal/jurisdictions'
 import styles from '@/app/auth/auth.module.css'
 
 function parseName(fullName: string) {
@@ -53,6 +58,15 @@ export default function SignUpForm() {
     password: '',
     confirmPassword: '',
     fullName: '',
+    countryCode: '',
+    jurisdictionCode: '',
+  })
+  const [geoHint, setGeoHint] = useState<{
+    status: 'loading' | 'ready' | 'unsupported' | 'unavailable'
+    message: string
+  }>({
+    status: 'loading',
+    message: 'Checking your connection to suggest the legal-matter country...',
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -69,6 +83,77 @@ export default function SignUpForm() {
     redirectParam.startsWith('/')
       ? redirectParam
       : fallbackRedirect
+  const selectedCountry = getCountryOption(formData.countryCode)
+  const jurisdictionOptions = getJurisdictionOptions(formData.countryCode)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadGeolocationSuggestion = async () => {
+      try {
+        const response = await fetch('/api/geo/legal-matter', { cache: 'no-store' })
+        if (!response.ok) throw new Error('Failed to detect country')
+        const payload = await response.json()
+        if (cancelled) return
+
+        const suggestedCountryCode =
+          typeof payload?.suggestedCountryCode === 'string'
+            ? payload.suggestedCountryCode
+            : ''
+        const suggestedJurisdictionCode =
+          typeof payload?.suggestedJurisdictionCode === 'string'
+            ? payload.suggestedJurisdictionCode
+            : ''
+        const detectedCountryName =
+          typeof payload?.detectedCountryName === 'string'
+            ? payload.detectedCountryName
+            : ''
+
+        if (suggestedCountryCode) {
+          setFormData((current) => {
+            if (current.countryCode || current.jurisdictionCode) return current
+            return {
+              ...current,
+              countryCode: suggestedCountryCode,
+              jurisdictionCode: suggestedJurisdictionCode,
+            }
+          })
+
+          const countryLabel = getCountryOption(suggestedCountryCode)?.label || detectedCountryName || suggestedCountryCode
+          setGeoHint({
+            status: 'ready',
+            message: `Based on your connection, we suggested ${countryLabel}. Please confirm it and choose the correct legal jurisdiction before continuing.`,
+          })
+          return
+        }
+
+        if (detectedCountryName) {
+          setGeoHint({
+            status: 'unsupported',
+            message: `We detected ${detectedCountryName} from your connection. Please confirm the country and jurisdiction of the legal matter below.`,
+          })
+          return
+        }
+
+        setGeoHint({
+          status: 'unavailable',
+          message: 'We could not detect the legal-matter country from your connection, so please choose it manually below.',
+        })
+      } catch {
+        if (cancelled) return
+        setGeoHint({
+          status: 'unavailable',
+          message: 'We could not detect the legal-matter country from your connection, so please choose it manually below.',
+        })
+      }
+    }
+
+    void loadGeolocationSuggestion()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -94,6 +179,18 @@ export default function SignUpForm() {
       return
     }
 
+    if (!selectedCountry) {
+      setError('Please select the country your legal matter is in.')
+      setLoading(false)
+      return
+    }
+
+    if (!jurisdictionOptions.some((option) => option.code === formData.jurisdictionCode)) {
+      setError(`Please select your ${selectedCountry.jurisdictionLabel.toLowerCase()}.`)
+      setLoading(false)
+      return
+    }
+
     try {
       const supabase = getSupabaseBrowserClient()
       // If a previous unfinished account is still in session, clear it before creating a new one.
@@ -110,6 +207,8 @@ export default function SignUpForm() {
           fullName: normalized,
           firstName,
           lastName,
+          countryCode: formData.countryCode,
+          jurisdictionCode: formData.jurisdictionCode,
           redirect: nextRedirect,
         }),
       })
@@ -186,6 +285,59 @@ export default function SignUpForm() {
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
         />
+      </div>
+
+      <div>
+        <label htmlFor="countryCode" className={styles.label}>
+          Country of legal matter
+        </label>
+        <select
+          id="countryCode"
+          required
+          className={styles.select}
+          value={formData.countryCode}
+          onChange={(e) => {
+            const nextCountryCode = e.target.value
+            setFormData({
+              ...formData,
+              countryCode: nextCountryCode,
+              jurisdictionCode: '',
+            })
+          }}
+        >
+          <option value="" disabled>
+            Select country
+          </option>
+          {SUPPORTED_COUNTRIES.map((country) => (
+            <option key={country.code} value={country.code}>
+              {country.label}
+            </option>
+          ))}
+        </select>
+        <p className={styles.footnote}>{geoHint.message}</p>
+      </div>
+
+      <div>
+        <label htmlFor="jurisdictionCode" className={styles.label}>
+          {selectedCountry?.jurisdictionLabel || 'Jurisdiction'}
+        </label>
+        <select
+          id="jurisdictionCode"
+          required
+          className={styles.select}
+          value={formData.jurisdictionCode}
+          disabled={!selectedCountry}
+          onChange={(e) => setFormData({ ...formData, jurisdictionCode: e.target.value })}
+        >
+          <option value="" disabled>
+            {selectedCountry ? `Select ${selectedCountry.jurisdictionLabel.toLowerCase()}` : 'Select country first'}
+          </option>
+          {jurisdictionOptions.map((jurisdiction) => (
+            <option key={jurisdiction.code} value={jurisdiction.code}>
+              {jurisdiction.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div>

@@ -13,6 +13,9 @@ CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT UNIQUE NOT NULL,
   name TEXT,
+  country_code TEXT,
+  jurisdiction_code TEXT,
+  jurisdiction_label TEXT,
   freemium_since TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -97,6 +100,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   next_retry_at TIMESTAMPTZ,
   grace_day3_sent_at TIMESTAMPTZ,
   grace_day6_sent_at TIMESTAMPTZ,
+  trial_reminder_days_sent JSONB NOT NULL DEFAULT '[]'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

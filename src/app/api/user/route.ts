@@ -4,6 +4,11 @@ import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { getAppUrl } from '@/lib/app-url'
 import { sendResendEmail } from '@/lib/email/resend'
+import {
+  getJurisdictionLabel,
+  isSupportedCountryCode,
+  isSupportedJurisdictionCode,
+} from '@/lib/legal/jurisdictions'
 import fs from 'fs'
 import path from 'path'
 
@@ -74,6 +79,9 @@ export async function GET(_request: NextRequest) {
         fullName: data.user.user_metadata?.full_name || data.user.user_metadata?.display_name || '',
         email: data.user.email || '',
         pendingEmail: null,
+        countryCode: (data.user.user_metadata as any)?.country_code || null,
+        jurisdictionCode: (data.user.user_metadata as any)?.jurisdiction_code || null,
+        jurisdictionLabel: (data.user.user_metadata as any)?.jurisdiction_label || null,
         address: '',
         createdAt: data.user.created_at || new Date().toISOString(),
         lastActive: null,
@@ -91,6 +99,9 @@ export async function GET(_request: NextRequest) {
       fullName: (userRow as any).fullName || (userRow as any).full_name || userRow.name || '',
       email: userRow.email || data.user.email || '',
       pendingEmail: (userRow as any).pending_email || null,
+      countryCode: (userRow as any).country_code || null,
+      jurisdictionCode: (userRow as any).jurisdiction_code || null,
+      jurisdictionLabel: (userRow as any).jurisdiction_label || null,
       address: (userRow as any).address || '',
       createdAt: userRow.created_at || data.user.created_at || '',
       lastActive: (userRow as any).last_active || null,
@@ -118,6 +129,8 @@ export async function PUT(request: NextRequest) {
     const fullName = typeof body?.fullName === 'string' ? body.fullName.trim() : ''
     const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : ''
     const rawAddress = typeof body?.address === 'string' ? body.address.trim() : null
+    const countryCode = typeof body?.countryCode === 'string' ? body.countryCode.trim().toUpperCase() : null
+    const jurisdictionCode = typeof body?.jurisdictionCode === 'string' ? body.jurisdictionCode.trim().toUpperCase() : null
     const redirect = safeRedirectPath(typeof body?.redirect === 'string' ? body.redirect : undefined)
 
     const authUid = data.user.id
@@ -131,6 +144,24 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 })
     }
 
+    if ((countryCode && !jurisdictionCode) || (!countryCode && jurisdictionCode)) {
+      return NextResponse.json({ error: 'Country and jurisdiction must be updated together.' }, { status: 400 })
+    }
+
+    if (countryCode && !isSupportedCountryCode(countryCode)) {
+      return NextResponse.json(
+        { error: 'Please select a supported country for your legal matter.' },
+        { status: 400 }
+      )
+    }
+
+    if (countryCode && jurisdictionCode && !isSupportedJurisdictionCode(countryCode, jurisdictionCode)) {
+      return NextResponse.json(
+        { error: 'Please select a valid jurisdiction for the chosen country.' },
+        { status: 400 }
+      )
+    }
+
     const emailChangeRequested =
       Boolean(requestedEmail) &&
       Boolean(currentEmail) &&
@@ -138,7 +169,7 @@ export async function PUT(request: NextRequest) {
 
     const { data: existingUserRow } = await supabaseAdmin
       .from('users')
-      .select('fullName, full_name, name, address, pending_email')
+      .select('fullName, full_name, name, address, pending_email, country_code, jurisdiction_code, jurisdiction_label')
       .eq('id', authUid)
       .maybeSingle()
 
@@ -151,7 +182,15 @@ export async function PUT(request: NextRequest) {
       ''
     ).trim()
     const priorAddress = String((existingUserRow as any)?.address || '').trim()
+    const persistedCountryCode = typeof (existingUserRow as any)?.country_code === 'string'
+      ? (existingUserRow as any).country_code
+      : null
+    const persistedJurisdictionCode = typeof (existingUserRow as any)?.jurisdiction_code === 'string'
+      ? (existingUserRow as any).jurisdiction_code
+      : null
     const address = rawAddress ?? priorAddress
+    const nextCountryCode = countryCode ?? persistedCountryCode
+    const nextJurisdictionCode = jurisdictionCode ?? persistedJurisdictionCode
     const detailsChangeRequested =
       fullName !== priorFullName || address !== priorAddress
 
@@ -184,21 +223,27 @@ export async function PUT(request: NextRequest) {
       emailChangeVerifyUrl = `${appUrl}/api/email/verify?mode=email-change&token=${encodeURIComponent(rawToken)}&redirect=${encodeURIComponent(redirect)}`
     }
 
-    const metadataUpdateNeeded = Boolean(fullName)
+    const metadataUpdateNeeded = Boolean(fullName) || Boolean(countryCode && jurisdictionCode)
     if (metadataUpdateNeeded) {
       const existingMeta = ((data.user.user_metadata as Record<string, any>) || {})
       const authUpdatePayload: { email?: string; data?: Record<string, any> } = {}
 
       if (metadataUpdateNeeded) {
-        const parts = fullName.split(/\s+/).filter(Boolean)
+        const resolvedFullName =
+          fullName ||
+          String(existingMeta.full_name || existingMeta.display_name || '').trim()
+        const parts = resolvedFullName.split(/\s+/).filter(Boolean)
         const first = parts[0] || ''
         const last = parts.slice(1).join(' ')
         authUpdatePayload.data = {
           ...existingMeta,
-          full_name: fullName,
-          display_name: fullName,
+          full_name: resolvedFullName,
+          display_name: resolvedFullName,
           first_name: first,
           last_name: last,
+          country_code: nextCountryCode,
+          jurisdiction_code: nextJurisdictionCode,
+          jurisdiction_label: getJurisdictionLabel(nextCountryCode, nextJurisdictionCode),
         }
       }
 
@@ -216,6 +261,9 @@ export async function PUT(request: NextRequest) {
       id: authUid,
       email: persistedEmail,
       name: fullName || data.user.user_metadata?.full_name || data.user.user_metadata?.display_name || null,
+      country_code: nextCountryCode,
+      jurisdiction_code: nextJurisdictionCode,
+      jurisdiction_label: getJurisdictionLabel(nextCountryCode, nextJurisdictionCode),
       updated_at: nowIso,
     }
 
@@ -228,6 +276,9 @@ export async function PUT(request: NextRequest) {
     const extendedPayload: Record<string, any> = {
       ...basePayload,
       fullName: fullName || null,
+      country_code: nextCountryCode,
+      jurisdiction_code: nextJurisdictionCode,
+      jurisdiction_label: getJurisdictionLabel(nextCountryCode, nextJurisdictionCode),
       address: address || null,
       last_active: nowIso
     }
@@ -251,7 +302,7 @@ export async function PUT(request: NextRequest) {
     }
 
     if (emailChangeRequested) {
-      const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com'
+      const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech'
       const firstName = (fullName || data.user.user_metadata?.full_name || data.user.user_metadata?.display_name || 'there')
         .trim()
         .split(/\s+/)[0] || 'there'
@@ -280,7 +331,7 @@ export async function PUT(request: NextRequest) {
     const detailsNotificationEmail = currentEmail || requestedEmail
 
     if (detailsChangeRequested && detailsNotificationEmail) {
-      const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com'
+      const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech'
       const firstName = (fullName || data.user.user_metadata?.full_name || data.user.user_metadata?.display_name || 'there')
         .trim()
         .split(/\s+/)[0] || 'there'
@@ -312,6 +363,9 @@ export async function PUT(request: NextRequest) {
       success: true,
       email: persistedEmail || '',
       pendingEmail,
+      countryCode: nextCountryCode,
+      jurisdictionCode: nextJurisdictionCode,
+      jurisdictionLabel: getJurisdictionLabel(nextCountryCode, nextJurisdictionCode),
       emailChangeRequested,
     });
   } catch (error: any) {
@@ -357,7 +411,7 @@ export async function DELETE(_request: NextRequest) {
         if (Array.isArray(alreadySent) && alreadySent.length > 0) {
           // Continue with deletion, but don't spam emails.
         } else {
-        const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com'
+        const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech'
         const htmlBody = renderTemplate('18-account-deleted.html', {
           name: String(displayName),
           support_email: supportEmail,

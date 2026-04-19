@@ -20,7 +20,7 @@ export default function ContactPage() {
         <section>
           <h2 className="text-2xl font-semibold mb-2">Primary contact</h2>
           <p>
-            Email: <a href="mailto:support@mymckenziecs.com" className="text-blue-600 hover:underline">support@mymckenziecs.com</a>
+            Email: <a href="mailto:jordan@lenjordan.tech" className="text-blue-600 hover:underline">jordan@lenjordan.tech</a>
           </p>
           <p className="mt-2">We respond in 1-2 business days.</p>
         </section>

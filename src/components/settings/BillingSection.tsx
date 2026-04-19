@@ -50,6 +50,7 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
   const isLapsedStatus = normalizedStatus === 'expired' || normalizedStatus === 'cancelled';
   const isPastDueStatus = normalizedStatus === 'past_due';
   const isTrialingStatus = isTrialingStripeStatus(normalizedStatus);
+  const canAddBillingInfoDuringTrial = isTrialingStatus;
   const isCancellationScheduled = Boolean(planData?.paidAccess && planData?.cancelAtPeriodEnd);
   const hasScheduledPlanChange = Boolean(planData?.scheduledPlan && planData?.scheduledChangeDate);
   const canCancelInApp = Boolean(planData?.paidAccess && !isLapsedStatus && !isCancellationScheduled);
@@ -264,7 +265,11 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
         if (!res.ok || !json.url) {
           const rawError = String(json?.error || '').toLowerCase();
           if (rawError.includes('no stripe customer id')) {
-            throw new Error('Billing management becomes available after you start a paid plan.');
+            throw new Error(
+              canAddBillingInfoDuringTrial
+                ? 'We could not open Stripe billing yet. Please use the billing information form on this page instead.'
+                : 'Billing management becomes available after you start a paid plan.'
+            );
           }
           throw new Error('We could not open billing management right now. Please try again.');
         }
@@ -280,7 +285,11 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
     setPaymentError(null);
     setPortalError(null);
     setBillingActionError(null);
-    setBillingActionMessage('Payment method updated. Future renewals will use the new card.');
+    setBillingActionMessage(
+      isTrialingStatus
+        ? 'Billing information saved. If you continue after the trial, future charges will use this card.'
+        : 'Payment method updated. Future renewals will use the new card.'
+    );
     setPaymentModalOpen(false);
     await refreshPlanData().catch(() => null);
     if (!nextPaymentMethod) {
@@ -375,7 +384,9 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
                   <p className={styles.planHint} style={{ color: '#bfdbfe' }}>
                     {isCancellationScheduled
                       ? 'Your free trial is set to end on the date above. You will not be charged unless you resume before then.'
-                      : 'Your free trial is active. You will be charged on the date above unless you cancel beforehand.'}
+                      : planData?.hasStripeCustomer
+                        ? 'Your free trial is active. Your saved billing information will be used on the date above unless you cancel beforehand.'
+                        : 'Your free trial is active. Add your billing information before the date above if you want access to continue without interruption.'}
                   </p>
                 )}
                 {isCancellationScheduled && !isLapsedStatus && (
@@ -446,17 +457,28 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
                     {isTrialingStatus ? 'Cancel trial' : 'Cancel subscription'}
                   </button>
                 )}
-                {planData?.hasStripeCustomer && (
+                {(planData?.hasStripeCustomer || canAddBillingInfoDuringTrial) && (
                   <button
                     type="button"
                     disabled={portalPending}
                     onClick={() => {
+                      if (canAddBillingInfoDuringTrial) {
+                        setBillingActionMessage(null);
+                        setBillingActionError(null);
+                        setPortalError(null);
+                        setPaymentModalOpen(true);
+                        return;
+                      }
                       openCustomerPortal('manage');
                     }}
                     className={styles.primaryBtn}
                     style={{ background: '#4c1d95' }}
                   >
-                    {portalPending ? 'Opening...' : 'Manage Billing'}
+                    {portalPending
+                      ? 'Opening...'
+                      : canAddBillingInfoDuringTrial
+                        ? (paymentMethod ? 'Update billing information' : 'Add billing information')
+                        : 'Manage Billing'}
                   </button>
                 )}
               </div>
@@ -476,7 +498,7 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
 
       <section className={styles.settingsSection}>
         <h2 className={styles.sectionHeading}>Payment Methods</h2>
-        {hasNoPaidPlan && !planData?.hasStripeCustomer ? (
+        {hasNoPaidPlan && !planData?.hasStripeCustomer && !canAddBillingInfoDuringTrial ? (
           <div className={styles.paymentCard}>
             <div className={styles.cardInfo}>
               <div>
@@ -501,11 +523,20 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
                       {paymentMethod.brand ? `${paymentMethod.brand.toUpperCase()} ` : ''}exp {paymentMethod.exp_month}/{paymentMethod.exp_year}
                       {paymentMethod.name ? ` · ${paymentMethod.name}` : ''}
                     </p>
+                    {isTrialingStatus && (
+                      <p className={styles.helpText}>
+                        This card will be used if you continue after your free trial ends.
+                      </p>
+                    )}
                   </>
                 ) : (
                   <>
-                    <h4>No payment method on file</h4>
-                    <p className={styles.helpText}>Add a payment method to manage your paid subscription.</p>
+                    <h4>{isTrialingStatus ? 'No billing information on file' : 'No payment method on file'}</h4>
+                    <p className={styles.helpText}>
+                      {isTrialingStatus
+                        ? `Add your billing information before ${formatNextBillingDate(planData?.nextBillingDate)} to continue after your free trial.`
+                        : 'Add a payment method to manage your paid subscription.'}
+                    </p>
                   </>
                 )}
                 {paymentError && (
@@ -517,13 +548,13 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
         )}
         {!loading && (
           <div className={styles.bottomActions}>
-            {planData?.hasStripeCustomer ? (
+            {(planData?.hasStripeCustomer || canAddBillingInfoDuringTrial) ? (
               <button
                 type="button"
                 className={styles.primaryBtn}
                 disabled={portalPending}
                 onClick={() => {
-                  if (hasNoPaidPlan) {
+                  if (hasNoPaidPlan && !canAddBillingInfoDuringTrial) {
                     openCustomerPortal('manage');
                     return;
                   }
@@ -535,7 +566,11 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
               >
                 {portalPending
                   ? 'Opening…'
-                  : hasNoPaidPlan
+                  : isTrialingStatus
+                    ? paymentMethod
+                      ? 'Update billing information'
+                      : 'Add billing information'
+                    : hasNoPaidPlan
                     ? 'Resume in billing portal'
                     : paymentMethod
                       ? 'Update payment method'
@@ -591,6 +626,7 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
       <InAppPaymentMethodModal
         open={paymentModalOpen}
         hasExistingPaymentMethod={Boolean(paymentMethod)}
+        isTrialing={isTrialingStatus}
         onClose={() => {
           setPaymentModalOpen(false);
         }}

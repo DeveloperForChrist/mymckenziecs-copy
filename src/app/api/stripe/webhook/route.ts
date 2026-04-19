@@ -424,7 +424,7 @@ async function upsertSubscriptionFromStripe(subscription: any) {
     if (user) {
       const oldName = displayPlanName(existing.plan_type);
       const newName = displayPlanName(planType);
-      const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com';
+      const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech';
       const changedAt = formatChangedAt(new Date());
       const rank = (name: string) => {
         const n = name.toLowerCase();
@@ -514,7 +514,7 @@ export async function POST(request: Request) {
           const firstChargeDate = formatDateShort(
             getStripeSubscriptionPeriodEndUnix(syncedSubscription)
           ) || '7 days from now';
-          const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com';
+          const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech';
           const htmlBody = renderTemplate('27-free-trial-started.html', {
             name: user?.name || checkoutName || recipientEmail,
             plan_name: planName,
@@ -557,30 +557,8 @@ export async function POST(request: Request) {
       const subscription = event.data.object as any;
       await upsertSubscriptionFromStripe(subscription);
     } else if (event.type === 'customer.subscription.trial_will_end') {
-      const subscription = event.data.object as any;
-      const customerId = subscription?.customer as string | null;
-      const user = await getUserByStripeCustomerId(customerId);
-      if (user) {
-        const priceId = subscription?.items?.data?.[0]?.price?.id || null;
-        const planName = displayPlanName(normalizePlanTypeFromPrice(priceId));
-        const firstChargeDate = formatDateShort(
-          subscription?.trial_end ? subscription.trial_end * 1000 : subscription?.current_period_end ? subscription.current_period_end * 1000 : null
-        ) || 'soon';
-        const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com';
-        const htmlBody = renderTemplate('28-free-trial-ending.html', {
-          name: user.name || '',
-          plan_name: planName,
-          first_charge_date: firstChargeDate,
-          manage_url: `${getAppUrl()}/settings`,
-          support_email: supportEmail,
-        });
-        await sendResendEmail({
-          to: user.email,
-          subject: 'Your MyMcKenzieCS free trial ends soon',
-          htmlBody,
-          tag: 'billing-trial-ending',
-        });
-      }
+      // Trial-end reminders are handled by our scheduled cron route so we can send
+      // 3-, 2-, and 1-day reminders with consistent wording.
     } else if (event.type === 'customer.updated') {
       const customer = event.data.object as any;
       const previousAttributes = (event.data as any)?.previous_attributes as any;
@@ -592,7 +570,7 @@ export async function POST(request: Request) {
         const user = await getUserByStripeCustomerId(customerId);
 
         if (user) {
-          const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com';
+          const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech';
           const changedAt = formatChangedAt(new Date());
           const oldPaymentMethod = await describePaymentMethod(oldDefaultPm);
           const newPaymentMethod = await describePaymentMethod(newDefaultPm);

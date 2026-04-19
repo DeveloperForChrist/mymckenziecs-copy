@@ -78,18 +78,12 @@ export async function POST(req: Request) {
 
     const { data: subscriptionRow } = await supabaseAdmin
       .from('subscriptions')
-      .select('stripe_subscription_id, status, cancel_at_period_end, plan_type')
+      .select('id, stripe_subscription_id, status, cancel_at_period_end, plan_type, current_period_end')
       .eq('user_id', authUid)
-      .not('stripe_subscription_id', 'is', null)
       .in('status', [...BILLABLE_CANCELABLE_STATUSES])
       .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle();
-
-    const stripeSubscriptionId = subscriptionRow?.stripe_subscription_id || null;
-    if (!stripeSubscriptionId) {
-      return NextResponse.json({ error: 'No active paid subscription found' }, { status: 404 });
-    }
 
     if (subscriptionRow?.cancel_at_period_end) {
       return NextResponse.json({
@@ -98,6 +92,72 @@ export async function POST(req: Request) {
         status: String(subscriptionRow?.status || '').toLowerCase() || 'active',
         cancelAtPeriodEnd: true,
       });
+    }
+
+    const stripeSubscriptionId = subscriptionRow?.stripe_subscription_id || null;
+    if (!stripeSubscriptionId && String(subscriptionRow?.status || '').toLowerCase() === 'trialing') {
+      const nowIso = new Date().toISOString();
+      const { error: updateError } = await supabaseAdmin
+        .from('subscriptions')
+        .update({
+          cancel_at_period_end: true,
+          scheduled_plan_type: null,
+          scheduled_change_at: null,
+          updated_at: nowIso,
+        })
+        .eq('id', subscriptionRow?.id);
+
+      if (updateError) {
+        console.error('Cancel subscription: failed to update local trial cancellation', updateError);
+        return NextResponse.json({ error: 'Failed to update local trial state' }, { status: 500 });
+      }
+
+      await syncUserEntitlementSnapshot(authUid);
+      invalidateUserPlanCache(authUid);
+
+      try {
+        const { data: userRow } = await supabaseAdmin
+          .from('users')
+          .select('email, name')
+          .eq('id', authUid)
+          .maybeSingle();
+
+        if (userRow?.email) {
+          const planName = planDisplayName(subscriptionRow?.plan_type || 'No plan');
+          const endDate = formatDateShort(subscriptionRow?.current_period_end || null);
+          const appUrl = getAppUrl(req);
+          const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech';
+          const htmlBody = renderTemplate('29-cancellation-scheduled.html', {
+            heading: 'Your free trial cancellation is confirmed',
+            name: userRow.name || 'there',
+            summary_text: `This confirms that your <strong>${planName}</strong> free trial has been scheduled to end on <strong>${endDate}</strong>.`,
+            detail_text:
+              'Your workspace will remain active until that date. Billing will not begin unless you resume the plan before the trial ends.',
+            manage_url: `${appUrl}/settings?tab=billing`,
+            support_email: supportEmail,
+          });
+
+          await sendResendEmail({
+            to: userRow.email,
+            subject: `Your MyMcKenzieCS free trial will end on ${endDate}`,
+            htmlBody,
+            tag: 'billing-trial-cancellation-scheduled',
+          });
+        }
+      } catch (emailError) {
+        console.error('Cancel subscription: failed to send local trial cancellation email', emailError);
+      }
+
+      return NextResponse.json({
+        ok: true,
+        status: 'trialing',
+        cancelAtPeriodEnd: true,
+        currentPeriodEnd: subscriptionRow?.current_period_end || null,
+      });
+    }
+
+    if (!stripeSubscriptionId) {
+      return NextResponse.json({ error: 'No active paid subscription found' }, { status: 404 });
     }
 
     const updatedSubscription = await stripe.subscriptions.update(stripeSubscriptionId, {
@@ -156,7 +216,7 @@ export async function POST(req: Request) {
         const planName = planDisplayName(subscriptionRow?.plan_type || 'No plan');
         const endDate = formatDateShort(currentPeriodEnd);
         const appUrl = getAppUrl(req);
-        const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com';
+        const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech';
         const htmlBody = renderTemplate('29-cancellation-scheduled.html', {
           heading: isTrialCancellation ? 'Your free trial cancellation is confirmed' : 'Your cancellation is confirmed',
           name: userRow.name || 'there',

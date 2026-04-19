@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { stripe } from '@/lib/payments/stripe';
+import { PLAN_PRICES } from '@/constants';
+import { syncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
+import { getStripeSubscriptionPeriodEndIso, getStripeSubscriptionPeriodStartIso } from '@/lib/payments/subscription-period';
+import { normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
+import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
+import { planDisplayName } from '@/lib/plans/access';
 import {
   billingIpRateLimiter,
   billingRateLimiter,
@@ -24,15 +30,29 @@ type PaymentMethodSummary = {
   country?: string | null;
 };
 
+type TrialSubscriptionContext = {
+  id: string;
+  planType: string | null;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  stripeSubscriptionId: string | null;
+};
+
 type BillingContext = {
   customerId: string | null;
   subscriptionId: string | null;
+  trialSubscription: TrialSubscriptionContext | null;
 };
 
 const ACTIVE_OR_RECOVERABLE_SUBSCRIPTION_STATUSES = ['active', 'trialing', 'past_due', 'incomplete'] as const;
 
+function resolvePriceIdFromPlan(planType?: string | null) {
+  const displayName = planDisplayName(planType || '');
+  return PLAN_PRICES.find((plan) => plan.name === displayName)?.priceId || '';
+}
+
 async function getBillingContext(userId: string): Promise<BillingContext> {
-  const [{ data: customerRow }, { data: activeSubscriptionRow }] = await Promise.all([
+  const [{ data: customerRow }, { data: activeSubscriptionRow }, { data: latestTrialRow }] = await Promise.all([
     supabaseAdmin
       .from('subscriptions')
       .select('stripe_customer_id, created_at')
@@ -50,11 +70,28 @@ async function getBillingContext(userId: string): Promise<BillingContext> {
       .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
+    supabaseAdmin
+      .from('subscriptions')
+      .select('id, plan_type, current_period_end, cancel_at_period_end, stripe_subscription_id, updated_at')
+      .eq('user_id', userId)
+      .eq('status', 'trialing')
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   return {
     customerId: customerRow?.stripe_customer_id || null,
     subscriptionId: activeSubscriptionRow?.stripe_subscription_id || null,
+    trialSubscription: latestTrialRow
+      ? {
+          id: latestTrialRow.id,
+          planType: latestTrialRow.plan_type || null,
+          currentPeriodEnd: latestTrialRow.current_period_end || null,
+          cancelAtPeriodEnd: Boolean(latestTrialRow.cancel_at_period_end),
+          stripeSubscriptionId: latestTrialRow.stripe_subscription_id || null,
+        }
+      : null,
   };
 }
 
@@ -159,9 +196,30 @@ export async function POST(req: Request) {
     const limited = await applyBillingRateLimit(req, user.id, 'setup-intent');
     if (limited) return limited;
 
-    const { customerId } = await getBillingContext(user.id);
+    const { customerId: existingCustomerId, trialSubscription } = await getBillingContext(user.id);
+    let customerId = existingCustomerId;
+
     if (!customerId) {
-      return NextResponse.json({ error: 'No Stripe customer ID on user record' }, { status: 400 });
+      const customer = await stripe.customers.create({
+        email: user.email || undefined,
+        metadata: { userId: user.id },
+      });
+      customerId = customer.id;
+
+      if (trialSubscription?.id) {
+        const { error: updateCustomerError } = await supabaseAdmin
+          .from('subscriptions')
+          .update({
+            stripe_customer_id: customerId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', trialSubscription.id);
+
+        if (updateCustomerError) {
+          console.error('Create payment method setup intent error: failed to store Stripe customer on trial', updateCustomerError);
+          return NextResponse.json({ error: 'Failed to initialize billing profile' }, { status: 500 });
+        }
+      }
     }
 
     const setupIntent = await stripe.setupIntents.create({
@@ -201,7 +259,7 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: 'setupIntentId is required' }, { status: 400 });
     }
 
-    const { customerId, subscriptionId } = await getBillingContext(user.id);
+    const { customerId, subscriptionId, trialSubscription } = await getBillingContext(user.id);
     if (!customerId) {
       return NextResponse.json({ error: 'No Stripe customer ID on user record' }, { status: 400 });
     }
@@ -241,10 +299,66 @@ export async function PUT(req: Request) {
       });
     }
 
+    if (
+      trialSubscription &&
+      !trialSubscription.stripeSubscriptionId &&
+      !trialSubscription.cancelAtPeriodEnd &&
+      trialSubscription.currentPeriodEnd
+    ) {
+      const trialEndMs = new Date(trialSubscription.currentPeriodEnd).getTime();
+      const hasFutureTrialEnd = Number.isFinite(trialEndMs) && trialEndMs > Date.now() + 60_000;
+
+      if (hasFutureTrialEnd) {
+        const priceId = resolvePriceIdFromPlan(trialSubscription.planType);
+        if (!priceId) {
+          return NextResponse.json({ error: 'Unable to match your trial plan to a Stripe price' }, { status: 400 });
+        }
+
+        const subscription = await stripe.subscriptions.create({
+          customer: customerId,
+          items: [{ price: priceId, quantity: 1 }],
+          default_payment_method: paymentMethodId,
+          trial_end: Math.floor(trialEndMs / 1000),
+          metadata: {
+            userId: user.id,
+            planId: priceId,
+            trialApplied: 'true',
+            origin: 'trial-billing-setup',
+          },
+        });
+
+        const normalizedStatus = normalizeStripeSubscriptionStatus(subscription.status);
+        const currentPeriodStart = getStripeSubscriptionPeriodStartIso(subscription);
+        const currentPeriodEnd = getStripeSubscriptionPeriodEndIso(subscription);
+
+        const { error: updateTrialError } = await supabaseAdmin
+          .from('subscriptions')
+          .update({
+            stripe_customer_id: customerId,
+            stripe_subscription_id: subscription.id,
+            status: normalizedStatus,
+            current_period_start: currentPeriodStart,
+            current_period_end: currentPeriodEnd,
+            cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', trialSubscription.id);
+
+        if (updateTrialError) {
+          console.error('Finalize payment method update error: failed to attach Stripe subscription to local trial', updateTrialError);
+          return NextResponse.json({ error: 'Failed to connect billing to your free trial' }, { status: 500 });
+        }
+      }
+    }
+
+    await syncUserEntitlementSnapshot(user.id);
+    invalidateUserPlanCache(user.id);
+
     const summary = await buildPaymentMethodSummary(customerId);
     return NextResponse.json({
       ok: true,
-      ...summary,
+      hasCustomer: summary.hasCustomer,
+      paymentMethod: summary.paymentMethod,
     });
   } catch (error: any) {
     console.error('Finalize payment method update error:', error);

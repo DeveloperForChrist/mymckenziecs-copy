@@ -182,7 +182,7 @@ export default function TermsPage() {
         </li>
         <li>
           <b>Contact Information</b>
-          <p className="mt-2">Lenjordan Ltd<br/>Email: support@mymckenziecs.com<br/>Registered Office: 66 Chamberlain Way, Pinner HA5 2AT</p>
+          <p className="mt-2">Lenjordan Ltd<br/>Email: jordan@lenjordan.tech<br/>Registered Office: 66 Chamberlain Way, Pinner HA5 2AT</p>
         </li>
         <li>
           <b>Agreement</b>

@@ -34,6 +34,11 @@ import {
   buildAssistantResponsePayload,
   stripAssistantPresentationMetadata,
 } from '@/lib/chat/assistant-presentation'
+import {
+  buildJurisdictionSearchSuffix,
+  isUnitedKingdomContext,
+  type UserLegalContext,
+} from '@/lib/legal/jurisdictions'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -916,25 +921,30 @@ const resolvePremiumPlusSearchMode = ({
 const buildPremiumPlusHeuristicWebQuery = ({
   message,
   searchMode,
+  legalContext,
 }: {
   message: string
   searchMode: LegalSearchMode
+  legalContext?: UserLegalContext
 }): string => {
   const normalized = normalizeCompactText(message)
   if (!normalized) return ''
+  const suffix = buildJurisdictionSearchSuffix(legalContext)
+  const withSuffix = (extra: string) =>
+    truncateText([normalized, suffix, extra].filter(Boolean).join(' '), 260)
 
   switch (searchMode) {
     case 'procedure':
-      return truncateText(`${normalized} England and Wales procedure`, 260)
+      return withSuffix('procedure')
     case 'case_specific':
-      return truncateText(`${normalized} England and Wales practical guidance`, 260)
+      return withSuffix('practical guidance')
     case 'document_review':
-      return truncateText(`${normalized} England and Wales document guidance`, 260)
+      return withSuffix('document guidance')
     case 'education':
-      return truncateText(`${normalized} plain English England and Wales`, 260)
+      return withSuffix('plain English')
     case 'general':
     default:
-      return truncateText(normalized, 260)
+      return withSuffix('')
   }
 }
 
@@ -946,6 +956,7 @@ const shouldUsePremiumPlusCaseLawHeuristically = ({
   retrievalFocusApplied,
   retrievalFocusDecision,
   suggestionDecision,
+  legalContext,
 }: {
   message: string
   history: Array<{ role: string; content: string }>
@@ -960,7 +971,9 @@ const shouldUsePremiumPlusCaseLawHeuristically = ({
     shouldSuggest: boolean
     shouldRetrieve: boolean
   }
+  legalContext?: UserLegalContext
 }): boolean => {
+  if (!isUnitedKingdomContext(legalContext)) return false
   if (hasAttachments) return false
   if (retrievalFocusApplied === 'direct' || retrievalFocusApplied === 'web_only') return false
   if (hasExplicitAuthoritySignal({ message, history })) return true
@@ -1765,7 +1778,24 @@ export async function POST(request: NextRequest) {
     let premiumPlanActive = false
     let premiumPlusActive = false
     let activePlanLabel = 'none'
+    let userLegalContext: UserLegalContext = {
+      countryCode: null,
+      jurisdictionCode: null,
+      jurisdictionLabel: null,
+    }
     if (authUserId) {
+      const { data: userProfileRow } = await supabaseAdmin
+        .from('users')
+        .select('country_code, jurisdiction_code, jurisdiction_label')
+        .eq('id', authUserId)
+        .maybeSingle()
+
+      userLegalContext = {
+        countryCode: ((userProfileRow as any)?.country_code || (authData?.user?.user_metadata as any)?.country_code || null) as UserLegalContext['countryCode'],
+        jurisdictionCode: (userProfileRow as any)?.jurisdiction_code || (authData?.user?.user_metadata as any)?.jurisdiction_code || null,
+        jurisdictionLabel: (userProfileRow as any)?.jurisdiction_label || (authData?.user?.user_metadata as any)?.jurisdiction_label || null,
+      }
+
       const planData = await getUserPlanData(authUserId, authData?.user?.email || null)
       hasPaidPlan = Boolean(planData?.paidAccess)
       hasPlatformAccess = Boolean(planData?.platformAccess ?? planData?.paidAccess)
@@ -2059,6 +2089,7 @@ export async function POST(request: NextRequest) {
         ? buildPremiumPlusHeuristicWebQuery({
             message,
             searchMode: premiumPlusSearchMode,
+            legalContext: userLegalContext,
           })
         : ''
       routingReasonsApplied = [
@@ -2085,6 +2116,7 @@ export async function POST(request: NextRequest) {
           retrievalFocusApplied,
           retrievalFocusDecision,
           suggestionDecision: caseLawSuggestionDecision,
+          legalContext: userLegalContext,
         })
       )
 
@@ -2181,6 +2213,7 @@ export async function POST(request: NextRequest) {
             memoryContext: relatedThreadMemoryContext || undefined,
             autoDecideSearch: true,
             searchEngineOverride: 'perplexity',
+            legalContext: userLegalContext,
             openaiFallbackModel: premiumPlusOpenAiFallbackModel,
             forceOpenAiFallback: true,
             historyLimit: agentHistoryLimit,
@@ -2198,6 +2231,7 @@ export async function POST(request: NextRequest) {
           {
             memoryContext: relatedThreadMemoryContext || undefined,
             autoDecideSearch: true,
+            legalContext: userLegalContext,
             anthropicModel: premiumPlusAnthropicModel || undefined,
             anthropicFallbackModel: premiumPlusAnthropicFallbackModel || undefined,
             historyLimit: agentHistoryLimit,
@@ -2215,6 +2249,7 @@ export async function POST(request: NextRequest) {
             memoryContext: relatedThreadMemoryContext || undefined,
             autoDecideSearch: true,
             searchEngineOverride: 'perplexity',
+            legalContext: userLegalContext,
             openaiFallbackModel: premiumPlusOpenAiFallbackModel,
             forceOpenAiFallback: true,
             historyLimit: agentHistoryLimit,
@@ -2241,6 +2276,7 @@ export async function POST(request: NextRequest) {
             memoryContext: relatedThreadMemoryContext || undefined,
             autoDecideSearch: true,
             searchEngineOverride: 'perplexity',
+            legalContext: userLegalContext,
             openaiFallbackModel: premiumPlusOpenAiFallbackModel,
             forceOpenAiFallback: true,
             historyLimit: agentHistoryLimit,
@@ -2263,6 +2299,7 @@ export async function POST(request: NextRequest) {
             memoryContext: relatedThreadMemoryContext || undefined,
             autoDecideSearch: true,
             searchEngineOverride: 'perplexity',
+            legalContext: userLegalContext,
             anthropicModel: premiumPlusAnthropicModel || undefined,
             anthropicFallbackModel: premiumPlusAnthropicFallbackModel || undefined,
             historyLimit: agentHistoryLimit,
@@ -2287,6 +2324,7 @@ export async function POST(request: NextRequest) {
             memoryContext: relatedThreadMemoryContext || undefined,
             autoDecideSearch: true,
             searchEngineOverride: 'perplexity',
+            legalContext: userLegalContext,
             openaiFallbackModel: premiumPlusOpenAiFallbackModel,
             forceOpenAiFallback: true,
             historyLimit: agentHistoryLimit,
@@ -2490,6 +2528,7 @@ export async function POST(request: NextRequest) {
                     memoryContext: relatedThreadMemoryContext || undefined,
                     autoDecideSearch: true,
                     searchEngineOverride: 'brave',
+                    legalContext: userLegalContext,
                     openaiModel: premiumOpenAiModel,
                     openaiFallbackModel: premiumOpenAiFallbackModel,
                     historyLimit: agentHistoryLimit,
@@ -2535,6 +2574,7 @@ export async function POST(request: NextRequest) {
             : undefined,
           memoryContext: relatedThreadMemoryContext || undefined,
           historyLimit: agentHistoryLimit,
+          legalContext: userLegalContext,
         })
       : shouldUsePremiumPlusLegalAgent
         ? await invokePremiumPlusWithOpenAiFallback()
@@ -2542,6 +2582,7 @@ export async function POST(request: NextRequest) {
             memoryContext: relatedThreadMemoryContext || undefined,
             autoDecideSearch: true,
             searchEngineOverride: 'brave',
+            legalContext: userLegalContext,
             openaiModel: premiumOpenAiModel,
             openaiFallbackModel: premiumOpenAiFallbackModel,
             historyLimit: agentHistoryLimit,

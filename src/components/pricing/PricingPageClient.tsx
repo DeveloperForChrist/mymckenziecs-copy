@@ -26,7 +26,6 @@ export default function PricingPageClient() {
   const checkoutStatus =
     (searchParams?.get('checkout_status') || '').trim() ||
     ((legacyCheckoutParam === 'success' || legacyCheckoutParam === 'cancelled') ? legacyCheckoutParam : '');
-  const hardLock = (searchParams?.get('hard_lock') || '').trim() === '1';
   const redirectPath = (searchParams?.get('redirect') || '').trim();
   const isCheckoutFlow = checkoutPlanId.length > 0;
   const isLapsedStatus = planStatus === 'expired' || planStatus === 'cancelled';
@@ -146,7 +145,8 @@ export default function PricingPageClient() {
       window.location.href = `/auth/signup?planId=${encodeURIComponent(priceId)}&redirect=${encodeURIComponent(redirectTo)}`;
       return;
     }
-    try {
+
+    const startStripeCheckout = async () => {
       const res = await fetch('/api/stripe/plan-checkout', {
         method: 'POST',
         headers: {
@@ -155,20 +155,48 @@ export default function PricingPageClient() {
         },
         body: JSON.stringify({ planId: priceId }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok && data?.code === 'EMAIL_VERIFICATION_REQUIRED' && typeof data?.redirect === 'string') {
         window.location.href = data.redirect;
-        return;
+        return true;
       }
       if (!res.ok || !data?.url) {
         setCheckoutError(data?.error || 'Unable to start checkout');
         setCheckoutErrorPlanKey(planKey);
-        setCheckoutLoading(null);
-        return;
+        return true;
       }
       window.location.href = data.url;
+      return true;
+    };
+
+    try {
+      const res = await fetch('/api/user/start-trial', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ planId: priceId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok && data?.code === 'EMAIL_VERIFICATION_REQUIRED' && typeof data?.redirect === 'string') {
+        window.location.href = data.redirect;
+        return;
+      }
+      if (!res.ok && data?.code === 'TRIAL_ALREADY_USED') {
+        await startStripeCheckout();
+        return;
+      }
+      if (!res.ok) {
+        setCheckoutError(data?.error || 'Unable to start your free trial');
+        setCheckoutErrorPlanKey(planKey);
+        return;
+      }
+
+      const nextLocation = redirectPath.startsWith('/') ? redirectPath : '/dashboard';
+      window.location.href = nextLocation;
     } catch (err: any) {
-      setCheckoutError(err.message || 'Failed to start checkout');
+      setCheckoutError(err.message || 'Failed to start your free trial');
       setCheckoutErrorPlanKey(planKey);
     } finally {
       setCheckoutLoading(null);
@@ -508,22 +536,6 @@ export default function PricingPageClient() {
               </p>
             </div>
           )}
-          {hardLock && (
-            <div
-              style={{
-                borderRadius: '16px',
-                border: '1px solid rgba(251, 191, 36, 0.35)',
-                background: 'linear-gradient(135deg, rgba(92, 53, 10, 0.35), rgba(59, 34, 6, 0.28))',
-                padding: '14px 16px',
-                marginBottom: '1.5rem',
-              }}
-            >
-              <p style={{ margin: 0, color: '#fde68a', fontWeight: 600 }}>
-                Your account is in hard lock. Resume a plan to restore full workspace access.
-              </p>
-            </div>
-          )}
-
           {changePlanMessage && (
             <div
               style={{

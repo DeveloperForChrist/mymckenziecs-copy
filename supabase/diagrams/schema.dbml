@@ -5,6 +5,9 @@ Table users {
   id uuid [pk]
   email text [unique]
   name text
+  country_code text
+  jurisdiction_code text
+  jurisdiction_label text
   created_at timestamptz
   updated_at timestamptz
 }

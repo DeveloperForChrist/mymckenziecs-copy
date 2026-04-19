@@ -1,4 +1,16 @@
 import { z } from 'zod';
+import {
+  SUPPORTED_COUNTRIES,
+  type SupportedCountryCode,
+} from '@/lib/legal/jurisdictions';
+
+const supportedCountryCodes = SUPPORTED_COUNTRIES.map((country) => country.code) as [
+  SupportedCountryCode,
+  ...SupportedCountryCode[],
+];
+const supportedJurisdictionCodes = SUPPORTED_COUNTRIES.flatMap((country) =>
+  country.jurisdictions.map((jurisdiction) => jurisdiction.code)
+) as [string, ...string[]];
 
 /**
  * User-related validation schemas
@@ -7,6 +19,8 @@ export const userProfileSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(50),
   lastName: z.string().min(1, 'Last name is required').max(50),
   email: z.string().email('Invalid email address'),
+  countryCode: z.enum(supportedCountryCodes).optional(),
+  jurisdictionCode: z.enum(supportedJurisdictionCodes).optional(),
   phoneNumber: z.string().optional(),
 });
 
@@ -28,6 +42,8 @@ export const signUpSchema = z.object({
     .regex(/[0-9]/, 'Password must contain at least one number'),
   firstName: z.string().min(1, 'First name is required').max(50),
   lastName: z.string().min(1, 'Last name is required').max(50),
+  countryCode: z.enum(supportedCountryCodes),
+  jurisdictionCode: z.enum(supportedJurisdictionCodes),
 });
 
 /**

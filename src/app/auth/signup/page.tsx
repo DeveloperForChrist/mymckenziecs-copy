@@ -42,7 +42,7 @@ export default function SignUpPage() {
               </div>
             </div>
             <div className={styles.heroFooter}>
-              <span className={styles.pill}>Choose a plan to unlock full workspace tools.</span>
+              <span className={styles.pill}>Choose a plan anytime for expanded workspace features.</span>
               <a href="/pricing">Plans</a>
               <a href="/faq">Plan FAQ</a>
             </div>
@@ -52,7 +52,7 @@ export default function SignUpPage() {
             <div>
               <h2 className={styles.formTitle}>Create your account</h2>
               <p className={styles.formSubtitle}>
-                Enter your details to create your account. If you selected a plan, you will verify your email first and then activate your free trial from the dashboard.
+                Enter your details to create your account. We&apos;ll send a verification email next so you can unlock your dashboard.
               </p>
             </div>
             <Suspense fallback={<div className={styles.formSubtitle}>Loading account form...</div>}>

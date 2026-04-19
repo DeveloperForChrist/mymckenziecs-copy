@@ -28,7 +28,7 @@ export default function VerifyEmailScreen() {
   }, [planId, redirectParam])
   const verifyCopy = useMemo(() => {
     if (postVerifyRedirect.startsWith('/dashboard?activatePlan=')) {
-      return 'Open your inbox, click Verify email, and you will be taken to your dashboard to activate your free trial.'
+      return 'Open your inbox, click Verify email, and you will be taken to your dashboard. You can start using the platform straight away and review your selected plan later.'
     }
     return 'Open your inbox, click Verify email, and you will be taken straight to your unlocked dashboard.'
   }, [postVerifyRedirect])
@@ -58,7 +58,7 @@ export default function VerifyEmailScreen() {
 
         if (isVerified) {
           if (verified === 'success') {
-            setNotice('Email verified successfully. Redirecting you now...')
+            setNotice('Congratulations, you have been verified and your dashboard is ready. Redirecting you now...')
             window.setTimeout(() => {
               router.replace(postVerifyRedirect)
               router.refresh()
@@ -66,7 +66,7 @@ export default function VerifyEmailScreen() {
             return
           }
           if (verify === 'sent') {
-            setNotice('Email verified successfully. Redirecting you now...')
+            setNotice('Congratulations, you have been verified and your dashboard is ready. Redirecting you now...')
             window.setTimeout(() => {
               router.replace(postVerifyRedirect)
               router.refresh()
@@ -79,7 +79,7 @@ export default function VerifyEmailScreen() {
 
         setUserEmail(email)
         if (verify === 'sent') {
-          setNotice('Verification email has been sent. Check your inbox and click the button to continue.')
+          setNotice('Verification email has been sent. Check your inbox and click the button to unlock your dashboard.')
         }
       } catch {
         if (!cancelled) {

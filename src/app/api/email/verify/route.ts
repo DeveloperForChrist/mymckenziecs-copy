@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
         .eq('id', userRow.id)
 
       if (oldEmail && oldEmail !== pendingEmail) {
-        const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com'
+        const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech'
         const firstName = (userRow.name || '').trim().split(/\s+/)[0] || 'there'
         try {
           const htmlBody = renderTemplate('23-email-change-confirmed-old.html', {

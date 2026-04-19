@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       console.log('User not authenticated, using form email');
     }
 
-    const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com';
+    const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech';
     const gmailUser = process.env.GMAIL_USER;
     const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
 

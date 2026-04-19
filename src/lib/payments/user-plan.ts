@@ -1,5 +1,6 @@
 import { entitlementPlanPrice, getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { isUserEmailVerified } from '@/lib/auth/account-verification';
+import { isHardLockedTrialWithoutBilling, resolvePlatformAccess } from '@/lib/payments/platform-access';
 
 export type UserPlanData = {
   plan: string;
@@ -80,6 +81,7 @@ async function resolveUserPlanData(authUid: string): Promise<UserPlanData> {
   const planPrice = entitlementPlanPrice(rawPlan);
   const paidAccess = Boolean(snapshot?.paid_access);
   const emailVerified = await isUserEmailVerified(authUid);
+  const hardLock = await isHardLockedTrialWithoutBilling(authUid, snapshot);
 
   return {
     plan: rawPlan,
@@ -88,7 +90,7 @@ async function resolveUserPlanData(authUid: string): Promise<UserPlanData> {
     nextBillingDate: snapshot?.next_billing_date || null,
     hasStripeCustomer: Boolean(snapshot?.has_stripe_customer),
     paidAccess,
-    platformAccess: paidAccess || emailVerified,
+    platformAccess: resolvePlatformAccess(emailVerified, snapshot, hardLock),
     cancelAtPeriodEnd: Boolean(snapshot?.cancel_at_period_end),
     canResume: Boolean(snapshot?.can_resume),
     archiveAt: snapshot?.archive_at || null,

@@ -6,6 +6,7 @@ import { logApiUsage } from '@/lib/utils/api-usage-logger';
 import { billingIpRateLimiter, billingRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 import { getAppUrl } from '@/lib/app-url';
 import { SUBSCRIPTION_TRIAL_DAYS } from '@/lib/payments/trials';
+import { isPaidPlan } from '@/lib/plans/access';
 
 const STRIPE_CHECKOUT_SESSION_PLACEHOLDER = '{CHECKOUT_SESSION_ID}';
 
@@ -94,15 +95,15 @@ export async function POST(request: NextRequest) {
     let customerId: string | null = null;
     let hasPreviousSubscription = false;
     if (userRow) {
-      const { data: existingSub } = await supabaseAdmin
+      const { data: existingSubs } = await supabaseAdmin
         .from('subscriptions')
-        .select('stripe_customer_id, stripe_subscription_id')
+        .select('stripe_customer_id, stripe_subscription_id, plan_type')
         .eq('user_id', userRow.id)
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      customerId = existingSub?.stripe_customer_id || null;
-      hasPreviousSubscription = Boolean(existingSub?.stripe_subscription_id);
+        .order('updated_at', { ascending: false });
+      customerId = (existingSubs || []).find((row: any) => row?.stripe_customer_id)?.stripe_customer_id || null;
+      hasPreviousSubscription = (existingSubs || []).some((row: any) =>
+        Boolean(row?.stripe_subscription_id) || isPaidPlan(row?.plan_type || '')
+      );
     }
 
     if (!customerId) {

@@ -28,6 +28,8 @@ export default async function DashboardPage() {
   let initialPlanStatus = 'inactive';
   let initialNextBillingDate: string | null = null;
   let initialEmailVerified = false;
+  let initialHasStripeCustomer = false;
+  let initialCancelAtPeriodEnd = false;
   const initialPlanLoaded = Boolean(authUser);
 
   if (authUser) {
@@ -36,6 +38,8 @@ export default async function DashboardPage() {
     initialPlanStatus = (planData?.planStatus || 'inactive').toString().trim().toLowerCase();
     initialNextBillingDate =
       typeof planData?.nextBillingDate === 'string' ? planData.nextBillingDate : null;
+    initialHasStripeCustomer = Boolean(planData?.hasStripeCustomer);
+    initialCancelAtPeriodEnd = Boolean(planData?.cancelAtPeriodEnd);
     initialEmailVerified = await isUserEmailVerified(authUser.id);
   }
 
@@ -45,6 +49,8 @@ export default async function DashboardPage() {
       initialPlan={initialPlan}
       initialPlanStatus={initialPlanStatus}
       initialNextBillingDate={initialNextBillingDate}
+      initialHasStripeCustomer={initialHasStripeCustomer}
+      initialCancelAtPeriodEnd={initialCancelAtPeriodEnd}
       initialPlanLoaded={initialPlanLoaded}
     />
   );

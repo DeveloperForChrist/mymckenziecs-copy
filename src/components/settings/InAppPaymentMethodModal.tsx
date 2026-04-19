@@ -17,6 +17,7 @@ type PaymentMethodSummary = {
 type InAppPaymentMethodModalProps = {
   open: boolean;
   hasExistingPaymentMethod: boolean;
+  isTrialing?: boolean;
   onClose: () => void;
   onSuccess: (paymentMethod: PaymentMethodSummary | null) => Promise<void> | void;
   onOpenPortalFallback: () => void;
@@ -29,6 +30,7 @@ const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : 
 function PaymentMethodSetupForm({
   clientSecret,
   hasExistingPaymentMethod,
+  isTrialing = false,
   onClose,
   onSuccess,
   onOpenPortalFallback,
@@ -36,6 +38,7 @@ function PaymentMethodSetupForm({
 }: {
   clientSecret: string;
   hasExistingPaymentMethod: boolean;
+  isTrialing?: boolean;
   onClose: () => void;
   onSuccess: (paymentMethod: PaymentMethodSummary | null) => Promise<void> | void;
   onOpenPortalFallback: () => void;
@@ -106,9 +109,13 @@ function PaymentMethodSetupForm({
     <form onSubmit={handleSubmit} className={styles.paymentModalForm}>
       <div className={styles.paymentModalSection}>
         <p className={styles.modalBody} style={{ marginBottom: 12 }}>
-          {hasExistingPaymentMethod
-            ? 'Enter the new card you want future renewals to use.'
-            : 'Add a card so your paid subscription can renew automatically.'}
+          {isTrialing
+            ? hasExistingPaymentMethod
+              ? 'Enter the card you want us to use if you continue after your free trial ends.'
+              : 'Add your billing information now so your access can continue after the free trial ends.'
+            : hasExistingPaymentMethod
+              ? 'Enter the new card you want future renewals to use.'
+              : 'Add a card so your paid subscription can renew automatically.'}
         </p>
         <div className={styles.paymentElementWrap}>
           <PaymentElement
@@ -145,7 +152,15 @@ function PaymentMethodSetupForm({
           className={styles.primaryBtn}
           disabled={!stripe || !elements || submitting}
         >
-          {submitting ? 'Saving…' : hasExistingPaymentMethod ? 'Save new card' : 'Add card'}
+          {submitting
+            ? 'Saving…'
+            : isTrialing
+              ? hasExistingPaymentMethod
+                ? 'Save billing info'
+                : 'Add billing info'
+              : hasExistingPaymentMethod
+                ? 'Save new card'
+                : 'Add card'}
         </button>
       </div>
     </form>
@@ -155,6 +170,7 @@ function PaymentMethodSetupForm({
 export default function InAppPaymentMethodModal({
   open,
   hasExistingPaymentMethod,
+  isTrialing = false,
   onClose,
   onSuccess,
   onOpenPortalFallback,
@@ -240,7 +256,9 @@ export default function InAppPaymentMethodModal({
     <div className={styles.modalOverlay} role="dialog" aria-modal="true" aria-labelledby="billing-payment-method-title">
       <div className={styles.modalCard}>
         <h3 id="billing-payment-method-title" className={styles.modalTitle}>
-          {hasExistingPaymentMethod ? 'Update payment method' : 'Add payment method'}
+          {isTrialing
+            ? (hasExistingPaymentMethod ? 'Update billing information' : 'Add billing information')
+            : (hasExistingPaymentMethod ? 'Update payment method' : 'Add payment method')}
         </h3>
         {loadingIntent && (
           <p className={styles.modalBody}>Preparing the secure card form…</p>
@@ -272,6 +290,7 @@ export default function InAppPaymentMethodModal({
             <PaymentMethodSetupForm
               clientSecret={clientSecret}
               hasExistingPaymentMethod={hasExistingPaymentMethod}
+              isTrialing={isTrialing}
               onClose={onClose}
               onSuccess={onSuccess}
               onOpenPortalFallback={onOpenPortalFallback}

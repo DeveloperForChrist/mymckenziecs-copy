@@ -92,7 +92,7 @@ export default function GlobalError({
               Go to homepage
             </Link>
             <a
-              href="mailto:support@mymckenziecs.com"
+              href="mailto:jordan@lenjordan.tech"
               style={{
                 borderRadius: '10px',
                 padding: '10px 16px',

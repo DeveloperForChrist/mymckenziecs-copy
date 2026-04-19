@@ -93,6 +93,7 @@ CREATE TABLE subscriptions (
   cancel_at_period_end BOOLEAN DEFAULT false,
   scheduled_plan_type TEXT,
   scheduled_change_at TIMESTAMPTZ,
+  trial_reminder_days_sent JSONB NOT NULL DEFAULT '[]'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

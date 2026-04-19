@@ -74,10 +74,10 @@ export async function POST(request: NextRequest) {
       <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
         <h2 style="margin: 0 0 12px;">Verify your email</h2>
         <p>Hi ${firstName},</p>
-        <p>Click below to verify your email and continue into your workspace.</p>
+        <p>Click below to verify your email and open your dashboard.</p>
         <p style="margin: 22px 0;">
           <a href="${verifyUrl}" style="background:#2e1065;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;display:inline-block;">
-            Verify email
+            Verify email and open dashboard
           </a>
         </p>
         <p>If the button does not work, use this link:</p>

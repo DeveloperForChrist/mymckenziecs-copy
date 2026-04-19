@@ -4,6 +4,12 @@ import { authRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceed
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { sendResendEmail } from '@/lib/email/resend'
 import { createHash, randomBytes } from 'node:crypto'
+import {
+  getCountryOption,
+  getJurisdictionLabel,
+  isSupportedCountryCode,
+  isSupportedJurisdictionCode,
+} from '@/lib/legal/jurisdictions'
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -30,6 +36,8 @@ export async function POST(request: NextRequest) {
     const fullName = typeof body?.fullName === 'string' ? body.fullName.trim() : ''
     const firstName = typeof body?.firstName === 'string' ? body.firstName.trim() : ''
     const lastName = typeof body?.lastName === 'string' ? body.lastName.trim() : ''
+    const countryCode = typeof body?.countryCode === 'string' ? body.countryCode.trim().toUpperCase() : ''
+    const jurisdictionCode = typeof body?.jurisdictionCode === 'string' ? body.jurisdictionCode.trim().toUpperCase() : ''
     const redirect = safeRedirectPath(typeof body?.redirect === 'string' ? body.redirect : undefined)
 
     if (!fullName) {
@@ -44,11 +52,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Please choose a stronger password.' }, { status: 400 })
     }
 
+    if (!isSupportedCountryCode(countryCode)) {
+      return NextResponse.json({ message: 'Please select the country your legal matter is in.' }, { status: 400 })
+    }
+
+    if (!isSupportedJurisdictionCode(countryCode, jurisdictionCode)) {
+      return NextResponse.json(
+        {
+          message: `Please select a valid ${getCountryOption(countryCode)?.jurisdictionLabel.toLowerCase() || 'jurisdiction'}.`,
+        },
+        { status: 400 }
+      )
+    }
+
+    const jurisdictionLabel = getJurisdictionLabel(countryCode, jurisdictionCode)
+
     const metadata = {
       full_name: fullName,
       first_name: firstName || fullName.split(' ')[0] || '',
       last_name: lastName,
       display_name: fullName,
+      country_code: countryCode,
+      jurisdiction_code: jurisdictionCode,
+      jurisdiction_label: jurisdictionLabel,
     }
 
     const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
@@ -79,6 +105,9 @@ export async function POST(request: NextRequest) {
           id: userId,
           email,
           name: fullName,
+          country_code: countryCode,
+          jurisdiction_code: jurisdictionCode,
+          jurisdiction_label: jurisdictionLabel,
           verification_token_hash: tokenHash,
           verification_token_expires_at: expiresAt,
           email_verified_at: null,
@@ -98,10 +127,10 @@ export async function POST(request: NextRequest) {
       <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
         <h2 style="margin: 0 0 12px;">Verify your email</h2>
         <p>Hi ${fullName.split(' ')[0] || 'there'},</p>
-        <p>Click the button below to verify your email and continue into your workspace.</p>
+        <p>Click the button below to verify your email and open your dashboard.</p>
         <p style="margin: 22px 0;">
           <a href="${verifyUrl}" style="background:#2e1065;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;display:inline-block;">
-            Verify email
+            Verify email and open dashboard
           </a>
         </p>
         <p>If the button does not work, use this link:</p>

@@ -1,5 +1,6 @@
 import { isUserEmailVerified } from '@/lib/auth/account-verification'
 import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements'
+import { isHardLockedTrialWithoutBilling, resolvePlatformAccess } from '@/lib/payments/platform-access'
 
 export async function hasUserPlatformAccess(userId: string): Promise<boolean> {
   if (!userId) return false
@@ -9,5 +10,6 @@ export async function hasUserPlatformAccess(userId: string): Promise<boolean> {
     getOrSyncUserEntitlementSnapshot(userId),
   ])
 
-  return emailVerified || Boolean(entitlement?.paid_access)
+  const hardLock = await isHardLockedTrialWithoutBilling(userId, entitlement)
+  return resolvePlatformAccess(emailVerified, entitlement, hardLock)
 }
