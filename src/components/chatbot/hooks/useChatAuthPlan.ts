@@ -28,6 +28,7 @@ export type InitialChatPlanState = {
   plan: string
   planStatus: string
   paidAccess: boolean
+  platformAccess?: boolean
 }
 
 export function useChatAuthPlan({ supabase, clearSessionHistory, initialState = null }: UseChatAuthPlanArgs) {
@@ -37,6 +38,9 @@ export function useChatAuthPlan({ supabase, clearSessionHistory, initialState = 
   const [plan, setPlan] = useState<string | null>(hasInitialState ? initialState?.plan || 'No plan' : null)
   const [planStatus, setPlanStatus] = useState<string | null>(hasInitialState ? initialState?.planStatus || 'inactive' : null)
   const [paidAccess, setPaidAccess] = useState(hasInitialState ? Boolean(initialState?.paidAccess) : false)
+  const [platformAccess, setPlatformAccess] = useState(
+    hasInitialState ? Boolean(initialState?.platformAccess ?? initialState?.paidAccess) : false
+  )
   const [planLoaded, setPlanLoaded] = useState(hasInitialState)
   const [isAuthenticated, setIsAuthenticated] = useState(hasInitialState)
   const [authLoaded, setAuthLoaded] = useState(hasInitialState)
@@ -52,6 +56,7 @@ export function useChatAuthPlan({ supabase, clearSessionHistory, initialState = 
         setPlan('Guest')
         setPlanStatus('guest')
         setPaidAccess(false)
+        setPlatformAccess(false)
         setPlanLoaded(true)
         return
       }
@@ -65,6 +70,7 @@ export function useChatAuthPlan({ supabase, clearSessionHistory, initialState = 
         setPlan((initialState?.plan || 'No plan').toString().trim())
         setPlanStatus((initialState?.planStatus || 'inactive').toString().trim().toLowerCase())
         setPaidAccess(Boolean(initialState?.paidAccess))
+        setPlatformAccess(Boolean(initialState?.platformAccess ?? initialState?.paidAccess))
         setPlanLoaded(true)
         return
       }
@@ -77,12 +83,14 @@ export function useChatAuthPlan({ supabase, clearSessionHistory, initialState = 
         setPlan(fetchedPlan)
         setPlanStatus((data?.planStatus || 'inactive').toString().trim().toLowerCase())
         setPaidAccess(Boolean(data?.paidAccess))
+        setPlatformAccess(Boolean(data?.platformAccess ?? data?.paidAccess))
       } catch (error: any) {
         if (!cancelled) {
           console.error('Failed to load subscription plan:', error)
           setPlan('No plan')
           setPlanStatus('inactive')
           setPaidAccess(false)
+          setPlatformAccess(false)
         }
       } finally {
         if (!cancelled) {
@@ -107,9 +115,9 @@ export function useChatAuthPlan({ supabase, clearSessionHistory, initialState = 
             lastUserIdRef.current = null
           }
           setWelcomeVariant(null)
-        await loadPlanForSession(null, { preferInitial: true })
-        return
-      }
+          await loadPlanForSession(null, { preferInitial: true })
+          return
+        }
 
         if (typeof window !== 'undefined') {
           const welcomeKey = `chatbotWelcomeSeen:${user.id}`
@@ -129,6 +137,7 @@ export function useChatAuthPlan({ supabase, clearSessionHistory, initialState = 
           setPlan('No plan')
           setPlanStatus('inactive')
           setPaidAccess(false)
+          setPlatformAccess(false)
           setPlanLoaded(true)
         }
       } finally {
@@ -177,6 +186,7 @@ export function useChatAuthPlan({ supabase, clearSessionHistory, initialState = 
     plan,
     planStatus,
     paidAccess,
+    platformAccess,
     planLoaded,
     isAuthenticated,
     authLoaded,

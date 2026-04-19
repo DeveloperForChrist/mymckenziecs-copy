@@ -37,6 +37,7 @@ export default async function ChatbotPage() {
       plan: (planData?.plan || 'No plan').toString(),
       planStatus: (planData?.planStatus || 'inactive').toString(),
       paidAccess: Boolean(planData?.paidAccess),
+      platformAccess: Boolean(planData?.platformAccess ?? planData?.paidAccess),
     }
   }
 

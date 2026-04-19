@@ -312,9 +312,10 @@ export default function NotesPageClient({
       try {
         const response = await fetch("/api/user/plan", { cache: "no-store" });
         if (!response.ok) return;
-        const data = (await response.json()) as { paidAccess?: boolean; plan?: string };
+        const data = (await response.json()) as { paidAccess?: boolean; platformAccess?: boolean; plan?: string };
         if (cancelled) return;
-        if (data?.paidAccess === false) {
+        const hasPlatformAccess = Boolean(data?.platformAccess ?? data?.paidAccess);
+        if (!hasPlatformAccess) {
           setReadOnlyMode(true);
           setReadOnlyMessage(NOTES_READ_ONLY_MESSAGE);
           setCanUseAiActions(false);

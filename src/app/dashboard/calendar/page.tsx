@@ -31,8 +31,8 @@ export default async function CalendarPage() {
 
   if (authUser) {
     const planData = await getUserPlanData(authUser.id, authUser.email ?? null);
-    initialHasPaidAccess = Boolean(planData?.paidAccess);
-    initialHasReminderAccess = initialHasPaidAccess && hasReminderAccess(planData?.plan || '');
+    initialHasPaidAccess = Boolean(planData?.platformAccess ?? planData?.paidAccess);
+    initialHasReminderAccess = Boolean(planData?.paidAccess) && hasReminderAccess(planData?.plan || '');
 
     if (initialHasReminderAccess) {
       const { data: prefs } = await supabase

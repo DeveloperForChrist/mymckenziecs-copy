@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createHash, randomBytes } from 'node:crypto'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
+import { getAppUrl } from '@/lib/app-url'
 import { sendResendEmail } from '@/lib/email/resend'
 import fs from 'fs'
 import path from 'path'
@@ -22,6 +24,12 @@ function renderTemplate(templateName: string, vars: Record<string, string>) {
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+function safeRedirectPath(input?: string) {
+  if (!input) return '/settings?tab=account'
+  const normalized = input.trim()
+  return normalized.startsWith('/') ? normalized : '/settings?tab=account'
 }
 
 function formatChangedAt(date: Date) {
@@ -65,6 +73,7 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({
         fullName: data.user.user_metadata?.full_name || data.user.user_metadata?.display_name || '',
         email: data.user.email || '',
+        pendingEmail: null,
         address: '',
         createdAt: data.user.created_at || new Date().toISOString(),
         lastActive: null,
@@ -108,7 +117,8 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const fullName = typeof body?.fullName === 'string' ? body.fullName.trim() : ''
     const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : ''
-    const address = typeof body?.address === 'string' ? body.address.trim() : ''
+    const rawAddress = typeof body?.address === 'string' ? body.address.trim() : null
+    const redirect = safeRedirectPath(typeof body?.redirect === 'string' ? body.redirect : undefined)
 
     const authUid = data.user.id
     const nowIso = new Date().toISOString()
@@ -128,7 +138,7 @@ export async function PUT(request: NextRequest) {
 
     const { data: existingUserRow } = await supabaseAdmin
       .from('users')
-      .select('fullName, full_name, name, address')
+      .select('fullName, full_name, name, address, pending_email')
       .eq('id', authUid)
       .maybeSingle()
 
@@ -141,14 +151,20 @@ export async function PUT(request: NextRequest) {
       ''
     ).trim()
     const priorAddress = String((existingUserRow as any)?.address || '').trim()
+    const address = rawAddress ?? priorAddress
     const detailsChangeRequested =
       fullName !== priorFullName || address !== priorAddress
+
+    let pendingEmail: string | null = ((existingUserRow as any)?.pending_email || null)
+    let emailChangeTokenHash: string | null = null
+    let emailChangeTokenExpiresAt: string | null = null
+    let emailChangeVerifyUrl: string | null = null
 
     if (emailChangeRequested) {
       const { data: existingEmailOwner, error: existingEmailOwnerError } = await supabaseAdmin
         .from('users')
         .select('id')
-        .eq('email', requestedEmail)
+        .or(`email.eq.${requestedEmail},pending_email.eq.${requestedEmail}`)
         .neq('id', authUid)
         .maybeSingle()
 
@@ -160,18 +176,12 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({ error: 'That email address is already in use by another account.' }, { status: 409 })
       }
 
-      const { error: authEmailUpdateError } = await supabaseAdmin.auth.admin.updateUserById(authUid, {
-        email: requestedEmail,
-        email_confirm: true,
-      })
-      if (authEmailUpdateError) {
-        console.error('Error updating auth email:', authEmailUpdateError)
-        const normalized = (authEmailUpdateError.message || '').toLowerCase()
-        if (normalized.includes('already') || normalized.includes('exists') || normalized.includes('duplicate')) {
-          return NextResponse.json({ error: 'That email address is already in use by another account.' }, { status: 409 })
-        }
-        return NextResponse.json({ error: authEmailUpdateError.message || 'Failed to update email' }, { status: 400 })
-      }
+      const rawToken = randomBytes(32).toString('hex')
+      emailChangeTokenHash = createHash('sha256').update(rawToken).digest('hex')
+      emailChangeTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+      pendingEmail = requestedEmail
+      const appUrl = getAppUrl(request)
+      emailChangeVerifyUrl = `${appUrl}/api/email/verify?mode=email-change&token=${encodeURIComponent(rawToken)}&redirect=${encodeURIComponent(redirect)}`
     }
 
     const metadataUpdateNeeded = Boolean(fullName)
@@ -199,11 +209,20 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    const persistedEmail = emailChangeRequested
+      ? (currentEmail || requestedEmail || null)
+      : (requestedEmail || currentEmail || null)
     const basePayload: Record<string, any> = {
       id: authUid,
-      email: requestedEmail || currentEmail || null,
+      email: persistedEmail,
       name: fullName || data.user.user_metadata?.full_name || data.user.user_metadata?.display_name || null,
-      updated_at: nowIso
+      updated_at: nowIso,
+    }
+
+    if (emailChangeRequested) {
+      basePayload.pending_email = pendingEmail
+      basePayload.email_change_token_hash = emailChangeTokenHash
+      basePayload.email_change_token_expires_at = emailChangeTokenExpiresAt
     }
 
     const extendedPayload: Record<string, any> = {
@@ -245,40 +264,22 @@ export async function PUT(request: NextRequest) {
           changed_date: datePart,
           changed_time: timePart,
           support_email: supportEmail,
+          verify_url: emailChangeVerifyUrl || '',
         })
         await sendResendEmail({
           to: requestedEmail,
-          subject: 'Your MyMcKenzieCS account email has been updated',
+          subject: 'Confirm your new MyMcKenzieCS email address',
           htmlBody: newEmailHtml,
-          tag: 'email-change-new-email-notice',
+          tag: 'email-change-verify',
         })
       } catch (newEmailNoticeError) {
         console.error('Failed to send new-email change notice', newEmailNoticeError)
       }
-
-      if (currentEmail) {
-        try {
-          const oldEmailHtml = renderTemplate('23-email-change-confirmed-old.html', {
-            name: firstName,
-            old_email: currentEmail,
-            new_email: requestedEmail,
-            changed_date: datePart,
-            changed_time: timePart,
-            support_email: supportEmail,
-          })
-          await sendResendEmail({
-            to: currentEmail,
-            subject: 'Your MyMcKenzieCS account email was changed',
-            htmlBody: oldEmailHtml,
-            tag: 'email-change-old-email-notice',
-          })
-        } catch (oldEmailNoticeError) {
-          console.error('Failed to send old-email change notice', oldEmailNoticeError)
-        }
-      }
     }
 
-    if (detailsChangeRequested && requestedEmail) {
+    const detailsNotificationEmail = currentEmail || requestedEmail
+
+    if (detailsChangeRequested && detailsNotificationEmail) {
       const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com'
       const firstName = (fullName || data.user.user_metadata?.full_name || data.user.user_metadata?.display_name || 'there')
         .trim()
@@ -290,14 +291,14 @@ export async function PUT(request: NextRequest) {
       try {
         const htmlBody = renderTemplate('25-account-details-changed.html', {
           name: firstName,
-          email: requestedEmail,
+          email: detailsNotificationEmail,
           changed_fields: changedFields.join(', ') || 'account details',
           changed_date: datePart,
           changed_time: timePart,
           support_email: supportEmail,
         })
         await sendResendEmail({
-          to: requestedEmail,
+          to: detailsNotificationEmail,
           subject: 'Your MyMcKenzieCS account details were updated',
           htmlBody,
           tag: 'account-details-changed-notice',
@@ -307,7 +308,12 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, emailChangeRequested });
+    return NextResponse.json({
+      success: true,
+      email: persistedEmail || '',
+      pendingEmail,
+      emailChangeRequested,
+    });
   } catch (error: any) {
     console.error('Error updating user data:', error);
     return NextResponse.json(

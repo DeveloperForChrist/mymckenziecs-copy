@@ -3,8 +3,6 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { isBillingEligibleUser } from '@/lib/auth/session-user'
-import { getUserPlanData } from '@/lib/payments/user-plan'
-import { isUserEmailVerified } from '@/lib/auth/account-verification'
 import { NO_INDEX_METADATA } from '@/lib/seo'
 
 export const metadata = NO_INDEX_METADATA
@@ -30,12 +28,6 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const authUser = authData?.user
   if (!authUser || !isBillingEligibleUser(authUser)) {
     redirect('/auth/signin?redirect=/dashboard')
-  }
-
-  const planData = await getUserPlanData(authUser.id, authUser.email ?? null)
-  const emailVerified = await isUserEmailVerified(authUser.id)
-  if (!planData.paidAccess && !emailVerified) {
-    redirect('/auth/verify-email?redirect=%2Fdashboard')
   }
 
   return <>{children}</>

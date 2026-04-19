@@ -15,7 +15,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
   }
 
   const { id } = await context.params
-  const { data: document, error } = await supabaseAdmin
+  const { data: document, error } = await supabase
     .from('documents')
     .select('id, storage_path, mime_type, name, uploaded_by, case_id')
     .eq('id', id)
@@ -23,22 +23,6 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     .maybeSingle()
 
   if (error || !document) {
-    return NextResponse.json({ error: 'Document not found' }, { status: 404 })
-  }
-
-  let authorized = document.uploaded_by === authData.user.id
-  if (!authorized && document.case_id) {
-    const { data: ownedCase } = await supabaseAdmin
-      .from('cases')
-      .select('id')
-      .eq('id', document.case_id)
-      .eq('user_id', authData.user.id)
-      .is('deleted_at', null)
-      .maybeSingle()
-    authorized = Boolean(ownedCase)
-  }
-
-  if (!authorized) {
     return NextResponse.json({ error: 'Document not found' }, { status: 404 })
   }
 

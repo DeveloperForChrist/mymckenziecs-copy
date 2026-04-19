@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
-import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
+import { hasUserPlatformAccess } from '@/lib/auth/platform-access';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -21,9 +21,8 @@ const hasMeaningfulCaseProfile = (row: Record<string, any> | null | undefined): 
   return hasTitle || Boolean(externalId) || Boolean(caseType) || Boolean(description);
 };
 
-const hasPaidAccess = async (userId: string): Promise<boolean> => {
-  const snapshot = await getOrSyncUserEntitlementSnapshot(userId);
-  return Boolean(snapshot?.paid_access);
+const hasPlatformAccess = async (userId: string): Promise<boolean> => {
+  return hasUserPlatformAccess(userId);
 };
 
 const parseBoundedPositiveInt = (value: string | null, fallback: number, max: number): number => {
@@ -48,7 +47,7 @@ export async function GET(request: NextRequest) {
     const rangeEnd = offset + limit;
 
     // Fetch bounded cases ordered by last_accessed/created_at.
-    const { data: casesData, error: casesError } = await supabaseAdmin
+    const { data: casesData, error: casesError } = await supabase
       .from('cases')
       .select('*')
       .eq('user_id', userId)
@@ -104,7 +103,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
     const userId = authData.user.id;
-    const paid = await hasPaidAccess(userId);
+    const paid = await hasPlatformAccess(userId);
     if (!paid) {
       return NextResponse.json(
         { error: 'Read-only mode: resume plan to edit or delete case profiles.' },
@@ -113,7 +112,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Ensure the case belongs to this user
-    const { data: caseRow } = await supabaseAdmin
+    const { data: caseRow } = await supabase
       .from('cases')
       .select('id')
       .eq('id', caseId)
@@ -156,7 +155,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Documents are detached (case_id -> NULL) by migration/foreign key constraints.
-    const { error: deleteError } = await supabaseAdmin
+    const { error: deleteError } = await supabase
       .from('cases')
       .delete()
       .eq('id', caseId);
@@ -190,7 +189,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'caseId and updates are required' }, { status: 400 });
     }
     const userId = authData.user.id;
-    const paid = await hasPaidAccess(userId);
+    const paid = await hasPlatformAccess(userId);
     if (!paid) {
       return NextResponse.json(
         { error: 'Read-only mode: resume plan to edit case profiles.' },
@@ -199,7 +198,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Ensure the case belongs to this user
-    const { data: caseRow, error: caseError } = await supabaseAdmin
+    const { data: caseRow, error: caseError } = await supabase
       .from('cases')
       .select('id')
       .eq('id', caseId)
@@ -210,7 +209,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
 
-    const { data: updated, error: updateError } = await supabaseAdmin
+    const { data: updated, error: updateError } = await supabase
       .from('cases')
       .update({
         ...updates,

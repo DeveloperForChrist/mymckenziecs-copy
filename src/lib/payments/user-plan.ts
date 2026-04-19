@@ -1,4 +1,5 @@
 import { entitlementPlanPrice, getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
+import { isUserEmailVerified } from '@/lib/auth/account-verification';
 
 export type UserPlanData = {
   plan: string;
@@ -7,6 +8,7 @@ export type UserPlanData = {
   nextBillingDate: string | null;
   hasStripeCustomer: boolean;
   paidAccess: boolean;
+  platformAccess: boolean;
   cancelAtPeriodEnd: boolean;
   canResume: boolean;
   archiveAt: string | null;
@@ -76,6 +78,8 @@ async function resolveUserPlanData(authUid: string): Promise<UserPlanData> {
   const snapshot = await getOrSyncUserEntitlementSnapshot(authUid);
   const rawPlan = snapshot?.plan_type || 'No plan';
   const planPrice = entitlementPlanPrice(rawPlan);
+  const paidAccess = Boolean(snapshot?.paid_access);
+  const emailVerified = await isUserEmailVerified(authUid);
 
   return {
     plan: rawPlan,
@@ -83,7 +87,8 @@ async function resolveUserPlanData(authUid: string): Promise<UserPlanData> {
     planPrice,
     nextBillingDate: snapshot?.next_billing_date || null,
     hasStripeCustomer: Boolean(snapshot?.has_stripe_customer),
-    paidAccess: Boolean(snapshot?.paid_access),
+    paidAccess,
+    platformAccess: paidAccess || emailVerified,
     cancelAtPeriodEnd: Boolean(snapshot?.cancel_at_period_end),
     canResume: Boolean(snapshot?.can_resume),
     archiveAt: snapshot?.archive_at || null,

@@ -8,8 +8,6 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const fetchCache = 'force-no-store'
 
-const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-
 const hasMeaningfulCaseProfile = (row: Record<string, any> | null | undefined): boolean => {
   if (!row) return false
   const title = typeof row.title === 'string' ? row.title.trim() : ''
@@ -78,16 +76,13 @@ export async function POST(request: Request) {
     const supabase = await createSupabaseRouteClient()
     const { data: authData } = await supabase.auth.getUser()
     const body = await request.json()
-    const { caseId, caseType, caseTitle, caseDescription, userId } = body || {}
-    const fallbackUserId =
-      typeof userId === 'string' && uuidRegex.test(userId.trim())
-        ? userId.trim()
-        : null
-    const ownerId = authData?.user?.id || fallbackUserId
+    const { caseId, caseType, caseTitle, caseDescription } = body || {}
+    const ownerId = authData?.user?.id
 
-    if (!ownerId) {
+    if (!authData?.user || !ownerId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    const casesClient = supabase
 
     const access = await resolveCaseProfileAccess(ownerId)
     if (!access.canView) {
@@ -117,7 +112,7 @@ export async function POST(request: Request) {
     let supportsExternalId = true
     let existingCases: Array<{ id: string; external_id?: string | null; created_at?: string | null }> = []
     {
-      const queryWithExternal = await supabaseAdmin
+      const queryWithExternal = await casesClient
         .from('cases')
         .select('id, external_id, created_at')
         .eq('user_id', ownerId)
@@ -126,7 +121,7 @@ export async function POST(request: Request) {
       if (queryWithExternal.error) {
         if (isMissingColumnError(queryWithExternal.error, 'external_id')) {
           supportsExternalId = false
-          const fallbackQuery = await supabaseAdmin
+          const fallbackQuery = await casesClient
             .from('cases')
             .select('id, created_at')
             .eq('user_id', ownerId)
@@ -161,7 +156,7 @@ export async function POST(request: Request) {
 
     let savedCase: any = null
     if (targetCaseId) {
-      let { data, error } = await supabaseAdmin
+      let { data, error } = await casesClient
         .from('cases')
         .update({ ...payload, updated_at: new Date().toISOString() })
         .eq('id', targetCaseId)
@@ -172,7 +167,7 @@ export async function POST(request: Request) {
       if (error && supportsExternalId && isMissingColumnError(error, 'external_id')) {
         const fallbackPayload = { ...payload, updated_at: new Date().toISOString() }
         delete (fallbackPayload as any).external_id
-        const fallbackResult = await supabaseAdmin
+        const fallbackResult = await casesClient
           .from('cases')
           .update(fallbackPayload)
           .eq('id', targetCaseId)
@@ -190,7 +185,7 @@ export async function POST(request: Request) {
 
       savedCase = Array.isArray(data) ? data[0] : data
     } else {
-      let { data, error } = await supabaseAdmin
+      let { data, error } = await casesClient
         .from('cases')
         .insert(payload)
         .select()
@@ -199,7 +194,7 @@ export async function POST(request: Request) {
       if (error && supportsExternalId && isMissingColumnError(error, 'external_id')) {
         const fallbackPayload = { ...payload }
         delete (fallbackPayload as any).external_id
-        const fallbackResult = await supabaseAdmin
+        const fallbackResult = await casesClient
           .from('cases')
           .insert(fallbackPayload)
           .select()
@@ -228,7 +223,7 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: detachError.message }, { status: 500 })
         }
 
-        const { error: deleteDuplicatesError } = await supabaseAdmin
+        const { error: deleteDuplicatesError } = await casesClient
           .from('cases')
           .delete()
           .in('id', duplicateCaseIds)
@@ -246,24 +241,23 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     const supabase = await createSupabaseRouteClient()
     const { data: authData } = await supabase.auth.getUser()
-    const url = new URL(request.url);
-    const queryUserId = url.searchParams.get('userId');
-    const userId = authData?.user?.id || queryUserId
+    const userId = authData?.user?.id
 
     if (!userId) {
       return NextResponse.json({ ok: true, case: null });
     }
+    const casesClient = supabase
 
     const access = await resolveCaseProfileAccess(userId)
     if (!access.canView) {
       return NextResponse.json({ error: 'Premium or Premium + plan required' }, { status: 403 })
     }
 
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await casesClient
       .from('cases')
       .select('*')
       .eq('user_id', userId)
@@ -292,6 +286,7 @@ export async function DELETE(_request: Request) {
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    const casesClient = supabase
 
     const access = await resolveCaseProfileAccess(userId)
     if (!access.canView) {
@@ -301,7 +296,7 @@ export async function DELETE(_request: Request) {
       return NextResponse.json({ error: 'Read-only mode: resume plan to edit case profile.' }, { status: 402 })
     }
 
-    const { data: caseRows, error: caseRowsError } = await supabaseAdmin
+    const { data: caseRows, error: caseRowsError } = await casesClient
       .from('cases')
       .select('id')
       .eq('user_id', userId)
@@ -324,7 +319,7 @@ export async function DELETE(_request: Request) {
       return NextResponse.json({ error: detachError.message }, { status: 500 })
     }
 
-    const { error: deleteError } = await supabaseAdmin
+    const { error: deleteError } = await casesClient
       .from('cases')
       .delete()
       .in('id', targetCaseIds)

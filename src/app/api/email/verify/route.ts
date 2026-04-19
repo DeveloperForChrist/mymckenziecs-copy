@@ -45,6 +45,22 @@ function buildVerifySuccessRedirect(baseUrl: string, redirectPath?: string) {
   return next
 }
 
+function formatChangedAt(date: Date) {
+  const datePart = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Europe/London',
+  }).format(date)
+  const timePart = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Europe/London',
+  }).format(date)
+  return { datePart, timePart: `${timePart} UK time` }
+}
+
 export async function GET(request: NextRequest) {
   const baseUrl = getAppUrl(request)
   try {
@@ -91,6 +107,7 @@ export async function GET(request: NextRequest) {
 
       const oldEmail = (userRow.email || '').trim().toLowerCase()
       const nowIso = new Date().toISOString()
+      const { datePart, timePart } = formatChangedAt(new Date(nowIso))
 
       const { error: authUpdateError } = await supabaseAdmin.auth.admin.updateUserById(userRow.id, {
         email: pendingEmail,
@@ -120,6 +137,8 @@ export async function GET(request: NextRequest) {
             name: firstName,
             old_email: oldEmail,
             new_email: pendingEmail,
+            changed_date: datePart,
+            changed_time: timePart,
             support_email: supportEmail,
           })
           await sendResendEmail({

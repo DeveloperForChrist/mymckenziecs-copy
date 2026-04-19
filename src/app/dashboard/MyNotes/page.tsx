@@ -28,7 +28,7 @@ export default async function MyCasesPage() {
 
   if (authUser) {
     const planData = await getUserPlanData(authUser.id, authUser.email ?? null);
-    initialReadOnlyMode = !Boolean(planData?.paidAccess);
+    initialReadOnlyMode = !Boolean(planData?.platformAccess ?? planData?.paidAccess);
   }
 
   return (

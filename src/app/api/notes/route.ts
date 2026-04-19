@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseRouteClient } from "@/lib/database/supabase-route";
 import { supabaseAdmin } from "@/lib/database/supabase-server";
+import { hasUserPlatformAccess } from "@/lib/auth/platform-access";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -17,17 +18,7 @@ interface StoredNotePage {
 const MAX_NOTES = 200;
 
 const hasPaidAccess = async (userId: string): Promise<boolean> => {
-  const { data } = await supabaseAdmin
-    .from("subscriptions")
-    .select("plan_type, status")
-    .eq("user_id", userId)
-    .in("status", ["active", "past_due"])
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const label = String(data?.plan_type || "").toLowerCase();
-  return Boolean(label && (label.includes("basic") || label.includes("premium")));
+  return hasUserPlatformAccess(userId);
 };
 
 const isMissingUserNotesTableError = (error: any): boolean => {
@@ -103,7 +94,7 @@ export async function GET() {
     }
 
     const userId = authData.user.id;
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from("user_notes")
       .select("notes_pages, active_page_id, updated_at")
       .eq("user_id", userId)
@@ -171,7 +162,7 @@ export async function PUT(request: Request) {
     const userId = authData.user.id;
     await ensureUserRow(userId, authData.user.email);
 
-    const { error: upsertError } = await supabaseAdmin
+    const { error: upsertError } = await supabase
       .from("user_notes")
       .upsert(
         {

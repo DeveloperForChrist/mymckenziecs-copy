@@ -29,6 +29,7 @@ export default function AccountSection() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [initialProfile, setInitialProfile] = useState({ firstName: '', lastName: '', email: '' });
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -45,6 +46,7 @@ export default function AccountSection() {
         setFirstName('');
         setLastName('');
         setEmail('');
+        setPendingEmail(null);
         setLoading(false);
         return;
       }
@@ -84,6 +86,7 @@ export default function AccountSection() {
           if (data.email) {
             resolvedEmail = data.email;
           }
+          setPendingEmail(typeof data.pendingEmail === 'string' && data.pendingEmail ? data.pendingEmail : null);
         }
       } catch (error) {
         console.error('Error fetching profile data:', error);
@@ -171,7 +174,7 @@ export default function AccountSection() {
         body: JSON.stringify({
           fullName,
           email,
-          redirect: '/dashboard',
+          redirect: '/settings?tab=account',
         })
       });
 
@@ -184,16 +187,24 @@ export default function AccountSection() {
         return;
       }
 
+      const persistedEmail = typeof payload?.email === 'string' ? payload.email : email.trim();
+      const nextPendingEmail =
+        typeof payload?.pendingEmail === 'string' && payload.pendingEmail
+          ? payload.pendingEmail
+          : null;
+
+      setPendingEmail(nextPendingEmail);
       setStatusModal({
         title: 'Changes saved',
         message: payload?.emailChangeRequested
-          ? 'Your email was updated. Confirmation notifications were sent to both old and new addresses.'
+          ? `We sent a verification link to ${nextPendingEmail || email.trim()}. Your sign-in email will stay ${persistedEmail} until you confirm the new address.`
           : 'Your profile changes were saved successfully.'
       });
+      setEmail(persistedEmail);
       setInitialProfile({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        email: email.trim(),
+        email: persistedEmail,
       });
     } catch (error) {
       console.error('Unexpected error saving changes:', error);
@@ -347,6 +358,11 @@ export default function AccountSection() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
+              {pendingEmail && (
+                <p className={styles.helpText} style={{ marginTop: '8px', color: 'rgba(191, 219, 254, 0.92)' }}>
+                  Pending verification: {pendingEmail}. Your current sign-in email stays {initialProfile.email} until you confirm the new address.
+                </p>
+              )}
             </div>
           </form>
         )}

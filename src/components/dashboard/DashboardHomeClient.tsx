@@ -20,6 +20,7 @@ function formatDateLabel(value?: string | null) {
 }
 
 type DashboardHomeClientProps = {
+  initialEmailVerified?: boolean;
   initialPlan?: string;
   initialPlanStatus?: string;
   initialNextBillingDate?: string | null;
@@ -27,6 +28,7 @@ type DashboardHomeClientProps = {
 };
 
 export default function DashboardHomeClient({
+  initialEmailVerified = false,
   initialPlan = 'No plan',
   initialPlanStatus = 'inactive',
   initialNextBillingDate = null,
@@ -34,6 +36,7 @@ export default function DashboardHomeClient({
 }: DashboardHomeClientProps = {}) {
   const searchParams = useSearchParams();
   const [uid, setUid] = useState<string | null>(null);
+  const [emailVerified, setEmailVerified] = useState(Boolean(initialEmailVerified));
   const [plan, setPlan] = useState<string>(initialPlan);
   const [planStatus, setPlanStatus] = useState<string>(initialPlanStatus);
   const [nextBillingDate, setNextBillingDate] = useState<string | null>(initialNextBillingDate);
@@ -51,10 +54,19 @@ export default function DashboardHomeClient({
     normalizedPlanStatus === 'trialing' ||
     normalizedPlanStatus === 'past_due';
   const selectedPlanId = (searchParams?.get('activatePlan') || '').trim();
+  const postVerificationRedirect = selectedPlanId
+    ? `/dashboard?activatePlan=${encodeURIComponent(selectedPlanId)}`
+    : '/dashboard';
   const selectedPlanName =
     PLAN_PRICES.find((entry) => entry.priceId === selectedPlanId)?.name || 'your selected plan';
-  const showActivationBanner = planLoaded && !hasPaidAccess;
-  const featureAccessLocked = planLoaded && !hasPaidAccess;
+  const showVerificationBanner = planLoaded && !emailVerified;
+  const showActivationBanner = planLoaded && emailVerified && !hasPaidAccess;
+  const featureAccessLocked = planLoaded && !emailVerified;
+  const accessLockLabel = 'Verify email first';
+
+  useEffect(() => {
+    setEmailVerified(Boolean(initialEmailVerified));
+  }, [initialEmailVerified]);
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -91,24 +103,17 @@ export default function DashboardHomeClient({
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
     const sendWelcomeIfVerified = async () => {
       try {
-        const supabase = getSupabaseBrowserClient();
-        const { data } = await supabase.auth.getUser();
-        if (!data?.user || !data.user.email_confirmed_at) return;
         await fetch('/api/email/welcome', { method: 'POST', credentials: 'include' });
       } catch {
         // no-op
       }
     };
-    if (!cancelled && uid) {
+    if (uid && emailVerified) {
       void sendWelcomeIfVerified();
     }
-    return () => {
-      cancelled = true;
-    };
-  }, [uid]);
+  }, [emailVerified, uid]);
 
   const handleActivateTrial = async () => {
     if (!selectedPlanId || activationPending) return;
@@ -147,7 +152,7 @@ export default function DashboardHomeClient({
     let cancelled = false;
 
     const loadCalendarAlerts = async () => {
-      if (!uid) {
+      if (!uid || !emailVerified) {
         if (!cancelled) setCalendarAlertCount(0);
         return;
       }
@@ -166,7 +171,7 @@ export default function DashboardHomeClient({
     return () => {
       cancelled = true;
     };
-  }, [uid]);
+  }, [emailVerified, uid]);
 
   const features: Array<{
     icon: string;
@@ -270,6 +275,60 @@ export default function DashboardHomeClient({
             </p>
           </div>
 
+          {showVerificationBanner && (
+            <section
+              style={{
+                marginBottom: '26px',
+                borderRadius: '18px',
+                border: '1px solid rgba(248, 250, 252, 0.22)',
+                background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.88), rgba(15, 23, 42, 0.74))',
+                padding: '18px 18px 16px',
+              }}
+            >
+              <h2 style={{ margin: 0, fontSize: '1.08rem', fontWeight: 700, color: '#f8fafc' }}>
+                Verify your email to continue
+              </h2>
+              <p style={{ margin: '8px 0 0', color: '#cbd5f5', lineHeight: 1.5, maxWidth: '760px' }}>
+                {selectedPlanId
+                  ? `Open the verification email we sent you, then return here to activate your 7 day free trial for ${selectedPlanName}.`
+                  : 'Open the verification email we sent you, then come back here to choose a plan and activate your 7 day free trial.'}
+              </p>
+              <p style={{ margin: '10px 0 0', color: '#dbeafe', lineHeight: 1.45 }}>
+                Need a fresh link? The verification page lets you resend it.
+              </p>
+              <div style={{ marginTop: 14, display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <Link
+                  href={`/auth/verify-email?redirect=${encodeURIComponent(postVerificationRedirect)}`}
+                  style={{
+                    textDecoration: 'none',
+                    borderRadius: '999px',
+                    background: 'linear-gradient(135deg, #7bd4c9, #3aa79d)',
+                    color: '#052a27',
+                    padding: '10px 16px',
+                    fontWeight: 700,
+                  }}
+                >
+                  Open verification step
+                </Link>
+                <Link
+                  href="/pricing"
+                  style={{
+                    textDecoration: 'none',
+                    border: '1px solid rgba(255,255,255,0.22)',
+                    background: 'rgba(255,255,255,0.06)',
+                    color: '#fff',
+                    borderRadius: '999px',
+                    padding: '9px 14px',
+                    fontWeight: 700,
+                    fontSize: '0.92rem',
+                  }}
+                >
+                  View plans
+                </Link>
+              </div>
+            </section>
+          )}
+
           {showActivationBanner && (
             <section
               style={{
@@ -281,12 +340,12 @@ export default function DashboardHomeClient({
               }}
             >
               <h2 style={{ margin: 0, fontSize: '1.08rem', fontWeight: 700, color: '#f8fafc' }}>
-                Your account has been verified and registered
+                Your account is verified and your dashboard is ready
               </h2>
               <p style={{ margin: '8px 0 0', color: '#cbd5f5', lineHeight: 1.5, maxWidth: '760px' }}>
                 {selectedPlanId
-                  ? `Enter your payment details to activate your 7 day free trial for ${selectedPlanName} and access the platform.`
-                  : 'Choose a plan and enter your payment details to activate your 7 day free trial and access the platform.'}
+                  ? `You can use the platform now. Add your card details to start your 7 day free trial for ${selectedPlanName} and keep your access uninterrupted.`
+                  : 'You can use the platform now. Choose a plan and add your card details to start your 7 day free trial and keep your access uninterrupted.'}
               </p>
               <p style={{ margin: '10px 0 0', color: '#d1fae5', lineHeight: 1.45, fontWeight: 600 }}>
                 No charge today. Cancel anytime before your trial ends.
@@ -501,7 +560,7 @@ export default function DashboardHomeClient({
                           letterSpacing: '0.02em',
                         }}
                       >
-                        Activate trial first
+                        {accessLockLabel}
                       </div>
                     )}
                     <i className={`bx ${feature.icon}`} style={{ fontSize: 'clamp(1.9rem, 7vw, 2.45rem)', display: 'block', marginBottom: '14px', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))' }} />

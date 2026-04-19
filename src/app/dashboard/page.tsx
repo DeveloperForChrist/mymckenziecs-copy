@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import DashboardHomeClient from '@/components/dashboard/DashboardHomeClient';
 import { getUserPlanData } from '@/lib/payments/user-plan';
+import { isUserEmailVerified } from '@/lib/auth/account-verification';
 
 export default async function DashboardPage() {
   const cookieStore = await cookies();
@@ -26,6 +27,7 @@ export default async function DashboardPage() {
   let initialPlan = 'No plan';
   let initialPlanStatus = 'inactive';
   let initialNextBillingDate: string | null = null;
+  let initialEmailVerified = false;
   const initialPlanLoaded = Boolean(authUser);
 
   if (authUser) {
@@ -34,10 +36,12 @@ export default async function DashboardPage() {
     initialPlanStatus = (planData?.planStatus || 'inactive').toString().trim().toLowerCase();
     initialNextBillingDate =
       typeof planData?.nextBillingDate === 'string' ? planData.nextBillingDate : null;
+    initialEmailVerified = await isUserEmailVerified(authUser.id);
   }
 
   return (
     <DashboardHomeClient
+      initialEmailVerified={initialEmailVerified}
       initialPlan={initialPlan}
       initialPlanStatus={initialPlanStatus}
       initialNextBillingDate={initialNextBillingDate}

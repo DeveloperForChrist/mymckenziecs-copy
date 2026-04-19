@@ -1760,23 +1760,25 @@ export async function POST(request: NextRequest) {
       : []
 
     let hasPaidPlan = false
+    let hasPlatformAccess = false
     let basicPlanActive = false
     let premiumPlanActive = false
     let premiumPlusActive = false
     let activePlanLabel = 'none'
     if (authUserId) {
       const planData = await getUserPlanData(authUserId, authData?.user?.email || null)
-      activePlanLabel = normalizePlanLabel(planData?.plan || '')
       hasPaidPlan = Boolean(planData?.paidAccess)
-      basicPlanActive = isBasicPlan(activePlanLabel)
-      premiumPlusActive = isPremiumPlusPlan(activePlanLabel)
+      hasPlatformAccess = Boolean(planData?.platformAccess ?? planData?.paidAccess)
+      activePlanLabel = normalizePlanLabel(planData?.plan || '') || (hasPlatformAccess ? 'basic' : 'none')
+      basicPlanActive = (hasPlatformAccess && !hasPaidPlan) || isBasicPlan(activePlanLabel)
+      premiumPlusActive = hasPaidPlan && isPremiumPlusPlan(activePlanLabel)
       premiumPlanActive = hasPaidPlan && isPremiumPlan(activePlanLabel)
-      chatManager.seedUserPlan(planData?.plan || null)
+      chatManager.seedUserPlan(planData?.plan || (hasPlatformAccess ? 'Basic' : null))
 
-      if (!hasPaidPlan) {
+      if (!hasPlatformAccess) {
         return withCookie(
           NextResponse.json(
-            buildAssistantResponsePayload('A paid plan is required to use chat. Please choose a plan to continue.', {
+            buildAssistantResponsePayload('Verify your email to continue using chat.', {
               upgradeRequired: true,
               activePlan: activePlanLabel || 'none',
               planStatus: String(planData?.planStatus || 'inactive').toLowerCase(),
@@ -1785,7 +1787,6 @@ export async function POST(request: NextRequest) {
           )
         )
       }
-
     }
 
     const threadTurnLimit = resolveThreadTurnLimit({

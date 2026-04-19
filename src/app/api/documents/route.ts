@@ -12,6 +12,7 @@ export const fetchCache = 'force-no-store'
 const MAX_FILE_SIZE = 25 * 1024 * 1024
 const DEFAULT_DOCUMENT_LIMIT = 100
 const MAX_DOCUMENT_LIMIT = 250
+const ONBOARDING_DOCUMENT_LIMIT = documentLimitForPlan('basic')
 
 const sanitizeFilename = (name: string) =>
   name.replace(/[^a-zA-Z0-9._\- ]/g, '').trim() || 'uploaded-document'
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
     const preferredSelect = 'id, name, type, created_at, file_size, mime_type, storage_path, storage_url, case_id, starred'
     const fallbackSelect = 'id, name, type, created_at, file_size, mime_type, storage_path, storage_url, case_id'
 
-    const preferredResult = await supabaseAdmin
+    const preferredResult = await supabase
       .from('documents')
       .select(preferredSelect)
       .is('deleted_at', null)
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
 
     // Backward-compatible fallback while starred migration rolls out.
     if (error && /starred/i.test(error.message || '')) {
-      const fallbackResult = await supabaseAdmin
+      const fallbackResult = await supabase
         .from('documents')
         .select(fallbackSelect)
         .is('deleted_at', null)
@@ -103,10 +104,11 @@ export async function POST(request: NextRequest) {
     }
     const planData = await getUserPlanData(user.id, user.email || null, { bypassCache: true })
     const activePlanLabel = planData?.plan || 'No plan'
-    const paid = Boolean(planData?.paidAccess)
+    const platformAccess = Boolean(planData?.platformAccess ?? planData?.paidAccess)
     const planDocLimit = documentLimitForPlan(activePlanLabel)
+    const effectiveDocumentLimit = planDocLimit > 0 ? planDocLimit : (platformAccess ? ONBOARDING_DOCUMENT_LIMIT : 0)
 
-    if (!paid || planDocLimit <= 0) {
+    if (!platformAccess || effectiveDocumentLimit <= 0) {
       return NextResponse.json(
         { error: 'Read-only mode: resume plan to upload documents. Existing documents remain safe.' },
         { status: 402 }
@@ -137,7 +139,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No files provided' }, { status: 400 })
     }
 
-    const { count: existingDocumentsCount, error: countError } = await supabaseAdmin
+    const { count: existingDocumentsCount, error: countError } = await supabase
       .from('documents')
       .select('id', { count: 'exact', head: true })
       .eq('uploaded_by', user.id)
@@ -149,12 +151,13 @@ export async function POST(request: NextRequest) {
 
     const usedDocuments = Number(existingDocumentsCount || 0)
     const requestedUploads = files.length
-    if (usedDocuments + requestedUploads > planDocLimit) {
-      const remaining = Math.max(planDocLimit - usedDocuments, 0)
+    if (usedDocuments + requestedUploads > effectiveDocumentLimit) {
+      const remaining = Math.max(effectiveDocumentLimit - usedDocuments, 0)
+      const limitLabel = planDocLimit > 0 ? planDisplayName(activePlanLabel) : 'your current access'
       return NextResponse.json(
         {
-          error: `Upload limit reached for ${planDisplayName(activePlanLabel)} plan. You can store up to ${planDocLimit} documents.`,
-          limit: planDocLimit,
+          error: `Upload limit reached for ${limitLabel}. You can store up to ${effectiveDocumentLimit} documents.`,
+          limit: effectiveDocumentLimit,
           used: usedDocuments,
           remaining,
           requested: requestedUploads,
@@ -166,7 +169,7 @@ export async function POST(request: NextRequest) {
     const caseId = caseIdFromForm || null
     if (caseId) {
       // Prevent orphaned storage uploads: validate ownership before uploading anything.
-      const { data: ownedCase, error: ownedErr } = await supabaseAdmin
+      const { data: ownedCase, error: ownedErr } = await supabase
         .from('cases')
         .select('id')
         .eq('id', caseId)
@@ -202,7 +205,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: uploadError.message }, { status: 500 })
       }
 
-      const { data: inserted, error: insertError } = await supabaseAdmin
+      const { data: inserted, error: insertError } = await supabase
         .from('documents')
         .insert({
           case_id: caseId,

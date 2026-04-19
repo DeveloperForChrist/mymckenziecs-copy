@@ -3,6 +3,7 @@ import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { sendResendEmail } from '@/lib/email/resend';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { getAppUrl } from '@/lib/app-url';
+import { isUserEmailVerified } from '@/lib/auth/account-verification';
 import fs from 'fs';
 import path from 'path';
 
@@ -34,7 +35,9 @@ export async function POST(_request: NextRequest) {
       user.email?.split('@')[0] ||
       'there';
 
-    if (!user.email_confirmed_at) {
+    const emailVerified = await isUserEmailVerified(user.id);
+
+    if (!emailVerified) {
       return NextResponse.json({ error: 'Email not verified' }, { status: 400 });
     }
 

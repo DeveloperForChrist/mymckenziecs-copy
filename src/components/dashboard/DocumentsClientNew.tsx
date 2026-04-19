@@ -98,7 +98,7 @@ export default function DocumentsClient({
         if (!res.ok) return;
         const data = await readApiJson(res);
         if (cancelled) return;
-        setCanUpload(Boolean(data?.paidAccess));
+        setCanUpload(Boolean(data?.platformAccess ?? data?.paidAccess));
       } catch {
         // Keep preloaded value (or locked default) when plan refresh fails.
       } finally {

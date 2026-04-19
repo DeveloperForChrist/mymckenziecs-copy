@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
-import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements'
+import { hasUserPlatformAccess } from '@/lib/auth/platform-access'
 
 async function hasPaidAccess(userId: string): Promise<boolean> {
-  const snapshot = await getOrSyncUserEntitlementSnapshot(userId)
-  return Boolean(snapshot?.paid_access)
+  return hasUserPlatformAccess(userId)
 }
 
-async function getAccessibleDocument(userId: string, docId: string) {
-  const { data: doc, error } = await supabaseAdmin
+async function getAccessibleDocument(supabase: any, docId: string) {
+  const { data: doc, error } = await supabase
     .from('documents')
     .select('id, uploaded_by, case_id, storage_path')
     .eq('id', docId)
@@ -17,18 +16,7 @@ async function getAccessibleDocument(userId: string, docId: string) {
     .maybeSingle()
 
   if (error || !doc) return null
-  if (doc.uploaded_by === userId) return doc
-  if (!doc.case_id) return null
-
-  const { data: ownedCase } = await supabaseAdmin
-    .from('cases')
-    .select('id')
-    .eq('id', doc.case_id)
-    .eq('user_id', userId)
-    .is('deleted_at', null)
-    .maybeSingle()
-
-  return ownedCase ? doc : null
+  return doc
 }
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
@@ -49,12 +37,12 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       return NextResponse.json({ error: 'starred must be a boolean' }, { status: 400 })
     }
 
-    const doc = await getAccessibleDocument(authData.user.id, id)
+    const doc = await getAccessibleDocument(supabase, id)
     if (!doc) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 })
     }
 
-    const { data: updated, error: updateErr } = await supabaseAdmin
+    const { data: updated, error: updateErr } = await supabase
       .from('documents')
       .update({ starred: body.starred })
       .eq('id', id)
@@ -95,7 +83,7 @@ export async function DELETE(_request: NextRequest, context: { params: Promise<{
       return NextResponse.json({ error: 'Missing document id' }, { status: 400 })
     }
 
-    const doc = await getAccessibleDocument(authData.user.id, id)
+    const doc = await getAccessibleDocument(supabase, id)
     if (!doc) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 })
     }
@@ -110,7 +98,7 @@ export async function DELETE(_request: NextRequest, context: { params: Promise<{
     }
 
     const nowIso = new Date().toISOString()
-    const { error: updateErr } = await supabaseAdmin
+    const { error: updateErr } = await supabase
       .from('documents')
       .update({ deleted_at: nowIso })
       .eq('id', id)

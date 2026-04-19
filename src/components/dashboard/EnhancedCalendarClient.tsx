@@ -284,9 +284,9 @@ export default function EnhancedCalendarClient({
         const planRes = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' })
         if (!planRes.ok) throw new Error('Failed to load plan')
         const planData = await planRes.json()
-        const paidAccess = Boolean(planData?.paidAccess)
-        setHasPaidAccess(paidAccess)
-        const canUseReminders = paidAccess && planHasReminderAccess(planData?.plan || '')
+        const platformAccess = Boolean(planData?.platformAccess ?? planData?.paidAccess)
+        setHasPaidAccess(platformAccess)
+        const canUseReminders = Boolean(planData?.paidAccess) && planHasReminderAccess(planData?.plan || '')
         setHasReminderAccess(canUseReminders)
 
         if (canUseReminders) {

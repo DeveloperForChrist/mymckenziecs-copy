@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
+import { hasUserPlatformAccess } from '@/lib/auth/platform-access';
 import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { isPaidPlan } from '@/lib/plans/access';
 import { attachAssistantPresentationMetadata, sanitizeAssistantMetadata } from '@/lib/chat/assistant-presentation';
@@ -137,6 +138,8 @@ function isPlaceholderTitle(value: string | null | undefined): boolean {
 const dedupe = <T,>(items: T[]): T[] => Array.from(new Set(items.filter(Boolean) as T[]));
 
 async function hasPaidPlanAccess(authUid: string, authEmail: string | null): Promise<boolean> {
+  if (await hasUserPlatformAccess(authUid)) return true;
+
   const hasPaidForUserIds = async (userIds: string[]) => {
     if (userIds.length === 0) return false;
 

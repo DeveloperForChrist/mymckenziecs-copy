@@ -30,7 +30,7 @@ export default async function DocumentsPage() {
 
   if (isEligible && authUser) {
     const planData = await getUserPlanData(authUser.id, authUser.email ?? null);
-    initialCanUpload = Boolean(planData?.paidAccess);
+    initialCanUpload = Boolean(planData?.platformAccess ?? planData?.paidAccess);
   }
 
   return (

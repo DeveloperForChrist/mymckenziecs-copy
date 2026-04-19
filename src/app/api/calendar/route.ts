@@ -1,8 +1,7 @@
 import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
-import { supabaseAdmin } from '@/lib/database/supabase-server';
-import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
+import { hasUserPlatformAccess } from '@/lib/auth/platform-access';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -29,8 +28,7 @@ type CreateEventInput = {
 };
 
 async function hasPaidAccess(userId: string): Promise<boolean> {
-  const snapshot = await getOrSyncUserEntitlementSnapshot(userId);
-  return Boolean(snapshot?.paid_access);
+  return hasUserPlatformAccess(userId);
 }
 
 function asObject(input: any): Record<string, any> | null {
@@ -200,7 +198,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: end.error }, { status: 400 });
     }
 
-    let query = supabaseAdmin
+    let query = supabase
       .from('calendar_events')
       .select('*')
       .eq('user_id', userId)

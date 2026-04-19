@@ -50,6 +50,9 @@ type MiddlewareEntitlement = {
   archive_at?: string | null
 }
 
+const UNVERIFIED_ALLOWED_PAGE_PATHS = new Set(['/dashboard'])
+const UNVERIFIED_ALLOWED_API_PATHS = new Set(['/api/user', '/api/user/plan'])
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
@@ -145,10 +148,13 @@ export async function middleware(request: NextRequest) {
   // Check if path requires authentication
   const requiresAuth = protectedPaths.some((path) => pathname.startsWith(path))
   const requiresAdmin = adminPaths.some((path) => pathname.startsWith(path))
+  const isUnverifiedAllowedPage = UNVERIFIED_ALLOWED_PAGE_PATHS.has(pathname)
+  const isUnverifiedAllowedApi = pathname.startsWith('/api/') && UNVERIFIED_ALLOWED_API_PATHS.has(pathname)
   const shouldEnforceVerification =
     requiresAuth &&
     Boolean(user) &&
-    !pathname.startsWith('/api/')
+    !isUnverifiedAllowedPage &&
+    !isUnverifiedAllowedApi
   const needsUserProfile = Boolean(user) && (shouldEnforceVerification || requiresAdmin)
 
   if (requiresAuth && !user) {
@@ -190,8 +196,17 @@ export async function middleware(request: NextRequest) {
       : Boolean((user as any)?.email_confirmed_at)
 
     if (!isEmailVerified) {
-      const redirectTarget = `${pathname}${request.nextUrl.search || ''}`
+      const redirectTarget = pathname.startsWith('/api/')
+        ? '/dashboard'
+        : `${pathname}${request.nextUrl.search || ''}`
       const verifyPath = `/auth/verify-email?redirect=${encodeURIComponent(redirectTarget)}`
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json({
+          error: 'Email verification required',
+          code: 'EMAIL_VERIFICATION_REQUIRED',
+          redirect: verifyPath,
+        }, { status: 403 })
+      }
       return NextResponse.redirect(new URL(verifyPath, request.url))
     }
   }
@@ -253,7 +268,6 @@ export async function middleware(request: NextRequest) {
 
   if (user && isSoftSuspendedPath) {
     const status = String(entitlement?.plan_status || '').toLowerCase()
-    const paid = Boolean(entitlement?.paid_access)
     const hardLocked =
       hasPaidPlan(entitlement?.plan_type) &&
       (status === 'expired' || status === 'cancelled') &&
@@ -264,29 +278,9 @@ export async function middleware(request: NextRequest) {
       pricingUrl.searchParams.set('hard_lock', '1')
       return NextResponse.redirect(pricingUrl)
     }
-
-    if (!paid && isSoftSuspendedPath) {
-      if (pathname === '/dashboard') {
-        return response
-      }
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
   }
 
   if (requiresPaidPlan && user) {
-    if (!Boolean(entitlement?.paid_access)) {
-      if (pathname.startsWith('/api/')) {
-        const method = request.method.toUpperCase()
-        const isReadOnlyAllowed =
-          method === 'GET' &&
-          (pathname.startsWith('/api/cases') || pathname.startsWith('/api/chat-history'))
-        if (isReadOnlyAllowed) {
-          return response
-        }
-        return NextResponse.json({ error: 'Payment required' }, { status: 402 })
-      }
-    }
-
     if (pathname.startsWith('/dashboard/case-profile') && entitlement && !hasCaseProfileAccess(entitlement?.plan_type)) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }

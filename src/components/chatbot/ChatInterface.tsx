@@ -334,7 +334,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   const {
     supabaseUser,
     plan,
-    paidAccess,
+    platformAccess,
     planLoaded,
     authLoaded,
   } = useChatAuthPlan({ supabase, clearSessionHistory, initialState: initialAuthPlan })
@@ -400,7 +400,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   const [noticeModal, setNoticeModal] = useState<{ title: string; message: string } | null>(null)
   const [floatingNotice, setFloatingNotice] = useState<string | null>(null)
   const [activeInlineStreamMessageId, setActiveInlineStreamMessageId] = useState<string | null>(null)
-  const isSignedInPlanLocked = Boolean(supabaseUser) && planLoaded && !paidAccess
+  const isSignedInPlanLocked = Boolean(supabaseUser) && planLoaded && !platformAccess
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null)
