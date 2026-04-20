@@ -57,12 +57,20 @@ describe('geo routing helpers', () => {
     expect(readEdgeCountryCode(headers)).toBe('US')
   })
 
-  it('ignores Vercel-only headers', () => {
+  it('prefers standard edge headers over Vercel headers', () => {
     const headers = new Headers({
       'x-vercel-ip-country': 'US',
       'cf-ipcountry': 'CA',
     })
 
     expect(readEdgeCountryCode(headers)).toBeNull()
+  })
+
+  it('falls back to Vercel geo headers when available', () => {
+    const headers = new Headers({
+      'x-vercel-ip-country': 'GB',
+    })
+
+    expect(readEdgeCountryCode(headers)).toBe('GB')
   })
 })

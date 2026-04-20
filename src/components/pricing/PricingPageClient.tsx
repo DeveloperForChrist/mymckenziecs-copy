@@ -80,6 +80,7 @@ export default function PricingPageClient({
   const isTrialingStatus = isTrialingStripeStatus(planStatus);
   const dashboardHref = getAppRouteForMarket('/dashboard', billingMarket);
   const billingSettingsHref = getAppRouteForMarket('/settings?tab=billing', billingMarket);
+  const homeHref = billingMarket === 'US' ? '/us' : '/uk';
 
   const renderGuideLinks = (links: PricingGuideLink[]) => (
     <>
@@ -469,7 +470,7 @@ export default function PricingPageClient({
             flexWrap: 'wrap',
             gap: '10px',
           }}>
-            <a href="/" style={{ textDecoration: 'none' }}>
+            <a href={homeHref} style={{ textDecoration: 'none' }}>
               <h2 style={{
                 color: '#ffffff',
                 fontSize: 'clamp(1.5rem, 7vw, 2.6rem)',

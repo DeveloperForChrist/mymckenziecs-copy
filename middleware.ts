@@ -70,6 +70,38 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(redirectedPath, request.url))
   }
 
+  const isLegacyPublicPath =
+    !isRootPath &&
+    !pathname.startsWith('/us') &&
+    !pathname.startsWith('/uk') &&
+    (getPublicRouteForMarket(pathname, 'GB') !== pathname ||
+      getPublicRouteForMarket(pathname, 'US') !== pathname)
+
+  if (isLegacyPublicPath) {
+    const secureCookie = request.nextUrl.protocol === 'https:'
+    const storedMarket = readStoredMarketCookie(request.cookies.get(MARKET_COOKIE_NAME)?.value)
+    let geoCountryCode: string | null = null
+
+    if (!storedMarket) {
+      const detection = await detectLegalMatterLocation(request)
+      geoCountryCode = detection.suggestedCountryCode
+    }
+
+    const resolvedMarket = resolveRootMarket({
+      storedMarket,
+      edgeCountryCode: geoCountryCode,
+    })
+
+    const redirectPath = getPublicRouteForMarket(pathname, resolvedMarket)
+    if (redirectPath !== pathname) {
+      const redirectUrl = new URL(redirectPath, request.url)
+      redirectUrl.search = request.nextUrl.search
+      const redirectResponse = NextResponse.redirect(redirectUrl)
+      setMarketCookie(redirectResponse, resolvedMarket, secureCookie)
+      return redirectResponse
+    }
+  }
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -382,6 +414,26 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/',
+    '/about',
+    '/pricing',
+    '/faq',
+    '/help',
+    '/privacy-policy',
+    '/terms',
+    '/cookie-policy',
+    '/contact',
+    '/legal-case-management-tool',
+    '/litigant-in-person-uk',
+    '/how-to-prepare-small-claims-court-uk',
+    '/small-claims-court-uk',
+    '/organise-court-documents-uk',
+    '/court-bundle-preparation-uk',
+    '/case-law-search-uk',
+    '/witness-statement-uk',
+    '/directions-questionnaire-uk',
+    '/serving-court-documents-uk',
+    '/do-you-need-a-lawyer-for-small-claims-court-uk',
+    '/mckenzie-friend-support',
     '/admin/:path*',
     '/jesusistheadmin/:path*',
     '/dashboard/:path*',

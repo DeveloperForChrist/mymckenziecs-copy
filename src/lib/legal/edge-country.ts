@@ -23,6 +23,7 @@ export function readEdgeCountryCode(headers: Headers): SupportedCountryCode | nu
     'cf-ipcountry',
     'cloudfront-viewer-country',
     'x-country-code',
+    'x-vercel-ip-country',
   ]))
   return isSupportedCountryCode(normalized) ? normalized : null
 }
