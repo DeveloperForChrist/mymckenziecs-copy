@@ -102,6 +102,20 @@ const buildStreamingChatRequest = (body: Record<string, unknown>) =>
     body: JSON.stringify(body),
   }) as any
 
+const UK_USER_ROW = {
+  id: 'user-1',
+  country_code: 'GB',
+  jurisdiction_code: 'GB-ENG-WLS',
+  jurisdiction_label: 'England and Wales',
+}
+
+const US_USER_ROW = {
+  id: 'user-1',
+  country_code: 'US',
+  jurisdiction_code: 'US-NV',
+  jurisdiction_label: 'Nevada',
+}
+
 describe('/api/chat route', () => {
   const originalEnv = { ...process.env }
 
@@ -118,7 +132,7 @@ describe('/api/chat route', () => {
 
   const loadRoute = async ({
     authUser = { id: 'user-1', email: 'user@example.com' },
-    planData = { plan: 'basic', paidAccess: true, planStatus: 'active' },
+    planData = { plan: 'basic', paidAccess: true, platformAccess: true, planStatus: 'active' },
     incrementedTurnCount = 1,
     searchByTextImpl,
     processMessageResult = {
@@ -132,9 +146,9 @@ describe('/api/chat route', () => {
     messagesRows,
     chatMemoryRows,
     chatActionItemsRows,
-    }: {
+  }: {
     authUser?: { id: string; email?: string | null } | null
-    planData?: { plan?: string | null; paidAccess?: boolean; planStatus?: string | null }
+    planData?: { plan?: string | null; paidAccess?: boolean; platformAccess?: boolean; planStatus?: string | null }
     incrementedTurnCount?: number
     searchByTextImpl?: (...args: any[]) => Promise<any[]>
     processMessageResult?: { task: string; contextType: string; urgency: string; caseId: string | null }
@@ -360,19 +374,93 @@ describe('/api/chat route', () => {
     expect(chatManagerInstance.initializeSession).not.toHaveBeenCalled()
   })
 
-  it('returns a structured upgrade response when the signed-in user has no paid plan', { timeout: 15000 }, async () => {
-    const { POST, chatManagerInstance } = await loadRoute({
-      planData: { plan: 'none', paidAccess: false, planStatus: 'inactive' },
+  it('allows Basic chat when the signed-in user has platform access but no paid plan', { timeout: 15000 }, async () => {
+    const { POST, chatManagerInstance, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'none', paidAccess: false, platformAccess: true, planStatus: 'inactive' },
     })
 
     const response = await POST(buildChatRequest({ message: 'Help me with my claim', history: [] }))
     const payload = await response.json()
 
-    expect(response.status).toBe(403)
-    expect(payload.response).toBe('A paid plan is required to use chat. Please choose a plan to continue.')
-    expect(payload.metadata.upgradeRequired).toBe(true)
-    expect(payload.metadata.presentation.version).toBe(1)
+    expect(response.status).toBe(200)
+    expect(payload.response).toContain('Which stage are you at right now')
+    expect(payload.metadata.upgradeRequired).toBeUndefined()
+    expect(payload.metadata.requiresClarification).toBe(true)
     expect(chatManagerInstance.seedUserPlan).toHaveBeenCalledWith('none')
+    expect(legalAgentMocks.invokeBasicLegalAgent).not.toHaveBeenCalled()
+  })
+
+  it('disables premium plus UK case-law retrieval for U.S. users while keeping premium plus chat available', { timeout: 15000 }, async () => {
+    process.env.PREMIUM_PLUS_ANTHROPIC_MODEL = 'claude-opus-4-6'
+
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'premium +', paidAccess: true, platformAccess: true, planStatus: 'active' },
+      usersRows: [
+        {
+          id: 'user-1',
+          country_code: 'US',
+          jurisdiction_code: 'US-NV',
+          jurisdiction_label: 'Nevada',
+        },
+      ],
+      processMessageResult: { task: 'case_lookup', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'Can I get case law on this Nevada car accident issue?',
+        history: [],
+      })
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.metadata?.debug?.premiumPlusCaseLawRetrievalEnabled).toBe(false)
+    expect(payload.metadata?.debug?.vectorCaseLawRagEnabled).toBe(false)
+    expect(payload.metadata?.debug?.premiumPlusWebQuery).toContain('Nevada United States')
+    expect(legalAgentMocks.invokePremiumPlusLegalAgent).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      'user-1',
+      [],
+      '',
+      expect.objectContaining({
+        legalContext: expect.objectContaining({
+          countryCode: 'US',
+          jurisdictionCode: 'US-NV',
+          jurisdictionLabel: 'Nevada',
+        }),
+      })
+    )
+  })
+
+  it('enables premium plus UK case-law retrieval for UK users on case-law questions', { timeout: 15000 }, async () => {
+    process.env.PREMIUM_PLUS_ANTHROPIC_MODEL = 'claude-opus-4-6'
+
+    const { POST } = await loadRoute({
+      planData: { plan: 'premium +', paidAccess: true, platformAccess: true, planStatus: 'active' },
+      usersRows: [
+        {
+          id: 'user-1',
+          country_code: 'GB',
+          jurisdiction_code: 'GB-ENG-WLS',
+          jurisdiction_label: 'England and Wales',
+        },
+      ],
+      processMessageResult: { task: 'case_lookup', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'Can I get case law on this England and Wales car accident issue?',
+        history: [],
+      })
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.metadata?.debug?.premiumPlusCaseLawRetrievalEnabled).toBe(true)
+    expect(payload.metadata?.debug?.premiumPlusVectorQuery).toBeTruthy()
   })
 
   it('returns the thread-limit assistant response before invoking the legal agent', { timeout: 15000 }, async () => {
@@ -507,15 +595,13 @@ describe('/api/chat route', () => {
       [],
       '',
       expect.objectContaining({
-        autoDecideSearch: true,
-        searchEngineOverride: 'brave',
-        consumeSearchQuota: expect.any(Function),
+        useSearch: false,
         memoryContext: expect.stringContaining('Earlier conversation marker: driver hit my car and ran away'),
       })
     )
   })
 
-  it('passes the daily Basic search quota gate into the basic agent', { timeout: 15000 }, async () => {
+  it('keeps the Basic agent on direct answers without web search', { timeout: 15000 }, async () => {
     const { POST, legalAgentMocks, webSearchUsageMock } = await loadRoute({
       planData: { plan: 'basic', paidAccess: true, planStatus: 'active' },
       processMessageResult: { task: 'legal_procedure', contextType: 'general', urgency: 'normal', caseId: null },
@@ -532,33 +618,23 @@ describe('/api/chat route', () => {
     const call = (legalAgentMocks.invokeBasicLegalAgent as any).mock.calls[0]
     expect(call).toBeTruthy()
     expect(call[5]).toEqual(expect.objectContaining({
-      autoDecideSearch: true,
-      searchEngineOverride: 'brave',
-      consumeSearchQuota: expect.any(Function),
+      useSearch: false,
     }))
-
-    await call[5].consumeSearchQuota()
-    expect(webSearchUsageMock.consumeBasicDailyWebSearchQuota).toHaveBeenCalledWith('user-1')
+    expect(call[5].consumeSearchQuota).toBeUndefined()
+    expect(webSearchUsageMock.consumeBasicDailyWebSearchQuota).not.toHaveBeenCalled()
   })
 
-  it('includes the one-shot Basic daily search notice in assistant metadata when the last allowed search succeeds', { timeout: 15000 }, async () => {
+  it('does not surface a Basic daily search notice when Basic web search is disabled', { timeout: 15000 }, async () => {
     const { POST, legalAgentMocks } = await loadRoute({
       planData: { plan: 'basic', paidAccess: true, planStatus: 'active' },
       processMessageResult: { task: 'legal_procedure', contextType: 'general', urgency: 'normal', caseId: null },
     })
 
     ;(legalAgentMocks.invokeBasicLegalAgent as any).mockResolvedValueOnce({
-      response: 'Basic answer [1]',
+      response: 'Basic answer',
       guidance_provided: [],
       next_steps: [],
-      sources: [
-        {
-          number: 1,
-          title: 'Gov',
-          url: 'https://www.gov.uk/make-court-claim-for-money',
-        },
-      ],
-      basicDailySearchNotice: 'Daily web search limit reached. Back to standard answers.',
+      sources: [],
     })
 
     const response = await POST(
@@ -570,16 +646,8 @@ describe('/api/chat route', () => {
 
     expect(response.status).toBe(200)
     const payload = await response.json()
-    expect(payload.metadata.basicDailySearchNotice).toBe(
-      'Daily web search limit reached. Back to standard answers.'
-    )
-    expect(payload.metadata.sources).toEqual([
-      {
-        number: 1,
-        title: 'Gov',
-        url: 'https://www.gov.uk/make-court-claim-for-money',
-      },
-    ])
+    expect(payload.metadata.basicDailySearchNotice).toBeUndefined()
+    expect(payload.metadata.sources).toEqual([])
   })
 
   it('passes the full current thread history into the premium plus agent', { timeout: 15000 }, async () => {
@@ -928,6 +996,221 @@ describe('/api/chat route', () => {
       expect.objectContaining({
         autoDecideSearch: true,
         anthropicModel: 'claude-opus-4-6',
+      })
+    )
+  })
+
+  it.each([
+    { label: 'UK', userRow: UK_USER_ROW },
+    { label: 'U.S.', userRow: US_USER_ROW },
+  ])('keeps Basic %s users on the direct non-search path even for case-law questions', { timeout: 15000 }, async ({ userRow }) => {
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'basic', paidAccess: true, platformAccess: true, planStatus: 'active' },
+      usersRows: [userRow],
+      processMessageResult: { task: 'case_lookup', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    ;(legalAgentMocks.invokeBasicLegalAgent as any).mockResolvedValueOnce({
+      response: 'Basic answer',
+      guidance_provided: [],
+      next_steps: [],
+      sources: [],
+    })
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'Can I get case law on this?',
+        history: [],
+      })
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.response).not.toContain('[1]')
+    expect(payload.response).toBe('Basic answer')
+    expect(payload.metadata.sources).toEqual([])
+    expect(payload.metadata.debug.planAgent).toBe('basic')
+    expect(payload.metadata.debug.retrievalEnabled).toBe(false)
+    expect((legalAgentMocks.invokeBasicLegalAgent as any).mock.calls[0][5]).toEqual(
+      expect.objectContaining({
+        useSearch: false,
+        legalContext: expect.objectContaining({
+          countryCode: userRow.country_code,
+          jurisdictionCode: userRow.jurisdiction_code,
+          jurisdictionLabel: userRow.jurisdiction_label,
+        }),
+      })
+    )
+  })
+
+  it.each([
+    { label: 'UK', userRow: UK_USER_ROW, sourceUrl: 'https://www.gov.uk/make-court-claim-for-money' },
+    { label: 'U.S.', userRow: US_USER_ROW, sourceUrl: 'https://selfhelp.nvcourts.gov/' },
+  ])('returns source metadata for Premium %s users when the premium agent provides sources', { timeout: 15000 }, async ({ userRow, sourceUrl }) => {
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'premium', paidAccess: true, platformAccess: true, planStatus: 'active' },
+      usersRows: [userRow],
+      processMessageResult: { task: 'legal_procedure', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    ;(legalAgentMocks.invokePremiumLegalAgent as any).mockResolvedValueOnce({
+      response: 'Premium answer [1]',
+      guidance_provided: [],
+      next_steps: [],
+      sources: [
+        {
+          number: 1,
+          title: 'Procedural source',
+          url: sourceUrl,
+        },
+      ],
+    })
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'I am at the pre-claim stage. What claim form and procedural steps are usually involved?',
+        history: [],
+      })
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.response).toContain('[1]')
+    expect(payload.metadata.sources).toEqual([
+      expect.objectContaining({
+        number: 1,
+        title: 'Procedural source',
+        url: sourceUrl,
+      }),
+    ])
+    expect((legalAgentMocks.invokePremiumLegalAgent as any).mock.calls[0][5]).toEqual(
+      expect.objectContaining({
+        autoDecideSearch: true,
+        searchEngineOverride: 'brave',
+        legalContext: expect.objectContaining({
+          countryCode: userRow.country_code,
+          jurisdictionCode: userRow.jurisdiction_code,
+          jurisdictionLabel: userRow.jurisdiction_label,
+        }),
+      })
+    )
+  })
+
+  it.each([
+    {
+      label: 'UK',
+      userRow: UK_USER_ROW,
+      expectedCaseLawRetrieval: true,
+      expectedVectorRag: true,
+      expectedWebQueryFragment: 'England and Wales',
+    },
+    {
+      label: 'U.S.',
+      userRow: US_USER_ROW,
+      expectedCaseLawRetrieval: false,
+      expectedVectorRag: false,
+      expectedWebQueryFragment: 'Nevada United States',
+    },
+  ])('routes Premium+ case-law questions correctly for %s users', { timeout: 15000 }, async ({
+    userRow,
+    expectedCaseLawRetrieval,
+    expectedVectorRag,
+    expectedWebQueryFragment,
+  }) => {
+    process.env.PREMIUM_PLUS_ANTHROPIC_MODEL = 'claude-opus-4-6'
+
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'premium +', paidAccess: true, platformAccess: true, planStatus: 'active' },
+      usersRows: [userRow],
+      processMessageResult: { task: 'case_lookup', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    ;(legalAgentMocks.invokePremiumPlusLegalAgent as any).mockResolvedValueOnce({
+      response: 'Premium+ answer [1]',
+      guidance_provided: [],
+      next_steps: [],
+      sources: [
+        {
+          number: 1,
+          title: 'Jurisdiction-aware source',
+          url: 'https://example.com/source',
+        },
+      ],
+    })
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'Can I get case law on this car accident issue?',
+        history: [],
+      })
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.response).toContain('[1]')
+    expect(payload.metadata.sources).toEqual([
+      expect.objectContaining({
+        number: 1,
+        title: 'Jurisdiction-aware source',
+        url: 'https://example.com/source',
+      }),
+    ])
+    expect(payload.metadata.debug.premiumPlusCaseLawRetrievalEnabled).toBe(expectedCaseLawRetrieval)
+    expect(payload.metadata.debug.vectorCaseLawRagEnabled).toBe(expectedVectorRag)
+    expect(payload.metadata.debug.premiumPlusWebQuery).toContain(expectedWebQueryFragment)
+    expect((legalAgentMocks.invokePremiumPlusLegalAgent as any).mock.calls[0][5]).toEqual(
+      expect.objectContaining({
+        legalContext: expect.objectContaining({
+          countryCode: userRow.country_code,
+          jurisdictionCode: userRow.jurisdiction_code,
+          jurisdictionLabel: userRow.jurisdiction_label,
+        }),
+      })
+    )
+  })
+
+  it.each([
+    { planLabel: 'premium', userRow: UK_USER_ROW, expectedAgentCall: 'invokePremiumLegalAgentStream', expectedEngine: 'brave' },
+    { planLabel: 'premium', userRow: US_USER_ROW, expectedAgentCall: 'invokePremiumLegalAgentStream', expectedEngine: 'brave' },
+    { planLabel: 'premium +', userRow: UK_USER_ROW, expectedAgentCall: 'invokePremiumPlusLegalAgentStream', expectedEngine: 'perplexity' },
+    { planLabel: 'premium +', userRow: US_USER_ROW, expectedAgentCall: 'invokePremiumPlusLegalAgentStream', expectedEngine: 'perplexity' },
+  ])('streams the correct agent path for %s users on %s', { timeout: 15000 }, async ({
+    planLabel,
+    userRow,
+    expectedAgentCall,
+    expectedEngine,
+  }) => {
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: planLabel, paidAccess: true, platformAccess: true, planStatus: 'active' },
+      usersRows: [userRow],
+      processMessageResult: { task: 'legal_procedure', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    const response = await POST(
+      buildStreamingChatRequest({
+        message: 'I am at the pre-claim stage. What claim form and procedural steps are usually involved?',
+        history: [],
+      })
+    )
+    const body = await response.text()
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('content-type')).toContain('application/x-ndjson')
+    expect(body).toContain('"type":"status"')
+    expect(body).toContain('Checking web sources...')
+    expect((legalAgentMocks as any)[expectedAgentCall]).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      'user-1',
+      [],
+      '',
+      expect.objectContaining({
+        searchEngineOverride: expectedEngine,
+        legalContext: expect.objectContaining({
+          countryCode: userRow.country_code,
+          jurisdictionCode: userRow.jurisdiction_code,
+          jurisdictionLabel: userRow.jurisdiction_label,
+        }),
       })
     )
   })

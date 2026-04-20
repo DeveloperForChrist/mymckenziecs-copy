@@ -227,6 +227,13 @@ const BASIC_MAX_AUTO_CONTINUES = Number.isFinite(Number(process.env.BASIC_AGENT_
 // SIMPLE HELPERS
 // =====================================================
 
+const truncateText = (value: string, maxChars: number) => {
+  if (typeof value !== 'string') return ''
+  if (!Number.isFinite(maxChars) || maxChars <= 0) return ''
+  if (value.length <= maxChars) return value
+  return `${value.slice(0, Math.max(0, maxChars - 1)).trimEnd()}…`
+}
+
 export type LegalSearchMode = 'education' | 'procedure' | 'case_specific' | 'document_review' | 'general'
 type LengthRecoveryMode = 'none' | 'continue' | 'compress'
 type SearchQuotaResult = {

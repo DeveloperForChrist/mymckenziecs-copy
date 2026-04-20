@@ -23,7 +23,6 @@ import { z } from 'zod'
 import { captureServerException } from '@/lib/monitoring/error-logger'
 import { isBasicPlan, isPremiumPlan, isPremiumPlusPlan } from '@/lib/plans/access'
 import { getUserPlanData } from '@/lib/payments/user-plan'
-import { consumeBasicDailyWebSearchQuota } from '@/lib/payments/web-search-usage'
 import { extractTextFromBuffer } from '@/lib/chat/text-extraction'
 import {
   getConversationAccess,
@@ -2567,11 +2566,7 @@ export async function POST(request: NextRequest) {
 
     const agentResponse: AgentResponse = shouldUseBasicLegalAgent
       ? await invokeBasicLegalAgent(messageForAgent, threadId, userId, effectiveConversationHistory, caseKeywords, {
-          autoDecideSearch: true,
-          searchEngineOverride: 'brave',
-          consumeSearchQuota: authUserId
-            ? () => consumeBasicDailyWebSearchQuota(authUserId!)
-            : undefined,
+          useSearch: false,
           memoryContext: relatedThreadMemoryContext || undefined,
           historyLimit: agentHistoryLimit,
           legalContext: userLegalContext,

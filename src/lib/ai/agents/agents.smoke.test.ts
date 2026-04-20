@@ -1047,6 +1047,11 @@ describe('agent smoke checks', () => {
         useSearch: true,
         anthropicModel: 'claude-sonnet-4-6',
         anthropicFallbackModel: 'claude-opus-4-6',
+        legalContext: {
+          countryCode: 'GB',
+          jurisdictionCode: 'GB-ENG-WLS',
+          jurisdictionLabel: 'England and Wales',
+        },
       }
     )
 
@@ -1154,6 +1159,11 @@ describe('agent smoke checks', () => {
         useSearch: true,
         anthropicModel: 'claude-opus-4-6',
         anthropicFallbackModel: 'claude-sonnet-4-6',
+        legalContext: {
+          countryCode: 'GB',
+          jurisdictionCode: 'GB-ENG-WLS',
+          jurisdictionLabel: 'England and Wales',
+        },
       }
     )
 
@@ -1165,6 +1175,41 @@ describe('agent smoke checks', () => {
         }),
       ])
     )
+  })
+
+  it('premium plus case-law tool avoids UK authority retrieval for U.S. users', async () => {
+    await invokePremiumPlusLegalAgent(
+      'Can you give case law on this?',
+      'thread_smoke_premium_plus_us_case_law_block',
+      'user_smoke_premium_plus_us_case_law_block',
+      [],
+      'consumer dispute',
+      {
+        useSearch: true,
+        anthropicModel: 'claude-opus-4-6',
+        anthropicFallbackModel: 'claude-sonnet-4-6',
+        legalContext: {
+          countryCode: 'US',
+          jurisdictionCode: 'US-NV',
+          jurisdictionLabel: 'Nevada',
+        },
+      }
+    )
+
+    const secondCallPayload = (anthropicMockState.anthropicMessagesCreateMock.mock.calls[1] || [])[0] as any
+    const toolResultMessage = Array.isArray(secondCallPayload?.messages)
+      ? secondCallPayload.messages.find(
+          (message: any) =>
+            Array.isArray(message?.content) &&
+            message.content.some((block: any) => block?.type === 'tool_result')
+        )
+      : null
+    const toolResultContent = Array.isArray(toolResultMessage?.content)
+      ? String(toolResultMessage.content[0]?.content || '')
+      : ''
+
+    expect(toolResultContent).toContain('Case-law retrieval is currently configured for UK authorities only.')
+    expect(toolResultContent).toContain('U.S. authority coverage is still limited')
   })
 
   it('premium plus agent enables Anthropic prompt caching on its tool path', async () => {
