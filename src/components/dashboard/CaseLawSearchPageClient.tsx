@@ -872,6 +872,9 @@ export default function CaseLawSearchPageClient({
           <p className="text-indigo-100/90">
             Explore 760 UK Supreme Court cases for study and legal understanding.
           </p>
+          <p className="mt-2 text-sm text-indigo-100/80">
+            Coverage note: currently UK Supreme Court (UKSC) decisions only. More courts across England &amp; Wales, Scotland, and Northern Ireland are coming soon.
+          </p>
           {!hasPaidAccess && (
             <p className="mt-2 text-sm text-amber-200">
               Plan paused: search and study chat are read-only locked until billing is resumed.
