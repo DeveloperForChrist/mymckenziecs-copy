@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { detectLegalMatterLocation } from '@/lib/legal/ip-geolocation'
-import { copyCookies, MARKET_COOKIE_NAME, readStoredMarketCookie, resolveRootMarket, setMarketCookie } from '@/lib/markets/geo-routing'
+import { MARKET_COOKIE_NAME, readStoredMarketCookie, resolveRootMarket, setMarketCookie } from '@/lib/markets/geo-routing'
 import { getPublicRouteForMarket } from '@/lib/markets/public-routes'
 
 const parsePositiveInt = (value: string | undefined, fallback: number) => {
@@ -68,6 +68,62 @@ export async function middleware(request: NextRequest) {
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
     const redirectedPath = pathname.replace(/^\/admin/, '/jesusistheadmin')
     return NextResponse.redirect(new URL(redirectedPath, request.url))
+  }
+
+  if (isRootPath) {
+    const secureCookie = request.nextUrl.protocol === 'https:'
+
+    if (explicitMarket) {
+      const redirectPath = getPublicRouteForMarket('/', explicitMarket)
+      if (redirectPath !== '/') {
+        const redirectUrl = new URL(redirectPath, request.url)
+        const redirectParams = new URLSearchParams(request.nextUrl.searchParams)
+        redirectParams.delete('market')
+        const redirectQuery = redirectParams.toString()
+        redirectUrl.search = redirectQuery ? `?${redirectQuery}` : ''
+        const redirectResponse = NextResponse.redirect(redirectUrl)
+        setMarketCookie(redirectResponse, explicitMarket, secureCookie)
+        return redirectResponse
+      }
+
+      const response = NextResponse.next({
+        request: {
+          headers: request.headers,
+        },
+      })
+      setMarketCookie(response, explicitMarket, secureCookie)
+      return response
+    }
+
+    const storedMarket = readStoredMarketCookie(request.cookies.get(MARKET_COOKIE_NAME)?.value)
+    let geoCountryCode: string | null = null
+
+    if (!storedMarket) {
+      const detection = await detectLegalMatterLocation(request)
+      geoCountryCode = detection.suggestedCountryCode
+    }
+
+    const resolvedMarket = resolveRootMarket({
+      storedMarket,
+      edgeCountryCode: geoCountryCode,
+    })
+
+    const redirectPath = getPublicRouteForMarket('/', resolvedMarket)
+    if (redirectPath !== '/') {
+      const redirectUrl = new URL(redirectPath, request.url)
+      redirectUrl.search = request.nextUrl.search
+      const redirectResponse = NextResponse.redirect(redirectUrl)
+      setMarketCookie(redirectResponse, resolvedMarket, secureCookie)
+      return redirectResponse
+    }
+
+    const response = NextResponse.next({
+      request: {
+        headers: request.headers,
+      },
+    })
+    setMarketCookie(response, resolvedMarket, secureCookie)
+    return response
   }
 
   const isLegacyPublicPath =
@@ -229,73 +285,6 @@ export async function middleware(request: NextRequest) {
       console.error('Error checking user profile in middleware:', profileError)
     } else {
       userProfile = profileRow
-    }
-  }
-
-  if (isRootPath) {
-    const secureCookie = request.nextUrl.protocol === 'https:'
-    const profileCountryCode =
-      userProfile?.country_code ||
-      (user as any)?.user_metadata?.country_code ||
-      null
-
-    if (explicitMarket) {
-      const redirectPath = getPublicRouteForMarket('/', explicitMarket)
-      if (redirectPath !== '/') {
-        const redirectUrl = new URL(redirectPath, request.url)
-        const redirectParams = new URLSearchParams(request.nextUrl.searchParams)
-        redirectParams.delete('market')
-        const redirectQuery = redirectParams.toString()
-        redirectUrl.search = redirectQuery ? `?${redirectQuery}` : ''
-        const redirectResponse = NextResponse.redirect(redirectUrl)
-        copyCookies(response, redirectResponse)
-        setMarketCookie(redirectResponse, explicitMarket, secureCookie)
-        return redirectResponse
-      }
-
-      setMarketCookie(response, explicitMarket, secureCookie)
-      return response
-    }
-
-    if (user) {
-      const signedInMarket = profileCountryCode === 'US' ? 'US' : 'GB'
-      const redirectPath = getPublicRouteForMarket('/', signedInMarket)
-
-      if (redirectPath !== '/') {
-        const redirectUrl = new URL(redirectPath, request.url)
-        redirectUrl.search = request.nextUrl.search
-        const redirectResponse = NextResponse.redirect(redirectUrl)
-        copyCookies(response, redirectResponse)
-        setMarketCookie(redirectResponse, signedInMarket, secureCookie)
-        return redirectResponse
-      }
-
-      setMarketCookie(response, signedInMarket, secureCookie)
-    } else {
-      const storedMarket = readStoredMarketCookie(request.cookies.get(MARKET_COOKIE_NAME)?.value)
-      let geoCountryCode: string | null = null
-
-      if (!storedMarket) {
-        const detection = await detectLegalMatterLocation(request)
-        geoCountryCode = detection.suggestedCountryCode
-      }
-
-      const resolvedMarket = resolveRootMarket({
-        storedMarket,
-        edgeCountryCode: geoCountryCode,
-      })
-
-      const redirectPath = getPublicRouteForMarket('/', resolvedMarket)
-      if (redirectPath !== '/') {
-        const redirectUrl = new URL(redirectPath, request.url)
-        redirectUrl.search = request.nextUrl.search
-        const redirectResponse = NextResponse.redirect(redirectUrl)
-        copyCookies(response, redirectResponse)
-        setMarketCookie(redirectResponse, resolvedMarket, secureCookie)
-        return redirectResponse
-      }
-
-      setMarketCookie(response, resolvedMarket, secureCookie)
     }
   }
 
