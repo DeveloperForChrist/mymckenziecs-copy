@@ -333,9 +333,20 @@ export default function PricingPageClient({
   const basicPriceId = getPlanPriceId('Basic', billingMarket);
   const premiumPriceId = getPlanPriceId('Premium', billingMarket);
   const premiumPlusPriceId = getPlanPriceId('Premium +', billingMarket);
-  const basicPlanFeatures = getPlanFeatures('Basic');
-  const premiumPlanFeatures = getPlanFeatures('Premium');
-  const premiumPlusPlanFeatures = getPlanFeatures('Premium +');
+
+  const CASE_LAW_FEATURE = 'Advanced case law retrieval and study';
+  const decoratePlanFeaturesForMarket = (features: string[]) => {
+    if (billingMarket !== 'US') return features;
+    return features.map((feature) =>
+      feature === CASE_LAW_FEATURE
+        ? `${feature} (Coming soon for U.S. matters)`
+        : feature
+    );
+  };
+
+  const basicPlanFeatures = decoratePlanFeaturesForMarket(getPlanFeatures('Basic'));
+  const premiumPlanFeatures = decoratePlanFeaturesForMarket(getPlanFeatures('Premium'));
+  const premiumPlusPlanFeatures = decoratePlanFeaturesForMarket(getPlanFeatures('Premium +'));
 
   useEffect(() => {
     if (!authChecked || !isSignedIn || autoCheckoutStartedRef.current) return;

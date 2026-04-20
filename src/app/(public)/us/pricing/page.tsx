@@ -16,7 +16,7 @@ export default function UsPricingPage() {
     <Suspense fallback={null}>
       <PricingPageClient
         audienceDescription="Compare plans for U.S. self-represented litigants, then start with the option that fits your workload while U.S. coverage continues to expand."
-        availabilityMessage="U.S. self-representation support is live across the shared workspace. U.S. authority coverage is growing, while advanced case-law database access is still limited."
+        availabilityMessage="U.S. self-representation support is live across the shared workspace. Coming soon: advanced U.S. case-law database access and expanded authority coverage."
         guideIntroText="If your matter is in the United States, start with the"
         faqHref="/us/faq"
         billingMarket="US"
