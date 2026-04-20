@@ -8,6 +8,7 @@ type DocumentsSidebarProps = {
   onSelectFolder: (id: string) => void;
   onDeleteFolder: (id: string) => void;
   onCreateFolder: () => void;
+  dashboardHref: string;
 };
 
 export default function DocumentsSidebar({
@@ -17,6 +18,7 @@ export default function DocumentsSidebar({
   onSelectFolder,
   onDeleteFolder,
   onCreateFolder,
+  dashboardHref,
 }: DocumentsSidebarProps) {
   return (
     <aside className={styles.sidebar}>
@@ -70,7 +72,7 @@ export default function DocumentsSidebar({
       </div>
 
       <div className={styles.sidebarFooter}>
-        <a href="/dashboard" className={styles.dashboardLink}>
+        <a href={dashboardHref} className={styles.dashboardLink}>
           Go to Dashboard
         </a>
       </div>

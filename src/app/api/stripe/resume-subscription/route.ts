@@ -14,14 +14,18 @@ import { syncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
 import { isBillingActiveStripeStatus, normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
 import { getStripeSubscriptionPeriodEndIso, getStripeSubscriptionPeriodStartIso } from '@/lib/payments/subscription-period';
-import { PLAN_PRICES } from '@/constants';
+import { getBillingMarketFromCountryCode, getPlanPriceId } from '@/constants';
 import { planDisplayName } from '@/lib/plans/access';
+import { getUserLegalContext } from '@/lib/legal/user-context';
 
 const RESUMABLE_STATUSES = ['active', 'past_due', 'trialing'] as const;
 
-function resolvePriceIdFromPlan(planType?: string | null) {
+async function resolvePriceIdFromPlan(userId: string, planType?: string | null, fallbackMetadata?: any) {
   const displayName = planDisplayName(planType || '');
-  return PLAN_PRICES.find((plan) => plan.name === displayName)?.priceId || '';
+  if (displayName === 'No plan') return '';
+  const legalContext = await getUserLegalContext(userId, fallbackMetadata);
+  const market = getBillingMarketFromCountryCode(legalContext.countryCode);
+  return getPlanPriceId(displayName, market);
 }
 
 export async function POST(req: Request) {
@@ -90,7 +94,11 @@ export async function POST(req: Request) {
               : (customer as any)?.invoice_settings?.default_payment_method?.id || null;
 
           if (defaultPaymentMethodId) {
-            const priceId = resolvePriceIdFromPlan(subscriptionRow?.plan_type || '');
+            const priceId = await resolvePriceIdFromPlan(
+              authUid,
+              subscriptionRow?.plan_type || '',
+              authData.user.user_metadata as any
+            );
             if (priceId) {
               const subscription = await stripe.subscriptions.create({
                 customer: customerId,

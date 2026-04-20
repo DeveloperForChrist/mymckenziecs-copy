@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { stripe } from '@/lib/payments/stripe';
-import { PLAN_PRICES } from '@/constants';
+import { getBillingMarketFromCountryCode, getPlanPriceId } from '@/constants';
 import { syncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { getStripeSubscriptionPeriodEndIso, getStripeSubscriptionPeriodStartIso } from '@/lib/payments/subscription-period';
 import { normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
 import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
 import { planDisplayName } from '@/lib/plans/access';
+import { getUserLegalContext } from '@/lib/legal/user-context';
 import {
   billingIpRateLimiter,
   billingRateLimiter,
@@ -46,9 +47,12 @@ type BillingContext = {
 
 const ACTIVE_OR_RECOVERABLE_SUBSCRIPTION_STATUSES = ['active', 'trialing', 'past_due', 'incomplete'] as const;
 
-function resolvePriceIdFromPlan(planType?: string | null) {
+async function resolvePriceIdFromPlan(userId: string, planType?: string | null, fallbackMetadata?: any) {
   const displayName = planDisplayName(planType || '');
-  return PLAN_PRICES.find((plan) => plan.name === displayName)?.priceId || '';
+  if (displayName === 'No plan') return '';
+  const legalContext = await getUserLegalContext(userId, fallbackMetadata);
+  const market = getBillingMarketFromCountryCode(legalContext.countryCode);
+  return getPlanPriceId(displayName, market);
 }
 
 async function getBillingContext(userId: string): Promise<BillingContext> {
@@ -309,7 +313,11 @@ export async function PUT(req: Request) {
       const hasFutureTrialEnd = Number.isFinite(trialEndMs) && trialEndMs > Date.now() + 60_000;
 
       if (hasFutureTrialEnd) {
-        const priceId = resolvePriceIdFromPlan(trialSubscription.planType);
+        const priceId = await resolvePriceIdFromPlan(
+          user.id,
+          trialSubscription.planType,
+          user.user_metadata as any
+        );
         if (!priceId) {
           return NextResponse.json({ error: 'Unable to match your trial plan to a Stripe price' }, { status: 400 });
         }

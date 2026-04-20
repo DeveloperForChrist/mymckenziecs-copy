@@ -1,10 +1,12 @@
 "use client"
 
 import { useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import type { Dispatch, SetStateAction } from 'react'
 import type { AssistantMetadata, Message } from '@/components/chatbot/chat-types'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import { fetchConversationHistoryPage } from '@/lib/chat/history-client'
+import { getAppMarketFromPathname, getAppRouteForMarket } from '@/lib/markets/app-routes'
 
 type UseConversationBootstrapArgs = {
   normalizeUserId: (value?: string | null) => string | null
@@ -27,9 +29,12 @@ export function useConversationBootstrap({
   setHasMoreHistory,
   setIsConversationBootstrapping
 }: UseConversationBootstrapArgs) {
+  const pathname = usePathname()
+
   useEffect(() => {
     const conversationStorageKey = 'currentConversationId'
     const lastSignInAtStorageKey = 'chatbotLastSignInAt'
+    const chatbotHref = getAppRouteForMarket('/chatbot', getAppMarketFromPathname(pathname))
     let cancelled = false
 
     const loadMessagesForConversation = async (targetConversationId: string): Promise<number> => {
@@ -137,7 +142,7 @@ export function useConversationBootstrap({
         const newConversationId = generateUUID()
         setConversationId(newConversationId)
         localStorage.setItem(conversationStorageKey, newConversationId)
-        window.history.replaceState({}, '', '/chatbot')
+        window.history.replaceState({}, '', chatbotHref)
         return
       }
 
@@ -188,6 +193,7 @@ export function useConversationBootstrap({
     setConversationId,
     setHistoryCursor,
     setHasMoreHistory,
-    setIsConversationBootstrapping
+    setIsConversationBootstrapping,
+    pathname
   ])
 }

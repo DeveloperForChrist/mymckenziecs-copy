@@ -9,9 +9,11 @@ import { buildLifecycleSchedule, getLifecycleArchiveDays, getLifecycleDeleteDays
 import { syncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
 import { getStripeSubscriptionPeriodEndIso, getStripeSubscriptionPeriodEndUnix, getStripeSubscriptionPeriodStartIso } from '@/lib/payments/subscription-period';
+import { formatLondonDateTime } from '@/lib/utils/london-time';
 import fs from 'fs';
 import path from 'path';
-import { PLAN_PRICES } from '@/constants';
+import { findPlanByAnyPriceId, getBillingMarketFromCountryCode } from '@/constants';
+import { getPublicRouteForMarket } from '@/lib/markets/public-routes';
 import { z } from 'zod';
 
 const TEMPLATE_DIR = path.join(process.cwd(), 'src', 'emails', 'templates');
@@ -40,25 +42,10 @@ function formatAmount(amountMinor?: number | null, currency?: string | null) {
 }
 
 function resolvePlanNameFromPriceId(priceId?: string | null) {
-  const plan = PLAN_PRICES.find((p) => p.priceId === priceId);
-  return plan?.name || 'Your new plan';
+  return findPlanByAnyPriceId(priceId)?.name || 'Your new plan';
 }
 
-function formatChangedAt(date: Date) {
-  const datePart = new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'Europe/London',
-  }).format(date);
-  const timePart = new Intl.DateTimeFormat('en-GB', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-    timeZone: 'Europe/London',
-  }).format(date);
-  return { datePart, timePart: `${timePart} UK time` };
-}
+const formatChangedAt = formatLondonDateTime;
 
 async function describePaymentMethod(paymentMethodRef: any): Promise<string> {
   if (!paymentMethodRef) return 'No default payment method';
@@ -80,15 +67,23 @@ async function describePaymentMethod(paymentMethodRef: any): Promise<string> {
   return `${brand.toUpperCase()} ending ${last4}`;
 }
 
-async function getUserEmail(userId: string): Promise<{ email: string; name?: string | null } | null> {
+async function getUserEmail(userId: string): Promise<{
+  email: string;
+  name?: string | null;
+  countryCode?: string | null;
+} | null> {
   const { data } = await supabaseAdmin
     .from('users')
-    .select('email, name')
+    .select('email, name, country_code')
     .eq('id', userId)
     .maybeSingle();
 
   if (!data?.email) return null;
-  return { email: data.email, name: (data as any).name ?? null };
+  return {
+    email: data.email,
+    name: (data as any).name ?? null,
+    countryCode: (data as any).country_code ?? null,
+  };
 }
 
 async function getUserByStripeCustomerId(customerId: string | null) {
@@ -310,8 +305,7 @@ function getConfiguredGraceDays(): number {
 
 function normalizePlanTypeFromPrice(priceId?: string | null): string {
   if (!priceId) return 'No plan';
-  const match = PLAN_PRICES.find((plan) => plan.priceId === priceId);
-  const name = (match?.name || '').toLowerCase();
+  const name = (findPlanByAnyPriceId(priceId)?.name || '').toLowerCase();
   if (name.includes('basic') || name.includes('essential') || name.includes('premium cheap')) return 'Basic';
   if (name.includes('premium +') || name.includes('premium plus') || name.includes('plus') || name.includes('premium pro')) return 'Premium +';
   if (name.includes('premium')) return 'Premium';
@@ -737,6 +731,7 @@ export async function POST(request: Request) {
 
       if (user) {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const market = getBillingMarketFromCountryCode(user.countryCode);
         const archiveDate = formatDateShort(lapsedSchedule?.archiveAt || null) || 'soon';
         const deleteDate = formatDateShort(lapsedSchedule?.deleteAt || null) || 'soon';
         const htmlBody = renderTemplate('13-cancellation-confirmation.html', {
@@ -745,8 +740,8 @@ export async function POST(request: Request) {
           delete_days: String(getLifecycleDeleteDays()),
           archive_date: archiveDate,
           delete_date: deleteDate,
-          reactivate_url: `${appUrl}/pricing`,
-          policy_url: `${appUrl}/privacy-policy`,
+          reactivate_url: `${appUrl}${getPublicRouteForMarket('/pricing', market)}`,
+          policy_url: `${appUrl}${getPublicRouteForMarket('/privacy-policy', market)}`,
         });
         await sendResendEmail({
           to: user.email,

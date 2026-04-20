@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const legalContext = await getUserLegalContext(userId, authData.user.user_metadata as any);
+    const legalContext = await getUserLegalContext(userId, authData?.user?.user_metadata as any);
     if (!isCaseLawAvailableForLegalContext(legalContext)) {
       return NextResponse.json(
         { error: 'Case law search is not available for U.S. legal matters yet.' },

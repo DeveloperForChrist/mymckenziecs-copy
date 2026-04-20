@@ -3,11 +3,15 @@ import { useEffect, useState, useTransition } from 'react';
 import styles from './settingsPage.module.css';
 import { isTrialingStripeStatus } from '@/lib/payments/subscription-status';
 import InAppPaymentMethodModal from './InAppPaymentMethodModal';
+import { getAppRouteForMarket } from '@/lib/markets/app-routes';
+import { getPublicRouteForMarket, normalizePublicMarket, type PublicMarket } from '@/lib/markets/public-routes';
 
 type UserPlan = {
   plan?: string;
   planStatus?: string;
   planPrice?: string | number;
+  planCurrencySymbol?: string;
+  publicMarket?: PublicMarket;
   nextBillingDate?: any;
   hasStripeCustomer?: boolean;
   paidAccess?: boolean;
@@ -55,6 +59,9 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
   const hasScheduledPlanChange = Boolean(planData?.scheduledPlan && planData?.scheduledChangeDate);
   const canCancelInApp = Boolean(planData?.paidAccess && !isLapsedStatus && !isCancellationScheduled);
   const canResumeInApp = Boolean(planData?.paidAccess && isCancellationScheduled);
+  const normalizedMarket = normalizePublicMarket(planData?.publicMarket);
+  const settingsBillingHref = getAppRouteForMarket('/settings?tab=billing', normalizedMarket);
+  const pricingHref = `${getPublicRouteForMarket('/pricing', normalizedMarket)}?redirect=${encodeURIComponent(settingsBillingHref)}`;
 
   const refreshPlanData = async () => {
     const res = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' });
@@ -151,6 +158,11 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
           if (res.ok) {
             const data = await res.json();
             setPlanData(data);
+            if (syncSucceeded) {
+              window.location.replace(
+                getAppRouteForMarket('/dashboard', normalizePublicMarket(data?.publicMarket))
+              );
+            }
           }
         }
       } catch (syncError) {
@@ -163,9 +175,6 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
           cleanUrl.searchParams.delete('session_id');
           window.history.replaceState({}, '', `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
           setCheckoutSynced(true);
-          if (syncSucceeded) {
-            window.location.replace('/dashboard');
-          }
         }
       }
     };
@@ -367,7 +376,7 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
                 </span>
                 <h3 className={styles.planTitle}>{planData?.plan || 'No active plan'}</h3>
                 {planData?.planPrice && planData?.planPrice !== '0' && planData?.planPrice !== 0 && (
-                  <p className={styles.planPriceLarge}>£{planData?.planPrice}/month</p>
+                  <p className={styles.planPriceLarge}>{planData?.planCurrencySymbol || '£'}{planData?.planPrice}/month</p>
                 )}
                 <p className={styles.planHint}>
                   {isLapsedStatus
@@ -426,7 +435,7 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
             </div>
             <div className={styles.planCardActions}>
               <div className={styles.planButtons}>
-                <a href="/pricing?redirect=%2Fsettings%3Ftab%3Dbilling" className={styles.primaryBtn} style={{ textDecoration: 'none' }}>Change Plan</a>
+                <a href={pricingHref} className={styles.primaryBtn} style={{ textDecoration: 'none' }}>Change Plan</a>
                 {canResumeInApp && (
                   <button
                     type="button"
@@ -577,7 +586,7 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
                       : 'Add payment method'}
               </button>
             ) : (
-              <a href="/pricing?redirect=%2Fsettings%3Ftab%3Dbilling" className={styles.primaryBtn} style={{ textDecoration: 'none' }}>
+              <a href={pricingHref} className={styles.primaryBtn} style={{ textDecoration: 'none' }}>
                 {isLapsedStatus ? 'Resume plan' : 'Choose a plan'}
               </a>
             )}

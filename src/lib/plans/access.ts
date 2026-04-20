@@ -1,3 +1,5 @@
+import type { BillingMarket } from '@/constants';
+
 export function normalizePlanLabel(value: any): string {
   if (!value) return '';
   return value.toString().trim().toLowerCase().replace(/_/g, ' ');
@@ -66,11 +68,11 @@ export function hasReminderAccess(plan: any): boolean {
   return isPaidPlan(plan) && !isBasicPlan(plan);
 }
 
-export function planPriceForLabel(plan: any): string {
+export function planPriceForLabel(plan: any, market: BillingMarket = 'GB'): string {
   const tier = getPlanTier(plan);
-  if (tier === 'basic') return '18';
-  if (tier === 'premium') return '32';
-  if (tier === 'premium_plus') return '199';
+  if (tier === 'basic') return market === 'US' ? '25' : '18';
+  if (tier === 'premium') return market === 'US' ? '44' : '32';
+  if (tier === 'premium_plus') return market === 'US' ? '270' : '199';
   return '0';
 }
 

@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
           {
             role: "system",
             content:
-              "You summarise UK legal notes for litigants in person. Return JSON only with fields: summary (string), actionItems (array of strings), keyRisks (array of strings). Keep concise and factual. Never provide legal advice.",
+              "You summarise legal notes for self-represented court users. Return JSON only with fields: summary (string), actionItems (array of strings), keyRisks (array of strings). Keep concise and factual. Never provide legal advice.",
           },
           {
             role: "user",

@@ -1,12 +1,20 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-const createMaybeSingleQuery = (row: any) => {
+const createQueryBuilder = ({
+  singleRow = null,
+  rows = null,
+}: {
+  singleRow?: any
+  rows?: any[] | null
+} = {}) => {
+  const resolvedValue = { data: rows ?? (singleRow ? [singleRow] : []), error: null }
   const builder: any = {
     select: vi.fn(() => builder),
     eq: vi.fn(() => builder),
     order: vi.fn(() => builder),
     limit: vi.fn(() => builder),
-    maybeSingle: vi.fn(async () => ({ data: row, error: null })),
+    maybeSingle: vi.fn(async () => ({ data: singleRow, error: null })),
+    then: (onFulfilled: any, onRejected: any) => Promise.resolve(resolvedValue).then(onFulfilled, onRejected),
   }
 
   return builder
@@ -47,14 +55,18 @@ describe('/api/stripe/plan-checkout route', () => {
       supabaseAdmin: {
         from: vi.fn((table: string) => {
           if (table === 'users') {
-            return createMaybeSingleQuery({
+            return createQueryBuilder({
+              singleRow: {
               id: 'user-1',
               email_verified_at: '2026-03-27T10:15:00.000Z',
+              },
             })
           }
 
           if (table === 'subscriptions') {
-            return createMaybeSingleQuery(existingSubscriptionRow)
+            return createQueryBuilder({
+              rows: existingSubscriptionRow ? [existingSubscriptionRow] : [],
+            })
           }
 
           throw new Error(`Unexpected table: ${table}`)
@@ -90,6 +102,18 @@ describe('/api/stripe/plan-checkout route', () => {
 
     vi.doMock('@/lib/app-url', () => ({
       getAppUrl: vi.fn(() => 'https://app.example.com'),
+    }))
+
+    vi.doMock('@/constants', () => ({
+      findPlanByAnyPriceId: vi.fn((priceId: string) => {
+        if (priceId === 'price_basic') return { name: 'Basic' }
+        if (priceId === 'price_premium') return { name: 'Premium' }
+        return null
+      }),
+      findMarketByPriceId: vi.fn((priceId: string) => {
+        if (priceId === 'price_basic' || priceId === 'price_premium') return 'GB'
+        return null
+      }),
     }))
 
     const route = await import('./route')

@@ -8,11 +8,14 @@ import BillingSection from '@/components/settings/BillingSection';
 import ContactSection from '@/components/settings/ContactSection';
 import SettingsSidebar from '@/components/settings/SettingsSidebar';
 import styles from '@/components/settings/settingsPage.module.css';
+import { getAppRouteForMarket } from '@/lib/markets/app-routes';
 
 type InitialBillingPlan = {
   plan?: string;
   planStatus?: string;
   planPrice?: string | number;
+  planCurrencySymbol?: string;
+  publicMarket?: 'GB' | 'US';
   nextBillingDate?: any;
   hasStripeCustomer?: boolean;
   paidAccess?: boolean;
@@ -24,6 +27,8 @@ type InitialBillingPlan = {
 
 export default function SettingsPageClient({ initialBillingPlan }: { initialBillingPlan: InitialBillingPlan | null }) {
   const searchParams = useSearchParams();
+  const publicMarket = initialBillingPlan?.publicMarket === 'US' ? 'US' : 'GB';
+  const dashboardHref = getAppRouteForMarket('/dashboard', publicMarket);
   const requestedTab = useMemo(() => {
     const raw = (searchParams?.get('tab') || searchParams?.get('section') || '').trim().toLowerCase();
     if (raw === 'billing' || raw === 'contact' || raw === 'account') return raw;
@@ -45,8 +50,11 @@ export default function SettingsPageClient({ initialBillingPlan }: { initialBill
       desc: 'Review your current subscription and payment methods',
     },
     contact: {
-      title: 'Contact Us',
-      desc: 'Reach the MyMcKenzieCS team for help and support',
+      title: publicMarket === 'US' ? 'U.S. Support' : 'Contact Us',
+      desc:
+        publicMarket === 'US'
+          ? 'Reach the MyMcKenzieCS team for U.S. rollout, billing, account, and workspace support.'
+          : 'Reach the MyMcKenzieCS team for help and support',
     },
   };
   const currentHeader = headerByTab[active] || headerByTab.account;
@@ -55,10 +63,10 @@ export default function SettingsPageClient({ initialBillingPlan }: { initialBill
     <div className="purple-gradient-bg app-shell">
       <div className="app-container">
         <div className={styles.settingsContainer}>
-          <SettingsSidebar active={active} onSelect={setActive} />
+          <SettingsSidebar active={active} onSelect={setActive} publicMarket={publicMarket} />
           <main className={styles.mainContent}>
             <div className={styles.topActions}>
-              <Link href="/dashboard" className="app-button-secondary">
+              <Link href={dashboardHref} className="app-button-secondary">
                 Go to Dashboard
               </Link>
             </div>
@@ -66,13 +74,13 @@ export default function SettingsPageClient({ initialBillingPlan }: { initialBill
             <p className={styles.desc}>{currentHeader.desc}</p>
 
             <div aria-hidden={active !== 'account'} style={{ display: active === 'account' ? 'block' : 'none' }}>
-              <AccountSection />
+              <AccountSection publicMarket={initialBillingPlan?.publicMarket} />
             </div>
             <div aria-hidden={active !== 'billing'} style={{ display: active === 'billing' ? 'block' : 'none' }}>
               <BillingSection initialPlanData={initialBillingPlan} />
             </div>
             <div aria-hidden={active !== 'contact'} style={{ display: active === 'contact' ? 'block' : 'none' }}>
-              <ContactSection />
+              <ContactSection initialPublicMarket={publicMarket} />
             </div>
           </main>
         </div>

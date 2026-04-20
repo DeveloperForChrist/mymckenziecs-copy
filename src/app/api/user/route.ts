@@ -4,11 +4,14 @@ import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { getAppUrl } from '@/lib/app-url'
 import { sendResendEmail } from '@/lib/email/resend'
+import { getBillingMarketFromCountryCode } from '@/constants'
+import { getAppRouteForMarket } from '@/lib/markets/app-routes'
 import {
   getJurisdictionLabel,
   isSupportedCountryCode,
   isSupportedJurisdictionCode,
 } from '@/lib/legal/jurisdictions'
+import { formatLondonDateTime } from '@/lib/utils/london-time'
 import fs from 'fs'
 import path from 'path'
 
@@ -31,27 +34,13 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
-function safeRedirectPath(input?: string) {
-  if (!input) return '/settings?tab=account'
+function safeRedirectPath(input?: string, fallback = '/settings?tab=account') {
+  if (!input) return fallback
   const normalized = input.trim()
-  return normalized.startsWith('/') ? normalized : '/settings?tab=account'
+  return normalized.startsWith('/') ? normalized : fallback
 }
 
-function formatChangedAt(date: Date) {
-  const datePart = new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'Europe/London',
-  }).format(date)
-  const timePart = new Intl.DateTimeFormat('en-GB', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-    timeZone: 'Europe/London',
-  }).format(date)
-  return { datePart, timePart: `${timePart} UK time` }
-}
+const formatChangedAt = formatLondonDateTime
 
 export async function GET(_request: NextRequest) {
   try {
@@ -131,7 +120,7 @@ export async function PUT(request: NextRequest) {
     const rawAddress = typeof body?.address === 'string' ? body.address.trim() : null
     const countryCode = typeof body?.countryCode === 'string' ? body.countryCode.trim().toUpperCase() : null
     const jurisdictionCode = typeof body?.jurisdictionCode === 'string' ? body.jurisdictionCode.trim().toUpperCase() : null
-    const redirect = safeRedirectPath(typeof body?.redirect === 'string' ? body.redirect : undefined)
+    const requestedRedirect = typeof body?.redirect === 'string' ? body.redirect : undefined
 
     const authUid = data.user.id
     const nowIso = new Date().toISOString()
@@ -193,6 +182,13 @@ export async function PUT(request: NextRequest) {
     const nextJurisdictionCode = jurisdictionCode ?? persistedJurisdictionCode
     const detailsChangeRequested =
       fullName !== priorFullName || address !== priorAddress
+    const billingMarket = getBillingMarketFromCountryCode(
+      nextCountryCode || persistedCountryCode || (data.user.user_metadata as any)?.country_code || null
+    )
+    const redirect = safeRedirectPath(
+      requestedRedirect,
+      getAppRouteForMarket('/settings?tab=account', billingMarket)
+    )
 
     let pendingEmail: string | null = ((existingUserRow as any)?.pending_email || null)
     let emailChangeTokenHash: string | null = null

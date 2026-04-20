@@ -7,23 +7,33 @@ import { billingIpRateLimiter, billingRateLimiter, getClientIp, getIdentifier, r
 import { getAppUrl } from '@/lib/app-url';
 import { SUBSCRIPTION_TRIAL_DAYS } from '@/lib/payments/trials';
 import { isPaidPlan } from '@/lib/plans/access';
+import { findMarketByPriceId, findPlanByAnyPriceId } from '@/constants';
+import { getAppRouteForMarket } from '@/lib/markets/app-routes';
+import { getPublicRouteForMarket, type PublicMarket } from '@/lib/markets/public-routes';
 
 const STRIPE_CHECKOUT_SESSION_PLACEHOLDER = '{CHECKOUT_SESSION_ID}';
 
-function resolveAppCheckoutSuccessUrl(request: NextRequest): string {
+function resolveAppCheckoutSuccessUrl(request: NextRequest, market: PublicMarket): string {
   const base = getAppUrl(request);
-  return `${base}/checkout/success`;
+  return `${base}${getAppRouteForMarket('/checkout/success', market)}`;
 }
 
-function resolveAppPricingUrl(request: NextRequest): string {
+function resolveAppPricingUrl(request: NextRequest, market: PublicMarket): string {
   const base = getAppUrl(request);
-  return `${base}/pricing`;
+  return `${base}${getPublicRouteForMarket('/pricing', market)}`;
 }
 
-function withCheckoutParams(url: string, status: 'success' | 'cancelled') {
+function withCheckoutParams(
+  url: string,
+  status: 'success' | 'cancelled',
+  market: PublicMarket
+) {
   const parsed = new URL(url);
   parsed.searchParams.set('checkout_status', status);
   parsed.searchParams.set('checkout', status);
+  if (market === 'US') {
+    parsed.searchParams.set('market', 'US');
+  }
   if (status === 'success') {
     parsed.searchParams.set('session_id', STRIPE_CHECKOUT_SESSION_PLACEHOLDER);
   }
@@ -37,10 +47,6 @@ function withCheckoutParams(url: string, status: 'success' | 'cancelled') {
 
 export async function POST(request: NextRequest) {
   try {
-    const baseCheckoutSuccessUrl = resolveAppCheckoutSuccessUrl(request);
-    const basePricingUrl = resolveAppPricingUrl(request);
-    const defaultSuccessUrl = withCheckoutParams(baseCheckoutSuccessUrl, 'success');
-    const defaultCancelUrl = withCheckoutParams(basePricingUrl, 'cancelled');
     const supabase = await createSupabaseRouteClient();
     const { data: authData, error: authError } = await supabase.auth.getUser();
     if (authError || !authData?.user) {
@@ -67,6 +73,14 @@ export async function POST(request: NextRequest) {
     if (!planId) {
       return NextResponse.json({ error: 'planId is required' }, { status: 400 });
     }
+    if (!findPlanByAnyPriceId(String(planId))) {
+      return NextResponse.json({ error: 'Invalid plan selected' }, { status: 400 });
+    }
+    const market = findMarketByPriceId(String(planId)) || 'GB';
+    const baseCheckoutSuccessUrl = resolveAppCheckoutSuccessUrl(request, market);
+    const basePricingUrl = resolveAppPricingUrl(request, market);
+    const defaultSuccessUrl = withCheckoutParams(baseCheckoutSuccessUrl, 'success', market);
+    const defaultCancelUrl = withCheckoutParams(basePricingUrl, 'cancelled', market);
 
     // Find or create Stripe customer for user
     const { data: userRow } = await supabaseAdmin
@@ -80,7 +94,7 @@ export async function POST(request: NextRequest) {
       : Boolean((authData.user as any)?.email_confirmed_at);
 
     if (!isEmailVerified) {
-      const verifyRedirect = `/auth/verify-email?redirect=${encodeURIComponent(`/dashboard?activatePlan=${encodeURIComponent(String(planId))}`)}`;
+      const verifyRedirect = `/auth/verify-email?redirect=${encodeURIComponent(getAppRouteForMarket(`/dashboard?activatePlan=${encodeURIComponent(String(planId))}`, market))}`;
       return NextResponse.json(
         {
           error: 'Verify your email before checkout',
@@ -150,8 +164,8 @@ export async function POST(request: NextRequest) {
           metadata: { userId: authUid, planId, trialApplied: trialApplied ? 'true' : 'false' },
           ...(trialApplied ? { trial_period_days: SUBSCRIPTION_TRIAL_DAYS } : {}),
         },
-        success_url: successUrl ? withCheckoutParams(successUrl, 'success') : defaultSuccessUrl,
-        cancel_url: cancelUrl ? withCheckoutParams(cancelUrl, 'cancelled') : defaultCancelUrl,
+        success_url: successUrl ? withCheckoutParams(successUrl, 'success', market) : defaultSuccessUrl,
+        cancel_url: cancelUrl ? withCheckoutParams(cancelUrl, 'cancelled', market) : defaultCancelUrl,
       });
       void logApiUsage({
         provider: 'stripe',

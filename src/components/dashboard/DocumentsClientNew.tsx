@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/database/supabase-browser";
+import { getAppMarketFromPathname, getAppRouteForMarket } from "@/lib/markets/app-routes";
 import styles from "./documents-page-new.module.css";
 import DocumentsActionBar from "./documents/DocumentsActionBar";
 import DocumentsFilters from "./documents/DocumentsFilters";
@@ -40,6 +41,7 @@ export default function DocumentsClient({
   const [activeFilter, setActiveFilter] = useState<'recents'|'starred'>('recents');
   const [activeFolder, setActiveFolder] = useState<string|null>(null);
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -63,6 +65,9 @@ export default function DocumentsClient({
   const [deleteModal, setDeleteModal] = useState<{ kind: 'document' | 'folder'; id: string } | null>(null);
   const [canUpload, setCanUpload] = useState(Boolean(initialCanUpload));
   const [planLoaded, setPlanLoaded] = useState(Boolean(initialPlanLoaded));
+  const appMarket = getAppMarketFromPathname(pathname);
+  const dashboardHref = getAppRouteForMarket('/dashboard', appMarket);
+  const documentsHref = getAppRouteForMarket('/dashboard/documents', appMarket);
 
   const readApiJson = async (res: Response) => {
     const contentType = res.headers.get('content-type') || '';
@@ -321,7 +326,7 @@ export default function DocumentsClient({
     setCustomFolders(p => p.filter(f => f.id !== folderId));
     if (activeFolder === folderId) {
       setActiveFolder(null);
-      try { router.replace('/dashboard/documents'); } catch(e){}
+      try { router.replace(documentsHref); } catch(e){}
     }
   };
 
@@ -611,12 +616,12 @@ export default function DocumentsClient({
 
   const handleSelectAllFolders = () => {
     setActiveFolder(null);
-    try { router.replace('/dashboard/documents'); } catch (_) {}
+    try { router.replace(documentsHref); } catch (_) {}
   };
 
   const handleSelectFolder = (folderId: string) => {
     setActiveFolder(folderId);
-    try { router.replace(`/dashboard/documents?folder=${encodeURIComponent(folderId)}`); } catch (_) {}
+    try { router.replace(getAppRouteForMarket(`/dashboard/documents?folder=${encodeURIComponent(folderId)}`, appMarket)); } catch (_) {}
   };
 
   const handleViewDocument = (doc: Document) => {
@@ -653,6 +658,7 @@ export default function DocumentsClient({
         onSelectFolder={handleSelectFolder}
         onDeleteFolder={deleteFolder}
         onCreateFolder={createFolder}
+        dashboardHref={dashboardHref}
       />
 
       {/* Main Content */}

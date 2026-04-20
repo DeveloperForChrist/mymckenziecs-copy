@@ -1357,7 +1357,7 @@ const buildCaseLawSoftNextStep = ({
     return `Next step (optional): I can summarise ${dedupedShortList.join(' and ')} in plain English and highlight the legal principles each authority discusses.`
   }
 
-  return 'Next step (optional): If useful, I can pull 2 to 3 relevant UK court decisions and summarise the key legal principles they set out.'
+  return 'Next step (optional): If useful, I can pull 2 to 3 relevant court decisions from supported sources and summarise the key legal principles they set out.'
 }
 
 const extractCaseKeywords = (caseData: Record<string, any>): string => {

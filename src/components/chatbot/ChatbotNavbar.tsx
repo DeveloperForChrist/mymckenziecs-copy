@@ -3,12 +3,15 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import type { MouseEvent } from 'react'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import AppTopbar from '@/components/layout/AppTopbar'
 import ChatConversationHistory from '@/components/chatbot/ChatConversationHistory'
 import DeleteConversationModal from '@/components/chatbot/DeleteConversationModal'
 import { hasCaseProfileAccess } from '@/lib/plans/access'
 import { isTrialingStripeStatus } from '@/lib/payments/subscription-status'
+import { getAppMarketFromPathname, getAppRouteForMarket } from '@/lib/markets/app-routes'
+import { buildMarketAwareAuthHref, getPublicMarket, getPublicRouteForMarket } from '@/lib/markets/public-routes'
 
 interface Conversation {
   id: string
@@ -34,6 +37,8 @@ export default function ChatbotNavbar({
   initialPlanInfo = null,
   initialIsLoggedIn = false,
 }: ChatbotNavbarProps = {}) {
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -110,6 +115,16 @@ export default function ChatbotNavbar({
   const workingOnLabel = activeCase?.title?.trim() || activeCase?.case_type?.trim() || 'General guidance'
   const caseProfilePlanLabel = (planInfo?.plan || plan || '').toString()
   const canUseCaseProfile = planLoaded && isLoggedIn && hasCaseProfileAccess(caseProfilePlanLabel)
+  const publicMarket = getPublicMarket({
+    pathname,
+    explicitMarket: searchParams?.get('market'),
+    countryCode: planInfo?.publicMarket,
+  })
+  const appMarket = getAppMarketFromPathname(pathname)
+  const pricingHref = getPublicRouteForMarket('/pricing', publicMarket)
+  const signInHref = buildMarketAwareAuthHref('/auth/signin', publicMarket)
+  const dashboardHref = getAppRouteForMarket('/dashboard', appMarket)
+  const chatbotHref = getAppRouteForMarket('/chatbot', appMarket)
 
   useEffect(() => {
     const fetchCases = async () => {
@@ -231,7 +246,9 @@ export default function ChatbotNavbar({
   }
 
   const openConversation = (conversationId: string) => {
-    window.location.href = `/chatbot?conversationId=${conversationId}`
+    const next = new URL(chatbotHref, 'https://app.local')
+    next.searchParams.set('conversationId', conversationId)
+    window.location.href = `${next.pathname}${next.search}${next.hash}`
   }
 
   const closeDeleteModal = () => {
@@ -476,13 +493,13 @@ export default function ChatbotNavbar({
             )}
             {planLoaded && (
               isLoggedIn ? (
-                <Link href="/dashboard" className="app-button-secondary">
+                <Link href={dashboardHref} className="app-button-secondary">
                   Go to Dashboard
                 </Link>
               ) : (
                 <>
                   <Link
-                    href="/pricing"
+                    href={pricingHref}
                     style={{
                       color: '#fff',
                       fontWeight: 700,
@@ -494,7 +511,7 @@ export default function ChatbotNavbar({
                     Register
                   </Link>
                   <Link
-                    href="/auth/signin"
+                    href={signInHref}
                     style={{
                       color: '#fff',
                       fontWeight: 600,
@@ -633,7 +650,11 @@ export default function ChatbotNavbar({
             </div>
 
             <button
-              onClick={() => (window.location.href = '/chatbot?new=true')}
+              onClick={() => {
+                const next = new URL(chatbotHref, 'https://app.local')
+                next.searchParams.set('new', 'true')
+                window.location.href = `${next.pathname}${next.search}${next.hash}`
+              }}
               style={{
                 display: 'flex',
                 alignItems: 'center',

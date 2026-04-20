@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { sendResendEmail } from '@/lib/email/resend';
 import { getAppUrl } from '@/lib/app-url';
+import { getBillingMarketFromCountryCode } from '@/constants';
+import { getPublicRouteForMarket } from '@/lib/markets/public-routes';
 import {
   buildLifecycleSchedule,
   daysUntil,
@@ -127,8 +129,6 @@ export async function GET(request: Request) {
     const nowIso = now.toISOString();
     const warningDays = getLifecycleWarningDays();
     const appUrl = getAppUrl(request);
-    const resumeUrl = `${appUrl}/pricing`;
-
     const { data: subs, error: subsError } = await supabaseAdmin
       .from('subscriptions')
       .select(
@@ -177,7 +177,10 @@ export async function GET(request: Request) {
     }
 
     const userIds = targets.map((row) => row.user_id);
-    const { data: users } = await supabaseAdmin.from('users').select('id, email, name').in('id', userIds);
+    const { data: users } = await supabaseAdmin
+      .from('users')
+      .select('id, email, name, country_code')
+      .in('id', userIds);
 
     const usersById = new Map((users || []).map((row) => [row.id, row]));
 
@@ -191,7 +194,15 @@ export async function GET(request: Request) {
       const schedule = buildLifecycleSchedule(lapsedBase);
       const archiveAt = sub.lifecycle_archive_at ? new Date(sub.lifecycle_archive_at) : schedule.archiveAt;
       const deleteAt = sub.lifecycle_delete_at ? new Date(sub.lifecycle_delete_at) : schedule.deleteAt;
-      const user = usersById.get(sub.user_id) as { email?: string; name?: string | null } | undefined;
+      const user = usersById.get(sub.user_id) as {
+        email?: string;
+        name?: string | null;
+        country_code?: string | null;
+      } | undefined;
+      const resumeUrl = `${appUrl}${getPublicRouteForMarket(
+        '/pricing',
+        getBillingMarketFromCountryCode(user?.country_code)
+      )}`;
       const archiveWarningSentDays = parseReminderDaysSet(sub.lifecycle_archive_warning_days_sent);
       const deleteWarningSentDays = parseReminderDaysSet(sub.lifecycle_delete_warning_days_sent);
       const updates: Record<string, any> = {};

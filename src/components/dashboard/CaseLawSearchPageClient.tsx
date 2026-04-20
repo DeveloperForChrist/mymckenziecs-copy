@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { Search, Filter, ExternalLink, Scale, Calendar, Building2, Lock, BookOpen, Loader2, ChevronLeft, ChevronRight, MessageCircle, Send } from 'lucide-react';
 import { hasCaseLawAccess } from '@/lib/plans/access';
+import { getAppRouteForMarket } from '@/lib/markets/app-routes';
+import { getPublicRouteForMarket, normalizePublicMarket, type PublicMarket } from '@/lib/markets/public-routes';
 
 interface CaseLawResult {
   id: string;
@@ -303,12 +305,14 @@ type CaseLawSearchPageClientProps = {
   initialUserPlan?: string;
   initialHasPaidAccess?: boolean;
   initialPlanChecked?: boolean;
+  initialPublicMarket?: PublicMarket;
 };
 
 export default function CaseLawSearchPageClient({
   initialUserPlan = 'guest',
   initialHasPaidAccess = false,
   initialPlanChecked = false,
+  initialPublicMarket = 'GB',
 }: CaseLawSearchPageClientProps = {}) {
   const workspaceMaxWidth = 'var(--app-shell-max-width, 1720px)';
   const [query, setQuery] = useState('');
@@ -326,6 +330,7 @@ export default function CaseLawSearchPageClient({
   const [userPlan, setUserPlan] = useState<string>(initialUserPlan);
   const [hasPaidAccess, setHasPaidAccess] = useState(Boolean(initialHasPaidAccess));
   const [planChecked, setPlanChecked] = useState(Boolean(initialPlanChecked));
+  const [publicMarket, setPublicMarket] = useState<PublicMarket>(initialPublicMarket);
   const [studyingCase, setStudyingCase] = useState<string | null>(null);
   const [caseStudy, setCaseStudy] = useState<string | null>(null);
   const [studyError, setStudyError] = useState<string | null>(null);
@@ -339,6 +344,8 @@ export default function CaseLawSearchPageClient({
   const [paginatedContent, setPaginatedContent] = useState<PaginatedCaseStudyChunk[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const dashboardHref = getAppRouteForMarket('/dashboard', normalizePublicMarket(publicMarket));
+  const settingsHref = getAppRouteForMarket('/settings', normalizePublicMarket(publicMarket));
   const searchAbortRef = useRef<AbortController | null>(null);
   const historySyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const searchRequestSeqRef = useRef(0);
@@ -357,6 +364,7 @@ export default function CaseLawSearchPageClient({
         const data = await res.json();
         setUserPlan((data?.plan || 'guest').toString());
         setHasPaidAccess(Boolean(data?.paidAccess));
+        setPublicMarket(normalizePublicMarket(data?.publicMarket));
       } catch (error) {
         console.error('Error checking user plan:', error);
       } finally {
@@ -798,8 +806,8 @@ export default function CaseLawSearchPageClient({
                 <Scale className="w-8 h-8 text-indigo-200" />
                 Case Law Search
               </h1>
-              <Link
-                href="/dashboard"
+            <Link
+                href={dashboardHref}
                 className="app-button-secondary"
               >
                 Go to Dashboard
@@ -818,17 +826,17 @@ export default function CaseLawSearchPageClient({
               </div>
             </div>
             <p className="text-indigo-100/80 mb-6">
-              Upgrade to unlock AI‑powered UK case law search, study summaries, and guided analysis.
+              Upgrade to unlock AI-powered case-law search, study summaries, and guided analysis for supported jurisdictions.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/pricing"
+                href={getPublicRouteForMarket('/pricing', publicMarket)}
                 className="inline-flex items-center gap-2 px-5 py-3 bg-white text-purple-900 font-semibold rounded-lg hover:bg-indigo-50"
               >
                 View plans
               </Link>
               <Link
-                href="/settings"
+                href={settingsHref}
                 className="inline-flex items-center gap-2 px-5 py-3 border border-white/30 text-white rounded-lg hover:bg-white/10"
               >
                 Manage billing
@@ -855,7 +863,7 @@ export default function CaseLawSearchPageClient({
               Case Law Search
             </h1>
             <Link
-              href="/dashboard"
+              href={dashboardHref}
               className="app-button-secondary"
             >
               Go to Dashboard

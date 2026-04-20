@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/database/supabase-browser";
 import { getPlanTier } from "@/lib/plans/access";
+import { getAppMarketFromPathname, getAppRouteForMarket } from "@/lib/markets/app-routes";
 import styles from "./notes-page.module.css";
 
 interface NotePage {
@@ -58,6 +60,7 @@ export default function NotesPageClient({
   initialReadOnlyMode = false,
   initialReadOnlyMessage = null,
 }: NotesPageClientProps = {}) {
+  const pathname = usePathname();
   const [authUid, setAuthUid] = useState<string | null>(initialAuthUid);
   const [loadingNotes, setLoadingNotes] = useState(true);
   const [notesHydrated, setNotesHydrated] = useState(false);
@@ -93,6 +96,7 @@ export default function NotesPageClient({
   const [extractedEvents, setExtractedEvents] = useState<ExtractedCalendarEvent[]>([]);
   const [isSavingExtractedEvents, setIsSavingExtractedEvents] = useState(false);
   const [canUseAiActions, setCanUseAiActions] = useState(false);
+  const dashboardHref = getAppRouteForMarket('/dashboard', getAppMarketFromPathname(pathname));
 
   const globalDraftStorageKey = useCallback((uid: string) => `mynotes-draft:${uid}:local`, []);
   const normalizeDraftPages = useCallback(
@@ -781,7 +785,7 @@ export default function NotesPageClient({
         </div>
 
         <div className={styles.sidebarFooter}>
-          <a href="/dashboard" className={styles.dashboardLink}>
+          <a href={dashboardHref} className={styles.dashboardLink}>
             <span>Go to Dashboard</span>
           </a>
         </div>

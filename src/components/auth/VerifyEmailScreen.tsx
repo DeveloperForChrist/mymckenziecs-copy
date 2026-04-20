@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout'
+import { getAppRouteForMarket } from '@/lib/markets/app-routes'
+import { getPublicMarket } from '@/lib/markets/public-routes'
 
 export default function VerifyEmailScreen() {
   const router = useRouter()
@@ -21,13 +23,25 @@ export default function VerifyEmailScreen() {
   const verified = useMemo(() => (searchParams?.get('verified') || '').trim().toLowerCase(), [searchParams])
   const redirectParam = useMemo(() => (searchParams?.get('redirect') || '').trim(), [searchParams])
   const planId = useMemo(() => (searchParams?.get('planId') || '').trim(), [searchParams])
+  const publicMarket = useMemo(
+    () =>
+      getPublicMarket({
+        pathname: redirectParam,
+        explicitMarket: searchParams?.get('market'),
+      }),
+    [redirectParam, searchParams]
+  )
+  const defaultDashboardHref = useMemo(
+    () => getAppRouteForMarket('/dashboard', publicMarket),
+    [publicMarket]
+  )
   const postVerifyRedirect = useMemo(() => {
     if (redirectParam.startsWith('/')) return redirectParam
-    if (planId) return `/dashboard?activatePlan=${encodeURIComponent(planId)}`
-    return '/dashboard'
-  }, [planId, redirectParam])
+    if (planId) return getAppRouteForMarket(`/dashboard?activatePlan=${encodeURIComponent(planId)}`, publicMarket)
+    return defaultDashboardHref
+  }, [defaultDashboardHref, planId, publicMarket, redirectParam])
   const verifyCopy = useMemo(() => {
-    if (postVerifyRedirect.startsWith('/dashboard?activatePlan=')) {
+    if (postVerifyRedirect.includes('activatePlan=')) {
       return 'Open your inbox, click Verify email, and you will be taken to your dashboard. You can start using the platform straight away and review your selected plan later.'
     }
     return 'Open your inbox, click Verify email, and you will be taken straight to your unlocked dashboard.'

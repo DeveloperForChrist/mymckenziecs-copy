@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { stripe } from '@/lib/payments/stripe';
-import { PLAN_PRICES } from '@/constants';
+import { findPlanByAnyPriceId } from '@/constants';
 import {
   billingIpRateLimiter,
   billingRateLimiter,
@@ -25,8 +25,7 @@ const CHANGEABLE_STATUSES = ['active', 'past_due', 'trialing'] as const;
 
 function normalizePlanTypeFromPrice(priceId?: string | null): string {
   if (!priceId) return 'No plan';
-  const match = PLAN_PRICES.find((plan) => plan.priceId === priceId);
-  const name = (match?.name || '').toLowerCase();
+  const name = (findPlanByAnyPriceId(priceId)?.name || '').toLowerCase();
   if (name.includes('basic') || name.includes('essential') || name.includes('premium cheap')) return 'Basic';
   if (name.includes('premium +') || name.includes('premium plus') || name.includes('plus') || name.includes('premium pro')) return 'Premium +';
   if (name.includes('premium')) return 'Premium';
@@ -90,7 +89,7 @@ export async function POST(req: Request) {
 
     const body = await req.json().catch(() => ({}));
     const requestedPriceId = typeof body?.planId === 'string' ? body.planId.trim() : '';
-    const requestedPlan = PLAN_PRICES.find((plan) => plan.priceId === requestedPriceId);
+    const requestedPlan = findPlanByAnyPriceId(requestedPriceId);
     if (!requestedPlan) {
       return NextResponse.json({ error: 'Invalid plan selected' }, { status: 400 });
     }

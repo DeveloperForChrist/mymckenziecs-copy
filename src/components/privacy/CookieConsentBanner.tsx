@@ -2,11 +2,13 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import {
   revokeAnalyticsTracking,
   readAnalyticsConsent,
   saveAnalyticsConsent,
 } from '@/lib/analytics/consent'
+import { getPublicMarketFromPathname, getPublicRouteForMarket } from '@/lib/markets/public-routes'
 
 type CookieConsentBannerProps = {
   analyticsEnabled: boolean
@@ -17,8 +19,13 @@ export default function CookieConsentBanner({
   analyticsEnabled,
   measurementId,
 }: CookieConsentBannerProps) {
+  const pathname = usePathname()
   const [isHydrated, setIsHydrated] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  const cookiePolicyHref = getPublicRouteForMarket(
+    '/cookie-policy',
+    getPublicMarketFromPathname(pathname)
+  )
 
   useEffect(() => {
     if (!analyticsEnabled) {
@@ -53,7 +60,7 @@ export default function CookieConsentBanner({
               We use Google Analytics to understand which pages are used and where the
               product is failing. It stays off until you opt in, and you can change this
               later from Settings or the{' '}
-              <Link href="/cookie-policy" className="underline decoration-white/40 underline-offset-4">
+              <Link href={cookiePolicyHref} className="underline decoration-white/40 underline-offset-4">
                 Cookie Policy
               </Link>
               .

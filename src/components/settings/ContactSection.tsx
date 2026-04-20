@@ -1,12 +1,15 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import styles from './settingsPage.module.css';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import { isPremiumPlusPlan } from '@/lib/plans/access';
+import { getPublicRouteForMarket, normalizePublicMarket, type PublicMarket } from '@/lib/markets/public-routes';
 
-export default function ContactSection() {
+export default function ContactSection({ initialPublicMarket = 'GB' }: { initialPublicMarket?: PublicMarket }) {
   const [userEmail, setUserEmail] = useState<string>('');
   const [userPlan, setUserPlan] = useState<string>('No plan');
+  const [publicMarket, setPublicMarket] = useState<PublicMarket>(initialPublicMarket);
   const [formData, setFormData] = useState({
     subject: '',
     message: '',
@@ -36,6 +39,7 @@ export default function ContactSection() {
         if (!res.ok) return;
         const data = await res.json();
         setUserPlan((data?.plan || 'No plan').toString());
+        setPublicMarket(normalizePublicMarket(data?.publicMarket));
       } catch (error) {
         console.error('Failed to fetch user plan:', error);
       }
@@ -46,6 +50,21 @@ export default function ContactSection() {
   const planLabel = userPlan.toString();
   const hasPremiumPlusSupport = isPremiumPlusPlan(planLabel);
   const responseTime = hasPremiumPlusSupport ? 'within 1-2 days' : 'within 3-4 days';
+  const publicContactHref = getPublicRouteForMarket('/contact', publicMarket);
+  const isUS = publicMarket === 'US';
+  const sectionHeading = isUS ? 'U.S. Support' : 'Contact Us';
+  const sectionDescription = isUS
+    ? 'Get in touch with the MyMcKenzieCS team for U.S. rollout, billing, account, and workspace support.'
+    : 'Get in touch with the MyMcKenzieCS team for help and support.';
+  const subjectPrompt = isUS ? 'Select a U.S. support topic' : 'Select a subject';
+  const messagePlaceholder = isUS
+    ? 'Describe your issue or question. Include your state, federal, or local court context if it matters.'
+    : 'Describe your issue or question...';
+  const contactPageLabel = isUS ? 'U.S. contact page' : 'public contact page';
+  const contactPageTail = isUS
+    ? 'if you need to send a direct rollout, billing, support, or privacy request.'
+    : 'if you need to send a direct support, billing, or privacy request.';
+  const responseLabel = isUS ? 'Typical Reply Time' : 'Response Time';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,8 +107,8 @@ export default function ContactSection() {
   return (
     <div className={styles.sectionWrapper}>
       <section className={styles.settingsSection}>
-        <h2 className={styles.sectionHeading}>Contact Us</h2>
-        <p className={styles.desc}>Get in touch with the MyMcKenzieCS team for help and support.</p>
+        <h2 className={styles.sectionHeading}>{sectionHeading}</h2>
+        <p className={styles.desc}>{sectionDescription}</p>
         <form className={styles.formGrid} onSubmit={handleSubmit}>
           <div className={styles.formGroup}> 
             <label className={styles.formLabel}>Subject</label>
@@ -99,10 +118,11 @@ export default function ContactSection() {
               onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
               required
             >
-              <option value="" disabled>Select a subject</option>
+              <option value="" disabled>{subjectPrompt}</option>
               <option value="technical">Technical Support</option>
               <option value="billing">Billing Inquiry</option>
               <option value="account">Account Issues</option>
+              {isUS ? <option value="us-rollout">U.S. Rollout Question</option> : null}
               <option value="feedback">Feedback</option>
               <option value="other">Other</option>
             </select>
@@ -112,7 +132,7 @@ export default function ContactSection() {
             <textarea 
               className={styles.textArea} 
               rows={6} 
-              placeholder="Describe your issue or question..."
+              placeholder={messagePlaceholder}
               value={formData.message}
               onChange={(e) => setFormData({ ...formData, message: e.target.value })}
               required
@@ -143,14 +163,20 @@ export default function ContactSection() {
         </form>
       </section>
       <section className={styles.settingsSection}>
-        <h2 className={styles.sectionHeading}>Other Ways to Reach Us</h2>
+        <h2 className={styles.sectionHeading}>{isUS ? 'Other U.S. Support Options' : 'Other Ways to Reach Us'}</h2>
         <div className={styles.contactInfo}> 
           <div className={styles.contactItem}>
-            <strong>Contact page</strong>
-            <p>Use the public contact page if you need to send a direct support, billing, or privacy request.</p>
+            <strong>{isUS ? 'U.S. contact page' : 'Contact page'}</strong>
+            <p>
+              Use the{' '}
+              <Link href={publicContactHref} style={{ textDecoration: 'underline' }}>
+                {contactPageLabel}
+              </Link>{' '}
+              {contactPageTail}
+            </p>
           </div>
           <div className={styles.contactItem}>
-            <strong>Response Time</strong>
+            <strong>{responseLabel}</strong>
             <p>We typically respond {responseTime}</p>
           </div>
         </div>

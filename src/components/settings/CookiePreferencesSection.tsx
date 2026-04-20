@@ -2,24 +2,37 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import {
   readAnalyticsConsent,
   revokeAnalyticsTracking,
   saveAnalyticsConsent,
   type AnalyticsConsentState,
 } from '@/lib/analytics/consent'
+import {
+  getPublicMarket,
+  getPublicRouteForMarket,
+  type PublicMarket,
+} from '@/lib/markets/public-routes'
 import styles from './settingsPage.module.css'
 
 type CookiePreferencesSectionProps = {
   measurementId?: string
+  market?: PublicMarket
 }
 
 export default function CookiePreferencesSection({
   measurementId,
+  market,
 }: CookiePreferencesSectionProps) {
+  const pathname = usePathname()
   const trimmedMeasurementId = measurementId?.trim() || ''
   const [consent, setConsent] = useState<AnalyticsConsentState | null>(null)
   const [isHydrated, setIsHydrated] = useState(false)
+  const cookiePolicyHref = getPublicRouteForMarket(
+    '/cookie-policy',
+    getPublicMarket({ pathname, explicitMarket: market })
+  )
 
   useEffect(() => {
     if (!trimmedMeasurementId) {
@@ -77,7 +90,7 @@ export default function CookiePreferencesSection({
       </div>
       <p className={styles.helpText} style={{ marginTop: '12px' }}>
         More detail is available in the{' '}
-        <Link href="/cookie-policy" style={{ textDecoration: 'underline' }}>
+        <Link href={cookiePolicyHref} style={{ textDecoration: 'underline' }}>
           Cookie Policy
         </Link>
         .

@@ -6,8 +6,10 @@ import { useSearchParams } from 'next/navigation';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import { hasCaseLawAccess } from '@/lib/plans/access';
 import { isTrialingStripeStatus } from '@/lib/payments/subscription-status';
-import { PLAN_PRICES } from '@/constants';
+import { findPlanByAnyPriceId } from '@/constants';
 import InAppPaymentMethodModal from '@/components/settings/InAppPaymentMethodModal';
+import { getAppRouteForMarket } from '@/lib/markets/app-routes';
+import { getPublicRouteForMarket, normalizePublicMarket, type PublicMarket } from '@/lib/markets/public-routes';
 
 function formatDateLabel(value?: string | null) {
   if (!value) return '';
@@ -36,6 +38,7 @@ type DashboardHomeClientProps = {
   initialCancelAtPeriodEnd?: boolean;
   initialCaseLawAvailable?: boolean;
   initialPlanLoaded?: boolean;
+  initialPublicMarket?: PublicMarket;
 };
 
 export default function DashboardHomeClient({
@@ -47,6 +50,7 @@ export default function DashboardHomeClient({
   initialCancelAtPeriodEnd = false,
   initialCaseLawAvailable = false,
   initialPlanLoaded = false,
+  initialPublicMarket = 'GB',
 }: DashboardHomeClientProps = {}) {
   const searchParams = useSearchParams();
   const [uid, setUid] = useState<string | null>(null);
@@ -57,6 +61,7 @@ export default function DashboardHomeClient({
   const [hasStripeCustomer, setHasStripeCustomer] = useState(Boolean(initialHasStripeCustomer));
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(Boolean(initialCancelAtPeriodEnd));
   const [planLoaded, setPlanLoaded] = useState(Boolean(initialPlanLoaded));
+  const [publicMarket, setPublicMarket] = useState<PublicMarket>(initialPublicMarket);
   const [calendarAlertCount, setCalendarAlertCount] = useState(0);
   const [trialStartPending, setTrialStartPending] = useState(false);
   const [trialStartError, setTrialStartError] = useState<string | null>(null);
@@ -75,7 +80,16 @@ export default function DashboardHomeClient({
     normalizedPlanStatus === 'past_due';
   const selectedPlanId = (searchParams?.get('activatePlan') || '').trim();
   const selectedPlanName =
-    PLAN_PRICES.find((entry) => entry.priceId === selectedPlanId)?.name || 'your selected plan';
+    findPlanByAnyPriceId(selectedPlanId)?.name || 'your selected plan';
+  const pricingHref = getPublicRouteForMarket('/pricing', normalizePublicMarket(publicMarket));
+  const dashboardHref = getAppRouteForMarket('/dashboard', normalizePublicMarket(publicMarket));
+  const chatbotHref = getAppRouteForMarket('/chatbot', normalizePublicMarket(publicMarket));
+  const documentsHref = getAppRouteForMarket('/dashboard/documents', normalizePublicMarket(publicMarket));
+  const notesHref = getAppRouteForMarket('/dashboard/MyNotes', normalizePublicMarket(publicMarket));
+  const calendarHref = getAppRouteForMarket('/dashboard/calendar', normalizePublicMarket(publicMarket));
+  const caseLawHref = getAppRouteForMarket('/dashboard/case-law-search', normalizePublicMarket(publicMarket));
+  const settingsHref = getAppRouteForMarket('/settings', normalizePublicMarket(publicMarket));
+  const billingSettingsHref = getAppRouteForMarket('/settings?tab=billing', normalizePublicMarket(publicMarket));
   const showActivationBanner = planLoaded && emailVerified && (!hasPaidAccess || trialStartPending || Boolean(trialStartError));
   const trialDaysLeft = isTrialingStatus ? daysUntil(nextBillingDate) : null;
   const showTrialBillingReminderBanner =
@@ -132,6 +146,7 @@ export default function DashboardHomeClient({
         setNextBillingDate(typeof data?.nextBillingDate === 'string' ? data.nextBillingDate : null);
         setHasStripeCustomer(Boolean(data?.hasStripeCustomer));
         setCancelAtPeriodEnd(Boolean(data?.cancelAtPeriodEnd));
+        setPublicMarket(normalizePublicMarket(data?.publicMarket));
       } catch {
         // Keep preloaded state on transient fetch failures.
       } finally {
@@ -152,6 +167,7 @@ export default function DashboardHomeClient({
     setNextBillingDate(typeof data?.nextBillingDate === 'string' ? data.nextBillingDate : null);
     setHasStripeCustomer(Boolean(data?.hasStripeCustomer));
     setCancelAtPeriodEnd(Boolean(data?.cancelAtPeriodEnd));
+    setPublicMarket(normalizePublicMarket(data?.publicMarket));
   };
 
   const dismissTrialReminderBanner = () => {
@@ -281,49 +297,49 @@ export default function DashboardHomeClient({
       icon: 'bx-message-dots',
       title: 'Talk to MyMcKenzieCS Assistant',
       desc: 'Receive AI-assisted legal information and support',
-      href: '/chatbot',
+      href: chatbotHref,
       color: '#10b981,#34d399'
     },
     {
       icon: 'bx-edit',
       title: 'Store My Document',
       desc: 'Upload and manage your documents',
-      href: '/dashboard/documents',
+      href: documentsHref,
       color: '#2563eb,#60a5fa'
     },
     {
       icon: 'bx-folder-open',
       title: 'Review My Notes',
       desc: 'Write and organise your notes',
-      href: '/dashboard/MyNotes',
+      href: notesHref,
       color: '#db2777,#f472b6'
     },
     {
       icon: 'bx-briefcase',
       title: 'Check My Calendar',
       desc: 'Monitor important dates and deadlines',
-      href: '/dashboard/calendar',
+      href: calendarHref,
       color: '#ea580c,#fb923c',
       alertCount: calendarAlertCount,
     },
     {
       icon: 'bx-search',
       title: 'Search Case Law',
-      desc: 'Research and study UK case law and judgments',
-      href: '/dashboard/case-law-search',
+      desc: 'Research and study case law and judgments where available',
+      href: caseLawHref,
       color: '#f59e42,#fbbf24'
     },
     {
       icon: 'bx-cog',
       title: 'User Settings',
       desc: 'Manage your profile and billing',
-      href: '/settings',
+      href: settingsHref,
       color: '#7c3aed,#22d3ee'
     }
   ];
 
   const visibleFeatures = features.filter((feature) => {
-    if (feature.href === '/dashboard/case-law-search') {
+    if (feature.href === caseLawHref) {
       return planLoaded && hasCaseLawFeature;
     }
     return true;
@@ -400,7 +416,7 @@ export default function DashboardHomeClient({
               )}
               <div style={{ marginTop: 14, display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
                 <Link
-                  href="/pricing"
+                  href={pricingHref}
                   style={{
                     textDecoration: 'none',
                     borderRadius: '999px',
@@ -413,7 +429,7 @@ export default function DashboardHomeClient({
                   Try for free
                 </Link>
                 <Link
-                  href="/settings?tab=billing"
+                  href={billingSettingsHref}
                   style={{
                     textDecoration: 'none',
                     border: '1px solid rgba(255,255,255,0.22)',
@@ -496,7 +512,7 @@ export default function DashboardHomeClient({
                   Set up billing information
                 </button>
                 <Link
-                  href="/settings?tab=billing"
+                  href={billingSettingsHref}
                   style={{
                     textDecoration: 'none',
                     border: '1px solid rgba(255,255,255,0.24)',
@@ -534,7 +550,7 @@ export default function DashboardHomeClient({
               </p>
               <div style={{ marginTop: 12 }}>
                 <Link
-                  href="/settings"
+                  href={settingsHref}
                   style={{
                     textDecoration: 'none',
                     border: '1px solid rgba(255,255,255,0.24)',
@@ -570,7 +586,7 @@ export default function DashboardHomeClient({
               </p>
               <div style={{ marginTop: 12 }}>
                 <Link
-                  href="/settings?tab=billing"
+                  href={billingSettingsHref}
                   style={{
                     textDecoration: 'none',
                     border: '1px solid rgba(255,255,255,0.24)',
@@ -665,7 +681,7 @@ export default function DashboardHomeClient({
                 <Link
                   key={idx}
                   href={feature.href}
-                  prefetch={feature.href === '/settings' ? false : undefined}
+                  prefetch={feature.href === settingsHref ? false : undefined}
                   style={{ textDecoration: 'none' }}
                 >
                   {card}
@@ -689,7 +705,7 @@ export default function DashboardHomeClient({
         }}
         onOpenPortalFallback={() => {
           setPaymentModalOpen(false);
-          window.location.href = '/settings?tab=billing';
+          window.location.href = billingSettingsHref;
         }}
         portalPending={false}
       />

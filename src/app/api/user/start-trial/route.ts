@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
-import { PLAN_PRICES } from '@/constants';
+import { findPlanByAnyPriceId } from '@/constants';
+import { getBillingMarketFromCountryCode } from '@/constants';
 import { getAppUrl } from '@/lib/app-url';
+import { getAppRouteForMarket } from '@/lib/markets/app-routes';
 import {
   billingIpRateLimiter,
   billingRateLimiter,
@@ -46,8 +48,12 @@ function formatDateLabel(value?: Date | string | number | null) {
   });
 }
 
-function buildVerifyRedirect(request: NextRequest, planId: string) {
-  const verifyPath = `/dashboard?activatePlan=${encodeURIComponent(planId)}`;
+function buildVerifyRedirect(
+  request: NextRequest,
+  planId: string,
+  market: Parameters<typeof getAppRouteForMarket>[1]
+) {
+  const verifyPath = getAppRouteForMarket(`/dashboard?activatePlan=${encodeURIComponent(planId)}`, market);
   const absolute = new URL('/auth/verify-email', getAppUrl(request));
   absolute.searchParams.set('redirect', verifyPath);
   return `${absolute.pathname}${absolute.search}`;
@@ -92,16 +98,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'planId is required' }, { status: 400 });
     }
 
-    const requestedPlan = PLAN_PRICES.find((plan) => plan.priceId === planId);
+    const requestedPlan = findPlanByAnyPriceId(planId);
     if (!requestedPlan) {
       return NextResponse.json({ error: 'Invalid plan selected' }, { status: 400 });
     }
 
     const { data: userRow } = await supabaseAdmin
       .from('users')
-      .select('id, email, name, email_verified_at')
+      .select('id, email, name, email_verified_at, country_code')
       .eq('id', authUid)
       .maybeSingle();
+
+    const billingMarket = getBillingMarketFromCountryCode(
+      (userRow as any)?.country_code || (authData.user.user_metadata as any)?.country_code
+    );
 
     const isEmailVerified = userRow
       ? Boolean((userRow as any)?.email_verified_at)
@@ -112,7 +122,7 @@ export async function POST(request: NextRequest) {
         {
           error: 'Verify your email before starting your free trial',
           code: 'EMAIL_VERIFICATION_REQUIRED',
-          redirect: buildVerifyRedirect(request, planId),
+          redirect: buildVerifyRedirect(request, planId, billingMarket),
         },
         { status: 403 }
       );
@@ -198,7 +208,7 @@ export async function POST(request: NextRequest) {
           name: userRow?.name || '',
           plan_name: planDisplayName(requestedPlan.name),
           first_charge_date: formatDateLabel(trialEndIso),
-          manage_url: `${getAppUrl(request)}/settings?tab=billing`,
+          manage_url: `${getAppUrl(request)}${getAppRouteForMarket('/settings?tab=billing', billingMarket)}`,
           support_email: supportEmail,
         });
 

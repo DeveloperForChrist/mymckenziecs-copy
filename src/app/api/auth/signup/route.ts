@@ -4,6 +4,8 @@ import { authRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceed
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { sendResendEmail } from '@/lib/email/resend'
 import { createHash, randomBytes } from 'node:crypto'
+import { getBillingMarketFromCountryCode } from '@/constants'
+import { getAppRouteForMarket } from '@/lib/markets/app-routes'
 import {
   getCountryOption,
   getJurisdictionLabel,
@@ -15,10 +17,10 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
-function safeRedirectPath(input?: string) {
-  if (!input) return '/dashboard'
+function safeRedirectPath(input?: string, fallback = '/dashboard') {
+  if (!input) return fallback
   const normalized = input.trim()
-  return normalized.startsWith('/') ? normalized : '/dashboard'
+  return normalized.startsWith('/') ? normalized : fallback
 }
 
 export async function POST(request: NextRequest) {
@@ -38,7 +40,7 @@ export async function POST(request: NextRequest) {
     const lastName = typeof body?.lastName === 'string' ? body.lastName.trim() : ''
     const countryCode = typeof body?.countryCode === 'string' ? body.countryCode.trim().toUpperCase() : ''
     const jurisdictionCode = typeof body?.jurisdictionCode === 'string' ? body.jurisdictionCode.trim().toUpperCase() : ''
-    const redirect = safeRedirectPath(typeof body?.redirect === 'string' ? body.redirect : undefined)
+    const requestedRedirect = typeof body?.redirect === 'string' ? body.redirect : undefined
 
     if (!fullName) {
       return NextResponse.json({ message: 'Full name is required.' }, { status: 400 })
@@ -65,6 +67,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const billingMarket = getBillingMarketFromCountryCode(countryCode)
+    const redirect = safeRedirectPath(
+      requestedRedirect,
+      getAppRouteForMarket('/dashboard', billingMarket)
+    )
     const jurisdictionLabel = getJurisdictionLabel(countryCode, jurisdictionCode)
 
     const metadata = {

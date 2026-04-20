@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
-import Link from 'next/link';
-import HeroActionButtons from '@/components/home/HeroActionButtons';
+import MarketHomepage from '@/components/home/MarketHomepage';
 import { DEADLINE_REMINDER_FEATURE } from '@/constants';
 import { buildPageMetadata } from '@/lib/seo';
 
@@ -9,7 +7,7 @@ export const metadata: Metadata = {
   ...buildPageMetadata({
     title: 'Court Case Management Tool for Self-Represented Litigants',
     description:
-      'Organise court documents, track deadlines, and prepare your case without a lawyer using MyMcKenzieCS, a court case workspace for self-represented litigants in the UK and US.',
+      'Organise court documents, track deadlines, and prepare your case without a lawyer using MyMcKenzieCS, the original UK court case workspace for self-represented litigants.',
     path: '/',
   }),
 };
@@ -36,8 +34,8 @@ const commonProblems = [
 
 const whoItsFor = [
   {
-    title: 'Self-represented litigants in the UK and US',
-    text: 'People handling a court case without a lawyer formally running the matter for them.',
+    title: 'Self-represented litigants in the UK',
+    text: 'People handling a court case without a lawyer formally running the matter for them in a UK jurisdiction.',
   },
   {
     title: 'Small claims and civil court users',
@@ -150,249 +148,26 @@ const guidePages = [
 
 export default function HomePage() {
   return (
-    <div className="homepage">
-      <main
-        className="purple-gradient-bg min-h-screen flex flex-col relative overflow-hidden"
-        style={{
-          fontFamily: "'Space Grotesk', 'Manrope', 'Segoe UI', sans-serif"
-        }}
-      >
-        <div className="pointer-events-none absolute inset-0 opacity-80">
-          <div className="absolute -left-20 top-24 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(255,184,108,0.35),transparent_70%)] blur-2xl" />
-          <div className="absolute right-[-90px] top-[40%] h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(94,234,212,0.25),transparent_70%)] blur-2xl" />
-        </div>
-
-        {/* Hero Section */}
-        <section className="w-full">
-          <div className="app-container relative z-10">
-            <div className="pt-12 pb-4 md:pt-16 md:pb-6">
-              <div className="grid grid-cols-1 xl:grid-cols-[1.03fr_0.97fr] gap-8 md:gap-10 items-center">
-                <div className="text-center xl:text-left">
-                  <div className="text-xs md:text-sm font-medium uppercase tracking-[0.2em] text-white/70">
-                    For UK and US Self-Represented Litigants
-                  </div>
-                  <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white mt-5 leading-[1.05]">
-                    Court case management
-                    <br />
-                    for self-represented litigants.
-                  </h1>
-                  <p className="text-base md:text-xl text-white/85 mt-5 max-w-3xl mx-auto xl:mx-0 leading-relaxed">
-                    Organise court documents, track deadlines, and prepare your case in one workspace for UK and U.S. legal matters.
-                  </p>
-                  <HeroActionButtons />
-                  <div className="mt-5 flex flex-wrap justify-center gap-2 text-xs uppercase tracking-[0.16em] text-white/70 xl:justify-start">
-                    <span className="rounded-full border border-white/15 px-3 py-2">Small claims</span>
-                    <span className="rounded-full border border-white/15 px-3 py-2">Court documents</span>
-                    <span className="rounded-full border border-white/15 px-3 py-2">Evidence and notes</span>
-                    <span className="rounded-full border border-white/15 px-3 py-2">Deadlines and hearings</span>
-                  </div>
-                  <div className="mt-4 text-sm text-white/75">
-                    Informational and court support only. Not legal advice.
-                  </div>
-                </div>
-
-                <div
-                  className="h-[min(82vw,350px)] w-[min(82vw,350px)] md:h-[500px] md:w-[500px] flex items-center justify-center mx-auto"
-                  style={{
-                    borderRadius: '9999px',
-                    overflow: 'hidden',
-                    backgroundColor: '#270427'
-                  }}
-                >
-                  <Image
-                    src="/assets/mymckenzie-high-resolution-logo (7) 1.svg"
-                    alt="MyMcKenzieCS logo"
-                    width={550}
-                    height={550}
-                    priority
-                    className="h-full w-full object-contain object-center"
-                    style={{
-                      mixBlendMode: 'lighten',
-                      filter: 'grayscale(1) brightness(2.6) contrast(1.65)'
-                    }}
-                  />
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </section>
-
-        <section className="w-full">
-          <div className="app-container relative z-10 py-4 md:py-6">
-            <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
-              <div>
-                <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Why this matters</div>
-                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Representing yourself in court becomes hard when the case stops being organised</h2>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {commonProblems.map((problem) => (
-                <div
-                  key={problem.title}
-                  className="rounded-3xl border border-white/12 bg-gradient-to-br from-white/10 to-white/5 p-6 text-white shadow-[0_18px_50px_rgba(0,0,0,0.3)]"
-                >
-                  <div className="text-lg font-semibold">{problem.title}</div>
-                  <p className="text-sm md:text-base text-white/75 mt-3 leading-relaxed">{problem.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="w-full">
-          <div className="app-container relative z-10 py-4 md:py-8">
-            <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
-              <div>
-                <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Who this is for</div>
-                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Built for people preparing a court case without a lawyer</h2>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-              {whoItsFor.map((audience) => (
-                <div
-                  key={audience.title}
-                  className="rounded-3xl border border-white/12 bg-gradient-to-br from-white/10 to-white/5 p-6 text-white shadow-[0_18px_50px_rgba(0,0,0,0.3)]"
-                >
-                  <div className="text-lg font-semibold">{audience.title}</div>
-                  <p className="text-sm md:text-base text-white/75 mt-3 leading-relaxed">{audience.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="w-full">
-          <div className="app-container relative z-10 py-4 md:py-6">
-            <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
-              <div>
-                <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Use MyMcKenzieCS To</div>
-                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Manage the parts of self-representation that usually become overwhelming</h2>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {useCases.map((feature) => (
-                <div
-                  key={feature.title}
-                  className="rounded-3xl border border-white/12 bg-gradient-to-br from-white/10 to-white/5 p-6 text-white shadow-[0_18px_50px_rgba(0,0,0,0.3)]"
-                >
-                  <div className="text-lg font-semibold">{feature.title}</div>
-                  <p className="text-sm md:text-base text-white/75 mt-3 leading-relaxed">{feature.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="w-full">
-          <div className="app-container relative z-10 py-4 md:py-8">
-            <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
-              <div>
-                <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Guides</div>
-                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Helpful guides for UK self-representation</h2>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {guidePages.map((guide) => (
-                <Link
-                  key={guide.href}
-                  href={guide.href}
-                  className="rounded-3xl border border-white/12 bg-gradient-to-br from-white/10 to-white/5 p-6 text-white shadow-[0_18px_50px_rgba(0,0,0,0.3)] transition-transform hover:-translate-y-1"
-                >
-                  <div className="text-lg font-semibold">{guide.title}</div>
-                  <p className="text-sm md:text-base text-white/75 mt-3 leading-relaxed">{guide.text}</p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Plans */}
-        <section className="w-full">
-          <div className="app-container relative z-10 py-9 md:py-12">
-            <div className="flex items-end justify-start flex-wrap gap-4 mb-7">
-              <div>
-                <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Plans</div>
-                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Choose the level of support that fits your case</h2>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {plans.map((plan) => (
-                <div
-                  key={plan.name}
-                  className={`rounded-3xl border p-6 text-white shadow-[0_20px_60px_rgba(0,0,0,0.32)] ${
-                    plan.highlight
-                      ? 'border-amber-300/40 bg-gradient-to-b from-amber-300/20 to-white/8'
-                      : 'border-white/10 bg-white/8'
-                  }`}
-                >
-                  <div className="text-sm text-white/75">{plan.name}</div>
-                  <div className="text-4xl font-bold mt-2">
-                    £{plan.price}
-                    <span className="text-base text-white/70">/month</span>
-                  </div>
-                  <div className="mt-4 space-y-2 text-sm text-white/85">
-                    {plan.bullets.map((item) => (
-                      <div key={item}>
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Band */}
-        <section className="w-full">
-          <div className="app-container relative z-10 pb-16">
-            <div className="rounded-[28px] border border-white/10 bg-gradient-to-r from-white/10 via-white/5 to-white/10 p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
-              <div>
-                <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Get started</div>
-                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">
-                  Start building your case plan now.
-                </h2>
-                <p className="text-white/75 mt-3">
-                  Start with one question, then organise the rest of your documents, deadlines, and hearing preparation from the same workspace.
-                </p>
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <Link href="/litigant-in-person-uk" className="app-button-secondary">
-                    Learn the basics
-                  </Link>
-                  <Link href="/pricing" className="app-button-secondary">
-                    Compare plans
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-      <footer className="w-full text-white mt-0 text-center border-t border-white/10 bg-[#270427]">
-        <div className="app-container py-12">
-          <div className="text-base md:text-lg font-medium mb-2"> 2026 Lenjordan Ltd. All rights reserved.</div>
-          <div className="text-base md:text-lg font-medium mb-4 text-white/85">
-            MyMcKenzieCS is a product of Lenjordan Ltd.<br/>Company No. 16931933
-          </div>
-          <div className="flex flex-wrap justify-center gap-3 mb-4 text-sm md:text-base text-white/80">
-            <a href="/privacy-policy" className="underline hover:text-purple-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#120117] rounded">Privacy Policy</a>
-            <span>|</span>
-            <a href="/terms" className="underline hover:text-purple-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#120117] rounded">Terms &amp; Conditions</a>
-            <span>|</span>
-            <a href="/cookie-policy" className="underline hover:text-purple-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#120117] rounded">Cookie Policy</a>
-            <span>|</span>
-            <a href="/help" className="underline hover:text-purple-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#120117] rounded">Help</a>
-            <span>|</span>
-            <a href="/contact" className="underline hover:text-purple-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#120117] rounded">Contact</a>
-            <span>|</span>
-            <a href="/about" className="underline hover:text-purple-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#120117] rounded">About</a>
-          </div>
-          <div className="max-w-3xl mx-auto text-sm md:text-base font-semibold opacity-90 mt-4 leading-relaxed text-white/80">
-            MyMcKenzieCS Assistant provides informational and court support only. Not legal advice.
-          </div>
-        </div>
-      </footer>
-    </div>
+    <MarketHomepage
+      audienceLabel="For UK Self-Represented Litigants"
+      titleLines={['Court case management', 'for self-represented litigants.']}
+      description="Organise court documents, track deadlines, and prepare your case in one workspace built around UK self-representation."
+      guideHeading="Helpful guides for UK self-representation"
+      commonProblems={commonProblems}
+      whoItsFor={whoItsFor}
+      useCases={useCases}
+      guidePages={guidePages}
+      plans={plans}
+      pricingHref="/pricing"
+      howItWorksHref="/legal-case-management-tool"
+      learnBasicsHref="/litigant-in-person-uk"
+      comparePlansHref="/pricing"
+      helpHref="/help"
+      aboutHref="/about"
+      faqHref="/faq"
+      marketSwitch={{ href: '/us', label: 'Looking for the U.S. version? Open the U.S. site' }}
+      ctaTitle="Start building your case plan now."
+      ctaText="Start with one question, then organise the rest of your documents, deadlines, and hearing preparation from the same workspace."
+    />
   );
 }

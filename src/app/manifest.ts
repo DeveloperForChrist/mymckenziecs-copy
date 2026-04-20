@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'MyMcKenzieCS',
     short_name: 'MyMcKenzieCS',
-    description: 'MyMcKenzieCS is an AI-assisted self-help workspace for self-represented litigants in the UK and US.',
+    description: 'MyMcKenzieCS is an AI-assisted self-help workspace for self-represented litigants.',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',

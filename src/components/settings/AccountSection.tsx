@@ -6,10 +6,11 @@ import { flushNotesDraftNow } from '@/lib/notes/flush-notes-draft';
 import type { User } from '@supabase/supabase-js';
 import styles from './settingsPage.module.css';
 import CookiePreferencesSection from './CookiePreferencesSection';
+import { getAppRouteForMarket } from '@/lib/markets/app-routes';
 
 const googleAnalyticsMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim()
 
-export default function AccountSection() {
+export default function AccountSection({ publicMarket }: { publicMarket?: 'GB' | 'US' }) {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -174,7 +175,7 @@ export default function AccountSection() {
         body: JSON.stringify({
           fullName,
           email,
-          redirect: '/settings?tab=account',
+          redirect: getAppRouteForMarket('/settings?tab=account', publicMarket === 'US' ? 'US' : 'GB'),
         })
       });
 
@@ -424,7 +425,7 @@ export default function AccountSection() {
           <p className={styles.helpText} style={{ marginTop: '8px' }}>Sign out from your current session.</p>
         </div>
       </section>
-      <CookiePreferencesSection measurementId={googleAnalyticsMeasurementId} />
+      <CookiePreferencesSection measurementId={googleAnalyticsMeasurementId} market={publicMarket} />
       <div className={styles.bottomActions}>
         <button 
           className={styles.primaryBtn}

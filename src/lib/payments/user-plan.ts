@@ -1,11 +1,16 @@
-import { entitlementPlanPrice, getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
+import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { isUserEmailVerified } from '@/lib/auth/account-verification';
 import { isHardLockedTrialWithoutBilling, resolvePlatformAccess } from '@/lib/payments/platform-access';
+import { getBillingMarketFromCountryCode } from '@/constants';
+import { getUserLegalContext } from '@/lib/legal/user-context';
+import { planPriceForLabel } from '@/lib/plans/access';
 
 export type UserPlanData = {
   plan: string;
   planStatus: string;
   planPrice: string;
+  planCurrencySymbol: string;
+  publicMarket: 'GB' | 'US';
   nextBillingDate: string | null;
   hasStripeCustomer: boolean;
   paidAccess: boolean;
@@ -78,7 +83,9 @@ export function invalidateUserPlanCache(authUid: string) {
 async function resolveUserPlanData(authUid: string): Promise<UserPlanData> {
   const snapshot = await getOrSyncUserEntitlementSnapshot(authUid);
   const rawPlan = snapshot?.plan_type || 'No plan';
-  const planPrice = entitlementPlanPrice(rawPlan);
+  const legalContext = await getUserLegalContext(authUid);
+  const billingMarket = getBillingMarketFromCountryCode(legalContext.countryCode);
+  const planPrice = planPriceForLabel(rawPlan, billingMarket);
   const paidAccess = Boolean(snapshot?.paid_access);
   const emailVerified = await isUserEmailVerified(authUid);
   const hardLock = await isHardLockedTrialWithoutBilling(authUid, snapshot);
@@ -87,6 +94,8 @@ async function resolveUserPlanData(authUid: string): Promise<UserPlanData> {
     plan: rawPlan,
     planStatus: snapshot?.plan_status || 'inactive',
     planPrice,
+    planCurrencySymbol: billingMarket === 'US' ? '$' : '£',
+    publicMarket: billingMarket,
     nextBillingDate: snapshot?.next_billing_date || null,
     hasStripeCustomer: Boolean(snapshot?.has_stripe_customer),
     paidAccess,

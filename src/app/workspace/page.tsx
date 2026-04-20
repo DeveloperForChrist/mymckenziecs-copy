@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { isBillingEligibleUser } from '@/lib/auth/session-user'
 import { getUserPlanData } from '@/lib/payments/user-plan'
 import { isUserEmailVerified } from '@/lib/auth/account-verification'
+import { getAppRouteForMarket } from '@/lib/markets/app-routes'
 import { NO_INDEX_METADATA } from '@/lib/seo'
 
 export const dynamic = 'force-dynamic'
@@ -36,14 +37,15 @@ export default async function WorkspacePage() {
   }
 
   const planData = await getUserPlanData(authUser.id, authUser.email ?? null)
+  const dashboardHref = getAppRouteForMarket('/dashboard', planData?.publicMarket === 'US' ? 'US' : 'GB')
   if (planData.paidAccess) {
-    redirect('/dashboard')
+    redirect(dashboardHref)
   }
 
   const emailVerified = await isUserEmailVerified(authUser.id)
   if (emailVerified) {
-    redirect('/dashboard')
+    redirect(dashboardHref)
   }
 
-  redirect('/auth/verify-email?redirect=%2Fdashboard')
+  redirect(`/auth/verify-email?redirect=${encodeURIComponent(dashboardHref)}`)
 }

@@ -3,16 +3,18 @@ import { createHash, randomBytes } from 'node:crypto'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { sendResendEmail } from '@/lib/email/resend'
 import { getAppUrl } from '@/lib/app-url'
+import { getBillingMarketFromCountryCode } from '@/constants'
+import { getAppRouteForMarket } from '@/lib/markets/app-routes'
 import { emailDailyRateLimiter, emailRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit'
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
-function safeRedirectPath(input?: string) {
-  if (!input) return '/dashboard'
+function safeRedirectPath(input?: string, fallback = '/dashboard') {
+  if (!input) return fallback
   const normalized = input.trim()
-  return normalized.startsWith('/') ? normalized : '/dashboard'
+  return normalized.startsWith('/') ? normalized : fallback
 }
 
 export async function POST(request: NextRequest) {
@@ -26,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json().catch(() => ({}))
     const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : ''
-    const redirect = safeRedirectPath(typeof body?.redirect === 'string' ? body.redirect : undefined)
+    const requestedRedirect = typeof body?.redirect === 'string' ? body.redirect : undefined
     if (!isValidEmail(email)) {
       return NextResponse.json({ error: 'Valid email is required' }, { status: 400 })
     }
@@ -39,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     const { data: userRow } = await supabaseAdmin
       .from('users')
-      .select('id, email, name, email_verified_at')
+      .select('id, email, name, email_verified_at, country_code')
       .ilike('email', email)
       .limit(1)
       .maybeSingle()
@@ -53,6 +55,14 @@ export async function POST(request: NextRequest) {
     if (authUserError || !authUserData.user?.email) {
       return NextResponse.json({ success: true })
     }
+
+    const billingMarket = getBillingMarketFromCountryCode(
+      (userRow as any)?.country_code || (authUserData.user.user_metadata as any)?.country_code
+    )
+    const redirect = safeRedirectPath(
+      requestedRedirect,
+      getAppRouteForMarket('/dashboard', billingMarket)
+    )
 
     const rawToken = randomBytes(32).toString('hex')
     const tokenHash = createHash('sha256').update(rawToken).digest('hex')

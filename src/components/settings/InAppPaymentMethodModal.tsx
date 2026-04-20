@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import { usePathname } from 'next/navigation';
 import styles from './settingsPage.module.css';
+import { getAppMarketFromPathname, getAppRouteForMarket } from '@/lib/markets/app-routes';
 
 type PaymentMethodSummary = {
   brand?: string | null;
@@ -35,6 +37,7 @@ function PaymentMethodSetupForm({
   onSuccess,
   onOpenPortalFallback,
   portalPending = false,
+  appMarket,
 }: {
   clientSecret: string;
   hasExistingPaymentMethod: boolean;
@@ -43,6 +46,7 @@ function PaymentMethodSetupForm({
   onSuccess: (paymentMethod: PaymentMethodSummary | null) => Promise<void> | void;
   onOpenPortalFallback: () => void;
   portalPending?: boolean;
+  appMarket: ReturnType<typeof getAppMarketFromPathname>;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -69,7 +73,7 @@ function PaymentMethodSetupForm({
         elements,
         clientSecret,
         confirmParams: {
-          return_url: `${window.location.origin}/settings?tab=billing`,
+          return_url: `${window.location.origin}${getAppRouteForMarket('/settings?tab=billing', appMarket)}`,
         },
         redirect: 'if_required',
       });
@@ -176,9 +180,11 @@ export default function InAppPaymentMethodModal({
   onOpenPortalFallback,
   portalPending = false,
 }: InAppPaymentMethodModalProps) {
+  const pathname = usePathname();
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loadingIntent, setLoadingIntent] = useState(false);
   const [intentError, setIntentError] = useState<string | null>(null);
+  const appMarket = getAppMarketFromPathname(pathname);
 
   useEffect(() => {
     if (!open) {
@@ -295,6 +301,7 @@ export default function InAppPaymentMethodModal({
               onSuccess={onSuccess}
               onOpenPortalFallback={onOpenPortalFallback}
               portalPending={portalPending}
+              appMarket={appMarket}
             />
           </Elements>
         )}

@@ -4,7 +4,9 @@ import getAppUrl from '@/lib/app-url'
 export const APP_FULL_NAME = 'MyMcKenzieCS'
 export const APP_SHORT_NAME = 'MyMcKenzieCS'
 export const DEFAULT_DESCRIPTION =
-  'MyMcKenzieCS is the legal self-help workspace for self-represented litigants in the UK and US. Organise case documents, track deadlines, and get procedural support in one place.'
+  'MyMcKenzieCS is the legal self-help workspace for self-represented litigants. Organise case documents, track deadlines, and get procedural support in one place.'
+export const OPEN_GRAPH_LOCALE = 'en_GB'
+export const OPEN_GRAPH_ALTERNATE_LOCALES = ['en_US']
 export const SOCIAL_SHARE_IMAGE_PATH = '/favicon-source.png'
 export const SOCIAL_SHARE_IMAGE_WIDTH = 1080
 export const SOCIAL_SHARE_IMAGE_HEIGHT = 1080
@@ -44,6 +46,10 @@ const normalizePath = (path: string = '/') => {
 
 export const buildCanonicalUrl = (path: string = '/') => new URL(normalizePath(path), siteUrl).toString()
 
+const getOpenGraphLocaleForPath = (path: string) => (path.startsWith('/us') ? 'en_US' : OPEN_GRAPH_LOCALE)
+const getAlternateLocalesForPath = (path: string) =>
+  path.startsWith('/us') ? ['en_GB'] : OPEN_GRAPH_ALTERNATE_LOCALES
+
 export const buildFullTitle = (title?: string) => {
   const normalizedTitle = title?.trim()
   return normalizedTitle ? `${normalizedTitle} | ${APP_FULL_NAME}` : APP_FULL_NAME
@@ -58,6 +64,8 @@ export function buildPageMetadata({
   const normalizedPath = normalizePath(path)
   const normalizedTitle = title?.trim()
   const normalizedDescription = description.trim()
+  const openGraphLocale = getOpenGraphLocaleForPath(normalizedPath)
+  const alternateLocales = getAlternateLocalesForPath(normalizedPath)
 
   return {
     ...(normalizedTitle ? { title: normalizedTitle } : { title: { absolute: APP_FULL_NAME } }),
@@ -68,7 +76,8 @@ export function buildPageMetadata({
     ...(noIndex ? NO_INDEX_METADATA : {}),
     openGraph: {
       type: 'website',
-      locale: 'en_GB',
+      locale: openGraphLocale,
+      alternateLocale: alternateLocales,
       url: buildCanonicalUrl(normalizedPath),
       title: buildFullTitle(normalizedTitle),
       description: normalizedDescription,

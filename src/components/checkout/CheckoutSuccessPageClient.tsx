@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { isTrialingStripeStatus } from '@/lib/payments/subscription-status';
+import { getAppRouteForMarket } from '@/lib/markets/app-routes';
+import { getPublicRouteForMarket, normalizePublicMarket } from '@/lib/markets/public-routes';
 
 type SyncState = 'syncing' | 'failed';
 
@@ -16,6 +18,22 @@ export default function CheckoutSuccessPageClient() {
     () => (searchParams?.get('session_id') || '').trim(),
     [searchParams]
   );
+  const publicMarket = useMemo(
+    () => normalizePublicMarket(searchParams?.get('market')),
+    [searchParams]
+  );
+  const pricingHref = useMemo(
+    () => getPublicRouteForMarket('/pricing', publicMarket),
+    [publicMarket]
+  );
+  const dashboardHref = useMemo(
+    () => getAppRouteForMarket('/dashboard', publicMarket),
+    [publicMarket]
+  );
+  const billingSettingsHref = useMemo(
+    () => getAppRouteForMarket('/settings?tab=billing', publicMarket),
+    [publicMarket]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -23,7 +41,7 @@ export default function CheckoutSuccessPageClient() {
     const run = async () => {
       try {
         if (!sessionId) {
-          router.replace('/dashboard');
+          router.replace(dashboardHref);
           return;
         }
 
@@ -45,7 +63,7 @@ export default function CheckoutSuccessPageClient() {
             ? 'Free trial confirmed. Redirecting...'
             : 'Payment confirmed. Redirecting...'
         );
-        router.replace('/dashboard');
+        router.replace(dashboardHref);
       } catch (error: any) {
         if (cancelled) return;
         setState('failed');
@@ -57,7 +75,7 @@ export default function CheckoutSuccessPageClient() {
     return () => {
       cancelled = true;
     };
-  }, [router, sessionId]);
+  }, [dashboardHref, router, sessionId]);
 
   return (
     <main
@@ -90,7 +108,7 @@ export default function CheckoutSuccessPageClient() {
         {state === 'failed' && (
           <div style={{ marginTop: '1.25rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <a
-              href="/pricing"
+              href={pricingHref}
               style={{
                 textDecoration: 'none',
                 padding: '0.7rem 1rem',
@@ -103,7 +121,7 @@ export default function CheckoutSuccessPageClient() {
               Return to pricing
             </a>
             <a
-              href="/settings"
+              href={billingSettingsHref}
               style={{
                 textDecoration: 'none',
                 padding: '0.7rem 1rem',

@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { AuthApiError } from '@supabase/supabase-js'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout'
+import { getAppRouteForMarket } from '@/lib/markets/app-routes'
+import { getPublicMarket } from '@/lib/markets/public-routes'
 import styles from '@/app/auth/auth.module.css'
 
 function mapSupabaseError(error: AuthApiError) {
@@ -28,7 +30,12 @@ export default function SignInForm() {
   const verifiedState = (searchParams?.get('verified') || '').trim().toLowerCase()
   const billingOptOutState = (searchParams?.get('billing_opt_out') || '').trim().toLowerCase()
   const redirectParam = (searchParams?.get('redirect') || '').trim()
-  const nextPath = redirectParam.startsWith('/') ? redirectParam : '/dashboard'
+  const publicMarket = getPublicMarket({
+    pathname: redirectParam,
+    explicitMarket: searchParams?.get('market'),
+  })
+  const defaultDashboardHref = getAppRouteForMarket('/dashboard', publicMarket)
+  const nextPath = redirectParam.startsWith('/') ? redirectParam : defaultDashboardHref
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -141,7 +148,7 @@ export default function SignInForm() {
       }
 
       const verifiedRedirect = nextPath.startsWith('/auth/verify-email')
-        ? '/dashboard'
+        ? defaultDashboardHref
         : nextPath
       router.push(verifiedRedirect)
       router.refresh()

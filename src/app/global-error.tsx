@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { getPublicRouteForMarket, getPublicMarketFromPathname } from '@/lib/markets/public-routes'
 
 export default function GlobalError({
   error,
@@ -10,7 +11,12 @@ export default function GlobalError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const [publicMarket, setPublicMarket] = useState<'GB' | 'US'>('GB')
+  const homepageHref = getPublicRouteForMarket('/', publicMarket)
+  const contactHref = getPublicRouteForMarket('/contact', publicMarket)
+
   useEffect(() => {
+    setPublicMarket(getPublicMarketFromPathname(window.location.pathname))
     fetch('/api/client-error', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -79,7 +85,7 @@ export default function GlobalError({
               Try again
             </button>
             <Link
-              href="/"
+              href={homepageHref}
               style={{
                 borderRadius: '10px',
                 padding: '10px 16px',
@@ -92,7 +98,7 @@ export default function GlobalError({
               Go to homepage
             </Link>
             <Link
-              href="/contact"
+              href={contactHref}
               style={{
                 borderRadius: '10px',
                 padding: '10px 16px',

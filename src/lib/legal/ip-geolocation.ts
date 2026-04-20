@@ -1,4 +1,5 @@
 import type { NextRequest } from 'next/server'
+import { readEdgeCountryCode, readEdgeRegionCode, readFirstHeaderValue } from '@/lib/legal/edge-country'
 import {
   getCountryOption,
   getJurisdictionLabel,
@@ -24,14 +25,6 @@ export type LegalMatterGeoDetection = {
 const countryNameByCode: Record<string, string> = {
   GB: 'United Kingdom',
   US: 'United States',
-}
-
-const readFirstHeaderValue = (headers: Headers, names: string[]): string | null => {
-  for (const name of names) {
-    const value = headers.get(name)
-    if (value && value.trim()) return value.trim()
-  }
-  return null
 }
 
 const normalizeCountryCode = (value?: string | null) => {
@@ -137,20 +130,11 @@ const buildDetectionResult = ({
 }
 
 const detectFromEdgeHeaders = (headers: Headers) => {
-  const countryCode = normalizeCountryCode(readFirstHeaderValue(headers, [
-    'x-vercel-ip-country',
-    'cf-ipcountry',
-    'cloudfront-viewer-country',
-    'x-country-code',
-  ]))
+  const countryCode = readEdgeCountryCode(headers)
 
   if (!countryCode) return null
 
-  const regionCode = normalizeRegionCode(readFirstHeaderValue(headers, [
-    'x-vercel-ip-country-region',
-    'cloudfront-viewer-country-region',
-    'x-region-code',
-  ]))
+  const regionCode = readEdgeRegionCode(headers)
 
   return buildDetectionResult({
     countryCode,

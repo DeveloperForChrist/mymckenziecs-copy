@@ -1,5 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { detectLegalMatterLocation } from '@/lib/legal/ip-geolocation'
+import { copyCookies, MARKET_COOKIE_NAME, readStoredMarketCookie, resolveRootMarket, setMarketCookie } from '@/lib/markets/geo-routing'
+import { getPublicRouteForMarket } from '@/lib/markets/public-routes'
 
 const parsePositiveInt = (value: string | undefined, fallback: number) => {
   const parsed = Number(value)
@@ -41,6 +44,7 @@ function hasCaseProfileAccess(plan: unknown): boolean {
 type MiddlewareUserProfile = {
   email_verified_at?: string | null
   role?: string | null
+  country_code?: string | null
 }
 
 type MiddlewareEntitlement = {
@@ -55,6 +59,10 @@ const UNVERIFIED_ALLOWED_API_PATHS = new Set(['/api/user', '/api/user/plan'])
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
+  const isRootPath = pathname === '/'
+  const explicitMarket = isRootPath
+    ? readStoredMarketCookie(request.nextUrl.searchParams.get('market'))
+    : null
 
   // Keep old admin URLs working, but canonical login is /jesusistheadmin.
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
@@ -155,7 +163,9 @@ export async function middleware(request: NextRequest) {
     Boolean(user) &&
     !isUnverifiedAllowedPage &&
     !isUnverifiedAllowedApi
-  const needsUserProfile = Boolean(user) && (shouldEnforceVerification || requiresAdmin)
+  const shouldLoadUserProfile =
+    Boolean(user) &&
+    (shouldEnforceVerification || requiresAdmin || (isRootPath && !explicitMarket))
 
   if (requiresAuth && !user) {
     // Redirect to sign-in for protected routes
@@ -168,11 +178,11 @@ export async function middleware(request: NextRequest) {
   }
 
   let userProfile: MiddlewareUserProfile | null = null
-  if (user && needsUserProfile) {
+  if (user && shouldLoadUserProfile) {
     const profileStartedAt = Date.now()
     const { data: profileRow, error: profileError } = await supabase
       .from('users')
-      .select('email_verified_at, role')
+      .select('email_verified_at, role, country_code')
       .eq('id', user.id)
       .maybeSingle()
 
@@ -187,6 +197,66 @@ export async function middleware(request: NextRequest) {
       console.error('Error checking user profile in middleware:', profileError)
     } else {
       userProfile = profileRow
+    }
+  }
+
+  if (isRootPath) {
+    const secureCookie = request.nextUrl.protocol === 'https:'
+    const profileCountryCode =
+      userProfile?.country_code ||
+      (user as any)?.user_metadata?.country_code ||
+      null
+
+    if (explicitMarket) {
+      if (explicitMarket === 'US') {
+        const redirectUrl = new URL(getPublicRouteForMarket('/', 'US'), request.url)
+        const redirectResponse = NextResponse.redirect(redirectUrl)
+        copyCookies(response, redirectResponse)
+        setMarketCookie(redirectResponse, explicitMarket, secureCookie)
+        return redirectResponse
+      }
+
+      setMarketCookie(response, explicitMarket, secureCookie)
+      return response
+    }
+
+    if (user) {
+      const signedInMarket = profileCountryCode === 'US' ? 'US' : 'GB'
+
+      if (signedInMarket === 'US') {
+        const redirectUrl = new URL(getPublicRouteForMarket('/', 'US'), request.url)
+        redirectUrl.search = request.nextUrl.search
+        const redirectResponse = NextResponse.redirect(redirectUrl)
+        copyCookies(response, redirectResponse)
+        setMarketCookie(redirectResponse, signedInMarket, secureCookie)
+        return redirectResponse
+      }
+
+      setMarketCookie(response, signedInMarket, secureCookie)
+    } else {
+      const storedMarket = readStoredMarketCookie(request.cookies.get(MARKET_COOKIE_NAME)?.value)
+      let geoCountryCode: string | null = null
+
+      if (!storedMarket) {
+        const detection = await detectLegalMatterLocation(request)
+        geoCountryCode = detection.suggestedCountryCode
+      }
+
+      const resolvedMarket = resolveRootMarket({
+        storedMarket,
+        edgeCountryCode: geoCountryCode,
+      })
+
+      if (resolvedMarket === 'US') {
+        const redirectUrl = new URL(getPublicRouteForMarket('/', 'US'), request.url)
+        redirectUrl.search = request.nextUrl.search
+        const redirectResponse = NextResponse.redirect(redirectUrl)
+        copyCookies(response, redirectResponse)
+        setMarketCookie(redirectResponse, resolvedMarket, secureCookie)
+        return redirectResponse
+      }
+
+      setMarketCookie(response, resolvedMarket, secureCookie)
     }
   }
 

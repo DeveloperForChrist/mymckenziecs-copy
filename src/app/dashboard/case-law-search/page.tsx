@@ -4,6 +4,7 @@ import Link from 'next/link';
 import CaseLawSearchPageClient from '@/components/dashboard/CaseLawSearchPageClient';
 import { getUserPlanData } from '@/lib/payments/user-plan';
 import { getUserLegalContext, isCaseLawAvailableForLegalContext } from '@/lib/legal/user-context';
+import { getAppRouteForMarket } from '@/lib/markets/app-routes';
 
 export default async function CaseLawSearchPage() {
   const cookieStore = await cookies();
@@ -28,11 +29,15 @@ export default async function CaseLawSearchPage() {
   let initialUserPlan = 'guest';
   let initialHasPaidAccess = false;
   const initialPlanChecked = Boolean(authUser);
+  let initialPublicMarket: 'GB' | 'US' = 'GB';
 
   if (authUser) {
     const planData = await getUserPlanData(authUser.id, authUser.email ?? null);
+    initialPublicMarket = planData?.publicMarket === 'US' ? 'US' : 'GB';
     const legalContext = await getUserLegalContext(authUser.id, authUser.user_metadata as any);
     const caseLawAvailable = isCaseLawAvailableForLegalContext(legalContext);
+    const dashboardHref = getAppRouteForMarket('/dashboard', initialPublicMarket);
+    const chatbotHref = getAppRouteForMarket('/chatbot', initialPublicMarket);
 
     if (!caseLawAvailable) {
       return (
@@ -56,7 +61,7 @@ export default async function CaseLawSearchPage() {
               </p>
               <div style={{ marginTop: '18px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 <Link
-                  href="/dashboard"
+                  href={dashboardHref}
                   style={{
                     textDecoration: 'none',
                     borderRadius: '999px',
@@ -70,7 +75,7 @@ export default async function CaseLawSearchPage() {
                   Back to dashboard
                 </Link>
                 <Link
-                  href="/chatbot"
+                  href={chatbotHref}
                   style={{
                     textDecoration: 'none',
                     borderRadius: '999px',
@@ -98,6 +103,7 @@ export default async function CaseLawSearchPage() {
       initialUserPlan={initialUserPlan}
       initialHasPaidAccess={initialHasPaidAccess}
       initialPlanChecked={initialPlanChecked}
+      initialPublicMarket={initialPublicMarket}
     />
   );
 }

@@ -7,6 +7,8 @@ import {
   APP_FULL_NAME,
   APP_SHORT_NAME,
   DEFAULT_DESCRIPTION,
+  OPEN_GRAPH_ALTERNATE_LOCALES,
+  OPEN_GRAPH_LOCALE,
   SOCIAL_SHARE_IMAGE_HEIGHT,
   SOCIAL_SHARE_IMAGE_PATH,
   SOCIAL_SHARE_IMAGE_WIDTH,
@@ -41,7 +43,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    locale: 'en_GB',
+    locale: OPEN_GRAPH_LOCALE,
+    alternateLocale: OPEN_GRAPH_ALTERNATE_LOCALES,
     url: siteUrl,
     title: buildFullTitle(),
     description: DEFAULT_DESCRIPTION,

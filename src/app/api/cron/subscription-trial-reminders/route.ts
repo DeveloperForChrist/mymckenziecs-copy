@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { sendResendEmail } from '@/lib/email/resend';
 import { getAppUrl } from '@/lib/app-url';
+import { getBillingMarketFromCountryCode } from '@/constants';
+import { getAppRouteForMarket } from '@/lib/markets/app-routes';
 import { syncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { daysUntil, parseReminderDaysSet, serializeReminderDaysSet } from '@/lib/payments/subscription-lifecycle';
 import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
@@ -80,7 +82,6 @@ export async function GET(request: Request) {
 
     const now = new Date();
     const reminderDays = getTrialReminderDays();
-    const manageUrl = `${getAppUrl(request)}/settings?tab=billing`;
     const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech';
 
     const { data: trialingSubs, error } = await supabaseAdmin
@@ -131,7 +132,7 @@ export async function GET(request: Request) {
     const userIds = targets.map((row) => row.user_id);
     const { data: users, error: usersError } = await supabaseAdmin
       .from('users')
-      .select('id, email, name')
+      .select('id, email, name, country_code')
       .in('id', userIds);
 
     if (usersError) {
@@ -173,6 +174,8 @@ export async function GET(request: Request) {
 
       const user = usersById.get(sub.user_id);
       if (!user?.email) continue;
+      const billingMarket = getBillingMarketFromCountryCode((user as any)?.country_code || null);
+      const manageUrl = `${getAppUrl(request)}${getAppRouteForMarket('/settings?tab=billing', billingMarket)}`;
 
       const daysLeft = daysUntil(sub.current_period_end, now);
       if (daysLeft === null || daysLeft < 1) continue;

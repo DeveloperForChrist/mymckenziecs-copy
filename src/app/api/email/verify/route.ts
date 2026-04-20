@@ -3,6 +3,9 @@ import { createHash } from 'node:crypto'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { getAppUrl } from '@/lib/app-url'
 import { sendResendEmail } from '@/lib/email/resend'
+import { formatLondonDateTime } from '@/lib/utils/london-time'
+import { getBillingMarketFromCountryCode } from '@/constants'
+import { getAppMarketFromPathname, getAppRouteForMarket } from '@/lib/markets/app-routes'
 import fs from 'fs'
 import path from 'path'
 
@@ -21,55 +24,40 @@ function renderTemplate(templateName: string, vars: Record<string, string>) {
   return html
 }
 
-function safeRedirectPath(input?: string | null) {
-  if (!input) return '/dashboard'
+function safeRedirectPath(input?: string | null, fallback = '/dashboard') {
+  if (!input) return fallback
   const normalized = input.trim()
-  return normalized.startsWith('/') ? normalized : '/dashboard'
+  return normalized.startsWith('/') ? normalized : fallback
 }
 
-function buildVerifyRedirect(baseUrl: string, status: 'invalid' | 'expired', redirectPath?: string) {
+function buildVerifyRedirect(baseUrl: string, status: 'invalid' | 'expired', redirectPath?: string | null, fallback = '/dashboard') {
   const next = new URL('/auth/verify-email', baseUrl)
   next.searchParams.set('status', status)
-  if (redirectPath && redirectPath.startsWith('/')) {
-    next.searchParams.set('redirect', redirectPath)
-  }
+  next.searchParams.set('redirect', safeRedirectPath(redirectPath, fallback))
   return next
 }
 
-function buildVerifySuccessRedirect(baseUrl: string, redirectPath?: string) {
+function buildVerifySuccessRedirect(baseUrl: string, redirectPath?: string | null, fallback = '/dashboard') {
   const next = new URL('/auth/verify-email', baseUrl)
   next.searchParams.set('verified', 'success')
-  if (redirectPath && redirectPath.startsWith('/')) {
-    next.searchParams.set('redirect', redirectPath)
-  }
+  next.searchParams.set('redirect', safeRedirectPath(redirectPath, fallback))
   return next
 }
 
-function formatChangedAt(date: Date) {
-  const datePart = new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'Europe/London',
-  }).format(date)
-  const timePart = new Intl.DateTimeFormat('en-GB', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-    timeZone: 'Europe/London',
-  }).format(date)
-  return { datePart, timePart: `${timePart} UK time` }
-}
+const formatChangedAt = formatLondonDateTime
 
 export async function GET(request: NextRequest) {
   const baseUrl = getAppUrl(request)
   try {
     const token = request.nextUrl.searchParams.get('token') || ''
     const mode = (request.nextUrl.searchParams.get('mode') || '').trim().toLowerCase()
-    const redirectPath = safeRedirectPath(request.nextUrl.searchParams.get('redirect'))
+    const requestedRedirect = request.nextUrl.searchParams.get('redirect')
+    const requestedMarket = getAppMarketFromPathname(requestedRedirect)
 
     if (!token) {
-      return NextResponse.redirect(buildVerifyRedirect(baseUrl, 'invalid', redirectPath))
+      return NextResponse.redirect(
+        buildVerifyRedirect(baseUrl, 'invalid', requestedRedirect, getAppRouteForMarket('/dashboard', requestedMarket))
+      )
     }
 
     const tokenHash = createHash('sha256').update(token).digest('hex')
@@ -77,12 +65,14 @@ export async function GET(request: NextRequest) {
     if (mode === 'email-change') {
       const { data: userRow, error: userError } = await supabaseAdmin
         .from('users')
-        .select('id, name, email, pending_email, email_change_token_expires_at')
+        .select('id, name, email, pending_email, email_change_token_expires_at, country_code')
         .eq('email_change_token_hash', tokenHash)
         .maybeSingle()
 
       if (userError || !userRow?.id) {
-        return NextResponse.redirect(buildVerifyRedirect(baseUrl, 'invalid', redirectPath))
+        return NextResponse.redirect(
+          buildVerifyRedirect(baseUrl, 'invalid', requestedRedirect, getAppRouteForMarket('/dashboard', requestedMarket))
+        )
       }
 
       const expiresAt = userRow.email_change_token_expires_at
@@ -97,12 +87,22 @@ export async function GET(request: NextRequest) {
             email_change_token_expires_at: null,
           })
           .eq('id', userRow.id)
-        return NextResponse.redirect(buildVerifyRedirect(baseUrl, 'expired', redirectPath))
+        const userMarket = getBillingMarketFromCountryCode((userRow as any)?.country_code || null)
+        return NextResponse.redirect(
+          buildVerifyRedirect(baseUrl, 'expired', requestedRedirect, getAppRouteForMarket('/dashboard', userMarket))
+        )
       }
 
+      const userMarket = getBillingMarketFromCountryCode((userRow as any)?.country_code || null)
+      const redirectPath = safeRedirectPath(
+        requestedRedirect,
+        getAppRouteForMarket('/settings?tab=account', userMarket)
+      )
       const pendingEmail = (userRow.pending_email || '').trim().toLowerCase()
       if (!pendingEmail) {
-        return NextResponse.redirect(buildVerifyRedirect(baseUrl, 'invalid', redirectPath))
+        return NextResponse.redirect(
+          buildVerifyRedirect(baseUrl, 'invalid', requestedRedirect, getAppRouteForMarket('/dashboard', userMarket))
+        )
       }
 
       const oldEmail = (userRow.email || '').trim().toLowerCase()
@@ -114,7 +114,9 @@ export async function GET(request: NextRequest) {
         email_confirm: true,
       })
       if (authUpdateError) {
-        return NextResponse.redirect(buildVerifyRedirect(baseUrl, 'invalid', redirectPath))
+        return NextResponse.redirect(
+          buildVerifyRedirect(baseUrl, 'invalid', requestedRedirect, getAppRouteForMarket('/dashboard', userMarket))
+        )
       }
 
       await supabaseAdmin
@@ -157,16 +159,21 @@ export async function GET(request: NextRequest) {
 
     const { data: userRow, error: userError } = await supabaseAdmin
       .from('users')
-      .select('id, verification_token_expires_at, email_verified_at')
+      .select('id, verification_token_expires_at, email_verified_at, country_code')
       .eq('verification_token_hash', tokenHash)
       .maybeSingle()
 
     if (userError || !userRow?.id) {
-      return NextResponse.redirect(buildVerifyRedirect(baseUrl, 'invalid', redirectPath))
+      return NextResponse.redirect(
+        buildVerifyRedirect(baseUrl, 'invalid', requestedRedirect, getAppRouteForMarket('/dashboard', requestedMarket))
+      )
     }
 
     if (userRow.email_verified_at) {
-      return NextResponse.redirect(buildVerifySuccessRedirect(baseUrl, redirectPath))
+      const userMarket = getBillingMarketFromCountryCode((userRow as any)?.country_code || null)
+      return NextResponse.redirect(
+        buildVerifySuccessRedirect(baseUrl, requestedRedirect, getAppRouteForMarket('/dashboard', userMarket))
+      )
     }
 
     const expiresAt = userRow.verification_token_expires_at
@@ -177,7 +184,10 @@ export async function GET(request: NextRequest) {
         .from('users')
         .update({ verification_token_hash: null, verification_token_expires_at: null })
         .eq('id', userRow.id)
-      return NextResponse.redirect(buildVerifyRedirect(baseUrl, 'expired', redirectPath))
+      const userMarket = getBillingMarketFromCountryCode((userRow as any)?.country_code || null)
+      return NextResponse.redirect(
+        buildVerifyRedirect(baseUrl, 'expired', requestedRedirect, getAppRouteForMarket('/dashboard', userMarket))
+      )
     }
 
     const nowIso = new Date().toISOString()
@@ -185,7 +195,10 @@ export async function GET(request: NextRequest) {
       email_confirm: true,
     })
     if (authUpdateError) {
-      return NextResponse.redirect(buildVerifyRedirect(baseUrl, 'invalid', redirectPath))
+      const userMarket = getBillingMarketFromCountryCode((userRow as any)?.country_code || null)
+      return NextResponse.redirect(
+        buildVerifyRedirect(baseUrl, 'invalid', requestedRedirect, getAppRouteForMarket('/dashboard', userMarket))
+      )
     }
 
     await supabaseAdmin
@@ -197,9 +210,15 @@ export async function GET(request: NextRequest) {
       })
       .eq('id', userRow.id)
 
-    return NextResponse.redirect(buildVerifySuccessRedirect(baseUrl, redirectPath))
+    const userMarket = getBillingMarketFromCountryCode((userRow as any)?.country_code || null)
+    return NextResponse.redirect(
+      buildVerifySuccessRedirect(baseUrl, requestedRedirect, getAppRouteForMarket('/dashboard', userMarket))
+    )
   } catch {
-    const redirectPath = safeRedirectPath(request.nextUrl.searchParams.get('redirect'))
-    return NextResponse.redirect(buildVerifyRedirect(baseUrl, 'invalid', redirectPath))
+    const requestedRedirect = request.nextUrl.searchParams.get('redirect')
+    const requestedMarket = getAppMarketFromPathname(requestedRedirect)
+    return NextResponse.redirect(
+      buildVerifyRedirect(baseUrl, 'invalid', requestedRedirect, getAppRouteForMarket('/dashboard', requestedMarket))
+    )
   }
 }

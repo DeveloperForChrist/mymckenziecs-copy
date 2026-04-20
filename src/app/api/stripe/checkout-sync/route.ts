@@ -5,13 +5,12 @@ import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { isBillingActiveStripeStatus, normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
 import { syncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
-import { PLAN_PRICES } from '@/constants';
+import { findPlanByAnyPriceId } from '@/constants';
 import { getStripeSubscriptionPeriodEndIso, getStripeSubscriptionPeriodStartIso } from '@/lib/payments/subscription-period';
 
 function normalizePlanTypeFromPrice(priceId?: string | null): string {
   if (!priceId) return 'No plan';
-  const match = PLAN_PRICES.find((plan) => plan.priceId === priceId);
-  const name = (match?.name || '').toLowerCase();
+  const name = (findPlanByAnyPriceId(priceId)?.name || '').toLowerCase();
   if (name.includes('basic') || name.includes('essential') || name.includes('premium cheap')) return 'Basic';
   if (name.includes('premium +') || name.includes('premium plus') || name.includes('plus') || name.includes('premium pro')) return 'Premium +';
   if (name.includes('premium')) return 'Premium';

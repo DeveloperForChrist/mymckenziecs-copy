@@ -19,6 +19,8 @@ import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
 import { isBillingActiveStripeStatus, normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
 import { getStripeSubscriptionPeriodEndIso, getStripeSubscriptionPeriodStartIso } from '@/lib/payments/subscription-period';
 import { planDisplayName } from '@/lib/plans/access';
+import { getBillingMarketFromCountryCode } from '@/constants';
+import { getAppRouteForMarket } from '@/lib/markets/app-routes';
 
 const BILLABLE_CANCELABLE_STATUSES = ['active', 'past_due', 'trialing'] as const;
 const TEMPLATE_DIR = path.join(process.cwd(), 'src', 'emails', 'templates');
@@ -118,7 +120,7 @@ export async function POST(req: Request) {
       try {
         const { data: userRow } = await supabaseAdmin
           .from('users')
-          .select('email, name')
+          .select('email, name, country_code')
           .eq('id', authUid)
           .maybeSingle();
 
@@ -127,13 +129,14 @@ export async function POST(req: Request) {
           const endDate = formatDateShort(subscriptionRow?.current_period_end || null);
           const appUrl = getAppUrl(req);
           const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech';
+          const billingMarket = getBillingMarketFromCountryCode((userRow as any)?.country_code || null);
           const htmlBody = renderTemplate('29-cancellation-scheduled.html', {
             heading: 'Your free trial cancellation is confirmed',
             name: userRow.name || 'there',
             summary_text: `This confirms that your <strong>${planName}</strong> free trial has been scheduled to end on <strong>${endDate}</strong>.`,
             detail_text:
               'Your workspace will remain active until that date. Billing will not begin unless you resume the plan before the trial ends.',
-            manage_url: `${appUrl}/settings?tab=billing`,
+            manage_url: `${appUrl}${getAppRouteForMarket('/settings?tab=billing', billingMarket)}`,
             support_email: supportEmail,
           });
 
@@ -207,7 +210,7 @@ export async function POST(req: Request) {
     try {
       const { data: userRow } = await supabaseAdmin
         .from('users')
-        .select('email, name')
+        .select('email, name, country_code')
         .eq('id', authUid)
         .maybeSingle();
 
@@ -217,6 +220,7 @@ export async function POST(req: Request) {
         const endDate = formatDateShort(currentPeriodEnd);
         const appUrl = getAppUrl(req);
         const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech';
+        const billingMarket = getBillingMarketFromCountryCode((userRow as any)?.country_code || null);
         const htmlBody = renderTemplate('29-cancellation-scheduled.html', {
           heading: isTrialCancellation ? 'Your free trial cancellation is confirmed' : 'Your cancellation is confirmed',
           name: userRow.name || 'there',
@@ -226,7 +230,7 @@ export async function POST(req: Request) {
           detail_text: isTrialCancellation
             ? 'Your workspace will remain active until that date. Billing will not begin unless you resume the plan before the trial ends.'
             : 'Your access will remain active until that date. Automatic renewal has been turned off, and no further renewal charges will be made unless you resume before then.',
-          manage_url: `${appUrl}/settings?tab=billing`,
+          manage_url: `${appUrl}${getAppRouteForMarket('/settings?tab=billing', billingMarket)}`,
           support_email: supportEmail,
         });
 

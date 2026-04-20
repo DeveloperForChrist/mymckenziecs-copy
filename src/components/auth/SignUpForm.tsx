@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout'
 import {
@@ -9,6 +9,8 @@ import {
   getJurisdictionOptions,
   SUPPORTED_COUNTRIES,
 } from '@/lib/legal/jurisdictions'
+import { getAppRouteForMarket } from '@/lib/markets/app-routes'
+import { getPublicMarket, getPublicRouteForMarket } from '@/lib/markets/public-routes'
 import styles from '@/app/auth/auth.module.css'
 
 function parseName(fullName: string) {
@@ -52,6 +54,7 @@ function mapApiError(message: string) {
 
 export default function SignUpForm() {
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
     email: '',
@@ -76,9 +79,15 @@ export default function SignUpForm() {
 
   const selectedPlanId = (searchParams?.get('planId') || '').trim()
   const redirectParam = (searchParams?.get('redirect') || '').trim()
+  const publicMarket = getPublicMarket({
+    pathname: redirectParam || pathname,
+    explicitMarket: searchParams?.get('market'),
+  })
+  const termsHref = getPublicRouteForMarket('/terms', publicMarket)
+  const privacyPolicyHref = getPublicRouteForMarket('/privacy-policy', publicMarket)
   const fallbackRedirect = selectedPlanId
-    ? `/dashboard?activatePlan=${encodeURIComponent(selectedPlanId)}`
-    : '/dashboard'
+    ? getAppRouteForMarket(`/dashboard?activatePlan=${encodeURIComponent(selectedPlanId)}`, publicMarket)
+    : getAppRouteForMarket('/dashboard', publicMarket)
   const nextRedirect =
     redirectParam.startsWith('/')
       ? redirectParam
@@ -402,11 +411,11 @@ export default function SignUpForm() {
         />
         <span>
           I understand and accept the{' '}
-          <a className={styles.inlineLink} href="/terms" target="_blank" rel="noreferrer">
+          <a className={styles.inlineLink} href={termsHref} target="_blank" rel="noreferrer">
             Terms &amp; Conditions
           </a>{' '}
           and{' '}
-          <a className={styles.inlineLink} href="/privacy-policy" target="_blank" rel="noreferrer">
+          <a className={styles.inlineLink} href={privacyPolicyHref} target="_blank" rel="noreferrer">
             Privacy Policy
           </a>
           .

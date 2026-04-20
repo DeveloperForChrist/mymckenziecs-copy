@@ -3,7 +3,7 @@ import openaiClient from '../providers/openai-client';
 
 export class DocGeneratorTool extends Tool {
   name = "document_generator";
-  description = "Drafts UK litigation documents in plain text using the user's request and conversation context. Uses placeholders only where necessary for missing facts.";
+  description = "Drafts litigation documents in plain text using the user's request and conversation context. Uses placeholders only where necessary for missing facts.";
 
   private normalizeDraftOutput(output: string): string {
     const text = (output || '').trim()
@@ -18,11 +18,13 @@ export class DocGeneratorTool extends Tool {
     try {
       console.log("🔍 Analyzing document request with AI...");
 
-      const prompt = `You are a UK legal document drafting assistant for England and Wales. Based on the user's request: "${input}"
+      const prompt = `You are a legal document drafting assistant. Based on the user's request: "${input}"
 
 ROLE AND SAFETY:
 - Draft the specific document the user has asked for.
 - Tailor the draft to the facts and context provided.
+- Match the user's stated jurisdiction and terminology when it is clear from the request.
+- If the jurisdiction is not clear, avoid adding jurisdiction-specific rules, court titles, or labels that were not provided.
 - If a necessary factual detail is missing, use a short placeholder in [SQUARE BRACKETS].
 - Do not invent names, dates, addresses, references, or factual allegations that were not provided.
 - Keep the draft practical, coherent, and ready for the user to adapt.

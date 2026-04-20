@@ -3,6 +3,7 @@ import SignInForm from '@/components/auth/SignInForm'
 import styles from '@/app/auth/auth.module.css'
 import { Suspense } from 'react'
 import { buildPageMetadata } from '@/lib/seo'
+import { buildMarketAwareAuthHref, getPublicMarket, getPublicRouteForMarket } from '@/lib/markets/public-routes'
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Sign In',
@@ -13,7 +14,21 @@ export const metadata: Metadata = buildPageMetadata({
 
 export const revalidate = 86400
 
-export default function SignInPage() {
+type SignInPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
+}
+
+export default async function SignInPage({ searchParams }: SignInPageProps) {
+  const params = await searchParams
+  const redirectPath = typeof params?.redirect === 'string' ? params.redirect : null
+  const market = getPublicMarket({
+    pathname: redirectPath,
+    explicitMarket: typeof params?.market === 'string' ? params.market : null,
+  })
+  const pricingHref = getPublicRouteForMarket('/pricing', market)
+  const faqHref = getPublicRouteForMarket('/faq', market)
+  const signUpHref = buildMarketAwareAuthHref('/auth/signup', market)
+
   return (
     <>
       <main className={styles.page}>
@@ -41,8 +56,8 @@ export default function SignInPage() {
               </div>
             </div>
             <div className={styles.heroFooter}>
-              <a href="/pricing">Pricing</a>
-              <a href="/faq">Plan FAQ</a>
+              <a href={pricingHref}>Pricing</a>
+              <a href={faqHref}>Plan FAQ</a>
             </div>
           </section>
 
@@ -58,7 +73,7 @@ export default function SignInPage() {
             </Suspense>
             <p className={styles.footnote}>
               Don&apos;t have an account?{' '}
-              <a href="/auth/signup" className={styles.inlineLink}>
+              <a href={signUpHref} className={styles.inlineLink}>
                 Try for free
               </a>
             </p>

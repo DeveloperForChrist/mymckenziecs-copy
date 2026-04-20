@@ -4,10 +4,58 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import { isBillingEligibleUser } from '@/lib/auth/session-user';
-import { PLAN_PRICES } from '@/constants';
+import {
+  findPlanByAnyPriceId,
+  getPlanFeatures,
+  getPlanPriceId,
+  isKnownPlanPriceId,
+  PLAN_PRICES,
+  type BillingMarket,
+} from '@/constants';
+import { getAppRouteForMarket } from '@/lib/markets/app-routes';
+import { buildMarketAwareAuthHref } from '@/lib/markets/public-routes';
 import { isBillingActiveStripeStatus, isTrialingStripeStatus } from '@/lib/payments/subscription-status';
 
-export default function PricingPageClient() {
+type PricingGuideLink = {
+  href: string;
+  label: string;
+};
+
+type PricingPageClientProps = {
+  audienceDescription?: string;
+  availabilityMessage?: string;
+  guideIntroText?: string;
+  guideLinks?: PricingGuideLink[];
+  faqHref?: string;
+  billingMarket?: BillingMarket;
+  currencySymbol?: string;
+  priceByPlan?: {
+    basic: string;
+    premium: string;
+    premiumPlus: string;
+  };
+};
+
+const defaultGuideLinks: PricingGuideLink[] = [
+  { href: '/litigant-in-person-uk', label: 'UK self-representation guide' },
+  { href: '/mckenzie-friend-support', label: 'McKenzie friend support guide' },
+  { href: '/case-law-search-uk', label: 'case-law search guide' },
+];
+
+export default function PricingPageClient({
+  audienceDescription = 'Compare plans for self-represented litigants in the UK and U.S., then start with the option that fits your workload.',
+  availabilityMessage = 'Case-law tools are available now for UK legal matters. U.S. authority coverage and database access will be introduced soon.',
+  guideIntroText = 'If your matter is in the UK, start with the',
+  guideLinks = defaultGuideLinks,
+  faqHref = '/faq',
+  billingMarket = 'GB',
+  currencySymbol = '£',
+  priceByPlan = {
+    basic: '18',
+    premium: '32',
+    premiumPlus: '199',
+  },
+}: PricingPageClientProps) {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [hasPaidPlan, setHasPaidPlan] = useState(false);
@@ -21,7 +69,7 @@ export default function PricingPageClient() {
   const searchParams = useSearchParams();
   const planParam = (searchParams?.get('plan') || '').trim();
   const legacyCheckoutParam = (searchParams?.get('checkout') || '').trim();
-  const knownLegacyPlan = PLAN_PRICES.some((plan) => plan.priceId && plan.priceId === legacyCheckoutParam);
+  const knownLegacyPlan = isKnownPlanPriceId(legacyCheckoutParam);
   const checkoutPlanId = planParam || (knownLegacyPlan ? legacyCheckoutParam : '');
   const checkoutStatus =
     (searchParams?.get('checkout_status') || '').trim() ||
@@ -30,6 +78,19 @@ export default function PricingPageClient() {
   const isCheckoutFlow = checkoutPlanId.length > 0;
   const isLapsedStatus = planStatus === 'expired' || planStatus === 'cancelled';
   const isTrialingStatus = isTrialingStripeStatus(planStatus);
+  const dashboardHref = getAppRouteForMarket('/dashboard', billingMarket);
+  const billingSettingsHref = getAppRouteForMarket('/settings?tab=billing', billingMarket);
+
+  const renderGuideLinks = (links: PricingGuideLink[]) => (
+    <>
+      {links.map((link, index) => (
+        <span key={link.href}>
+          {index > 0 && (index === links.length - 1 ? ' or ' : ', ')}
+          <a href={link.href} style={{ color: '#f8fafc', textDecoration: 'underline' }}>{link.label}</a>
+        </span>
+      ))}
+    </>
+  );
 
   function formatPlanDate(value?: string | null) {
     if (!value) return '';
@@ -86,11 +147,11 @@ export default function PricingPageClient() {
   const signedInNavHref = redirectPath.startsWith('/settings')
     ? redirectPath
     : hasPaidPlan
-      ? (redirectPath.startsWith('/') ? redirectPath : '/dashboard')
-      : '/settings?tab=billing';
+      ? (redirectPath.startsWith('/') ? redirectPath : dashboardHref)
+      : billingSettingsHref;
   const signedInNavLabel = redirectPath.startsWith('/settings')
     ? 'Return to Billing'
-    : hasPaidPlan && signedInNavHref.startsWith('/dashboard')
+    : hasPaidPlan && signedInNavHref.startsWith(dashboardHref.split('?')[0])
       ? 'Go to Dashboard'
       : 'Manage account';
 
@@ -118,8 +179,11 @@ export default function PricingPageClient() {
     setChangePlanMessage(null);
     if (!hasConfiguredPriceId(priceId)) {
       if (!isSignedIn) {
-        const redirectTo = '/dashboard';
-        window.location.href = `/auth/signup?plan=${encodeURIComponent(planName)}&redirect=${encodeURIComponent(redirectTo)}`;
+        const redirectTo = dashboardHref;
+        window.location.href = buildMarketAwareAuthHref('/auth/signup', billingMarket, {
+          plan: planName,
+          redirect: redirectTo,
+        });
         return;
       }
       setCheckoutError('This plan is temporarily unavailable. Please try again shortly.');
@@ -141,8 +205,11 @@ export default function PricingPageClient() {
     const session = (await supabase.auth.getSession()).data.session;
     const idToken = session?.access_token;
     if (!idToken || !isBillingEligibleUser(session?.user)) {
-      const redirectTo = `/dashboard?activatePlan=${encodeURIComponent(priceId)}`;
-      window.location.href = `/auth/signup?planId=${encodeURIComponent(priceId)}&redirect=${encodeURIComponent(redirectTo)}`;
+      const redirectTo = getAppRouteForMarket(`/dashboard?activatePlan=${encodeURIComponent(priceId)}`, billingMarket);
+      window.location.href = buildMarketAwareAuthHref('/auth/signup', billingMarket, {
+        planId: priceId,
+        redirect: redirectTo,
+      });
       return;
     }
 
@@ -153,7 +220,10 @@ export default function PricingPageClient() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${idToken}`,
         },
-        body: JSON.stringify({ planId: priceId }),
+        body: JSON.stringify({
+          planId: priceId,
+          cancelUrl: window.location.origin + window.location.pathname,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok && data?.code === 'EMAIL_VERIFICATION_REQUIRED' && typeof data?.redirect === 'string') {
@@ -193,7 +263,7 @@ export default function PricingPageClient() {
         return;
       }
 
-      const nextLocation = redirectPath.startsWith('/') ? redirectPath : '/dashboard';
+      const nextLocation = redirectPath.startsWith('/') ? redirectPath : dashboardHref;
       window.location.href = nextLocation;
     } catch (err: any) {
       setCheckoutError(err.message || 'Failed to start your free trial');
@@ -260,19 +330,19 @@ export default function PricingPageClient() {
     }
   }
 
-  const basicPriceId = PLAN_PRICES.find((plan) => plan.name === 'Basic')?.priceId || '';
-  const premiumPriceId = PLAN_PRICES.find((plan) => plan.name === 'Premium')?.priceId || '';
-  const premiumPlusPriceId = PLAN_PRICES.find((plan) => plan.name === 'Premium +')?.priceId || '';
-  const basicPlanFeatures = PLAN_PRICES.find((plan) => plan.name === 'Basic')?.features || [];
-  const premiumPlanFeatures = PLAN_PRICES.find((plan) => plan.name === 'Premium')?.features || [];
-  const premiumPlusPlanFeatures = PLAN_PRICES.find((plan) => plan.name === 'Premium +')?.features || [];
+  const basicPriceId = getPlanPriceId('Basic', billingMarket);
+  const premiumPriceId = getPlanPriceId('Premium', billingMarket);
+  const premiumPlusPriceId = getPlanPriceId('Premium +', billingMarket);
+  const basicPlanFeatures = getPlanFeatures('Basic');
+  const premiumPlanFeatures = getPlanFeatures('Premium');
+  const premiumPlusPlanFeatures = getPlanFeatures('Premium +');
 
   useEffect(() => {
     if (!authChecked || !isSignedIn || autoCheckoutStartedRef.current) return;
     if (!planChecked) return;
     if (!checkoutPlanId) return;
 
-    const isKnownPlan = PLAN_PRICES.some((plan) => plan.priceId && plan.priceId === checkoutPlanId);
+    const isKnownPlan = isKnownPlanPriceId(checkoutPlanId);
     if (!isKnownPlan) {
       setCheckoutError('Selected plan is unavailable. Please choose a plan below.');
       setCheckoutErrorPlanKey(null);
@@ -280,7 +350,7 @@ export default function PricingPageClient() {
     }
 
     autoCheckoutStartedRef.current = true;
-    const matchedPlan = PLAN_PRICES.find((plan) => plan.priceId === checkoutPlanId);
+    const matchedPlan = findPlanByAnyPriceId(checkoutPlanId);
     const planKey = (matchedPlan?.name || '').toLowerCase().replace(/\s+/g, '-');
     if (hasPaidPlan) {
       void handleChangePlan(checkoutPlanId, planKey || 'unknown');
@@ -577,19 +647,19 @@ export default function PricingPageClient() {
                 then choose the support level you need.
               </h1>
               <p style={{ fontSize: 'clamp(1rem, 3.2vw, 1.2rem)', color: '#cbd5f5', maxWidth: '520px' }}>
-                Compare plans for self-represented litigants in the UK and U.S., then start with the option that fits your workload.
+                {audienceDescription}
               </p>
               <p style={{ marginTop: '14px', color: '#fde68a', fontSize: '0.98rem', fontWeight: 700 }}>
                 Your first paid subscription starts with 7 days free.
               </p>
               <p style={{ marginTop: '14px', color: '#bfdbfe', fontSize: '0.95rem', maxWidth: '560px', lineHeight: 1.6 }}>
-                UK case-law tools are available now. U.S. case-law database access will be introduced soon.
+                {availabilityMessage}
               </p>
               <p style={{ marginTop: '14px', color: '#cbd5f5', fontSize: '0.95rem' }}>
-                Not sure where to start? <a href="/faq" style={{ color: '#f8fafc', textDecoration: 'underline' }}>Read the plan FAQ</a>
+                Not sure where to start? <a href={faqHref} style={{ color: '#f8fafc', textDecoration: 'underline' }}>Read the plan FAQ</a>
               </p>
               <p style={{ marginTop: '10px', color: '#cbd5f5', fontSize: '0.95rem' }}>
-                New to self-representation? Start with the <a href="/litigant-in-person-uk" style={{ color: '#f8fafc', textDecoration: 'underline' }}>UK self-representation guide</a>, the <a href="/mckenzie-friend-support" style={{ color: '#f8fafc', textDecoration: 'underline' }}>McKenzie friend support guide</a>, or the <a href="/case-law-search-uk" style={{ color: '#f8fafc', textDecoration: 'underline' }}>case-law search guide</a>.
+                {guideIntroText} {renderGuideLinks(guideLinks)}.
               </p>
             </div>
             <div style={{
@@ -604,15 +674,15 @@ export default function PricingPageClient() {
                 <div style={{ display: 'grid', gap: '0.8rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
                     <span>Basic</span>
-                    <span style={{ color: '#9cc8ff' }}>£18 / mo</span>
+                    <span style={{ color: '#9cc8ff' }}>{currencySymbol}{priceByPlan.basic} / mo</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
                     <span>Premium</span>
-                    <span style={{ color: '#7bd4c9' }}>£32 / mo</span>
+                    <span style={{ color: '#7bd4c9' }}>{currencySymbol}{priceByPlan.premium} / mo</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
                     <span>Premium +</span>
-                    <span style={{ color: '#f8a76f' }}>£199 / mo</span>
+                    <span style={{ color: '#f8a76f' }}>{currencySymbol}{priceByPlan.premiumPlus} / mo</span>
                   </div>
                 </div>
               </div>
@@ -628,9 +698,9 @@ export default function PricingPageClient() {
             }}>
               <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">Basic</h3>
               <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#9cc8ff' }}>
-                £18<span className="text-xl sm:text-2xl">/Month</span>
+                {currencySymbol}{priceByPlan.basic}<span className="text-xl sm:text-2xl">/Month</span>
               </div>
-              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#dbeafe', fontWeight: 700 }}>New subscribers: 7 days free, then £18/month</p>
+              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#dbeafe', fontWeight: 700 }}>New subscribers: 7 days free, then {currencySymbol}{priceByPlan.basic}/month</p>
               <ul className="space-y-3 mb-8 text-left flex-grow">
                 {basicPlanFeatures.map((feature) => (
                   <li key={feature} className="flex items-start text-white">
@@ -660,9 +730,9 @@ export default function PricingPageClient() {
             }}>
               <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">Premium</h3>
               <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#7bd4c9' }}>
-                £32<span className="text-xl sm:text-2xl">/Month</span>
+                {currencySymbol}{priceByPlan.premium}<span className="text-xl sm:text-2xl">/Month</span>
               </div>
-              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#d1fae5', fontWeight: 700 }}>New subscribers: 7 days free, then £32/month</p>
+              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#d1fae5', fontWeight: 700 }}>New subscribers: 7 days free, then {currencySymbol}{priceByPlan.premium}/month</p>
               <ul className="space-y-3 mb-8 text-left flex-grow">
                 {premiumPlanFeatures.map((feature) => (
                   <li key={feature} className="flex items-start text-white">
@@ -692,9 +762,9 @@ export default function PricingPageClient() {
             }}>
               <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">Premium +</h3>
               <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#f8a76f' }}>
-                £199<span className="text-xl sm:text-2xl">/Month</span>
+                {currencySymbol}{priceByPlan.premiumPlus}<span className="text-xl sm:text-2xl">/Month</span>
               </div>
-              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#ffedd5', fontWeight: 700 }}>New subscribers: 7 days free, then £199/month</p>
+              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#ffedd5', fontWeight: 700 }}>New subscribers: 7 days free, then {currencySymbol}{priceByPlan.premiumPlus}/month</p>
               <ul className="space-y-3 mb-8 text-left flex-grow">
                 {premiumPlusPlanFeatures.map((feature) => (
                   <li key={feature} className="flex items-start text-white">

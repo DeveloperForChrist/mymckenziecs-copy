@@ -32,6 +32,7 @@ export default async function DashboardPage() {
   let initialHasStripeCustomer = false;
   let initialCancelAtPeriodEnd = false;
   let initialCaseLawAvailable = false;
+  let initialPublicMarket: 'GB' | 'US' = 'GB';
   const initialPlanLoaded = Boolean(authUser);
 
   if (authUser) {
@@ -43,6 +44,7 @@ export default async function DashboardPage() {
       typeof planData?.nextBillingDate === 'string' ? planData.nextBillingDate : null;
     initialHasStripeCustomer = Boolean(planData?.hasStripeCustomer);
     initialCancelAtPeriodEnd = Boolean(planData?.cancelAtPeriodEnd);
+    initialPublicMarket = planData?.publicMarket === 'US' ? 'US' : 'GB';
     initialCaseLawAvailable = isCaseLawAvailableForLegalContext(legalContext);
     initialEmailVerified = await isUserEmailVerified(authUser.id);
   }
@@ -57,6 +59,7 @@ export default async function DashboardPage() {
       initialCancelAtPeriodEnd={initialCancelAtPeriodEnd}
       initialCaseLawAvailable={initialCaseLawAvailable}
       initialPlanLoaded={initialPlanLoaded}
+      initialPublicMarket={initialPublicMarket}
     />
   );
 }
