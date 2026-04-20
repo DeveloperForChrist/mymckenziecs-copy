@@ -208,8 +208,13 @@ export async function middleware(request: NextRequest) {
       null
 
     if (explicitMarket) {
-      if (explicitMarket === 'US') {
-        const redirectUrl = new URL(getPublicRouteForMarket('/', 'US'), request.url)
+      const redirectPath = getPublicRouteForMarket('/', explicitMarket)
+      if (redirectPath !== '/') {
+        const redirectUrl = new URL(redirectPath, request.url)
+        const redirectParams = new URLSearchParams(request.nextUrl.searchParams)
+        redirectParams.delete('market')
+        const redirectQuery = redirectParams.toString()
+        redirectUrl.search = redirectQuery ? `?${redirectQuery}` : ''
         const redirectResponse = NextResponse.redirect(redirectUrl)
         copyCookies(response, redirectResponse)
         setMarketCookie(redirectResponse, explicitMarket, secureCookie)
@@ -222,9 +227,10 @@ export async function middleware(request: NextRequest) {
 
     if (user) {
       const signedInMarket = profileCountryCode === 'US' ? 'US' : 'GB'
+      const redirectPath = getPublicRouteForMarket('/', signedInMarket)
 
-      if (signedInMarket === 'US') {
-        const redirectUrl = new URL(getPublicRouteForMarket('/', 'US'), request.url)
+      if (redirectPath !== '/') {
+        const redirectUrl = new URL(redirectPath, request.url)
         redirectUrl.search = request.nextUrl.search
         const redirectResponse = NextResponse.redirect(redirectUrl)
         copyCookies(response, redirectResponse)
@@ -247,8 +253,9 @@ export async function middleware(request: NextRequest) {
         edgeCountryCode: geoCountryCode,
       })
 
-      if (resolvedMarket === 'US') {
-        const redirectUrl = new URL(getPublicRouteForMarket('/', 'US'), request.url)
+      const redirectPath = getPublicRouteForMarket('/', resolvedMarket)
+      if (redirectPath !== '/') {
+        const redirectUrl = new URL(redirectPath, request.url)
         redirectUrl.search = request.nextUrl.search
         const redirectResponse = NextResponse.redirect(redirectUrl)
         copyCookies(response, redirectResponse)
