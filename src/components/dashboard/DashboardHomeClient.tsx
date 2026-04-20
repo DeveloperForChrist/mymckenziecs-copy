@@ -70,7 +70,7 @@ export default function DashboardHomeClient({
   const [trialReminderDismissed, setTrialReminderDismissed] = useState(false);
   const trialStartAttemptedRef = useRef(false);
 
-  const hasCaseLawFeature = initialCaseLawAvailable && hasCaseLawAccess(plan);
+  const hasCaseLawFeature = publicMarket !== 'US' && initialCaseLawAvailable && hasCaseLawAccess(plan);
   const normalizedPlanStatus = planStatus.trim().toLowerCase();
   const isPastDueStatus = normalizedPlanStatus === 'past_due';
   const isTrialingStatus = isTrialingStripeStatus(normalizedPlanStatus);
