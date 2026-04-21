@@ -56,6 +56,7 @@ export default function SignUpForm() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const [editingCountry, setEditingCountry] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -94,6 +95,8 @@ export default function SignUpForm() {
       : fallbackRedirect
   const selectedCountry = getCountryOption(formData.countryCode)
   const jurisdictionOptions = getJurisdictionOptions(formData.countryCode)
+
+  const shouldShowCountrySelect = editingCountry || !selectedCountry
 
   useEffect(() => {
     let cancelled = false
@@ -297,32 +300,56 @@ export default function SignUpForm() {
       </div>
 
       <div>
-        <label htmlFor="countryCode" className={styles.label}>
-          Country of legal matter
-        </label>
-        <select
-          id="countryCode"
-          required
-          className={styles.select}
-          value={formData.countryCode}
-          onChange={(e) => {
-            const nextCountryCode = e.target.value
-            setFormData({
-              ...formData,
-              countryCode: nextCountryCode,
-              jurisdictionCode: '',
-            })
-          }}
-        >
-          <option value="" disabled>
-            Select country
-          </option>
-          {SUPPORTED_COUNTRIES.map((country) => (
-            <option key={country.code} value={country.code}>
-              {country.label}
+        <div className={styles.fieldHeader}>
+          <label htmlFor="countryCode" className={styles.label}>
+            Country of legal matter
+          </label>
+          {!shouldShowCountrySelect && selectedCountry && (
+            <button
+              type="button"
+              className={styles.inlineTextButton}
+              onClick={() => setEditingCountry(true)}
+            >
+              Change
+            </button>
+          )}
+        </div>
+
+        {shouldShowCountrySelect ? (
+          <select
+            id="countryCode"
+            required
+            className={styles.select}
+            value={formData.countryCode}
+            onChange={(e) => {
+              const nextCountryCode = e.target.value
+              setFormData({
+                ...formData,
+                countryCode: nextCountryCode,
+                jurisdictionCode: '',
+              })
+              setEditingCountry(false)
+            }}
+          >
+            <option value="" disabled>
+              Select country
             </option>
-          ))}
-        </select>
+            {SUPPORTED_COUNTRIES.map((country) => (
+              <option key={country.code} value={country.code}>
+                {country.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input
+            id="countryCode"
+            type="text"
+            className={styles.input}
+            value={selectedCountry.label}
+            readOnly
+            aria-readonly="true"
+          />
+        )}
         <p className={styles.footnote}>{geoHint.message}</p>
       </div>
 
