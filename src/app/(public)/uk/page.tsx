@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   ...buildPageMetadata({
     title: 'Court Case Management Tool for Self-Represented Litigants',
     description:
-      'Organise court documents, track deadlines, and prepare your case without a lawyer using MyMcKenzieCS, the original UK court case workspace for self-represented litigants.',
+      'Manage court documents, track deadlines, and prepare your case without a lawyer using MyMcKenzieCS — with UK and U.S. versions available for self-represented litigants.',
     path: '/uk',
   }),
 };
@@ -168,4 +168,3 @@ export default function UkHomePage() {
     />
   );
 }
-
