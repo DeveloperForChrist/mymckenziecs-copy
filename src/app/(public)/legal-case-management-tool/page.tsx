@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import GuidePage, { type GuideLink, type GuideSection, type GuideStat } from '@/components/guides/GuidePage';
 import { buildPageMetadata } from '@/lib/seo';
 
-const title = 'Legal Case Management Tool for UK Litigants in Person';
+const title = 'Legal Case Management Tool for Self-Represented Litigants';
 const description =
   'See how a legal case management tool helps self-represented court users organise documents, notes, reminders, and research, and how MyMcKenzieCS structures that workflow.';
 
@@ -79,23 +79,23 @@ const sections: GuideSection[] = [
 const relatedLinks: GuideLink[] = [
   {
     href: '/litigant-in-person-uk',
-    label: 'Guide for litigants in person',
-    description: 'See the wider self-representation context that makes case-management tools valuable.',
+    label: 'Guide for self-represented litigants',
+    description: 'Start with the wider self-representation context that makes case-management tools valuable.',
   },
   {
     href: '/organise-court-documents-uk',
-    label: 'How to organise court documents UK',
+    label: 'How to organise court documents',
     description: 'See the document workflow that sits at the centre of most self-managed court cases.',
   },
   {
     href: '/court-bundle-preparation-uk',
-    label: 'Court bundle preparation UK',
-    description: 'See how the organised file becomes a hearing bundle and core bundle where the process requires one.',
+    label: 'Court bundle preparation',
+    description: 'See how an organised file becomes a paginated hearing bundle when the process requires one.',
   },
   {
     href: '/case-law-search-uk',
-    label: 'Case law search UK',
-    description: 'Learn how legal research fits into the same workflow as documents and deadlines.',
+    label: 'Case-law search guide',
+    description: 'Learn how authority research fits into the same workflow as documents and deadlines.',
   },
   {
     href: '/faq',
@@ -118,10 +118,10 @@ export default function LegalCaseManagementToolPage() {
       path="/legal-case-management-tool"
       title={title}
       subtitle="A practical explanation of what a case-management tool should do for a self-represented user and how MyMcKenzieCS turns that into a working court-preparation system."
-      meta="Updated 17 March 2026 | UK self-representation workflow | Informational only"
+      meta="Updated 17 March 2026 | Self-representation workflow | Informational only"
       intro={[
         'Searches for "legal case management tool" often come from people who know their case is becoming harder to hold in their head. They may already have the documents, but not the structure. They may know the issues, but not where their notes, deadlines, and research now sit.',
-        'This page explains what a legal case management tool should actually do for a litigant in person and how MyMcKenzieCS approaches that problem in a UK court-support context.',
+        'This page explains what a legal case management tool should actually do for a self-represented user and how MyMcKenzieCS approaches that problem in a court-support context.',
       ]}
       stats={stats}
       sections={sections}

@@ -5,7 +5,7 @@ import { buildPageMetadata } from '@/lib/seo';
 export const metadata: Metadata = buildPageMetadata({
   title: 'About',
   description:
-    'Learn why MyMcKenzieCS was built and how the platform supports UK litigants in person with procedural and organisational tools.',
+    'Learn why MyMcKenzieCS was built and how the platform supports self-represented litigants with procedural and organisational tools.',
   path: '/about',
 });
 
@@ -16,13 +16,13 @@ export default function AboutPage() {
     <LegalPageLayout
       title="About"
       subtitle="Why we built MyMcKenzieCS and who it serves."
-      meta="Built by Lenjordan Ltd • Empowering Litigants in Person"
+      meta="Built by Lenjordan Ltd • Self-representation support"
     >
       <div className="space-y-6 text-base md:text-lg">
         <div>
           <h2 className="text-2xl font-semibold mb-2">Our Purpose</h2>
           <p>
-            MyMcKenzieCS is an AI-powered support platform designed to help Litigants in Person
+            MyMcKenzieCS is an AI-powered support platform designed to help self-represented litigants
             navigate the court process with greater clarity, confidence, and organisation.
           </p>
           <p className="mt-3">
@@ -52,7 +52,7 @@ export default function AboutPage() {
         <div>
           <h2 className="text-2xl font-semibold mb-2">Who We Are</h2>
           <p>
-            MyMckenzieCS is an AI-powered legal support platform designed for individuals representing themselves in court (Litigants in Person). 
+            MyMckenzieCS is an AI-powered legal support platform designed for individuals representing themselves in court (self-represented litigants).
             It provides tools that help users understand legal procedures, prepare documents, analyse case materials, and organise their cases in a clearer and more structured way.
             The platform is designed to make navigating the legal process more accessible and manageable. MyMcKenzieCS provides technology and informational support, 
             but it is not a law firm and does not provide legal advice.
