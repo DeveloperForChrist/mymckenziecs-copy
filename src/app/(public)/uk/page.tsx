@@ -5,9 +5,9 @@ import { buildPageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = {
   ...buildPageMetadata({
-    title: 'Court Case Management Tool for Self-Represented Litigants',
+    title: 'Court Case Management Tool for UK Litigants in Person',
     description:
-      'Manage court documents, track deadlines, and prepare your case without a lawyer using MyMcKenzieCS — with UK and U.S. versions available for self-represented litigants.',
+      'Organise court documents, track deadlines, and prepare your case without a lawyer using MyMcKenzieCS, a court case workspace built for UK litigants in person.',
     path: '/uk',
   }),
 };
