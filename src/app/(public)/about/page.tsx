@@ -5,7 +5,7 @@ import { buildPageMetadata } from '@/lib/seo';
 export const metadata: Metadata = buildPageMetadata({
   title: 'About',
   description:
-    'Learn why MyMcKenzieCS was built and how the platform supports self-represented litigants with procedural and organisational tools.',
+    'Learn why MyMcKenzieCS was built and how the platform supports McKenzie Friends, legal support professionals, and the clients they help.',
   path: '/about',
 });
 
@@ -16,53 +16,53 @@ export default function AboutPage() {
     <LegalPageLayout
       title="About"
       subtitle="Why we built MyMcKenzieCS and who it serves."
-      meta="Built by Lenjordan Ltd • Self-representation support"
+      meta="Built by Lenjordan Ltd • Legal support practice workspace"
     >
       <div className="space-y-6 text-base md:text-lg">
         <div>
           <h2 className="text-2xl font-semibold mb-2">Our Purpose</h2>
           <p>
-            MyMcKenzieCS is an AI-powered support platform designed to help self-represented litigants
-            navigate the court process with greater clarity, confidence, and organisation.
+            MyMcKenzieCS is a case support workspace designed for McKenzie Friends, paralegals,
+            legal consultants, independent legal support professionals, and the clients they support.
           </p>
           <p className="mt-3">
-            Court processes can feel overwhelming. We built this platform so you can prepare documents, understand
-            procedures, stay organised, and manage your case in one place — with the help of advanced AI tools.
+            Client support work can quickly become scattered across messages, emails, folders, notes, and calendars.
+            We built this platform so legal support work can be managed in one calmer, more professional place.
           </p>
         </div>
         <div>
           <h2 className="text-2xl font-semibold mb-2">What We Provide</h2>
           <ul className="list-disc pl-6 space-y-2">
-            <li>AI-powered guidance on court procedures</li>
-            <li>Drafting assistance for statements, letters, forms, and case documents</li>
-            <li>Document upload and AI analysis</li>
-            <li>Case dashboard and timeline organisation</li>
-            <li>Plain-English explanations and step-by-step support</li>
-            <li>Subscription tiers and optional one-off services</li>
+            <li>Client matter organisation for documents, notes, chronology, and deadlines</li>
+            <li>Workspace tools for legal support providers and the clients they assist</li>
+            <li>Document upload, case context, and preparation support</li>
+            <li>Dashboard and timeline organisation for active matters</li>
+            <li>Plain-English court information and careful tone support</li>
+            <li>Subscription tiers for different workloads</li>
           </ul>
         </div>
         <div>
           <h2 className="text-2xl font-semibold mb-2">Not a Law Firm</h2>
           <p>
             MyMcKenzieCS does not provide legal advice and is not a law firm or regulated legal service.
-            All support offered is informational, procedural, and organisational. You remain fully responsible for
-            your own legal decisions and filings.
+            All support offered is informational, procedural, organisational, and practice-support focused. Users
+            remain responsible for legal decisions, filings, and any regulated legal work.
           </p>
         </div>
         <div>
           <h2 className="text-2xl font-semibold mb-2">Who We Are</h2>
           <p>
-            MyMckenzieCS is an AI-powered legal support platform designed for individuals representing themselves in court (self-represented litigants).
-            It provides tools that help users understand legal procedures, prepare documents, analyse case materials, and organise their cases in a clearer and more structured way.
-            The platform is designed to make navigating the legal process more accessible and manageable. MyMcKenzieCS provides technology and informational support, 
+            MyMcKenzieCS is a legal support platform designed around the practical work of helping people manage court-related matters.
+            It provides tools that help users organise client matters, understand procedural information, prepare documents, review case materials, and keep work structured.
+            The platform is designed to make legal support work more accessible and manageable. MyMcKenzieCS provides technology and informational support,
             but it is not a law firm and does not provide legal advice.
           </p>
         </div>
         <div>
           <h2 className="text-2xl font-semibold mb-2">Our Vision</h2>
           <p>
-            To redefine access to justice by developing the leading AI-powered platform that empowers individuals 
-            representing themselves in court with clear, structured, and intelligent legal support.
+            To build the leading workspace for independent legal support work, helping McKenzie Friends and related
+            professionals give clients a clearer, more organised experience without replacing regulated legal advice.
           </p>
         </div>
       </div>

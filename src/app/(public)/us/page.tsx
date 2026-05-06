@@ -5,9 +5,9 @@ import { buildPageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = {
   ...buildPageMetadata({
-    title: 'Court Case Management Tool for U.S. Self-Represented Litigants',
+    title: 'Case Support Workspace for U.S. Legal Support Work',
     description:
-      'Organize court documents, track deadlines, and prepare your case without a lawyer using the U.S. version of MyMcKenzieCS for self-represented litigants.',
+      'Organize clients, court documents, deadlines, notes, and case progress using the U.S. version of MyMcKenzieCS for legal support professionals and self-represented users.',
     path: '/us',
   }),
 };
@@ -34,8 +34,8 @@ const commonProblems = [
 
 const whoItsFor = [
   {
-    title: 'U.S. self-represented litigants',
-    text: 'People handling a civil court matter without a lawyer formally running the case for them.',
+    title: 'U.S. legal support professionals',
+    text: 'People helping clients organise civil court matters, documents, notes, deadlines, and preparation context.',
   },
   {
     title: 'State and local court users',
@@ -149,10 +149,10 @@ const guidePages = [
 export default function UsHomePage() {
   return (
     <MarketHomepage
-      audienceLabel="For U.S. Self-Represented Litigants"
-      titleLines={['Court case management', 'for U.S. self-representation.']}
-      description="Organize court documents, track deadlines, and prepare your case in one workspace built for U.S. self-represented court users."
-      guideHeading="Helpful guides for U.S. self-representation"
+      audienceLabel="For U.S. Legal Support Work"
+      titleLines={['Case support workspace', 'for U.S. legal matters.']}
+      description="Organize clients, court documents, deadlines, notes, and case progress in one workspace built for U.S. legal support work."
+      guideHeading="Helpful guides for U.S. legal support"
       commonProblems={commonProblems}
       whoItsFor={whoItsFor}
       useCases={useCases}

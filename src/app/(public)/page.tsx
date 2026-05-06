@@ -5,9 +5,9 @@ import { buildPageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = {
   ...buildPageMetadata({
-    title: 'Court Case Management Tool for Self-Represented Litigants',
+    title: 'Case Support Software for McKenzie Friends',
     description:
-      'Manage court documents, track deadlines, and prepare your case without a lawyer using MyMcKenzieCS — with UK and U.S. versions available for self-represented litigants.',
+      'MyMcKenzieCS is a case support workspace for McKenzie Friends, legal support professionals, and the clients they support.',
     path: '/',
   }),
 };
@@ -15,66 +15,66 @@ export const revalidate = 86400;
 
 const commonProblems = [
   {
-    title: 'Deadlines slip when papers are scattered',
-    text: 'Court work becomes hard to manage when orders, emails, evidence, and reminders live in different places.',
+    title: 'Client work gets scattered',
+    text: 'Independent legal support work becomes harder when WhatsApp messages, emails, documents, notes, and reminders all live in different places.',
   },
   {
-    title: 'Evidence loses context',
-    text: 'Documents are less useful if you cannot quickly see what happened, what each paper proves, and what still needs a response.',
+    title: 'Documents lose context',
+    text: 'Client papers are less useful if you cannot quickly see what happened, what each document relates to, and what still needs a response.',
   },
   {
-    title: 'Preparation gets rebuilt from scratch',
-    text: 'Many litigants in person end up re-reading the same paperwork before every hearing because there is no reliable case system.',
+    title: 'Preparation gets rebuilt',
+    text: 'Each new client, hearing, or deadline can force you to rebuild the case picture if there is no reliable workspace behind the support.',
   },
   {
-    title: 'Stress crowds out the next step',
-    text: 'When a live case feels overwhelming, the practical question is usually what to do next and what document actually matters now.',
+    title: 'Admin slows the practice down',
+    text: 'The real pressure is often not one task. It is keeping clients, dates, papers, payments, and progress visible at the same time.',
   },
 ];
 
 const whoItsFor = [
   {
-    title: 'Self-represented litigants in the UK',
-    text: 'People handling a court case without a lawyer formally running the matter for them in a UK jurisdiction.',
+    title: 'McKenzie Friends',
+    text: 'Independent McKenzie Friends supporting Litigants in Person who need a calmer way to manage client matters.',
   },
   {
-    title: 'Small claims and civil court users',
-    text: 'People preparing for filings, hearings, mediation, evidence, and deadline-heavy case steps.',
+    title: 'Legal support professionals',
+    text: 'Paralegals, consultants, and document-prep providers who want client work organised in one professional workspace.',
   },
   {
-    title: 'People managing court papers alone',
-    text: 'Users who need one place for documents, evidence, notes, chronology, and deadlines.',
+    title: 'Client-facing support providers',
+    text: 'People helping clients manage documents, evidence, notes, chronology, deadlines, and practical preparation.',
   },
   {
-    title: 'People preparing without a lawyer',
-    text: 'Users who want structure and procedural support, while staying clear that the platform is not legal representation.',
+    title: 'Litigants invited by their helper',
+    text: 'Clients can benefit from a clearer case workspace while the support professional remains in control of the service relationship.',
   },
 ];
 
 const useCases = [
   {
-    title: 'Organise court documents',
-    text: 'Keep pleadings, correspondence, evidence, witness material, and court orders in one workspace.',
+    title: 'Manage client matters',
+    text: 'Keep client cases, notes, chronology, documents, deadlines, and preparation context in one workspace.',
   },
   {
     title: 'Track hearings and deadlines',
-    text: 'Record service dates, filing dates, mediation appointments, hearings, and follow-up tasks in one place.',
+    text: 'Record service dates, filing dates, mediation appointments, hearings, client tasks, and follow-up actions in one place.',
   },
   {
-    title: 'Prepare for court without a lawyer',
-    text: 'Build a chronology, keep issue notes, and preserve the context behind the next step in your case.',
+    title: 'Support client preparation',
+    text: 'Build chronologies, keep issue notes, and preserve the context behind each client’s next step.',
   },
   {
-    title: 'Review evidence with context',
-    text: 'Upload documents and keep notes tied to the facts, dates, and issues they relate to.',
+    title: 'Organise documents with context',
+    text: 'Upload documents and keep notes tied to the facts, dates, clients, and issues they relate to.',
   },
   {
     title: 'Research procedure and authorities',
     text: 'Use source-backed research support and case-law tools on paid plans when deeper preparation is needed.',
   },
   {
-    title: 'Stay focused on what matters',
-    text: 'Reduce the noise of a live case by separating working notes, deadlines, and evidence from stress and guesswork.',
+    title: 'Present a more professional service',
+    text: 'Replace scattered folders and messages with a structured workspace clients can understand and return to.',
   },
 ];
 
@@ -149,10 +149,10 @@ const guidePages = [
 export default function HomePage() {
   return (
     <MarketHomepage
-      audienceLabel="For UK Self-Represented Litigants"
-      titleLines={['Court case management', 'for self-represented litigants.']}
-      description="Organise court documents, track deadlines, and prepare your case in one workspace built around UK self-representation."
-      guideHeading="Helpful guides for UK self-representation"
+      audienceLabel="For McKenzie Friends, Legal Support Professionals, And Their Clients"
+      titleLines={['Run your McKenzie Friend practice', 'from one organised workspace.']}
+      description="Manage clients, documents, deadlines, notes, payments, and case progress in a calm, professional platform built for legal support work and the people being supported."
+      guideHeading="Helpful guides for legal support work"
       commonProblems={commonProblems}
       whoItsFor={whoItsFor}
       useCases={useCases}
@@ -166,8 +166,8 @@ export default function HomePage() {
       aboutHref="/about"
       faqHref="/faq"
       marketSwitch={{ href: '/us', label: 'Looking for the U.S. version? Open the U.S. site' }}
-      ctaTitle="Start building your case plan now."
-      ctaText="Start with one question, then organise the rest of your documents, deadlines, and hearing preparation from the same workspace."
+      ctaTitle="Start organising your client work now."
+      ctaText="Start with one client matter, then keep documents, deadlines, notes, and preparation context in the same workspace."
     />
   );
 }

@@ -6,9 +6,9 @@ import { useLayoutEffect, useMemo } from 'react'
 const APP_NAME = 'MyMcKenzieCS'
 
 const titleByPath: Record<string, string> = {
-  '/': 'Legal Self-Help Workspace for Self-Represented Litigants',
-  '/uk': 'Legal Self-Help Workspace for UK Litigants in Person',
-  '/us': 'Court Case Management for U.S. Self-Represented Litigants',
+  '/': 'Case Support Software for McKenzie Friends',
+  '/uk': 'Case Support Software for UK McKenzie Friends',
+  '/us': 'Case Support Workspace for U.S. Legal Support Work',
   '/about': 'About',
   '/us/about': 'About the U.S. Version',
   '/contact': 'Contact',

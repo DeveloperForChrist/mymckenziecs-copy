@@ -130,13 +130,13 @@ export default function MarketHomepage({
                   </p>
                   <HeroActionButtons pricingHref={pricingHref} howItWorksHref={howItWorksHref} />
                   <div className="mt-5 flex flex-wrap justify-center gap-2 text-xs uppercase tracking-[0.16em] text-white/70 xl:justify-start">
-                    <span className="rounded-full border border-white/15 px-3 py-2">Small claims</span>
-                    <span className="rounded-full border border-white/15 px-3 py-2">Court documents</span>
-                    <span className="rounded-full border border-white/15 px-3 py-2">Evidence and notes</span>
-                    <span className="rounded-full border border-white/15 px-3 py-2">Deadlines and hearings</span>
+                    <span className="rounded-full border border-white/15 px-3 py-2">Client matters</span>
+                    <span className="rounded-full border border-white/15 px-3 py-2">Document hub</span>
+                    <span className="rounded-full border border-white/15 px-3 py-2">Notes and tasks</span>
+                    <span className="rounded-full border border-white/15 px-3 py-2">Deadlines and payments</span>
                   </div>
                   <div className="mt-4 text-sm text-white/75">
-                    Informational and court support only. Not legal advice.
+                    Practice support and court information only. Not legal advice.
                   </div>
                 </div>
 
@@ -172,7 +172,7 @@ export default function MarketHomepage({
             <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
               <div>
                 <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Why this matters</div>
-                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Representing yourself in court becomes hard when the case stops being organised</h2>
+                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Legal support work becomes hard when client matters stop being organised</h2>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -194,7 +194,7 @@ export default function MarketHomepage({
             <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
               <div>
                 <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Who this is for</div>
-                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Built for people preparing a court case without a lawyer</h2>
+                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Built for independent legal support work and the clients behind it</h2>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
@@ -216,7 +216,7 @@ export default function MarketHomepage({
             <div className="flex items-end justify-between flex-wrap gap-4 mb-7">
               <div>
                 <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Use MyMcKenzieCS To</div>
-                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Manage the parts of self-representation that usually become overwhelming</h2>
+                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Manage the client work that usually gets scattered</h2>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -261,7 +261,7 @@ export default function MarketHomepage({
             <div className="flex items-end justify-start flex-wrap gap-4 mb-7">
               <div>
                 <div className="text-xs uppercase tracking-[0.2em] text-purple-100/70">Plans</div>
-                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Choose the level of support that fits your case</h2>
+                <h2 className="text-2xl md:text-3xl font-semibold text-white mt-2">Choose the workspace level that fits your practice</h2>
                 {plansNote && (
                   <p className="mt-3 max-w-2xl text-sm md:text-base text-white/70">{plansNote}</p>
                 )}
@@ -308,7 +308,7 @@ export default function MarketHomepage({
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <Link href={learnBasicsHref} className="app-button-secondary">
-                    Learn the basics
+                    View guides
                   </Link>
                   <Link href={comparePlansHref} className="app-button-secondary">
                     Compare plans
@@ -334,7 +334,7 @@ export default function MarketHomepage({
             ))}
           </div>
           <div className="max-w-3xl mx-auto text-sm md:text-base font-semibold opacity-90 mt-4 leading-relaxed text-white/80">
-            MyMcKenzieCS Assistant provides informational and court support only. Not legal advice.
+            MyMcKenzieCS provides practice support and court information only. Not legal advice.
           </div>
           <div className="mt-6 flex flex-wrap justify-center gap-3 text-sm text-white/65">
             <Link href={helpHref} className="underline hover:text-purple-200 transition-colors">Help</Link>

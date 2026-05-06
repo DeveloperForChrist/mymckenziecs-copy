@@ -31,8 +31,8 @@ export default function UsTermsPage() {
         <li>
           <b>Nature of the Service</b>
           <ul className="list-disc pl-6 mt-2 space-y-1">
-            <li>MyMcKenzieCS is a digital self-help workspace for self-represented litigants</li>
-            <li>It provides organizational, procedural, and AI-assisted support</li>
+            <li>MyMcKenzieCS is a digital case support workspace for legal support professionals and self-represented users</li>
+            <li>It provides organizational, procedural, practice-support, and AI-assisted support</li>
             <li>It is not a law firm and does not provide legal advice, legal representation, or courtroom advocacy</li>
             <li>You remain responsible for all filings, deadlines, strategy, evidence decisions, and compliance with local court rules</li>
           </ul>

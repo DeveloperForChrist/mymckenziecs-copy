@@ -16,10 +16,10 @@ export default function ChatEmptyState({ authLoaded, hasUser }: ChatEmptyStatePr
             Welcome to MyMcKenzieCS Assistant.
           </p>
           <p style={{ marginBottom: '20px' }}>
-            Ask a question to get clear procedural guidance for your legal matter.
+            Ask a question to get clear court information, preparation support, or help organising a client matter.
           </p>
           <p style={{ fontWeight: 600 }}>
-            MyMcKenzieCS Assistant provides informational support for self-represented litigants and is not a substitute for legal advice.
+            MyMcKenzieCS Assistant provides informational and practice support only. It is not a substitute for legal advice.
           </p>
         </div>
       ) : (

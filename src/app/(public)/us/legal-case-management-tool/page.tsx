@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import GuidePage, { type GuideLink, type GuideSection, type GuideStat } from '@/components/guides/GuidePage';
 import { buildPageMetadata } from '@/lib/seo';
 
-const title = 'Legal Case Management Tool for U.S. Self-Represented Litigants';
+const title = 'Legal Case Management Tool for U.S. Legal Support Work';
 const description =
-  'See how a legal case management tool helps U.S. self-represented litigants organize documents, notes, deadlines, and research in one workflow.';
+  'See how a legal case management tool helps U.S. legal support professionals and self-represented users organize documents, notes, deadlines, and research in one workflow.';
 
 const stats: GuideStat[] = [
   {
@@ -50,7 +50,7 @@ const sections: GuideSection[] = [
   {
     title: 'How MyMcKenzieCS fits that workflow',
     paragraphs: [
-      'MyMcKenzieCS is structured as a legal self-help workspace rather than a generic productivity tool. The goal is to keep the case coherent enough that preparation remains possible as the file grows.',
+      'MyMcKenzieCS is structured as a case support workspace rather than a generic productivity tool. The goal is to keep the matter coherent enough that preparation remains possible as the file grows.',
       'That means documents, notes, reminders, and research support all stay in the same place. The interface does not need to change for the U.S. version; the value comes from clearer jurisdiction-aware support and U.S.-specific public content around it.',
     ],
   },

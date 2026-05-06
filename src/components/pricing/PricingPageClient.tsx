@@ -43,9 +43,9 @@ const defaultGuideLinks: PricingGuideLink[] = [
 ];
 
 export default function PricingPageClient({
-  audienceDescription = 'Compare plans for self-represented litigants in the UK and U.S., then start with the option that fits your workload.',
+  audienceDescription = 'Compare plans for McKenzie Friends, legal support professionals, and the clients they support, then start with the option that fits your workload.',
   availabilityMessage = 'Case-law tools are available now for UK legal matters. U.S. authority coverage and database access will be introduced soon.',
-  guideIntroText = 'If your matter is in the UK, start with the',
+  guideIntroText = 'If you support UK clients, start with the',
   guideLinks = defaultGuideLinks,
   faqHref = '/faq',
   billingMarket = 'GB',
@@ -656,7 +656,7 @@ export default function PricingPageClient({
               <h1 style={{ fontSize: 'clamp(2rem, 8vw, 3.6rem)', lineHeight: 1.05, margin: '0.8rem 0 1rem 0' }}>
                 Start with the workspace,
                 <br />
-                then choose the support level you need.
+                then choose the level your practice needs.
               </h1>
               <p style={{ fontSize: 'clamp(1rem, 3.2vw, 1.2rem)', color: '#cbd5f5', maxWidth: '520px' }}>
                 {audienceDescription}
@@ -682,7 +682,7 @@ export default function PricingPageClient({
               boxShadow: '0 20px 50px rgba(0,0,0,0.35)'
             }}>
               <h2 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '0.5rem' }}>Plan at a glance</h2>
-              <p style={{ color: '#cbd5f5', marginBottom: '1rem' }}>Pick the tier that matches your workload and urgency.</p>
+              <p style={{ color: '#cbd5f5', marginBottom: '1rem' }}>Pick the tier that matches your client workload and urgency.</p>
                 <div style={{ display: 'grid', gap: '0.8rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
                     <span>Basic</span>

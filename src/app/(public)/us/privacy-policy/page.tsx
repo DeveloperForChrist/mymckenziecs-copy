@@ -25,7 +25,7 @@ export default function UsPrivacyPolicyPage() {
             This Privacy Policy explains how MyMcKenzieCS handles personal data when you use the U.S.-facing version of the platform. MyMcKenzieCS is operated by Lenjordan Ltd.
           </p>
           <p>
-            The platform is a legal self-help workspace for self-represented litigants. It is not a law firm, and it does not provide legal advice.
+            The platform is a case support workspace for legal support professionals and self-represented users. It is not a law firm, and it does not provide legal advice.
           </p>
         </li>
         <li>

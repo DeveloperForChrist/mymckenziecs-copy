@@ -7,7 +7,7 @@ import { buildMarketAwareAuthHref, getPublicMarket, getPublicRouteForMarket } fr
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Create Account',
-  description: 'Create a MyMcKenzieCS account and start your legal self-help workspace.',
+  description: 'Create a MyMcKenzieCS account and start organising client legal support work in one workspace.',
   path: '/auth/signup',
   noIndex: true,
 })
@@ -34,25 +34,25 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
       <main className={styles.page}>
         <div className={styles.shell}>
           <section className={styles.hero}>
-            <span className={styles.heroTag}>For self-represented litigants</span>
+            <span className={styles.heroTag}>For legal support professionals</span>
             <div>
-              <h1 className={styles.heroTitle}>Create your legal workspace.</h1>
+              <h1 className={styles.heroTitle}>Create your client workspace.</h1>
               <p className={styles.heroCopy}>
-                MyMcKenzieCS keeps your case notes, deadlines, and document context together so you can
-                prepare with more clarity and less friction.
+                MyMcKenzieCS keeps client notes, deadlines, and document context together so your support work
+                feels clearer, calmer, and more professional.
               </p>
               <div className={styles.heroList}>
                 <div className={styles.heroListItem}>
                   <span>01</span>
-                  <div>Track key dates, evidence, and next steps in one place.</div>
+                  <div>Track key dates, documents, client notes, and next steps in one place.</div>
                 </div>
                 <div className={styles.heroListItem}>
                   <span>02</span>
-                <div>Get clear procedural support for your legal matter.</div>
+                <div>Give client matters a clearer structure without presenting the platform as legal advice.</div>
                 </div>
                 <div className={styles.heroListItem}>
                   <span>03</span>
-                  <div>Start using the workspace now and upgrade anytime for expanded features.</div>
+                  <div>Start using the workspace now and upgrade anytime as your workload grows.</div>
                 </div>
               </div>
             </div>
