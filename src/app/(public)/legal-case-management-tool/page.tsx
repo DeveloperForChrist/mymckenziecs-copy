@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import GuidePage, { type GuideLink, type GuideSection, type GuideStat } from '@/components/guides/GuidePage';
 import { buildPageMetadata } from '@/lib/seo';
 
-const title = 'Case Support Software for McKenzie Friends';
+const title = 'Case Support Software for Legal Support Practices';
 const description =
   'See how MyMcKenzieCS helps McKenzie Friends, legal support professionals, and the clients they support organise documents, notes, reminders, payments, and research in one workspace.';
 

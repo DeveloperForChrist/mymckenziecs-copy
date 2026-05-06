@@ -4,7 +4,7 @@ import getAppUrl from '@/lib/app-url'
 export const APP_FULL_NAME = 'MyMcKenzieCS'
 export const APP_SHORT_NAME = 'MyMcKenzieCS'
 export const DEFAULT_DESCRIPTION =
-  'MyMcKenzieCS is a case support workspace for McKenzie Friends, legal support professionals, and the clients they support.'
+  'MyMcKenzieCS is a case support workspace for independent legal support work, built for McKenzie Friends, paralegals, legal consultants, document-preparation providers, and the clients they support.'
 export const OPEN_GRAPH_LOCALE = 'en_GB'
 export const OPEN_GRAPH_ALTERNATE_LOCALES = ['en_US']
 export const SOCIAL_SHARE_IMAGE_PATH = '/favicon-source.png'

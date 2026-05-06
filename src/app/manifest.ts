@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'MyMcKenzieCS',
     short_name: 'MyMcKenzieCS',
-    description: 'MyMcKenzieCS is a case support workspace for McKenzie Friends, legal support professionals, and the clients they support.',
+    description: 'MyMcKenzieCS is a case support workspace for independent legal support work.',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',

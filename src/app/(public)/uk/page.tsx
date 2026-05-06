@@ -5,9 +5,9 @@ import { buildPageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = {
   ...buildPageMetadata({
-    title: 'Case Support Software for UK McKenzie Friends',
+    title: 'Case Support Software for UK Legal Support Practices',
     description:
-      'MyMcKenzieCS is a case support workspace for UK McKenzie Friends, legal support professionals, and the clients they support.',
+      'MyMcKenzieCS is a case support workspace for independent UK legal support work, built for McKenzie Friends, paralegals, legal consultants, document-preparation providers, and the clients they support.',
     path: '/uk',
   }),
 };
@@ -140,9 +140,9 @@ const guidePages = [
 export default function UkHomePage() {
   return (
     <MarketHomepage
-      audienceLabel="For UK McKenzie Friends, Legal Support Professionals, And Their Clients"
-      titleLines={['Run your McKenzie Friend practice', 'from one organised workspace.']}
-      description="Manage clients, documents, deadlines, notes, payments, and case progress in a calm, professional platform built for legal support work and the people being supported."
+      audienceLabel="For UK McKenzie Friends, Paralegals, Legal Consultants, And Their Clients"
+      titleLines={['Run your legal support practice', 'from one organised workspace.']}
+      description="Manage clients, documents, deadlines, notes, payments, and case progress in a calm, professional platform built for independent legal support work."
       guideHeading="Helpful guides for legal support work"
       commonProblems={commonProblems}
       whoItsFor={whoItsFor}
