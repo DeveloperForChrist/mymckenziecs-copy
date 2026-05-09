@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:webpack": "next dev --webpack",
+    "dev:polling": "WATCHPACK_POLLING=1 next dev --webpack",
     "dev:py": "python3 scripts/case-law/milvus_bridge.py",
     "build": "next build --webpack",
     "render:build": "bash scripts/render/build.sh",
@@ -20,7 +22,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "stripe:sync-passes": "node scripts/seed-stripe-passes.mjs"
+    "stripe:sync-passes": "node scripts/stripe/sync-stripe-passes.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.72.1",

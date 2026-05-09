@@ -1,30 +1,11 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import Link from 'next/link';
 import CaseLawSearchPageClient from '@/components/dashboard/CaseLawSearchPageClient';
+import { getDashboardSession } from '@/lib/auth/dashboard-session';
 import { getUserPlanData } from '@/lib/payments/user-plan';
-import { getUserLegalContext, isCaseLawAvailableForLegalContext } from '@/lib/legal/user-context';
 import { getAppRouteForMarket } from '@/lib/markets/app-routes';
 
 export default async function CaseLawSearchPage() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {
-          // No-op in server component render context.
-        },
-      },
-    }
-  );
-
-  const { data: authData } = await supabase.auth.getUser();
-  const authUser = authData?.user;
+  const { authUser, emailVerified } = await getDashboardSession();
 
   let initialUserPlan = 'guest';
   let initialHasPaidAccess = false;
@@ -32,10 +13,9 @@ export default async function CaseLawSearchPage() {
   let initialPublicMarket: 'GB' | 'US' = 'GB';
 
   if (authUser) {
-    const planData = await getUserPlanData(authUser.id, authUser.email ?? null);
+    const planData = await getUserPlanData(authUser.id, authUser.email ?? null, { emailVerified });
     initialPublicMarket = planData?.publicMarket === 'US' ? 'US' : 'GB';
-    const legalContext = await getUserLegalContext(authUser.id, authUser.user_metadata as any);
-    const caseLawAvailable = isCaseLawAvailableForLegalContext(legalContext);
+    const caseLawAvailable = Boolean(planData?.caseLawAvailable);
     const dashboardHref = getAppRouteForMarket('/dashboard', initialPublicMarket);
     const chatbotHref = getAppRouteForMarket('/chatbot', initialPublicMarket);
 

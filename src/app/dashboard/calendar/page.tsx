@@ -1,30 +1,12 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import Link from "next/link";
 import EnhancedCalendarClient from "@/components/dashboard/EnhancedCalendarClient";
+import { getDashboardSession } from '@/lib/auth/dashboard-session';
 import { hasReminderAccess } from '@/lib/plans/access';
 import { getUserPlanData } from '@/lib/payments/user-plan';
 import { getAppRouteForMarket } from '@/lib/markets/app-routes';
 
 export default async function CalendarPage() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {
-          // No-op in server component render context.
-        },
-      },
-    }
-  );
-
-  const { data: authData } = await supabase.auth.getUser();
-  const authUser = authData?.user;
+  const { supabase, authUser, emailVerified } = await getDashboardSession();
 
   let initialHasPaidAccess = false;
   let initialHasReminderAccess = false;
@@ -32,7 +14,7 @@ export default async function CalendarPage() {
   let initialPublicMarket: 'GB' | 'US' = 'GB';
 
   if (authUser) {
-    const planData = await getUserPlanData(authUser.id, authUser.email ?? null);
+    const planData = await getUserPlanData(authUser.id, authUser.email ?? null, { emailVerified });
     initialPublicMarket = planData?.publicMarket === 'US' ? 'US' : 'GB';
     initialHasPaidAccess = Boolean(planData?.platformAccess ?? planData?.paidAccess);
     initialHasReminderAccess = Boolean(planData?.paidAccess) && hasReminderAccess(planData?.plan || '');

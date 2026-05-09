@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { sendResendEmail } from '@/lib/email/resend'
 import { createHash, randomBytes } from 'node:crypto'
 import { getBillingMarketFromCountryCode } from '@/constants'
+import type { BillingMarket } from '@/constants'
 import { getAppRouteForMarket } from '@/lib/markets/app-routes'
 import {
   getCountryOption,
@@ -41,6 +42,17 @@ export async function POST(request: NextRequest) {
     const countryCode = typeof body?.countryCode === 'string' ? body.countryCode.trim().toUpperCase() : ''
     const jurisdictionCode = typeof body?.jurisdictionCode === 'string' ? body.jurisdictionCode.trim().toUpperCase() : ''
     const requestedRedirect = typeof body?.redirect === 'string' ? body.redirect : undefined
+    const audience = (
+      body?.audience ||
+      body?.billingAudience ||
+      body?.accountType ||
+      ''
+    )
+    const plan = typeof body?.plan === 'string' ? body.plan.trim() : ''
+    const market = String(body?.market || '').trim().toUpperCase() === 'US' ? 'US' : 'GB'
+    const isBusinessSignup =
+      String(audience).trim().toLowerCase() === 'business' ||
+      ['solo', 'team', 'enterprise'].includes(plan.toLowerCase())
 
     if (!fullName) {
       return NextResponse.json({ message: 'Full name is required.' }, { status: 400 })
@@ -54,11 +66,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Please choose a stronger password.' }, { status: 400 })
     }
 
-    if (!isSupportedCountryCode(countryCode)) {
+    if (!isBusinessSignup && !isSupportedCountryCode(countryCode)) {
       return NextResponse.json({ message: 'Please select the country your legal matter is in.' }, { status: 400 })
     }
 
-    if (!isSupportedJurisdictionCode(countryCode, jurisdictionCode)) {
+    if (!isBusinessSignup && !isSupportedJurisdictionCode(countryCode, jurisdictionCode)) {
       return NextResponse.json(
         {
           message: `Please select a valid ${getCountryOption(countryCode)?.jurisdictionLabel.toLowerCase() || 'jurisdiction'}.`,
@@ -67,20 +79,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const billingMarket = getBillingMarketFromCountryCode(countryCode)
+    const billingMarket: BillingMarket = isBusinessSignup ? market : getBillingMarketFromCountryCode(countryCode)
     const redirect = safeRedirectPath(
       requestedRedirect,
-      getAppRouteForMarket('/dashboard', billingMarket)
+      isBusinessSignup ? '/business/dashboard' : getAppRouteForMarket('/dashboard', billingMarket)
     )
-    const jurisdictionLabel = getJurisdictionLabel(countryCode, jurisdictionCode)
+    const jurisdictionLabel = isBusinessSignup ? null : getJurisdictionLabel(countryCode, jurisdictionCode)
+    const profileCountryCode = isBusinessSignup ? null : countryCode
+    const profileJurisdictionCode = isBusinessSignup ? null : jurisdictionCode
 
     const metadata = {
       full_name: fullName,
       first_name: firstName || fullName.split(' ')[0] || '',
       last_name: lastName,
       display_name: fullName,
-      country_code: countryCode,
-      jurisdiction_code: jurisdictionCode,
+      account_type: isBusinessSignup ? 'business' : 'litigant',
+      billing_audience: isBusinessSignup ? 'business' : 'litigant',
+      country_code: profileCountryCode,
+      jurisdiction_code: profileJurisdictionCode,
       jurisdiction_label: jurisdictionLabel,
     }
 
@@ -112,8 +128,8 @@ export async function POST(request: NextRequest) {
           id: userId,
           email,
           name: fullName,
-          country_code: countryCode,
-          jurisdiction_code: jurisdictionCode,
+          country_code: profileCountryCode,
+          jurisdiction_code: profileJurisdictionCode,
           jurisdiction_label: jurisdictionLabel,
           verification_token_hash: tokenHash,
           verification_token_expires_at: expiresAt,

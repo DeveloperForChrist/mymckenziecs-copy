@@ -134,6 +134,12 @@ export default function DashboardHomeClient({
   }, []);
 
   useEffect(() => {
+    // Avoid re-fetching plan on every navigation when we were preloaded by the server.
+    if (initialPlanLoaded) {
+      setPlanLoaded(true);
+      return;
+    }
+
     let cancelled = false;
     const loadPlan = async () => {
       try {
@@ -157,7 +163,7 @@ export default function DashboardHomeClient({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialPlanLoaded]);
 
   const refreshPlanState = async () => {
     const res = await fetch('/api/user/plan', { credentials: 'include', cache: 'no-store' });

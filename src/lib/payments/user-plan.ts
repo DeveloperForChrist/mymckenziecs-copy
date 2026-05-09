@@ -2,7 +2,11 @@ import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { isUserEmailVerified } from '@/lib/auth/account-verification';
 import { isHardLockedTrialWithoutBilling, resolvePlatformAccess } from '@/lib/payments/platform-access';
 import { getBillingMarketFromCountryCode } from '@/constants';
-import { getUserLegalContext } from '@/lib/legal/user-context';
+import {
+  getUserLegalContext,
+  isCaseLawAvailableForLegalContext,
+} from '@/lib/legal/user-context';
+import type { UserLegalContext } from '@/lib/legal/jurisdictions';
 import { planPriceForLabel } from '@/lib/plans/access';
 
 export type UserPlanData = {
@@ -11,6 +15,7 @@ export type UserPlanData = {
   planPrice: string;
   planCurrencySymbol: string;
   publicMarket: 'GB' | 'US';
+  caseLawAvailable: boolean;
   nextBillingDate: string | null;
   hasStripeCustomer: boolean;
   paidAccess: boolean;
@@ -25,6 +30,8 @@ export type UserPlanData = {
 
 type GetUserPlanOptions = {
   bypassCache?: boolean;
+  emailVerified?: boolean;
+  legalContext?: UserLegalContext | null;
 };
 
 type UserPlanCacheEntry = {
@@ -80,15 +87,19 @@ export function invalidateUserPlanCache(authUid: string) {
   userPlanCache.delete(cacheKey);
 }
 
-async function resolveUserPlanData(authUid: string): Promise<UserPlanData> {
+async function resolveUserPlanData(authUid: string, options?: GetUserPlanOptions): Promise<UserPlanData> {
   const snapshot = await getOrSyncUserEntitlementSnapshot(authUid);
   const rawPlan = snapshot?.plan_type || 'No plan';
-  const legalContext = await getUserLegalContext(authUid);
+  const [legalContext, emailVerified, hardLock] = await Promise.all([
+    options?.legalContext ? Promise.resolve(options.legalContext) : getUserLegalContext(authUid),
+    typeof options?.emailVerified === 'boolean'
+      ? Promise.resolve(options.emailVerified)
+      : isUserEmailVerified(authUid),
+    isHardLockedTrialWithoutBilling(authUid, snapshot),
+  ]);
   const billingMarket = getBillingMarketFromCountryCode(legalContext.countryCode);
   const planPrice = planPriceForLabel(rawPlan, billingMarket);
   const paidAccess = Boolean(snapshot?.paid_access);
-  const emailVerified = await isUserEmailVerified(authUid);
-  const hardLock = await isHardLockedTrialWithoutBilling(authUid, snapshot);
 
   return {
     plan: rawPlan,
@@ -96,6 +107,7 @@ async function resolveUserPlanData(authUid: string): Promise<UserPlanData> {
     planPrice,
     planCurrencySymbol: billingMarket === 'US' ? '$' : '£',
     publicMarket: billingMarket,
+    caseLawAvailable: isCaseLawAvailableForLegalContext(legalContext),
     nextBillingDate: snapshot?.next_billing_date || null,
     hasStripeCustomer: Boolean(snapshot?.has_stripe_customer),
     paidAccess,
@@ -116,7 +128,7 @@ export async function getUserPlanData(
 ): Promise<UserPlanData> {
   if (options?.bypassCache) {
     const startedAt = Date.now();
-    const value = await resolveUserPlanData(authUid);
+    const value = await resolveUserPlanData(authUid, options);
     logPlanPerf('resolve-nocache', startedAt, {
       user: authUid,
       paidAccess: value.paidAccess,
@@ -135,7 +147,7 @@ export async function getUserPlanData(
 
   const resolvePromise = (async () => {
     const startedAt = Date.now();
-    const value = await resolveUserPlanData(authUid);
+    const value = await resolveUserPlanData(authUid, options);
     writeCachedPlan(cacheKey, value);
     logPlanPerf('resolve', startedAt, {
       user: authUid,

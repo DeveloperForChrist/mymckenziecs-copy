@@ -79,6 +79,15 @@ export default function SignUpForm() {
   const [loading, setLoading] = useState(false)
 
   const selectedPlanId = (searchParams?.get('planId') || '').trim()
+  const selectedPlanName = (searchParams?.get('plan') || '').trim()
+  const audienceParam = (
+    searchParams?.get('audience') ||
+    searchParams?.get('billingAudience') ||
+    searchParams?.get('accountType') ||
+    ''
+  ).trim().toLowerCase()
+  const isBusinessPlan = ['solo', 'team', 'enterprise'].includes(selectedPlanName.toLowerCase())
+  const isBusinessSignup = audienceParam === 'business' || isBusinessPlan
   const redirectParam = (searchParams?.get('redirect') || '').trim()
   const publicMarket = getPublicMarket({
     pathname: redirectParam || pathname,
@@ -86,7 +95,9 @@ export default function SignUpForm() {
   })
   const termsHref = getPublicRouteForMarket('/terms', publicMarket)
   const privacyPolicyHref = getPublicRouteForMarket('/privacy-policy', publicMarket)
-  const fallbackRedirect = selectedPlanId
+  const fallbackRedirect = isBusinessSignup
+    ? '/business/dashboard'
+    : selectedPlanId
     ? getAppRouteForMarket(`/dashboard?activatePlan=${encodeURIComponent(selectedPlanId)}`, publicMarket)
     : getAppRouteForMarket('/dashboard', publicMarket)
   const nextRedirect =
@@ -100,6 +111,16 @@ export default function SignUpForm() {
 
   useEffect(() => {
     let cancelled = false
+
+    if (isBusinessSignup) {
+      setGeoHint({
+        status: 'ready',
+        message: '',
+      })
+      return () => {
+        cancelled = true
+      }
+    }
 
     const loadGeolocationSuggestion = async () => {
       try {
@@ -165,7 +186,7 @@ export default function SignUpForm() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [isBusinessSignup])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -191,14 +212,14 @@ export default function SignUpForm() {
       return
     }
 
-    if (!selectedCountry) {
+    if (!isBusinessSignup && !selectedCountry) {
       setError('Please select the country your legal matter is in.')
       setLoading(false)
       return
     }
 
-    if (!jurisdictionOptions.some((option) => option.code === formData.jurisdictionCode)) {
-      setError(`Please select your ${selectedCountry.jurisdictionLabel.toLowerCase()}.`)
+    if (!isBusinessSignup && !jurisdictionOptions.some((option) => option.code === formData.jurisdictionCode)) {
+      setError(`Please select your ${selectedCountry?.jurisdictionLabel.toLowerCase() || 'jurisdiction'}.`)
       setLoading(false)
       return
     }
@@ -219,8 +240,11 @@ export default function SignUpForm() {
           fullName: normalized,
           firstName,
           lastName,
-          countryCode: formData.countryCode,
-          jurisdictionCode: formData.jurisdictionCode,
+          countryCode: isBusinessSignup ? null : formData.countryCode,
+          jurisdictionCode: isBusinessSignup ? null : formData.jurisdictionCode,
+          audience: isBusinessSignup ? 'business' : 'litigant',
+          plan: selectedPlanName,
+          market: publicMarket,
           redirect: nextRedirect,
         }),
       })
@@ -299,82 +323,86 @@ export default function SignUpForm() {
         />
       </div>
 
-      <div>
-        <div className={styles.fieldHeader}>
-          <label htmlFor="countryCode" className={styles.label}>
-            Country of legal matter
-          </label>
-          {!shouldShowCountrySelect && selectedCountry && (
-            <button
-              type="button"
-              className={styles.inlineTextButton}
-              onClick={() => setEditingCountry(true)}
+      {!isBusinessSignup && (
+        <>
+          <div>
+            <div className={styles.fieldHeader}>
+              <label htmlFor="countryCode" className={styles.label}>
+                Country of legal matter
+              </label>
+              {!shouldShowCountrySelect && selectedCountry && (
+                <button
+                  type="button"
+                  className={styles.inlineTextButton}
+                  onClick={() => setEditingCountry(true)}
+                >
+                  Change
+                </button>
+              )}
+            </div>
+
+            {shouldShowCountrySelect ? (
+              <select
+                id="countryCode"
+                required
+                className={styles.select}
+                value={formData.countryCode}
+                onChange={(e) => {
+                  const nextCountryCode = e.target.value
+                  setFormData({
+                    ...formData,
+                    countryCode: nextCountryCode,
+                    jurisdictionCode: '',
+                  })
+                  setEditingCountry(false)
+                }}
+              >
+                <option value="" disabled>
+                  Select country
+                </option>
+                {SUPPORTED_COUNTRIES.map((country) => (
+                  <option key={country.code} value={country.code}>
+                    {country.label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                id="countryCode"
+                type="text"
+                className={styles.input}
+                value={selectedCountry.label}
+                readOnly
+                aria-readonly="true"
+              />
+            )}
+            <p className={styles.footnote}>{geoHint.message}</p>
+          </div>
+
+          <div>
+            <label htmlFor="jurisdictionCode" className={styles.label}>
+              {selectedCountry?.jurisdictionLabel || 'Jurisdiction'}
+            </label>
+            <select
+              id="jurisdictionCode"
+              required
+              className={styles.select}
+              value={formData.jurisdictionCode}
+              disabled={!selectedCountry}
+              onChange={(e) => setFormData({ ...formData, jurisdictionCode: e.target.value })}
             >
-              Change
-            </button>
-          )}
-        </div>
-
-        {shouldShowCountrySelect ? (
-          <select
-            id="countryCode"
-            required
-            className={styles.select}
-            value={formData.countryCode}
-            onChange={(e) => {
-              const nextCountryCode = e.target.value
-              setFormData({
-                ...formData,
-                countryCode: nextCountryCode,
-                jurisdictionCode: '',
-              })
-              setEditingCountry(false)
-            }}
-          >
-            <option value="" disabled>
-              Select country
-            </option>
-            {SUPPORTED_COUNTRIES.map((country) => (
-              <option key={country.code} value={country.code}>
-                {country.label}
+              <option value="" disabled>
+                {selectedCountry ? `Select ${selectedCountry.jurisdictionLabel.toLowerCase()}` : 'Select country first'}
               </option>
-            ))}
-          </select>
-        ) : (
-          <input
-            id="countryCode"
-            type="text"
-            className={styles.input}
-            value={selectedCountry.label}
-            readOnly
-            aria-readonly="true"
-          />
-        )}
-        <p className={styles.footnote}>{geoHint.message}</p>
-      </div>
-
-      <div>
-        <label htmlFor="jurisdictionCode" className={styles.label}>
-          {selectedCountry?.jurisdictionLabel || 'Jurisdiction'}
-        </label>
-        <select
-          id="jurisdictionCode"
-          required
-          className={styles.select}
-          value={formData.jurisdictionCode}
-          disabled={!selectedCountry}
-          onChange={(e) => setFormData({ ...formData, jurisdictionCode: e.target.value })}
-        >
-          <option value="" disabled>
-            {selectedCountry ? `Select ${selectedCountry.jurisdictionLabel.toLowerCase()}` : 'Select country first'}
-          </option>
-          {jurisdictionOptions.map((jurisdiction) => (
-            <option key={jurisdiction.code} value={jurisdiction.code}>
-              {jurisdiction.label}
-            </option>
-          ))}
-        </select>
-      </div>
+              {jurisdictionOptions.map((jurisdiction) => (
+                <option key={jurisdiction.code} value={jurisdiction.code}>
+                  {jurisdiction.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </>
+      )}
 
       <div>
         <label htmlFor="password" className={styles.label}>
