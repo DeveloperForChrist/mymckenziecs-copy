@@ -1,9 +1,15 @@
 import DashboardHomeClient from '@/components/dashboard/DashboardHomeClient';
 import { getUserPlanData } from '@/lib/payments/user-plan';
 import { getDashboardSession } from '@/lib/auth/dashboard-session';
+import { getAccountTypeForUser } from '@/lib/auth/account-type';
+import { redirect } from 'next/navigation';
 
 export default async function DashboardPage() {
   const { authUser, emailVerified } = await getDashboardSession();
+
+  if (authUser && await getAccountTypeForUser(authUser) === 'business') {
+    redirect('/business/dashboard');
+  }
 
   let initialPlan = 'No plan';
   let initialPlanStatus = 'inactive';

@@ -28,7 +28,7 @@ export default function ChatEmptyState({ authLoaded, hasUser }: ChatEmptyStatePr
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'flex-start',
+            justifyContent: 'center',
             width: '100%',
             maxWidth: '700px',
             margin: '0 auto',
@@ -36,8 +36,7 @@ export default function ChatEmptyState({ authLoaded, hasUser }: ChatEmptyStatePr
             fontFamily: 'inherit',
             fontSize: '17px',
             fontWeight: 500,
-            minHeight: '120px',
-            marginTop: '8vh',
+            minHeight: '50vh',
           }}
         >
           <p style={{

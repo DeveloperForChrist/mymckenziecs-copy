@@ -125,42 +125,8 @@ export default function RouteTitleManager() {
 
   useLayoutEffect(() => {
     const nextTitle = pageTitle === APP_NAME ? APP_NAME : `${pageTitle} | ${APP_NAME}`
-    const applyTitle = () => {
-      if (document.title !== nextTitle) {
-        document.title = nextTitle
-      }
-    }
-
-    applyTitle()
-    const raf = requestAnimationFrame(applyTitle)
-    const timer = window.setTimeout(applyTitle, 120)
-    const timer2 = window.setTimeout(applyTitle, 500)
-    const timer3 = window.setTimeout(applyTitle, 1000)
-
-    const titleObserver = new MutationObserver(() => applyTitle())
-    const headObserver = new MutationObserver(() => applyTitle())
-    const titleNode = document.querySelector('title')
-    if (titleNode) {
-      titleObserver.observe(titleNode, { childList: true, characterData: true, subtree: true })
-    }
-    if (document.head) {
-      headObserver.observe(document.head, { childList: true, subtree: true })
-    }
-
-    const onFocus = () => applyTitle()
-    const onVisibility = () => applyTitle()
-    window.addEventListener('focus', onFocus)
-    document.addEventListener('visibilitychange', onVisibility)
-
-    return () => {
-      cancelAnimationFrame(raf)
-      window.clearTimeout(timer)
-      window.clearTimeout(timer2)
-      window.clearTimeout(timer3)
-      titleObserver.disconnect()
-      headObserver.disconnect()
-      window.removeEventListener('focus', onFocus)
-      document.removeEventListener('visibilitychange', onVisibility)
+    if (document.title !== nextTitle) {
+      document.title = nextTitle
     }
   }, [pageTitle])
 

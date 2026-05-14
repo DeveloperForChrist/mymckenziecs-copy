@@ -8,6 +8,7 @@ type BusinessPricingPageAlignedProps = {
     enterprise: string;
   };
   regionNote: string;
+  signInHref?: string;
 };
 
 type BusinessPlan = {
@@ -29,6 +30,7 @@ export default function BusinessPricingPageAligned({
   currencySymbol,
   prices,
   regionNote,
+  signInHref = '/auth/signin',
 }: BusinessPricingPageAlignedProps) {
   const selectorHref = `${marketPrefix}/pricing`;
   const litigantsHref = `${marketPrefix}/pricing/litigants`;
@@ -154,19 +156,37 @@ export default function BusinessPricingPageAligned({
                 letterSpacing: '0.5px'
               }}>MyMcKenzieCS</h2>
             </a>
-            <a
-              href={selectorHref}
-              style={{
-                color: '#ffffff',
-                textDecoration: 'none',
-                padding: '0.5rem 1rem',
-                transition: 'color 0.3s ease',
-                fontSize: 'clamp(0.92rem, 3.1vw, 1.1rem)',
-                fontWeight: 600
-              }}
-            >
-              Pricing options
-            </a>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <a
+                href={selectorHref}
+                style={{
+                  color: 'rgba(255,255,255,0.75)',
+                  textDecoration: 'none',
+                  padding: '0.5rem 1rem',
+                  transition: 'color 0.2s ease',
+                  fontSize: 'clamp(0.88rem, 2.8vw, 1rem)',
+                  fontWeight: 500
+                }}
+              >
+                Pricing options
+              </a>
+              <a
+                href={signInHref}
+                style={{
+                  color: '#ffffff',
+                  textDecoration: 'none',
+                  padding: '0.5rem 1.1rem',
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  borderRadius: '8px',
+                  fontSize: 'clamp(0.88rem, 2.8vw, 1rem)',
+                  fontWeight: 600,
+                  transition: 'border-color 0.2s ease, background 0.2s ease',
+                  background: 'rgba(255,255,255,0.06)',
+                }}
+              >
+                Sign in
+              </a>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gap: 'clamp(1.2rem, 4vw, 2.5rem)', alignItems: 'center', gridTemplateColumns: 'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', marginBottom: '3.5rem' }}>
@@ -188,6 +208,10 @@ export default function BusinessPricingPageAligned({
               </p>
               <p style={{ marginTop: '14px', color: '#cbd5f5', fontSize: '0.95rem' }}>
                 Looking for personal case support? <a href={litigantsHref} style={{ color: '#f8fafc', textDecoration: 'underline' }}>View litigant pricing</a>
+              </p>
+              <p style={{ marginTop: '10px', color: 'rgba(255,255,255,0.55)', fontSize: '0.88rem' }}>
+                Already have a business account?{' '}
+                <a href={signInHref} style={{ color: '#fde68a', textDecoration: 'underline', fontWeight: 600 }}>Sign in</a>
               </p>
             </div>
             <div style={{

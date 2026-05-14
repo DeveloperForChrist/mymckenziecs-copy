@@ -11,6 +11,7 @@ import { getAppMarketFromPathname, getAppRouteForMarket } from '@/lib/markets/ap
 type UseConversationBootstrapArgs = {
   normalizeUserId: (value?: string | null) => string | null
   generateUUID: () => string
+  conversationHomeHref?: string
   setUserId: Dispatch<SetStateAction<string>>
   setMessages: Dispatch<SetStateAction<Message[]>>
   setConversationId: Dispatch<SetStateAction<string>>
@@ -22,6 +23,7 @@ type UseConversationBootstrapArgs = {
 export function useConversationBootstrap({
   normalizeUserId,
   generateUUID,
+  conversationHomeHref,
   setUserId,
   setMessages,
   setConversationId,
@@ -34,7 +36,7 @@ export function useConversationBootstrap({
   useEffect(() => {
     const conversationStorageKey = 'currentConversationId'
     const lastSignInAtStorageKey = 'chatbotLastSignInAt'
-    const chatbotHref = getAppRouteForMarket('/chatbot', getAppMarketFromPathname(pathname))
+    const chatbotHref = conversationHomeHref || getAppRouteForMarket('/chatbot', getAppMarketFromPathname(pathname))
     let cancelled = false
 
     const loadMessagesForConversation = async (targetConversationId: string): Promise<number> => {
@@ -188,6 +190,7 @@ export function useConversationBootstrap({
   }, [
     normalizeUserId,
     generateUUID,
+    conversationHomeHref,
     setUserId,
     setMessages,
     setConversationId,

@@ -674,3 +674,20 @@
     align-items: stretch;
   }
 }
+
+/* ── Business dashboard dark mode ── */
+:global([data-theme="dark"]) .calendarPage{color:#e5e7eb}
+:global([data-theme="dark"]) .header,:global([data-theme="dark"]) .card{background:#242424;border-color:#333;box-shadow:none}
+:global([data-theme="dark"]) .headerTitle h1,:global([data-theme="dark"]) .monthTitle,:global([data-theme="dark"]) .dayNumber,:global([data-theme="dark"]) .eventTitle,:global([data-theme="dark"]) .preferenceLabel{color:#e5e7eb}
+:global([data-theme="dark"]) .headerTitle p,:global([data-theme="dark"]) .dayHeader,:global([data-theme="dark"]) .sidebarTitle,:global([data-theme="dark"]) .eventMeta,:global([data-theme="dark"]) .emptyState,:global([data-theme="dark"]) .formGroup label,:global([data-theme="dark"]) .preferenceHint{color:#9ca3af}
+:global([data-theme="dark"]) .navButton,:global([data-theme="dark"]) .inlineButton,:global([data-theme="dark"]) .formGroup input,:global([data-theme="dark"]) .formGroup select,:global([data-theme="dark"]) .formGroup textarea{background:#2d2d2d;border-color:#444;color:#e5e7eb}
+:global([data-theme="dark"]) .navButton:hover,:global([data-theme="dark"]) .inlineButton:hover{background:#312450;border-color:#7c3aed;color:#c4b5fd}
+:global([data-theme="dark"]) .dayCell,:global([data-theme="dark"]) .eventItem,:global([data-theme="dark"]) .emptyState{background:#2d2d2d;border-color:#444}
+:global([data-theme="dark"]) .dayCell:hover{box-shadow:0 10px 24px rgba(0,0,0,.3)}
+:global([data-theme="dark"]) .dayCellToday{background:#153838}
+:global([data-theme="dark"]) .eventsModeSwitch{background:#2d2d2d;border-color:#444}
+:global([data-theme="dark"]) .eventsModeButton{color:#9ca3af}
+:global([data-theme="dark"]) .eventsModeButtonActive{background:#3a3a3a;color:#fff}
+:global([data-theme="dark"]) .toggleButton{background:#333;border-color:#444}
+:global([data-theme="dark"]) .toggleKnob{background:#e5e7eb}
+:global([data-theme="dark"]) .formGroup input:disabled,:global([data-theme="dark"]) .formGroup select:disabled,:global([data-theme="dark"]) .formGroup textarea:disabled{background:#242424;color:#6b7280}

@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import BusinessDashboardClient from '@/components/business/BusinessDashboardClient';
 import { isBillingEligibleUser } from '@/lib/auth/session-user';
+import { getAccountTypeForUser } from '@/lib/auth/account-type';
 import { NO_INDEX_METADATA } from '@/lib/seo';
 import type { InitialChatPlanState } from '@/components/chatbot/hooks/useChatAuthPlan';
 
@@ -34,6 +35,10 @@ export default async function BusinessDashboardPage() {
 
   if (!authUser || !isBillingEligibleUser(authUser)) {
     redirect('/auth/signin?redirect=/business/dashboard');
+  }
+
+  if (await getAccountTypeForUser(authUser) !== 'business') {
+    redirect('/dashboard');
   }
 
   const initialAuthPlan: InitialChatPlanState = {

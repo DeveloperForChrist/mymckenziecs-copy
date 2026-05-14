@@ -11,6 +11,7 @@ type DocumentsActionBarProps = {
   uploading: boolean;
   canUpload: boolean;
   onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onCreateFolder: () => void;
 };
 
 export default function DocumentsActionBar({
@@ -22,6 +23,7 @@ export default function DocumentsActionBar({
   uploading,
   canUpload,
   onUpload,
+  onCreateFolder,
 }: DocumentsActionBarProps) {
   return (
     <div className={styles.actionBar}>
@@ -37,31 +39,30 @@ export default function DocumentsActionBar({
       </div>
 
       <div className={styles.actionButtons}>
-        <div className={styles.uploadGroup}>
-          <label className={styles.uploadGroupLabel}>Upload to</label>
-          <div className={styles.uploadGroupControls}>
-            <select
-              className={styles.folderSelect}
-              value={uploadFolderId}
-              disabled={!canUpload || uploading}
-              onChange={(event) => onUploadFolderChange(event.target.value)}
-            >
-              <option value="">No folder</option>
-              {folders.map((folder) => (
-                <option key={folder.id} value={folder.id}>
-                  {folder.name}
-                </option>
-              ))}
-            </select>
-            <label
-              className={`${styles.primaryBtn} ${!canUpload ? styles.primaryBtnDisabled : ""}`}
-              aria-disabled={!canUpload}
-            >
-              {canUpload ? (uploading ? "Uploading…" : "Upload +") : "Upload locked"}
-              <input type="file" multiple hidden onChange={onUpload} disabled={!canUpload || uploading} />
-            </label>
-          </div>
-        </div>
+        <button className={styles.secondaryBtn} onClick={onCreateFolder} type="button">
+          <i className="bx bx-folder-plus"></i>
+          New folder
+        </button>
+        <select
+          className={styles.folderSelect}
+          value={uploadFolderId}
+          disabled={!canUpload || uploading}
+          onChange={(event) => onUploadFolderChange(event.target.value)}
+        >
+          <option value="">No folder</option>
+          {folders.map((folder) => (
+            <option key={folder.id} value={folder.id}>
+              {folder.name}
+            </option>
+          ))}
+        </select>
+        <label
+          className={`${styles.primaryBtn} ${!canUpload ? styles.primaryBtnDisabled : ""}`}
+          aria-disabled={!canUpload}
+        >
+          {canUpload ? (uploading ? "Uploading…" : "Upload +") : "Upload locked"}
+          <input type="file" multiple hidden onChange={onUpload} disabled={!canUpload || uploading} />
+        </label>
       </div>
     </div>
   );

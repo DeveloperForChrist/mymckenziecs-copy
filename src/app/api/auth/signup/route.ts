@@ -128,6 +128,8 @@ export async function POST(request: NextRequest) {
           id: userId,
           email,
           name: fullName,
+          account_type: isBusinessSignup ? 'business' : 'litigant',
+          billing_audience: isBusinessSignup ? 'business' : 'litigant',
           country_code: profileCountryCode,
           jurisdiction_code: profileJurisdictionCode,
           jurisdiction_label: jurisdictionLabel,

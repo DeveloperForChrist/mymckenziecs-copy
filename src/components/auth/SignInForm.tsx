@@ -35,6 +35,7 @@ export default function SignInForm() {
     explicitMarket: searchParams?.get('market'),
   })
   const defaultDashboardHref = getAppRouteForMarket('/dashboard', publicMarket)
+  const businessDashboardHref = '/business/dashboard'
   const nextPath = redirectParam.startsWith('/') ? redirectParam : defaultDashboardHref
   const [formData, setFormData] = useState({
     email: '',
@@ -102,6 +103,7 @@ export default function SignInForm() {
       }
 
       let isVerified = true
+      let accountType = 'litigant'
       try {
         const verificationRes = await fetch('/api/user', {
           credentials: 'include',
@@ -113,14 +115,26 @@ export default function SignInForm() {
             typeof verificationPayload?.emailVerified === 'boolean'
               ? verificationPayload.emailVerified
               : true
+          accountType = String(verificationPayload?.accountType || 'litigant').trim().toLowerCase()
         }
       } catch {
         // Fail open to avoid blocking verified users on transient API issues.
         isVerified = true
       }
 
+      const isBusinessAccount = accountType === 'business'
+      const isDashboardRedirect =
+        nextPath === defaultDashboardHref ||
+        nextPath === '/dashboard' ||
+        nextPath.startsWith('/dashboard?') ||
+        nextPath === '/us/dashboard' ||
+        nextPath.startsWith('/us/dashboard?')
+      const accountDashboardHref = isBusinessAccount && isDashboardRedirect
+        ? businessDashboardHref
+        : nextPath
+
       if (!isVerified) {
-        const verifyRedirectTarget = nextPath
+        const verifyRedirectTarget = accountDashboardHref
         const verifyRedirect = `/auth/verify-email?redirect=${encodeURIComponent(verifyRedirectTarget)}`
         router.push(verifyRedirect)
         router.refresh()
@@ -142,14 +156,14 @@ export default function SignInForm() {
       }
 
       if (!hasPaidPlan) {
-        router.push(nextPath)
+        router.push(accountDashboardHref)
         router.refresh()
         return
       }
 
-      const verifiedRedirect = nextPath.startsWith('/auth/verify-email')
-        ? defaultDashboardHref
-        : nextPath
+      const verifiedRedirect = accountDashboardHref.startsWith('/auth/verify-email')
+        ? (isBusinessAccount ? businessDashboardHref : defaultDashboardHref)
+        : accountDashboardHref
       router.push(verifiedRedirect)
       router.refresh()
     } catch (err: any) {

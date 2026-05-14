@@ -25,6 +25,7 @@ type ChatComposerProps = {
   showWordLimitWarning: boolean
   isPlanLocked: boolean
   planLockMessage?: string
+  dockToPane?: boolean
 }
 
 export default function ChatComposer({
@@ -48,15 +49,28 @@ export default function ChatComposer({
   showWordLimitWarning,
   isPlanLocked,
   planLockMessage,
+  dockToPane = false,
 }: ChatComposerProps) {
   const controlButtonSize = 'clamp(28px, 1.15vw + 22px, 40px)'
   const controlIconSize = 'clamp(16px, 0.45vw + 14px, 22px)'
   const controlFontSize = 'clamp(12px, 0.2vw + 11px, 14px)'
-  const composerShellMaxWidth = 'min(760px, 100vw)'
-  const composerPanelMaxWidth = 'min(700px, 100vw)'
+  const composerShellMaxWidth = 'min(760px, 100%)'
+  const composerPanelMaxWidth = 'min(700px, 100%)'
 
   return (
-    <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0px', position: 'relative', alignItems: 'center' }}>
+    <form
+      onSubmit={onSubmit}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0px',
+        position: 'relative',
+        alignItems: 'center',
+        width: '100%',
+        flexShrink: 0,
+        zIndex: 50,
+      }}
+    >
       {showGuestSignupModal && (
         <div
           style={{
@@ -139,15 +153,17 @@ export default function ChatComposer({
       )}
       <div
         style={{
-          position: 'fixed',
-          left: 0,
-          right: 0,
-          bottom: 0,
+          position: dockToPane ? 'relative' : 'fixed',
+          left: dockToPane ? undefined : 0,
+          right: dockToPane ? undefined : 0,
+          bottom: dockToPane ? undefined : 0,
           width: '100%',
           padding: '0 max(10px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left))',
           pointerEvents: 'auto',
           zIndex: 50,
-          background: 'transparent',
+          background: dockToPane
+            ? 'linear-gradient(180deg, rgba(39,4,39,0) 0%, rgba(39,4,39,0.84) 28%, #270427 100%)'
+            : 'transparent',
         }}
       >
         <div style={{ width: '100%', maxWidth: composerShellMaxWidth, margin: '0 auto', position: 'relative', pointerEvents: 'auto', display: 'flex', justifyContent: 'center' }}>
@@ -406,7 +422,7 @@ export default function ChatComposer({
             <div
               style={{
                 width: '100%',
-                maxWidth: '700px',
+                maxWidth: 'min(700px, 100%)',
                 margin: '10px auto 0',
                 textAlign: 'center',
                 fontSize: 'clamp(11px, 2.8vw, 13px)',

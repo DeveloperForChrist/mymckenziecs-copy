@@ -5,7 +5,7 @@ import { getSupabaseBrowserClient } from "@/lib/database/supabase-browser";
 import { getAppMarketFromPathname, getAppRouteForMarket } from "@/lib/markets/app-routes";
 import styles from "./documents-page-new.module.css";
 import DocumentsActionBar from "./documents/DocumentsActionBar";
-import DocumentsFilters from "./documents/DocumentsFilters";
+import DocumentsFilters, { type FileTypeFilter } from "./documents/DocumentsFilters";
 import DocumentsFolderModal from "./documents/DocumentsFolderModal";
 import DocumentsHeader from "./documents/DocumentsHeader";
 import DocumentsSidebar from "./documents/DocumentsSidebar";
@@ -16,6 +16,7 @@ import type { Document, Folder } from "./documents/types";
 type DocumentsClientProps = {
   initialCanUpload?: boolean;
   initialPlanLoaded?: boolean;
+  dashboardHrefOverride?: string;
 };
 
 const DOCUMENTS_PAGE_SIZE = 100;
@@ -37,8 +38,11 @@ const mapApiDocument = (x: any, folderMap: Record<string, string>, folderOverrid
 export default function DocumentsClient({
   initialCanUpload = false,
   initialPlanLoaded = false,
+  dashboardHrefOverride,
 }: DocumentsClientProps) {
   const [activeFilter, setActiveFilter] = useState<'recents'|'starred'>('recents');
+  const [fileTypeFilter, setFileTypeFilter] = useState<FileTypeFilter>('all');
+  const [activeSection, setActiveSection] = useState<'home'|'myfiles'|'shared'|'recycle'>('home');
   const [activeFolder, setActiveFolder] = useState<string|null>(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -49,6 +53,8 @@ export default function DocumentsClient({
   const [folderMap, setFolderMap] = useState<Record<string, string>>({});
   const [uploadFolderId, setUploadFolderId] = useState<string>('');
   const [uid, setUid] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>('You');
+  const uploadInputRef = React.useRef<HTMLInputElement>(null);
   const [viewingDocument, setViewingDocument] = useState<Document | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewText, setPreviewText] = useState<string | null>(null);
@@ -66,7 +72,7 @@ export default function DocumentsClient({
   const [canUpload, setCanUpload] = useState(Boolean(initialCanUpload));
   const [planLoaded, setPlanLoaded] = useState(Boolean(initialPlanLoaded));
   const appMarket = getAppMarketFromPathname(pathname);
-  const dashboardHref = getAppRouteForMarket('/dashboard', appMarket);
+  const dashboardHref = dashboardHrefOverride || getAppRouteForMarket('/dashboard', appMarket);
   const documentsHref = getAppRouteForMarket('/dashboard/documents', appMarket);
 
   const readApiJson = async (res: Response) => {
@@ -86,9 +92,19 @@ export default function DocumentsClient({
     const supabase = getSupabaseBrowserClient();
     supabase.auth.getUser().then(({ data }) => {
       setUid(data?.user?.id || null);
+      const u = data?.user;
+      if (u) {
+        const name = u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'You';
+        setUserName(name);
+      }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUid(session?.user?.id || null);
+      if (session?.user) {
+        const u = session.user;
+        const name = u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'You';
+        setUserName(name);
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -324,6 +340,14 @@ export default function DocumentsClient({
 
   const confirmDeleteFolder = (folderId: string) => {
     setCustomFolders(p => p.filter(f => f.id !== folderId));
+    setDocuments(p => p.map(d => d.folderId === folderId ? { ...d, folderId: undefined } : d));
+    setFolderMap(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(docId => {
+        if (next[docId] === folderId) delete next[docId];
+      });
+      return next;
+    });
     if (activeFolder === folderId) {
       setActiveFolder(null);
       try { router.replace(documentsHref); } catch(e){}
@@ -337,7 +361,11 @@ export default function DocumentsClient({
 
   const handleCreateFolder = () => {
     if (newFolderName.trim()) {
-      setCustomFolders(p => [...p, { id: `folder-${Date.now()}`, name: newFolderName.trim() }]);
+      const folder = { id: `folder-${Date.now()}`, name: newFolderName.trim() };
+      setCustomFolders(p => [...p, folder]);
+      setActiveFolder(folder.id);
+      setUploadFolderId(folder.id);
+      try { router.replace(getAppRouteForMarket(`/dashboard/documents?folder=${encodeURIComponent(folder.id)}`, appMarket)); } catch (_) {}
       setShowFolderModal(false);
       setNewFolderName('');
     }
@@ -604,15 +632,37 @@ export default function DocumentsClient({
     let arr = [...documents];
     if (activeFilter === 'starred') arr = arr.filter(d => d.starred);
     if (activeFolder) arr = arr.filter(d => d.folderId === activeFolder);
+    if (fileTypeFilter !== 'all') {
+      arr = arr.filter(doc => {
+        const name = (doc.title || '').toLowerCase();
+        const mime = (doc.mimeType || '').toLowerCase();
+        switch (fileTypeFilter) {
+          case 'word': return mime.includes('word') || name.endsWith('.doc') || name.endsWith('.docx');
+          case 'excel': return mime.includes('excel') || mime.includes('spreadsheet') || name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.csv');
+          case 'powerpoint': return mime.includes('powerpoint') || mime.includes('presentation') || name.endsWith('.pptx') || name.endsWith('.ppt');
+          case 'pdf': return mime.includes('pdf') || name.endsWith('.pdf');
+          case 'image': return mime.startsWith('image/') || /\.(png|jpe?g|gif|webp|svg|bmp)$/.test(name);
+          default: return true;
+        }
+      });
+    }
     if (searchQuery) arr = arr.filter(i => i.title.toLowerCase().includes(searchQuery.toLowerCase()));
     return arr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [documents, activeFilter, activeFolder, searchQuery]);
+  }, [documents, activeFilter, activeFolder, fileTypeFilter, searchQuery]);
 
   const totalDocs = documents.length;
   const starredDocs = documents.filter(d => d.starred).length;
   const totalBytes = documents.reduce((acc, doc) => acc + (doc.size || 0), 0);
   const activeFolderName = activeFolder ? folders.find(f => f.id === activeFolder)?.name : 'All files';
   const storageLabel = fmtSize(totalBytes);
+  const folderCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    documents.forEach(doc => {
+      if (!doc.folderId) return;
+      counts[doc.folderId] = (counts[doc.folderId] || 0) + 1;
+    });
+    return counts;
+  }, [documents]);
 
   const handleSelectAllFolders = () => {
     setActiveFolder(null);
@@ -651,14 +701,26 @@ export default function DocumentsClient({
 
   return (
     <div className={styles.container}>
+      <input
+        ref={uploadInputRef}
+        type="file"
+        multiple
+        hidden
+        onChange={handleUpload}
+        disabled={!canUpload || uploading}
+      />
       <DocumentsSidebar
         folders={folders}
         activeFolderId={activeFolder}
+        activeSection={activeSection}
         onSelectAll={handleSelectAllFolders}
         onSelectFolder={handleSelectFolder}
         onDeleteFolder={deleteFolder}
         onCreateFolder={createFolder}
-        dashboardHref={dashboardHref}
+        onSelectSection={setActiveSection}
+        canUpload={canUpload}
+        userName={userName}
+        onUploadTrigger={() => uploadInputRef.current?.click()}
       />
 
       {/* Main Content */}
@@ -667,7 +729,6 @@ export default function DocumentsClient({
           title={activeFolderName || 'All files'}
           totalDocs={totalDocs}
           starredDocs={starredDocs}
-          storageLabel={storageLabel}
         />
 
         <DocumentsActionBar
@@ -679,6 +740,7 @@ export default function DocumentsClient({
           uploading={uploading}
           canUpload={canUpload}
           onUpload={handleUpload}
+          onCreateFolder={createFolder}
         />
         {!canUpload && planLoaded && (
           <p className={styles.readOnlyNotice}>
@@ -689,7 +751,37 @@ export default function DocumentsClient({
           <p style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '-8px' }}>{uploadError}</p>
         )}
 
-        <DocumentsFilters activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+        <DocumentsFilters
+          activeFilter={activeFilter}
+          fileTypeFilter={fileTypeFilter}
+          onFilterChange={setActiveFilter}
+          onFileTypeChange={setFileTypeFilter}
+        />
+
+        {!activeFolder && activeFilter === 'recents' && folders.length > 0 && (
+          <section className={styles.folderTilesSection} aria-label="Folders">
+            <div className={styles.sectionHeader}>
+              <h2>Folders</h2>
+              <span>{folders.length} folder{folders.length === 1 ? '' : 's'}</span>
+            </div>
+            <div className={styles.folderTiles}>
+              {folders.map(folder => (
+                <button
+                  key={folder.id}
+                  type="button"
+                  className={styles.folderTile}
+                  onClick={() => handleSelectFolder(folder.id)}
+                >
+                  <span className={styles.folderTileIcon}><i className="bx bxs-folder"></i></span>
+                  <span className={styles.folderTileText}>
+                    <strong>{folder.name}</strong>
+                    <small>{folderCounts[folder.id] || 0} file{(folderCounts[folder.id] || 0) === 1 ? '' : 's'}</small>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* File List */}
         <div className={styles.fileListContainer}>
@@ -712,6 +804,7 @@ export default function DocumentsClient({
                 canDelete={canUpload}
                 onDelete={deleteDocument}
                 onFolderChange={handleFolderAssignment}
+                userName={userName}
               />
               {documentsHasMore && (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0 4px' }}>

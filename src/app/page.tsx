@@ -5,9 +5,9 @@ import { buildPageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = {
   ...buildPageMetadata({
-    title: 'Case Support Software for Legal Support Practices',
+    title: 'Case Support Software for UK Legal Support Practices',
     description:
-      'MyMcKenzieCS is a case support workspace for independent legal support work, built for McKenzie Friends, paralegals, legal consultants, document-preparation providers, and the clients they support.',
+      'MyMcKenzieCS is a case support workspace for independent UK legal support work, built for McKenzie Friends, paralegals, legal consultants, document-preparation providers, and the clients they support.',
     path: '/',
   }),
 };
@@ -82,22 +82,13 @@ const plans = [
   {
     name: 'Basic',
     price: '18',
-    bullets: [
-      'MyMcKenzieCS Basic Assistant',
-      '10 document storage',
-      'Conversation history included'
-    ]
+    bullets: ['MyMcKenzieCS Basic Assistant', '10 document storage', 'Conversation history included'],
   },
   {
     name: 'Premium',
     price: '32',
-    bullets: [
-      'MyMcKenzieCS Smart Assistant',
-      '25 document storage',
-      'Conversation history included',
-      DEADLINE_REMINDER_FEATURE
-    ],
-    highlight: true
+    bullets: ['MyMcKenzieCS Smart Assistant', '25 document storage', 'Conversation history included', DEADLINE_REMINDER_FEATURE],
+    highlight: true,
   },
   {
     name: 'Premium +',
@@ -108,48 +99,48 @@ const plans = [
       'Persistent chat history',
       'Advanced case law retrieval and study',
       'Enhanced research support',
-      DEADLINE_REMINDER_FEATURE
-    ]
-  }
+      DEADLINE_REMINDER_FEATURE,
+    ],
+  },
 ];
 
 const guidePages = [
   {
-    href: '/litigant-in-person-uk',
+    href: '/uk/litigant-in-person-uk',
     title: 'Litigant in person UK guide',
     text: 'Understand self-representation, your practical role, and the preparation habits that matter most.',
   },
   {
-    href: '/how-to-prepare-small-claims-court-uk',
+    href: '/uk/how-to-prepare-small-claims-court-uk',
     title: 'How to prepare for small claims court UK',
     text: 'A step-by-step guide to preparing your papers, evidence, deadlines, and hearing file.',
   },
   {
-    href: '/organise-court-documents-uk',
+    href: '/uk/organise-court-documents-uk',
     title: 'How to organise court documents UK',
     text: 'Learn how to sort pleadings, orders, evidence, service records, and working notes into a usable case file.',
   },
   {
-    href: '/court-bundle-preparation-uk',
+    href: '/uk/court-bundle-preparation-uk',
     title: 'Court bundle preparation UK',
     text: 'Learn how to turn the case file into a paginated, indexed hearing bundle when the court or order requires one.',
   },
   {
-    href: '/do-you-need-a-lawyer-for-small-claims-court-uk',
+    href: '/uk/do-you-need-a-lawyer-for-small-claims-court-uk',
     title: 'Do you need a lawyer for small claims court UK?',
     text: 'See when people handle small claims without a lawyer and where professional advice may still help.',
   },
   {
-    href: '/legal-case-management-tool',
+    href: '/uk/legal-case-management-tool',
     title: 'Legal case management tool',
     text: 'See how documents, notes, reminders, and research fit into one court-preparation workflow.',
   },
 ];
 
-export default function HomePage() {
+export default function UkHomePage() {
   return (
     <MarketHomepage
-      audienceLabel="For McKenzie Friends, Paralegals, Legal Consultants, And Their Clients"
+      audienceLabel="For UK McKenzie Friends, Paralegals, Legal Consultants, And Their Clients"
       titleLines={['Run your legal support practice', 'from one organised workspace.']}
       description="Manage clients, documents, deadlines, notes, payments, and case progress in a calm, professional platform built for independent legal support work."
       guideHeading="Helpful guides for legal support work"
@@ -158,14 +149,22 @@ export default function HomePage() {
       useCases={useCases}
       guidePages={guidePages}
       plans={plans}
-      pricingHref="/pricing"
-      howItWorksHref="/legal-case-management-tool"
-      learnBasicsHref="/litigant-in-person-uk"
-      comparePlansHref="/pricing"
-      helpHref="/help"
-      aboutHref="/about"
-      faqHref="/faq"
-      marketSwitch={{ href: '/us', label: 'Looking for the U.S. version? Open the U.S. site' }}
+      pricingHref="/uk/pricing"
+      howItWorksHref="/uk/legal-case-management-tool"
+      contactFormHref="/contact-form"
+      directoryHref="/directory"
+      learnBasicsHref="/uk/litigant-in-person-uk"
+      comparePlansHref="/uk/pricing"
+      helpHref="/uk/help"
+      aboutHref="/uk/about"
+      faqHref="/uk/faq"
+      footerLinks={[
+        { href: '/uk/privacy-policy', label: 'Privacy Policy' },
+        { href: '/uk/terms', label: 'Terms & Conditions' },
+        { href: '/uk/cookie-policy', label: 'Cookie Policy' },
+        { href: '/uk/contact', label: 'Contact' },
+      ]}
+      marketSwitch={{ href: '/?market=US', label: 'Looking for the U.S. version? Open the U.S. site' }}
       ctaTitle="Start organising your client work now."
       ctaText="Start with one client matter, then keep documents, deadlines, notes, and preparation context in the same workspace."
     />

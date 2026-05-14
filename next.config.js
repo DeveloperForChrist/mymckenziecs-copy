@@ -3,9 +3,11 @@ if (typeof global.self === 'undefined') global.self = globalThis;
 
 const { withSentryConfig } = require('@sentry/nextjs');
 
+const isDev = process.env.NODE_ENV === 'development';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: !isDev, // Disable in dev for faster compiles
   images: {
     remotePatterns: [],
   },
@@ -23,8 +25,11 @@ const nextConfig = {
   
   // Bundle optimization
   experimental: {
-    optimizeCss: true,
+    optimizeCss: !isDev, // Disable in dev
   },
+
+  // Silence Turbopack/webpack coexistence warning in Next.js 16
+  turbopack: {},
   
   // Keep only lightweight client fallbacks; avoid manual splitChunks overrides
   // because Next.js manages chunking for App Router and custom settings can
@@ -56,44 +61,49 @@ const nextConfig = {
   },
 }
 
-module.exports = withSentryConfig(nextConfig, {
-  // For all available options, see:
-  // https://github.com/getsentry/sentry-webpack-plugin#options
+// Skip Sentry in development for faster builds
+if (isDev) {
+  module.exports = nextConfig;
+} else {
+  module.exports = withSentryConfig(nextConfig, {
+    // For all available options, see:
+    // https://github.com/getsentry/sentry-webpack-plugin#options
 
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
 
-  // Only print logs for uploading source maps in CI
-  silent: !process.env.CI,
+    // Only print logs for uploading source maps in CI
+    silent: !process.env.CI,
 
-  // For all available options, see:
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+    // For all available options, see:
+    // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
-  // Upload a larger set of source maps for prettier stack traces (increases build time)
-  widenClientFileUpload: true,
+    // Upload a larger set of source maps for prettier stack traces (increases build time)
+    widenClientFileUpload: true,
 
-  // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
-  tunnelRoute: "/monitoring",
+    // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
+    tunnelRoute: "/monitoring",
 
-  // Hides source maps from generated client bundles
-  hideSourceMaps: true,
+    // Hides source maps from generated client bundles
+    hideSourceMaps: true,
 
-  // Disable automatic injection of client config (we use instrumentation-client.ts)
-  automaticInstrumentation: {
-    clientSdk: false,
-  },
-
-  // Updated webpack config
-  webpack: {
-    // Automatically annotate React components to show their full name in breadcrumbs and session replay
-    reactComponentAnnotation: {
-      enabled: true,
+    // Disable automatic injection of client config (we use instrumentation-client.ts)
+    automaticInstrumentation: {
+      clientSdk: false,
     },
-    // Automatically tree-shake Sentry logger statements to reduce bundle size
-    treeshake: {
-      removeDebugLogging: true,
+
+    // Updated webpack config
+    webpack: {
+      // Automatically annotate React components to show their full name in breadcrumbs and session replay
+      reactComponentAnnotation: {
+        enabled: true,
+      },
+      // Automatically tree-shake Sentry logger statements to reduce bundle size
+      treeshake: {
+        removeDebugLogging: true,
+      },
+      // Enables automatic instrumentation of Vercel Cron Monitors
+      automaticVercelMonitors: true,
     },
-    // Enables automatic instrumentation of Vercel Cron Monitors
-    automaticVercelMonitors: true,
-  },
-});
+  });
+}

@@ -25,10 +25,16 @@ type InitialBillingPlan = {
   deleteAt?: string | null;
 };
 
-export default function SettingsPageClient({ initialBillingPlan }: { initialBillingPlan: InitialBillingPlan | null }) {
+export default function SettingsPageClient({
+  initialBillingPlan,
+  dashboardHrefOverride,
+}: {
+  initialBillingPlan: InitialBillingPlan | null;
+  dashboardHrefOverride?: string;
+}) {
   const searchParams = useSearchParams();
   const publicMarket = initialBillingPlan?.publicMarket === 'US' ? 'US' : 'GB';
-  const dashboardHref = getAppRouteForMarket('/dashboard', publicMarket);
+  const dashboardHref = dashboardHrefOverride || getAppRouteForMarket('/dashboard', publicMarket);
   const requestedTab = useMemo(() => {
     const raw = (searchParams?.get('tab') || searchParams?.get('section') || '').trim().toLowerCase();
     if (raw === 'billing' || raw === 'contact' || raw === 'account') return raw;

@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import HeroActionButtons from '@/components/home/HeroActionButtons';
+import HeroActionButtons from './HeroActionButtons';
+import { useState } from 'react';
 
 type ContentCard = {
   title: string;
@@ -43,6 +44,8 @@ type MarketHomepageProps = {
   planCurrencySymbol?: string;
   pricingHref: string;
   howItWorksHref: string;
+  contactFormHref?: string;
+  directoryHref?: string;
   learnBasicsHref: string;
   comparePlansHref: string;
   helpHref: string;
@@ -75,6 +78,8 @@ export default function MarketHomepage({
   planCurrencySymbol = '£',
   pricingHref,
   howItWorksHref,
+  contactFormHref,
+  directoryHref,
   learnBasicsHref,
   comparePlansHref,
   helpHref,
@@ -86,6 +91,71 @@ export default function MarketHomepage({
   ctaText,
   plansNote,
 }: MarketHomepageProps) {
+  const [portalModalOpen, setPortalModalOpen] = useState(false)
+  const [contactFormData, setContactFormData] = useState({
+    firstName: '',
+    lastName: '',
+    dateOfBirth: '',
+    phone: '',
+    email: '',
+    details: '',
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
+
+  const handlePortalClick = () => {
+    setPortalModalOpen(true)
+  }
+
+  const closePortalModal = () => {
+    setPortalModalOpen(false)
+    setContactFormData({
+      firstName: '',
+      lastName: '',
+      dateOfBirth: '',
+      phone: '',
+      email: '',
+      details: '',
+    })
+    setSubmitStatus('idle')
+    setErrorMessage('')
+  }
+
+  const handleContactFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setContactFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
+  }
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setSubmitStatus('idle')
+    setErrorMessage('')
+
+    try {
+      const response = await fetch('/api/public/contact-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(contactFormData),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to submit form')
+      }
+
+      setSubmitStatus('success')
+      setTimeout(closePortalModal, 2000)
+    } catch (error) {
+      setSubmitStatus('error')
+      setErrorMessage(error instanceof Error ? error.message : 'An error occurred')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
   return (
     <div className="homepage">
       <main
@@ -128,7 +198,7 @@ export default function MarketHomepage({
                   <p className="text-base md:text-xl text-white/85 mt-5 max-w-3xl mx-auto xl:mx-0 leading-relaxed">
                     {description}
                   </p>
-                  <HeroActionButtons pricingHref={pricingHref} howItWorksHref={howItWorksHref} />
+                  <HeroActionButtons pricingHref={pricingHref} howItWorksHref={howItWorksHref} contactFormHref={contactFormHref} directoryHref={directoryHref} onPortalClick={handlePortalClick} />
                   <div className="mt-5 flex flex-wrap justify-center gap-2 text-xs uppercase tracking-[0.16em] text-white/70 xl:justify-start">
                     <span className="rounded-full border border-white/15 px-3 py-2">Client matters</span>
                     <span className="rounded-full border border-white/15 px-3 py-2">Document hub</span>
@@ -349,6 +419,160 @@ export default function MarketHomepage({
           </div>
         </div>
       </footer>
+
+      {/* Portal Modal */}
+      {portalModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Send to MCS Portal</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Your enquiry will be sent to all legal professionals in the directory.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closePortalModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ×
+              </button>
+            </div>
+
+            {submitStatus === 'success' ? (
+              <div className="text-center py-8">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  ✓
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Enquiry Sent!</h3>
+                <p className="text-gray-600 text-sm">
+                  Your enquiry has been sent to the MCS portal. Legal professionals will review your case.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleContactSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                      First Name *
+                    </label>
+                    <input
+                      type="text"
+                      id="firstName"
+                      name="firstName"
+                      required
+                      value={contactFormData.firstName}
+                      onChange={handleContactFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="John"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                      Last Name *
+                    </label>
+                    <input
+                      type="text"
+                      id="lastName"
+                      name="lastName"
+                      required
+                      value={contactFormData.lastName}
+                      onChange={handleContactFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="Doe"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-1">
+                    Date of Birth *
+                  </label>
+                  <input
+                    type="date"
+                    id="dateOfBirth"
+                    name="dateOfBirth"
+                    required
+                    value={contactFormData.dateOfBirth}
+                    onChange={handleContactFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                    Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    required
+                    value={contactFormData.phone}
+                    onChange={handleContactFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="07700 900000"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    value={contactFormData.email}
+                    onChange={handleContactFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="john@example.com"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="details" className="block text-sm font-medium text-gray-700 mb-1">
+                    Details of Your Issue *
+                  </label>
+                  <textarea
+                    id="details"
+                    name="details"
+                    required
+                    rows={4}
+                    value={contactFormData.details}
+                    onChange={handleContactFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                    placeholder="Please describe your legal issue in detail..."
+                  />
+                </div>
+
+                {submitStatus === 'error' && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
+                    {errorMessage}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    'Send Enquiry'
+                  )}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

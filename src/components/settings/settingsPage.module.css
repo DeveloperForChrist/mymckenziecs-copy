@@ -261,3 +261,19 @@
     border-radius: 14px;
   }
 }
+
+/* ── Business dashboard light mode ── */
+:global([data-theme="light"]) .mainContent,:global([data-theme="light"]) .settingsSection,:global([data-theme="light"]) .planCard,:global([data-theme="light"]) .paymentCard,:global([data-theme="light"]) .contactItem{background:#ffffff;border-color:#e5e7eb;box-shadow:0 16px 42px rgba(15,23,42,.08);color:#111827}
+:global([data-theme="light"]) .heading,:global([data-theme="light"]) .sectionHeading,:global([data-theme="light"]) .formRow label,:global([data-theme="light"]) .formLabel,:global([data-theme="light"]) .planTitle,:global([data-theme="light"]) .planPriceLarge,:global([data-theme="light"]) .planMetaValue,:global([data-theme="light"]) .planPrice{color:#111827}
+:global([data-theme="light"]) .desc,:global([data-theme="light"]) .helpText,:global([data-theme="light"]) .planHint,:global([data-theme="light"]) .planRenewal,:global([data-theme="light"]) .planMetaLabel{color:#6b7280}
+:global([data-theme="light"]) .tab,:global([data-theme="light"]) .tabActive{color:#475569}
+:global([data-theme="light"]) .tabActive,:global([data-theme="light"]) .tab:hover,:global([data-theme="light"]) .tab:focus{background:#f3f4f6;color:#111827}
+:global([data-theme="light"]) .formRow input,:global([data-theme="light"]) .formRow textarea,:global([data-theme="light"]) .textInput,:global([data-theme="light"]) .selectInput,:global([data-theme="light"]) .textArea{background:#ffffff;border-color:#d1d5db;color:#111827}
+:global([data-theme="light"]) .secondaryBtn,:global([data-theme="light"]) .togglePassword,:global([data-theme="light"]) .dangerOutlineBtn{background:#ffffff;border-color:#d1d5db;color:#374151}
+:global([data-theme="light"]) .secondaryBtn:hover,:global([data-theme="light"]) .togglePassword:hover{background:#f9fafb}
+:global([data-theme="light"]) .dangerOutlineBtn{border-color:#dc2626;color:#dc2626}
+:global([data-theme="light"]) .dangerOutlineBtn:hover{background:#dc2626;color:#fff}
+:global([data-theme="light"]) .badgeActive,:global([data-theme="light"]) .planStatusBadge{background:#ede9fe;color:#5b21b6;border-color:#ddd6fe}
+:global([data-theme="light"]) .paymentElementWrap{background:#f8fafc;border-color:#e5e7eb}
+:global([data-theme="light"]) .modalCard{background:#ffffff;border-color:#e5e7eb;color:#111827;box-shadow:0 24px 80px rgba(15,23,42,.18)}
+:global([data-theme="light"]) .modalBody{color:#4b5563}

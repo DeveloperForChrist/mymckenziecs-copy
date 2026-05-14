@@ -77,3 +77,8 @@
     transform: none;
   }
 }
+
+/* ── Business dashboard light mode ── */
+:global([data-theme="light"]) .sidebar{background:#ffffff;color:#111827;border-color:#e5e7eb;box-shadow:0 16px 42px rgba(15,23,42,.08)}
+:global([data-theme="light"]) .menuItem{color:#374151}
+:global([data-theme="light"]) .menuItem:hover,:global([data-theme="light"]) .menuItem:focus,:global([data-theme="light"]) .menuItemActive{background:#f3f4f6;color:#111827}

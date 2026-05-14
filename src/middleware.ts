@@ -1,8 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { detectLegalMatterLocation } from '@/lib/legal/ip-geolocation'
-import { MARKET_COOKIE_NAME, readStoredMarketCookie, resolveRootMarket, setMarketCookie } from '@/lib/markets/geo-routing'
-import { getPublicRouteForMarket } from '@/lib/markets/public-routes'
 
 const parsePositiveInt = (value: string | undefined, fallback: number) => {
   const parsed = Number(value)
@@ -59,10 +56,6 @@ const UNVERIFIED_ALLOWED_API_PATHS = new Set(['/api/user', '/api/user/plan'])
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
-  const isRootPath = pathname === '/'
-  const explicitMarket = isRootPath
-    ? readStoredMarketCookie(request.nextUrl.searchParams.get('market'))
-    : null
 
   // Keep old admin URLs working, but canonical login is /jesusistheadmin.
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
@@ -70,92 +63,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(redirectedPath, request.url))
   }
 
-  if (isRootPath) {
-    const secureCookie = request.nextUrl.protocol === 'https:'
-
-    if (explicitMarket) {
-      const redirectPath = getPublicRouteForMarket('/', explicitMarket)
-      if (redirectPath !== '/') {
-        const redirectUrl = new URL(redirectPath, request.url)
-        const redirectParams = new URLSearchParams(request.nextUrl.searchParams)
-        redirectParams.delete('market')
-        const redirectQuery = redirectParams.toString()
-        redirectUrl.search = redirectQuery ? `?${redirectQuery}` : ''
-        const redirectResponse = NextResponse.redirect(redirectUrl)
-        setMarketCookie(redirectResponse, explicitMarket, secureCookie)
-        return redirectResponse
-      }
-
-      const response = NextResponse.next({
-        request: {
-          headers: request.headers,
-        },
-      })
-      setMarketCookie(response, explicitMarket, secureCookie)
-      return response
-    }
-
-    const storedMarket = readStoredMarketCookie(request.cookies.get(MARKET_COOKIE_NAME)?.value)
-    let geoCountryCode: string | null = null
-
-    if (!storedMarket) {
-      const detection = await detectLegalMatterLocation(request)
-      geoCountryCode = detection.suggestedCountryCode
-    }
-
-    const resolvedMarket = resolveRootMarket({
-      storedMarket,
-      edgeCountryCode: geoCountryCode,
-    })
-
-    const redirectPath = getPublicRouteForMarket('/', resolvedMarket)
-    if (redirectPath !== '/') {
-      const redirectUrl = new URL(redirectPath, request.url)
-      redirectUrl.search = request.nextUrl.search
-      const redirectResponse = NextResponse.redirect(redirectUrl)
-      setMarketCookie(redirectResponse, resolvedMarket, secureCookie)
-      return redirectResponse
-    }
-
-    const response = NextResponse.next({
-      request: {
-        headers: request.headers,
-      },
-    })
-    setMarketCookie(response, resolvedMarket, secureCookie)
-    return response
-  }
-
-  const isLegacyPublicPath =
-    !isRootPath &&
-    !pathname.startsWith('/us') &&
-    !pathname.startsWith('/uk') &&
-    (getPublicRouteForMarket(pathname, 'GB') !== pathname ||
-      getPublicRouteForMarket(pathname, 'US') !== pathname)
-
-  if (isLegacyPublicPath) {
-    const secureCookie = request.nextUrl.protocol === 'https:'
-    const storedMarket = readStoredMarketCookie(request.cookies.get(MARKET_COOKIE_NAME)?.value)
-    let geoCountryCode: string | null = null
-
-    if (!storedMarket) {
-      const detection = await detectLegalMatterLocation(request)
-      geoCountryCode = detection.suggestedCountryCode
-    }
-
-    const resolvedMarket = resolveRootMarket({
-      storedMarket,
-      edgeCountryCode: geoCountryCode,
-    })
-
-    const redirectPath = getPublicRouteForMarket(pathname, resolvedMarket)
-    if (redirectPath !== pathname) {
-      const redirectUrl = new URL(redirectPath, request.url)
-      redirectUrl.search = request.nextUrl.search
-      const redirectResponse = NextResponse.redirect(redirectUrl)
-      setMarketCookie(redirectResponse, resolvedMarket, secureCookie)
-      return redirectResponse
-    }
+  // Skip auth for public marketing pages (uk/us routes that aren't dashboard/settings)
+  const isPublicMarketPage = (pathname.startsWith('/uk/') || pathname.startsWith('/us/')) &&
+    !pathname.includes('/dashboard') &&
+    !pathname.includes('/chatbot') &&
+    !pathname.includes('/settings')
+  
+  if (isPublicMarketPage) {
+    return NextResponse.next()
   }
 
   let response = NextResponse.next({
@@ -253,7 +168,7 @@ export async function middleware(request: NextRequest) {
     !isUnverifiedAllowedApi
   const shouldLoadUserProfile =
     Boolean(user) &&
-    (shouldEnforceVerification || requiresAdmin || (isRootPath && !explicitMarket))
+    (shouldEnforceVerification || requiresAdmin)
 
   if (requiresAuth && !user) {
     // Redirect to sign-in for protected routes
@@ -402,50 +317,16 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/',
-    '/about',
-    '/pricing',
-    '/faq',
-    '/help',
-    '/privacy-policy',
-    '/terms',
-    '/cookie-policy',
-    '/contact',
-    '/legal-case-management-tool',
-    '/litigant-in-person-uk',
-    '/how-to-prepare-small-claims-court-uk',
-    '/small-claims-court-uk',
-    '/organise-court-documents-uk',
-    '/court-bundle-preparation-uk',
-    '/case-law-search-uk',
-    '/witness-statement-uk',
-    '/directions-questionnaire-uk',
-    '/serving-court-documents-uk',
-    '/do-you-need-a-lawyer-for-small-claims-court-uk',
-    '/mckenzie-friend-support',
+    // Public marketing routes with market prefix
+    '/uk/:path*',
+    '/us/:path*',
+    // Only protect routes that need authentication
     '/admin/:path*',
     '/jesusistheadmin/:path*',
     '/dashboard/:path*',
     '/chatbot/:path*',
     '/settings/:path*',
-    '/api/chat/:path*',
-    '/api/analyze-document/:path*',
-    '/api/analyse-doc/:path*',
-    '/api/search-case-law/:path*',
-    '/api/cases/:path*',
-    '/api/case-study/:path*',
-    '/api/case-study-chat/:path*',
-    '/api/case-analysis/:path*',
-    '/api/case-summary/:path*',
-    '/api/drafts/:path*',
-    '/api/evidence-bundle/:path*',
-    '/api/doc-review/:path*',
-    '/api/calendar/:path*',
-    '/api/chat-history/:path*',
-    '/api/chat-upload/:path*',
-    '/api/message-count/:path*',
-    '/api/passes/:path*',
-    '/api/user/:path*',
-    '/api/admin/:path*',
+    '/business/:path*',
+    '/api/:path*',
   ],
 }

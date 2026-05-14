@@ -30,7 +30,8 @@ export function resolveRootMarket({
   const cookieMarket = normalizeMarketValue(storedMarket)
   if (cookieMarket) return cookieMarket
 
-  return edgeCountryCode === 'US' ? 'US' : 'GB'
+  const edgeMarket = normalizeMarketValue(edgeCountryCode)
+  return edgeMarket || 'GB'
 }
 
 export function setMarketCookie(response: NextResponse, market: PublicMarket, secure: boolean) {

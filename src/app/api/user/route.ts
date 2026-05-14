@@ -6,6 +6,7 @@ import { getAppUrl } from '@/lib/app-url'
 import { sendResendEmail } from '@/lib/email/resend'
 import { getBillingMarketFromCountryCode } from '@/constants'
 import { getAppRouteForMarket } from '@/lib/markets/app-routes'
+import { getAccountTypeFromUserMetadata, type AccountType } from '@/lib/auth/account-type'
 import {
   getJurisdictionLabel,
   isSupportedCountryCode,
@@ -42,6 +43,22 @@ function safeRedirectPath(input?: string, fallback = '/settings?tab=account') {
 
 const formatChangedAt = formatLondonDateTime
 
+function normalizeAccountType(value: unknown): AccountType | null {
+  const normalized = String(value || '').trim().toLowerCase()
+  if (normalized === 'business') return 'business'
+  if (normalized === 'litigant') return 'litigant'
+  return null
+}
+
+function resolveAccountType(authUser: any, userRow?: Record<string, any> | null): AccountType {
+  return (
+    normalizeAccountType(userRow?.account_type) ||
+    normalizeAccountType(userRow?.billing_audience) ||
+    getAccountTypeFromUserMetadata(authUser) ||
+    'litigant'
+  )
+}
+
 export async function GET(_request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteClient()
@@ -64,9 +81,12 @@ export async function GET(_request: NextRequest) {
 
     if (!userRow) {
       const authEmailVerifiedAt = (data.user as any)?.email_confirmed_at || null
+      const accountType = resolveAccountType(data.user)
       return NextResponse.json({
         fullName: data.user.user_metadata?.full_name || data.user.user_metadata?.display_name || '',
         email: data.user.email || '',
+        accountType,
+        billingAudience: accountType,
         pendingEmail: null,
         countryCode: (data.user.user_metadata as any)?.country_code || null,
         jurisdictionCode: (data.user.user_metadata as any)?.jurisdiction_code || null,
@@ -83,10 +103,13 @@ export async function GET(_request: NextRequest) {
       (userRow as any).email_verified_at ||
       (userRow as any).emailVerifiedAt ||
       null
+    const accountType = resolveAccountType(data.user, userRow as any)
 
     return NextResponse.json({
       fullName: (userRow as any).fullName || (userRow as any).full_name || userRow.name || '',
       email: userRow.email || data.user.email || '',
+      accountType,
+      billingAudience: accountType,
       pendingEmail: (userRow as any).pending_email || null,
       countryCode: (userRow as any).country_code || null,
       jurisdictionCode: (userRow as any).jurisdiction_code || null,

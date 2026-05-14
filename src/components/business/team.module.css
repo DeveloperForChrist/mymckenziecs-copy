@@ -1,0 +1,111 @@
+/* ── Team Page – Professional light theme ── */
+.page{display:flex;height:100%;background:#f8f9fa;color:#111827;overflow:hidden;font-family:inherit}
+.sidebar{width:300px;flex:0 0 300px;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;background:#fff;overflow:hidden}
+.sidebarHeader{padding:20px 18px 14px;border-bottom:1px solid #e5e7eb}
+.sidebarTitle{font-size:1rem;font-weight:700;color:#111827;margin:0 0 3px}
+.sidebarSub{font-size:.75rem;color:#6b7280;margin:0 0 12px}
+.inviteBtn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;background:#5b21b6;border:none;border-radius:8px;color:#fff;font-size:.875rem;font-weight:600;cursor:pointer;transition:all .2s}
+.inviteBtn:hover{background:#4c1d95}
+.filterRow{display:flex;gap:2px;padding:10px 12px;border-bottom:1px solid #e5e7eb}
+.filterTab{flex:1;padding:6px 0;background:none;border:none;border-radius:6px;font-size:.75rem;font-weight:500;color:#6b7280;cursor:pointer;transition:all .15s}
+.filterTab:hover{color:#111827;background:#f3f4f6}
+.filterTabActive{background:#ede9fe;color:#5b21b6;font-weight:600}
+.memberList{flex:1;overflow-y:auto}
+.memberItem{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .12s;align-items:center}
+.memberItem:hover{background:#f9fafb}
+.memberItemActive{background:#faf5ff;border-left:3px solid #7c3aed}
+.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;flex-shrink:0;letter-spacing:.03em}
+.detailAvatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;flex-shrink:0;letter-spacing:.03em}
+/* role colours – on light bg */
+.roleOwner{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.roleSolicitor{background:#ede9fe;color:#4c1d95;border:1px solid #c4b5fd}
+.roleParalegal{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}
+.roleAdmin{background:#dcfce7;color:#14532d;border:1px solid #86efac}
+.roleViewer{background:#f3f4f6;color:#374151;border:1px solid #d1d5db}
+/* status dots */
+.statusDot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.statusActive{background:#16a34a}
+.statusInvited{background:#d97706}
+.statusSuspended{background:#9ca3af}
+.memberInfo{flex:1;min-width:0}
+.memberTop{display:flex;align-items:center;gap:6px;margin-bottom:2px}
+.memberName{font-size:.875rem;font-weight:600;color:#111827;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.memberRole{display:flex;align-items:center;gap:4px;font-size:.72rem;color:#6b7280;margin-bottom:2px}
+.memberMeta{font-size:.7rem;color:#9ca3af;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* form */
+.formPanel{padding:16px 18px;border-bottom:1px solid #e5e7eb;display:flex;flex-direction:column;gap:11px;background:#fafafa}
+.formTitle{font-size:.813rem;font-weight:700;color:#111827;margin:0}
+.formField{display:flex;flex-direction:column;gap:5px}
+.formLabel{font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#6b7280}
+.formInput,.formSelect{background:#fff;border:1px solid #d1d5db;border-radius:7px;padding:8px 12px;font-size:.875rem;color:#111827;width:100%;box-sizing:border-box;outline:none;transition:border-color .15s}
+.formInput:focus,.formSelect:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.08)}
+.formInput::placeholder{color:#9ca3af}
+.formSelect option{background:#fff;color:#111827}
+.formSubmitBtn{display:flex;align-items:center;justify-content:center;gap:7px;padding:10px;background:#5b21b6;border:none;border-radius:8px;color:#fff;font-size:.875rem;font-weight:600;cursor:pointer;width:100%;transition:all .15s}
+.formSubmitBtn:hover{background:#4c1d95}
+.formNotice{font-size:.75rem;padding:8px 10px;border-radius:6px;background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d}
+/* detail */
+.detail{flex:1;min-width:0;display:flex;flex-direction:column;background:#fff;overflow:hidden}
+.emptyDetail{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:#d1d5db;font-size:.875rem}
+.detailHeader{padding:24px 28px 18px;border-bottom:1px solid #e5e7eb;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;background:#fff}
+.detailHeaderText{flex:1;min-width:0}
+.detailName{font-size:1.25rem;font-weight:700;color:#111827;margin:0 0 10px}
+.detailMetaRow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.roleBadge{font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:6px}
+.statusBadge{font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:6px;text-transform:uppercase}
+.metaItem{display:flex;align-items:center;gap:5px;font-size:.78rem;color:#6b7280}
+.detailActions{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;align-items:center}
+.suspendBtn{display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:7px;color:#92400e;font-size:.813rem;cursor:pointer;font-weight:500;transition:all .15s}
+.suspendBtn:hover{background:#fef3c7}
+.activateBtn{display:flex;align-items:center;gap:6px;padding:8px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;color:#15803d;font-size:.813rem;cursor:pointer;font-weight:500;transition:all .15s}
+.activateBtn:hover{background:#dcfce7}
+.removeBtn{display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1px solid #fecaca;border-radius:7px;color:#dc2626;font-size:.813rem;cursor:pointer;font-weight:500;transition:all .15s}
+.removeBtn:hover{background:#fee2e2}
+.detailBody{flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:22px}
+.detailSection{display:flex;flex-direction:column;gap:8px}
+.detailSectionLabel{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af}
+.permissionList{display:flex;flex-direction:column;gap:6px}
+.permissionItem{display:flex;align-items:center;gap:8px;font-size:.875rem;color:#374151}
+.permCheck{color:#16a34a;flex-shrink:0}
+.detailText{font-size:.9rem;line-height:1.65;color:#4b5563;margin:0}
+.formNoticeError{font-size:.75rem;padding:8px 10px;border-radius:6px;background:#fef2f2;border:1px solid #fecaca;color:#dc2626}
+.loadingState{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 16px;gap:10px;color:#9ca3af;font-size:.875rem}
+.emptyMemberList{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 16px;gap:10px;color:#9ca3af;font-size:.813rem;text-align:center}
+.emptyMemberList p{margin:0;line-height:1.5}
+.spin{animation:spin 1s linear infinite}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* ── Dark mode ── */
+:global([data-theme="dark"]) .page{background:#1a1a1a;color:#e5e7eb}
+:global([data-theme="dark"]) .sidebar{background:#242424;border-color:#333}
+:global([data-theme="dark"]) .sidebarHeader{border-color:#333}
+:global([data-theme="dark"]) .sidebarTitle{color:#e5e7eb}
+:global([data-theme="dark"]) .sidebarSub{color:#9ca3af}
+:global([data-theme="dark"]) .filterRow{border-color:#333}
+:global([data-theme="dark"]) .filterTab{color:#9ca3af}
+:global([data-theme="dark"]) .filterTab:hover{color:#e5e7eb;background:#2d2d2d}
+:global([data-theme="dark"]) .filterTabActive{background:#312450;color:#c4b5fd}
+:global([data-theme="dark"]) .memberItem{border-color:#2d2d2d}
+:global([data-theme="dark"]) .memberItem:hover{background:#242424}
+:global([data-theme="dark"]) .memberItemActive{background:#312450;border-left-color:#7c3aed}
+:global([data-theme="dark"]) .memberName{color:#e5e7eb}
+:global([data-theme="dark"]) .memberRole{color:#9ca3af}
+:global([data-theme="dark"]) .memberMeta{color:#6b7280}
+:global([data-theme="dark"]) .formPanel{background:#2a2a2a;border-color:#333}
+:global([data-theme="dark"]) .formTitle{color:#e5e7eb}
+:global([data-theme="dark"]) .formInput,:global([data-theme="dark"]) .formSelect{background:#2d2d2d;border-color:#444;color:#e5e7eb}
+:global([data-theme="dark"]) .formInput:focus,:global([data-theme="dark"]) .formSelect:focus{border-color:#7c3aed}
+:global([data-theme="dark"]) .formSelect option{background:#2d2d2d;color:#e5e7eb}
+:global([data-theme="dark"]) .detail{background:#1a1a1a}
+:global([data-theme="dark"]) .detailHeader{background:#242424;border-color:#333}
+:global([data-theme="dark"]) .detailName{color:#e5e7eb}
+:global([data-theme="dark"]) .metaItem{color:#9ca3af}
+:global([data-theme="dark"]) .detailBody{background:#1a1a1a}
+:global([data-theme="dark"]) .detailSectionLabel{color:#6b7280}
+:global([data-theme="dark"]) .permissionItem{color:#d1d5db}
+:global([data-theme="dark"]) .detailText{color:#9ca3af}
+:global([data-theme="dark"]) .removeBtn{background:#2d2d2d;border-color:#7f1d1d;color:#fca5a5}
+:global([data-theme="dark"]) .removeBtn:hover{background:#3f1717}
+:global([data-theme="dark"]) .suspendBtn{background:#2d2d2d;border-color:#78350f;color:#fcd34d}
+:global([data-theme="dark"]) .emptyDetail{color:#4b5563}
+:global([data-theme="dark"]) .emptyMemberList{color:#6b7280}

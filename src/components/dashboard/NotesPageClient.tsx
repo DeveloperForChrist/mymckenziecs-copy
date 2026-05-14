@@ -53,12 +53,14 @@ type NotesPageClientProps = {
   initialAuthUid?: string | null;
   initialReadOnlyMode?: boolean;
   initialReadOnlyMessage?: string | null;
+  dashboardHrefOverride?: string;
 };
 
 export default function NotesPageClient({
   initialAuthUid = null,
   initialReadOnlyMode = false,
   initialReadOnlyMessage = null,
+  dashboardHrefOverride,
 }: NotesPageClientProps = {}) {
   const pathname = usePathname();
   const [authUid, setAuthUid] = useState<string | null>(initialAuthUid);
@@ -96,7 +98,7 @@ export default function NotesPageClient({
   const [extractedEvents, setExtractedEvents] = useState<ExtractedCalendarEvent[]>([]);
   const [isSavingExtractedEvents, setIsSavingExtractedEvents] = useState(false);
   const [canUseAiActions, setCanUseAiActions] = useState(false);
-  const dashboardHref = getAppRouteForMarket('/dashboard', getAppMarketFromPathname(pathname));
+  const dashboardHref = dashboardHrefOverride || getAppRouteForMarket('/dashboard', getAppMarketFromPathname(pathname));
 
   const globalDraftStorageKey = useCallback((uid: string) => `mynotes-draft:${uid}:local`, []);
   const normalizeDraftPages = useCallback(
@@ -784,11 +786,13 @@ export default function NotesPageClient({
           )}
         </div>
 
-        <div className={styles.sidebarFooter}>
-          <a href={dashboardHref} className={styles.dashboardLink}>
-            <span>Go to Dashboard</span>
-          </a>
-        </div>
+        {!dashboardHrefOverride && (
+          <div className={styles.sidebarFooter}>
+            <a href={dashboardHref} className={styles.dashboardLink}>
+              <span>Go to Dashboard</span>
+            </a>
+          </div>
+        )}
       </aside>
 
       {/* Note Editor Panel */}

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import styles from '@/app/(public)/faq/faq.module.css';
+import styles from '@/app/faq/faq.module.css';
 import { buildPageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = buildPageMetadata({

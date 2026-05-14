@@ -44,6 +44,28 @@ CREATE TABLE IF NOT EXISTS public.business_invitations (
   CONSTRAINT valid_business_invitation_status CHECK (status = ANY (ARRAY['pending'::text, 'accepted'::text, 'revoked'::text, 'expired'::text]))
 );
 
+ALTER TABLE public.users
+  ADD COLUMN IF NOT EXISTS account_type TEXT NOT NULL DEFAULT 'litigant',
+  ADD COLUMN IF NOT EXISTS billing_audience TEXT NOT NULL DEFAULT 'litigant';
+
+UPDATE public.users
+SET account_type = 'litigant',
+    billing_audience = 'litigant'
+WHERE account_type IS NULL
+   OR trim(account_type) = ''
+   OR billing_audience IS NULL
+   OR trim(billing_audience) = '';
+
+ALTER TABLE public.users
+  DROP CONSTRAINT IF EXISTS valid_users_account_type,
+  DROP CONSTRAINT IF EXISTS valid_users_billing_audience;
+
+ALTER TABLE public.users
+  ADD CONSTRAINT valid_users_account_type
+    CHECK (account_type = ANY (ARRAY['litigant'::text, 'business'::text])),
+  ADD CONSTRAINT valid_users_billing_audience
+    CHECK (billing_audience = ANY (ARRAY['litigant'::text, 'business'::text]));
+
 ALTER TABLE public.subscriptions
   ADD COLUMN IF NOT EXISTS billing_audience TEXT NOT NULL DEFAULT 'litigant',
   ADD COLUMN IF NOT EXISTS plan_family TEXT NOT NULL DEFAULT 'litigant',

@@ -336,6 +336,20 @@ export default function DashboardHomeClient({
       color: '#f59e42,#fbbf24'
     },
     {
+      icon: 'bx-video',
+      title: 'Video Call Meeting',
+      desc: 'Join or start a video conference for your legal matters',
+      href: '/video-call',
+      color: '#8b5cf6,#a78bfa'
+    },
+    {
+      icon: 'bx-group',
+      title: 'Find a McKenzie Friend',
+      desc: 'Browse our directory of McKenzie Friends and legal consultants',
+      href: '/dashboard/directory',
+      color: '#7b2b7b,#c084fc'
+    },
+    {
       icon: 'bx-cog',
       title: 'User Settings',
       desc: 'Manage your profile and billing',

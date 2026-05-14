@@ -306,6 +306,8 @@ type CaseLawSearchPageClientProps = {
   initialHasPaidAccess?: boolean;
   initialPlanChecked?: boolean;
   initialPublicMarket?: PublicMarket;
+  dashboardHrefOverride?: string;
+  settingsHrefOverride?: string;
 };
 
 export default function CaseLawSearchPageClient({
@@ -313,6 +315,8 @@ export default function CaseLawSearchPageClient({
   initialHasPaidAccess = false,
   initialPlanChecked = false,
   initialPublicMarket = 'GB',
+  dashboardHrefOverride,
+  settingsHrefOverride,
 }: CaseLawSearchPageClientProps = {}) {
   const workspaceMaxWidth = 'var(--app-shell-max-width, 1720px)';
   const [query, setQuery] = useState('');
@@ -344,8 +348,8 @@ export default function CaseLawSearchPageClient({
   const [paginatedContent, setPaginatedContent] = useState<PaginatedCaseStudyChunk[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const dashboardHref = getAppRouteForMarket('/dashboard', normalizePublicMarket(publicMarket));
-  const settingsHref = getAppRouteForMarket('/settings', normalizePublicMarket(publicMarket));
+  const dashboardHref = dashboardHrefOverride || getAppRouteForMarket('/dashboard', normalizePublicMarket(publicMarket));
+  const settingsHref = settingsHrefOverride || getAppRouteForMarket('/settings', normalizePublicMarket(publicMarket));
   const searchAbortRef = useRef<AbortController | null>(null);
   const historySyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const searchRequestSeqRef = useRef(0);

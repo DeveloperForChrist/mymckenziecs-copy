@@ -1,24 +1,61 @@
 'use client';
 
-import { useState } from 'react';
+import { FormEvent, Suspense, useCallback, useEffect, useMemo, useState, type MouseEvent, type ReactNode } from 'react';
 import {
   Bell,
   BookOpen,
   Bot,
   BriefcaseBusiness,
+  Calendar,
   CalendarClock,
+  CheckCircle2,
+  Clock,
+  Copy,
+  ExternalLink,
   FolderOpen,
+  HelpCircle,
   Home,
+  Link2,
+  Loader2,
+  Mail,
   MessageSquare,
+  Menu,
+  Moon,
   PanelLeftClose,
   PanelLeftOpen,
+  Sun,
+  Play,
+  Plus,
+  Search,
+  Send,
+  Settings,
   ShieldCheck,
+  UserPlus,
   UserRound,
+  UserCircle2,
   UsersRound,
   Video,
+  XCircle,
 } from 'lucide-react';
 import ChatInterface from '@/components/chatbot/ChatInterface';
+import { VideoCallPanel } from '@/components/video-call/VideoCallPanel';
+import InboxPage from './InboxPage';
+import LeadsPage from './LeadsPage';
+import AlertsPage from './AlertsPage';
+import TeamPage from './TeamPage';
+import ClientMattersPage from './ClientMattersPage';
+import BusinessProfilePage from './BusinessProfilePage';
+import DirectoryClient from '@/components/directory/DirectoryClient';
+import ChatConversationHistory from '@/components/chatbot/ChatConversationHistory';
+import DeleteConversationModal from '@/components/chatbot/DeleteConversationModal';
 import type { InitialChatPlanState } from '@/components/chatbot/hooks/useChatAuthPlan';
+import CaseLawSearchPageClient from '@/components/dashboard/CaseLawSearchPageClient';
+import DocumentsClientNew from '@/components/dashboard/DocumentsClientNew';
+import EnhancedCalendarClient from '@/components/dashboard/EnhancedCalendarClient';
+import NotesPageClient from '@/components/dashboard/NotesPageClient';
+import SettingsPageClient from '@/components/settings/SettingsPageClient';
+import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
+import HostedVideoMeeting from '@/components/video/HostedVideoMeeting';
 import styles from './businessDashboard.module.css';
 
 type NavItem = {
@@ -29,35 +66,10 @@ type NavItem = {
   count?: string;
 };
 
-type CardItem = {
-  id: string;
-  title: string;
-  description?: string;
-  status?: string;
-  priority?: 'critical' | 'high' | 'normal' | 'low';
-  tags?: string[];
-  assignee?: string;
-  date?: string;
-  dueDate?: string;
-  progress?: number;
-  count?: string;
-  subItems?: string[];
-};
-
-type PageDefinition = {
-  title: string;
-  subtitle: string;
-  statTiles: Array<{ label: string; value: string }>;
-  sections: Array<{
-    heading: string;
-    items: CardItem[];
-  }>;
-};
-
 const navItems: NavItem[] = [
   {
     id: 'home',
-    label: 'Assistant',
+    label: 'MyMcKenzieCS Assistant',
     description: 'Business chat assistant',
     icon: Bot,
   },
@@ -66,20 +78,30 @@ const navItems: NavItem[] = [
     label: 'Client Matters',
     description: 'Client cases and profiles',
     icon: BriefcaseBusiness,
-    count: '12',
   },
   {
     id: 'documents',
-    label: 'Documents',
-    description: 'Bundles, evidence, and templates',
+    label: 'Document Storage',
+    description: 'Files, folders, and evidence',
     icon: FolderOpen,
+  },
+  {
+    id: 'notes',
+    label: 'Notes',
+    description: 'Drafts, summaries, and saved notes',
+    icon: BookOpen,
+  },
+  {
+    id: 'calendar',
+    label: 'Calendar',
+    description: 'Events, deadlines, and reminders',
+    icon: CalendarClock,
   },
   {
     id: 'leads',
     label: 'Leads',
     description: 'Enquiries, intake, and follow-ups',
     icon: UserRound,
-    count: '8',
   },
   {
     id: 'video',
@@ -95,17 +117,9 @@ const navItems: NavItem[] = [
   },
   {
     id: 'messages',
-    label: 'Client Messages',
+    label: 'Inbox',
     description: 'Client and matter conversations',
     icon: MessageSquare,
-    count: '5',
-  },
-  {
-    id: 'assignments',
-    label: 'Tasks',
-    description: 'Tasks, owners, and due dates',
-    icon: CalendarClock,
-    count: '14',
   },
   {
     id: 'notifications',
@@ -125,796 +139,656 @@ const navItems: NavItem[] = [
     description: 'Authorities and saved cases',
     icon: BookOpen,
   },
+  {
+    id: 'profile',
+    label: 'My Profile',
+    description: 'Public directory listing',
+    icon: UserCircle2,
+  },
+  {
+    id: 'directory',
+    label: 'Directory',
+    description: 'Browse all McKenzie Friends',
+    icon: UsersRound,
+  },
+  {
+    id: 'settings',
+    label: 'Settings',
+    description: 'Account, billing, and support',
+    icon: Settings,
+  },
 ];
-
-const pageDefinitions: Record<NavItem['id'], PageDefinition> = {
-  home: {
-    title: 'Assistant',
-    subtitle: 'Your business chat assistant for casework, client support, and team coordination.',
-    statTiles: [
-      { label: 'Recent sessions', value: '14' },
-      { label: 'Resolved prompts', value: '97%' },
-      { label: 'Daily usage', value: '3.2h' },
-    ],
-    sections: [
-      {
-        heading: 'Assistant overview',
-        items: [
-          {
-            id: '1',
-            title: 'AI-driven business guidance',
-            description: 'Get instant legal advice on matters, contracts, and strategy',
-          },
-          {
-            id: '2',
-            title: 'Fast document summaries',
-            description: 'Summarize briefs, contracts, and evidence in seconds',
-          },
-          {
-            id: '3',
-            title: 'Client engagement insights',
-            description: 'Analyze communications and suggest follow-up actions',
-          },
-        ],
-      },
-    ],
-  },
-  clients: {
-    title: 'Client Matters',
-    subtitle: 'Organize matters, assign owners, and monitor progress across your busiest clients.',
-    statTiles: [
-      { label: 'Open matters', value: '32' },
-      { label: 'New clients', value: '6' },
-      { label: 'Critical cases', value: '4' },
-    ],
-    sections: [
-      {
-        heading: 'Active matters requiring attention',
-        items: [
-          {
-            id: 'c1',
-            title: 'ACME Corp v. State Regulatory Board',
-            description: 'Administrative law — discovery phase',
-            status: 'In Discovery',
-            priority: 'critical',
-            dueDate: 'May 18, 2026',
-            assignee: 'Sarah Mitchell',
-            tags: ['discovery', 'regulatory', 'urgent'],
-          },
-          {
-            id: 'c2',
-            title: 'Kingston Family Trust Review & Restructuring',
-            description: 'Estate planning — compliance audit',
-            status: 'In Review',
-            priority: 'high',
-            dueDate: 'May 25, 2026',
-            assignee: 'James Park',
-            tags: ['estate', 'planning', 'compliance'],
-          },
-          {
-            id: 'c3',
-            title: 'Estate Planning Onboarding — New Client',
-            description: 'Client intake and initial consultation',
-            status: 'Intake',
-            priority: 'normal',
-            dueDate: 'May 22, 2026',
-            assignee: 'Unassigned',
-            tags: ['new-client', 'intake'],
-          },
-          {
-            id: 'c4',
-            title: 'Johnson Commercial Lease Negotiation',
-            description: 'Retail space lease — 5-year term',
-            status: 'Negotiating',
-            priority: 'high',
-            dueDate: 'May 20, 2026',
-            assignee: 'Emma Rodriguez',
-            tags: ['commercial', 'leasing'],
-          },
-        ],
-      },
-    ],
-  },
-  documents: {
-    title: 'Documents',
-    subtitle: 'Browse bundles, evidence, and templates with secure document controls.',
-    statTiles: [
-      { label: 'Active documents', value: '88' },
-      { label: 'Templates', value: '12' },
-      { label: 'Pending review', value: '9' },
-    ],
-    sections: [
-      {
-        heading: 'Recent uploads & bundles',
-        items: [
-          {
-            id: 'd1',
-            title: 'Client Agreement — Standard Terms',
-            description: 'Engagement letter template — updated Q2 2026',
-            status: 'Active',
-            date: 'May 8, 2026',
-            tags: ['template', 'engagement'],
-          },
-          {
-            id: 'd2',
-            title: 'Witness Statement Bundle',
-            description: '3 witness depositions + analysis summary',
-            status: 'Review Pending',
-            priority: 'high',
-            date: 'May 7, 2026',
-            tags: ['evidence', 'discovery'],
-          },
-          {
-            id: 'd3',
-            title: 'Evidence Bundle #7 — ACME Case',
-            description: '48 documents organized by category',
-            status: 'Active',
-            date: 'May 6, 2026',
-            progress: 87,
-            tags: ['evidence', 'litigation'],
-          },
-          {
-            id: 'd4',
-            title: 'Trust Amendment Documentation',
-            description: 'Beneficiary updates and codicils',
-            status: 'Draft',
-            priority: 'normal',
-            date: 'May 5, 2026',
-            tags: ['estate', 'trust'],
-          },
-        ],
-      },
-      {
-        heading: 'Available templates',
-        items: [
-          {
-            id: 'd5',
-            title: 'Standard Engagement Letter',
-            description: 'General legal services engagement',
-          },
-          {
-            id: 'd6',
-            title: 'NDA Template',
-            description: 'Non-disclosure agreement — mutual',
-          },
-          {
-            id: 'd7',
-            title: 'Power of Attorney',
-            description: 'General financial power of attorney',
-          },
-        ],
-      },
-    ],
-  },
-  leads: {
-    title: 'Leads',
-    subtitle: 'Track enquiries, intake status, and follow-up tasks in one place.',
-    statTiles: [
-      { label: 'New leads', value: '8' },
-      { label: 'Hot prospects', value: '3' },
-      { label: 'Follow-ups needed', value: '15' },
-    ],
-    sections: [
-      {
-        heading: 'Lead pipeline',
-        items: [
-          {
-            id: 'l1',
-            title: 'TechStart Industries',
-            description: 'Corporate formation and IP protection',
-            status: 'Hot Lead',
-            priority: 'high',
-            date: 'May 8, 2026',
-            tags: ['startup', 'corporate'],
-          },
-          {
-            id: 'l2',
-            title: 'Individual — Real Estate Purchase',
-            description: 'Residential home purchase — needs review',
-            status: 'Qualified',
-            priority: 'normal',
-            date: 'May 7, 2026',
-            tags: ['real-estate'],
-          },
-          {
-            id: 'l3',
-            title: 'Smith Manufacturing',
-            description: 'Contract review and negotiation support',
-            status: 'Initial Consultation',
-            priority: 'normal',
-            dueDate: 'May 16, 2026',
-            date: 'May 4, 2026',
-            tags: ['commercial'],
-          },
-        ],
-      },
-    ],
-  },
-  video: {
-    title: 'Client Meetings',
-    subtitle: 'Prepare and review upcoming consultations, rooms, and meeting follow-ups.',
-    statTiles: [
-      { label: 'Upcoming calls', value: '5' },
-      { label: 'Scheduled rooms', value: '2' },
-      { label: 'Meeting minutes', value: '18' },
-    ],
-    sections: [
-      {
-        heading: 'Scheduled meetings',
-        items: [
-          {
-            id: 'v1',
-            title: 'ACME Corp — Status Update Call',
-            description: 'Discuss discovery progress and timeline',
-            date: 'May 9, 2026',
-            dueDate: '11:00 AM',
-            assignee: 'Sarah Mitchell',
-            tags: ['litigation', 'discovery'],
-          },
-          {
-            id: 'v2',
-            title: 'Kingston Family — Trust Strategy Session',
-            description: 'Review restructuring options and tax implications',
-            date: 'May 9, 2026',
-            dueDate: '2:30 PM',
-            assignee: 'James Park',
-            tags: ['estate', 'planning'],
-          },
-          {
-            id: 'v3',
-            title: 'Internal Team Prep — New Business Development',
-            description: 'Q2 targets and pipeline review',
-            date: 'May 9, 2026',
-            dueDate: '4:00 PM',
-            assignee: 'Team',
-            tags: ['internal'],
-          },
-        ],
-      },
-    ],
-  },
-  team: {
-    title: 'Team',
-    subtitle: 'Manage roles, visibility, and handovers for your practice team.',
-    statTiles: [
-      { label: 'Team members', value: '18' },
-      { label: 'Active owners', value: '11' },
-      { label: 'New invites', value: '2' },
-    ],
-    sections: [
-      {
-        heading: 'Team directory & roles',
-        items: [
-          {
-            id: 't1',
-            title: 'Sarah Mitchell',
-            description: 'Senior Litigator — Litigation Practice Lead',
-            status: 'Active',
-            tags: ['litigation', 'partner'],
-          },
-          {
-            id: 't2',
-            title: 'James Park',
-            description: 'Estate & Tax Counsel — Trust Management Specialist',
-            status: 'Active',
-            tags: ['estates', 'tax'],
-          },
-          {
-            id: 't3',
-            title: 'Emma Rodriguez',
-            description: 'Associate — Commercial & Real Estate',
-            status: 'Active',
-            tags: ['commercial', 'real-estate'],
-          },
-          {
-            id: 't4',
-            title: 'Maria Chen',
-            description: 'Paralegal — Litigation Support',
-            status: 'Active',
-            tags: ['paralegal', 'litigation'],
-          },
-        ],
-      },
-      {
-        heading: 'Pending team actions',
-        items: [
-          {
-            id: 't5',
-            title: 'Onboarding Review — New Associate',
-            description: 'Complete systems access and orientation',
-            priority: 'high',
-            dueDate: 'May 16, 2026',
-          },
-          {
-            id: 't6',
-            title: 'Role Updates Pending Approval',
-            description: 'Scope changes for 2 team members',
-            priority: 'normal',
-            dueDate: 'May 20, 2026',
-          },
-        ],
-      },
-    ],
-  },
-  messages: {
-    title: 'Client Messages',
-    subtitle: 'View client conversations and respond to urgent threads quickly.',
-    statTiles: [
-      { label: 'Unread messages', value: '5' },
-      { label: 'Open threads', value: '14' },
-      { label: 'Avg response time', value: '24m' },
-    ],
-    sections: [
-      {
-        heading: 'Recent threads',
-        items: [
-          {
-            id: 'm1',
-            title: 'ACME Corp — Case Update',
-            description: 'Client seeking status on discovery deadline',
-            status: 'Unread',
-            priority: 'high',
-            date: 'May 9, 2026',
-            tags: ['litigation', 'urgent'],
-          },
-          {
-            id: 'm2',
-            title: 'Kingston Family — Document Request',
-            description: 'Requesting prior year tax returns for review',
-            status: 'Awaiting Response',
-            priority: 'normal',
-            date: 'May 8, 2026',
-            tags: ['estate'],
-          },
-          {
-            id: 'm3',
-            title: 'Johnson Lease — Meeting Follow-up',
-            description: 'Client ready to discuss final terms',
-            status: 'Open',
-            priority: 'high',
-            date: 'May 8, 2026',
-            tags: ['commercial'],
-          },
-        ],
-      },
-    ],
-  },
-  assignments: {
-    title: 'Tasks',
-    subtitle: 'Keep track of deadlines, owners, and due dates across the practice.',
-    statTiles: [
-      { label: 'Open tasks', value: '14' },
-      { label: 'Due today', value: '5' },
-      { label: 'Overdue', value: '2' },
-    ],
-    sections: [
-      {
-        heading: 'Priority tasks',
-        items: [
-          {
-            id: 'a1',
-            title: 'Finalize discovery filing — ACME case',
-            description: 'Complete responsive document analysis',
-            status: 'In Progress',
-            priority: 'critical',
-            dueDate: 'May 9, 2026',
-            assignee: 'Sarah Mitchell',
-            progress: 72,
-            tags: ['litigation', 'discovery'],
-          },
-          {
-            id: 'a2',
-            title: 'Review deposition notes — transcript analysis',
-            description: 'Summarize key testimony for trial prep',
-            status: 'Pending',
-            priority: 'high',
-            dueDate: 'May 11, 2026',
-            assignee: 'Maria Chen',
-            tags: ['litigation'],
-          },
-          {
-            id: 'a3',
-            title: 'Send client update — Kingston Family',
-            description: 'Monthly status report and tax planning summary',
-            status: 'Pending',
-            priority: 'normal',
-            dueDate: 'May 10, 2026',
-            assignee: 'James Park',
-            tags: ['estate', 'client-communication'],
-          },
-          {
-            id: 'a4',
-            title: 'Lease amendment — Johnson Commercial',
-            description: 'Final review and signature preparation',
-            status: 'In Review',
-            priority: 'high',
-            dueDate: 'May 12, 2026',
-            assignee: 'Emma Rodriguez',
-            tags: ['commercial'],
-          },
-        ],
-      },
-    ],
-  },
-  notifications: {
-    title: 'Alerts',
-    subtitle: 'Stay on top of business and client notifications in real time.',
-    statTiles: [
-      { label: 'New alerts', value: '7' },
-      { label: 'Critical', value: '2' },
-      { label: 'Resolved', value: '19' },
-    ],
-    sections: [
-      {
-        heading: 'Active alerts',
-        items: [
-          {
-            id: 'n1',
-            title: 'URGENT: Filing deadline approaching',
-            description: 'ACME v. State — discovery response due May 9',
-            priority: 'critical',
-            status: 'Alert',
-            date: 'May 9, 2026',
-            tags: ['deadline', 'litigation'],
-          },
-          {
-            id: 'n2',
-            title: 'Client portal access — New invite pending',
-            description: '1 client waiting for portal access grant',
-            priority: 'high',
-            status: 'Alert',
-            date: 'May 8, 2026',
-            tags: ['client-access'],
-          },
-          {
-            id: 'n3',
-            title: 'Billing update — Monthly reconciliation ready',
-            description: 'April 2026 billing completed — ready for approval',
-            priority: 'normal',
-            status: 'Alert',
-            date: 'May 8, 2026',
-            tags: ['billing'],
-          },
-          {
-            id: 'n4',
-            title: 'Security notice — New device login detected',
-            description: 'Verify login from new location',
-            priority: 'normal',
-            status: 'Alert',
-            date: 'May 7, 2026',
-            tags: ['security'],
-          },
-        ],
-      },
-    ],
-  },
-  portals: {
-    title: 'Client Portals',
-    subtitle: 'Manage secure client-facing workspaces and shared case files.',
-    statTiles: [
-      { label: 'Active portals', value: '12' },
-      { label: 'Invites pending', value: '5' },
-      { label: 'Access waiting', value: '1' },
-    ],
-    sections: [
-      {
-        heading: 'Client portal status',
-        items: [
-          {
-            id: 'p1',
-            title: 'ACME Corporation Portal',
-            description: 'Discovery documents, correspondence, and calendar',
-            status: 'Active',
-            date: 'Created Feb 2026',
-            count: '47 docs',
-            tags: ['litigation', 'active'],
-          },
-          {
-            id: 'p2',
-            title: 'Kingston Family Portal',
-            description: 'Trust documents, tax planning materials, and notices',
-            status: 'Active',
-            date: 'Created Jan 2026',
-            count: '23 docs',
-            tags: ['estate', 'active'],
-          },
-          {
-            id: 'p3',
-            title: 'Johnson Commercial Portal',
-            description: 'Lease drafts, negotiations, and amendments',
-            status: 'Invite Pending',
-            date: 'Created May 2026',
-            count: '12 docs',
-            tags: ['commercial', 'pending'],
-          },
-        ],
-      },
-    ],
-  },
-  'case-law': {
-    title: 'Case Law DB',
-    subtitle: 'Search authorities, save citations, and review precedent materials.',
-    statTiles: [
-      { label: 'Saved cases', value: '24' },
-      { label: 'New citations', value: '7' },
-      { label: 'Recent searches', value: '18' },
-    ],
-    sections: [
-      {
-        heading: 'Saved cases & authorities',
-        items: [
-          {
-            id: 'k1',
-            title: 'Smith v. State Board — Admin Law Precedent',
-            description: 'Fifth Circuit — regulatory authority standards',
-            date: 'Saved May 4, 2026',
-            tags: ['regulatory', 'administrative-law'],
-          },
-          {
-            id: 'k2',
-            title: 'Baker v. Baker Trust Cases',
-            description: 'Trust interpretation and beneficiary rights',
-            date: 'Saved Apr 30, 2026',
-            tags: ['trusts', 'estate'],
-          },
-          {
-            id: 'k3',
-            title: 'Williams Constitutional Filing — First Amendment',
-            description: 'Commercial speech and regulatory compliance',
-            date: 'Saved Apr 28, 2026',
-            tags: ['constitutional', 'commercial'],
-          },
-        ],
-      },
-      {
-        heading: 'Recent searches',
-        items: [
-          {
-            id: 'k4',
-            title: 'Discovery privilege waiver implications',
-            description: '3 results found',
-          },
-          {
-            id: 'k5',
-            title: 'Trust situs transfer and tax liability',
-            description: '8 results found',
-          },
-          {
-            id: 'k6',
-            title: 'Commercial lease termination rights',
-            description: '12 results found',
-          },
-        ],
-      },
-    ],
-  },
-};
 
 type BusinessDashboardClientProps = {
   initialChatPlan: InitialChatPlanState;
 };
 
-function renderPageContent(activeId: NavItem['id']) {
-  const page = pageDefinitions[activeId];
+type ChatConversation = {
+  id: string;
+  title: string;
+  timestamp: string;
+};
 
-  const getPriorityColor = (priority?: string) => {
-    switch (priority) {
-      case 'critical':
-        return 'rgba(236, 72, 153, 0.7)';
-      case 'high':
-        return 'rgba(147, 51, 234, 0.6)';
-      case 'normal':
-        return 'rgba(147, 51, 234, 0.4)';
-      case 'low':
-        return 'rgba(255, 255, 255, 0.2)';
-      default:
-        return 'transparent';
-    }
+type MeetingStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
+
+type ClientContact = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  notes?: string;
+  source?: 'database' | 'local';
+};
+
+type ClientMeeting = {
+  id: string;
+  clientId: string | null;
+  clientName: string;
+  clientEmail: string;
+  title: string;
+  description: string;
+  meetingDate: string;
+  meetingTime: string;
+  durationMinutes: number;
+  roomName: string;
+  status: MeetingStatus;
+  source?: 'database' | 'local';
+};
+
+type MeetingFormState = {
+  clientId: string;
+  clientName: string;
+  clientEmail: string;
+  title: string;
+  meetingDate: string;
+  meetingTime: string;
+  durationMinutes: string;
+  description: string;
+};
+
+const NEW_CLIENT_VALUE = '__new_client__';
+const LOCAL_CLIENTS_KEY = 'mymckenzie-business-meeting-clients';
+const LOCAL_MEETINGS_KEY = 'mymckenzie-business-client-meetings';
+
+function getTodayInputValue() {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function getDefaultMeetingTime() {
+  const date = new Date();
+  if (date.getMinutes() >= 30) {
+    date.setHours(date.getHours() + 1);
+    date.setMinutes(0, 0, 0);
+  } else {
+    date.setMinutes(30, 0, 0);
+  }
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
+function createInitialMeetingForm(): MeetingFormState {
+  return {
+    clientId: NEW_CLIENT_VALUE,
+    clientName: '',
+    clientEmail: '',
+    title: 'Client consultation',
+    meetingDate: getTodayInputValue(),
+    meetingTime: getDefaultMeetingTime(),
+    durationMinutes: '45',
+    description: '',
   };
+}
 
-  const getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'Critical':
-      case 'Unread':
-      case 'Alert':
-        return 'rgba(236, 72, 153, 0.15)';
-      case 'In Progress':
-      case 'Active':
-      case 'Hot Lead':
-        return 'rgba(147, 51, 234, 0.15)';
-      case 'In Discovery':
-      case 'In Review':
-        return 'rgba(167, 139, 250, 0.12)';
-      default:
-        return 'rgba(255, 255, 255, 0.05)';
-    }
+function createLocalId(prefix: string) {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `${prefix}-${crypto.randomUUID()}`;
+  }
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function slugRoomPart(input: string) {
+  return input
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 42);
+}
+
+function createRoomName(userId: string, clientName: string, meetingDate: string) {
+  const owner = userId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8) || 'business';
+  const client = slugRoomPart(clientName) || 'client';
+  return `mymckenzie-${owner}-${client}-${meetingDate.replace(/-/g, '')}-${createLocalId('room').slice(-8)}`;
+}
+
+function loadLocalJson<T>(key: string, fallback: T): T {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function saveLocalJson<T>(key: string, value: T) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+function normaliseMeetingTime(value: unknown) {
+  if (typeof value !== 'string' || !value) return '';
+  return value.slice(0, 5);
+}
+
+function mapClientRow(row: any): ClientContact {
+  return {
+    id: String(row.id),
+    name: String(row.name || 'Client'),
+    email: String(row.email || ''),
+    phone: row.phone || undefined,
+    company: row.company || undefined,
+    notes: row.notes || undefined,
+    source: 'database',
   };
+}
 
+function mapMeetingRow(row: any, clientsById: Map<string, ClientContact>): ClientMeeting {
+  const client = row.client_id ? clientsById.get(String(row.client_id)) : null;
+  return {
+    id: String(row.id),
+    clientId: row.client_id ? String(row.client_id) : null,
+    clientName: client?.name || 'Client',
+    clientEmail: client?.email || '',
+    title: String(row.title || 'Client consultation'),
+    description: String(row.description || ''),
+    meetingDate: String(row.meeting_date || getTodayInputValue()),
+    meetingTime: normaliseMeetingTime(row.meeting_time),
+    durationMinutes: Number(row.duration_minutes || 45),
+    roomName: String(row.room_name || ''),
+    status: (row.status || 'scheduled') as MeetingStatus,
+    source: 'database',
+  };
+}
+
+function sortMeetings(a: ClientMeeting, b: ClientMeeting) {
+  return `${a.meetingDate}T${a.meetingTime || '00:00'}`.localeCompare(`${b.meetingDate}T${b.meetingTime || '00:00'}`);
+}
+
+function formatMeetingWhen(meeting: ClientMeeting) {
+  const date = new Date(`${meeting.meetingDate}T${meeting.meetingTime || '00:00'}`);
+  const dateLabel = Number.isNaN(date.getTime())
+    ? meeting.meetingDate
+    : new Intl.DateTimeFormat(undefined, {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+      }).format(date);
+  return `${dateLabel}${meeting.meetingTime ? `, ${meeting.meetingTime}` : ''}`;
+}
+
+function statusClassName(status: MeetingStatus) {
+  if (status === 'in_progress') return `${styles.meetingStatusPill} ${styles.meetingStatusLive}`;
+  if (status === 'completed') return `${styles.meetingStatusPill} ${styles.meetingStatusDone}`;
+  if (status === 'cancelled' || status === 'no_show') {
+    return `${styles.meetingStatusPill} ${styles.meetingStatusCancelled}`;
+  }
+  return `${styles.meetingStatusPill} ${styles.meetingStatusScheduled}`;
+}
+
+  
+                                                        
+function SidebarPagePlaceholder({ activeId }: { activeId: NavItem['id'] }) {
+  const label = navItems.find((item) => item.id === activeId)?.label ?? 'Page';
   return (
-    <div className={styles.pageContent}>
-      <header className={styles.pageHeader}>
-        <div>
-          <div className={styles.pageOverline}>Business workspace</div>
-          <h1 className={styles.pageTitle}>{page.title}</h1>
-          <p className={styles.pageSubtitle}>{page.subtitle}</p>
-        </div>
-        <button type="button" className={styles.pageAction}>
-          New {page.title}
-        </button>
-      </header>
-
-      <div className={styles.statGrid}>
-        {page.statTiles.map((tile) => (
-          <div key={tile.label} className={styles.statCard}>
-            <span className={styles.statLabel}>{tile.label}</span>
-            <strong className={styles.statValue}>{tile.value}</strong>
-          </div>
-        ))}
-      </div>
-
-      <div className={styles.pageSections}>
-        {page.sections.map((section) => (
-          <section key={section.heading} className={styles.pageSection}>
-            <h2 className={styles.sectionHeading}>{section.heading}</h2>
-            <div className={styles.cardGrid}>
-              {section.items.map((item) => (
-                <div
-                  key={item.id}
-                  className={styles.card}
-                  style={{ borderLeftColor: getPriorityColor(item.priority) }}
-                >
-                  <div className={styles.cardHeader}>
-                    <div className={styles.cardTitle}>{item.title}</div>
-                    {item.status && (
-                      <div
-                        className={styles.cardStatus}
-                        style={{ backgroundColor: getStatusColor(item.status) }}
-                      >
-                        {item.status}
-                      </div>
-                    )}
-                  </div>
-
-                  {item.description && (
-                    <p className={styles.cardDescription}>{item.description}</p>
-                  )}
-
-                  {item.progress !== undefined && (
-                    <div className={styles.progressBar}>
-                      <div
-                        className={styles.progressFill}
-                        style={{ width: `${item.progress}%` }}
-                      />
-                      <span className={styles.progressLabel}>{item.progress}%</span>
-                    </div>
-                  )}
-
-                  <div className={styles.cardMeta}>
-                    {item.assignee && (
-                      <div className={styles.metaItem}>
-                        <span className={styles.metaLabel}>Owner:</span>
-                        <span className={styles.metaValue}>{item.assignee}</span>
-                      </div>
-                    )}
-                    {(item.dueDate || item.date) && (
-                      <div className={styles.metaItem}>
-                        <span className={styles.metaLabel}>
-                          {item.dueDate ? 'Due:' : 'Date:'}
-                        </span>
-                        <span className={styles.metaValue}>
-                          {item.dueDate || item.date}
-                        </span>
-                      </div>
-                    )}
-                    {item.count && (
-                      <div className={styles.metaItem}>
-                        <span className={styles.metaLabel}>Items:</span>
-                        <span className={styles.metaValue}>{item.count}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {item.tags && item.tags.length > 0 && (
-                    <div className={styles.tagGroup}>
-                      {item.tags.map((tag) => (
-                        <span key={tag} className={styles.tag}>
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {item.subItems && item.subItems.length > 0 && (
-                    <ul className={styles.subItemList}>
-                      {item.subItems.map((subItem) => (
-                        <li key={subItem} className={styles.subItem}>
-                          {subItem}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
+    <div className={styles.placeholderShell}>
+      <span className={styles.visuallyHidden}>{label}</span>
     </div>
   );
 }
 
+function formatChatHistoryDate(isoDate: string) {
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return 'Unknown date';
+  const day = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const time = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  return `${day} ${time}`;
+}
+
+function BusinessChatWorkspace({ initialChatPlan }: { initialChatPlan: InitialChatPlanState }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [conversations, setConversations] = useState<ChatConversation[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [deleteTargetConversationId, setDeleteTargetConversationId] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeletingConversation, setIsDeletingConversation] = useState(false);
+  const [deleteConversationError, setDeleteConversationError] = useState<string | null>(null);
+  const businessChatHref = '/business/dashboard';
+
+  const loadChatHistory = useCallback(async () => {
+    setLoadingHistory(true);
+    try {
+      const response = await fetch('/api/chat-history', { credentials: 'include', cache: 'no-store' });
+      const data = await response.json().catch(() => ({}));
+      if (response.ok) {
+        setConversations(Array.isArray(data?.conversations) ? data.conversations : []);
+      }
+    } catch (error) {
+      console.error('Failed to load business chat history:', error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (sidebarOpen) void loadChatHistory();
+  }, [sidebarOpen, loadChatHistory]);
+
+  const openConversation = (conversationId: string) => {
+    const next = new URL(businessChatHref, window.location.origin);
+    next.searchParams.set('conversationId', conversationId);
+    window.location.href = `${next.pathname}${next.search}${next.hash}`;
+  };
+
+  const startNewChat = () => {
+    const next = new URL(businessChatHref, window.location.origin);
+    next.searchParams.set('new', 'true');
+    window.location.href = `${next.pathname}${next.search}${next.hash}`;
+  };
+
+  const handleDeleteConversation = (conversationId: string, event: MouseEvent) => {
+    event.stopPropagation();
+    setDeleteTargetConversationId(conversationId);
+    setDeleteConversationError(null);
+    setIsDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    if (isDeletingConversation) return;
+    setIsDeleteModalOpen(false);
+    setDeleteTargetConversationId(null);
+    setDeleteConversationError(null);
+  };
+
+  const confirmDeleteConversation = async () => {
+    if (!deleteTargetConversationId || isDeletingConversation) return;
+    setIsDeletingConversation(true);
+    setDeleteConversationError(null);
+    try {
+      const response = await fetch('/api/chat-history', {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversationId: deleteTargetConversationId }),
+      });
+
+      if (!response.ok) {
+        setDeleteConversationError('Failed to delete conversation. Please try again.');
+        return;
+      }
+
+      setConversations((current) => current.filter((conversation) => conversation.id !== deleteTargetConversationId));
+      setIsDeleteModalOpen(false);
+      setDeleteTargetConversationId(null);
+    } catch (error) {
+      console.error('Delete failed:', error);
+      setDeleteConversationError('Failed to delete conversation. Please try again.');
+    } finally {
+      setIsDeletingConversation(false);
+    }
+  };
+
+  return (
+    <div className={styles.businessChatWorkspace}>
+      {/* Business Chat Navbar */}
+      <div className={styles.businessChatNavbar}>
+        <div className={styles.businessChatNavbarLeft}>
+          <span className={styles.businessChatTitle}>MyMcKenzieCS Assistant</span>
+        </div>
+        <div className={styles.businessChatNavbarRight}>
+          <button 
+            type="button" 
+            className={styles.businessChatMenuButton} 
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open chat sidebar"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div className={styles.chatWorkspace}>
+        <div className={styles.chatbotFrame}>
+          <ChatInterface
+            initialAuthPlan={initialChatPlan}
+            composerPlacement="pane"
+            conversationHomeHref={businessChatHref}
+          />
+        </div>
+      </div>
+
+      {/* Slide-out Sidebar */}
+      {sidebarOpen && (
+        <div
+          className={styles.chatSidebarBackdrop}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      <div className={`${styles.chatSidebar} ${sidebarOpen ? styles.chatSidebarOpen : ''}`}>
+        <div className={styles.chatSidebarHeader}>
+          <h3>Business Chat</h3>
+          <button
+            type="button"
+            className={styles.chatSidebarClose}
+            onClick={() => setSidebarOpen(false)}
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className={styles.chatSidebarContent}>
+          <button
+            type="button"
+            className={styles.newChatButton}
+            onClick={startNewChat}
+          >
+            <span>➕</span> New Chat
+          </button>
+
+          <ChatConversationHistory
+            loadingHistory={loadingHistory}
+            conversations={conversations}
+            formatDate={formatChatHistoryDate}
+            onOpenConversation={openConversation}
+            onDeleteConversation={handleDeleteConversation}
+          />
+        </div>
+      </div>
+
+      <DeleteConversationModal
+        isOpen={isDeleteModalOpen}
+        isDeleting={isDeletingConversation}
+        error={deleteConversationError}
+        onCancel={closeDeleteModal}
+        onConfirm={confirmDeleteConversation}
+      />
+    </div>
+  );
+}
+
+function EmbeddedToolShell({ children, variant = 'purple' }: { children: ReactNode; variant?: 'purple' | 'plain' }) {
+  return (
+    <div className={`${styles.embeddedToolShell} ${variant === 'purple' ? 'purple-gradient-bg' : styles.embeddedToolShellPlain}`}>
+      {children}
+    </div>
+  );
+}
+
+function BusinessWorkspacePage({
+  activeId,
+  initialChatPlan,
+}: {
+  activeId: NavItem['id'];
+  initialChatPlan: InitialChatPlanState;
+}) {
+  const businessDashboardHref = '/business/dashboard';
+  const settingsPlan = {
+    plan: initialChatPlan.plan,
+    planStatus: initialChatPlan.planStatus,
+    paidAccess: initialChatPlan.paidAccess,
+    publicMarket: 'GB' as const,
+  };
+
+  if (activeId === 'clients') {
+    return <ClientMattersPage />;
+  }
+
+  if (activeId === 'video') return <VideoCallPanel userId={initialChatPlan.userId} />;
+
+  if (activeId === 'case-law') {
+    return (
+      <Suspense fallback={<div className={styles.placeholderShell} />}>
+        <CaseLawSearchPageClient
+          initialUserPlan={initialChatPlan.plan}
+          initialHasPaidAccess={initialChatPlan.paidAccess}
+          initialPlanChecked
+          initialPublicMarket="GB"
+          dashboardHrefOverride={businessDashboardHref}
+          settingsHrefOverride={`${businessDashboardHref}#settings`}
+        />
+      </Suspense>
+    );
+  }
+
+  if (activeId === 'documents') {
+    return (
+      <EmbeddedToolShell variant="plain">
+        <DocumentsClientNew
+          initialCanUpload={Boolean(initialChatPlan.platformAccess ?? initialChatPlan.paidAccess)}
+          initialPlanLoaded
+          dashboardHrefOverride={businessDashboardHref}
+        />
+      </EmbeddedToolShell>
+    );
+  }
+
+  if (activeId === 'notes') {
+    return (
+      <EmbeddedToolShell variant="plain">
+        <NotesPageClient
+          initialAuthUid={initialChatPlan.userId}
+          initialReadOnlyMode={false}
+          dashboardHrefOverride={businessDashboardHref}
+        />
+      </EmbeddedToolShell>
+    );
+  }
+
+  if (activeId === 'messages') {
+    return <InboxPage />;
+  }
+
+  if (activeId === 'leads') {
+    return <LeadsPage />;
+  }
+
+  if (activeId === 'notifications') {
+    return <AlertsPage />;
+  }
+
+  if (activeId === 'team') {
+    return <TeamPage />;
+  }
+
+  if (activeId === 'calendar') {
+    return (
+      <EmbeddedToolShell>
+        <EnhancedCalendarClient
+          initialAuthUid={initialChatPlan.userId}
+          initialHasPaidAccess={Boolean(initialChatPlan.platformAccess ?? initialChatPlan.paidAccess)}
+          initialPlanChecked
+          initialHasReminderAccess={initialChatPlan.paidAccess}
+          initialRemindersEnabled={false}
+        />
+      </EmbeddedToolShell>
+    );
+  }
+
+  if (activeId === 'settings') {
+    return (
+      <EmbeddedToolShell variant="plain">
+        <Suspense fallback={null}>
+          <SettingsPageClient initialBillingPlan={settingsPlan} dashboardHrefOverride={businessDashboardHref} />
+        </Suspense>
+      </EmbeddedToolShell>
+    );
+  }
+
+  if (activeId === 'profile') {
+    return <BusinessProfilePage />;
+  }
+
+  if (activeId === 'directory') {
+    return <DirectoryClient mode="business" />;
+  }
+
+  return <SidebarPagePlaceholder activeId={activeId} />;
+}
+
+const THEME_KEY = 'mymckenzie-dash-theme';
+
 export default function BusinessDashboardClient({ initialChatPlan }: BusinessDashboardClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeId, setActiveId] = useState('home');
+  const [leadsCount, setLeadsCount] = useState(0);
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window === 'undefined') return 'light';
+    try {
+      return localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light';
+    } catch {
+      return 'light';
+    }
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+    const previousRootTheme = root.getAttribute('data-theme');
+    const previousBodyTheme = body.getAttribute('data-theme');
+    const previousRootColorScheme = root.style.colorScheme;
+    const previousBodyColorScheme = body.style.colorScheme;
+
+    root.dataset.theme = theme;
+    body.dataset.theme = theme;
+    root.style.colorScheme = theme;
+    body.style.colorScheme = theme;
+
+    return () => {
+      if (previousRootTheme === null) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', previousRootTheme);
+      if (previousBodyTheme === null) body.removeAttribute('data-theme');
+      else body.setAttribute('data-theme', previousBodyTheme);
+      root.style.colorScheme = previousRootColorScheme;
+      body.style.colorScheme = previousBodyColorScheme;
+    };
+  }, [theme]);
+
+  useEffect(() => {
+    const fetchLeadsCount = async () => {
+      try {
+        const response = await fetch('/api/business/leads', { credentials: 'include', cache: 'no-store' });
+        if (response.ok) {
+          const data = await response.json();
+          const newLeads = (data.leads || []).filter((lead: any) => lead.status === 'new').length;
+          setLeadsCount(newLeads);
+        }
+      } catch (error) {
+        console.error('Failed to fetch leads count:', error);
+      }
+    };
+
+    fetchLeadsCount();
+    const interval = setInterval(fetchLeadsCount, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme((t) => {
+      const next = t === 'light' ? 'dark' : 'light';
+      try {
+        localStorage.setItem(THEME_KEY, next);
+      } catch {
+        // Storage can be unavailable in private browsing; the in-memory toggle should still work.
+      }
+      return next;
+    });
+  };
 
   return (
-    <main className={styles.shell}>
+    <main className={`${styles.shell} ${theme === 'dark' ? styles.darkShell : ''}`} data-theme={theme}>
       <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : styles.sidebarCollapsed}`}>
-        <div className={styles.sidebarTop}>
-          <button
-            type="button"
-            className={styles.iconButton}
-            onClick={() => setSidebarOpen((current) => !current)}
-            aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-          >
-            {sidebarOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
-          </button>
-          <div className={styles.brandMark}>
-            <Bot size={21} />
-          </div>
+        
+        <nav className={styles.navList} aria-label="Business workspace">
           {sidebarOpen && (
-            <div>
-              <div className={styles.brandName}>MyMcKenzieCS</div>
-              <div className={styles.brandMeta}>Business</div>
+            <div className={styles.navGroupHeader}>
+              <div className={styles.navGroupLabel}>MyMcKenzieCS Workspace</div>
+              <button
+                type="button"
+                className={styles.collapseButton}
+                onClick={() => setSidebarOpen(false)}
+                aria-label="Collapse sidebar"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
             </div>
           )}
-        </div>
-
-        <nav className={styles.navList} aria-label="Business workspace">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = item.id === activeId;
+            const count = item.id === 'leads' ? leadsCount : item.count;
             return (
-              <button
-                key={item.id}
-                type="button"
-                className={`${styles.navItem} ${active ? styles.navItemActive : ''}`}
-                onClick={() => setActiveId(item.id)}
-                title={!sidebarOpen ? item.label : undefined}
-              >
-                <Icon size={20} />
-                {sidebarOpen && (
-                  <>
-                    <span className={styles.navText}>
-                      <span className={styles.navLabel}>{item.label}</span>
-                      <span className={styles.navDescription}>{item.description}</span>
-                    </span>
-                    {item.count && <span className={styles.navCount}>{item.count}</span>}
-                  </>
-                )}
-              </button>
-            );
-          })}
+            <button
+              key={item.id}
+              type="button"
+              className={`${styles.navItem} ${active ? styles.navItemActive : ''}`}
+              onClick={() => setActiveId(item.id)}
+              title={!sidebarOpen ? item.label : undefined}
+              aria-current={active ? 'page' : undefined}
+            >
+              <Icon size={20} />
+              {sidebarOpen && (
+                <>
+                  <span className={styles.navText}>
+                    <span className={styles.navLabel}>{item.label}</span>
+                    <span className={styles.navDescription}>{item.description}</span>
+                  </span>
+                  {count && count > 0 && <span className={styles.navCount}>{count}</span>}
+                </>
+              )}
+            </button>
+          );
+        })}
         </nav>
 
-        <div className={styles.sidebarFooter}>
-          <div className={styles.footerAction}>
-            <Bot size={16} />
-            {sidebarOpen && <span>Premium + chatbot</span>}
-          </div>
+        {/* Theme toggle */}
+        <div className={styles.sidebarThemeToggle}>
+          <button
+            type="button"
+            className={styles.themeToggleBtn}
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            {sidebarOpen && <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>}
+          </button>
         </div>
       </aside>
 
+      {/* Floating expand button when sidebar is collapsed */}
+      {!sidebarOpen && (
+        <button
+          type="button"
+          className={styles.floatingExpandButton}
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Expand sidebar"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      )}
+
       <section className={styles.workspace}>
         {activeId === 'home' ? (
-          <div className={styles.chatWorkspace}>
-            <div className={styles.chatbotFrame}>
-              <ChatInterface initialAuthPlan={initialChatPlan} />
-            </div>
-          </div>
+          <BusinessChatWorkspace initialChatPlan={initialChatPlan} />
         ) : (
           <div className={styles.pageWorkspace}>
-            {renderPageContent(activeId)}
+            <BusinessWorkspacePage activeId={activeId} initialChatPlan={initialChatPlan} />
           </div>
         )}
       </section>

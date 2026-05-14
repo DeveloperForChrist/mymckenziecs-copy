@@ -316,9 +316,16 @@ const getOrInitSessionStart = (userId: string) => {
 
 type ChatInterfaceProps = {
   initialAuthPlan?: InitialChatPlanState | null
+  composerPlacement?: 'viewport' | 'pane'
+  conversationHomeHref?: string
 }
 
-export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceProps = {}) {
+export default function ChatInterface({
+  initialAuthPlan = null,
+  composerPlacement = 'viewport',
+  conversationHomeHref,
+}: ChatInterfaceProps = {}) {
+  const dockComposerToPane = composerPlacement === 'pane'
   const [caseId, setCaseId] = useState<string>("");
   const supabase = getSupabaseBrowserClient();
   const pendingActiveCaseOverrideRef = useRef<string | null>(null)
@@ -1389,6 +1396,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
   useConversationBootstrap({
     normalizeUserId,
     generateUUID,
+    conversationHomeHref,
     setUserId,
     setMessages,
     setConversationId,
@@ -1699,7 +1707,9 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     alignItems: 'stretch',
     justifyContent: 'center',
     padding: '0',
-    minHeight: '100%'
+    minHeight: dockComposerToPane ? 0 : '100%',
+    height: dockComposerToPane ? '100%' : undefined,
+    flex: dockComposerToPane ? '1 1 auto' : undefined,
   }
 
   const stageStyle: CSSProperties = {
@@ -1709,8 +1719,10 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
     gap: '0',
     color: '#f1f5f9',
     fontFamily: 'inherit',
-    minHeight: 'calc(100vh - 88px)',
-    padding: '0'
+    minHeight: dockComposerToPane ? '100%' : 'calc(100vh - 88px)',
+    height: dockComposerToPane ? '100%' : undefined,
+    padding: '0',
+    position: 'relative'
   }
   const messageLaneMaxWidth = 'min(700px, 100%)'
   const messageLanePadding = '0 12px'
@@ -1733,7 +1745,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
             alignItems: 'center',
             justifyContent: 'flex-end',
             position: 'relative',
-            paddingBottom: 'clamp(180px, 28vh, 240px)',
+            paddingBottom: dockComposerToPane ? 'clamp(18px, 4vh, 36px)' : 'clamp(180px, 28vh, 240px)',
           }}
         >
                   <div
@@ -1797,10 +1809,10 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
               aria-label="Scroll to bottom"
               title="Scroll to bottom"
               style={{
-                position: 'fixed',
+                position: 'absolute',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                bottom: 'clamp(130px, 20vh, 176px)',
+                bottom: dockComposerToPane ? '24px' : 'clamp(130px, 20vh, 176px)',
                 width: '38px',
                 height: '38px',
                 borderRadius: '999px',
@@ -1845,6 +1857,7 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
             showWordLimitWarning={showWordLimitWarning}
             isPlanLocked={isSignedInPlanLocked}
             planLockMessage="Plan paused: chat is locked. Your documents remain safe and available in read-only mode."
+            dockToPane={dockComposerToPane}
           />
 
         {floatingNotice && (
@@ -1852,11 +1865,11 @@ export default function ChatInterface({ initialAuthPlan = null }: ChatInterfaceP
             role="status"
             aria-live="polite"
             style={{
-              position: 'fixed',
+              position: 'absolute',
               left: '50%',
               transform: 'translateX(-50%)',
               bottom: 'clamp(108px, 16vh, 146px)',
-              width: 'min(92vw, 540px)',
+              width: 'min(92%, 540px)',
               padding: '12px 16px',
               borderRadius: '16px',
               border: '1px solid rgba(251, 191, 36, 0.45)',
