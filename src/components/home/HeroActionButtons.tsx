@@ -7,17 +7,13 @@ import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 type HeroActionButtonsProps = {
   pricingHref?: string;
   howItWorksHref?: string;
-  contactFormHref?: string;
   directoryHref?: string;
-  onPortalClick?: () => void;
 };
 
 export default function HeroActionButtons({
   pricingHref = '/pricing',
   howItWorksHref = '/legal-case-management-tool',
-  contactFormHref = '/contact-form',
   directoryHref = '/dashboard/directory',
-  onPortalClick,
 }: HeroActionButtonsProps) {
   const [dashboardHref, setDashboardHref] = useState<string | null>(null);
 
@@ -60,26 +56,11 @@ export default function HeroActionButtons({
         </Link>
       )}
       <Link
-        href={contactFormHref}
-        className="app-button-secondary text-base sm:text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
-      >
-        Get Legal Help
-      </Link>
-      <Link
         href={directoryHref}
         className="app-button-secondary text-base sm:text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
       >
         Find a Professional
       </Link>
-      {onPortalClick && (
-        <button
-          type="button"
-          onClick={onPortalClick}
-          className="app-button-secondary text-base sm:text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
-        >
-          Send to MCS Portal
-        </button>
-      )}
     </div>
   );
 }

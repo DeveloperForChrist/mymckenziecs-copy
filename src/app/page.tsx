@@ -151,7 +151,6 @@ export default function UkHomePage() {
       plans={plans}
       pricingHref="/uk/pricing"
       howItWorksHref="/uk/legal-case-management-tool"
-      contactFormHref="/contact-form"
       directoryHref="/directory"
       learnBasicsHref="/uk/litigant-in-person-uk"
       comparePlansHref="/uk/pricing"

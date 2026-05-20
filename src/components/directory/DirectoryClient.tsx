@@ -9,9 +9,9 @@ import {
   Heart,
   Mail,
   MapPin,
-  MessageSquare,
   Phone,
   Search,
+  Send,
   Star,
   Video,
   X,
@@ -20,8 +20,6 @@ import {
   AREAS_OF_LAW,
   AVAILABILITY_LABELS,
   EMPTY_PROFESSIONAL_PROFILE,
-  SERVICE_OPTIONS,
-  type DirectoryAvailability,
   type ProfessionalProfile,
 } from '@/lib/directory/profiles'
 import styles from './directory.module.css'
@@ -168,17 +166,23 @@ function levelBadge(profile: ProfessionalProfile): { label: string; cls: 'badge'
   return null
 }
 
+function responseTimeLabel(value: string | null | undefined) {
+  const text = String(value || '').trim()
+  if (!text) return null
+  if (/^within\b/i.test(text)) return `Responds ${text.toLowerCase()}`
+  return `Responds in ${text}`
+}
+
 export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
   const [profiles, setProfiles] = useState<ProfessionalProfile[]>(FEATURED_PROFILES)
   const [selected, setSelected] = useState<ProfessionalProfile | null>(FEATURED_PROFILES[0])
-  const [detailOpen, setDetailOpen] = useState(false)
+  const [profileModalOpen, setProfileModalOpen] = useState(false)
   const [search, setSearch] = useState('')
-  const [area, setArea] = useState('')
-  const [service, setService] = useState('')
-  const [budget, setBudget] = useState('')
+  const [role, setRole] = useState('')
+  const [specialization, setSpecialization] = useState('')
+  const [location, setLocation] = useState('')
   const [availability, setAvailability] = useState('')
-  const [videoOnly, setVideoOnly] = useState(false)
-  const [instantOnly, setInstantOnly] = useState(false)
+  const [sort, setSort] = useState<'newest' | 'rating' | 'price_low' | 'price_high'>('newest')
   const [favorites, setFavorites] = useState<Set<string>>(() => new Set())
   const [loading, setLoading] = useState(true)
   const [contactModalOpen, setContactModalOpen] = useState(false)
@@ -187,7 +191,6 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
   const [contactFormData, setContactFormData] = useState({
     firstName: '',
     lastName: '',
-    dateOfBirth: '',
     phone: '',
     email: '',
     details: '',
@@ -228,17 +231,14 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    const maxBudget = budget ? Number(budget) : null
 
-    return profiles.filter((profile) => {
+    const filteredProfiles = profiles.filter((profile) => {
       if (!profile.visible) return false
       if (ownId && profile.ownerId === ownId) return false
-      if (area && !profile.areasOfLaw.includes(area)) return false
-      if (service && !profile.services.includes(service)) return false
+      if (role && profile.type !== role) return false
+      if (specialization && !profile.areasOfLaw.includes(specialization)) return false
+      if (location && String(profile.city || '').trim() !== location) return false
       if (availability && profile.availability !== availability) return false
-      if (videoOnly && !profile.offersVideoConsultations) return false
-      if (instantOnly && !profile.instantResponse) return false
-      if (maxBudget !== null && profile.startingPrice !== null && profile.startingPrice > maxBudget) return false
 
       if (!q) return true
       const haystack = [
@@ -254,11 +254,38 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
 
       return haystack.includes(q)
     })
-  }, [area, availability, budget, instantOnly, ownId, profiles, search, service, videoOnly])
+
+    const sorted = [...filteredProfiles]
+    sorted.sort((a, b) => {
+      if (sort === 'rating') return (b.rating ?? 0) - (a.rating ?? 0)
+      if (sort === 'price_low') return (a.startingPrice ?? Number.POSITIVE_INFINITY) - (b.startingPrice ?? Number.POSITIVE_INFINITY)
+      if (sort === 'price_high') return (b.startingPrice ?? -1) - (a.startingPrice ?? -1)
+      return 0
+    })
+    return sorted
+  }, [availability, location, ownId, profiles, role, search, sort, specialization])
+
+  const roleOptions = useMemo(() => {
+    const options = new Set<string>()
+    profiles.forEach((profile) => {
+      if (profile.visible && profile.type) options.add(profile.type)
+    })
+    return Array.from(options).sort((a, b) => a.localeCompare(b))
+  }, [profiles])
+
+  const locationOptions = useMemo(() => {
+    const options = new Set<string>()
+    profiles.forEach((profile) => {
+      const city = String(profile.city || '').trim()
+      if (profile.visible && city) options.add(city)
+    })
+    return Array.from(options).sort((a, b) => a.localeCompare(b))
+  }, [profiles])
 
   useEffect(() => {
     if (!filtered.length) {
       setSelected(null)
+      setProfileModalOpen(false)
       return
     }
     if (selected && !filtered.some((profile) => profile.id === selected.id)) {
@@ -268,7 +295,7 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
 
   const openProfile = (profile: ProfessionalProfile) => {
     setSelected(profile)
-    setDetailOpen(true)
+    setProfileModalOpen(true)
   }
 
   const openContactModal = (profile: ProfessionalProfile) => {
@@ -276,8 +303,8 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
     setContactModalOpen(true)
   }
 
-  const openPortalModal = (profile: ProfessionalProfile) => {
-    setSelectedForContact(profile)
+  const openPortalModal = (profile?: ProfessionalProfile | null) => {
+    setSelectedForContact(profile ?? null)
     setPortalModalOpen(true)
   }
 
@@ -288,7 +315,6 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
     setContactFormData({
       firstName: '',
       lastName: '',
-      dateOfBirth: '',
       phone: '',
       email: '',
       details: '',
@@ -296,6 +322,15 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
     setSubmitStatus('idle')
     setErrorMessage('')
   }
+
+  useEffect(() => {
+    if (!profileModalOpen) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setProfileModalOpen(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [profileModalOpen])
 
   const handleContactFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setContactFormData(prev => ({
@@ -311,10 +346,14 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
     setErrorMessage('')
 
     try {
+      const traceId =
+        typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+          ? crypto.randomUUID()
+          : `lead-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`
       const endpoint = portalModalOpen ? '/api/public/contact-lead' : '/api/public/direct-contact'
       const body = portalModalOpen 
-        ? contactFormData
-        : { ...contactFormData, professionalId: selectedForContact?.ownerId }
+        ? { ...contactFormData, leadTraceId: traceId }
+        : { ...contactFormData, professionalId: selectedForContact?.ownerId, leadTraceId: traceId }
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -349,96 +388,126 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
   const hasRemoteProfiles = profiles !== FEATURED_PROFILES
 
   return (
-    <div className={styles.page}>
-      <div className={styles.marketHeader}>
-        <div className={styles.titleBlock}>
-          <span className={styles.eyebrow}>McKenzie Directory</span>
-          <h1>Find legal support professionals</h1>
-          <p>
-            {mode === 'business'
-              ? 'Browse how professional listings appear to litigants.'
-              : 'Compare McKenzie Friends, paralegals, and legal consultants before you contact them.'}
-          </p>
+    <div className={`${styles.page} ${mode === 'business' ? styles.pageBusiness : ''}`}>
+      <header className={styles.header}>
+        <h1 className={styles.pageTitle}>Professional Directory</h1>
+        <p className={styles.pageSubtitle}>
+          {mode === 'business'
+            ? 'Preview how your directory listing is presented to visitors.'
+            : 'Browse McKenzie Friends and legal support professionals, and review their services before making contact.'}
+        </p>
+
+        <div className={styles.filterCard}>
+          <div className={styles.searchWrap}>
+            <Search size={17} />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search by name, area of law, service, or location…"
+            />
+          </div>
+
+          <div className={styles.selectRow}>
+            <div className={styles.selectWrap}>
+              <select value={role} onChange={(event) => setRole(event.target.value)} aria-label="Role filter">
+                <option value="">All roles</option>
+                {roleOptions.map((item) => (
+                  <option key={item} value={item}>{item}</option>
+                ))}
+              </select>
+              <ChevronDown size={15} />
+            </div>
+
+            <div className={styles.selectWrap}>
+              <select
+                value={specialization}
+                onChange={(event) => setSpecialization(event.target.value)}
+                aria-label="Specialization filter"
+              >
+                <option value="">All practice areas</option>
+                {AREAS_OF_LAW.map((item) => (
+                  <option key={item} value={item}>{item}</option>
+                ))}
+              </select>
+              <ChevronDown size={15} />
+            </div>
+
+            <div className={styles.selectWrap}>
+              <select
+                value={location}
+                onChange={(event) => setLocation(event.target.value)}
+                aria-label="Location filter"
+              >
+                <option value="">All locations</option>
+                {locationOptions.map((item) => (
+                  <option key={item} value={item}>{item}</option>
+                ))}
+              </select>
+              <ChevronDown size={15} />
+            </div>
+
+            <div className={styles.selectWrap}>
+              <select
+                value={availability}
+                onChange={(event) => setAvailability(event.target.value)}
+                aria-label="Availability filter"
+              >
+                <option value="">All</option>
+                <option value="remote">Remote</option>
+                <option value="in-person">In person</option>
+                <option value="both">In person & remote</option>
+              </select>
+              <ChevronDown size={15} />
+            </div>
+
+            <div className={styles.selectWrap}>
+              <select
+                value={sort}
+                onChange={(event) => {
+                  const value = event.target.value
+                  if (value === 'newest' || value === 'rating' || value === 'price_low' || value === 'price_high') {
+                    setSort(value)
+                  }
+                }}
+                aria-label="Sort order"
+              >
+                <option value="newest">Newest First</option>
+                <option value="rating">Highest Rated</option>
+                <option value="price_low">Lowest Rate</option>
+                <option value="price_high">Highest Rate</option>
+              </select>
+              <ChevronDown size={15} />
+            </div>
+          </div>
         </div>
 
-        <div className={styles.searchWrap}>
-          <Search size={17} />
-          <input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by issue, service, name, or city"
-          />
+        {mode !== 'business' ? (
+          <div className={styles.portalCallout}>
+            <div>
+              <strong>Not sure who to instruct?</strong>
+              <span>
+                Submit an enquiry to the MCS Portal and we will circulate it to legal support professionals in the directory for review.
+              </span>
+            </div>
+            <button type="button" className={styles.portalCalloutBtn} onClick={() => openPortalModal()}>
+              Submit an enquiry
+            </button>
+          </div>
+        ) : (
+          <div className={styles.businessCallout}>
+            <div>
+              <strong>Public directory preview</strong>
+              <span>Use “My Profile” to update your listing details, pricing, and availability.</span>
+            </div>
+          </div>
+        )}
+
+        <div className={styles.resultMeta}>
+          <span>Showing <strong>{filtered.length}</strong> professional{filtered.length === 1 ? '' : 's'}</span>
+          {loading && <span>Loading live directory...</span>}
+          {!loading && !hasRemoteProfiles && <span>Sample listings are shown until professionals publish profiles</span>}
         </div>
-      </div>
-
-      <div className={styles.filterBar}>
-        <label className={styles.filterButton}>
-          <span>Service options</span>
-          <select value={service} onChange={(event) => setService(event.target.value)}>
-            <option value="">Any service</option>
-            {SERVICE_OPTIONS.map((item) => (
-              <option key={item} value={item}>{item}</option>
-            ))}
-          </select>
-          <ChevronDown size={15} />
-        </label>
-
-        <label className={styles.filterButton}>
-          <span>Legal area</span>
-          <select value={area} onChange={(event) => setArea(event.target.value)}>
-            <option value="">All areas</option>
-            {AREAS_OF_LAW.map((item) => (
-              <option key={item} value={item}>{item}</option>
-            ))}
-          </select>
-          <ChevronDown size={15} />
-        </label>
-
-        <label className={styles.filterButton}>
-          <span>Budget</span>
-          <select value={budget} onChange={(event) => setBudget(event.target.value)}>
-            <option value="">Any budget</option>
-            <option value="50">Up to £50</option>
-            <option value="100">Up to £100</option>
-            <option value="200">Up to £200</option>
-          </select>
-          <ChevronDown size={15} />
-        </label>
-
-        <label className={styles.filterButton}>
-          <span>Availability</span>
-          <select value={availability} onChange={(event) => setAvailability(event.target.value)}>
-            <option value="">Any availability</option>
-            <option value="remote">Remote</option>
-            <option value="in-person">In person</option>
-            <option value="both">In person & remote</option>
-          </select>
-          <ChevronDown size={15} />
-        </label>
-
-        <div className={styles.toggleGroup}>
-          <button
-            type="button"
-            className={`${styles.pillToggle} ${videoOnly ? styles.pillToggleOn : ''}`}
-            onClick={() => setVideoOnly((value) => !value)}
-          >
-            <Video size={15} /> Video consults
-          </button>
-          <button
-            type="button"
-            className={`${styles.pillToggle} ${instantOnly ? styles.pillToggleOn : ''}`}
-            onClick={() => setInstantOnly((value) => !value)}
-          >
-            <MessageSquare size={15} /> Instant response
-          </button>
-        </div>
-      </div>
-
-      <div className={styles.resultMeta}>
-        <span>{filtered.length} professional{filtered.length === 1 ? '' : 's'} available</span>
-        {loading && <span>Loading live directory...</span>}
-        {!loading && !hasRemoteProfiles && <span>Showing sample listings until professionals publish profiles</span>}
-      </div>
+      </header>
 
       <div className={styles.marketBody}>
         <div className={styles.catalog}>
@@ -466,173 +535,155 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
                     <Heart size={20} fill={favorite ? 'currentColor' : 'none'} />
                   </button>
 
-                  <button type="button" className={styles.mediaButton} onClick={() => openProfile(profile)}>
-                    {profile.coverImageUrl ? (
-                      <img src={profile.coverImageUrl} alt="" className={styles.coverImage} />
-                    ) : (
-                      <div className={styles.mediaFallback}>
-                        <span>{profile.type}</span>
-                        <strong>{profile.areasOfLaw[0] || 'Legal support'}</strong>
-                        <small>{AVAILABILITY_LABELS[profile.availability as DirectoryAvailability]}</small>
-                      </div>
-                    )}
-                  </button>
-
                   <div className={styles.cardBody}>
-                    <div className={styles.sellerLine}>
-                      <div className={styles.avatar}>
+                    <div className={styles.identityRow}>
+                      <div className={styles.avatarLarge}>
                         {profile.profileImageUrl ? <img src={profile.profileImageUrl} alt="" /> : initials(profile.displayName)}
                       </div>
-                      <div className={styles.sellerCopy}>
-                        <span>{profile.displayName || 'Directory professional'}</span>
-                        <small>{profile.businessName || profile.type}</small>
+                      <div className={styles.identityCopy}>
+                        <h2>{profile.displayName || 'Directory professional'}</h2>
+                        <p>{profile.type}</p>
                       </div>
-                      {(() => { const lb = levelBadge(profile); return lb ? <span className={styles[lb.cls]}>{lb.label}</span> : null })()}
                     </div>
 
-                    <button type="button" className={styles.cardTitle} onClick={() => openProfile(profile)}>
-                      {profile.headline || `I can help with ${profile.areasOfLaw[0] || 'case preparation'}`}
-                    </button>
+                    {responseTimeLabel(profile.responseTime) && (
+                      <div className={styles.responsePill}>
+                        <Clock3 size={14} />
+                        {responseTimeLabel(profile.responseTime)}
+                      </div>
+                    )}
 
-                    <div className={styles.ratingLine}>
-                      {(() => { const r = ratingLabel(profile); return r ? (<><Star size={14} fill="currentColor" /><strong>{r.score}</strong><span>({r.count})</span></>) : (<><Star size={14} fill="currentColor" /><strong>New</strong></>); })()}
-                      {profile.experienceYears !== null && <span>{profile.experienceYears} yrs exp.</span>}
-                    </div>
-
-                    <div className={styles.cardInfoGrid}>
-                      <span><MapPin size={13} /> {[profile.city, profile.postcode].filter(Boolean).join(', ') || 'Remote'}</span>
-                      <span><Clock3 size={13} /> {profile.responseTime}</span>
-                      <span><CheckCircle2 size={13} /> {AVAILABILITY_LABELS[profile.availability]}</span>
+                    <div className={styles.infoList}>
+                      <span><MapPin size={14} /> {[profile.city, profile.postcode].filter(Boolean).join(' / ') || 'United Kingdom'}</span>
+                      {profile.experienceYears !== null && <span><Clock3 size={14} /> {profile.experienceYears} years experience</span>}
                     </div>
 
                     {profile.bio && <p className={styles.cardSummary}>{profile.bio}</p>}
 
                     <div className={styles.cardTags}>
-                      {profile.areasOfLaw.slice(0, 3).map((item) => (
-                        <span key={item}>{item}</span>
-                      ))}
-                    </div>
-
-                    <div className={styles.serviceTags}>
-                      {(profile.services.length ? profile.services : ['Case preparation']).slice(0, 3).map((item) => (
-                        <span key={item}>{item}</span>
-                      ))}
-                    </div>
-
-                    <div className={styles.cardFooter}>
-                      <div>
-                        <strong>{formatPrice(profile.startingPrice)}</strong>
-                        {profile.offersVideoConsultations && (
-                          <span><Video size={12} /> Video consultations</span>
-                        )}
-                      </div>
-                      <div className={styles.cardActions}>
-                        <button 
-                          type="button" 
-                          className={styles.contactBtn}
-                          onClick={() => openContactModal(profile)}
-                        >
-                          <Mail size={14} /> Contact
-                        </button>
-                        <button type="button" className={styles.viewBtn} onClick={() => openProfile(profile)}>View profile</button>
+                      <div className={styles.tagHeading}>Practice areas</div>
+                      <div className={styles.tagRow}>
+                        {profile.areasOfLaw.slice(0, 4).map((item) => (
+                          <span key={item}>{item}</span>
+                        ))}
+                        {profile.areasOfLaw.length > 4 && <span className={styles.tagMore}>+{profile.areasOfLaw.length - 4} more</span>}
                       </div>
                     </div>
+
+                    <div className={styles.rateBox}>
+                      <span>Indicative rate</span>
+                      <strong>{profile.startingPrice !== null ? `£${profile.startingPrice}` : 'Quote'}</strong>
+                    </div>
+
+                    <button type="button" className={styles.fullProfileBtn} onClick={() => openProfile(profile)}>
+                      View full profile
+                    </button>
                   </div>
                 </article>
               )
             })
           )}
         </div>
-
-        {selected && (
-          <aside className={`${styles.detailPanel} ${detailOpen ? styles.detailPanelOpen : ''}`} aria-label="Professional details">
-            <button
-              type="button"
-              className={styles.closeDetail}
-              onClick={() => {
-                setDetailOpen(false)
-                setSelected(null)
-              }}
-              aria-label="Close details"
-            >
-              <X size={18} />
-            </button>
-
-            <div className={styles.detailMedia}>
-              {selected.coverImageUrl ? (
-                <img src={selected.coverImageUrl} alt="" />
-              ) : (
-                <div className={styles.detailFallback}>
-                  <span>{selected.type}</span>
-                  <strong>{selected.headline || selected.displayName}</strong>
-                </div>
-              )}
-            </div>
-
-            <div className={styles.detailContent}>
-              <div className={styles.detailIdentity}>
-                <div className={styles.detailAvatar}>
-                  {selected.profileImageUrl ? <img src={selected.profileImageUrl} alt="" /> : initials(selected.displayName)}
-                </div>
-                <div>
-                  <h2>{selected.displayName || 'Directory professional'}</h2>
-                  <p>{selected.businessName || selected.type}</p>
-                  <span><MapPin size={13} /> {[selected.city, selected.postcode].filter(Boolean).join(', ') || 'Remote'}</span>
-                </div>
-              </div>
-
-              <div className={styles.detailStats}>
-                <span><Star size={15} fill="currentColor" style={{color:'#f59e0b'}} /> {(() => { const r = ratingLabel(selected); return r ? `${r.score} (${r.count})` : 'New' })()}</span>
-                <span><Clock3 size={15} /> {selected.responseTime}</span>
-                <span><CheckCircle2 size={15} /> {AVAILABILITY_LABELS[selected.availability]}</span>
-              </div>
-
-              <section className={styles.detailSection}>
-                <h3>{selected.headline || 'Professional support'}</h3>
-                <p>{selected.bio || 'This professional has not added a full profile yet.'}</p>
-              </section>
-
-              <section className={styles.detailSection}>
-                <h3>Services</h3>
-                <div className={styles.detailTags}>
-                  {(selected.services.length ? selected.services : ['Case preparation']).map((item) => (
-                    <span key={item}>{item}</span>
-                  ))}
-                </div>
-              </section>
-
-              <section className={styles.detailSection}>
-                <h3>Areas of law</h3>
-                <div className={styles.detailTags}>
-                  {selected.areasOfLaw.map((item) => (
-                    <span key={item}>{item}</span>
-                  ))}
-                </div>
-              </section>
-
-              <section className={styles.detailSection}>
-                <h3>Qualifications</h3>
-                <p>{selected.qualifications || 'Not provided yet.'}</p>
-              </section>
-
-              <section className={styles.detailSection}>
-                <h3>Languages</h3>
-                <div className={styles.detailTags}>
-                  {selected.languages.map((item) => (
-                    <span key={item}>{item}</span>
-                  ))}
-                </div>
-              </section>
-
-              <div className={styles.contactStack}>
-                {selected.email && <a href={`mailto:${selected.email}`}><Mail size={16} /> Contact by email</a>}
-                {selected.phone && <a href={`tel:${selected.phone}`}><Phone size={16} /> {selected.phone}</a>}
-                {selected.website && <a href={selected.website} target="_blank" rel="noreferrer">Visit website</a>}
-              </div>
-            </div>
-          </aside>
-        )}
       </div>
+
+      {selected && profileModalOpen && (
+        <div
+          className={styles.profileOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Professional profile"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setProfileModalOpen(false)
+          }}
+        >
+          <div className={styles.profileModal}>
+            <div className={styles.profileTopBar}>
+              <button
+                type="button"
+                className={styles.profileClose}
+                onClick={() => setProfileModalOpen(false)}
+                aria-label="Close profile"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className={styles.profileBody}>
+              <section className={styles.profileHeroCard}>
+                <div className={styles.profileHeroLeft}>
+                  <div className={styles.profileHeroAvatar}>
+                    {selected.profileImageUrl ? <img src={selected.profileImageUrl} alt="" /> : initials(selected.displayName)}
+                  </div>
+                  <div className={styles.profileHeroName}>
+                    <h2>{selected.displayName || 'Directory professional'}</h2>
+                    <p>{selected.type}</p>
+                  </div>
+                </div>
+
+                <div className={styles.profileHeroGrid}>
+                  <div className={styles.profileHeroStat}>
+                    <span>Location</span>
+                    <strong><MapPin size={14} /> {[selected.city, selected.postcode].filter(Boolean).join(' / ') || 'United Kingdom'}</strong>
+                  </div>
+                  <div className={styles.profileHeroStat}>
+                    <span>Experience</span>
+                    <strong><Clock3 size={14} /> {selected.experienceYears !== null ? `${selected.experienceYears} years` : 'Not listed'}</strong>
+                  </div>
+                  <div className={styles.profileHeroStat}>
+                    <span>Availability</span>
+                    <strong><CheckCircle2 size={14} /> {selected.instantResponse ? 'Available Now' : AVAILABILITY_LABELS[selected.availability]}</strong>
+                  </div>
+                  <div className={styles.profileHeroStat}>
+                    <span>Hourly Rate</span>
+                    <strong>{selected.startingPrice !== null ? `£${selected.startingPrice}` : 'Quote'}</strong>
+                  </div>
+                </div>
+
+                <div className={styles.profileHeroChips}>
+                  <span className={styles.profileHeroChipsLabel}>Specializations</span>
+                  <div className={styles.profileHeroChipRow}>
+                    {selected.areasOfLaw.map((item) => (
+                      <span key={item} className={styles.profileHeroChip}>{item}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className={styles.profileHeroActions}>
+                  <button
+                    type="button"
+                    className={styles.profileActionPrimary}
+                    onClick={() => {
+                      setProfileModalOpen(false)
+                      openContactModal(selected)
+                    }}
+                  >
+                    Request consultation
+                  </button>
+                </div>
+              </section>
+
+              <section className={styles.profileAboutCard}>
+                <div className={styles.profileAboutHeader}>
+                  <strong>About Me</strong>
+                </div>
+                <div className={styles.profileAboutText}>
+                  {selected.bio || 'This professional has not added a full profile yet.'}
+                </div>
+                <div className={styles.profileAboutFooter}>
+                  <div>
+                    <span>Service Areas</span>
+                    <strong>{[selected.city, selected.postcode].filter(Boolean).join(', ') || 'England and Wales'}</strong>
+                  </div>
+                  <div>
+                    <span>Indicative rate</span>
+                    <strong>{selected.startingPrice !== null ? `£${selected.startingPrice}` : 'Quote'}</strong>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Contact/Portal Modal */}
       {(contactModalOpen || portalModalOpen) && (
@@ -641,11 +692,11 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">
-                  {portalModalOpen ? 'Send to MCS Portal' : `Contact ${selectedForContact?.displayName}`}
+                  {portalModalOpen ? 'Submit to the MCS Portal' : `Contact ${selectedForContact?.displayName}`}
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">
                   {portalModalOpen 
-                    ? 'Your enquiry will be sent to all legal professionals in the directory.'
+                    ? 'Your enquiry will be shared with legal support professionals in the directory. We aim for a response within 24–48 hours (subject to availability).'
                     : `Send a private message to ${selectedForContact?.displayName}`}
                 </p>
               </div>
@@ -667,7 +718,7 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
                 <h3 className="text-lg font-semibold text-gray-900 mb-1">Message Sent!</h3>
                 <p className="text-gray-600 text-sm">
                   {portalModalOpen 
-                    ? 'Your enquiry has been sent to the MCS portal. Legal professionals will review your case.'
+                    ? 'Your enquiry has been submitted to the MCS Portal. Legal support professionals will review your details and respond where appropriate.'
                     : 'Your message has been sent to the professional.'}
                 </p>
               </div>
@@ -707,21 +758,6 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
                 </div>
 
                 <div>
-                  <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-1">
-                    Date of Birth *
-                  </label>
-                  <input
-                    type="date"
-                    id="dateOfBirth"
-                    name="dateOfBirth"
-                    required
-                    value={contactFormData.dateOfBirth}
-                    onChange={handleContactFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-
-                <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
                     Phone Number *
                   </label>
@@ -753,21 +789,21 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="details" className="block text-sm font-medium text-gray-700 mb-1">
-                    Details of Your Issue *
-                  </label>
-                  <textarea
-                    id="details"
-                    name="details"
-                    required
-                    rows={4}
-                    value={contactFormData.details}
-                    onChange={handleContactFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-                    placeholder="Please describe your legal issue in detail..."
-                  />
-                </div>
+                  <div>
+                    <label htmlFor="details" className="block text-sm font-medium text-gray-700 mb-1">
+                    Summary of your enquiry *
+                    </label>
+                    <textarea
+                      id="details"
+                      name="details"
+                      required
+                      rows={4}
+                      value={contactFormData.details}
+                      onChange={handleContactFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                    placeholder="Briefly describe the issue and what support you are seeking…"
+                    />
+                  </div>
 
                 {submitStatus === 'error' && (
                   <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
@@ -780,7 +816,7 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
                   disabled={isSubmitting}
                   className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {isSubmitting ? (
+                      {isSubmitting ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       Sending...
@@ -788,7 +824,7 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
                   ) : (
                     <>
                       <Send size={16} />
-                      {portalModalOpen ? 'Send to MCS Portal' : 'Send Message'}
+                      {portalModalOpen ? 'Submit enquiry' : 'Send message'}
                     </>
                   )}
                 </button>

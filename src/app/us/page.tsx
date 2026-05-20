@@ -161,6 +161,7 @@ export default function UsHomePage() {
       planCurrencySymbol="$"
       pricingHref="/us/pricing"
       howItWorksHref="/us/legal-case-management-tool"
+      directoryHref="/directory"
       learnBasicsHref="/us/self-represented-litigant-guide"
       comparePlansHref="/us/pricing"
       helpHref="/us/help"
