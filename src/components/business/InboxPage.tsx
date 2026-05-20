@@ -15,8 +15,16 @@ interface Message {
   timestamp: string
   isRead: boolean
   isStarred: boolean
-  type: 'email' | 'invitation'
-  metadata?: { invitation_id?: string; role?: string; inviter_email?: string; status?: string }
+  type: 'email' | 'invitation' | 'client_invite'
+  metadata?: {
+    invitation_id?: string
+    role?: string
+    inviter_email?: string
+    status?: string
+    invited_email?: string
+    client_name?: string
+    accepted_at?: string | null
+  }
 }
 
 const ROLE_LABEL: Record<string, string> = {
@@ -28,6 +36,7 @@ const FOLDERS = [
   { id: 'inbox', name: 'Inbox', icon: Mail },
   { id: 'clients', name: 'Clients', icon: UserPlus },
   { id: 'invitations', name: 'Invitations', icon: UserPlus },
+  { id: 'client-invites', name: 'Client Invites', icon: UserPlus },
   { id: 'sent', name: 'Sent', icon: Send },
   { id: 'drafts', name: 'Drafts', icon: FileText },
   { id: 'starred', name: 'Starred', icon: Star },
@@ -44,10 +53,11 @@ function fmtTime(dateStr: string) {
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
 }
 
-export default function InboxPage() {
+export default function InboxPage({ composePreset }: { composePreset?: { to: string; subject?: string; body?: string } | null }) {
   const [messages, setMessages] = useState<Message[]>([])
   const [clientMessages, setClientMessages] = useState<Message[]>([])
   const [invitations, setInvitations] = useState<Message[]>([])
+  const [clientInvites, setClientInvites] = useState<Message[]>([])
   const [selectedMsg, setSelectedMsg] = useState<Message | null>(null)
   const [selectedFolder, setSelectedFolder] = useState('inbox')
   const [searchQuery, setSearchQuery] = useState('')
@@ -63,6 +73,18 @@ export default function InboxPage() {
   const [inviteNotice, setInviteNotice] = useState('')
 
   useEffect(() => { loadData() }, [])
+
+  useEffect(() => {
+    if (!composePreset?.to) return
+    setSelectedFolder('inbox')
+    setSelectedMsg(null)
+    setComposeForm({
+      to: composePreset.to,
+      subject: composePreset.subject || '',
+      body: composePreset.body || '',
+    })
+    setShowCompose(true)
+  }, [composePreset?.to, composePreset?.subject, composePreset?.body])
 
   async function loadData() {
     setLoading(true)
@@ -115,6 +137,48 @@ export default function InboxPage() {
           metadata: { invitation_id: String(r.id), role: String(r.role), inviter_email: String(r.inviter_email || ''), status: String(r.status) },
         })))
       }
+
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        try {
+          const res = await fetch('/api/business/client-invite', {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${session.access_token}` },
+            cache: 'no-store',
+          })
+          const data = await res.json().catch(() => ({}))
+          if (res.ok && Array.isArray(data?.invitations)) {
+            setClientInvites(
+              data.invitations.map((inv: any) => {
+                const invitedEmail = String(inv.invited_email || '')
+                const clientName = typeof inv.client_name === 'string' ? inv.client_name : ''
+                const status = String(inv.status || 'pending')
+                const acceptedAt = inv.accepted_at ? String(inv.accepted_at) : null
+                const who = clientName || invitedEmail || 'Client'
+                const statusLabel = status === 'accepted' ? 'Accepted' : status === 'pending' ? 'Pending' : status
+                return {
+                  id: String(inv.id),
+                  sender: who,
+                  senderEmail: invitedEmail,
+                  subject: 'Client portal invitation',
+                  preview: `${statusLabel} • ${invitedEmail}`,
+                  content:
+                    status === 'accepted'
+                      ? `Invitation accepted by ${invitedEmail}${clientName ? ` (${clientName})` : ''}.`
+                      : `Invitation sent to ${invitedEmail}${clientName ? ` (${clientName})` : ''}.`,
+                  timestamp: fmtTime(String(inv.created_at)),
+                  isRead: true,
+                  isStarred: false,
+                  type: 'client_invite' as const,
+                  metadata: { invitation_id: String(inv.id), status, invited_email: invitedEmail, client_name: clientName, accepted_at: acceptedAt },
+                }
+              })
+            )
+          }
+        } catch {
+          // ignore history fetch errors
+        }
+      }
     } catch { /* graceful fallback */ } finally { setLoading(false) }
   }
 
@@ -161,13 +225,14 @@ export default function InboxPage() {
         }),
       })
 
+      const payload = await response.json().catch(() => ({}))
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to send invite')
+        throw new Error(payload.message || 'Failed to send invite')
       }
 
       setInviteNotice('sent')
       setClientInviteForm({ email: '', name: '' })
+      void loadData()
       setTimeout(() => { setShowClientInvite(false); setInviteNotice('') }, 1500)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to send invite'
@@ -208,6 +273,7 @@ export default function InboxPage() {
 
   const listed = selectedFolder === 'clients' ? clientMessages
     : selectedFolder === 'invitations' ? invitations
+    : selectedFolder === 'client-invites' ? clientInvites
     : selectedFolder === 'starred' ? messages.filter(m => m.isStarred)
     : messages
 
@@ -221,6 +287,7 @@ export default function InboxPage() {
     inbox: messages.filter(m => !m.isRead).length,
     clients: clientMessages.filter(m => !m.isRead).length,
     invitations: invitations.filter(m => m.metadata?.status === 'pending').length,
+    'client-invites': clientInvites.filter(m => m.metadata?.status === 'pending').length,
     starred: messages.filter(m => m.isStarred).length,
   }
 
@@ -270,26 +337,43 @@ export default function InboxPage() {
       {/* Client invite modal */}
       {showClientInvite && (
         <div className={styles.composeOverlay} onClick={e => { if (e.target === e.currentTarget) setShowClientInvite(false)}}>
-          <div className={styles.composeModal}>
+          <div className={`${styles.composeModal} ${styles.inviteModal}`}>
             <div className={styles.composeHeader}>
               <span className={styles.composeTitle}>Invite Client to Portal</span>
               <button type="button" className={styles.composeClose} onClick={() => setShowClientInvite(false)}><X size={16}/></button>
             </div>
-            <form onSubmit={handleClientInviteSend} className={styles.composeForm}>
-              <div className={styles.composeField}>
-                <label className={styles.composeLabel}>Client Email</label>
-                <input className={styles.composeInput} type="email" required placeholder="client@email.com"
-                  value={clientInviteForm.email} onChange={e => setClientInviteForm(f => ({ ...f, email: e.target.value }))}/>
+            <form onSubmit={handleClientInviteSend} className={`${styles.composeForm} ${styles.inviteForm}`}>
+              <div className={styles.inviteFields}>
+                <div className={styles.inviteField}>
+                  <label className={styles.inviteLabel} htmlFor="invite-client-email">Client email</label>
+                  <input
+                    id="invite-client-email"
+                    className={styles.inviteInput}
+                    type="email"
+                    required
+                    placeholder="client@email.com"
+                    value={clientInviteForm.email}
+                    onChange={e => setClientInviteForm(f => ({ ...f, email: e.target.value }))}
+                    autoComplete="email"
+                  />
+                </div>
+                <div className={styles.inviteField}>
+                  <label className={styles.inviteLabel} htmlFor="invite-client-name">
+                    Client name <span className={styles.inviteOptional}>(optional)</span>
+                  </label>
+                  <input
+                    id="invite-client-name"
+                    className={styles.inviteInput}
+                    type="text"
+                    placeholder="John Doe"
+                    value={clientInviteForm.name}
+                    onChange={e => setClientInviteForm(f => ({ ...f, name: e.target.value }))}
+                    autoComplete="name"
+                  />
+                </div>
               </div>
-              <div className={styles.composeField}>
-                <label className={styles.composeLabel}>Client Name (optional)</label>
-                <input className={styles.composeInput} type="text" placeholder="John Doe"
-                  value={clientInviteForm.name} onChange={e => setClientInviteForm(f => ({ ...f, name: e.target.value }))}/>
-              </div>
-              <div className={styles.composeBodyField}>
-                <p className={styles.composeHelpText}>
-                  The client will receive an email with a signup link to access their client portal where they can view messages, documents, and case information.
-                </p>
+              <div className={styles.inviteCallout} role="note">
+                The client receives an email with a signup link to access their client portal (messages, documents, and case updates).
               </div>
               {inviteNotice && (
                 <p className={inviteNotice === 'sent' ? styles.composeSentNotice : styles.composeErrorNotice}>
@@ -351,16 +435,22 @@ export default function InboxPage() {
           {!loading && filtered.length === 0 && <div className={styles.emptyState}><Mail size={32}/><p>No messages here</p></div>}
           {filtered.map(msg => (
             <div key={msg.id} role="button" tabIndex={0}
-              className={`${styles.emailItem} ${selectedMsg?.id === msg.id ? styles.emailItemSelected : ''} ${!msg.isRead ? styles.emailItemUnread : ''} ${msg.type === 'invitation' ? styles.emailItemInvitation : ''}`}
-              onClick={() => { setSelectedMsg(msg); if (!msg.isRead && msg.type !== 'invitation') handleMarkAsRead(msg.id) }}
+              className={`${styles.emailItem} ${selectedMsg?.id === msg.id ? styles.emailItemSelected : ''} ${!msg.isRead ? styles.emailItemUnread : ''} ${msg.type === 'invitation' ? styles.emailItemInvitation : ''} ${msg.type === 'client_invite' ? styles.emailItemClientInvite : ''}`}
+              onClick={() => { setSelectedMsg(msg); if (!msg.isRead && msg.type === 'email') handleMarkAsRead(msg.id) }}
               onKeyDown={e => { if (e.key === 'Enter') setSelectedMsg(msg) }}>
               <div className={styles.emailItemRow}>
                 <span className={styles.senderName}>{msg.sender}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <span className={styles.emailItemTimestamp}>{msg.timestamp}</span>
-                  {msg.type !== 'invitation'
+                  {msg.type === 'email'
                     ? <button type="button" className={`${styles.starButtonSmall} ${msg.isStarred ? styles.starActive : ''}`} onClick={e => handleStar(msg.id, e)} aria-label="Star"><Star size={13} fill={msg.isStarred ? 'currentColor' : 'none'}/></button>
-                    : <span className={styles.inviteBadge}>{msg.metadata?.status === 'accepted' ? '✓' : msg.metadata?.status === 'declined' ? '✗' : '·'}</span>
+                    : (
+                      <span className={styles.inviteBadge}>
+                        {msg.type === 'invitation'
+                          ? (msg.metadata?.status === 'accepted' ? '✓' : msg.metadata?.status === 'declined' ? '✗' : '·')
+                          : (msg.metadata?.status === 'accepted' ? '✓' : '·')}
+                      </span>
+                    )
                   }
                 </div>
               </div>
@@ -378,7 +468,7 @@ export default function InboxPage() {
             <div className={styles.previewHeader}>
               <div className={styles.previewTopRow}>
                 <h2 className={styles.previewSubject}>{selectedMsg.subject}</h2>
-                {selectedMsg.type !== 'invitation' && (
+                {selectedMsg.type === 'email' && (
                   <div className={styles.previewActions}>
                     <button type="button" className={`${styles.starActionBtn} ${selectedMsg.isStarred ? styles.starActionBtnActive : ''}`} onClick={e => handleStar(selectedMsg.id, e)} aria-label="Star">
                       <Star size={16} fill={selectedMsg.isStarred ? 'currentColor' : 'none'}/>
@@ -423,9 +513,18 @@ export default function InboxPage() {
               {selectedMsg.type === 'invitation' && selectedMsg.metadata?.status === 'declined' && (
                 <div className={styles.invitationDeclined}><XCircle size={16}/>You declined this invitation</div>
               )}
+
+              {selectedMsg.type === 'client_invite' && (
+                <div className={styles.invitationActions}>
+                  <p className={styles.invitationPrompt}>
+                    Status: <strong>{selectedMsg.metadata?.status || 'pending'}</strong>
+                    {selectedMsg.metadata?.accepted_at ? ` • Accepted ${fmtTime(String(selectedMsg.metadata.accepted_at))}` : ''}
+                  </p>
+                </div>
+              )}
             </div>
 
-            {selectedMsg.type !== 'invitation' && (
+            {selectedMsg.type === 'email' && (
               <div className={styles.previewFooter}>
                 <button type="button" className={styles.replyBtn}><Reply size={15}/>Reply</button>
                 <button type="button" className={styles.forwardBtn}><Forward size={15}/>Forward</button>

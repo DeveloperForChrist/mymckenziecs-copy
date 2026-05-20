@@ -29,7 +29,6 @@ import {
   Search,
   Send,
   Settings,
-  ShieldCheck,
   UserPlus,
   UserRound,
   UserCircle2,
@@ -42,7 +41,6 @@ import { VideoCallPanel } from '@/components/video-call/VideoCallPanel';
 import InboxPage from './InboxPage';
 import LeadsPage from './LeadsPage';
 import AlertsPage from './AlertsPage';
-import TeamPage from './TeamPage';
 import ClientMattersPage from './ClientMattersPage';
 import BusinessProfilePage from './BusinessProfilePage';
 import DirectoryClient from '@/components/directory/DirectoryClient';
@@ -56,6 +54,7 @@ import NotesPageClient from '@/components/dashboard/NotesPageClient';
 import SettingsPageClient from '@/components/settings/SettingsPageClient';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import HostedVideoMeeting from '@/components/video/HostedVideoMeeting';
+import { BUSINESS_CLEAR_DOCUMENTS_FILTER_EVENT, BUSINESS_OPEN_DOCUMENTS_EVENT } from '@/lib/events/business-events';
 import styles from './businessDashboard.module.css';
 
 type NavItem = {
@@ -110,12 +109,6 @@ const navItems: NavItem[] = [
     icon: Video,
   },
   {
-    id: 'team',
-    label: 'Team',
-    description: 'Roles, visibility, and handovers',
-    icon: UsersRound,
-  },
-  {
     id: 'messages',
     label: 'Inbox',
     description: 'Client and matter conversations',
@@ -126,12 +119,6 @@ const navItems: NavItem[] = [
     label: 'Alerts',
     description: 'Alerts across clients and teams',
     icon: Bell,
-  },
-  {
-    id: 'portals',
-    label: 'Client Portals',
-    description: 'Secure client-facing workspaces',
-    icon: ShieldCheck,
   },
   {
     id: 'case-law',
@@ -530,9 +517,17 @@ function EmbeddedToolShell({ children, variant = 'purple' }: { children: ReactNo
 function BusinessWorkspacePage({
   activeId,
   initialChatPlan,
+  inboxComposePreset,
+  documentsCaseIdOverride,
+  meetingPreset,
+  onMeetingPresetConsumed,
 }: {
   activeId: NavItem['id'];
   initialChatPlan: InitialChatPlanState;
+  inboxComposePreset: { to: string; subject: string; body?: string } | null;
+  documentsCaseIdOverride: string | null;
+  meetingPreset: { clientName?: string; clientEmail?: string; context?: string } | null;
+  onMeetingPresetConsumed: () => void;
 }) {
   const businessDashboardHref = '/business/dashboard';
   const settingsPlan = {
@@ -546,7 +541,15 @@ function BusinessWorkspacePage({
     return <ClientMattersPage />;
   }
 
-  if (activeId === 'video') return <VideoCallPanel userId={initialChatPlan.userId} />;
+  if (activeId === 'video') {
+    return (
+      <VideoCallPanel
+        userId={initialChatPlan.userId}
+        meetingPreset={meetingPreset}
+        onMeetingPresetConsumed={onMeetingPresetConsumed}
+      />
+    );
+  }
 
   if (activeId === 'case-law') {
     return (
@@ -570,6 +573,7 @@ function BusinessWorkspacePage({
           initialCanUpload={Boolean(initialChatPlan.platformAccess ?? initialChatPlan.paidAccess)}
           initialPlanLoaded
           dashboardHrefOverride={businessDashboardHref}
+          caseIdOverride={documentsCaseIdOverride}
         />
       </EmbeddedToolShell>
     );
@@ -588,7 +592,7 @@ function BusinessWorkspacePage({
   }
 
   if (activeId === 'messages') {
-    return <InboxPage />;
+    return <InboxPage composePreset={inboxComposePreset} />;
   }
 
   if (activeId === 'leads') {
@@ -597,10 +601,6 @@ function BusinessWorkspacePage({
 
   if (activeId === 'notifications') {
     return <AlertsPage />;
-  }
-
-  if (activeId === 'team') {
-    return <TeamPage />;
   }
 
   if (activeId === 'calendar') {
@@ -612,6 +612,7 @@ function BusinessWorkspacePage({
           initialPlanChecked
           initialHasReminderAccess={initialChatPlan.paidAccess}
           initialRemindersEnabled={false}
+          lessRounded
         />
       </EmbeddedToolShell>
     );
@@ -621,7 +622,7 @@ function BusinessWorkspacePage({
     return (
       <EmbeddedToolShell variant="plain">
         <Suspense fallback={null}>
-          <SettingsPageClient initialBillingPlan={settingsPlan} dashboardHrefOverride={businessDashboardHref} />
+          <SettingsPageClient initialBillingPlan={settingsPlan} dashboardHrefOverride={businessDashboardHref} mode="embedded" />
         </Suspense>
       </EmbeddedToolShell>
     );
@@ -644,14 +645,65 @@ export default function BusinessDashboardClient({ initialChatPlan }: BusinessDas
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeId, setActiveId] = useState('home');
   const [leadsCount, setLeadsCount] = useState(0);
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    if (typeof window === 'undefined') return 'light';
+  const [inboxComposePreset, setInboxComposePreset] = useState<{ to: string; subject: string; body?: string } | null>(null);
+  const [meetingPreset, setMeetingPreset] = useState<{ clientName?: string; clientEmail?: string; context?: string } | null>(null);
+  const [documentsCaseIdOverride, setDocumentsCaseIdOverride] = useState<string | null>(null);
+  // Avoid hydration mismatches: always render "light" on the server + first client paint,
+  // then sync the persisted theme after mount.
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  useEffect(() => {
     try {
-      return localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light';
+      const persisted = localStorage.getItem(THEME_KEY);
+      if (persisted === 'dark' || persisted === 'light') setTheme(persisted);
     } catch {
-      return 'light';
+      // ignore
     }
-  });
+  }, []);
+
+  useEffect(() => {
+    const onScheduleMeeting = (event: Event) => {
+      const custom = event as CustomEvent<{ clientName?: string; clientEmail?: string; context?: string }>;
+      const clientName = String(custom.detail?.clientName || '').trim();
+      const clientEmail = String(custom.detail?.clientEmail || '').trim();
+      const context = String(custom.detail?.context || '').trim();
+      setMeetingPreset({ clientName, clientEmail, context });
+      setActiveId('video');
+    };
+    window.addEventListener('mymckenzie-schedule-meeting', onScheduleMeeting as EventListener);
+    return () => window.removeEventListener('mymckenzie-schedule-meeting', onScheduleMeeting as EventListener);
+  }, []);
+
+  useEffect(() => {
+    const onCompose = (event: Event) => {
+      const custom = event as CustomEvent<{ to?: string; subject?: string; body?: string }>;
+      const to = String(custom.detail?.to || '').trim();
+      const subject = String(custom.detail?.subject || '').trim();
+      const body = typeof custom.detail?.body === 'string' ? custom.detail.body : '';
+      if (!to) return;
+      setInboxComposePreset({ to, subject, body });
+      setActiveId('messages');
+    };
+    window.addEventListener('mymckenzie-inbox-compose', onCompose as EventListener);
+    return () => window.removeEventListener('mymckenzie-inbox-compose', onCompose as EventListener);
+  }, []);
+
+  useEffect(() => {
+    const onOpenDocuments = (event: Event) => {
+      const custom = event as CustomEvent<{ caseId?: string }>;
+      const caseId = String(custom.detail?.caseId || '').trim();
+      if (!caseId) return;
+      setDocumentsCaseIdOverride(caseId);
+      setActiveId('documents');
+    };
+    const onClearDocumentsFilter = () => setDocumentsCaseIdOverride(null);
+    window.addEventListener(BUSINESS_OPEN_DOCUMENTS_EVENT, onOpenDocuments as EventListener);
+    window.addEventListener(BUSINESS_CLEAR_DOCUMENTS_FILTER_EVENT, onClearDocumentsFilter as EventListener);
+    return () => {
+      window.removeEventListener(BUSINESS_OPEN_DOCUMENTS_EVENT, onOpenDocuments as EventListener);
+      window.removeEventListener(BUSINESS_CLEAR_DOCUMENTS_FILTER_EVENT, onClearDocumentsFilter as EventListener);
+    };
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -731,12 +783,16 @@ export default function BusinessDashboardClient({ initialChatPlan }: BusinessDas
             const Icon = item.icon;
             const active = item.id === activeId;
             const count = item.id === 'leads' ? leadsCount : item.count;
+            const hasCount = typeof count === 'number' ? count > 0 : Boolean(count);
             return (
             <button
               key={item.id}
               type="button"
               className={`${styles.navItem} ${active ? styles.navItemActive : ''}`}
-              onClick={() => setActiveId(item.id)}
+              onClick={() => {
+                if (item.id === 'documents') setDocumentsCaseIdOverride(null);
+                setActiveId(item.id);
+              }}
               title={!sidebarOpen ? item.label : undefined}
               aria-current={active ? 'page' : undefined}
             >
@@ -747,7 +803,7 @@ export default function BusinessDashboardClient({ initialChatPlan }: BusinessDas
                     <span className={styles.navLabel}>{item.label}</span>
                     <span className={styles.navDescription}>{item.description}</span>
                   </span>
-                  {count && count > 0 && <span className={styles.navCount}>{count}</span>}
+                  {hasCount && <span className={styles.navCount}>{count}</span>}
                 </>
               )}
             </button>
@@ -788,7 +844,14 @@ export default function BusinessDashboardClient({ initialChatPlan }: BusinessDas
           <BusinessChatWorkspace initialChatPlan={initialChatPlan} />
         ) : (
           <div className={styles.pageWorkspace}>
-            <BusinessWorkspacePage activeId={activeId} initialChatPlan={initialChatPlan} />
+              <BusinessWorkspacePage
+                activeId={activeId}
+                initialChatPlan={initialChatPlan}
+                inboxComposePreset={inboxComposePreset}
+                documentsCaseIdOverride={documentsCaseIdOverride}
+                meetingPreset={meetingPreset}
+                onMeetingPresetConsumed={() => setMeetingPreset(null)}
+              />
           </div>
         )}
       </section>

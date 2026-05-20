@@ -26,6 +26,7 @@ export interface BusinessLead {
 export interface ClientMatter {
   id: string
   leadId?: string
+  caseId?: string | null
   clientName: string
   email: string
   phone: string
@@ -293,6 +294,7 @@ export function matterFromLead(lead: BusinessLead, existing?: ClientMatter): Cli
   return {
     id: existing?.id || `lead-${lead.id}`,
     leadId: lead.id,
+    caseId: existing?.caseId ?? null,
     clientName: lead.name,
     email: lead.email,
     phone: lead.phone,
@@ -353,6 +355,7 @@ export function createBlankMatter(): ClientMatter {
       : `manual-${Date.now()}`
   return {
     id,
+    caseId: null,
     clientName: 'New client',
     email: '',
     phone: '',

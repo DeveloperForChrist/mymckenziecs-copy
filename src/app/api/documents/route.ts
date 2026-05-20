@@ -40,16 +40,40 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const limit = parseBoundedPositiveInt(searchParams.get('limit'), DEFAULT_DOCUMENT_LIMIT, MAX_DOCUMENT_LIMIT)
     const offset = parseBoundedPositiveInt(searchParams.get('offset'), 0, Number.MAX_SAFE_INTEGER)
+    const caseIdFilter = (searchParams.get('caseId') || '').trim() || null
     const rangeEnd = offset + limit
+
+    if (caseIdFilter) {
+      const { data: ownedCase, error: ownedErr } = await supabase
+        .from('cases')
+        .select('id')
+        .eq('id', caseIdFilter)
+        .eq('user_id', user.id)
+        .is('deleted_at', null)
+        .maybeSingle()
+
+      if (ownedErr) {
+        return NextResponse.json({ error: ownedErr.message }, { status: 500 })
+      }
+      if (!ownedCase) {
+        return NextResponse.json({ error: 'Forbidden caseId' }, { status: 403 })
+      }
+    }
 
     const preferredSelect = 'id, name, type, created_at, file_size, mime_type, storage_path, storage_url, case_id, starred'
     const fallbackSelect = 'id, name, type, created_at, file_size, mime_type, storage_path, storage_url, case_id'
 
-    const preferredResult = await supabase
+    let preferredQuery = supabase
       .from('documents')
       .select(preferredSelect)
       .is('deleted_at', null)
-      .eq('uploaded_by', user.id)
+    if (!caseIdFilter) {
+      preferredQuery = preferredQuery.eq('uploaded_by', user.id)
+    }
+    if (caseIdFilter) {
+      preferredQuery = preferredQuery.eq('case_id', caseIdFilter)
+    }
+    const preferredResult = await preferredQuery
       .order('created_at', { ascending: false })
       .range(offset, rangeEnd)
     let error = preferredResult.error
@@ -57,11 +81,17 @@ export async function GET(request: NextRequest) {
 
     // Backward-compatible fallback while starred migration rolls out.
     if (error && /starred/i.test(error.message || '')) {
-      const fallbackResult = await supabase
+      let fallbackQuery = supabase
         .from('documents')
         .select(fallbackSelect)
         .is('deleted_at', null)
-        .eq('uploaded_by', user.id)
+      if (!caseIdFilter) {
+        fallbackQuery = fallbackQuery.eq('uploaded_by', user.id)
+      }
+      if (caseIdFilter) {
+        fallbackQuery = fallbackQuery.eq('case_id', caseIdFilter)
+      }
+      const fallbackResult = await fallbackQuery
         .order('created_at', { ascending: false })
         .range(offset, rangeEnd)
       rowsRaw = (fallbackResult.data as any[] | null) ?? null

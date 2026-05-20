@@ -38,12 +38,65 @@ function errorResponse(error: unknown, fallback: string) {
   return NextResponse.json({ message: fallback }, { status: 500 })
 }
 
+function isMissingCaseIdColumnError(error: unknown) {
+  if (!error || typeof error !== 'object') return false
+  const code = (error as { code?: unknown }).code
+  const message = String((error as { message?: unknown }).message || '')
+  return (code === 'PGRST204' || code === '42703') && message.toLowerCase().includes('case_id')
+}
+
 export async function GET() {
   try {
     const context = await getContext()
     const leadRows = await loadBusinessLeadRows(context.businessId)
     await syncAcceptedLeadMatterRows(context.businessId, leadRows)
     const matterRows = await loadClientMatterRows(context.businessId)
+
+    const supportsCaseId =
+      matterRows.length === 0
+        ? true
+        : Object.prototype.hasOwnProperty.call(matterRows[0] as Record<string, unknown>, 'case_id')
+
+    const mattersMissingCases = supportsCaseId ? matterRows.filter((row: any) => !row?.case_id) : []
+    if (supportsCaseId && mattersMissingCases.length > 0) {
+      const batch = mattersMissingCases.slice(0, 25)
+      await Promise.allSettled(
+        batch.map(async (row: any) => {
+          const titleParts = [row?.client_name, row?.matter_number].filter(Boolean)
+          const title = titleParts.join(' — ') || 'Client matter'
+
+          const { data: createdCase, error: caseError } = await supabaseAdmin
+            .from('cases')
+            .insert({
+              user_id: context.userId,
+              title,
+              description: typeof row?.summary === 'string' ? row.summary : null,
+              status: 'active',
+            })
+            .select('id')
+            .single()
+
+          if (caseError || !createdCase?.id) {
+            console.error('Failed to backfill matter case', caseError)
+            return
+          }
+
+          const { error: updateError } = await supabaseAdmin
+            .from('client_matters')
+            .update({ case_id: createdCase.id })
+            .eq('business_id', context.businessId)
+            .eq('id', row.id)
+            .is('case_id', null)
+
+          if (updateError) {
+            console.error('Failed to persist matter case backfill', updateError)
+            return
+          }
+
+          row.case_id = createdCase.id
+        }),
+      )
+    }
 
     return NextResponse.json({
       matters: matterRows.map(rowToClientMatter),
@@ -62,15 +115,62 @@ export async function POST(request: NextRequest) {
       ...(body as Partial<ClientMatter>),
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('client_matters')
-      .insert(clientMatterToRow(matter, context.businessId))
-      .select('*')
-      .single()
+    const insertPayload = clientMatterToRow(matter, context.businessId)
+    let data: any = null
+    let error: any = null
+    {
+      const result = await supabaseAdmin
+        .from('client_matters')
+        .insert(insertPayload)
+        .select('*')
+        .single()
+      data = result.data
+      error = result.error
+    }
+
+    if (error && isMissingCaseIdColumnError(error)) {
+      const { case_id: _dropCaseId, ...fallbackPayload } = insertPayload
+      const fallbackResult = await supabaseAdmin
+        .from('client_matters')
+        .insert(fallbackPayload)
+        .select('*')
+        .single()
+      data = fallbackResult.data
+      error = fallbackResult.error
+    }
 
     if (error || !data) {
       console.error('Client matter create failed', error)
       return NextResponse.json({ message: 'Unable to create matter.' }, { status: 500 })
+    }
+
+    const supportsCaseId = Object.prototype.hasOwnProperty.call(data as Record<string, unknown>, 'case_id')
+    if (supportsCaseId && !data.case_id) {
+      const titleParts = [data?.client_name, data?.matter_number].filter(Boolean)
+      const title = titleParts.join(' — ') || 'Client matter'
+      const { data: createdCase } = await supabaseAdmin
+        .from('cases')
+        .insert({
+          user_id: context.userId,
+          title,
+          description: typeof data?.summary === 'string' ? data.summary : null,
+          status: 'active',
+        })
+        .select('id')
+        .single()
+
+      if (createdCase?.id) {
+        const { data: updatedRow } = await supabaseAdmin
+          .from('client_matters')
+          .update({ case_id: createdCase.id })
+          .eq('business_id', context.businessId)
+          .eq('id', data.id)
+          .select('*')
+          .single()
+        if (updatedRow) {
+          return NextResponse.json({ matter: rowToClientMatter(updatedRow) })
+        }
+      }
     }
 
     return NextResponse.json({
@@ -95,13 +195,32 @@ export async function PUT(request: NextRequest) {
     }
 
     const update = matterUpdateToRow(body)
-    const { data, error } = await supabaseAdmin
-      .from('client_matters')
-      .update(update)
-      .eq('business_id', context.businessId)
-      .eq('id', id)
-      .select('*')
-      .single()
+    let data: any = null
+    let error: any = null
+    {
+      const result = await supabaseAdmin
+        .from('client_matters')
+        .update(update)
+        .eq('business_id', context.businessId)
+        .eq('id', id)
+        .select('*')
+        .single()
+      data = result.data
+      error = result.error
+    }
+
+    if (error && isMissingCaseIdColumnError(error) && Object.prototype.hasOwnProperty.call(update, 'case_id')) {
+      const { case_id: _dropCaseId, ...fallbackUpdate } = update
+      const fallbackResult = await supabaseAdmin
+        .from('client_matters')
+        .update(fallbackUpdate)
+        .eq('business_id', context.businessId)
+        .eq('id', id)
+        .select('*')
+        .single()
+      data = fallbackResult.data
+      error = fallbackResult.error
+    }
 
     if (error || !data) {
       console.error('Client matter update failed', error)

@@ -6,7 +6,7 @@ import {
   ArchiveRestore,
   CalendarClock,
   ChevronRight,
-  FileText,
+  X,
   Mail,
   Phone,
   Plus,
@@ -30,6 +30,7 @@ import {
   updateClientMatter,
   writeClientMatters,
 } from '@/lib/business/client-matters'
+import MatterDocumentsPanel from '@/components/business/MatterDocumentsPanel'
 import styles from './clientMatters.module.css'
 
 const STAGE_LABELS: Record<MatterStage, string> = {
@@ -41,15 +42,7 @@ const STAGE_LABELS: Record<MatterStage, string> = {
 }
 
 const stageOptions = Object.keys(STAGE_LABELS) as MatterStage[]
-const ownerOptions = ['Unassigned', 'You', 'Paralegal team', 'External counsel']
-
-function formatMoney(value: number) {
-  return new Intl.NumberFormat('en-GB', {
-    style: 'currency',
-    currency: 'GBP',
-    maximumFractionDigits: 0,
-  }).format(value)
-}
+const ownerOptions = ['Unassigned', 'You', 'Support assistant', 'External advisor']
 
 function formatDate(value?: string) {
   if (!value) return 'No date'
@@ -82,12 +75,23 @@ export default function ClientMattersPage() {
   const [showArchived, setShowArchived] = useState(false)
   const [loading, setLoading] = useState(true)
   const [syncNotice, setSyncNotice] = useState<string | null>(null)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [detailTab, setDetailTab] = useState<'overview' | 'documents'>('overview')
+  const [createForm, setCreateForm] = useState({
+    clientName: '',
+    email: '',
+    phone: '',
+    location: '',
+    issueType: '',
+    summary: '',
+  })
 
   const applyMatters = (nextMatters: ClientMatter[]) => {
     setMatters(nextMatters)
     setSelectedMatterId((current) => {
-      if (current && nextMatters.some((matter) => matter.id === current)) return current
-      return nextMatters.find((matter) => matter.status === 'active')?.id ?? nextMatters[0]?.id ?? null
+      if (!current) return null
+      if (nextMatters.some((matter) => matter.id === current)) return current
+      return null
     })
   }
 
@@ -154,6 +158,38 @@ export default function ClientMattersPage() {
     () => matters.find((matter) => matter.id === selectedMatterId) ?? null,
     [matters, selectedMatterId],
   )
+  const glanceItems = useMemo(() => {
+    if (!selectedMatter) return []
+    return [
+      {
+        label: 'Client contact details',
+        value: selectedMatter.email || selectedMatter.phone ? 'Complete' : 'Missing',
+      },
+      {
+        label: 'Next deadline',
+        value: selectedMatter.nextDeadline ? formatDate(selectedMatter.nextDeadline) : 'Not set',
+      },
+      {
+        label: 'Documents linked',
+        value: selectedMatter.documents.length > 0 ? `${selectedMatter.documents.length} file(s)` : 'None',
+      },
+      {
+        label: 'Responsible person',
+        value: selectedMatter.owner,
+      },
+      {
+        label: 'Last updated',
+        value: formatLastActivity(selectedMatter.lastActivity),
+      },
+    ]
+  }, [selectedMatter])
+
+  useEffect(() => {
+    if (!selectedMatterId) return
+    const next = matters.find((matter) => matter.id === selectedMatterId)
+    if (!next) return
+    setDetailTab(next.stage === 'documents' ? 'documents' : 'overview')
+  }, [matters, selectedMatterId])
 
   const stats = useMemo(() => {
     const active = matters.filter((matter) => matter.status === 'active')
@@ -161,7 +197,6 @@ export default function ClientMattersPage() {
       clients: new Set(active.map((matter) => matter.email || matter.clientName)).size,
       matters: active.length,
       urgent: active.filter((matter) => matter.urgency === 'high').length,
-      balance: active.reduce((sum, matter) => sum + matter.currentBalance, 0),
     }
   }, [matters])
 
@@ -186,8 +221,14 @@ export default function ClientMattersPage() {
     }
   }
 
-  const createMatter = async () => {
+  const createMatter = async (payload: typeof createForm) => {
     const matter = createBlankMatter()
+    matter.clientName = payload.clientName.trim() || 'Client'
+    matter.email = payload.email.trim()
+    matter.phone = payload.phone.trim()
+    matter.location = payload.location.trim()
+    matter.issueType = payload.issueType.trim() || 'New legal matter'
+    matter.summary = payload.summary.trim() || 'Client enquiry received. Add a summary and next steps.'
     const optimistic = [matter, ...matters]
     setMatters(optimistic)
     cacheClientMatters(optimistic)
@@ -250,11 +291,103 @@ export default function ClientMattersPage() {
 
   return (
     <div className={styles.page}>
+      {createOpen && (
+        <div
+          className={styles.createOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Create matter"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setCreateOpen(false)
+          }}
+        >
+          <div className={styles.createModal}>
+            <div className={styles.createHeader}>
+              <h2>Create matter</h2>
+              <button type="button" onClick={() => setCreateOpen(false)} aria-label="Close">
+                <X size={16} />
+              </button>
+            </div>
+            <form
+              className={styles.createForm}
+              onSubmit={(event) => {
+                event.preventDefault()
+                void createMatter(createForm).then(() => {
+                  setCreateOpen(false)
+                  setCreateForm({ clientName: '', email: '', phone: '', location: '', issueType: '', summary: '' })
+                })
+              }}
+            >
+              <div className={styles.createGrid}>
+                <label>
+                  <span>Client name</span>
+                  <input
+                    value={createForm.clientName}
+                    onChange={(e) => setCreateForm((p) => ({ ...p, clientName: e.target.value }))}
+                    placeholder="Client name"
+                    required
+                  />
+                </label>
+                <label>
+                  <span>Email</span>
+                  <input
+                    type="email"
+                    value={createForm.email}
+                    onChange={(e) => setCreateForm((p) => ({ ...p, email: e.target.value }))}
+                    placeholder="client@email.com"
+                  />
+                </label>
+                <label>
+                  <span>Phone</span>
+                  <input
+                    value={createForm.phone}
+                    onChange={(e) => setCreateForm((p) => ({ ...p, phone: e.target.value }))}
+                    placeholder="07..."
+                  />
+                </label>
+                <label>
+                  <span>Location</span>
+                  <input
+                    value={createForm.location}
+                    onChange={(e) => setCreateForm((p) => ({ ...p, location: e.target.value }))}
+                    placeholder="City / Postcode"
+                  />
+                </label>
+              </div>
+              <label>
+                <span>Issue type</span>
+                <input
+                  value={createForm.issueType}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, issueType: e.target.value }))}
+                  placeholder="e.g. Housing disrepair"
+                />
+              </label>
+              <label>
+                <span>Summary</span>
+                <textarea
+                  value={createForm.summary}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, summary: e.target.value }))}
+                  rows={4}
+                  placeholder="Short summary of the issue and immediate next steps…"
+                />
+              </label>
+              <div className={styles.createActions}>
+                <button type="button" className={styles.secondaryBtn} onClick={() => setCreateOpen(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className={styles.primaryBtn}>
+                  Create matter
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       <header className={styles.header}>
         <div className={styles.headerCopy}>
           <span className={styles.kicker}>Case books</span>
-          <h1>Clients and Matters List</h1>
-          <p>Client roster, legal issues, deadlines, balance, ownership and next actions.</p>
+          <h1>Client Matters</h1>
+          <p>A simple solo workspace for client issues, deadlines, documents and next actions.</p>
           {(loading || syncNotice) && (
             <p className={styles.syncNotice}>{loading ? 'Loading saved matters...' : syncNotice}</p>
           )}
@@ -272,10 +405,6 @@ export default function ClientMattersPage() {
           <div className={styles.stat}>
             <span>{stats.urgent}</span>
             <p>Urgent</p>
-          </div>
-          <div className={styles.stat}>
-            <span>{formatMoney(stats.balance)}</span>
-            <p>Balance</p>
           </div>
         </div>
       </header>
@@ -310,13 +439,13 @@ export default function ClientMattersPage() {
           {showArchived ? <ArchiveRestore size={15} /> : <Archive size={15} />}
           {showArchived ? 'Restore selected' : 'Archive selected'}
         </button>
-        <button type="button" className={styles.primaryBtn} onClick={createMatter}>
+        <button type="button" className={styles.primaryBtn} onClick={() => setCreateOpen(true)}>
           <Plus size={15} />
           Create matter
         </button>
       </div>
 
-      <div className={styles.body}>
+      <div className={`${styles.body} ${selectedMatter ? styles.bodyDetailOpen : styles.bodyListOnly}`}>
         <section className={styles.tablePanel} aria-label="Client matters">
           <div className={styles.tableHeader}>
             <span />
@@ -324,7 +453,6 @@ export default function ClientMattersPage() {
             <span>Number</span>
             <span>Last activity</span>
             <span>Stage</span>
-            <span>Current balance</span>
             <span>Actions</span>
           </div>
 
@@ -346,9 +474,9 @@ export default function ClientMattersPage() {
                   role="button"
                   tabIndex={0}
                   className={`${styles.tableRow} ${selected ? styles.tableRowActive : ''}`}
-                  onClick={() => setSelectedMatterId(matter.id)}
+                  onClick={() => setSelectedMatterId((current) => (current === matter.id ? null : matter.id))}
                   onKeyDown={(event) => {
-                    if (event.key === 'Enter') setSelectedMatterId(matter.id)
+                    if (event.key === 'Enter') setSelectedMatterId((current) => (current === matter.id ? null : matter.id))
                   }}
                 >
                   <label className={styles.checkCell} onClick={(event) => event.stopPropagation()}>
@@ -368,7 +496,6 @@ export default function ClientMattersPage() {
                   <span className={`${styles.stagePill} ${styles[`stage_${matter.stage}`]}`}>
                     {STAGE_LABELS[matter.stage]}
                   </span>
-                  <span className={styles.balance}>{formatMoney(matter.currentBalance)}</span>
                   <div className={styles.actions} onClick={(event) => event.stopPropagation()}>
                     <button type="button" title="Open matter" onClick={() => setSelectedMatterId(matter.id)}>
                       <ChevronRight size={15} />
@@ -387,21 +514,40 @@ export default function ClientMattersPage() {
           </div>
         </section>
 
-        <aside className={styles.detailPanel}>
-          {!selectedMatter ? (
-            <div className={styles.emptyDetail}>
-              <FileText size={38} />
-              <p>Select a matter</p>
-            </div>
-          ) : (
+        {selectedMatter && (
+          <aside className={styles.detailPanel}>
             <>
               <div className={styles.detailHeader}>
                 <span className={`${styles.riskBadge} ${styles[`risk_${selectedMatter.urgency}`]}`}>
                   <ShieldAlert size={13} />
                   {selectedMatter.urgency} priority
                 </span>
+                <button type="button" className={styles.closeDetail} onClick={() => setSelectedMatterId(null)} aria-label="Close matter">
+                  <X size={16} />
+                </button>
                 <h2>{selectedMatter.clientName}</h2>
                 <p>{selectedMatter.issueType}</p>
+              </div>
+
+              <div className={styles.detailTabs} role="tablist" aria-label="Matter workspace">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={detailTab === 'overview'}
+                  className={`${styles.detailTab} ${detailTab === 'overview' ? styles.detailTabActive : ''}`}
+                  onClick={() => setDetailTab('overview')}
+                >
+                  Overview
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={detailTab === 'documents'}
+                  className={`${styles.detailTab} ${detailTab === 'documents' ? styles.detailTabActive : ''}`}
+                  onClick={() => setDetailTab('documents')}
+                >
+                  Documents
+                </button>
               </div>
 
               <div className={styles.detailBody}>
@@ -424,7 +570,7 @@ export default function ClientMattersPage() {
                 </label>
 
                 <label className={styles.controlGroup}>
-                  <span>Owner</span>
+                  <span>Responsible person</span>
                   <select
                     value={selectedMatter.owner}
                     onChange={(event) => updateMatter(selectedMatter.id, { owner: event.target.value })}
@@ -435,46 +581,86 @@ export default function ClientMattersPage() {
                   </select>
                 </label>
 
-                <section className={styles.detailSection}>
-                  <h3>Next action</h3>
-                  <p>{selectedMatter.nextAction}</p>
-                </section>
+                {detailTab === 'overview' ? (
+                  <>
+                    <section className={styles.detailSection}>
+                      <h3>Next action</h3>
+                      <p>{selectedMatter.nextAction}</p>
+                    </section>
 
-                <section className={styles.detailSection}>
-                  <h3>Issue summary</h3>
-                  <p>{selectedMatter.summary}</p>
-                </section>
+                    <section className={styles.detailSection}>
+                      <h3>Issue summary</h3>
+                      <p>{selectedMatter.summary}</p>
+                    </section>
 
-                <section className={styles.detailSection}>
-                  <h3>Documents</h3>
-                  <div className={styles.tagRow}>
-                    {selectedMatter.documents.length > 0 ? (
-                      selectedMatter.documents.map((documentName) => (
-                        <span key={documentName}>{documentName}</span>
-                      ))
-                    ) : (
-                      <span>No documents yet</span>
-                    )}
-                  </div>
-                </section>
+                    <section className={styles.detailSection}>
+                      <h3>Documents</h3>
+                      <div className={styles.documentsSummaryRow}>
+                        <div className={styles.tagRow}>
+                          {selectedMatter.documents.length > 0 ? (
+                            selectedMatter.documents.slice(0, 4).map((documentName) => (
+                              <span key={documentName}>{documentName}</span>
+                            ))
+                          ) : (
+                            <span>No documents yet</span>
+                          )}
+                          {selectedMatter.documents.length > 4 && (
+                            <span>+{selectedMatter.documents.length - 4} more</span>
+                          )}
+                        </div>
+                        <button type="button" className={styles.linkBtn} onClick={() => setDetailTab('documents')}>
+                          Open documents
+                        </button>
+                      </div>
+                    </section>
 
-                <section className={styles.detailSection}>
-                  <h3>Tags</h3>
-                  <div className={styles.tagRow}>
-                    {selectedMatter.tags.map((tag) => <span key={tag}>{tag}</span>)}
-                  </div>
-                </section>
+                    <section className={styles.detailSection}>
+                      <h3>Tags</h3>
+                      <div className={styles.tagRow}>
+                        {selectedMatter.tags.map((tag) => <span key={tag}>{tag}</span>)}
+                      </div>
+                    </section>
+
+                    <section className={styles.detailSection}>
+                      <h3>At a glance</h3>
+                      <div className={styles.simpleList}>
+                        {glanceItems.map((item) => (
+                          <div key={item.label} className={styles.simpleListItem}>
+                            <strong>{item.label}</strong>
+                            <span>{item.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  </>
+                ) : (
+                  <MatterDocumentsPanel matter={selectedMatter} />
+                )}
 
                 {selectedMatter.status === 'active' && (
-                  <button type="button" className={styles.contactBtn}>
+                  <button
+                    type="button"
+                    className={styles.contactBtn}
+                    disabled={!selectedMatter.email}
+                    onClick={() => {
+                      if (!selectedMatter.email) return
+                      window.dispatchEvent(new CustomEvent('mymckenzie-inbox-compose', {
+                        detail: {
+                          to: selectedMatter.email,
+                          subject: `Regarding your matter ${selectedMatter.matterNumber}`,
+                        },
+                      }))
+                    }}
+                    title={selectedMatter.email ? 'Message client' : 'No email address on file'}
+                  >
                     <UserPlus size={15} />
-                    Contact client
+                    Message client
                   </button>
                 )}
               </div>
             </>
-          )}
-        </aside>
+          </aside>
+        )}
       </div>
     </div>
   )

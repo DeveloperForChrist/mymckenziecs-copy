@@ -2,16 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import {
-  AlertTriangle,
   CheckCircle2,
   Clock,
   Mail,
-  MapPin,
   Phone,
-  Rss,
-  Tag,
   UserRound,
-  Users,
   XCircle,
 } from 'lucide-react'
 import {
@@ -20,7 +15,6 @@ import {
   DEFAULT_BUSINESS_LEADS,
   type BusinessLead,
   type LeadStatus,
-  type Urgency,
   cacheBusinessLeads,
   cacheClientMatters,
   fetchBusinessLeads,
@@ -34,23 +28,11 @@ import {
 } from '@/lib/business/client-matters'
 import styles from './leads.module.css'
 
-const socialFeedItems = [
-  { source: 'Twitter / X', text: '"Anyone dealt with a retaliatory Section 21 in London? Landlord served notice 2 weeks after I reported disrepair to council. #TenantRights"', time: '15 min ago' },
-  { source: 'Reddit r/LegalAdviceUK', text: 'Thread: "ET1 deadline panic - dismissed after whistleblowing, can I still file?" - 47 comments', time: '1 hour ago' },
-  { source: 'Facebook Groups', text: 'Post in "UK Housing Help": "Mould and damp ignored for 6 months - landlord threatening eviction if I complain again"', time: '3 hours ago' },
-]
-
 const STATUS_LABELS: Record<LeadStatus, string> = {
   new: 'New',
   accepted: 'Accepted',
   declined: 'Declined',
   pending: 'Reviewing',
-}
-
-const URGENCY_LABELS: Record<Urgency, string> = {
-  high: 'High Urgency',
-  medium: 'Medium',
-  low: 'Low',
 }
 
 function formatSubmittedAt(value: string) {
@@ -62,6 +44,13 @@ function formatSubmittedAt(value: string) {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date)
+}
+
+function extractLeadTraceId(lead: BusinessLead) {
+  const fromTag = lead.tags.find((tag) => tag.toLowerCase().startsWith('trace:'))
+  if (fromTag) return fromTag.slice('trace:'.length)
+  const match = lead.fullDetails.match(/Trace ID:\s*([a-zA-Z0-9-]+)/i)
+  return match?.[1] || null
 }
 
 export default function LeadsPage() {
@@ -153,17 +142,35 @@ export default function LeadsPage() {
     }
   }
 
+  const openMessageDraft = (lead: BusinessLead) => {
+    if (!lead.email) return
+    window.dispatchEvent(new CustomEvent('mymckenzie-inbox-compose', {
+      detail: {
+        to: lead.email,
+        subject: `Regarding your enquiry`,
+        body: `Hello ${lead.name},\n\nThank you for your enquiry. I’m getting in touch to discuss next steps.\n\nKind regards,`,
+      },
+    }))
+  }
+
+  const scheduleMeetingForLead = async (lead: BusinessLead) => {
+    if (lead.status !== 'accepted') {
+      await updateStatus(lead.id, 'accepted')
+    }
+    window.dispatchEvent(new CustomEvent('mymckenzie-schedule-meeting', {
+      detail: {
+        clientName: lead.name,
+        clientEmail: lead.email,
+        context: lead.summary,
+      },
+    }))
+  }
+
   const statusCls = (status: LeadStatus) => {
     if (status === 'new') return styles.statusNew
     if (status === 'accepted') return styles.statusAccepted
     if (status === 'declined') return styles.statusDeclined
     return styles.statusPending
-  }
-
-  const urgencyCls = (urgency: Urgency) => {
-    if (urgency === 'high') return styles.urgencyHigh
-    if (urgency === 'medium') return styles.urgencyMedium
-    return styles.urgencyLow
   }
 
   const counts = {
@@ -180,7 +187,7 @@ export default function LeadsPage() {
           <h2 className={styles.leadsPanelTitle}>Leads &amp; Enquiries</h2>
           <p className={styles.leadsPanelSub}>Requests submitted via the client portal</p>
           <div className={styles.tabRow}>
-            {(['all', 'new', 'accepted', 'declined'] as const).map((tab) => (
+            {(['all', 'new', 'accepted'] as const).map((tab) => (
               <button
                 key={tab}
                 type="button"
@@ -190,6 +197,14 @@ export default function LeadsPage() {
                 {tab.charAt(0).toUpperCase() + tab.slice(1)} {counts[tab] > 0 && `(${counts[tab]})`}
               </button>
             ))}
+            <button
+              type="button"
+              className={`${styles.tab} ${activeTab === 'declined' ? styles.tabActive : styles.tabSecondary}`}
+              onClick={() => setActiveTab((current) => (current === 'declined' ? 'all' : 'declined'))}
+              aria-pressed={activeTab === 'declined'}
+            >
+              Declined {counts.declined > 0 && `(${counts.declined})`}
+            </button>
           </div>
           {(loading || syncNotice) && (
             <p className={styles.syncNotice}>{loading ? 'Loading saved leads...' : syncNotice}</p>
@@ -218,7 +233,6 @@ export default function LeadsPage() {
                 <span className={styles.enquiryName}>{lead.name}</span>
                 <span className={styles.enquiryTime}>{formatSubmittedAt(lead.submittedAt)}</span>
               </div>
-              <p className={styles.enquiryIssueType}>{lead.issueType}</p>
               <p className={styles.enquiryPreview}>{lead.summary}</p>
               <span className={`${styles.statusBadge} ${statusCls(lead.status)}`}>
                 {STATUS_LABELS[lead.status]}
@@ -238,7 +252,10 @@ export default function LeadsPage() {
           <>
             <div className={styles.detailHeader}>
               <div className={styles.detailHeaderTop}>
-                <h2 className={styles.detailName}>{selectedLead.name}</h2>
+                <div className={styles.detailTitleBlock}>
+                  <h2 className={styles.detailName}>{selectedLead.name}</h2>
+                  <p className={styles.detailSubtitle}>Client enquiry</p>
+                </div>
                 <div className={styles.detailActionRow}>
                   {selectedLead.status !== 'accepted' && (
                     <button
@@ -248,6 +265,34 @@ export default function LeadsPage() {
                     >
                       <CheckCircle2 size={15} />
                       Accept
+                    </button>
+                  )}
+                  {selectedLead.status !== 'declined' && (
+                    <button
+                      type="button"
+                      className={styles.createMatterBtn}
+                      onClick={() => updateStatus(selectedLead.id, 'accepted')}
+                    >
+                      <CheckCircle2 size={15} />
+                      Create matter
+                    </button>
+                  )}
+                  {selectedLead.status !== 'declined' && (
+                    <button
+                      type="button"
+                      className={styles.secondaryActionBtn}
+                      onClick={() => void scheduleMeetingForLead(selectedLead)}
+                    >
+                      Schedule video meeting
+                    </button>
+                  )}
+                  {selectedLead.email && selectedLead.status !== 'declined' && (
+                    <button
+                      type="button"
+                      className={styles.secondaryActionBtn}
+                      onClick={() => openMessageDraft(selectedLead)}
+                    >
+                      Message client
                     </button>
                   )}
                   {selectedLead.status !== 'declined' && (
@@ -273,17 +318,12 @@ export default function LeadsPage() {
                   <strong>{selectedLead.phone}</strong>
                 </span>
                 <span className={styles.detailMetaItem}>
-                  <MapPin size={13} />
-                  <strong>{selectedLead.location}</strong>
-                </span>
-                <span className={styles.detailMetaItem}>
                   <Clock size={13} />
                   Submitted {formatSubmittedAt(selectedLead.submittedAt)}
                 </span>
-                {selectedLead.courtDate && (
+                {extractLeadTraceId(selectedLead) && (
                   <span className={styles.detailMetaItem}>
-                    <AlertTriangle size={13} />
-                    Court / deadline: <strong>{selectedLead.courtDate}</strong>
+                    <strong>Trace:</strong> {extractLeadTraceId(selectedLead)}
                   </span>
                 )}
               </div>
@@ -291,13 +331,10 @@ export default function LeadsPage() {
 
             <div className={styles.detailBody}>
               <div className={styles.detailSection}>
-                <span className={styles.detailSectionLabel}>Status &amp; Urgency</span>
+                <span className={styles.detailSectionLabel}>Status</span>
                 <div className={styles.detailTagRow}>
                   <span className={`${styles.statusBadge} ${statusCls(selectedLead.status)}`}>
                     {STATUS_LABELS[selectedLead.status]}
-                  </span>
-                  <span className={`${styles.detailTag} ${urgencyCls(selectedLead.urgency)}`}>
-                    {URGENCY_LABELS[selectedLead.urgency]}
                   </span>
                   <span className={styles.detailTag}>{selectedLead.source === 'portal' ? 'Via Portal' : selectedLead.source === 'referral' ? 'Referral' : 'Direct'}</span>
                 </div>
@@ -305,74 +342,16 @@ export default function LeadsPage() {
 
               <div className={styles.divider} />
 
-              <div className={styles.detailSection}>
-                <span className={styles.detailSectionLabel}>Area of Law</span>
-                <p className={styles.detailSectionText}>{selectedLead.issueType}</p>
-              </div>
-
-              <div className={styles.detailSection}>
-                <span className={styles.detailSectionLabel}>Full Description</span>
+              <div className={`${styles.detailSection} ${styles.detailSectionCard}`}>
+                <span className={styles.detailSectionLabel}>Enquiry details</span>
                 <p className={styles.detailSectionText}>{selectedLead.fullDetails}</p>
               </div>
-
-              {selectedLead.opposing && (
-                <div className={styles.detailSection}>
-                  <span className={styles.detailSectionLabel}>Opposing Party</span>
-                  <p className={styles.detailSectionText}>{selectedLead.opposing}</p>
-                </div>
-              )}
-
-              {selectedLead.documents.length > 0 && (
-                <div className={styles.detailSection}>
-                  <span className={styles.detailSectionLabel}>Documents Available</span>
-                  <div className={styles.detailTagRow}>
-                    {selectedLead.documents.map((documentName) => (
-                      <span key={documentName} className={styles.detailTag}>{documentName}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {selectedLead.tags.length > 0 && (
-                <div className={styles.detailSection}>
-                  <span className={styles.detailSectionLabel}><Tag size={11} style={{ display: 'inline', marginRight: 4 }} />Tags</span>
-                  <div className={styles.detailTagRow}>
-                    {selectedLead.tags.map((tag) => (
-                      <span key={tag} className={styles.detailTag}>{tag}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </>
         )}
       </div>
 
-      <div className={styles.socialPanel}>
-        <div className={styles.socialPanelHeader}>
-          <p className={styles.socialPanelTitle}>
-            <Rss size={13} style={{ display: 'inline', marginRight: 6 }} />
-            Legal Updates Feed
-          </p>
-          <p className={styles.socialPanelSub}>Public posts about legal issues - potential leads</p>
-        </div>
-        <div className={styles.socialFeed}>
-          {socialFeedItems.map((item) => (
-            <div key={`${item.source}-${item.time}`} className={styles.socialFeedItem}>
-              <div className={styles.socialFeedSource}>
-                <span className={styles.socialFeedSourceDot} />
-                {item.source}
-              </div>
-              <p className={styles.socialFeedText}>{item.text}</p>
-              <span className={styles.socialFeedMeta}>{item.time}</span>
-            </div>
-          ))}
-          <div className={styles.socialComingSoon}>
-            <Users size={28} style={{ opacity: 0.3 }} />
-            <p>Full social media integration coming soon. Live feeds from Twitter/X, Reddit, Facebook Groups and more.</p>
-          </div>
-        </div>
-      </div>
+      {/* Social feed removed for now. */}
     </div>
   )
 }

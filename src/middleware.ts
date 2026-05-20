@@ -183,11 +183,27 @@ export async function middleware(request: NextRequest) {
   let userProfile: MiddlewareUserProfile | null = null
   if (user && shouldLoadUserProfile) {
     const profileStartedAt = Date.now()
-    const { data: profileRow, error: profileError } = await supabase
-      .from('users')
-      .select('email_verified_at, role, country_code')
-      .eq('id', user.id)
-      .maybeSingle()
+    let profileRow: MiddlewareUserProfile | null = null
+    let profileError: any = null
+    {
+      const result = await supabase
+        .from('users')
+        .select('email_verified_at, role, country_code')
+        .eq('id', user.id)
+        .maybeSingle()
+      profileRow = result.data as MiddlewareUserProfile | null
+      profileError = result.error
+    }
+
+    if (profileError?.code === '42703' && String(profileError?.message || '').toLowerCase().includes('role')) {
+      const fallback = await supabase
+        .from('users')
+        .select('email_verified_at, country_code')
+        .eq('id', user.id)
+        .maybeSingle()
+      profileRow = (fallback.data ? { ...fallback.data, role: null } : null) as MiddlewareUserProfile | null
+      profileError = fallback.error
+    }
 
     logMiddlewarePerf('user.profile', profileStartedAt, pathname, {
       hasRow: Boolean(profileRow),

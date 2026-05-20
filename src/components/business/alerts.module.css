@@ -1,6 +1,6 @@
 /* ── Alerts Page – Professional light theme ── */
-.page{display:flex;height:100%;background:#f8f9fa;color:#111827;overflow:hidden;font-family:inherit}
-.sidebar{width:340px;flex:0 0 340px;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;background:#fff;overflow:hidden}
+.page{display:flex;gap:12px;height:100%;background:#f8f9fa;color:#111827;overflow:hidden;font-family:inherit;padding:14px 16px 16px;box-sizing:border-box}
+.sidebar{width:340px;flex:0 0 340px;border:1px solid #e5e7eb;border-radius:10px;display:flex;flex-direction:column;background:#fff;overflow:hidden}
 .sidebarHeader{padding:20px 18px 14px;border-bottom:1px solid #e5e7eb}
 .sidebarTop{display:flex;align-items:center;gap:10px;margin-bottom:3px}
 .sidebarTitle{font-size:1rem;font-weight:700;color:#111827;margin:0}
@@ -31,7 +31,7 @@
 .priorityMedium{background:#ede9fe;color:#5b21b6}
 .priorityLow{background:#f3f4f6;color:#6b7280}
 /* detail panel */
-.detail{flex:1;min-width:0;display:flex;flex-direction:column;background:#fff;overflow:hidden}
+.detail{flex:1;min-width:0;display:flex;flex-direction:column;background:#fff;overflow:hidden;border:1px solid #e5e7eb;border-radius:10px}
 .emptyDetail{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:#d1d5db;font-size:.875rem}
 .detailHeader{padding:24px 28px 18px;border-bottom:1px solid #e5e7eb;display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;background:#fff}
 .detailIconWrap{width:44px;height:44px;border-radius:12px;background:#ede9fe;display:flex;align-items:center;justify-content:center;color:#5b21b6;flex-shrink:0}
@@ -69,7 +69,7 @@
 :global([data-theme="dark"]) .alertTitle{color:#e5e7eb}
 :global([data-theme="dark"]) .alertPreview{color:#9ca3af}
 :global([data-theme="dark"]) .alertMeta{color:#6b7280}
-:global([data-theme="dark"]) .detail{background:#1a1a1a}
+:global([data-theme="dark"]) .detail{background:#1a1a1a;border-color:#333}
 :global([data-theme="dark"]) .detailHeader{background:#242424;border-color:#333}
 :global([data-theme="dark"]) .detailIconWrap{background:#312450}
 :global([data-theme="dark"]) .detailTitle{color:#e5e7eb}

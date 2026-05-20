@@ -19,6 +19,7 @@ const LEAD_SOURCES: LeadSource[] = ['portal', 'referral', 'direct']
 const MATTER_STAGES: MatterStage[] = ['intake', 'documents', 'advice', 'hearing', 'closed']
 const MATTER_STATUSES: MatterStatus[] = ['active', 'archived']
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+let caseIdColumnSupported: boolean | null = null
 
 function toText(value: unknown, fallback = '') {
   if (typeof value === 'string') return value.trim()
@@ -107,6 +108,7 @@ export function rowToClientMatter(row: any): ClientMatter {
   return {
     id: toText(row?.id),
     leadId: toText(row?.lead_id) || undefined,
+    caseId: maybeUuid(row?.case_id),
     clientName: toText(row?.client_name, 'Unnamed client'),
     email: toText(row?.email),
     phone: toText(row?.phone),
@@ -164,6 +166,7 @@ export function clientMatterToRow(matter: Partial<ClientMatter>, businessId: str
   const row: Record<string, any> = {
     business_id: businessId,
     lead_id: maybeUuid(matter.leadId),
+    case_id: maybeUuid(matter.caseId),
     client_name: toText(matter.clientName, 'New client').slice(0, 180),
     email: toText(matter.email).slice(0, 240),
     phone: toText(matter.phone).slice(0, 80),
@@ -232,6 +235,7 @@ export function matterUpdateToRow(body: Record<string, unknown>) {
   if ('documents' in body) update.documents = toTextArray(body.documents).slice(0, 50)
   if ('tags' in body) update.tags = toTextArray(body.tags).slice(0, 30)
   if ('matterNumber' in body) update.matter_number = toText(body.matterNumber).slice(0, 80)
+  if ('caseId' in body) update.case_id = maybeUuid(body.caseId)
   if ('stage' in body) update.stage = oneOf(body.stage, MATTER_STAGES, 'intake')
   if ('status' in body) update.status = oneOf(body.status, MATTER_STATUSES, 'active')
   if ('owner' in body) update.owner = toText(body.owner, 'Unassigned').slice(0, 120)
@@ -240,6 +244,37 @@ export function matterUpdateToRow(body: Record<string, unknown>) {
   if ('currentBalance' in body) update.current_balance = toNumber(body.currentBalance)
   update.last_activity_at = new Date().toISOString()
   return update
+}
+
+async function supportsClientMattersCaseIdColumn() {
+  if (caseIdColumnSupported !== null) return caseIdColumnSupported
+  const { error } = await supabaseAdmin
+    .from('client_matters')
+    .select('case_id')
+    .limit(1)
+
+  if (!error) {
+    caseIdColumnSupported = true
+    return true
+  }
+
+  if (error.code === 'PGRST204' || error.code === '42703') {
+    caseIdColumnSupported = false
+    return false
+  }
+
+  throw error
+}
+
+async function normalizeClientMatterPayloadForSchema(payload: Record<string, any>) {
+  if (Object.prototype.hasOwnProperty.call(payload, 'case_id')) {
+    const supportsCaseId = await supportsClientMattersCaseIdColumn()
+    if (!supportsCaseId) {
+      const { case_id: _removed, ...rest } = payload
+      return rest
+    }
+  }
+  return payload
 }
 
 export async function loadBusinessLeadRows(businessId: string) {
@@ -291,9 +326,10 @@ export async function syncAcceptedLeadMatterRow(businessId: string, leadRow: any
   if (existingError) throw existingError
 
   const matter = matterFromLead(lead, existing ? rowToClientMatter(existing) : undefined)
+  const payload = await normalizeClientMatterPayloadForSchema(clientMatterToRow(matter, businessId))
   const { data, error } = await supabaseAdmin
     .from('client_matters')
-    .upsert(clientMatterToRow(matter, businessId), { onConflict: 'business_id,lead_id' })
+    .upsert(payload, { onConflict: 'business_id,lead_id' })
     .select('*')
     .single()
 
