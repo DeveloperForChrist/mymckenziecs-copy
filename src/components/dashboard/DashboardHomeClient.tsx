@@ -69,6 +69,8 @@ export default function DashboardHomeClient({
   const [paymentSaveMessage, setPaymentSaveMessage] = useState<string | null>(null);
   const [trialReminderDismissed, setTrialReminderDismissed] = useState(false);
   const trialStartAttemptedRef = useRef(false);
+  const [clientPortalEnabled, setClientPortalEnabled] = useState(false);
+  const [clientPortalLoaded, setClientPortalLoaded] = useState(false);
 
   const hasCaseLawFeature = publicMarket !== 'US' && initialCaseLawAvailable && hasCaseLawAccess(plan);
   const normalizedPlanStatus = planStatus.trim().toLowerCase();
@@ -90,9 +92,12 @@ export default function DashboardHomeClient({
   const caseLawHref = getAppRouteForMarket('/dashboard/case-law-search', normalizePublicMarket(publicMarket));
   const settingsHref = getAppRouteForMarket('/settings', normalizePublicMarket(publicMarket));
   const billingSettingsHref = getAppRouteForMarket('/settings?tab=billing', normalizePublicMarket(publicMarket));
-  const showActivationBanner = planLoaded && emailVerified && (!hasPaidAccess || trialStartPending || Boolean(trialStartError));
+  const clientInboxHref = '/client-portal';
+  const showActivationBanner =
+    !clientPortalEnabled && planLoaded && emailVerified && (!hasPaidAccess || trialStartPending || Boolean(trialStartError));
   const trialDaysLeft = isTrialingStatus ? daysUntil(nextBillingDate) : null;
   const showTrialBillingReminderBanner =
+    !clientPortalEnabled &&
     isTrialingStatus &&
     !hasStripeCustomer &&
     !cancelAtPeriodEnd &&
@@ -132,6 +137,43 @@ export default function DashboardHomeClient({
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!uid) {
+      setClientPortalEnabled(false);
+      setClientPortalLoaded(false);
+      return;
+    }
+
+    let cancelled = false;
+    const supabase = getSupabaseBrowserClient();
+
+    const loadClientPortalState = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('client_business_links')
+          .select('id')
+          .eq('client_id', uid)
+          .eq('status', 'active')
+          .limit(1);
+        if (cancelled) return;
+        if (error) {
+          setClientPortalEnabled(false);
+          return;
+        }
+        setClientPortalEnabled(Array.isArray(data) && data.length > 0);
+      } catch {
+        if (!cancelled) setClientPortalEnabled(false);
+      } finally {
+        if (!cancelled) setClientPortalLoaded(true);
+      }
+    };
+
+    void loadClientPortalState();
+    return () => {
+      cancelled = true;
+    };
+  }, [uid]);
 
   useEffect(() => {
     // Avoid re-fetching plan on every navigation when we were preloaded by the server.
@@ -290,6 +332,8 @@ export default function DashboardHomeClient({
     };
   }, [emailVerified, uid]);
 
+  const dashboardReady = planLoaded && (clientPortalLoaded || !uid);
+
   const features: Array<{
     icon: string;
     title: string;
@@ -299,13 +343,32 @@ export default function DashboardHomeClient({
     badge?: string;
     alertCount?: number;
   }> = [
-    {
-      icon: 'bx-message-dots',
-      title: 'Talk to MyMcKenzieCS Assistant',
-      desc: 'Receive AI-assisted legal information and support',
-      href: chatbotHref,
-      color: '#10b981,#34d399'
-    },
+    ...(clientPortalEnabled
+      ? [
+          {
+            icon: 'bx-inbox',
+            title: 'Inbox',
+            desc: 'Read messages and updates from your legal professional',
+            href: clientInboxHref,
+            color: '#2563eb,#60a5fa',
+          },
+          {
+            icon: 'bx-video',
+            title: 'Video Call Meeting',
+            desc: 'Join or start a video conference for your legal matters',
+            href: '/video-call',
+            color: '#8b5cf6,#a78bfa',
+          },
+        ]
+      : [
+          {
+            icon: 'bx-message-dots',
+            title: 'Talk to MyMcKenzieCS Assistant',
+            desc: 'Receive AI-assisted legal information and support',
+            href: chatbotHref,
+            color: '#10b981,#34d399',
+          },
+        ]),
     {
       icon: 'bx-edit',
       title: 'Store My Document',
@@ -336,13 +399,6 @@ export default function DashboardHomeClient({
       color: '#f59e42,#fbbf24'
     },
     {
-      icon: 'bx-video',
-      title: 'Video Call Meeting',
-      desc: 'Join or start a video conference for your legal matters',
-      href: '/video-call',
-      color: '#8b5cf6,#a78bfa'
-    },
-    {
       icon: 'bx-group',
       title: 'Find a McKenzie Friend',
       desc: 'Browse our directory of McKenzie Friends and legal consultants',
@@ -362,6 +418,10 @@ export default function DashboardHomeClient({
     if (feature.href === caseLawHref) {
       return planLoaded && hasCaseLawFeature;
     }
+    if (clientPortalEnabled) {
+      if (feature.href === '/dashboard/directory') return false;
+      if (feature.href === caseLawHref) return false;
+    }
     return true;
   });
   const desktopCardMinWidth = visibleFeatures.length <= 5 ? 260 : 285;
@@ -371,7 +431,7 @@ export default function DashboardHomeClient({
   const gridGap = 'clamp(14px, 1.8vw, 24px)';
   const cardMinHeight = 'clamp(210px, 24vw, 280px)';
 
-  if (!planLoaded) {
+  if (!dashboardReady) {
     return (
       <div style={{ background: 'linear-gradient(135deg, #240724 0%, #240724 50%, #240724 100%)', minHeight: '100vh' }}>
         <main style={{ minHeight: '100vh', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -399,10 +459,12 @@ export default function DashboardHomeClient({
         <div style={{ maxWidth: layoutMaxWidth, margin: '0 auto', padding: layoutPadding }}>
           <div style={{ marginBottom: '28px' }}>
             <h1 style={{ fontSize: 'clamp(1.9rem, 4.4vw, 2.85rem)', fontWeight: 700, marginBottom: '12px', lineHeight: 1.2 }}>
-              Welcome to MyMcKenzieCS
+              {clientPortalEnabled ? 'Welcome to your client dashboard' : 'Welcome to MyMcKenzieCS'}
             </h1>
             <p style={{ fontSize: 'clamp(1rem, 2.7vw, 1.16rem)', color: 'rgba(255,255,255,0.7)', maxWidth: '680px', lineHeight: 1.6 }}>
-              Access your tools and manage your legal matters with AI-powered assistance.
+              {clientPortalEnabled
+                ? 'Access your messages, documents, and meeting links in one place.'
+                : 'Access your tools and manage your legal matters with AI-powered assistance.'}
             </p>
           </div>
 
@@ -551,7 +613,7 @@ export default function DashboardHomeClient({
             </section>
           )}
 
-          {isPastDueStatus && (
+          {!clientPortalEnabled && isPastDueStatus && (
             <section
               style={{
                 marginBottom: '26px',
@@ -587,7 +649,7 @@ export default function DashboardHomeClient({
               </div>
             </section>
           )}
-          {isTrialingStatus && (
+          {!clientPortalEnabled && isTrialingStatus && (
             <section
               style={{
                 marginBottom: '26px',

@@ -8,10 +8,11 @@ export const revalidate = 0
 interface ContactFormData {
   firstName: string
   lastName: string
-  dateOfBirth: string
+  dateOfBirth?: string
   phone: string
   email: string
   details: string
+  leadTraceId?: string
 }
 
 function toText(value: unknown, fallback = '') {
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json() as ContactFormData
 
     // Validate required fields
-    if (!body.firstName || !body.lastName || !body.dateOfBirth || !body.phone || !body.email || !body.details) {
+    if (!body.firstName || !body.lastName || !body.phone || !body.email || !body.details) {
       return NextResponse.json(
         { message: 'All fields are required.' },
         { status: 400 }
@@ -70,6 +71,8 @@ export async function POST(request: NextRequest) {
       console.log('No active businesses found, creating lead without business assignment')
     }
 
+    const traceId = toText(body.leadTraceId)
+
     // Create lead for each active business (or one lead if no businesses)
     const leadsToCreate = businesses && businesses.length > 0 
       ? businesses.map(business => ({
@@ -81,11 +84,18 @@ export async function POST(request: NextRequest) {
           issue_type: 'General Enquiry',
           urgency: 'medium',
           summary: toText(body.details).slice(0, 200),
-          full_details: `Date of Birth: ${toText(body.dateOfBirth)}\n\n${toText(body.details)}`,
+          full_details: [
+            traceId ? `Trace ID: ${traceId}` : null,
+            (() => {
+              const dob = dateOnly(body.dateOfBirth)
+              return dob ? `Date of Birth: ${dob}` : null
+            })(),
+            toText(body.details),
+          ].filter(Boolean).join('\n\n'),
           court_date: null,
           opposing: null,
           documents: [],
-          tags: ['Contact Form'],
+          tags: ['Contact Form', ...(traceId ? [`trace:${traceId}`] : [])],
           status: 'new',
           source: 'portal',
           submitted_at: new Date().toISOString(),
@@ -101,11 +111,18 @@ export async function POST(request: NextRequest) {
           issue_type: 'General Enquiry',
           urgency: 'medium',
           summary: toText(body.details).slice(0, 200),
-          full_details: `Date of Birth: ${toText(body.dateOfBirth)}\n\n${toText(body.details)}`,
+          full_details: [
+            traceId ? `Trace ID: ${traceId}` : null,
+            (() => {
+              const dob = dateOnly(body.dateOfBirth)
+              return dob ? `Date of Birth: ${dob}` : null
+            })(),
+            toText(body.details),
+          ].filter(Boolean).join('\n\n'),
           court_date: null,
           opposing: null,
           documents: [],
-          tags: ['Contact Form'],
+          tags: ['Contact Form', ...(traceId ? [`trace:${traceId}`] : [])],
           status: 'new',
           source: 'portal',
           submitted_at: new Date().toISOString(),
@@ -128,6 +145,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: 'Enquiry submitted successfully',
       leadCount: leadsToCreate.length,
+      leadTraceId: traceId || null,
     })
   } catch (error) {
     console.error('Contact lead submission error:', error)

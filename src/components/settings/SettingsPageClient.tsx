@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AccountSection from '@/components/settings/AccountSection';
 import BillingSection from '@/components/settings/BillingSection';
 import ContactSection from '@/components/settings/ContactSection';
@@ -28,13 +28,18 @@ type InitialBillingPlan = {
 export default function SettingsPageClient({
   initialBillingPlan,
   dashboardHrefOverride,
+  mode = 'standalone',
 }: {
   initialBillingPlan: InitialBillingPlan | null;
   dashboardHrefOverride?: string;
+  mode?: 'standalone' | 'embedded';
 }) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const publicMarket = initialBillingPlan?.publicMarket === 'US' ? 'US' : 'GB';
   const dashboardHref = dashboardHrefOverride || getAppRouteForMarket('/dashboard', publicMarket);
+  const isEmbedded = mode === 'embedded';
+
   const requestedTab = useMemo(() => {
     const raw = (searchParams?.get('tab') || searchParams?.get('section') || '').trim().toLowerCase();
     if (raw === 'billing' || raw === 'contact' || raw === 'account') return raw;
@@ -45,6 +50,18 @@ export default function SettingsPageClient({
   useEffect(() => {
     setActive(requestedTab);
   }, [requestedTab]);
+
+  const setActiveAndSyncUrl = (next: string) => {
+    setActive(next);
+    if (isEmbedded) return;
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', next);
+      router.replace(`${url.pathname}${url.search}${url.hash}`);
+    } catch {
+      // ignore
+    }
+  };
 
   const headerByTab: Record<string, { title: string; desc: string }> = {
     account: {
@@ -66,16 +83,47 @@ export default function SettingsPageClient({
   const currentHeader = headerByTab[active] || headerByTab.account;
 
   return (
-    <div className="purple-gradient-bg app-shell">
-      <div className="app-container">
+    <div className={isEmbedded ? styles.embeddedRoot : 'purple-gradient-bg app-shell'}>
+      <div className={isEmbedded ? styles.embeddedContainer : 'app-container'}>
         <div className={styles.settingsContainer}>
-          <SettingsSidebar active={active} onSelect={setActive} publicMarket={publicMarket} />
+          {isEmbedded ? (
+            <nav className={styles.embeddedTabs} aria-label="Settings sections">
+              <button
+                type="button"
+                className={`${styles.embeddedTab} ${active === 'account' ? styles.embeddedTabActive : ''}`}
+                onClick={() => setActiveAndSyncUrl('account')}
+                aria-current={active === 'account' ? 'page' : undefined}
+              >
+                Account
+              </button>
+              <button
+                type="button"
+                className={`${styles.embeddedTab} ${active === 'billing' ? styles.embeddedTabActive : ''}`}
+                onClick={() => setActiveAndSyncUrl('billing')}
+                aria-current={active === 'billing' ? 'page' : undefined}
+              >
+                Billing
+              </button>
+              <button
+                type="button"
+                className={`${styles.embeddedTab} ${active === 'contact' ? styles.embeddedTabActive : ''}`}
+                onClick={() => setActiveAndSyncUrl('contact')}
+                aria-current={active === 'contact' ? 'page' : undefined}
+              >
+                Support
+              </button>
+            </nav>
+          ) : (
+            <SettingsSidebar active={active} onSelect={setActiveAndSyncUrl} publicMarket={publicMarket} />
+          )}
           <main className={styles.mainContent}>
-            <div className={styles.topActions}>
-              <Link href={dashboardHref} className="app-button-secondary">
-                Go to Dashboard
-              </Link>
-            </div>
+            {!isEmbedded ? (
+              <div className={styles.topActions}>
+                <Link href={dashboardHref} className="app-button-secondary">
+                  Go to Dashboard
+                </Link>
+              </div>
+            ) : null}
             <h1 className={styles.heading}>{currentHeader.title}</h1>
             <p className={styles.desc}>{currentHeader.desc}</p>
 

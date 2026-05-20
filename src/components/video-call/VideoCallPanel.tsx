@@ -1,5 +1,5 @@
 'use client'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Video, Plus, Calendar, Clock, User, Mail, Copy, CheckCircle2, Play, XCircle } from 'lucide-react'
 import WebRtcMeeting from '@/components/video/WebRtcMeeting'
 import styles from './videocall.module.css'
@@ -18,7 +18,15 @@ const MOCK:Meeting[]=[
 const S_CLS:Record<MeetingStatus,string>={scheduled:styles.statusScheduled,in_progress:styles.statusLive,completed:styles.statusDone,cancelled:styles.statusCancelled}
 const S_LBL:Record<MeetingStatus,string>={scheduled:'Scheduled',in_progress:'● Live',completed:'Done',cancelled:'Cancelled'}
 
-export function VideoCallPanel({userId}:{userId:string}){
+export function VideoCallPanel({
+  userId,
+  meetingPreset,
+  onMeetingPresetConsumed,
+}: {
+  userId: string
+  meetingPreset?: { clientName?: string; clientEmail?: string; context?: string } | null
+  onMeetingPresetConsumed?: () => void
+}){
   const [meetings,setMeetings]=useState<Meeting[]>(MOCK)
   const [selected,setSelected]=useState<Meeting|null>(MOCK[0])
   const [tab,setTab]=useState<'upcoming'|'past'>('upcoming')
@@ -28,7 +36,22 @@ export function VideoCallPanel({userId}:{userId:string}){
   const [copied,setCopied]=useState(false)
   const [notice,setNotice]=useState('')
   const [err,setErr]=useState('')
-  const [form,setForm]=useState({title:'',clientName:'',clientEmail:'',date:'',time:'',duration:'60',agenda:''})
+  const [form,setForm]=useState({title:'',clientName:'',clientEmail:'',date:'',time:'',duration:'60',agenda:'',inviteMessage:''})
+
+  useEffect(() => {
+    if (!meetingPreset) return
+    const suggestedTitle = 'Initial consultation'
+    const agenda = meetingPreset.context ? `Lead context:\n${meetingPreset.context}` : ''
+    setForm((current) => ({
+      ...current,
+      title: current.title || suggestedTitle,
+      clientName: meetingPreset.clientName || current.clientName,
+      clientEmail: meetingPreset.clientEmail || current.clientEmail,
+      agenda: current.agenda || agenda,
+    }))
+    setShowForm(true)
+    if (typeof onMeetingPresetConsumed === 'function') onMeetingPresetConsumed()
+  }, [meetingPreset, onMeetingPresetConsumed])
 
   const upcomingList=meetings.filter(m=>m.status==='scheduled'||m.status==='in_progress')
   const pastList=meetings.filter(m=>m.status==='completed'||m.status==='cancelled')
@@ -44,9 +67,32 @@ export function VideoCallPanel({userId}:{userId:string}){
     const m:Meeting={id,title:form.title,clientName:form.clientName,clientEmail:form.clientEmail,date:form.date,time:form.time,duration:Number(form.duration),roomName:makeRoom(form.title,id),status:'scheduled',agenda:form.agenda}
     setMeetings(p=>[m,...p])
     setSelected(m)
-    setForm({title:'',clientName:'',clientEmail:'',date:'',time:'',duration:'60',agenda:''})
+    if (form.clientEmail) {
+      const meetingDateTime = `${fmtDate(form.date)}${form.time ? ` at ${form.time}` : ''}`
+      const link = `${window.location.origin}/join/${m.roomName}`
+      const customMessage = form.inviteMessage.trim()
+      const body = [
+        `Hello ${form.clientName || 'there'},`,
+        '',
+        customMessage || 'Your video consultation has been scheduled.',
+        '',
+        `Meeting: ${form.title}`,
+        `When: ${meetingDateTime}`,
+        `Join link: ${link}`,
+      ].join('\n')
+      window.dispatchEvent(new CustomEvent('mymckenzie-inbox-compose', {
+        detail: {
+          to: form.clientEmail,
+          subject: `Video meeting invite: ${form.title}`,
+          body,
+        },
+      }))
+      setNotice('Meeting scheduled and invite drafted in Inbox.')
+    } else {
+      setNotice('Meeting scheduled.')
+    }
+    setForm({title:'',clientName:'',clientEmail:'',date:'',time:'',duration:'60',agenda:'',inviteMessage:''})
     setShowForm(false)
-    setNotice('Meeting scheduled.')
     setTimeout(()=>setNotice(''),3000)
   },[form])
 
@@ -94,6 +140,7 @@ export function VideoCallPanel({userId}:{userId:string}){
               </select>
             </div>
             <div className={styles.formField}><label className={styles.formLabel}>Agenda</label><textarea className={styles.formTextarea} value={form.agenda} onChange={e=>upd('agenda',e.target.value)} placeholder="Topics to cover…"/></div>
+            <div className={styles.formField}><label className={styles.formLabel}>Invite message (optional)</label><textarea className={styles.formTextarea} value={form.inviteMessage} onChange={e=>upd('inviteMessage',e.target.value)} placeholder="Add a short personal note for the invite email…"/></div>
             {err&&<p className={styles.formAlert}>{err}</p>}
             {notice&&<p className={styles.formNotice}>{notice}</p>}
             <button type="submit" className={styles.formSubmitBtn}><Plus size={14}/>Schedule Meeting</button>

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/database/supabase-browser";
 import { getAppMarketFromPathname, getAppRouteForMarket } from "@/lib/markets/app-routes";
@@ -12,11 +12,13 @@ import DocumentsSidebar from "./documents/DocumentsSidebar";
 import DocumentsTable from "./documents/DocumentsTable";
 import DocumentsViewerModal from "./documents/DocumentsViewerModal";
 import type { Document, Folder } from "./documents/types";
+import { BUSINESS_CLEAR_DOCUMENTS_FILTER_EVENT } from "@/lib/events/business-events";
 
 type DocumentsClientProps = {
   initialCanUpload?: boolean;
   initialPlanLoaded?: boolean;
   dashboardHrefOverride?: string;
+  caseIdOverride?: string | null;
 };
 
 const DOCUMENTS_PAGE_SIZE = 100;
@@ -39,6 +41,7 @@ export default function DocumentsClient({
   initialCanUpload = false,
   initialPlanLoaded = false,
   dashboardHrefOverride,
+  caseIdOverride = null,
 }: DocumentsClientProps) {
   const [activeFilter, setActiveFilter] = useState<'recents'|'starred'>('recents');
   const [fileTypeFilter, setFileTypeFilter] = useState<FileTypeFilter>('all');
@@ -74,6 +77,12 @@ export default function DocumentsClient({
   const appMarket = getAppMarketFromPathname(pathname);
   const dashboardHref = dashboardHrefOverride || getAppRouteForMarket('/dashboard', appMarket);
   const documentsHref = getAppRouteForMarket('/dashboard/documents', appMarket);
+  const caseIdFromOverride = typeof caseIdOverride === 'string' ? caseIdOverride.trim() : ''
+  const caseId =
+    (caseIdFromOverride ? caseIdFromOverride : null) ||
+    (searchParams?.get?.('caseId') || '').trim() ||
+    null;
+  const caseIdIsOverride = Boolean(caseIdFromOverride);
 
   const readApiJson = async (res: Response) => {
     const contentType = res.headers.get('content-type') || '';
@@ -175,8 +184,9 @@ export default function DocumentsClient({
         return;
       }
       try {
+        const caseQuery = caseId ? `&caseId=${encodeURIComponent(caseId)}` : '';
         const res = await fetch(
-          `/api/documents?limit=${DOCUMENTS_PAGE_SIZE}&offset=0`,
+          `/api/documents?limit=${DOCUMENTS_PAGE_SIZE}&offset=0${caseQuery}`,
           { credentials: 'include', signal: controller.signal }
         );
         const data: any = await readApiJson(res);
@@ -192,14 +202,15 @@ export default function DocumentsClient({
     };
     fetchDocuments();
     return () => controller.abort();
-  }, [uid]);
+  }, [uid, caseId]);
 
   const loadMoreDocuments = async () => {
     if (!uid || documentsLoadingMore || !documentsHasMore) return;
     setDocumentsLoadingMore(true);
     try {
+      const caseQuery = caseId ? `&caseId=${encodeURIComponent(caseId)}` : '';
       const res = await fetch(
-        `/api/documents?limit=${DOCUMENTS_PAGE_SIZE}&offset=${documentsNextOffset}`,
+        `/api/documents?limit=${DOCUMENTS_PAGE_SIZE}&offset=${documentsNextOffset}${caseQuery}`,
         { credentials: 'include' }
       );
       const data: any = await readApiJson(res);
@@ -257,6 +268,7 @@ export default function DocumentsClient({
       const files = Array.from(e.target.files);
       const formData = new FormData();
       files.forEach(file => formData.append('files', file));
+      if (caseId) formData.set('caseId', caseId);
       const targetFolderId = activeFolder || uploadFolderId || undefined;
 
       const res = await fetch('/api/documents', { method: 'POST', body: formData, credentials: 'include' });
@@ -284,6 +296,22 @@ export default function DocumentsClient({
     setDocuments(p => p.map(d => d.id == docId ? { ...d, folderId: folderId || undefined } : d));
     setFolderMap(p => ({ ...p, [docId]: folderId }));
   };
+
+  const clearCaseFilter = useCallback(() => {
+    if (!caseId) return;
+    if (caseIdIsOverride) {
+      window.dispatchEvent(new CustomEvent(BUSINESS_CLEAR_DOCUMENTS_FILTER_EVENT));
+      return;
+    }
+    try {
+      const next = new URLSearchParams(searchParams?.toString?.() || '');
+      next.delete('caseId');
+      const qs = next.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname);
+    } catch {
+      // ignore
+    }
+  }, [caseId, caseIdIsOverride, pathname, router, searchParams]);
 
   const toggleStar = async (id: string) => {
     const target = documents.find((d) => d.id === id);
@@ -730,6 +758,17 @@ export default function DocumentsClient({
           totalDocs={totalDocs}
           starredDocs={starredDocs}
         />
+        {caseId && (
+          <div className={styles.caseFilterBar} role="status" aria-live="polite">
+            <div className={styles.caseFilterText}>
+              <span className={styles.caseFilterLabel}>Matter filter</span>
+              <span className={styles.caseFilterValue}>Showing files linked to the selected client matter.</span>
+            </div>
+            <button type="button" className={styles.caseFilterClearBtn} onClick={clearCaseFilter}>
+              Clear
+            </button>
+          </div>
+        )}
 
         <DocumentsActionBar
           searchQuery={searchQuery}

@@ -5,6 +5,35 @@
   color: var(--admin-ink);
 }
 
+.lessRounded .header {
+  border-radius: 12px;
+}
+
+.lessRounded .card {
+  border-radius: 12px;
+}
+
+.lessRounded .navButton,
+.lessRounded .primaryButton,
+.lessRounded .readOnlyBanner,
+.lessRounded .inlineButton,
+.lessRounded .formGroup input,
+.lessRounded .formGroup select,
+.lessRounded .formGroup textarea,
+.lessRounded .formError {
+  border-radius: 6px;
+}
+
+.lessRounded .dayCell,
+.lessRounded .eventItem,
+.lessRounded .emptyState {
+  border-radius: 8px;
+}
+
+.lessRounded .eventPill {
+  border-radius: 6px;
+}
+
 .header {
   background: #fff;
   border-radius: 22px;

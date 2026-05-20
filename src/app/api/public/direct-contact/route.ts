@@ -8,11 +8,12 @@ export const revalidate = 0
 interface DirectContactFormData {
   firstName: string
   lastName: string
-  dateOfBirth: string
+  dateOfBirth?: string
   phone: string
   email: string
   details: string
   professionalId: string
+  leadTraceId?: string
 }
 
 function toText(value: unknown, fallback = '') {
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json() as DirectContactFormData
 
     // Validate required fields
-    if (!body.firstName || !body.lastName || !body.dateOfBirth || !body.phone || !body.email || !body.details || !body.professionalId) {
+    if (!body.firstName || !body.lastName || !body.phone || !body.email || !body.details || !body.professionalId) {
       return NextResponse.json(
         { message: 'All fields are required.' },
         { status: 400 }
@@ -66,6 +67,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const traceId = toText(body.leadTraceId)
+
     // Create lead specifically for this business
     const leadData = {
       business_id: businessData.id,
@@ -77,11 +80,15 @@ export async function POST(request: NextRequest) {
       issue_type: 'Direct Enquiry',
       urgency: 'medium',
       summary: toText(body.details).slice(0, 200),
-      full_details: `Date of Birth: ${toText(body.dateOfBirth)}\n\n${toText(body.details)}`,
+      full_details: [
+        traceId ? `Trace ID: ${traceId}` : null,
+        toText(body.dateOfBirth) ? `Date of Birth: ${toText(body.dateOfBirth)}` : null,
+        toText(body.details),
+      ].filter(Boolean).join('\n\n'),
       court_date: null,
       opposing: null,
       documents: [],
-      tags: ['Direct Contact', 'Directory'],
+      tags: ['Direct Contact', 'Directory', ...(traceId ? [`trace:${traceId}`] : [])],
       status: 'new',
       source: 'portal',
       submitted_at: new Date().toISOString(),
@@ -108,7 +115,7 @@ export async function POST(request: NextRequest) {
       sender_name: `${toText(body.firstName)} ${toText(body.lastName)}`,
       recipient_email: body.professionalId,
       subject: `New Direct Enquiry from ${toText(body.firstName)} ${toText(body.lastName)}`,
-      content: `A new direct enquiry has been submitted via the directory.\n\nName: ${toText(body.firstName)} ${toText(body.lastName)}\nEmail: ${toText(body.email)}\nPhone: ${toText(body.phone)}\nDate of Birth: ${toText(body.dateOfBirth)}\n\nDetails:\n${toText(body.details)}`,
+      content: `A new direct enquiry has been submitted via the directory.\n\n${traceId ? `Trace ID: ${traceId}\n` : ''}Name: ${toText(body.firstName)} ${toText(body.lastName)}\nEmail: ${toText(body.email)}\nPhone: ${toText(body.phone)}${toText(body.dateOfBirth) ? `\nDate of Birth: ${toText(body.dateOfBirth)}` : ''}\n\nDetails:\n${toText(body.details)}`,
       type: 'email',
       is_read: false,
       is_starred: false,
@@ -131,6 +138,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       message: 'Enquiry submitted successfully',
+      leadTraceId: traceId || null,
     })
   } catch (error) {
     console.error('Direct contact submission error:', error)

@@ -527,6 +527,37 @@
   line-height: 1.4;
 }
 
+.caseFilterBar{
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(167, 139, 250, 0.28);
+  background: rgba(88, 28, 135, 0.18);
+  color: rgba(237, 233, 254, 0.96);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.caseFilterText{display:flex;flex-direction:column;gap:2px;min-width:0}
+.caseFilterLabel{font-size:.7rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;opacity:.9}
+.caseFilterValue{font-size:.84rem;font-weight:800;color:rgba(248, 250, 252, 0.92)}
+.caseFilterClearBtn{
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(248, 250, 252, 0.96);
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.caseFilterClearBtn:hover{background:rgba(255,255,255,0.14)}
+
 .modal {
   position: fixed;
   inset: 0;
@@ -1390,6 +1421,10 @@
 :global([data-theme="light"]) .secondaryBtn:hover,:global([data-theme="light"]) .folderTile:hover{background:#f8fafc;border-color:#93c5fd}
 :global([data-theme="light"]) .fileTypeTabActive{background:#2563eb;border-color:#2563eb;color:#fff}
 :global([data-theme="light"]) .readOnlyNotice{background:#fffbeb;border-color:#fde68a;color:#92400e}
+:global([data-theme="light"]) .caseFilterBar{background:#f5f3ff;border-color:#ddd6fe;color:#3b0764}
+:global([data-theme="light"]) .caseFilterValue{color:#4c1d95}
+:global([data-theme="light"]) .caseFilterClearBtn{background:#ffffff;border-color:#e5e7eb;color:#4c1d95}
+:global([data-theme="light"]) .caseFilterClearBtn:hover{background:#f3f4f6}
 :global([data-theme="light"]) .tableHeader{background:#f8fafc;border-color:#e5e7eb}
 :global([data-theme="light"]) .tableRow{background:#ffffff;border-color:#f1f5f9}
 :global([data-theme="light"]) .tableRowHovered,:global([data-theme="light"]) .tableRow:hover{background:#f8fafc}

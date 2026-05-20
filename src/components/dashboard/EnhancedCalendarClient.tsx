@@ -140,6 +140,7 @@ type EnhancedCalendarClientProps = {
   initialPlanChecked?: boolean
   initialHasReminderAccess?: boolean
   initialRemindersEnabled?: boolean
+  lessRounded?: boolean
 }
 
 export default function EnhancedCalendarClient({
@@ -149,6 +150,7 @@ export default function EnhancedCalendarClient({
   initialPlanChecked = false,
   initialHasReminderAccess = false,
   initialRemindersEnabled = false,
+  lessRounded = false,
 }: EnhancedCalendarClientProps = {}) {
   const [visibleMonth, setVisibleMonth] = useState(startOfDay(new Date()))
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(startOfDay(new Date()))
@@ -622,7 +624,7 @@ export default function EnhancedCalendarClient({
   }, [eventsPanelMode, readOnlyMode])
 
   return (
-    <div className={styles.calendarPage}>
+    <div className={`${styles.calendarPage} ${lessRounded ? styles.lessRounded : ''}`}>
       <div className={styles.header}>
         <div className={styles.headerTitle}>
           <h1>MyCalendar</h1>
