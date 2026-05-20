@@ -26,6 +26,7 @@ import {
   writeClientMatters,
   writeBusinessLeads,
 } from '@/lib/business/client-matters'
+import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import styles from './leads.module.css'
 
 const STATUS_LABELS: Record<LeadStatus, string> = {
@@ -59,6 +60,7 @@ export default function LeadsPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'new' | 'accepted' | 'declined'>('all')
   const [loading, setLoading] = useState(true)
   const [syncNotice, setSyncNotice] = useState<string | null>(null)
+  const [quickLinkNotice, setQuickLinkNotice] = useState<string | null>(null)
 
   useEffect(() => {
     let mounted = true
@@ -107,6 +109,10 @@ export default function LeadsPage() {
     () => leads.find((lead) => lead.id === selectedLeadId) ?? null,
     [leads, selectedLeadId],
   )
+
+  useEffect(() => {
+    setQuickLinkNotice(null)
+  }, [selectedLeadId])
 
   const filteredLeads = leads.filter((lead) => activeTab === 'all' || lead.status === activeTab)
 
@@ -164,6 +170,42 @@ export default function LeadsPage() {
         context: lead.summary,
       },
     }))
+  }
+
+  const sendQuickLink = async (lead: BusinessLead) => {
+    if (!lead.email) {
+      setQuickLinkNotice('No client email available for invite link.')
+      return
+    }
+    try {
+      const supabase = getSupabaseBrowserClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        setQuickLinkNotice('Please sign in again to send invite links.')
+        return
+      }
+
+      const response = await fetch('/api/business/client-invite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          email: lead.email,
+          name: lead.name,
+        }),
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        const message = typeof payload?.message === 'string' ? payload.message : 'Failed to send quick link.'
+        setQuickLinkNotice(message)
+        return
+      }
+      setQuickLinkNotice(`Quick link sent to ${lead.email}.`)
+    } catch {
+      setQuickLinkNotice('Failed to send quick link. Please try again.')
+    }
   }
 
   const statusCls = (status: LeadStatus) => {
@@ -290,6 +332,15 @@ export default function LeadsPage() {
                     <button
                       type="button"
                       className={styles.secondaryActionBtn}
+                      onClick={() => void sendQuickLink(selectedLead)}
+                    >
+                      Send quick link
+                    </button>
+                  )}
+                  {selectedLead.email && selectedLead.status !== 'declined' && (
+                    <button
+                      type="button"
+                      className={styles.secondaryActionBtn}
                       onClick={() => openMessageDraft(selectedLead)}
                     >
                       Message client
@@ -307,6 +358,7 @@ export default function LeadsPage() {
                   )}
                 </div>
               </div>
+              {quickLinkNotice && <p className={styles.syncNotice}>{quickLinkNotice}</p>}
 
               <div className={styles.detailMetaRow}>
                 <span className={styles.detailMetaItem}>
