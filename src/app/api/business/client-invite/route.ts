@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { sendResendEmail } from '@/lib/email/resend'
 import nodemailer from 'nodemailer'
+import { createBusinessAlert } from '@/lib/business/alerts'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -98,24 +99,32 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate signup link with token
-    const signupUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/signup?token=${invitation.token}`
+    const signupUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/signup?token=${encodeURIComponent(invitation.token)}`
 
-    const subject = `Invitation to join ${businessData.name} client portal`
+    const subject = `You are invited to join ${businessData.name}'s client portal`
     const textBody =
-      `You've been invited to join the ${businessData.name} client portal.\n\n` +
-      `Sign up link: ${signupUrl}\n\n` +
-      `If you did not expect this invite, you can ignore this email.`
+      `Hello,\n\n` +
+      `${businessData.name} has invited you to join their secure client portal on MyMcKenzieCS.\n\n` +
+      `Please use the link below to create your account and access your client workspace:\n` +
+      `${signupUrl}\n\n` +
+      `If you were not expecting this invitation, you can safely ignore this email.\n\n` +
+      `Kind regards,\n` +
+      `${businessData.name}`
     const htmlBody = `
       <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; line-height: 1.5; color: #111827;">
-        <h2 style="margin: 0 0 12px;">You're invited to join ${businessData.name}</h2>
-        <p style="margin: 0 0 16px;">A client portal invitation was created for <strong>${body.email}</strong>.</p>
+        <h2 style="margin: 0 0 12px;">Invitation to Join ${businessData.name}'s Client Portal</h2>
+        <p style="margin: 0 0 16px;">Hello,</p>
+        <p style="margin: 0 0 16px;">${businessData.name} has invited <strong>${body.email}</strong> to join their secure client portal on MyMcKenzieCS.</p>
+        <p style="margin: 0 0 16px;">Please use the button below to create your account and access your client workspace.</p>
         <p style="margin: 0 0 16px;">
-          <a href="${signupUrl}" style="display:inline-block;background:#5b21b6;color:#ffffff;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:700;">
+          <a href="${signupUrl}" style="display:inline-block;background:#270427;color:#ffffff;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:700;border:1px solid #1c1a42;">
             Create your account
           </a>
         </p>
         <p style="margin: 0 0 8px; color: #6b7280; font-size: 13px;">If the button doesn't work, copy and paste this link:</p>
         <p style="margin: 0; font-size: 13px; word-break: break-all;"><a href="${signupUrl}">${signupUrl}</a></p>
+        <p style="margin: 16px 0 0;">If you were not expecting this invitation, you can safely ignore this email.</p>
+        <p style="margin: 16px 0 0;">Kind regards,<br />${businessData.name}</p>
       </div>
     `
 
@@ -172,6 +181,17 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    await createBusinessAlert({
+      businessId: String(businessData.id),
+      type: 'lead',
+      priority: 'low',
+      title: 'Client invite sent',
+      body: `Invite sent to ${body.email}.`,
+      clientName: body.name || null,
+      actionLabel: 'View Invites',
+      metadata: { invitationId: invitation.id, invitedEmail: body.email },
+    })
 
     return NextResponse.json({
       message: 'Invitation created successfully',
