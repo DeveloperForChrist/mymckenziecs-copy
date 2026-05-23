@@ -7,19 +7,14 @@ import {
   ChevronDown,
   Clock3,
   Heart,
-  Mail,
   MapPin,
-  Phone,
   Search,
   Send,
-  Star,
-  Video,
   X,
 } from 'lucide-react'
 import {
   AREAS_OF_LAW,
   AVAILABILITY_LABELS,
-  EMPTY_PROFESSIONAL_PROFILE,
   type ProfessionalProfile,
 } from '@/lib/directory/profiles'
 import styles from './directory.module.css'
@@ -28,117 +23,6 @@ interface Props {
   mode?: 'business' | 'litigant'
   ownId?: string
 }
-
-const FEATURED_PROFILES: ProfessionalProfile[] = [
-  {
-    ...EMPTY_PROFESSIONAL_PROFILE,
-    id: 'demo-sarah',
-    ownerId: 'demo-sarah',
-    displayName: 'Sarah McKenzie',
-    businessName: 'McKenzieCS Legal Support',
-    type: 'McKenzie Friend',
-    headline: 'I will help you prepare your small claim, bundle, and hearing notes',
-    bio: 'Experienced McKenzie Friend supporting litigants in housing, employment, and small claims. I help turn scattered papers into a calm hearing plan.',
-    city: 'London',
-    postcode: 'SE1',
-    phone: '07700 900001',
-    email: 'sarah@mymckenziecs.com',
-    website: 'https://mymckenziecs.com',
-    experienceYears: 7,
-    startingPrice: 85,
-    responseTime: 'Within 12 hours',
-    areasOfLaw: ['Housing & Disrepair', 'Employment', 'Small Claims', 'Court Bundles'],
-    languages: ['English'],
-    services: ['Court hearing support', 'Bundle preparation', 'Case strategy session'],
-    availability: 'both',
-    qualifications: 'LLB Law, NFMF member, professional indemnity insured',
-    offersVideoConsultations: true,
-    instantResponse: true,
-    visible: true,
-    rating: 4.9,
-    reviewCount: 82,
-  },
-  {
-    ...EMPTY_PROFESSIONAL_PROFILE,
-    id: 'demo-james',
-    ownerId: 'demo-james',
-    displayName: 'James Williams',
-    businessName: 'Williams Legal Consulting',
-    type: 'Legal Consultant',
-    headline: 'I will draft employment tribunal documents and organise your evidence',
-    bio: 'Former paralegal with experience in employment and civil litigation. I assist with case preparation, statements, chronology, and settlement documents.',
-    city: 'Birmingham',
-    postcode: 'B1',
-    email: 'james.w@williamslegal.co.uk',
-    experienceYears: 5,
-    startingPrice: 70,
-    responseTime: 'Within 24 hours',
-    areasOfLaw: ['Employment', 'Civil Litigation', 'Small Claims', 'Consumer Rights'],
-    languages: ['English', 'French'],
-    services: ['Document drafting', 'Settlement preparation', 'Remote consultation'],
-    availability: 'both',
-    qualifications: 'CILEX Level 6, employment law specialist',
-    offersVideoConsultations: true,
-    instantResponse: false,
-    visible: true,
-    rating: 5,
-    reviewCount: 52,
-  },
-  {
-    ...EMPTY_PROFESSIONAL_PROFILE,
-    id: 'demo-amara',
-    ownerId: 'demo-amara',
-    displayName: 'Amara Osei',
-    businessName: '',
-    type: 'Paralegal',
-    headline: 'I will help organise family court papers and hearing preparation',
-    bio: 'Paralegal focused on family and immigration matters. Available for remote support across England and Wales.',
-    city: 'Manchester',
-    postcode: 'M1',
-    email: 'amara.osei@legalaid.co.uk',
-    experienceYears: 3,
-    startingPrice: 60,
-    responseTime: 'Within 48 hours',
-    areasOfLaw: ['Family & Children', 'Immigration', 'Witness Statements'],
-    languages: ['English', 'Twi', 'French'],
-    services: ['Form completion', 'Document drafting', 'Remote consultation'],
-    availability: 'remote',
-    qualifications: 'Law Society paralegal certificate',
-    offersVideoConsultations: true,
-    instantResponse: false,
-    visible: true,
-    rating: 4.8,
-    reviewCount: 29,
-  },
-  {
-    ...EMPTY_PROFESSIONAL_PROFILE,
-    id: 'demo-daniel',
-    ownerId: 'demo-daniel',
-    displayName: 'Daniel Price',
-    businessName: 'Price McKenzie Associates',
-    type: 'McKenzie Friend',
-    headline: 'I will support complex civil litigation hearings and documents',
-    bio: 'Retired solicitor now working as a McKenzie Friend. I provide detailed hearing support and document drafting for civil and commercial disputes.',
-    city: 'Bristol',
-    postcode: 'BS1',
-    phone: '07700 900004',
-    email: 'daniel@pricemckenzie.co.uk',
-    website: 'https://pricemckenzie.co.uk',
-    experienceYears: 20,
-    startingPrice: 125,
-    responseTime: 'Within 24 hours',
-    areasOfLaw: ['Civil Litigation', 'Small Claims', 'Landlord & Tenant', 'Consumer Rights'],
-    languages: ['English', 'Welsh'],
-    services: ['Court hearing support', 'Document drafting', 'Case strategy session'],
-    availability: 'in-person',
-    qualifications: 'Retired solicitor, LLB, LPC',
-    offersVideoConsultations: false,
-    instantResponse: false,
-    visible: true,
-    rating: 4.9,
-    reviewCount: 113,
-  },
-]
 
 function initials(name: string) {
   return name
@@ -174,8 +58,8 @@ function responseTimeLabel(value: string | null | undefined) {
 }
 
 export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
-  const [profiles, setProfiles] = useState<ProfessionalProfile[]>(FEATURED_PROFILES)
-  const [selected, setSelected] = useState<ProfessionalProfile | null>(FEATURED_PROFILES[0])
+  const [profiles, setProfiles] = useState<ProfessionalProfile[]>([])
+  const [selected, setSelected] = useState<ProfessionalProfile | null>(null)
   const [profileModalOpen, setProfileModalOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [role, setRole] = useState('')
@@ -198,25 +82,32 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
 
     async function loadProfiles() {
       setLoading(true)
+      setLoadError(null)
       try {
         const res = await fetch('/api/directory/professionals', { cache: 'no-store' })
         const data = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          throw new Error(typeof data?.message === 'string' ? data.message : 'Unable to load directory.')
+        }
+
         const remoteProfiles = Array.isArray(data?.professionals) ? data.professionals as ProfessionalProfile[] : []
 
-        if (!cancelled && remoteProfiles.length > 0) {
+        if (!cancelled) {
           setProfiles(remoteProfiles)
-          setSelected(remoteProfiles[0])
+          setSelected(remoteProfiles[0] ?? null)
         }
       } catch {
         if (!cancelled) {
-          setProfiles(FEATURED_PROFILES)
-          setSelected(FEATURED_PROFILES[0])
+          setProfiles([])
+          setSelected(null)
+          setLoadError('Unable to load the directory right now. Please try again shortly.')
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -384,8 +275,7 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
       return next
     })
   }
-
-  const hasRemoteProfiles = profiles !== FEATURED_PROFILES
+  const hasActiveFilters = Boolean(search.trim() || role || specialization || location || availability)
 
   return (
     <div className={`${styles.page} ${mode === 'business' ? styles.pageBusiness : ''}`}>
@@ -505,7 +395,7 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
         <div className={styles.resultMeta}>
           <span>Showing <strong>{filtered.length}</strong> professional{filtered.length === 1 ? '' : 's'}</span>
           {loading && <span>Loading live directory...</span>}
-          {!loading && !hasRemoteProfiles && <span>Sample listings are shown until professionals publish profiles</span>}
+          {!loading && loadError && <span>{loadError}</span>}
         </div>
       </header>
 
@@ -514,7 +404,13 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
           {filtered.length === 0 ? (
             <div className={styles.emptyState}>
               <Briefcase size={34} />
-              <p>No professionals match those filters.</p>
+              {loadError ? (
+                <p>{loadError}</p>
+              ) : hasActiveFilters ? (
+                <p>No professionals match those filters.</p>
+              ) : (
+                <p>No professionals are published in the directory yet.</p>
+              )}
             </div>
           ) : (
             filtered.map((profile) => {

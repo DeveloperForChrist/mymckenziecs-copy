@@ -58,13 +58,7 @@ const CLIENT_MATTERS_API_PATH = '/api/business/client-matters'
 const BUSINESS_LEADS_CACHE_CLEANUP_VERSION_KEY = 'mymckenzie-business-leads-cache-cleanup-v1'
 
 export const DEFAULT_BUSINESS_LEADS: BusinessLead[] = []
-
-const LEGACY_MOCK_LEAD_NAMES = new Set([
-  'James Okafor',
-  'Priya Sharma',
-  'David Clarke',
-  'Angela Mensah',
-])
+const LEGACY_MOCK_LEAD_IDS = new Set(['1', '2', '3', '4', 'lead-1', 'lead-2', 'lead-3', 'lead-4'])
 
 function canUseStorage() {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
@@ -106,12 +100,7 @@ export function readBusinessLeads() {
 
 function looksLikeLegacyMockLeads(leads: BusinessLead[]) {
   if (leads.length !== 4) return false
-  const names = new Set(leads.map((lead) => lead.name))
-  if (names.size !== 4) return false
-  for (const name of names) {
-    if (!LEGACY_MOCK_LEAD_NAMES.has(name)) return false
-  }
-  return leads.every((lead) => /(^\d+$)|(^lead-\d+$)/.test(lead.id))
+  return leads.every((lead) => LEGACY_MOCK_LEAD_IDS.has(lead.id))
 }
 
 export function cleanupLegacyMockBusinessLeadsCache() {

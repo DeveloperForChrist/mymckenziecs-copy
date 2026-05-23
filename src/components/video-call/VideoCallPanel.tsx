@@ -13,12 +13,9 @@ function fmtDate(d:string){return new Date(d).toLocaleDateString('en-GB',{day:'2
 
 const LOCAL_MEETINGS_KEY='mymckenzie-business-client-meetings'
 const LOCAL_CLIENTS_KEY='mymckenzie-business-meeting-clients'
+const LEGACY_MOCK_MEETINGS_CACHE_CLEANUP_KEY='mymckenzie-business-meetings-cache-cleanup-v1'
+const LEGACY_MOCK_MEETING_IDS = new Set(['1', '2', '3'])
 
-const MOCK:Meeting[]=[
-  {id:'1',title:'Initial Consultation',clientName:'James Okafor',clientEmail:'james@email.com',date:'2026-05-12',time:'10:00',duration:60,roomName:'mymckenziecs-initial-consultation-1',status:'scheduled',agenda:'Housing disrepair and Section 21 notice discussion.',source:'local'},
-  {id:'2',title:'Case Review',clientName:'Priya Sharma',clientEmail:'priya@gmail.com',date:'2026-05-10',time:'14:00',duration:45,roomName:'mymckenziecs-case-review-2',status:'in_progress',agenda:'ET1 preparation and whistleblowing detriment claim.',source:'local'},
-  {id:'3',title:'Follow-up',clientName:'David Clarke',clientEmail:'d.clarke@outlook.com',date:'2026-05-08',time:'11:00',duration:30,roomName:'mymckenziecs-follow-up-3',status:'completed',source:'local'},
-]
 const S_CLS:Record<MeetingStatus,string>={scheduled:styles.statusScheduled,in_progress:styles.statusLive,completed:styles.statusDone,cancelled:styles.statusCancelled,no_show:styles.statusCancelled}
 const S_LBL:Record<MeetingStatus,string>={scheduled:'Scheduled',in_progress:'● Live',completed:'Done',cancelled:'Cancelled',no_show:'No show'}
 
@@ -35,15 +32,36 @@ function saveLocal(meetings: Meeting[], clients: ClientContact[]) {
   }
 }
 
+function looksLikeLegacyMockMeetings(meetings: Meeting[]) {
+  if (meetings.length !== 3) return false
+  return meetings.every((meeting) => LEGACY_MOCK_MEETING_IDS.has(meeting.id))
+}
+
+function cleanupLegacyMockMeetingCache() {
+  try {
+    if (localStorage.getItem(LEGACY_MOCK_MEETINGS_CACHE_CLEANUP_KEY) === '1') return
+    const rawMeetings = localStorage.getItem(LOCAL_MEETINGS_KEY)
+    const parsedMeetings = rawMeetings ? JSON.parse(rawMeetings) : null
+    if (Array.isArray(parsedMeetings) && looksLikeLegacyMockMeetings(parsedMeetings as Meeting[])) {
+      localStorage.setItem(LOCAL_MEETINGS_KEY, JSON.stringify([]))
+      localStorage.setItem(LOCAL_CLIENTS_KEY, JSON.stringify([]))
+    }
+    localStorage.setItem(LEGACY_MOCK_MEETINGS_CACHE_CLEANUP_KEY, '1')
+  } catch {
+    // ignore localStorage failures
+  }
+}
+
 function loadLocal(): { meetings: Meeting[]; clients: ClientContact[] } {
   try {
+    cleanupLegacyMockMeetingCache()
     const meetings = JSON.parse(localStorage.getItem(LOCAL_MEETINGS_KEY) || 'null') as Meeting[] | null
     const clients = JSON.parse(localStorage.getItem(LOCAL_CLIENTS_KEY) || 'null') as ClientContact[] | null
     if (Array.isArray(meetings) && Array.isArray(clients)) return { meetings, clients }
   } catch {
     // ignore parse errors
   }
-  return { meetings: MOCK, clients: [] }
+  return { meetings: [], clients: [] }
 }
 
 function mapRowsToMeetings(rows: any[], clients: ClientContact[]): Meeting[] {
