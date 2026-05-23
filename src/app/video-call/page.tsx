@@ -1,11 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import WebRtcMeeting from '@/components/video/WebRtcMeeting';
 
 export default function VideoCallPage() {
+  return (
+    <Suspense fallback={<VideoCallLoading />}>
+      <VideoCallContent />
+    </Suspense>
+  );
+}
+
+function VideoCallContent() {
   const searchParams = useSearchParams();
   const roomParam = searchParams.get('room');
   const nameParam = searchParams.get('name');
@@ -49,6 +57,14 @@ export default function VideoCallPage() {
         displayName={nameParam || `Guest ${roomName.slice(-8)}`}
         onLeave={() => setCallSession((s) => s + 1)}
       />
+    </div>
+  );
+}
+
+function VideoCallLoading() {
+  return (
+    <div style={{ padding: '2rem' }}>
+      <p>Loading...</p>
     </div>
   );
 }

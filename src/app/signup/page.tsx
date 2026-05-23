@@ -1,11 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 
 export default function SignupPage() {
+  return (
+    <Suspense fallback={<SignupLoading />}>
+      <SignupPageContent />
+    </Suspense>
+  )
+}
+
+function SignupPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
@@ -264,6 +272,14 @@ export default function SignupPage() {
           </Link>
         </p>
       </div>
+    </div>
+  )
+}
+
+function SignupLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
+      <div className="text-white">Loading...</div>
     </div>
   )
 }
