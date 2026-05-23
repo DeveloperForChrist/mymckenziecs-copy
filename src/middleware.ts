@@ -1,5 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { readEdgeCountryCode } from '@/lib/legal/edge-country'
+import { copyCookies, readStoredMarketCookie, resolveRootMarket, setMarketCookie } from '@/lib/markets/geo-routing'
+import { getPublicRouteForMarket, type PublicMarket } from '@/lib/markets/public-routes'
 
 const parsePositiveInt = (value: string | undefined, fallback: number) => {
   const parsed = Number(value)
@@ -54,6 +57,52 @@ type MiddlewareEntitlement = {
 const UNVERIFIED_ALLOWED_PAGE_PATHS = new Set(['/dashboard'])
 const UNVERIFIED_ALLOWED_API_PATHS = new Set(['/api/user', '/api/user/plan'])
 
+function toMarketNeutralPath(pathname: string): string {
+  if (pathname === '/uk' || pathname === '/us') return '/'
+  if (pathname.startsWith('/uk/')) return pathname.slice(3)
+  if (pathname.startsWith('/us/')) return pathname.slice(3)
+  return pathname
+}
+
+function isMarketMappablePath(pathname: string): boolean {
+  const neutralPath = toMarketNeutralPath(pathname)
+  if (neutralPath === '/') return true
+  return (
+    getPublicRouteForMarket(neutralPath, 'GB') !== neutralPath ||
+    getPublicRouteForMarket(neutralPath, 'US') !== neutralPath
+  )
+}
+
+function resolveApprovedPublicMarket(params: {
+  profileCountryCode?: string | null
+  storedMarketCookie?: string | null
+  edgeCountryCode?: string | null
+  requestedMarket?: string | null
+  authenticated: boolean
+}): PublicMarket {
+  const storedMarket = readStoredMarketCookie(params.storedMarketCookie)
+  const edgeMarket = readStoredMarketCookie(params.edgeCountryCode)
+  const profileMarket = readStoredMarketCookie(params.profileCountryCode)
+  const requestedMarket = readStoredMarketCookie(params.requestedMarket)
+
+  // Signed-in users are approved by profile/cookie/geo. Query-string market switches are ignored.
+  if (params.authenticated) {
+    return resolveRootMarket({
+      profileCountryCode: profileMarket,
+      storedMarket,
+      edgeCountryCode: edgeMarket,
+    })
+  }
+
+  // Guests may switch market with ?market=US|GB.
+  if (requestedMarket) return requestedMarket
+
+  return resolveRootMarket({
+    storedMarket,
+    edgeCountryCode: edgeMarket,
+  })
+}
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
@@ -64,14 +113,17 @@ export async function middleware(request: NextRequest) {
   }
 
   // Skip auth for public marketing pages (uk/us routes that aren't dashboard/settings)
-  const isPublicMarketPage = (pathname.startsWith('/uk/') || pathname.startsWith('/us/')) &&
+  const isPublicMarketPage = (
+    pathname === '/uk' ||
+    pathname === '/us' ||
+    pathname.startsWith('/uk/') ||
+    pathname.startsWith('/us/')
+  ) &&
     !pathname.includes('/dashboard') &&
     !pathname.includes('/chatbot') &&
     !pathname.includes('/settings')
-  
-  if (isPublicMarketPage) {
-    return NextResponse.next()
-  }
+  const isRootPath = pathname === '/'
+  const isPublicMarketRoutingCandidate = (isPublicMarketPage || isRootPath) && isMarketMappablePath(pathname)
 
   let response = NextResponse.next({
     request: {
@@ -168,7 +220,7 @@ export async function middleware(request: NextRequest) {
     !isUnverifiedAllowedApi
   const shouldLoadUserProfile =
     Boolean(user) &&
-    (shouldEnforceVerification || requiresAdmin)
+    (shouldEnforceVerification || requiresAdmin || isPublicMarketRoutingCandidate)
 
   if (requiresAuth && !user) {
     // Redirect to sign-in for protected routes
@@ -217,6 +269,34 @@ export async function middleware(request: NextRequest) {
     } else {
       userProfile = profileRow
     }
+  }
+
+  if (isPublicMarketRoutingCandidate) {
+    const approvedMarket = resolveApprovedPublicMarket({
+      profileCountryCode: userProfile?.country_code || (user as any)?.user_metadata?.country_code || null,
+      storedMarketCookie: request.cookies.get('market')?.value || null,
+      edgeCountryCode: readEdgeCountryCode(request.headers),
+      requestedMarket: request.nextUrl.searchParams.get('market'),
+      authenticated: Boolean(user),
+    })
+
+    const neutralPath = toMarketNeutralPath(pathname)
+    const targetPath = getPublicRouteForMarket(neutralPath, approvedMarket)
+    const needsPathRedirect = targetPath !== pathname
+    const hasMarketQuery = request.nextUrl.searchParams.has('market')
+
+    if (needsPathRedirect || hasMarketQuery) {
+      const targetUrl = new URL(request.url)
+      targetUrl.pathname = targetPath
+      targetUrl.searchParams.delete('market')
+
+      const redirectResponse = NextResponse.redirect(targetUrl)
+      copyCookies(response, redirectResponse)
+      setMarketCookie(redirectResponse, approvedMarket, request.nextUrl.protocol === 'https:')
+      return redirectResponse
+    }
+
+    setMarketCookie(response, approvedMarket, request.nextUrl.protocol === 'https:')
   }
 
   if (shouldEnforceVerification && user) {
@@ -333,6 +413,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/',
     // Public marketing routes with market prefix
     '/uk/:path*',
     '/us/:path*',
