@@ -347,17 +347,10 @@ export default function DashboardHomeClient({
       ? [
           {
             icon: 'bx-inbox',
-            title: 'Inbox',
-            desc: 'Read messages and updates from your legal professional',
+            title: 'MyMcKenzieCS Client Portal',
+            desc: 'Open your client portal dashboard for messages and updates',
             href: clientInboxHref,
             color: '#2563eb,#60a5fa',
-          },
-          {
-            icon: 'bx-video',
-            title: 'Video Call Meeting',
-            desc: 'Join or start a video conference for your legal matters',
-            href: '/video-call',
-            color: '#8b5cf6,#a78bfa',
           },
         ]
       : [
@@ -377,13 +370,6 @@ export default function DashboardHomeClient({
       color: '#2563eb,#60a5fa'
     },
     {
-      icon: 'bx-folder-open',
-      title: 'Review My Notes',
-      desc: 'Write and organise your notes',
-      href: notesHref,
-      color: '#db2777,#f472b6'
-    },
-    {
       icon: 'bx-briefcase',
       title: 'Check My Calendar',
       desc: 'Monitor important dates and deadlines',
@@ -391,20 +377,31 @@ export default function DashboardHomeClient({
       color: '#ea580c,#fb923c',
       alertCount: calendarAlertCount,
     },
-    {
-      icon: 'bx-search',
-      title: 'Search Case Law',
-      desc: 'Research and study case law and judgments where available',
-      href: caseLawHref,
-      color: '#f59e42,#fbbf24'
-    },
-    {
-      icon: 'bx-group',
-      title: 'Find a McKenzie Friend',
-      desc: 'Browse our directory of McKenzie Friends and legal consultants',
-      href: '/dashboard/directory',
-      color: '#7b2b7b,#c084fc'
-    },
+    ...(!clientPortalEnabled
+      ? [
+          {
+            icon: 'bx-folder-open',
+            title: 'Review My Notes',
+            desc: 'Write and organise your notes',
+            href: notesHref,
+            color: '#db2777,#f472b6'
+          },
+          {
+            icon: 'bx-search',
+            title: 'Search Case Law',
+            desc: 'Research and study case law and judgments where available',
+            href: caseLawHref,
+            color: '#f59e42,#fbbf24'
+          },
+          {
+            icon: 'bx-group',
+            title: 'Find a McKenzie Friend',
+            desc: 'Browse our directory of McKenzie Friends and legal consultants',
+            href: '/dashboard/directory',
+            color: '#7b2b7b,#c084fc'
+          },
+        ]
+      : []),
     {
       icon: 'bx-cog',
       title: 'User Settings',
@@ -457,6 +454,43 @@ export default function DashboardHomeClient({
     <div style={{ background: 'linear-gradient(135deg, #240724 0%, #240724 50%, #240724 100%)', minHeight: '100vh' }}>
       <main style={{ color: '#ffffff' }}>
         <div style={{ maxWidth: layoutMaxWidth, margin: '0 auto', padding: layoutPadding }}>
+          {clientPortalEnabled && (
+            <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.82rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.72)' }}>
+                Workspace
+              </span>
+              <Link
+                href={dashboardHref}
+                style={{
+                  textDecoration: 'none',
+                  borderRadius: '999px',
+                  border: '1px solid rgba(255,255,255,0.28)',
+                  background: 'rgba(255,255,255,0.14)',
+                  color: '#fff',
+                  padding: '7px 12px',
+                  fontSize: '0.86rem',
+                  fontWeight: 700,
+                }}
+              >
+                Litigant Workspace
+              </Link>
+              <Link
+                href={clientInboxHref}
+                style={{
+                  textDecoration: 'none',
+                  borderRadius: '999px',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'rgba(255,255,255,0.06)',
+                  color: '#cbd5f5',
+                  padding: '7px 12px',
+                  fontSize: '0.86rem',
+                  fontWeight: 700,
+                }}
+              >
+                Client Portal
+              </Link>
+            </div>
+          )}
           <div style={{ marginBottom: '28px' }}>
             <h1 style={{ fontSize: 'clamp(1.9rem, 4.4vw, 2.85rem)', fontWeight: 700, marginBottom: '12px', lineHeight: 1.2 }}>
               {clientPortalEnabled ? 'Welcome to your client dashboard' : 'Welcome to MyMcKenzieCS'}

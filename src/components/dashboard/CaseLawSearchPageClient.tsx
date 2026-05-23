@@ -308,6 +308,7 @@ type CaseLawSearchPageClientProps = {
   initialPublicMarket?: PublicMarket;
   dashboardHrefOverride?: string;
   settingsHrefOverride?: string;
+  forceAccess?: boolean;
 };
 
 export default function CaseLawSearchPageClient({
@@ -317,6 +318,7 @@ export default function CaseLawSearchPageClient({
   initialPublicMarket = 'GB',
   dashboardHrefOverride,
   settingsHrefOverride,
+  forceAccess = false,
 }: CaseLawSearchPageClientProps = {}) {
   const workspaceMaxWidth = 'var(--app-shell-max-width, 1720px)';
   const [query, setQuery] = useState('');
@@ -367,7 +369,7 @@ export default function CaseLawSearchPageClient({
         }
         const data = await res.json();
         setUserPlan((data?.plan || 'guest').toString());
-        setHasPaidAccess(Boolean(data?.paidAccess));
+        setHasPaidAccess(forceAccess ? true : Boolean(data?.paidAccess));
         setPublicMarket(normalizePublicMarket(data?.publicMarket));
       } catch (error) {
         console.error('Error checking user plan:', error);
@@ -377,7 +379,7 @@ export default function CaseLawSearchPageClient({
     };
 
     checkUserPlan();
-  }, []);
+  }, [forceAccess]);
 
   useEffect(() => {
     let cancelled = false;
@@ -500,8 +502,10 @@ export default function CaseLawSearchPageClient({
     addViewedCaseToHistory(caseResult);
   }, [addViewedCaseToHistory]);
 
+  const canUseCaseLawActions = forceAccess ? true : hasPaidAccess;
+
   const handleSearch = useCallback(async (searchQuery: string) => {
-    if (!hasPaidAccess) {
+    if (!canUseCaseLawActions) {
       setSearchErrorModal('Plan paused: case law search is locked. Resume your plan to continue.');
       return;
     }
@@ -556,10 +560,10 @@ export default function CaseLawSearchPageClient({
         setLoading(false);
       }
     }
-  }, [filters, hasPaidAccess, addSearchToHistory]);
+  }, [filters, canUseCaseLawActions, addSearchToHistory]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (!hasPaidAccess) return;
+    if (!canUseCaseLawActions) return;
     if (e.key === 'Enter') {
       handleSearch(query);
     }
@@ -567,7 +571,7 @@ export default function CaseLawSearchPageClient({
 
   // Handle case study generation with improved error handling
   const handleStudyCase = async (caseResult: CaseLawResult) => {
-    if (!hasPaidAccess) {
+    if (!canUseCaseLawActions) {
       setStudyError('Plan paused: case law study is locked. Resume your plan to continue.');
       setShowStudyModal(true);
       return;
@@ -709,7 +713,7 @@ export default function CaseLawSearchPageClient({
   };
 
   const askStudyQuestion = async () => {
-    if (!hasPaidAccess) {
+    if (!canUseCaseLawActions) {
       setStudyChatError('Plan paused: case law chat is locked. Resume your plan to continue.');
       return;
     }
@@ -794,7 +798,7 @@ export default function CaseLawSearchPageClient({
     );
   }
 
-  const hasPlanAccess = hasCaseLawAccess(userPlan || '');
+  const hasPlanAccess = forceAccess ? true : hasCaseLawAccess(userPlan || '');
 
   if (!hasPlanAccess) {
     return (
@@ -879,7 +883,7 @@ export default function CaseLawSearchPageClient({
           <p className="mt-2 text-sm text-indigo-100/80">
             Coverage note: currently UK Supreme Court (UKSC) decisions only. More courts across England &amp; Wales, Scotland, and Northern Ireland are coming soon.
           </p>
-          {!hasPaidAccess && (
+          {!canUseCaseLawActions && (
             <p className="mt-2 text-sm text-amber-200">
               Plan paused: search and study chat are read-only locked until billing is resumed.
             </p>
@@ -896,8 +900,8 @@ export default function CaseLawSearchPageClient({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder={hasPaidAccess ? "Search by case name, citation, or study topic." : "Resume plan to search case law"}
-                disabled={!hasPaidAccess}
+                placeholder={canUseCaseLawActions ? "Search by case name, citation, or study topic." : "Resume plan to search case law"}
+                disabled={!canUseCaseLawActions}
                 className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               {loading && (
@@ -915,7 +919,7 @@ export default function CaseLawSearchPageClient({
             </button>
             <button
               onClick={() => handleSearch(query)}
-              disabled={loading || !query.trim() || !hasPaidAccess}
+              disabled={loading || !query.trim() || !canUseCaseLawActions}
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 sm:w-auto"
             >
               {loading ? (
@@ -1487,15 +1491,15 @@ export default function CaseLawSearchPageClient({
                           value={studyChatInput}
                           onChange={(e) => setStudyChatInput(e.target.value)}
                           onKeyDown={handleStudyChatKeyDown}
-                          placeholder={hasPaidAccess ? "Ask about the facts, reasoning, or outcome..." : "Resume plan to ask case-law study questions"}
-                          disabled={!hasPaidAccess}
+                          placeholder={canUseCaseLawActions ? "Ask about the facts, reasoning, or outcome..." : "Resume plan to ask case-law study questions"}
+                          disabled={!canUseCaseLawActions}
                           className="w-full resize-none rounded-lg border border-gray-300 p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                           rows={2}
                         />
                       </div>
                       <button
                         onClick={askStudyQuestion}
-                        disabled={studyChatLoading || !studyChatInput.trim() || !hasPaidAccess}
+                        disabled={studyChatLoading || !studyChatInput.trim() || !canUseCaseLawActions}
                         className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
                       >
                         <Send className="w-4 h-4" />

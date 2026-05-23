@@ -38,6 +38,11 @@ const faqItems = [
     answer:
       'Yes. You can upgrade, downgrade, or cancel in Settings. Your data stays with your account.',
   },
+  {
+    question: 'Does MyMcKenzieCS handle client payments to professionals?',
+    answer:
+      'No. MyMcKenzieCS only handles platform subscription billing. Service invoices, client payments, and collections between professionals and clients happen off-platform.',
+  },
 ] as const;
 
 export default function UsFaqPage() {

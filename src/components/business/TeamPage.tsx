@@ -30,11 +30,11 @@ const STATUS_CLS: Record<Status, string> = { active: 'statusActive', invited: 's
 const STATUS_LABEL: Record<Status, string> = { active: 'Active', invited: 'Invited', suspended: 'Suspended' }
 
 const PERMISSIONS: Record<Role, string[]> = {
-  owner: ['Full access', 'Billing', 'Team management', 'All client matters', 'All documents', 'Settings'],
-  solicitor: ['All client matters', 'Documents', 'Notes', 'Calendar', 'Video calls', 'Leads'],
-  paralegal: ['Assigned client matters', 'Documents (assigned)', 'Notes', 'Calendar'],
-  admin: ['Billing', 'Settings', 'Team management', 'View all matters'],
-  viewer: ['View assigned matters', 'View documents (read-only)'],
+  owner: ['Full access', 'Billing', 'Team management', 'All client work', 'All documents', 'Settings'],
+  solicitor: ['All client work', 'Documents', 'Notes', 'Calendar', 'Video calls', 'Leads'],
+  paralegal: ['Assigned client work', 'Documents (assigned)', 'Notes', 'Calendar'],
+  admin: ['Billing', 'Settings', 'Team management', 'View all client work'],
+  viewer: ['View assigned work', 'View documents (read-only)'],
 }
 
 export default function TeamPage() {
@@ -212,7 +212,7 @@ export default function TeamPage() {
                   <span className={`${styles.statusBadge} ${styles[STATUS_CLS[selected.status]]}`}>{STATUS_LABEL[selected.status]}</span>
                   <span className={styles.metaItem}><Mail size={12}/>{selected.email}</span>
                   <span className={styles.metaItem}>Joined {selected.joinedAt}</span>
-                  <span className={styles.metaItem}><UserRound size={12}/>{selected.matters} active matters</span>
+                  <span className={styles.metaItem}><UserRound size={12}/>{selected.matters} active work items</span>
                 </div>
               </div>
               {selected.role !== 'owner' && (
@@ -236,11 +236,11 @@ export default function TeamPage() {
               <div className={styles.detailSection}>
                 <span className={styles.detailSectionLabel}>About this Role</span>
                 <p className={styles.detailText}>
-                  {selected.role === 'owner' && 'The owner has full unrestricted access to all areas of the platform including billing, team management, and all client matters.'}
-                  {selected.role === 'solicitor' && 'Solicitors and McKenzie Friends have full case-working access. They can manage all client matters, documents, notes, calendar events, video calls, and leads.'}
-                  {selected.role === 'paralegal' && 'Paralegals can access and work on matters they are assigned to. They can view and edit documents, notes, and calendar events for assigned matters.'}
-                  {selected.role === 'admin' && 'Admins manage the platform but do not handle legal casework. They can access billing, settings, and team management, and view all matters.'}
-                  {selected.role === 'viewer' && 'Viewers have read-only access to matters they have been explicitly assigned to. Suitable for observers, auditors, or clients with portal access.'}
+                  {selected.role === 'owner' && 'The owner has full unrestricted access to all areas of the platform including billing, team management, and all client work.'}
+                  {selected.role === 'solicitor' && 'Solicitors and McKenzie Friends have full case-working access. They can manage all client work, documents, notes, calendar events, video calls, and leads.'}
+                  {selected.role === 'paralegal' && 'Paralegals can access and work on client work they are assigned to. They can view and edit documents, notes, and calendar events for assigned client work.'}
+                  {selected.role === 'admin' && 'Admins manage the platform but do not handle legal casework. They can access billing, settings, and team management, and view all client work.'}
+                  {selected.role === 'viewer' && 'Viewers have read-only access to client work they have been explicitly assigned to. Suitable for observers, auditors, or clients with portal access.'}
                 </p>
               </div>
               {notice && !showInvite && <p className={noticeError ? styles.formNoticeError : styles.formNotice}>{notice}</p>}

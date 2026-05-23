@@ -30,6 +30,9 @@ type DocumentsTableProps = {
   onDelete: (id: string) => void;
   onFolderChange: (docId: string, folderId: string) => void;
   userName?: string;
+  selectable?: boolean;
+  selectedIds?: string[];
+  onToggleSelect?: (id: string) => void;
 };
 
 export default function DocumentsTable({
@@ -43,6 +46,9 @@ export default function DocumentsTable({
   onDelete,
   onFolderChange,
   userName = 'You',
+  selectable = false,
+  selectedIds = [],
+  onToggleSelect,
 }: DocumentsTableProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
@@ -77,6 +83,14 @@ export default function DocumentsTable({
               {/* Name + location */}
               <div className={styles.cell}>
                 <div className={styles.fileName}>
+                  {selectable && (
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(doc.id)}
+                      onChange={() => onToggleSelect?.(doc.id)}
+                      aria-label={`Select ${doc.title}`}
+                    />
+                  )}
                   <div className={styles.fileIconBox} style={{ background: icon.bg, color: icon.color }}>
                     <span>{icon.label}</span>
                   </div>

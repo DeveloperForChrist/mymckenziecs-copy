@@ -12,12 +12,12 @@ import {
 import {
   BUSINESS_LEADS_UPDATED_EVENT,
   CLIENT_MATTERS_UPDATED_EVENT,
-  DEFAULT_BUSINESS_LEADS,
   type BusinessLead,
   type LeadStatus,
   cacheBusinessLeads,
   cacheClientMatters,
   fetchBusinessLeads,
+  cleanupLegacyMockBusinessLeadsCache,
   readClientMatters,
   readBusinessLeads,
   syncAcceptedLeadMatters,
@@ -55,8 +55,8 @@ function extractLeadTraceId(lead: BusinessLead) {
 }
 
 export default function LeadsPage() {
-  const [leads, setLeads] = useState<BusinessLead[]>(DEFAULT_BUSINESS_LEADS)
-  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(DEFAULT_BUSINESS_LEADS[0]?.id ?? null)
+  const [leads, setLeads] = useState<BusinessLead[]>([])
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'all' | 'new' | 'accepted' | 'declined'>('all')
   const [loading, setLoading] = useState(true)
   const [syncNotice, setSyncNotice] = useState<string | null>(null)
@@ -64,6 +64,7 @@ export default function LeadsPage() {
 
   useEffect(() => {
     let mounted = true
+    cleanupLegacyMockBusinessLeadsCache()
 
     const applyLeads = (nextLeads: BusinessLead[]) => {
       if (!mounted) return
@@ -198,13 +199,13 @@ export default function LeadsPage() {
       })
       const payload = await response.json().catch(() => ({}))
       if (!response.ok) {
-        const message = typeof payload?.message === 'string' ? payload.message : 'Failed to send quick link.'
+        const message = typeof payload?.message === 'string' ? payload.message : 'Failed to send client portal invite.'
         setQuickLinkNotice(message)
         return
       }
-      setQuickLinkNotice(`Quick link sent to ${lead.email}.`)
+      setQuickLinkNotice(`Client portal invite sent to ${lead.email}.`)
     } catch {
-      setQuickLinkNotice('Failed to send quick link. Please try again.')
+      setQuickLinkNotice('Failed to send client portal invite. Please try again.')
     }
   }
 
@@ -299,63 +300,67 @@ export default function LeadsPage() {
                   <p className={styles.detailSubtitle}>Client enquiry</p>
                 </div>
                 <div className={styles.detailActionRow}>
-                  {selectedLead.status !== 'accepted' && (
-                    <button
-                      type="button"
-                      className={styles.acceptBtn}
-                      onClick={() => updateStatus(selectedLead.id, 'accepted')}
-                    >
-                      <CheckCircle2 size={15} />
-                      Accept
+                  <div className={styles.detailActionPrimary}>
+                    {selectedLead.status !== 'accepted' && (
+                      <button
+                        type="button"
+                        className={styles.acceptBtn}
+                        onClick={() => updateStatus(selectedLead.id, 'accepted')}
+                      >
+                        <CheckCircle2 size={15} />
+                        Accept
+                      </button>
+                    )}
+                    {selectedLead.status !== 'declined' && (
+                      <button
+                        type="button"
+                        className={styles.createMatterBtn}
+                        onClick={() => updateStatus(selectedLead.id, 'accepted')}
+                      >
+                        <CheckCircle2 size={15} />
+                        Create work item
+                      </button>
+                    )}
+                    {selectedLead.status !== 'declined' && (
+                      <button
+                        type="button"
+                        className={styles.declineBtn}
+                        onClick={() => updateStatus(selectedLead.id, 'declined')}
+                      >
+                        <XCircle size={15} />
+                        Decline
+                      </button>
+                    )}
+                  </div>
+                  <div className={styles.detailActionSecondary}>
+                    {selectedLead.status !== 'declined' && (
+                      <button
+                        type="button"
+                        className={styles.secondaryActionBtn}
+                        onClick={() => void scheduleMeetingForLead(selectedLead)}
+                      >
+                        Schedule video meeting
+                      </button>
+                    )}
+                    {selectedLead.email && selectedLead.status !== 'declined' && (
+                      <button
+                        type="button"
+                        className={styles.secondaryActionBtn}
+                        onClick={() => void sendQuickLink(selectedLead)}
+                      >
+                      Invite to client portal
                     </button>
                   )}
-                  {selectedLead.status !== 'declined' && (
-                    <button
-                      type="button"
-                      className={styles.createMatterBtn}
-                      onClick={() => updateStatus(selectedLead.id, 'accepted')}
-                    >
-                      <CheckCircle2 size={15} />
-                      Create matter
-                    </button>
-                  )}
-                  {selectedLead.status !== 'declined' && (
-                    <button
-                      type="button"
-                      className={styles.secondaryActionBtn}
-                      onClick={() => void scheduleMeetingForLead(selectedLead)}
-                    >
-                      Schedule video meeting
-                    </button>
-                  )}
-                  {selectedLead.email && selectedLead.status !== 'declined' && (
-                    <button
-                      type="button"
-                      className={styles.secondaryActionBtn}
-                      onClick={() => void sendQuickLink(selectedLead)}
-                    >
-                      Send quick link
-                    </button>
-                  )}
-                  {selectedLead.email && selectedLead.status !== 'declined' && (
-                    <button
-                      type="button"
-                      className={styles.secondaryActionBtn}
-                      onClick={() => openMessageDraft(selectedLead)}
-                    >
-                      Message client
-                    </button>
-                  )}
-                  {selectedLead.status !== 'declined' && (
-                    <button
-                      type="button"
-                      className={styles.declineBtn}
-                      onClick={() => updateStatus(selectedLead.id, 'declined')}
-                    >
-                      <XCircle size={15} />
-                      Decline
-                    </button>
-                  )}
+                    {selectedLead.email && selectedLead.status !== 'declined' && (
+                      <button
+                        type="button"
+                        className={styles.secondaryActionBtn}
+                        onClick={() => openMessageDraft(selectedLead)}
+                      >
+                        Message client
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
               {quickLinkNotice && <p className={styles.syncNotice}>{quickLinkNotice}</p>}

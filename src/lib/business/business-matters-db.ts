@@ -2,7 +2,6 @@ import 'server-only'
 
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import {
-  DEFAULT_BUSINESS_LEADS,
   matterFromLead,
   type BusinessLead,
   type ClientMatter,
@@ -56,26 +55,6 @@ function isoDateTime(value: unknown, fallback = new Date().toISOString()) {
   const parsed = new Date(text)
   if (Number.isNaN(parsed.getTime())) return fallback
   return parsed.toISOString()
-}
-
-function submittedAtForSeed(value: string, index: number) {
-  const now = Date.now()
-  const lower = value.toLowerCase()
-  const number = Number.parseInt(lower, 10)
-
-  if (lower.includes('min') && Number.isFinite(number)) {
-    return new Date(now - number * 60 * 1000).toISOString()
-  }
-
-  if (lower.includes('hour') && Number.isFinite(number)) {
-    return new Date(now - number * 60 * 60 * 1000).toISOString()
-  }
-
-  if (lower.includes('day') && Number.isFinite(number)) {
-    return new Date(now - number * 24 * 60 * 60 * 1000).toISOString()
-  }
-
-  return new Date(now - (index + 1) * 60 * 60 * 1000).toISOString()
 }
 
 function maybeUuid(value: unknown) {
@@ -133,11 +112,8 @@ export function rowToClientMatter(row: any): ClientMatter {
   }
 }
 
-export function businessLeadToRow(lead: Partial<BusinessLead>, businessId: string, userId: string, seedIndex?: number) {
-  const submittedAt =
-    typeof seedIndex === 'number'
-      ? submittedAtForSeed(toText(lead.submittedAt), seedIndex)
-      : isoDateTime(lead.submittedAt)
+export function businessLeadToRow(lead: Partial<BusinessLead>, businessId: string, userId: string) {
+  const submittedAt = isoDateTime(lead.submittedAt)
 
   return {
     business_id: businessId,
@@ -294,19 +270,6 @@ export async function loadClientMatterRows(businessId: string) {
     .select('*')
     .eq('business_id', businessId)
     .order('last_activity_at', { ascending: false })
-
-  if (error) throw error
-  return data || []
-}
-
-export async function seedDefaultLeadsIfEmpty(businessId: string, userId: string) {
-  const current = await loadBusinessLeadRows(businessId)
-  if (current.length > 0) return current
-
-  const { data, error } = await supabaseAdmin
-    .from('business_leads')
-    .insert(DEFAULT_BUSINESS_LEADS.map((lead, index) => businessLeadToRow(lead, businessId, userId, index)))
-    .select('*')
 
   if (error) throw error
   return data || []

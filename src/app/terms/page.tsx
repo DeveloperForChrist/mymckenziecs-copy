@@ -69,6 +69,9 @@ export default function TermsPage() {
           <b>Payments &amp; Billing</b>
           <ol className="list-decimal pl-6 mt-2 space-y-1">
             <li>Paid services are provided through recurring subscription plans (Basic, Premium, and Premium +).</li>
+            <li>These subscription charges cover access to MyMcKenzieCS only.</li>
+            <li>MyMcKenzieCS does not process, hold, or pay out client-to-professional service fees.</li>
+            <li>Professionals and clients must handle service invoices, collections, and payment disputes outside the platform.</li>
             <li>All payments are made in advance.</li>
             <li>Prices are listed on the Platform and may change with notice.</li>
             <li>Subscriptions renew automatically unless cancelled through your account settings.</li>

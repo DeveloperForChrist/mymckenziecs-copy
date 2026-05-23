@@ -28,6 +28,10 @@ function userDisplayName(user: User) {
   return fullName || displayName || emailName || 'Business workspace'
 }
 
+function selectedBusinessPlan(_user: User): 'Solo' {
+  return 'Solo'
+}
+
 async function ensurePublicUser(user: User) {
   const email = user.email || `${user.id}@local.invalid`
   const name = userDisplayName(user)
@@ -97,7 +101,7 @@ export async function ensureBusinessContext(user: User): Promise<BusinessContext
         owner_user_id: user.id,
         name: `${userDisplayName(user)} Workspace`,
         billing_email: user.email || null,
-        plan_type: 'Solo',
+        plan_type: selectedBusinessPlan(user),
         status: 'active',
       })
       .select('id')

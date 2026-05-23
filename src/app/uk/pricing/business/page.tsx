@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import BusinessPricingPage from '@/components/pricing/BusinessPricingPageAligned';
 import { buildPageMetadata } from '@/lib/seo';
+import { getBusinessSoloIntroPriceId } from '@/constants';
 
 export const metadata: Metadata = buildPageMetadata({
-  title: 'UK Business Pricing Plans',
+  title: 'UK Business Pricing Plan',
   description:
-    'Compare MyMcKenzieCS Solo, Team, and Enterprise pricing plans for UK legal support businesses managing client matters.',
+    'MyMcKenzieCS Solo pricing for UK legal support professionals managing client matters.',
   path: '/uk/pricing/business',
 });
 
@@ -17,8 +18,9 @@ export default function UkBusinessPricingRoute() {
       marketPrefix="/uk"
       homeHref="/uk"
       currencySymbol="£"
-      prices={{ solo: '49', team: '149', enterprise: 'Custom' }}
-      regionNote="UK business plans are for McKenzie Friends, paralegals, document-preparation providers, and legal support teams serving client matters."
+      prices={{ intro: '29.99', standard: '39.99' }}
+      soloPriceId={getBusinessSoloIntroPriceId('GB')}
+      regionNote="UK Solo business plan for independent legal support providers managing client matters."
     />
   );
 }

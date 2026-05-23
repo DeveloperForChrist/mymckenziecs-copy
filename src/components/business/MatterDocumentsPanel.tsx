@@ -16,6 +16,7 @@ type ApiDocumentRow = {
   created_at: string
   file_size?: number | null
   mime_type?: string | null
+  isSharedByClient?: boolean
 }
 
 function fmtSize(bytes: number) {
@@ -38,6 +39,7 @@ export default function MatterDocumentsPanel({ matter }: MatterDocumentsPanelPro
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [uploadDone, setUploadDone] = useState<string | null>(null)
+  const [deleteBusyId, setDeleteBusyId] = useState<string | null>(null)
   const uploadInputRef = useRef<HTMLInputElement>(null)
 
   const canLoad = Boolean(caseId)
@@ -62,10 +64,11 @@ export default function MatterDocumentsPanel({ matter }: MatterDocumentsPanelPro
       setRows(
         next.map((d: any) => ({
           id: String(d.id),
-          name: String(d.name || 'Document'),
+          name: String(d.name || 'Document').replace(/^\[Shared by client\]\s*/i, ''),
           created_at: String(d.created_at || new Date().toISOString()),
           file_size: typeof d.file_size === 'number' ? d.file_size : null,
           mime_type: typeof d.mime_type === 'string' ? d.mime_type : null,
+          isSharedByClient: String(d.name || '').startsWith('[Shared by client] '),
         })),
       )
     } catch (err) {
@@ -81,7 +84,7 @@ export default function MatterDocumentsPanel({ matter }: MatterDocumentsPanelPro
   }, [caseId])
 
   const headline = useMemo(() => {
-    return matter.matterNumber ? `Matter ${matter.matterNumber}` : 'Matter documents'
+    return matter.matterNumber ? `Work item ${matter.matterNumber}` : 'Work item documents'
   }, [matter.matterNumber])
 
   const openDocumentStorage = () => {
@@ -114,7 +117,7 @@ export default function MatterDocumentsPanel({ matter }: MatterDocumentsPanelPro
   const onUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return
     if (!caseId) {
-      setUploadError('This matter is still preparing its document workspace. Refresh and try again.')
+      setUploadError('This work item is still preparing its document workspace. Refresh and try again.')
       return
     }
 
@@ -147,6 +150,21 @@ export default function MatterDocumentsPanel({ matter }: MatterDocumentsPanelPro
     }
   }
 
+  const deleteDocument = async (docId: string) => {
+    setError(null)
+    setDeleteBusyId(docId)
+    try {
+      const res = await fetch(`/api/documents/${docId}`, { method: 'DELETE', credentials: 'include' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data?.error || 'Unable to delete document.')
+      setRows((prev) => prev.filter((doc) => doc.id !== docId))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to delete document.')
+    } finally {
+      setDeleteBusyId(null)
+    }
+  }
+
   return (
     <div className={styles.matterDocs}>
       <div className={styles.matterDocsHeader}>
@@ -161,14 +179,14 @@ export default function MatterDocumentsPanel({ matter }: MatterDocumentsPanelPro
             multiple
             className={styles.matterDocsFileInput}
             onChange={(e) => void onUpload(e.target.files)}
-            aria-label="Upload documents to this matter"
+            aria-label="Upload documents to this work item"
           />
           <button
             type="button"
             className={styles.matterDocsUploadBtn}
             onClick={() => uploadInputRef.current?.click()}
             disabled={uploading || !canLoad}
-            title={!canLoad ? 'Matter workspace is still preparing' : undefined}
+            title={!canLoad ? 'Work item workspace is still preparing' : undefined}
           >
             {uploading ? <Loader2 size={16} className={styles.spin} /> : <UploadCloud size={16} />}
             {uploading ? 'Uploading…' : 'Upload'}
@@ -178,7 +196,7 @@ export default function MatterDocumentsPanel({ matter }: MatterDocumentsPanelPro
             className={styles.matterDocsManageBtn}
             onClick={openDocumentStorage}
             disabled={!canLoad}
-            title={!canLoad ? 'Matter workspace is still preparing' : 'Open in Document Storage'}
+            title={!canLoad ? 'Work item workspace is still preparing' : 'Open in Document Storage'}
           >
             <FolderOpen size={16} />
             Manage
@@ -201,7 +219,7 @@ export default function MatterDocumentsPanel({ matter }: MatterDocumentsPanelPro
             <p>No documents uploaded yet.</p>
           </div>
         ) : (
-          <div className={styles.matterDocsTable} role="table" aria-label="Matter documents">
+          <div className={styles.matterDocsTable} role="table" aria-label="Work item documents">
             <div className={styles.matterDocsRowHead} role="row">
               <span role="columnheader">File</span>
               <span role="columnheader">Uploaded</span>
@@ -214,6 +232,7 @@ export default function MatterDocumentsPanel({ matter }: MatterDocumentsPanelPro
               <div key={doc.id} className={styles.matterDocsRow} role="row">
                 <span role="cell" className={styles.matterDocsName} title={doc.name}>
                   {doc.name}
+                  {doc.isSharedByClient && <em className={styles.matterDocsSharedBadge}>Shared by client</em>}
                 </span>
                 <span role="cell">{fmtDate(doc.created_at)}</span>
                 <span role="cell">{fmtSize(Number(doc.file_size || 0))}</span>
@@ -221,6 +240,14 @@ export default function MatterDocumentsPanel({ matter }: MatterDocumentsPanelPro
                   <button type="button" className={styles.matterDocsOpenBtn} onClick={() => void openDocument(doc.id)}>
                     <ExternalLink size={15} />
                     Open
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.matterDocsDeleteBtn}
+                    onClick={() => void deleteDocument(doc.id)}
+                    disabled={deleteBusyId === doc.id}
+                  >
+                    {deleteBusyId === doc.id ? 'Deleting…' : 'Delete'}
                   </button>
                 </span>
               </div>

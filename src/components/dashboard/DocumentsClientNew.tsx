@@ -74,6 +74,17 @@ export default function DocumentsClient({
   const [deleteModal, setDeleteModal] = useState<{ kind: 'document' | 'folder'; id: string } | null>(null);
   const [canUpload, setCanUpload] = useState(Boolean(initialCanUpload));
   const [planLoaded, setPlanLoaded] = useState(Boolean(initialPlanLoaded));
+  const [syncTargets, setSyncTargets] = useState<Array<{
+    businessId: string
+    businessName: string
+    caseId: string
+    matterId: string
+    matterLabel: string
+  }>>([]);
+  const [selectedSyncTargetId, setSelectedSyncTargetId] = useState<string>('');
+  const [selectedSyncIds, setSelectedSyncIds] = useState<string[]>([]);
+  const [syncBusy, setSyncBusy] = useState(false);
+  const [syncNotice, setSyncNotice] = useState<string>('');
   const appMarket = getAppMarketFromPathname(pathname);
   const dashboardHref = dashboardHrefOverride || getAppRouteForMarket('/dashboard', appMarket);
   const documentsHref = getAppRouteForMarket('/dashboard/documents', appMarket);
@@ -143,6 +154,30 @@ export default function DocumentsClient({
     return () => {
       cancelled = true;
     };
+  }, [uid]);
+
+  useEffect(() => {
+    const loadSyncTargets = async () => {
+      if (!uid) {
+        setSyncTargets([]);
+        setSelectedSyncTargetId('');
+        return;
+      }
+      try {
+        const res = await fetch('/api/client/document-sync', {
+          credentials: 'include',
+          cache: 'no-store',
+        });
+        const data = await readApiJson(res);
+        if (!res.ok) return;
+        const next = Array.isArray(data?.targets) ? data.targets : [];
+        setSyncTargets(next);
+        setSelectedSyncTargetId((prev) => prev || (next[0]?.businessId || ''));
+      } catch {
+        setSyncTargets([]);
+      }
+    };
+    void loadSyncTargets();
   }, [uid]);
 
   useEffect(() => {
@@ -727,6 +762,73 @@ export default function DocumentsClient({
     }
   };
 
+  const toggleSyncSelect = (id: string) => {
+    setSelectedSyncIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  const selectAllVisible = () => {
+    setSelectedSyncIds(items.map((doc) => doc.id));
+  };
+
+  const clearSelectedVisible = () => {
+    setSelectedSyncIds([]);
+  };
+
+  const syncSelectedDocuments = async () => {
+    if (!selectedSyncTargetId || selectedSyncIds.length === 0 || syncBusy) return;
+    setSyncBusy(true);
+    setSyncNotice('');
+    try {
+      const res = await fetch('/api/client/document-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          businessId: selectedSyncTargetId,
+          documentIds: selectedSyncIds,
+        }),
+      });
+      const data = await readApiJson(res);
+      if (!res.ok) throw new Error(data?.message || 'Document sync failed.');
+      const syncedCount = Number(data?.syncedCount || 0);
+      const skippedCount = Number(data?.skippedCount || 0);
+      setSyncNotice(
+        `Synced ${syncedCount} document${syncedCount === 1 ? '' : 's'} to your professional. ${skippedCount > 0 ? `${skippedCount} already existed and were skipped.` : ''}`.trim(),
+      );
+      setSelectedSyncIds([]);
+    } catch (err: any) {
+      setSyncNotice(err?.message || 'Document sync failed.');
+    } finally {
+      setSyncBusy(false);
+    }
+  };
+
+  const removeSelectedSharedDocuments = async () => {
+    if (!selectedSyncTargetId || selectedSyncIds.length === 0 || syncBusy) return;
+    setSyncBusy(true);
+    setSyncNotice('');
+    try {
+      const res = await fetch('/api/client/document-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          mode: 'remove',
+          businessId: selectedSyncTargetId,
+          documentIds: selectedSyncIds,
+        }),
+      });
+      const data = await readApiJson(res);
+      if (!res.ok) throw new Error(data?.message || 'Failed to remove shared copies.');
+      setSyncNotice('Removed shared copies for selected documents from the professional matter.');
+      setSelectedSyncIds([]);
+    } catch (err: any) {
+      setSyncNotice(err?.message || 'Failed to remove shared copies.');
+    } finally {
+      setSyncBusy(false);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <input
@@ -789,6 +891,79 @@ export default function DocumentsClient({
         {uploadError && (
           <p style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '-8px' }}>{uploadError}</p>
         )}
+        {syncTargets.length > 0 && (
+          <section
+            style={{
+              marginTop: '10px',
+              marginBottom: '8px',
+              border: '1px solid rgba(99,102,241,0.25)',
+              borderRadius: '12px',
+              padding: '12px',
+              background: '#f8faff',
+            }}
+          >
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <strong style={{ color: '#1e1b4b' }}>Share selected documents with professional</strong>
+              <select
+                value={selectedSyncTargetId}
+                onChange={(e) => setSelectedSyncTargetId(e.target.value)}
+                style={{ border: '1px solid #c7d2fe', borderRadius: 8, padding: '6px 10px' }}
+              >
+                {syncTargets.map((target) => (
+                  <option key={target.businessId} value={target.businessId}>
+                    {target.businessName} - {target.matterLabel}
+                  </option>
+                ))}
+              </select>
+              <button type="button" onClick={selectAllVisible} style={{ border: '1px solid #d1d5db', borderRadius: 8, padding: '6px 10px', background: '#fff' }}>
+                Select visible
+              </button>
+              <button type="button" onClick={clearSelectedVisible} style={{ border: '1px solid #d1d5db', borderRadius: 8, padding: '6px 10px', background: '#fff' }}>
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={() => void syncSelectedDocuments()}
+                disabled={!selectedSyncTargetId || selectedSyncIds.length === 0 || syncBusy}
+                style={{
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '7px 12px',
+                  background: '#4f46e5',
+                  color: '#fff',
+                  opacity: !selectedSyncTargetId || selectedSyncIds.length === 0 || syncBusy ? 0.6 : 1,
+                  cursor: !selectedSyncTargetId || selectedSyncIds.length === 0 || syncBusy ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {syncBusy ? 'Syncing...' : `Sync selected (${selectedSyncIds.length})`}
+              </button>
+              <button
+                type="button"
+                onClick={() => void removeSelectedSharedDocuments()}
+                disabled={!selectedSyncTargetId || selectedSyncIds.length === 0 || syncBusy}
+                style={{
+                  border: '1px solid #fecaca',
+                  borderRadius: 8,
+                  padding: '7px 12px',
+                  background: '#fff1f2',
+                  color: '#b91c1c',
+                  opacity: !selectedSyncTargetId || selectedSyncIds.length === 0 || syncBusy ? 0.6 : 1,
+                  cursor: !selectedSyncTargetId || selectedSyncIds.length === 0 || syncBusy ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Remove shared copies
+              </button>
+            </div>
+            <p style={{ marginTop: 8, color: '#475569', fontSize: '0.85rem' }}>
+              Selected files will appear in your professional’s client case documents.
+            </p>
+            {syncNotice && (
+              <p style={{ marginTop: 6, color: syncNotice.toLowerCase().includes('failed') ? '#b91c1c' : '#166534', fontSize: '0.85rem' }}>
+                {syncNotice}
+              </p>
+            )}
+          </section>
+        )}
 
         <DocumentsFilters
           activeFilter={activeFilter}
@@ -844,6 +1019,9 @@ export default function DocumentsClient({
                 onDelete={deleteDocument}
                 onFolderChange={handleFolderAssignment}
                 userName={userName}
+                selectable={syncTargets.length > 0}
+                selectedIds={selectedSyncIds}
+                onToggleSelect={toggleSyncSelect}
               />
               {documentsHasMore && (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0 4px' }}>

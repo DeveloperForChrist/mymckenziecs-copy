@@ -67,6 +67,9 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
               <p className={styles.formSubtitle}>
                 Sign in to resume your workspace and continue preparing your legal matter.
               </p>
+              <p className={styles.formSubtitle} style={{ marginTop: '8px' }}>
+                Invited by a legal professional? Use this same sign-in. You&apos;ll be taken to your Client Portal automatically.
+              </p>
             </div>
             <Suspense fallback={<div className={styles.formSubtitle}>Loading sign in form...</div>}>
               <SignInForm />

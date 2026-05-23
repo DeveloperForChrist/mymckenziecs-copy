@@ -106,10 +106,14 @@
 .matterDocsRowHead{color:#667085;font-size:.68rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;padding:0 2px 6px}
 .matterDocsRow{background:#fff;border:1px solid #e4e7ec;border-radius:12px;padding:10px 10px}
 .matterDocsName{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#111827;font-weight:900;font-size:.82rem}
+.matterDocsSharedBadge{display:inline-block;margin-left:8px;border:1px solid #c7d2fe;border-radius:999px;padding:1px 7px;background:#eef2ff;color:#4338ca;font-size:.64rem;font-style:normal;font-weight:900;letter-spacing:.04em;text-transform:uppercase;vertical-align:middle}
 .matterDocsRowActions{display:flex;justify-content:flex-end}
 .matterDocsRowActionsHead{text-align:right}
 .matterDocsOpenBtn{display:inline-flex;align-items:center;gap:6px;border:1px solid #d0d5dd;background:#fff;color:#344054;border-radius:10px;height:32px;padding:0 10px;font:inherit;font-size:.78rem;font-weight:900;cursor:pointer}
 .matterDocsOpenBtn:hover{background:#f3f4f6;color:#111827}
+.matterDocsDeleteBtn{display:inline-flex;align-items:center;gap:6px;border:1px solid #fecaca;background:#fff1f2;color:#b42318;border-radius:10px;height:32px;padding:0 10px;font:inherit;font-size:.78rem;font-weight:900;cursor:pointer;margin-left:8px}
+.matterDocsDeleteBtn:hover{background:#ffe4e6}
+.matterDocsDeleteBtn:disabled{opacity:.6;cursor:not-allowed}
 
 .spin{animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -178,5 +182,7 @@
 :global([data-theme="dark"]) .matterDocsRow{background:#242424;border-color:#333}
 :global([data-theme="dark"]) .matterDocsRowHead{color:#9ca3af}
 :global([data-theme="dark"]) .matterDocsName{color:#e5e7eb}
+:global([data-theme="dark"]) .matterDocsSharedBadge{background:#312e81;border-color:#4f46e5;color:#c7d2fe}
 :global([data-theme="dark"]) .matterDocsOpenBtn{background:#2d2d2d;border-color:#444;color:#d1d5db}
 :global([data-theme="dark"]) .matterDocsOpenBtn:hover{background:#333;color:#e5e7eb}
+:global([data-theme="dark"]) .matterDocsDeleteBtn{background:#3b1f25;border-color:#7f1d1d;color:#fecaca}

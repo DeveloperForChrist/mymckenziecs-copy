@@ -118,7 +118,7 @@ export default function ClientMattersPage() {
         setSyncNotice(null)
       } catch {
         loadLocalMatters()
-        setSyncNotice('Using local matters until the business database is available.')
+        setSyncNotice('Using local client work until the business database is available.')
       } finally {
         if (mounted) setLoading(false)
       }
@@ -227,7 +227,7 @@ export default function ClientMattersPage() {
     matter.email = payload.email.trim()
     matter.phone = payload.phone.trim()
     matter.location = payload.location.trim()
-    matter.issueType = payload.issueType.trim() || 'New legal matter'
+    matter.issueType = payload.issueType.trim() || 'New legal work item'
     matter.summary = payload.summary.trim() || 'Client enquiry received. Add a summary and next steps.'
     const optimistic = [matter, ...matters]
     setMatters(optimistic)
@@ -296,14 +296,14 @@ export default function ClientMattersPage() {
           className={styles.createOverlay}
           role="dialog"
           aria-modal="true"
-          aria-label="Create matter"
+          aria-label="Create work item"
           onClick={(event) => {
             if (event.target === event.currentTarget) setCreateOpen(false)
           }}
         >
           <div className={styles.createModal}>
             <div className={styles.createHeader}>
-              <h2>Create matter</h2>
+              <h2>Create work item</h2>
               <button type="button" onClick={() => setCreateOpen(false)} aria-label="Close">
                 <X size={16} />
               </button>
@@ -376,7 +376,7 @@ export default function ClientMattersPage() {
                   Cancel
                 </button>
                 <button type="submit" className={styles.primaryBtn}>
-                  Create matter
+                  Create work item
                 </button>
               </div>
             </form>
@@ -386,10 +386,10 @@ export default function ClientMattersPage() {
       <header className={styles.header}>
         <div className={styles.headerCopy}>
           <span className={styles.kicker}>Case books</span>
-          <h1>Client Matters</h1>
+          <h1>Client Work</h1>
           <p>A simple solo workspace for client issues, deadlines, documents and next actions.</p>
           {(loading || syncNotice) && (
-            <p className={styles.syncNotice}>{loading ? 'Loading saved matters...' : syncNotice}</p>
+            <p className={styles.syncNotice}>{loading ? 'Loading saved client work...' : syncNotice}</p>
           )}
         </div>
 
@@ -400,7 +400,7 @@ export default function ClientMattersPage() {
           </div>
           <div className={styles.stat}>
             <span>{stats.matters}</span>
-            <p>Matters</p>
+            <p>Work items</p>
           </div>
           <div className={styles.stat}>
             <span>{stats.urgent}</span>
@@ -415,7 +415,7 @@ export default function ClientMattersPage() {
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search clients, matters, issue types..."
+            placeholder="Search clients, work items, issue types..."
           />
         </label>
 
@@ -423,7 +423,7 @@ export default function ClientMattersPage() {
           className={styles.select}
           value={stageFilter}
           onChange={(event) => setStageFilter(event.target.value as 'all' | MatterStage)}
-          aria-label="Filter by matter stage"
+          aria-label="Filter by work stage"
         >
           <option value="all">All stages</option>
           {stageOptions.map((stage) => (
@@ -433,7 +433,7 @@ export default function ClientMattersPage() {
 
         <button type="button" className={styles.secondaryBtn} onClick={() => setShowArchived((value) => !value)}>
           {showArchived ? <ArchiveRestore size={15} /> : <Archive size={15} />}
-          {showArchived ? 'Active matters' : 'Archived clients'}
+          {showArchived ? 'Active client work' : 'Archived clients'}
         </button>
         <button type="button" className={styles.secondaryBtn} disabled={checkedMatterIds.length === 0} onClick={archiveCheckedMatters}>
           {showArchived ? <ArchiveRestore size={15} /> : <Archive size={15} />}
@@ -441,12 +441,12 @@ export default function ClientMattersPage() {
         </button>
         <button type="button" className={styles.primaryBtn} onClick={() => setCreateOpen(true)}>
           <Plus size={15} />
-          Create matter
+          Create work item
         </button>
       </div>
 
       <div className={`${styles.body} ${selectedMatter ? styles.bodyDetailOpen : styles.bodyListOnly}`}>
-        <section className={styles.tablePanel} aria-label="Client matters">
+        <section className={styles.tablePanel} aria-label="Client work items">
           <div className={styles.tableHeader}>
             <span />
             <span>Client</span>
@@ -460,8 +460,8 @@ export default function ClientMattersPage() {
             {visibleMatters.length === 0 && (
               <div className={styles.emptyState}>
                 <UsersRound size={36} />
-                <h2>No client matters</h2>
-                <p>Accept a lead or create a matter to populate this list.</p>
+                <h2>No client work yet</h2>
+                <p>Accept a lead or create a work item to populate this list.</p>
               </div>
             )}
 
@@ -497,12 +497,12 @@ export default function ClientMattersPage() {
                     {STAGE_LABELS[matter.stage]}
                   </span>
                   <div className={styles.actions} onClick={(event) => event.stopPropagation()}>
-                    <button type="button" title="Open matter" onClick={() => setSelectedMatterId(matter.id)}>
+                    <button type="button" title="Open work item" onClick={() => setSelectedMatterId(matter.id)}>
                       <ChevronRight size={15} />
                     </button>
                     <button
                       type="button"
-                      title={matter.status === 'archived' ? 'Restore matter' : 'Archive matter'}
+                      title={matter.status === 'archived' ? 'Restore work item' : 'Archive work item'}
                       onClick={() => archiveMatter(matter.id, matter.status === 'archived' ? 'active' : 'archived')}
                     >
                       {matter.status === 'archived' ? <ArchiveRestore size={15} /> : <Archive size={15} />}
@@ -522,14 +522,14 @@ export default function ClientMattersPage() {
                   <ShieldAlert size={13} />
                   {selectedMatter.urgency} priority
                 </span>
-                <button type="button" className={styles.closeDetail} onClick={() => setSelectedMatterId(null)} aria-label="Close matter">
+                <button type="button" className={styles.closeDetail} onClick={() => setSelectedMatterId(null)} aria-label="Close work panel">
                   <X size={16} />
                 </button>
                 <h2>{selectedMatter.clientName}</h2>
                 <p>{selectedMatter.issueType}</p>
               </div>
 
-              <div className={styles.detailTabs} role="tablist" aria-label="Matter workspace">
+              <div className={styles.detailTabs} role="tablist" aria-label="Client work workspace">
                 <button
                   type="button"
                   role="tab"
@@ -647,7 +647,7 @@ export default function ClientMattersPage() {
                       window.dispatchEvent(new CustomEvent('mymckenzie-inbox-compose', {
                         detail: {
                           to: selectedMatter.email,
-                          subject: `Regarding your matter ${selectedMatter.matterNumber}`,
+                          subject: `Regarding your client work ${selectedMatter.matterNumber}`,
                         },
                       }))
                     }}

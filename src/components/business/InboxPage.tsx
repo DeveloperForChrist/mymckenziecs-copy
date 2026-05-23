@@ -187,17 +187,28 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
     setComposeSending(true); setComposeNotice('')
     try {
       const supabase = getSupabaseBrowserClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
-      const { error } = await supabase.from('inbox_messages').insert({
-        sender_id: user.id, sender_email: user.email,
-        sender_name: user.email?.split('@')[0] || 'McKenzie Friend',
-        recipient_email: composeForm.to, subject: composeForm.subject,
-        content: composeForm.body, type: 'email',
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) throw new Error('Not authenticated')
+
+      const response = await fetch('/api/business/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          to: composeForm.to,
+          subject: composeForm.subject,
+          body: composeForm.body,
+        }),
       })
-      if (error) throw error
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Failed to send')
+      }
       setComposeNotice('sent')
       setComposeForm({ to: '', subject: '', body: '' })
+      void loadData()
       setTimeout(() => { setShowCompose(false); setComposeNotice('') }, 1500)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to send'

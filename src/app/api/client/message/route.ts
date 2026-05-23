@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
+import { createBusinessAlert } from '@/lib/business/alerts'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -109,6 +110,24 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    await createBusinessAlert({
+      businessId: body.businessId,
+      type: 'message',
+      priority: 'medium',
+      title: 'New message from client',
+      body: `${link.client_name || user.email || 'Client'} sent: ${body.subject}`,
+      clientName: (link.client_name as string) || null,
+      actionLabel: 'Reply',
+      dedupeKey: `client-message:${body.businessId}:${user.id}:${String(body.subject || '').trim().toLowerCase()}`,
+      dedupeWindowMinutes: 2,
+      metadata: {
+        fromClient: true,
+        subject: body.subject,
+        clientId: user.id,
+        businessId: body.businessId,
+      },
+    })
 
     return NextResponse.json({
       message: 'Message sent successfully',

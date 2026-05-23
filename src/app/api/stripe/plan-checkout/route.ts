@@ -7,7 +7,14 @@ import { billingIpRateLimiter, billingRateLimiter, getClientIp, getIdentifier, r
 import { getAppUrl } from '@/lib/app-url';
 import { SUBSCRIPTION_TRIAL_DAYS } from '@/lib/payments/trials';
 import { isPaidPlan } from '@/lib/plans/access';
-import { findMarketByPriceId, findPlanByAnyPriceId } from '@/constants';
+import {
+  findBusinessMarketByPriceId,
+  findMarketByPriceId,
+  findPlanByAnyPriceId,
+  getBusinessSoloStandardPriceId,
+  isKnownBusinessIntroPriceId,
+  isKnownBusinessPriceId,
+} from '@/constants';
 import { getAppRouteForMarket } from '@/lib/markets/app-routes';
 import { getPublicRouteForMarket, type PublicMarket } from '@/lib/markets/public-routes';
 
@@ -73,10 +80,13 @@ export async function POST(request: NextRequest) {
     if (!planId) {
       return NextResponse.json({ error: 'planId is required' }, { status: 400 });
     }
-    if (!findPlanByAnyPriceId(String(planId))) {
+    const isBusinessPrice = isKnownBusinessPriceId(String(planId));
+    const isBusinessIntroPrice = isKnownBusinessIntroPriceId(String(planId));
+    if (!isBusinessPrice && !findPlanByAnyPriceId(String(planId))) {
       return NextResponse.json({ error: 'Invalid plan selected' }, { status: 400 });
     }
-    const market = findMarketByPriceId(String(planId)) || 'GB';
+    const market = findMarketByPriceId(String(planId)) || findBusinessMarketByPriceId(String(planId)) || 'GB';
+    const businessStandardPriceId = isBusinessPrice ? getBusinessSoloStandardPriceId(market) : '';
     const baseCheckoutSuccessUrl = resolveAppCheckoutSuccessUrl(request, market);
     const basePricingUrl = resolveAppPricingUrl(request, market);
     const defaultSuccessUrl = withCheckoutParams(baseCheckoutSuccessUrl, 'success', market);
@@ -94,7 +104,10 @@ export async function POST(request: NextRequest) {
       : Boolean((authData.user as any)?.email_confirmed_at);
 
     if (!isEmailVerified) {
-      const verifyRedirect = `/auth/verify-email?redirect=${encodeURIComponent(getAppRouteForMarket(`/dashboard?activatePlan=${encodeURIComponent(String(planId))}`, market))}`;
+      const verifyRedirectTarget = isBusinessPrice
+        ? '/business/dashboard'
+        : getAppRouteForMarket(`/dashboard?activatePlan=${encodeURIComponent(String(planId))}`, market);
+      const verifyRedirect = `/auth/verify-email?redirect=${encodeURIComponent(verifyRedirectTarget)}`;
       return NextResponse.json(
         {
           error: 'Verify your email before checkout',
@@ -152,16 +165,30 @@ export async function POST(request: NextRequest) {
     // Create Stripe subscription checkout session
     const sessionStart = Date.now();
     try {
-      const trialApplied = !hasPreviousSubscription;
+      const trialApplied = !isBusinessPrice && !hasPreviousSubscription;
       const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
         customer: customerId,
         line_items: [
           { price: planId, quantity: 1 },
         ],
-        metadata: { userId: authUid, planId, trialApplied: trialApplied ? 'true' : 'false' },
+        metadata: {
+          userId: authUid,
+          planId,
+          trialApplied: trialApplied ? 'true' : 'false',
+          billingAudience: isBusinessPrice ? 'business' : 'litigant',
+          businessIntroPriceApplied: isBusinessIntroPrice ? 'true' : 'false',
+          businessStandardPriceId: businessStandardPriceId || '',
+        },
         subscription_data: {
-          metadata: { userId: authUid, planId, trialApplied: trialApplied ? 'true' : 'false' },
+          metadata: {
+            userId: authUid,
+            planId,
+            trialApplied: trialApplied ? 'true' : 'false',
+            billingAudience: isBusinessPrice ? 'business' : 'litigant',
+            businessIntroPriceApplied: isBusinessIntroPrice ? 'true' : 'false',
+            businessStandardPriceId: businessStandardPriceId || '',
+          },
           ...(trialApplied ? { trial_period_days: SUBSCRIPTION_TRIAL_DAYS } : {}),
         },
         success_url: successUrl ? withCheckoutParams(successUrl, 'success', market) : defaultSuccessUrl,

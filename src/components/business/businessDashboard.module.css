@@ -281,10 +281,12 @@
   display: inline-grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
+  background: #dc2626;
+  border: 1px solid rgba(255, 255, 255, 0.22);
   color: #ffffff;
   font-size: 0.68rem;
   font-weight: 700;
+  box-shadow: 0 0 0 1px rgba(127, 29, 29, 0.25);
 }
 
 .sidebarFooter {
@@ -773,16 +775,17 @@
 }
 
 .folderCount {
-  background: #e5e7eb;
-  color: #6b7280;
+  background: #dc2626;
+  color: #ffffff;
+  border: 1px solid rgba(127, 29, 29, 0.25);
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .folderActive .folderCount {
-  background: rgba(255, 255, 255, 0.2);
+  background: #dc2626;
   color: #ffffff;
 }
 

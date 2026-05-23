@@ -9,10 +9,11 @@ import { buildLifecycleSchedule, getLifecycleArchiveDays, getLifecycleDeleteDays
 import { syncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
 import { getStripeSubscriptionPeriodEndIso, getStripeSubscriptionPeriodEndUnix, getStripeSubscriptionPeriodStartIso } from '@/lib/payments/subscription-period';
+import { getStripeSubscriptionPeriodStartUnix } from '@/lib/payments/subscription-period';
 import { formatLondonDateTime } from '@/lib/utils/london-time';
 import fs from 'fs';
 import path from 'path';
-import { findPlanByAnyPriceId, getBillingMarketFromCountryCode } from '@/constants';
+import { findPlanByAnyPriceId, getBillingMarketFromCountryCode, isKnownBusinessIntroPriceId, isKnownBusinessPriceId } from '@/constants';
 import { getPublicRouteForMarket } from '@/lib/markets/public-routes';
 import { z } from 'zod';
 
@@ -42,6 +43,7 @@ function formatAmount(amountMinor?: number | null, currency?: string | null) {
 }
 
 function resolvePlanNameFromPriceId(priceId?: string | null) {
+  if (isKnownBusinessPriceId(priceId)) return 'Solo';
   return findPlanByAnyPriceId(priceId)?.name || 'Your new plan';
 }
 
@@ -305,6 +307,7 @@ function getConfiguredGraceDays(): number {
 
 function normalizePlanTypeFromPrice(priceId?: string | null): string {
   if (!priceId) return 'No plan';
+  if (isKnownBusinessPriceId(priceId)) return 'Solo';
   const name = (findPlanByAnyPriceId(priceId)?.name || '').toLowerCase();
   if (name.includes('basic') || name.includes('essential') || name.includes('premium cheap')) return 'Basic';
   if (name.includes('premium +') || name.includes('premium plus') || name.includes('plus') || name.includes('premium pro')) return 'Premium +';
@@ -344,6 +347,62 @@ async function resolveUserIdForCustomer(customerId: string | null) {
     console.error('Failed to resolve user from Stripe customer', error);
     return null;
   }
+}
+
+async function applyBusinessIntroScheduleIfNeeded(
+  subscriptionId: string,
+  introPriceId?: string | null,
+  standardPriceId?: string | null,
+) {
+  const intro = String(introPriceId || '').trim();
+  const standard = String(standardPriceId || '').trim();
+  if (!intro || !standard) return;
+
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+    expand: ['schedule', 'items.data.price'],
+  });
+  const currentItem = subscription.items?.data?.[0];
+  const currentPriceId = String(currentItem?.price?.id || '');
+  if (!currentItem?.id || !currentPriceId) return;
+  if (currentPriceId !== intro) return;
+  if (currentPriceId === standard) return;
+
+  const currentPeriodStart = getStripeSubscriptionPeriodStartUnix(subscription);
+  if (!currentPeriodStart) return;
+
+  if (subscription.schedule) return;
+
+  const schedule = await stripe.subscriptionSchedules.create({
+    from_subscription: subscription.id,
+  });
+
+  const phases: any[] = [
+    {
+      start_date: currentPeriodStart,
+      items: [
+        {
+          price: intro,
+          quantity: currentItem.quantity || 1,
+        },
+      ],
+      iterations: 3,
+      proration_behavior: 'none',
+    },
+    {
+      items: [
+        {
+          price: standard,
+          quantity: currentItem.quantity || 1,
+        },
+      ],
+      proration_behavior: 'none',
+    },
+  ];
+
+  await stripe.subscriptionSchedules.update(schedule.id, {
+    end_behavior: 'release',
+    phases: phases as any,
+  });
 }
 
 async function upsertSubscriptionFromStripe(subscription: any) {
@@ -480,6 +539,8 @@ export async function POST(request: Request) {
       const metadata = session.metadata || {};
       const userId = metadata.userId;
       const planId = metadata.planId;
+      const businessStandardPriceId = String(metadata.businessStandardPriceId || '').trim();
+      const businessIntroApplied = String(metadata.businessIntroPriceApplied || '').trim().toLowerCase() === 'true';
       const checkoutEmail = session?.customer_details?.email || session?.customer_email || null;
       const checkoutName = session?.customer_details?.name || '';
       let syncedSubscription: any = null;
@@ -488,6 +549,13 @@ export async function POST(request: Request) {
       // not configured or delayed.
       if (session?.subscription) {
         try {
+          if (businessIntroApplied && isKnownBusinessIntroPriceId(planId) && businessStandardPriceId) {
+            await applyBusinessIntroScheduleIfNeeded(
+              String(session.subscription),
+              planId,
+              businessStandardPriceId,
+            );
+          }
           syncedSubscription = await stripe.subscriptions.retrieve(String(session.subscription));
           await upsertSubscriptionFromStripe(syncedSubscription);
           await clearSubscriptionGrace(

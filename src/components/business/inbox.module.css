@@ -13,8 +13,8 @@
 .folderActive{background:#ede9fe;color:#5b21b6;font-weight:600}
 .folderActive:hover{background:#ede9fe}
 .folderLabel{flex:1}
-.folderCount{background:#e5e7eb;color:#374151;padding:1px 6px;border-radius:10px;font-size:.68rem;font-weight:600}
-.folderActive .folderCount{background:#c4b5fd;color:#4c1d95}
+.folderCount{background:#dc2626;color:#fff;padding:1px 6px;border-radius:10px;font-size:.68rem;font-weight:700;border:1px solid rgba(127,29,29,.28)}
+.folderActive .folderCount{background:#dc2626;color:#fff}
 /* email list column */
 .emailListColumn{width:320px;flex:0 0 320px;border:1px solid #e5e7eb;border-radius:10px;display:flex;flex-direction:column;background:#fff;overflow:hidden}
 .emailListHeader{padding:14px 16px;border-bottom:1px solid #e5e7eb;display:flex;flex-direction:column;gap:9px}
@@ -131,7 +131,7 @@
 :global([data-theme="dark"]) .folderButton:hover{background:#2d2d2d;color:#e5e7eb}
 :global([data-theme="dark"]) .folderActive{background:#312450;color:#c4b5fd}
 :global([data-theme="dark"]) .folderActive:hover{background:#312450}
-:global([data-theme="dark"]) .folderCount{background:#333;color:#d1d5db}
+:global([data-theme="dark"]) .folderCount{background:#dc2626;color:#fff;border-color:rgba(248,113,113,.35)}
 :global([data-theme="dark"]) .emailListColumn{background:#242424;border-color:#333}
 :global([data-theme="dark"]) .emailListHeader{border-color:#333}
 :global([data-theme="dark"]) .emailListTitle{color:#e5e7eb}

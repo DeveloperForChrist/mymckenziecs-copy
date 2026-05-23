@@ -134,6 +134,9 @@ export default function MarketHomepage({
                     {description}
                   </p>
                   <HeroActionButtons pricingHref={pricingHref} howItWorksHref={howItWorksHref} directoryHref={directoryHref} />
+                  <div className="mt-3 text-sm text-white/75">
+                    Invited by a legal support professional? Use <Link href="/auth/signin" className="underline hover:text-purple-200 transition-colors">Sign In</Link> and you&apos;ll be taken to your Client Portal automatically.
+                  </div>
                   <div className="mt-5 flex flex-wrap justify-center gap-2 text-xs uppercase tracking-[0.16em] text-white/70 xl:justify-start">
                     <span className="rounded-full border border-white/15 px-3 py-2">Client matters</span>
                     <span className="rounded-full border border-white/15 px-3 py-2">Document hub</span>

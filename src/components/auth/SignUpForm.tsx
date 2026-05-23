@@ -86,7 +86,7 @@ export default function SignUpForm() {
     searchParams?.get('accountType') ||
     ''
   ).trim().toLowerCase()
-  const isBusinessPlan = ['solo', 'team', 'enterprise'].includes(selectedPlanName.toLowerCase())
+  const isBusinessPlan = ['solo'].includes(selectedPlanName.toLowerCase())
   const isBusinessSignup = audienceParam === 'business' || isBusinessPlan
   const redirectParam = (searchParams?.get('redirect') || '').trim()
   const publicMarket = getPublicMarket({

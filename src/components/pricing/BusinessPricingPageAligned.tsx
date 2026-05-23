@@ -3,16 +3,16 @@ type BusinessPricingPageAlignedProps = {
   homeHref: string;
   currencySymbol: string;
   prices: {
-    solo: string;
-    team: string;
-    enterprise: string;
+    intro: string;
+    standard: string;
   };
   regionNote: string;
+  soloPriceId?: string;
   signInHref?: string;
 };
 
 type BusinessPlan = {
-  key: 'solo' | 'team' | 'enterprise';
+  key: 'solo';
   name: string;
   displayPrice: string;
   accent: string;
@@ -30,6 +30,7 @@ export default function BusinessPricingPageAligned({
   currencySymbol,
   prices,
   regionNote,
+  soloPriceId = '',
   signInHref = '/auth/signin',
 }: BusinessPricingPageAlignedProps) {
   const selectorHref = `${marketPrefix}/pricing`;
@@ -40,6 +41,7 @@ export default function BusinessPricingPageAligned({
       plan: planName,
       redirect: '/business/dashboard',
     });
+    if (soloPriceId) params.set('planId', soloPriceId);
     if (marketPrefix === '/us') params.set('market', 'US');
     return `/auth/signup?${params.toString()}`;
   };
@@ -48,9 +50,9 @@ export default function BusinessPricingPageAligned({
     {
       key: 'solo',
       name: 'Solo',
-      displayPrice: `${currencySymbol}${prices.solo}`,
+      displayPrice: `${currencySymbol}${prices.standard}`,
       accent: '#9cc8ff',
-      note: `New business subscribers: 7 days free, then ${currencySymbol}${prices.solo}/month`,
+      note: `${currencySymbol}${prices.intro}/month for the first 3 months, then ${currencySymbol}${prices.standard}/month`,
       features: [
         'One business workspace',
         'Client matters, notes, documents, and deadlines',
@@ -61,40 +63,6 @@ export default function BusinessPricingPageAligned({
       href: signupHref('Solo'),
       cardBackground: 'linear-gradient(160deg, rgba(17, 24, 39, 0.98), rgba(30, 41, 59, 0.92))',
       buttonBackground: 'linear-gradient(135deg, #93c5fd, #3b82f6)',
-    },
-    {
-      key: 'team',
-      name: 'Team',
-      displayPrice: `${currencySymbol}${prices.team}`,
-      accent: '#7bd4c9',
-      note: `New business subscribers: 7 days free, then ${currencySymbol}${prices.team}/month`,
-      features: [
-        'Multiple team seats',
-        'Shared client matter workspace',
-        'Role-aware collaboration and task ownership',
-        'Team billing and priority workspace support',
-      ],
-      cta: 'Start Team',
-      href: signupHref('Team'),
-      cardBackground: 'linear-gradient(160deg, rgba(20, 20, 30, 0.98), rgba(24, 32, 40, 0.92))',
-      buttonBackground: 'linear-gradient(135deg, #7bd4c9, #3aa79d)',
-    },
-    {
-      key: 'enterprise',
-      name: 'Enterprise',
-      displayPrice: 'Custom',
-      accent: '#f8a76f',
-      note: 'Tailored seats, onboarding, support, governance, and procurement review',
-      features: [
-        'Custom seats and workspace configuration',
-        'Advanced admin controls and reporting',
-        'Onboarding support for business workflows',
-        'Security, procurement, and support review',
-      ],
-      cta: 'Contact sales',
-      href: `${marketPrefix}/contact`,
-      cardBackground: 'linear-gradient(160deg, rgba(15, 15, 25, 0.95), rgba(30, 20, 18, 0.9))',
-      buttonBackground: 'linear-gradient(135deg, #f8a76f, #f26a3d)',
     },
   ];
 
@@ -193,15 +161,12 @@ export default function BusinessPricingPageAligned({
             <div>
               <p style={{ textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.75rem', color: '#f8a76f', fontWeight: 600 }}>Business pricing</p>
               <h1 style={{ fontSize: 'clamp(2rem, 8vw, 3.6rem)', lineHeight: 1.05, margin: '0.8rem 0 1rem 0' }}>
-                Start with the workspace,
+                One clear workspace,
                 <br />
-                then choose the level your business needs.
+                built for solo legal support work.
               </h1>
               <p style={{ fontSize: 'clamp(1rem, 3.2vw, 1.2rem)', color: '#cbd5f5', maxWidth: '520px' }}>
-                Compare Solo, Team, and Enterprise plans for legal support businesses managing client matters, documents, reminders, research, and shared workflows.
-              </p>
-              <p style={{ marginTop: '14px', color: '#fde68a', fontSize: '0.98rem', fontWeight: 700 }}>
-                Business subscriptions can start with 7 days free.
+                Choose the Solo professional plan for managing client matters, documents, reminders, research, and practical support workflows.
               </p>
               <p style={{ marginTop: '14px', color: '#bfdbfe', fontSize: '0.95rem', maxWidth: '560px', lineHeight: 1.6 }}>
                 {regionNote}
@@ -222,25 +187,21 @@ export default function BusinessPricingPageAligned({
               boxShadow: '0 20px 50px rgba(0,0,0,0.35)'
             }}>
               <h2 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '0.5rem' }}>Plan at a glance</h2>
-              <p style={{ color: '#cbd5f5', marginBottom: '1rem' }}>Pick the tier that matches your team size and client workload.</p>
+              <p style={{ color: '#cbd5f5', marginBottom: '1rem' }}>Simple pricing for solo legal support professionals.</p>
               <div style={{ display: 'grid', gap: '0.8rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', fontWeight: 600 }}>
-                  <span>Solo</span>
-                  <span style={{ color: '#9cc8ff' }}>{currencySymbol}{prices.solo} / mo</span>
+                  <span>Intro offer (first 3 months)</span>
+                  <span style={{ color: '#9cc8ff' }}>{currencySymbol}{prices.intro} / mo</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', fontWeight: 600 }}>
-                  <span>Team</span>
-                  <span style={{ color: '#7bd4c9' }}>{currencySymbol}{prices.team} / mo</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', fontWeight: 600 }}>
-                  <span>Enterprise</span>
-                  <span style={{ color: '#f8a76f' }}>Custom</span>
+                  <span>Standard monthly</span>
+                  <span style={{ color: '#93c5fd' }}>{currencySymbol}{prices.standard} / mo</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-8">
             {plans.map((plan) => (
               <div
                 key={plan.key}
@@ -249,13 +210,13 @@ export default function BusinessPricingPageAligned({
                   background: plan.cardBackground,
                   borderRadius: '26px',
                   border: '1px solid rgba(248, 250, 252, 0.12)',
-                  boxShadow: plan.key === 'enterprise' ? '0 16px 40px rgba(0, 0, 0, 0.35)' : '0 20px 45px rgba(0, 0, 0, 0.4)'
+                  boxShadow: '0 20px 45px rgba(0, 0, 0, 0.4)'
                 }}
               >
                 <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">{plan.name}</h3>
                 <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: plan.accent }}>
                   {plan.displayPrice}
-                  {plan.key !== 'enterprise' && <span className="text-xl sm:text-2xl">/Month</span>}
+                  <span className="text-xl sm:text-2xl">/Month</span>
                 </div>
                 <p style={{ marginTop: '-10px', marginBottom: '18px', color: plan.accent, fontWeight: 700 }}>
                   {plan.note}

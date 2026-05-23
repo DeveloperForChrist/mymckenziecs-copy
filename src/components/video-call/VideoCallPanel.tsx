@@ -4,19 +4,68 @@ import { Video, Plus, Calendar, Clock, User, Mail, Copy, CheckCircle2, Play, XCi
 import WebRtcMeeting from '@/components/video/WebRtcMeeting'
 import styles from './videocall.module.css'
 
-type MeetingStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled'
-interface Meeting { id:string; title:string; clientName:string; clientEmail:string; date:string; time:string; duration:number; roomName:string; status:MeetingStatus; agenda?:string }
+type MeetingStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'no_show'
+interface Meeting { id:string; clientId?: string | null; title:string; clientName:string; clientEmail:string; date:string; time:string; duration:number; roomName:string; status:MeetingStatus; agenda?:string; source?: 'database' | 'local' }
+interface ClientContact { id: string; name: string; email: string }
 
 function makeRoom(title:string,id:string){return `mymckenziecs-${title.toLowerCase().replace(/[^a-z0-9]/g,'-').slice(0,28)}-${id}`}
 function fmtDate(d:string){return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}
 
+const LOCAL_MEETINGS_KEY='mymckenzie-business-client-meetings'
+const LOCAL_CLIENTS_KEY='mymckenzie-business-meeting-clients'
+
 const MOCK:Meeting[]=[
-  {id:'1',title:'Initial Consultation',clientName:'James Okafor',clientEmail:'james@email.com',date:'2026-05-12',time:'10:00',duration:60,roomName:'mymckenziecs-initial-consultation-1',status:'scheduled',agenda:'Housing disrepair and Section 21 notice discussion.'},
-  {id:'2',title:'Case Review',clientName:'Priya Sharma',clientEmail:'priya@gmail.com',date:'2026-05-10',time:'14:00',duration:45,roomName:'mymckenziecs-case-review-2',status:'in_progress',agenda:'ET1 preparation and whistleblowing detriment claim.'},
-  {id:'3',title:'Follow-up',clientName:'David Clarke',clientEmail:'d.clarke@outlook.com',date:'2026-05-08',time:'11:00',duration:30,roomName:'mymckenziecs-follow-up-3',status:'completed'},
+  {id:'1',title:'Initial Consultation',clientName:'James Okafor',clientEmail:'james@email.com',date:'2026-05-12',time:'10:00',duration:60,roomName:'mymckenziecs-initial-consultation-1',status:'scheduled',agenda:'Housing disrepair and Section 21 notice discussion.',source:'local'},
+  {id:'2',title:'Case Review',clientName:'Priya Sharma',clientEmail:'priya@gmail.com',date:'2026-05-10',time:'14:00',duration:45,roomName:'mymckenziecs-case-review-2',status:'in_progress',agenda:'ET1 preparation and whistleblowing detriment claim.',source:'local'},
+  {id:'3',title:'Follow-up',clientName:'David Clarke',clientEmail:'d.clarke@outlook.com',date:'2026-05-08',time:'11:00',duration:30,roomName:'mymckenziecs-follow-up-3',status:'completed',source:'local'},
 ]
-const S_CLS:Record<MeetingStatus,string>={scheduled:styles.statusScheduled,in_progress:styles.statusLive,completed:styles.statusDone,cancelled:styles.statusCancelled}
-const S_LBL:Record<MeetingStatus,string>={scheduled:'Scheduled',in_progress:'● Live',completed:'Done',cancelled:'Cancelled'}
+const S_CLS:Record<MeetingStatus,string>={scheduled:styles.statusScheduled,in_progress:styles.statusLive,completed:styles.statusDone,cancelled:styles.statusCancelled,no_show:styles.statusCancelled}
+const S_LBL:Record<MeetingStatus,string>={scheduled:'Scheduled',in_progress:'● Live',completed:'Done',cancelled:'Cancelled',no_show:'No show'}
+
+function toTime(value: string) {
+  return value ? value.slice(0, 5) : ''
+}
+
+function saveLocal(meetings: Meeting[], clients: ClientContact[]) {
+  try {
+    localStorage.setItem(LOCAL_MEETINGS_KEY, JSON.stringify(meetings))
+    localStorage.setItem(LOCAL_CLIENTS_KEY, JSON.stringify(clients))
+  } catch {
+    // ignore localStorage failures
+  }
+}
+
+function loadLocal(): { meetings: Meeting[]; clients: ClientContact[] } {
+  try {
+    const meetings = JSON.parse(localStorage.getItem(LOCAL_MEETINGS_KEY) || 'null') as Meeting[] | null
+    const clients = JSON.parse(localStorage.getItem(LOCAL_CLIENTS_KEY) || 'null') as ClientContact[] | null
+    if (Array.isArray(meetings) && Array.isArray(clients)) return { meetings, clients }
+  } catch {
+    // ignore parse errors
+  }
+  return { meetings: MOCK, clients: [] }
+}
+
+function mapRowsToMeetings(rows: any[], clients: ClientContact[]): Meeting[] {
+  const clientsById = new Map(clients.map((client) => [client.id, client]))
+  return rows.map((row) => {
+    const client = row.client_id ? clientsById.get(String(row.client_id)) : undefined
+    return {
+      id: String(row.id),
+      clientId: row.client_id ? String(row.client_id) : null,
+      title: String(row.title || 'Client consultation'),
+      clientName: client?.name || 'Client',
+      clientEmail: client?.email || '',
+      date: String(row.meeting_date || ''),
+      time: toTime(String(row.meeting_time || '')),
+      duration: Number(row.duration_minutes || 45),
+      roomName: String(row.room_name || ''),
+      status: (row.status || 'scheduled') as MeetingStatus,
+      agenda: String(row.description || ''),
+      source: 'database',
+    }
+  })
+}
 
 export function VideoCallPanel({
   userId,
@@ -27,8 +76,9 @@ export function VideoCallPanel({
   meetingPreset?: { clientName?: string; clientEmail?: string; context?: string } | null
   onMeetingPresetConsumed?: () => void
 }){
-  const [meetings,setMeetings]=useState<Meeting[]>(MOCK)
-  const [selected,setSelected]=useState<Meeting|null>(MOCK[0])
+  const [meetings,setMeetings]=useState<Meeting[]>([])
+  const [clients,setClients]=useState<ClientContact[]>([])
+  const [selected,setSelected]=useState<Meeting|null>(null)
   const [tab,setTab]=useState<'upcoming'|'past'>('upcoming')
   const [showForm,setShowForm]=useState(false)
   const [inCall,setInCall]=useState(false)
@@ -36,7 +86,62 @@ export function VideoCallPanel({
   const [copied,setCopied]=useState(false)
   const [notice,setNotice]=useState('')
   const [err,setErr]=useState('')
+  const [loading,setLoading]=useState(true)
+  const [dataMode,setDataMode]=useState<'database'|'local'>('database')
   const [form,setForm]=useState({title:'',clientName:'',clientEmail:'',date:'',time:'',duration:'60',agenda:'',inviteMessage:''})
+
+  const loadMeetings = useCallback(async () => {
+    let mounted = true
+    const run = async () => {
+      setLoading(true)
+      try {
+        const response = await fetch('/api/business/meetings', { credentials: 'include', cache: 'no-store' })
+        if (!response.ok) throw new Error('Failed')
+        const data = await response.json()
+        const nextClients: ClientContact[] = Array.isArray(data.clients)
+          ? data.clients.map((row: any) => ({ id: String(row.id), name: String(row.name || 'Client'), email: String(row.email || '') }))
+          : []
+        const nextMeetings = Array.isArray(data.meetings) ? mapRowsToMeetings(data.meetings, nextClients) : []
+        if (!mounted) return
+        setClients(nextClients)
+        setMeetings(nextMeetings)
+        setDataMode('database')
+        setSelected((current) => {
+          if (current && nextMeetings.some((meeting) => meeting.id === current.id)) return nextMeetings.find((meeting) => meeting.id === current.id) || null
+          return nextMeetings[0] || null
+        })
+        saveLocal(nextMeetings, nextClients)
+      } catch {
+        const local = loadLocal()
+        if (!mounted) return
+        setClients(local.clients)
+        setMeetings(local.meetings)
+        setSelected(local.meetings[0] || null)
+        setDataMode('local')
+        setNotice('Using local meetings until the database is available.')
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+    await run()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    const cleanupPromise = loadMeetings()
+    return () => {
+      void cleanupPromise.then((cleanup) => {
+        if (typeof cleanup === 'function') cleanup()
+      })
+    }
+  }, [loadMeetings])
+
+  const retryDatabaseSync = useCallback(async () => {
+    setNotice('')
+    await loadMeetings()
+  }, [loadMeetings])
 
   useEffect(() => {
     if (!meetingPreset) return
@@ -54,22 +159,81 @@ export function VideoCallPanel({
   }, [meetingPreset, onMeetingPresetConsumed])
 
   const upcomingList=meetings.filter(m=>m.status==='scheduled'||m.status==='in_progress')
-  const pastList=meetings.filter(m=>m.status==='completed'||m.status==='cancelled')
+  const pastList=meetings.filter(m=>m.status==='completed'||m.status==='cancelled'||m.status==='no_show')
   const listed=tab==='upcoming'?upcomingList:pastList
 
   const upd=(k:string,v:string)=>setForm(f=>({...f,[k]:v}))
 
-  const handleSchedule=useCallback((e:React.FormEvent)=>{
+  const handleSchedule=useCallback(async (e:React.FormEvent)=>{
     e.preventDefault()
     if(!form.title||!form.clientName||!form.date||!form.time){setErr('Fill in all required fields.');return}
     setErr('')
     const id=String(Date.now())
-    const m:Meeting={id,title:form.title,clientName:form.clientName,clientEmail:form.clientEmail,date:form.date,time:form.time,duration:Number(form.duration),roomName:makeRoom(form.title,id),status:'scheduled',agenda:form.agenda}
-    setMeetings(p=>[m,...p])
-    setSelected(m)
+    const localMeeting:Meeting={id,title:form.title,clientName:form.clientName,clientEmail:form.clientEmail,date:form.date,time:form.time,duration:Number(form.duration),roomName:makeRoom(form.title,id),status:'scheduled',agenda:form.agenda,source:'local'}
+
+    try {
+      const response = await fetch('/api/business/meetings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          clientName: form.clientName,
+          clientEmail: form.clientEmail,
+          title: form.title,
+          meetingDate: form.date,
+          meetingTime: form.time,
+          durationMinutes: Number(form.duration),
+          description: form.agenda,
+          roomName: localMeeting.roomName,
+          status: 'scheduled',
+        }),
+      })
+
+      if (!response.ok) throw new Error('Failed to save')
+      const payload = await response.json()
+      const meetingRow = payload.meeting
+      const clientKey = `${form.clientName.toLowerCase()}|${form.clientEmail.toLowerCase()}`
+      let client = clients.find((entry) => `${entry.name.toLowerCase()}|${entry.email.toLowerCase()}` === clientKey)
+      let nextClients = clients
+      if (!client) {
+        client = { id: String(meetingRow.client_id || `local-${Date.now()}`), name: form.clientName, email: form.clientEmail }
+        nextClients = [client, ...clients]
+        setClients(nextClients)
+      }
+      const persisted: Meeting = {
+        id: String(meetingRow.id),
+        clientId: meetingRow.client_id ? String(meetingRow.client_id) : null,
+        title: String(meetingRow.title || form.title),
+        clientName: client.name,
+        clientEmail: client.email,
+        date: String(meetingRow.meeting_date || form.date),
+        time: toTime(String(meetingRow.meeting_time || form.time)),
+        duration: Number(meetingRow.duration_minutes || Number(form.duration)),
+        roomName: String(meetingRow.room_name || localMeeting.roomName),
+        status: (meetingRow.status || 'scheduled') as MeetingStatus,
+        agenda: String(meetingRow.description || form.agenda),
+        source: 'database',
+      }
+
+      setMeetings((current) => {
+        const next = [persisted, ...current]
+        saveLocal(next, nextClients)
+        return next
+      })
+      setSelected(persisted)
+    } catch {
+      setMeetings((current) => {
+        const next = [localMeeting, ...current]
+        saveLocal(next, clients)
+        return next
+      })
+      setSelected(localMeeting)
+      setNotice('Meeting saved locally. It will sync when the database is available.')
+    }
+
     if (form.clientEmail) {
       const meetingDateTime = `${fmtDate(form.date)}${form.time ? ` at ${form.time}` : ''}`
-      const link = `${window.location.origin}/join/${m.roomName}`
+      const link = `${window.location.origin}/join/${localMeeting.roomName}`
       const customMessage = form.inviteMessage.trim()
       const body = [
         `Hello ${form.clientName || 'there'},`,
@@ -91,21 +255,42 @@ export function VideoCallPanel({
     } else {
       setNotice('Meeting scheduled.')
     }
+
     setForm({title:'',clientName:'',clientEmail:'',date:'',time:'',duration:'60',agenda:'',inviteMessage:''})
     setShowForm(false)
     setTimeout(()=>setNotice(''),3000)
-  },[form])
+  },[clients,form])
+
+  const updateStatus = useCallback(async (meeting: Meeting, status: MeetingStatus) => {
+    setMeetings((current) => {
+      const next = current.map((entry) => entry.id === meeting.id ? { ...entry, status } : entry)
+      saveLocal(next, clients)
+      return next
+    })
+    setSelected((current) => current?.id === meeting.id ? { ...current, status } : current)
+
+    if (meeting.source === 'local') return
+    try {
+      await fetch('/api/business/meetings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ id: meeting.id, status }),
+      })
+    } catch {
+      setNotice('Status updated locally. Database sync failed.')
+      setTimeout(() => setNotice(''), 3000)
+    }
+  }, [clients])
 
   const join=(m:Meeting)=>{
-    setMeetings(p=>p.map(x=>x.id===m.id?{...x,status:'in_progress'}:x))
-    setSelected(p=>p?.id===m.id?{...p,status:'in_progress'}:p)
+    void updateStatus(m, 'in_progress')
     setInCall(true)
   }
   const leave=()=>{setInCall(false);setSession(s=>s+1)}
   const endMeeting=(m:Meeting)=>{
     setInCall(false);setSession(s=>s+1)
-    setMeetings(p=>p.map(x=>x.id===m.id?{...x,status:'completed'}:x))
-    setSelected(p=>p?.id===m.id?{...p,status:'completed'}:p)
+    void updateStatus(m, 'completed')
   }
   const copyLink=async(m:Meeting)=>{
     const link=`${window.location.origin}/join/${m.roomName}`
@@ -119,6 +304,14 @@ export function VideoCallPanel({
         <div className={styles.sidebarHeader}>
           <h2 className={styles.sidebarTitle}>Client Meetings</h2>
           <p className={styles.sidebarSub}>Schedule and host client video consultations</p>
+          <p className={`${styles.dataModePill} ${dataMode === 'database' ? styles.dataModeDatabase : styles.dataModeLocal}`}>
+            {dataMode === 'database' ? 'Database connected' : 'Local fallback mode'}
+          </p>
+          {dataMode === 'local' && (
+            <button type="button" className={styles.retrySyncBtn} onClick={() => void retryDatabaseSync()}>
+              Retry database sync
+            </button>
+          )}
           <button type="button" className={styles.newMeetingBtn} onClick={()=>setShowForm(s=>!s)}>
             <Plus size={15}/>{showForm?'Cancel':'New Meeting'}
           </button>
@@ -154,7 +347,8 @@ export function VideoCallPanel({
               <button type="button" className={`${styles.sidebarTab} ${tab==='past'?styles.sidebarTabActive:''}`} onClick={()=>setTab('past')}>Past ({pastList.length})</button>
             </div>
             <div className={styles.meetingList}>
-              {listed.length===0&&<div className={styles.emptyList}><Video size={28}/><p>No meetings</p></div>}
+              {loading&&<div className={styles.emptyList}><p>Loading meetings...</p></div>}
+              {!loading&&listed.length===0&&<div className={styles.emptyList}><Video size={28}/><p>No meetings</p></div>}
               {listed.map(m=>(
                 <div key={m.id} role="button" tabIndex={0} className={`${styles.meetingItem} ${selected?.id===m.id?styles.meetingItemActive:''}`} onClick={()=>{setSelected(m);setInCall(false)}} onKeyDown={e=>{if(e.key==='Enter'){setSelected(m);setInCall(false)}}}>
                   <div className={styles.meetingItemTop}><span className={styles.meetingItemClient}>{m.clientName}</span><span className={`${styles.statusBadge} ${S_CLS[m.status]}`}>{S_LBL[m.status]}</span></div>
@@ -191,7 +385,7 @@ export function VideoCallPanel({
                 <button type="button" className={styles.copyBtn} onClick={()=>copyLink(selected)}>
                   {copied?<CheckCircle2 size={14}/>:<Copy size={14}/>}{copied?'Copied':'Copy Link'}
                 </button>
-                {selected.status==='scheduled'&&<button type="button" className={styles.ghostBtn} onClick={()=>{setMeetings(p=>p.map(x=>x.id===selected.id?{...x,status:'cancelled'}:x));setSelected(p=>p?{...p,status:'cancelled'}:p)}}><XCircle size={14}/>Cancel</button>}
+                {selected.status==='scheduled'&&<button type="button" className={styles.ghostBtn} onClick={()=>void updateStatus(selected, 'cancelled')}><XCircle size={14}/>Cancel</button>}
                 {selected.status==='in_progress'&&<button type="button" className={styles.ghostBtn} onClick={()=>endMeeting(selected)}><CheckCircle2 size={14}/>Mark Done</button>}
               </div>
             </div>
@@ -209,7 +403,6 @@ export function VideoCallPanel({
             </div>
           </div>
 
-          {/* Call modal */}
           {inCall&&selected&&(
             <div className={styles.callModalBackdrop} onClick={(e)=>{if(e.target===e.currentTarget)leave()}}>
               <div className={styles.callModal}>

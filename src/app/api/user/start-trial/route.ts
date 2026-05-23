@@ -105,13 +105,24 @@ export async function POST(request: NextRequest) {
 
     const { data: userRow } = await supabaseAdmin
       .from('users')
-      .select('id, email, name, email_verified_at, country_code')
+      .select('id, email, name, email_verified_at, country_code, billing_audience')
       .eq('id', authUid)
       .maybeSingle();
 
     const billingMarket = getBillingMarketFromCountryCode(
       (userRow as any)?.country_code || (authData.user.user_metadata as any)?.country_code
     );
+
+    const billingAudience = String((userRow as any)?.billing_audience || '').trim().toLowerCase();
+    if (billingAudience === 'business') {
+      return NextResponse.json(
+        {
+          error: 'Business trial starts are not available from this route. Continue via business billing.',
+          code: 'BUSINESS_TRIAL_NOT_AVAILABLE',
+        },
+        { status: 409 }
+      );
+    }
 
     const isEmailVerified = userRow
       ? Boolean((userRow as any)?.email_verified_at)

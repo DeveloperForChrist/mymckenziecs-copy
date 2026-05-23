@@ -59,6 +59,30 @@ function resolveAccountType(authUser: any, userRow?: Record<string, any> | null)
   )
 }
 
+async function loadWorkspaceAccessFlags(userId: string) {
+  const [businessMembershipResult, clientLinkResult] = await Promise.all([
+    supabaseAdmin
+      .from('business_members')
+      .select('business_id')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .limit(1)
+      .maybeSingle(),
+    supabaseAdmin
+      .from('client_business_links')
+      .select('id')
+      .eq('client_id', userId)
+      .eq('status', 'active')
+      .limit(1)
+      .maybeSingle(),
+  ])
+
+  return {
+    hasBusinessWorkspace: Boolean(businessMembershipResult.data?.business_id),
+    hasClientPortalAccess: Boolean(clientLinkResult.data?.id),
+  }
+}
+
 export async function GET(_request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteClient()
@@ -68,6 +92,7 @@ export async function GET(_request: NextRequest) {
     }
 
     const authUid = data.user.id
+    const accessFlags = await loadWorkspaceAccessFlags(authUid)
     const { data: userRow, error: userError } = await supabaseAdmin
       .from('users')
       .select('*')
@@ -96,6 +121,9 @@ export async function GET(_request: NextRequest) {
         lastActive: null,
         emailVerifiedAt: authEmailVerifiedAt,
         emailVerified: Boolean(authEmailVerifiedAt),
+        hasBusinessWorkspace: accessFlags.hasBusinessWorkspace,
+        hasClientPortalAccess: accessFlags.hasClientPortalAccess,
+        canUseLitigantWorkspace: true,
       })
     }
 
@@ -119,6 +147,9 @@ export async function GET(_request: NextRequest) {
       lastActive: (userRow as any).last_active || null,
       emailVerifiedAt,
       emailVerified: Boolean(emailVerifiedAt),
+      hasBusinessWorkspace: accessFlags.hasBusinessWorkspace,
+      hasClientPortalAccess: accessFlags.hasClientPortalAccess,
+      canUseLitigantWorkspace: true,
     })
   } catch (error: any) {
     console.error('Error fetching user data:', error);

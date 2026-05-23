@@ -9,9 +9,7 @@ import {
   loadClientMatterRows,
   rowToBusinessLead,
   rowToClientMatter,
-  seedDefaultLeadsIfEmpty,
   syncAcceptedLeadMatterRow,
-  syncAcceptedLeadMatterRows,
 } from '@/lib/business/business-matters-db'
 
 export const runtime = 'nodejs'
@@ -43,8 +41,6 @@ function errorResponse(error: unknown, fallback: string) {
 export async function GET() {
   try {
     const context = await getContext()
-    const seededRows = await seedDefaultLeadsIfEmpty(context.businessId, context.userId)
-    await syncAcceptedLeadMatterRows(context.businessId, seededRows)
     const leadRows = await loadBusinessLeadRows(context.businessId)
 
     return NextResponse.json({

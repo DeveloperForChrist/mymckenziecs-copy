@@ -8,12 +8,14 @@ type HeroActionButtonsProps = {
   pricingHref?: string;
   howItWorksHref?: string;
   directoryHref?: string;
+  signInHref?: string;
 };
 
 export default function HeroActionButtons({
   pricingHref = '/pricing',
   howItWorksHref = '/legal-case-management-tool',
   directoryHref = '/dashboard/directory',
+  signInHref = '/auth/signin',
 }: HeroActionButtonsProps) {
   const [dashboardHref, setDashboardHref] = useState<string | null>(null);
 
@@ -48,12 +50,20 @@ export default function HeroActionButtons({
           Go to Dashboard
         </Link>
       ) : (
-        <Link
-          href={pricingHref}
-          className="app-button-secondary text-base sm:text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
-        >
-          Try for free
-        </Link>
+        <>
+          <Link
+            href={pricingHref}
+            className="app-button-secondary text-base sm:text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
+          >
+            Try for free
+          </Link>
+          <Link
+            href={signInHref}
+            className="app-button-secondary text-base sm:text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
+          >
+            Sign In
+          </Link>
+        </>
       )}
       <Link
         href={directoryHref}

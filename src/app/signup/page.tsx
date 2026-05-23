@@ -24,7 +24,8 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (token) {
-      validateInvitation()
+      void validateInvitation()
+      void acceptInvitationIfSignedIn()
     } else {
       setInvitationLoading(false)
     }
@@ -32,24 +33,44 @@ export default function SignupPage() {
 
   const validateInvitation = async () => {
     try {
-      const supabase = getSupabaseBrowserClient()
-      const { data, error } = await supabase
-        .from('client_invitations')
-        .select('*')
-        .eq('token', token)
-        .eq('status', 'pending')
-        .single()
+      const response = await fetch(`/api/client/invitations?token=${encodeURIComponent(String(token))}`, {
+        credentials: 'include',
+      })
+      const payload = await response.json().catch(() => ({}))
 
-      if (error || !data) {
-        setError('Invalid or expired invitation link.')
+      if (!response.ok || !payload?.invitation) {
+        setError(payload?.message || 'Invalid or expired invitation link.')
       } else {
-        setInvitation(data)
-        setFormData(prev => ({ ...prev, email: data.invited_email }))
+        setInvitation(payload.invitation)
+        setFormData(prev => ({ ...prev, email: payload.invitation.invitedEmail || '' }))
       }
     } catch (err) {
       setError('Failed to validate invitation.')
     } finally {
       setInvitationLoading(false)
+    }
+  }
+
+  const acceptInvitationIfSignedIn = async () => {
+    try {
+      const supabase = getSupabaseBrowserClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token || !token) return
+
+      const response = await fetch('/api/client/invitations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ token }),
+      })
+
+      if (response.ok) {
+        router.push('/dashboard')
+      }
+    } catch {
+      // Keep normal signup flow available.
     }
   }
 
@@ -93,19 +114,24 @@ export default function SignupPage() {
 
       // If there's an invitation, accept it and link to business
       if (invitation) {
-        await supabase.from('client_invitations').update({
-          status: 'accepted',
-          accepted_at: new Date().toISOString(),
-        }).eq('id', invitation.id)
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.access_token) {
+          throw new Error('Please sign in to finish accepting your invitation.')
+        }
 
-        // Create client-business relationship
-        await supabase.from('client_business_links').insert({
-          client_id: authData.user.id,
-          business_id: invitation.business_id,
-          client_name: `${formData.firstName} ${formData.lastName}`,
-          client_email: formData.email,
-          status: 'active',
+        const inviteResponse = await fetch('/api/client/invitations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ token }),
         })
+        const invitePayload = await inviteResponse.json().catch(() => ({}))
+
+        if (!inviteResponse.ok) {
+          throw new Error(invitePayload?.message || 'Failed to accept invitation.')
+        }
       }
 
       router.push('/dashboard')
@@ -133,7 +159,7 @@ export default function SignupPage() {
           </h1>
           <p className="text-gray-600">
             {invitation 
-              ? `You've been invited to join the client portal by ${invitation.inviter_email}`
+              ? `You've been invited to join the client portal by ${invitation.inviterEmail}`
               : 'Create your account to get started'}
           </p>
         </div>

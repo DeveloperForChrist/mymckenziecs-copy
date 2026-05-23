@@ -24,6 +24,12 @@ function safeRedirectPath(input?: string, fallback = '/dashboard') {
   return normalized.startsWith('/') ? normalized : fallback
 }
 
+function normalizeBusinessPlan(value: unknown): 'Solo' | null {
+  const normalized = String(value || '').trim().toLowerCase()
+  if (normalized === 'solo') return 'Solo'
+  return null
+}
+
 export async function POST(request: NextRequest) {
   try {
     const ip = getClientIp(request.headers)
@@ -50,9 +56,10 @@ export async function POST(request: NextRequest) {
     )
     const plan = typeof body?.plan === 'string' ? body.plan.trim() : ''
     const market = String(body?.market || '').trim().toUpperCase() === 'US' ? 'US' : 'GB'
+    const selectedBusinessPlan = normalizeBusinessPlan(plan)
     const isBusinessSignup =
       String(audience).trim().toLowerCase() === 'business' ||
-      ['solo', 'team', 'enterprise'].includes(plan.toLowerCase())
+      Boolean(selectedBusinessPlan)
 
     if (!fullName) {
       return NextResponse.json({ message: 'Full name is required.' }, { status: 400 })
@@ -95,6 +102,7 @@ export async function POST(request: NextRequest) {
       display_name: fullName,
       account_type: isBusinessSignup ? 'business' : 'litigant',
       billing_audience: isBusinessSignup ? 'business' : 'litigant',
+      selected_business_plan: isBusinessSignup ? (selectedBusinessPlan || 'Solo') : null,
       country_code: profileCountryCode,
       jurisdiction_code: profileJurisdictionCode,
       jurisdiction_label: jurisdictionLabel,
@@ -130,6 +138,7 @@ export async function POST(request: NextRequest) {
           name: fullName,
           account_type: isBusinessSignup ? 'business' : 'litigant',
           billing_audience: isBusinessSignup ? 'business' : 'litigant',
+          selected_business_plan: isBusinessSignup ? (selectedBusinessPlan || 'Solo') : null,
           country_code: profileCountryCode,
           jurisdiction_code: profileJurisdictionCode,
           jurisdiction_label: jurisdictionLabel,

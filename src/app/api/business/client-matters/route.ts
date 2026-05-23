@@ -11,6 +11,7 @@ import {
   rowToClientMatter,
   syncAcceptedLeadMatterRows,
 } from '@/lib/business/business-matters-db'
+import { createBusinessAlert } from '@/lib/business/alerts'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -195,6 +196,12 @@ export async function PUT(request: NextRequest) {
     }
 
     const update = matterUpdateToRow(body)
+    const { data: previousMatter } = await supabaseAdmin
+      .from('client_matters')
+      .select('id, client_name, matter_number, status, stage, next_deadline')
+      .eq('business_id', context.businessId)
+      .eq('id', id)
+      .maybeSingle()
     let data: any = null
     let error: any = null
     {
@@ -225,6 +232,51 @@ export async function PUT(request: NextRequest) {
     if (error || !data) {
       console.error('Client matter update failed', error)
       return NextResponse.json({ message: 'Unable to update matter.' }, { status: 500 })
+    }
+
+    const previousStatus = String(previousMatter?.status || '')
+    const nextStatus = String(data?.status || '')
+    if (previousStatus && nextStatus && previousStatus !== nextStatus) {
+      await createBusinessAlert({
+        businessId: context.businessId,
+        type: 'system',
+        priority: nextStatus === 'archived' ? 'low' : 'medium',
+        title: 'Matter status changed',
+        body: `${data?.client_name || 'Client'} matter ${data?.matter_number || ''} changed from ${previousStatus} to ${nextStatus}.`,
+        clientName: data?.client_name || null,
+        actionLabel: 'Open Work Item',
+        metadata: { matterId: id, from: previousStatus, to: nextStatus },
+      })
+    }
+
+    const previousStage = String(previousMatter?.stage || '')
+    const nextStage = String(data?.stage || '')
+    if (previousStage && nextStage && previousStage !== nextStage) {
+      await createBusinessAlert({
+        businessId: context.businessId,
+        type: 'system',
+        priority: 'low',
+        title: 'Matter stage updated',
+        body: `${data?.client_name || 'Client'} moved to ${nextStage} stage.`,
+        clientName: data?.client_name || null,
+        actionLabel: 'Open Work Item',
+        metadata: { matterId: id, from: previousStage, to: nextStage },
+      })
+    }
+
+    const prevDeadline = previousMatter?.next_deadline ? String(previousMatter.next_deadline) : ''
+    const nextDeadline = data?.next_deadline ? String(data.next_deadline) : ''
+    if (prevDeadline !== nextDeadline && nextDeadline) {
+      await createBusinessAlert({
+        businessId: context.businessId,
+        type: 'deadline',
+        priority: 'high',
+        title: 'Matter deadline updated',
+        body: `${data?.client_name || 'Client'} deadline set to ${nextDeadline}.`,
+        clientName: data?.client_name || null,
+        actionLabel: 'Open Calendar',
+        metadata: { matterId: id, nextDeadline },
+      })
     }
 
     return NextResponse.json({

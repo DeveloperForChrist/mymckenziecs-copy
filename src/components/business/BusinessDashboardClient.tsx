@@ -41,6 +41,7 @@ import { VideoCallPanel } from '@/components/video-call/VideoCallPanel';
 import InboxPage from './InboxPage';
 import LeadsPage from './LeadsPage';
 import AlertsPage from './AlertsPage';
+import { BUSINESS_ALERTS_UPDATED_EVENT } from './AlertsPage';
 import ClientMattersPage from './ClientMattersPage';
 import BusinessProfilePage from './BusinessProfilePage';
 import DirectoryClient from '@/components/directory/DirectoryClient';
@@ -74,8 +75,8 @@ const navItems: NavItem[] = [
   },
   {
     id: 'clients',
-    label: 'Client Matters',
-    description: 'Client cases and profiles',
+    label: 'Client Work',
+    description: 'Client work items and profiles',
     icon: BriefcaseBusiness,
   },
   {
@@ -111,7 +112,7 @@ const navItems: NavItem[] = [
   {
     id: 'messages',
     label: 'Inbox',
-    description: 'Client and matter conversations',
+    description: 'Client and work conversations',
     icon: MessageSquare,
   },
   {
@@ -561,6 +562,7 @@ function BusinessWorkspacePage({
           initialPublicMarket="GB"
           dashboardHrefOverride={businessDashboardHref}
           settingsHrefOverride={`${businessDashboardHref}#settings`}
+          forceAccess
         />
       </Suspense>
     );
@@ -645,6 +647,9 @@ export default function BusinessDashboardClient({ initialChatPlan }: BusinessDas
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeId, setActiveId] = useState('home');
   const [leadsCount, setLeadsCount] = useState(0);
+  const [inboxCount, setInboxCount] = useState(0);
+  const [alertsCount, setAlertsCount] = useState(0);
+  const [calendarCount, setCalendarCount] = useState(0);
   const [inboxComposePreset, setInboxComposePreset] = useState<{ to: string; subject: string; body?: string } | null>(null);
   const [meetingPreset, setMeetingPreset] = useState<{ clientName?: string; clientEmail?: string; context?: string } | null>(null);
   const [documentsCaseIdOverride, setDocumentsCaseIdOverride] = useState<string | null>(null);
@@ -729,22 +734,68 @@ export default function BusinessDashboardClient({ initialChatPlan }: BusinessDas
   }, [theme]);
 
   useEffect(() => {
-    const fetchLeadsCount = async () => {
+    const fetchCounts = async () => {
       try {
-        const response = await fetch('/api/business/leads', { credentials: 'include', cache: 'no-store' });
-        if (response.ok) {
-          const data = await response.json();
+        const [leadsResponse, calendarResponse, alertsResponse] = await Promise.all([
+          fetch('/api/business/leads', { credentials: 'include', cache: 'no-store' }),
+          fetch('/api/calendar/alerts?windowDays=7', { credentials: 'include', cache: 'no-store' }),
+          fetch('/api/business/alerts', { credentials: 'include', cache: 'no-store' }),
+        ]);
+
+        if (leadsResponse.ok) {
+          const data = await leadsResponse.json();
           const newLeads = (data.leads || []).filter((lead: any) => lead.status === 'new').length;
           setLeadsCount(newLeads);
         }
+
+        if (calendarResponse.ok) {
+          const data = await calendarResponse.json().catch(() => ({}));
+          const deadlineCount = typeof data?.count === 'number' ? data.count : 0;
+          setCalendarCount(deadlineCount);
+        }
+
+        if (alertsResponse.ok) {
+          const data = await alertsResponse.json().catch(() => ({}));
+          const alerts = Array.isArray(data?.alerts) ? data.alerts : [];
+          setAlertsCount(alerts.filter((alert: any) => !alert?.read).length);
+        }
       } catch (error) {
-        console.error('Failed to fetch leads count:', error);
+        console.error('Failed to fetch business notification counts:', error);
+      }
+
+      try {
+        const supabase = getSupabaseBrowserClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user?.email) {
+          setInboxCount(0);
+          return;
+        }
+        const { count } = await supabase
+          .from('inbox_messages')
+          .select('id', { count: 'exact', head: true })
+          .eq('recipient_email', user.email)
+          .eq('is_read', false);
+        setInboxCount(typeof count === 'number' ? count : 0);
+      } catch {
+        setInboxCount(0);
       }
     };
 
-    fetchLeadsCount();
-    const interval = setInterval(fetchLeadsCount, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
+    void fetchCounts();
+    const onAlertsUpdated = () => { void fetch('/api/business/alerts', { credentials: 'include', cache: 'no-store' })
+      .then((r) => r.json().catch(() => ({})))
+      .then((data) => {
+        const alerts = Array.isArray((data as any)?.alerts) ? (data as any).alerts : [];
+        setAlertsCount(alerts.filter((alert: any) => !alert?.read).length);
+      })
+      .catch(() => {})
+    };
+    window.addEventListener(BUSINESS_ALERTS_UPDATED_EVENT, onAlertsUpdated as EventListener);
+    const interval = setInterval(() => { void fetchCounts(); }, 30000);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener(BUSINESS_ALERTS_UPDATED_EVENT, onAlertsUpdated as EventListener);
+    };
   }, []);
 
   const toggleTheme = () => {
@@ -782,8 +833,18 @@ export default function BusinessDashboardClient({ initialChatPlan }: BusinessDas
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = item.id === activeId;
-            const count = item.id === 'leads' ? leadsCount : item.count;
+            const count =
+              item.id === 'leads'
+                ? leadsCount
+                : item.id === 'messages'
+                  ? inboxCount
+                  : item.id === 'notifications'
+                    ? alertsCount
+                    : item.id === 'calendar'
+                      ? calendarCount
+                      : item.count;
             const hasCount = typeof count === 'number' ? count > 0 : Boolean(count);
+            const countLabel = typeof count === 'number' && count > 99 ? '99+' : count;
             return (
             <button
               key={item.id}
@@ -803,7 +864,7 @@ export default function BusinessDashboardClient({ initialChatPlan }: BusinessDas
                     <span className={styles.navLabel}>{item.label}</span>
                     <span className={styles.navDescription}>{item.description}</span>
                   </span>
-                  {hasCount && <span className={styles.navCount}>{count}</span>}
+                  {hasCount && <span className={styles.navCount}>{countLabel}</span>}
                 </>
               )}
             </button>

@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import BusinessPricingPage from '@/components/pricing/BusinessPricingPageAligned';
 import { buildPageMetadata } from '@/lib/seo';
+import { getBusinessSoloIntroPriceId } from '@/constants';
 
 export const metadata: Metadata = buildPageMetadata({
-  title: 'U.S. Business Pricing Plans',
+  title: 'U.S. Business Pricing Plan',
   description:
-    'Compare MyMcKenzieCS Solo, Team, and Enterprise pricing plans for U.S. legal support businesses managing client matters.',
+    'MyMcKenzieCS Solo pricing for U.S. legal support professionals managing client matters.',
   path: '/us/pricing/business',
 });
 
@@ -17,8 +18,9 @@ export default function UsBusinessPricingRoute() {
       marketPrefix="/us"
       homeHref="/us"
       currencySymbol="$"
-      prices={{ solo: '69', team: '199', enterprise: 'Custom' }}
-      regionNote="U.S. business plans are for legal support businesses and teams that need shared client-workspace tools while U.S. coverage continues expanding."
+      prices={{ intro: '29.99', standard: '39.99' }}
+      soloPriceId={getBusinessSoloIntroPriceId('US')}
+      regionNote="U.S. Solo business plan for independent legal support professionals while U.S. coverage continues expanding."
     />
   );
 }

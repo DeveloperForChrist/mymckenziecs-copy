@@ -30,7 +30,7 @@ const audienceCards = [
     label: 'Client-work operations',
     title: 'Business',
     text: 'For McKenzie Friends, paralegals, document-preparation providers, and legal support businesses managing client work.',
-    bullets: ['Solo, Team, Enterprise', 'Client matter workflows', 'Business workspace controls'],
+    bullets: ['Solo professional plan', 'Client matter workflows', 'Business workspace controls'],
     cta: 'View business pricing',
   },
 ];
@@ -75,7 +75,7 @@ export default function PricingAudienceSelector({
                     <span className="font-semibold">Business plans are separate</span>
                   </div>
                   <p className="mt-3">
-                    Solo, Team, and Enterprise are for client-work operations. Personal litigant plans remain on the existing Basic, Premium, and Premium + checkout path.
+                    Solo is for client-work operations. Personal litigant plans remain on the existing Basic, Premium, and Premium + checkout path.
                   </p>
                 </div>
               </div>

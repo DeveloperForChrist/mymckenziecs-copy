@@ -71,6 +71,9 @@ export default function UsTermsPage() {
           <b>Billing and Subscriptions</b>
           <ul className="list-disc pl-6 mt-2 space-y-1">
             <li>Paid plans renew automatically until canceled</li>
+            <li>Plan charges cover access to MyMcKenzieCS only</li>
+            <li>MyMcKenzieCS does not process client-to-professional service payments, payouts, or escrow</li>
+            <li>Professionals and clients manage service invoices and collections outside the platform</li>
             <li>Prices shown on the relevant market pages apply to your subscription path</li>
             <li>Failed payments may trigger retries, grace periods, billing reminders, or access restrictions</li>
             <li>Read-only, archive, and deletion lifecycle steps may apply after long-term lapse, subject to notices sent to your account email</li>

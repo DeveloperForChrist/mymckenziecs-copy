@@ -57,7 +57,7 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
               </div>
             </div>
             <div className={styles.heroFooter}>
-              <span className={styles.pill}>Start free and choose a plan later if you need more support.</span>
+              <span className={styles.pill}>Create your workspace and choose your plan in billing when ready.</span>
               <a href={pricingHref}>Plans</a>
               <a href={faqHref}>Plan FAQ</a>
             </div>

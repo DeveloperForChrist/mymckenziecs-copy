@@ -5,7 +5,7 @@ import { supabaseAdmin } from '@/lib/database/supabase-server';
 
 export type AccountType = 'business' | 'litigant';
 
-const BUSINESS_PLAN_LABELS = new Set(['solo', 'team', 'enterprise']);
+const BUSINESS_PLAN_LABELS = new Set(['solo']);
 
 function normalizeAccountType(value: unknown): AccountType | null {
   const normalized = String(value || '').trim().toLowerCase();

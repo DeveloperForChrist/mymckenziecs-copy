@@ -36,6 +36,7 @@ export default function SignInForm() {
   })
   const defaultDashboardHref = getAppRouteForMarket('/dashboard', publicMarket)
   const businessDashboardHref = '/business/dashboard'
+  const clientPortalHref = '/client-portal'
   const nextPath = redirectParam.startsWith('/') ? redirectParam : defaultDashboardHref
   const [formData, setFormData] = useState({
     email: '',
@@ -104,6 +105,8 @@ export default function SignInForm() {
 
       let isVerified = true
       let accountType = 'litigant'
+      let hasBusinessWorkspace = false
+      let hasClientPortalAccess = false
       try {
         const verificationRes = await fetch('/api/user', {
           credentials: 'include',
@@ -116,22 +119,28 @@ export default function SignInForm() {
               ? verificationPayload.emailVerified
               : true
           accountType = String(verificationPayload?.accountType || 'litigant').trim().toLowerCase()
+          hasBusinessWorkspace = Boolean(verificationPayload?.hasBusinessWorkspace)
+          hasClientPortalAccess = Boolean(verificationPayload?.hasClientPortalAccess)
         }
       } catch {
         // Fail open to avoid blocking verified users on transient API issues.
         isVerified = true
       }
 
-      const isBusinessAccount = accountType === 'business'
+      const isBusinessAccount = accountType === 'business' || hasBusinessWorkspace
+      const hasExplicitRedirect = redirectParam.startsWith('/')
       const isDashboardRedirect =
         nextPath === defaultDashboardHref ||
         nextPath === '/dashboard' ||
         nextPath.startsWith('/dashboard?') ||
         nextPath === '/us/dashboard' ||
         nextPath.startsWith('/us/dashboard?')
-      const accountDashboardHref = isBusinessAccount && isDashboardRedirect
-        ? businessDashboardHref
-        : nextPath
+      const accountDashboardHref = (() => {
+        if (hasExplicitRedirect) return nextPath
+        if (isBusinessAccount && isDashboardRedirect) return businessDashboardHref
+        if (hasClientPortalAccess && !isBusinessAccount && isDashboardRedirect) return clientPortalHref
+        return nextPath
+      })()
 
       if (!isVerified) {
         const verifyRedirectTarget = accountDashboardHref
