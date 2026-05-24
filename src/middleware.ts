@@ -73,6 +73,22 @@ function isMarketMappablePath(pathname: string): boolean {
   )
 }
 
+function isSocialCrawler(userAgent: string | null | undefined): boolean {
+  const ua = String(userAgent || '').toLowerCase()
+  if (!ua) return false
+  return (
+    ua.includes('facebookexternalhit') ||
+    ua.includes('facebot') ||
+    ua.includes('twitterbot') ||
+    ua.includes('linkedinbot') ||
+    ua.includes('slackbot') ||
+    ua.includes('whatsapp') ||
+    ua.includes('telegrambot') ||
+    ua.includes('discordbot') ||
+    ua.includes('skypeuripreview')
+  )
+}
+
 function resolveApprovedPublicMarket(params: {
   profileCountryCode?: string | null
   storedMarketCookie?: string | null
@@ -105,10 +121,12 @@ function resolveApprovedPublicMarket(params: {
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
+  const userAgent = request.headers.get('user-agent')
+  const socialCrawler = isSocialCrawler(userAgent)
   const requestedMarket = readStoredMarketCookie(request.nextUrl.searchParams.get('market'))
 
   if (pathname === '/') {
-    const destinationPath = requestedMarket === 'US' ? '/us' : '/uk'
+    const destinationPath = socialCrawler ? '/uk' : (requestedMarket === 'US' ? '/us' : '/uk')
     const url = new URL(destinationPath, request.url)
 
     request.nextUrl.searchParams.forEach((value, key) => {
@@ -285,7 +303,9 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isPublicMarketRoutingCandidate) {
-    const approvedMarket = resolveApprovedPublicMarket({
+    const approvedMarket = socialCrawler
+      ? 'GB'
+      : resolveApprovedPublicMarket({
       profileCountryCode: userProfile?.country_code || (user as any)?.user_metadata?.country_code || null,
       storedMarketCookie: request.cookies.get('market')?.value || null,
       edgeCountryCode: readEdgeCountryCode(request.headers),
