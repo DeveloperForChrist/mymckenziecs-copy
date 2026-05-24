@@ -57,6 +57,16 @@ export function isPremiumPlusPlan(plan: any): boolean {
 }
 
 export function hasCaseLawAccess(plan: any): boolean {
+  const label = normalizePlanLabel(plan);
+  // Business/professional plans should always have case-law access.
+  if (
+    label.includes('solo') ||
+    label.includes('team') ||
+    label.includes('enterprise') ||
+    label.includes('business')
+  ) {
+    return true;
+  }
   return isPremiumPlusPlan(plan);
 }
 
