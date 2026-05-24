@@ -13,11 +13,16 @@ interface ClientInviteFormData {
   name?: string
 }
 
+function normalizeEmail(value: string | null | undefined) {
+  return String(value || '').trim().toLowerCase()
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as ClientInviteFormData
+    const invitedEmail = normalizeEmail(body.email)
 
-    if (!body.email) {
+    if (!invitedEmail) {
       return NextResponse.json(
         { message: 'Email is required.' },
         { status: 400 }
@@ -65,7 +70,7 @@ export async function POST(request: NextRequest) {
       .from('client_invitations')
       .select('*')
       .eq('business_id', businessData.id)
-      .eq('invited_email', body.email)
+      .eq('invited_email', invitedEmail)
       .eq('status', 'pending')
       .single()
 
@@ -83,7 +88,7 @@ export async function POST(request: NextRequest) {
         business_id: businessData.id,
         inviter_id: user.id,
         inviter_email: user.email,
-        invited_email: body.email,
+        invited_email: invitedEmail,
         client_name: body.name || null,
         status: 'pending',
       })
@@ -105,7 +110,7 @@ export async function POST(request: NextRequest) {
     const textBody =
       `Hello,\n\n` +
       `${businessData.name} has invited you to join their secure client portal on MyMcKenzieCS.\n\n` +
-      `Please use the link below to create your account and access your client workspace:\n` +
+      `Please use the link below to sign in or create your account and access your client workspace:\n` +
       `${signupUrl}\n\n` +
       `If you were not expecting this invitation, you can safely ignore this email.\n\n` +
       `Kind regards,\n` +
@@ -114,11 +119,11 @@ export async function POST(request: NextRequest) {
       <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; line-height: 1.5; color: #111827;">
         <h2 style="margin: 0 0 12px;">Invitation to Join ${businessData.name}'s Client Portal</h2>
         <p style="margin: 0 0 16px;">Hello,</p>
-        <p style="margin: 0 0 16px;">${businessData.name} has invited <strong>${body.email}</strong> to join their secure client portal on MyMcKenzieCS.</p>
-        <p style="margin: 0 0 16px;">Please use the button below to create your account and access your client workspace.</p>
+        <p style="margin: 0 0 16px;">${businessData.name} has invited <strong>${invitedEmail}</strong> to join their secure client portal on MyMcKenzieCS.</p>
+        <p style="margin: 0 0 16px;">Please use the button below to sign in or create your account and access your client workspace.</p>
         <p style="margin: 0 0 16px;">
           <a href="${signupUrl}" style="display:inline-block;background:#270427;color:#ffffff;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:700;border:1px solid #1c1a42;">
-            Create your account
+            Sign in or create account
           </a>
         </p>
         <p style="margin: 0 0 8px; color: #6b7280; font-size: 13px;">If the button doesn't work, copy and paste this link:</p>
@@ -128,6 +133,39 @@ export async function POST(request: NextRequest) {
       </div>
     `
 
+    const inviteSenderName =
+      String(user.user_metadata?.full_name || user.user_metadata?.display_name || '').trim() ||
+      String(user.email || '').split('@')[0] ||
+      businessData.name ||
+      'Legal support professional'
+
+    const { error: inboxError } = await supabase
+      .from('inbox_messages')
+      .insert({
+        sender_id: user.id,
+        sender_email: user.email,
+        sender_name: inviteSenderName,
+        recipient_email: invitedEmail,
+        subject: `Client portal invite from ${businessData.name}`,
+        content: `${businessData.name} invited you to join their client portal. Use this secure link to sign in or create your account: ${signupUrl}`,
+        type: 'client_invite',
+        metadata: {
+          invitation_id: invitation.id,
+          business_id: businessData.id,
+          invited_email: invitedEmail,
+          status: 'pending',
+          signup_url: signupUrl,
+        },
+      })
+
+    if (inboxError) {
+      console.error('Failed to create inbox message for client invite:', inboxError)
+      return NextResponse.json(
+        { message: 'Invitation created, but inbox message could not be created.' },
+        { status: 500 }
+      )
+    }
+
     const canUseResend = Boolean(process.env.RESEND_API_KEY)
     const gmailUser = process.env.GMAIL_USER
     const gmailAppPassword = process.env.GMAIL_APP_PASSWORD
@@ -136,7 +174,7 @@ export async function POST(request: NextRequest) {
     if (canUseResend) {
       try {
         await sendResendEmail({
-          to: body.email,
+          to: invitedEmail,
           subject,
           textBody,
           htmlBody,
@@ -161,7 +199,7 @@ export async function POST(request: NextRequest) {
       })
       await transporter.sendMail({
         from: gmailUser,
-        to: body.email,
+        to: invitedEmail,
         subject,
         text: textBody,
         html: htmlBody,
@@ -187,10 +225,10 @@ export async function POST(request: NextRequest) {
       type: 'lead',
       priority: 'low',
       title: 'Client invite sent',
-      body: `Invite sent to ${body.email}.`,
+      body: `Invite sent to ${invitedEmail}.`,
       clientName: body.name || null,
       actionLabel: 'View Invites',
-      metadata: { invitationId: invitation.id, invitedEmail: body.email },
+      metadata: { invitationId: invitation.id, invitedEmail },
     })
 
     return NextResponse.json({

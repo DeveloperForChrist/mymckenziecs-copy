@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { createBusinessAlert } from '@/lib/business/alerts'
+import { sendPlatformMessageNotification } from '@/lib/email/platform-notifications'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -109,6 +110,18 @@ export async function POST(request: NextRequest) {
         { message: 'Failed to send message.' },
         { status: 500 }
       )
+    }
+
+    try {
+      await sendPlatformMessageNotification({
+        to: ownerData.user.email,
+        senderName: link.client_name || user.email?.split('@')[0] || 'Client',
+        subjectLine: body.subject,
+        preview: body.content.slice(0, 180),
+        inboxUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/business/dashboard`,
+      })
+    } catch (notificationError) {
+      console.error('Failed to send platform message notification email:', notificationError)
     }
 
     await createBusinessAlert({

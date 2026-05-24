@@ -15,6 +15,10 @@ export default function DirectoryPageClient({ userId }: Props) {
         <Link href="/dashboard" className={styles.backLink}>
           <ArrowLeft size={15}/>Back to Dashboard
         </Link>
+        <div className={styles.quickLinks}>
+          <Link href="/client-portal" className={styles.backLink}>Inbox</Link>
+          <Link href="/video-call" className={styles.backLink}>Video Call</Link>
+        </div>
       </div>
       <div className={styles.content}>
         <DirectoryClient mode="litigant" />

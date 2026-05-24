@@ -328,6 +328,9 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
                 <textarea className={styles.composeTextarea} rows={8} placeholder="Write your message…"
                   value={composeForm.body} onChange={e => setComposeForm(f => ({ ...f, body: e.target.value }))}/>
               </div>
+              <p className={styles.composeHint} role="note">
+                Messages are delivered securely in the client portal. The recipient receives an email notification to sign in and reply.
+              </p>
               {composeNotice && (
                 <p className={composeNotice === 'sent' ? styles.composeSentNotice : styles.composeErrorNotice}>
                   {composeNotice === 'sent' ? 'Message sent!' : composeNotice}

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import nodemailer from 'nodemailer'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
-import { sendResendEmail } from '@/lib/email/resend'
+import { sendPlatformMessageNotification } from '@/lib/email/platform-notifications'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -15,14 +14,6 @@ type SendEmailPayload = {
 
 function asString(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''
-}
-
-function toHtml(value: string) {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\n/g, '<br />')
 }
 
 export async function POST(request: NextRequest) {
@@ -57,63 +48,6 @@ export async function POST(request: NextRequest) {
       user.email.split('@')[0] ||
       'MyMcKenzieCS Professional'
 
-    const textBody = body
-    const htmlBody = `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
-        <p>${toHtml(body)}</p>
-      </div>
-    `
-
-    const canUseResend = Boolean(process.env.RESEND_API_KEY)
-    const gmailUser = process.env.GMAIL_USER
-    const gmailAppPassword = process.env.GMAIL_APP_PASSWORD
-    let messageSent = false
-    let provider = 'none'
-
-    if (canUseResend) {
-      try {
-        await sendResendEmail({
-          to,
-          subject,
-          textBody,
-          htmlBody,
-          tag: 'business-outbound',
-          from: process.env.RESEND_FROM_EMAIL || process.env.FROM_EMAIL,
-        })
-        messageSent = true
-        provider = 'resend'
-      } catch (resendError) {
-        if (!gmailUser || !gmailAppPassword) {
-          throw resendError
-        }
-      }
-    }
-
-    if (!messageSent && gmailUser && gmailAppPassword) {
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        connectionTimeout: 10000,
-        greetingTimeout: 10000,
-        socketTimeout: 15000,
-        auth: { user: gmailUser, pass: gmailAppPassword },
-      })
-
-      await transporter.sendMail({
-        from: gmailUser,
-        to,
-        replyTo: user.email,
-        subject,
-        text: textBody,
-        html: htmlBody,
-      })
-      messageSent = true
-      provider = 'gmail'
-    }
-
-    if (!messageSent) {
-      return NextResponse.json({ message: 'Email service is not configured.' }, { status: 500 })
-    }
-
     const { error: insertError } = await supabaseAdmin
       .from('inbox_messages')
       .insert({
@@ -125,20 +59,32 @@ export async function POST(request: NextRequest) {
         content: body,
         type: 'email',
         metadata: {
-          channel: 'external_email',
+          channel: 'platform_message',
           direction: 'outbound',
-          provider,
           sentByBusinessDashboard: true,
         },
       })
 
     if (insertError) {
-      console.error('Failed to save sent email record:', insertError)
+      console.error('Failed to save platform message record:', insertError)
+      return NextResponse.json({ message: 'Failed to send message.' }, { status: 500 })
     }
 
-    return NextResponse.json({ message: 'Email sent successfully.' })
+    try {
+      await sendPlatformMessageNotification({
+        to,
+        senderName,
+        subjectLine: subject,
+        preview: body.slice(0, 180),
+        inboxUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/client-portal`,
+      })
+    } catch (notificationError) {
+      console.error('Failed to send platform message notification email:', notificationError)
+    }
+
+    return NextResponse.json({ message: 'Message sent successfully.' })
   } catch (error) {
     console.error('Business send email error:', error)
-    return NextResponse.json({ message: 'Failed to send email.' }, { status: 500 })
+    return NextResponse.json({ message: 'Failed to send message.' }, { status: 500 })
   }
 }

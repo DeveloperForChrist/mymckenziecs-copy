@@ -378,6 +378,9 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
               <span>
                 Submit an enquiry to the MCS Portal and we will circulate it to legal support professionals in the directory for review.
               </span>
+              <span>
+                If a professional accepts your enquiry, they can send you a client portal invite. You will receive it in your Inbox and continue from there.
+              </span>
             </div>
             <button type="button" className={styles.portalCalloutBtn} onClick={() => openPortalModal()}>
               Submit an enquiry
@@ -592,7 +595,7 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">
                   {portalModalOpen 
-                    ? 'Your enquiry will be shared with legal support professionals in the directory. We aim for a response within 24–48 hours (subject to availability).'
+                    ? 'Your enquiry will be shared with legal support professionals in the directory. If one accepts, they can send a client portal invite to your Inbox. We aim for a response within 24–48 hours (subject to availability).'
                     : `Send a private message to ${selectedForContact?.displayName}`}
                 </p>
               </div>
@@ -614,7 +617,7 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
                 <h3 className="text-lg font-semibold text-gray-900 mb-1">Message Sent!</h3>
                 <p className="text-gray-600 text-sm">
                   {portalModalOpen 
-                    ? 'Your enquiry has been submitted to the MCS Portal. Legal support professionals will review your details and respond where appropriate.'
+                    ? 'Your enquiry has been submitted. If a professional accepts, they can send you a client portal invite that appears in your Inbox.'
                     : 'Your message has been sent to the professional.'}
                 </p>
               </div>

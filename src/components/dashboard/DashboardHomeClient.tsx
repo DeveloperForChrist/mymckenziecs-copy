@@ -93,6 +93,7 @@ export default function DashboardHomeClient({
   const settingsHref = getAppRouteForMarket('/settings', normalizePublicMarket(publicMarket));
   const billingSettingsHref = getAppRouteForMarket('/settings?tab=billing', normalizePublicMarket(publicMarket));
   const clientInboxHref = '/client-portal';
+  const videoCallHref = '/video-call';
   const showActivationBanner =
     !clientPortalEnabled && planLoaded && emailVerified && (!hasPaidAccess || trialStartPending || Boolean(trialStartError));
   const trialDaysLeft = isTrialingStatus ? daysUntil(nextBillingDate) : null;
@@ -395,10 +396,24 @@ export default function DashboardHomeClient({
           },
           {
             icon: 'bx-group',
-            title: 'Find a McKenzie Friend',
-            desc: 'Browse our directory of McKenzie Friends and legal consultants',
+            title: 'Find Legal Support Professionals',
+            desc: 'Browse our directory of legal support professionals and consultants',
             href: '/dashboard/directory',
             color: '#7b2b7b,#c084fc'
+          },
+          {
+            icon: 'bx-inbox',
+            title: 'Inbox',
+            desc: 'View your messages and client portal invitations',
+            href: clientInboxHref,
+            color: '#0f766e,#2dd4bf'
+          },
+          {
+            icon: 'bx-video',
+            title: 'Video Call',
+            desc: 'Start or join a secure video call room',
+            href: videoCallHref,
+            color: '#1d4ed8,#60a5fa'
           },
         ]
       : []),

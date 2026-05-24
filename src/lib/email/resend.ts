@@ -5,6 +5,7 @@ type ResendSendEmailParams = {
   textBody?: string;
   tag?: string;
   from?: string;
+  replyTo?: string | string[];
 };
 
 function formatFromAddress(from: string, fallbackName: string) {
@@ -48,6 +49,7 @@ export async function sendResendEmail(params: ResendSendEmailParams) {
     subject: params.subject,
     html: params.htmlBody,
     text: params.textBody,
+    replyTo: params.replyTo,
     tags: params.tag ? [{ name: params.tag, value: params.tag }] : undefined,
   } as any);
 

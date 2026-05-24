@@ -1,5 +1,6 @@
 .shell{display:flex;flex-direction:column;height:100vh;background:#f7f8fa;overflow:hidden}
-.topBar{padding:10px 24px;border-bottom:1px solid #e5e7eb;background:#fff;flex-shrink:0}
+.topBar{padding:10px 24px;border-bottom:1px solid #e5e7eb;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .backLink{display:inline-flex;align-items:center;gap:7px;font-size:.813rem;color:#667085;text-decoration:none;font-weight:600;transition:color .15s}
 .backLink:hover{color:#111827}
+.quickLinks{display:inline-flex;align-items:center;gap:12px}
 .content{flex:1;overflow:hidden}

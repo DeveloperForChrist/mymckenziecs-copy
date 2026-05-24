@@ -85,6 +85,7 @@
 .composeBodyField{flex:1;overflow:hidden;display:flex}
 .composeTextarea{flex:1;border:none;outline:none;resize:none;font-size:.875rem;color:#111827;padding:14px 16px;font-family:inherit;line-height:1.6;background:#fff;width:100%}
 .composeTextarea::placeholder{color:#d1d5db}
+.composeHint{font-size:.74rem;color:#6b7280;margin:0;padding:8px 16px 9px;background:#f9fafb;border-top:1px solid #f3f4f6;flex-shrink:0}
 .composeSentNotice{font-size:.75rem;color:#16a34a;margin:0;padding:7px 16px;background:#f0fdf4;border-top:1px solid #bbf7d0;flex-shrink:0}
 .composeErrorNotice{font-size:.75rem;color:#dc2626;margin:0;padding:7px 16px;background:#fef2f2;border-top:1px solid #fecaca;flex-shrink:0}
 .composeActions{display:flex;align-items:center;gap:8px;padding:12px 16px;border-top:1px solid #e5e7eb;background:#fafafa;flex-shrink:0}
@@ -167,6 +168,7 @@
 :global([data-theme="dark"]) .composeField{border-color:#333}
 :global([data-theme="dark"]) .composeInput{color:#e5e7eb}
 :global([data-theme="dark"]) .composeTextarea{background:#242424;color:#e5e7eb}
+:global([data-theme="dark"]) .composeHint{background:#232323;border-color:#333;color:#9ca3af}
 :global([data-theme="dark"]) .composeActions{background:#2d2d2d;border-color:#333}
 :global([data-theme="dark"]) .composeCancelBtn{background:#2d2d2d;color:#9ca3af;border-color:#444}
 :global([data-theme="dark"]) .invitationActions{background:#2a1f40;border-color:#4c1d95}
