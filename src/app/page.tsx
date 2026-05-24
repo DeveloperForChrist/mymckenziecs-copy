@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   ...buildPageMetadata({
     title: 'Case Support Software for UK Legal Support Practices',
     description:
-      'MyMcKenzieCS is a case support workspace for independent legal support professionals and litigants managing client matters and case preparation.',
+      'MyMcKenzieCS is a legal workspace for organising case preparation, client support, documents, notes, and deadlines in one place.',
     path: '/',
   }),
 };
@@ -15,8 +15,8 @@ export const revalidate = 86400;
 
 const commonProblems = [
   {
-    title: 'Client work gets scattered',
-    text: 'Independent legal support work becomes harder when WhatsApp messages, emails, documents, notes, and reminders all live in different places.',
+    title: 'Case work gets scattered',
+    text: 'Both litigants in person and independent legal support professionals struggle when messages, documents, notes, and deadlines live across too many tools.',
   },
   {
     title: 'Documents lose context',
@@ -24,7 +24,7 @@ const commonProblems = [
   },
   {
     title: 'Preparation gets rebuilt',
-    text: 'Each new client, hearing, or deadline can force you to rebuild the case picture if there is no reliable workspace behind the support.',
+    text: 'Each hearing, filing, or client update can force a reset if there is no reliable workspace holding the full case picture.',
   },
   {
     title: 'Admin slows the practice down',
@@ -34,20 +34,20 @@ const commonProblems = [
 
 const whoItsFor = [
   {
-    title: 'McKenzie Friends',
-    text: 'Independent McKenzie Friends supporting Litigants in Person who need a calmer way to manage client matters.',
+    title: 'Litigants in Person',
+    text: 'People handling their own case who need one workspace for documents, notes, deadlines, and preparation.',
   },
   {
-    title: 'Legal support professionals',
-    text: 'Paralegals, consultants, and document-prep providers who want client work organised in one professional workspace.',
+    title: 'Independent legal support professionals',
+    text: 'McKenzie Friends, paralegals, consultants, and document-support providers managing client matters in one professional workspace.',
   },
   {
     title: 'Client-facing support providers',
-    text: 'People helping clients manage documents, evidence, notes, chronology, deadlines, and practical preparation.',
+    text: 'Professionals supporting clients with documents, chronology, evidence, deadlines, and practical preparation.',
   },
   {
-    title: 'Litigants invited by their helper',
-    text: 'Clients can benefit from a clearer case workspace while the support professional remains in control of the service relationship.',
+    title: 'Litigants invited by professionals',
+    text: 'Litigants can be invited into secure client portal workflows while professionals keep service delivery organised.',
   },
 ];
 
@@ -140,9 +140,9 @@ const guidePages = [
 export default function UkHomePage() {
   return (
     <MarketHomepage
-      audienceLabel="For Independent Legal Support Professionals, Litigants, And Their Clients"
-      titleLines={['Run your legal support practice', 'from one organised workspace.']}
-      description="Manage clients, documents, deadlines, notes, platform billing, and case progress in a calm, professional platform built for independent legal support professionals and litigants."
+      audienceLabel="Legal Case Workspace"
+      titleLines={['One organised legal case workspace.']}
+      description="MyMcKenzieCS is a legal workspace for managing documents, deadlines, notes, and case preparation in one clear platform."
       guideHeading="Helpful guides for legal support work"
       commonProblems={commonProblems}
       whoItsFor={whoItsFor}
@@ -164,8 +164,8 @@ export default function UkHomePage() {
         { href: '/uk/contact', label: 'Contact' },
       ]}
       marketSwitch={{ href: '/?market=US', label: 'Looking for the U.S. version? Open the U.S. site' }}
-      ctaTitle="Start organising your client work now."
-      ctaText="Start with one client matter, then keep documents, deadlines, notes, and preparation context in the same workspace."
+      ctaTitle="Start organising your case work now."
+      ctaText="Start with one case and keep documents, deadlines, notes, and preparation context in one workspace."
     />
   );
 }

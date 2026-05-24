@@ -394,13 +394,17 @@ export default function DashboardHomeClient({
             href: caseLawHref,
             color: '#f59e42,#fbbf24'
           },
-          {
-            icon: 'bx-group',
-            title: 'Find Legal Support Professionals',
-            desc: 'Browse our directory of legal support professionals and consultants',
-            href: '/dashboard/directory',
-            color: '#7b2b7b,#c084fc'
-          },
+          ...(publicMarket !== 'US'
+            ? [
+                {
+                  icon: 'bx-group',
+                  title: 'Find Legal Support Professionals',
+                  desc: 'Browse our directory of legal support professionals and consultants',
+                  href: '/dashboard/directory',
+                  color: '#7b2b7b,#c084fc'
+                },
+              ]
+            : []),
           {
             icon: 'bx-inbox',
             title: 'Inbox',
