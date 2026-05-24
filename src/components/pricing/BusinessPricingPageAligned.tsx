@@ -2,10 +2,7 @@ type BusinessPricingPageAlignedProps = {
   marketPrefix?: '' | '/uk' | '/us';
   homeHref: string;
   currencySymbol: string;
-  prices: {
-    intro: string;
-    standard: string;
-  };
+  price: string;
   regionNote: string;
   soloPriceId?: string;
   signInHref?: string;
@@ -28,7 +25,7 @@ export default function BusinessPricingPageAligned({
   marketPrefix = '',
   homeHref,
   currencySymbol,
-  prices,
+  price,
   regionNote,
   soloPriceId = '',
   signInHref = '/auth/signin',
@@ -50,9 +47,9 @@ export default function BusinessPricingPageAligned({
     {
       key: 'solo',
       name: 'Solo',
-      displayPrice: `${currencySymbol}${prices.standard}`,
+      displayPrice: `${currencySymbol}${price}`,
       accent: '#9cc8ff',
-      note: `${currencySymbol}${prices.intro}/month for the first 3 months, then ${currencySymbol}${prices.standard}/month`,
+      note: `${currencySymbol}${price}/month`,
       features: [
         'One business workspace',
         'Client matters, notes, documents, and deadlines',
@@ -190,12 +187,8 @@ export default function BusinessPricingPageAligned({
               <p style={{ color: '#cbd5f5', marginBottom: '1rem' }}>Simple pricing for solo legal support professionals.</p>
               <div style={{ display: 'grid', gap: '0.8rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', fontWeight: 600 }}>
-                  <span>Intro offer (first 3 months)</span>
-                  <span style={{ color: '#9cc8ff' }}>{currencySymbol}{prices.intro} / mo</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', fontWeight: 600 }}>
-                  <span>Standard monthly</span>
-                  <span style={{ color: '#93c5fd' }}>{currencySymbol}{prices.standard} / mo</span>
+                  <span>Monthly price</span>
+                  <span style={{ color: '#9cc8ff' }}>{currencySymbol}{price} / mo</span>
                 </div>
               </div>
             </div>

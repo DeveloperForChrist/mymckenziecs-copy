@@ -148,9 +148,9 @@ const guidePages = [
 export default function UkHomePage() {
   return (
     <MarketHomepage
-      audienceLabel="For Independent Legal Support Professionals, Litigants, And Their Clients"
-      titleLines={['Run your legal support practice', 'from one organised workspace.']}
-      description="Manage clients, documents, deadlines, notes, platform billing, and case progress in a calm, professional platform built for independent legal support professionals and litigants."
+      audienceLabel="For Independent Legal Support Professionals, Litigants in Person, and Their Clients"
+      titleLines={['Run premium legal support work', 'from one organised workspace.']}
+      description="Manage client matters, documents, deadlines, notes, billing, and case progress in a calm, professional platform built for independent legal support professionals and self-represented litigants."
       guideHeading="Helpful guides for legal support work"
       commonProblems={commonProblems}
       whoItsFor={whoItsFor}

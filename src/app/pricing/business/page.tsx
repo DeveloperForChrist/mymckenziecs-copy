@@ -17,7 +17,7 @@ export default function BusinessPricingRoute() {
     <BusinessPricingPage
       homeHref="/"
       currencySymbol="£"
-      prices={{ intro: '29.99', standard: '39.99' }}
+      price="29.99"
       soloPriceId={getBusinessSoloIntroPriceId('GB')}
       regionNote="Solo business plan for independent legal support professionals."
     />

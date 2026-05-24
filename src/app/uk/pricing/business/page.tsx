@@ -18,7 +18,7 @@ export default function UkBusinessPricingRoute() {
       marketPrefix="/uk"
       homeHref="/uk"
       currencySymbol="£"
-      prices={{ intro: '29.99', standard: '39.99' }}
+      price="29.99"
       soloPriceId={getBusinessSoloIntroPriceId('GB')}
       regionNote="UK Solo business plan for independent legal support providers managing client matters."
     />

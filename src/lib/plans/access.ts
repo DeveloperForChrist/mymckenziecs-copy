@@ -70,9 +70,9 @@ export function hasReminderAccess(plan: any): boolean {
 
 export function planPriceForLabel(plan: any, market: BillingMarket = 'GB'): string {
   const tier = getPlanTier(plan);
-  if (tier === 'basic') return market === 'US' ? '25' : '18';
-  if (tier === 'premium') return market === 'US' ? '44' : '32';
-  if (tier === 'premium_plus') return market === 'US' ? '270' : '199';
+  if (tier === 'basic') return market === 'US' ? '25' : '14';
+  if (tier === 'premium') return market === 'US' ? '44' : '24';
+  if (tier === 'premium_plus') return market === 'US' ? '270' : '149';
   return '0';
 }
 

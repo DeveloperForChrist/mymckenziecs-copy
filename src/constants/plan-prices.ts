@@ -15,6 +15,7 @@ export type PlanPriceConfig = {
 export const DEADLINE_REMINDER_FEATURE = 'Scheduled series of deadline reminder emails (21, 14, 7, 5, 3, and 1 day before)';
 
 const basicGbPriceId =
+  process.env.NEXT_PUBLIC_STRIPE_BASIC_FOUNDING_PRICE_ID ||
   process.env.NEXT_PUBLIC_STRIPE_BASIC_PRICE_ID ||
   process.env.NEXT_PUBLIC_STRIPE_ESSENTIAL_PRICE_ID ||
   '';
@@ -24,6 +25,7 @@ const basicUsPriceId =
   '';
 
 const premiumGbPriceId =
+  process.env.NEXT_PUBLIC_STRIPE_PREMIUM_FOUNDING_PRICE_ID ||
   process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID ||
   '';
 
@@ -32,6 +34,7 @@ const premiumUsPriceId =
   '';
 
 const premiumPlusGbPriceId =
+  process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PLUS_FOUNDING_PRICE_ID ||
   process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PLUS_PRICE_ID ||
   process.env.NEXT_PUBLIC_STRIPE_PLUS_PRICE_ID ||
   '';
@@ -48,9 +51,9 @@ export const PLAN_PRICES: PlanPriceConfig[] = [
       GB: basicGbPriceId,
       US: basicUsPriceId,
     },
-    display: '£18/Month',
+    display: '£14/Month',
     displayByMarket: {
-      GB: '£18/Month',
+      GB: '£14/Month',
       US: '$25/Month',
     },
     features: [
@@ -67,9 +70,9 @@ export const PLAN_PRICES: PlanPriceConfig[] = [
       GB: premiumGbPriceId,
       US: premiumUsPriceId,
     },
-    display: '£32/Month',
+    display: '£24/Month',
     displayByMarket: {
-      GB: '£32/Month',
+      GB: '£24/Month',
       US: '$44/Month',
     },
     features: [
@@ -87,9 +90,9 @@ export const PLAN_PRICES: PlanPriceConfig[] = [
       GB: premiumPlusGbPriceId,
       US: premiumPlusUsPriceId,
     },
-    display: '£199/Month',
+    display: '£149/Month',
     displayByMarket: {
-      GB: '£199/Month',
+      GB: '£149/Month',
       US: '$270/Month',
     },
     features: [
