@@ -105,6 +105,19 @@ function resolveApprovedPublicMarket(params: {
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
+  const requestedMarket = readStoredMarketCookie(request.nextUrl.searchParams.get('market'))
+
+  if (pathname === '/') {
+    const destinationPath = requestedMarket === 'US' ? '/us' : '/uk'
+    const url = new URL(destinationPath, request.url)
+
+    request.nextUrl.searchParams.forEach((value, key) => {
+      if (key === 'market') return
+      url.searchParams.set(key, value)
+    })
+
+    return NextResponse.redirect(url, 308)
+  }
 
   // Keep old admin URLs working, but canonical login is /jesusistheadmin.
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {

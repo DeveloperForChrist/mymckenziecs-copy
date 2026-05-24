@@ -10,6 +10,14 @@ export const metadata: Metadata = {
       'MyMcKenzieCS is a case support workspace for independent legal support professionals and litigants managing client matters and case preparation.',
     path: '/uk',
   }),
+  alternates: {
+    canonical: '/uk',
+    languages: {
+      'en-GB': '/uk',
+      'en-US': '/us',
+      'x-default': '/uk',
+    },
+  },
 };
 export const revalidate = 86400;
 

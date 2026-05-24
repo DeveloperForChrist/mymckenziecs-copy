@@ -2,11 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import {
   type LegalSearchMode,
   type PremiumPlusToolSelection,
-  invokeBasicLegalAgent,
-  invokePremiumLegalAgent,
-  invokePremiumLegalAgentStream,
-  invokePremiumPlusLegalAgent,
-  invokePremiumPlusLegalAgentStream,
+  invokeBasicLitigantLegalAgent,
+  invokeBasicProfessionalLegalAgent,
+  invokePremiumLitigantLegalAgent,
+  invokePremiumLitigantLegalAgentStream,
+  invokePremiumProfessionalLegalAgent,
+  invokePremiumProfessionalLegalAgentStream,
+  invokePremiumPlusLitigantLegalAgent,
+  invokePremiumPlusLitigantLegalAgentStream,
+  invokePremiumPlusProfessionalLegalAgent,
+  invokePremiumPlusProfessionalLegalAgentStream,
 } from '@/lib/ai/agents/legal-agent'
 import { neutralizeLegalAdviceTone } from '@/lib/ai/agents/legal-tone'
 import { ChatManager } from '@/lib/ai/chat-manager'
@@ -38,6 +43,7 @@ import {
   isUnitedKingdomContext,
   type UserLegalContext,
 } from '@/lib/legal/jurisdictions'
+import { getAccountTypeForUser } from '@/lib/auth/account-type'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -1688,6 +1694,7 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = authUserId
+    const userAccountType = await getAccountTypeForUser(authData?.user)
     const guestId: string | null = null
     const withCookie = (res: NextResponse) => res
 
@@ -2202,7 +2209,7 @@ export async function POST(request: NextRequest) {
       const anthropicApiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
       if (!anthropicApiKey) {
         console.warn(`Premium+ Anthropic API key missing; falling back to OpenAI ${premiumPlusOpenAiFallbackModel}.`)
-        return invokePremiumPlusLegalAgent(
+        return (userAccountType === 'business' ? invokePremiumPlusProfessionalLegalAgent : invokePremiumPlusLitigantLegalAgent)(
           messageForAgent,
           threadId,
           userId,
@@ -2213,6 +2220,7 @@ export async function POST(request: NextRequest) {
             autoDecideSearch: true,
             searchEngineOverride: 'perplexity',
             legalContext: userLegalContext,
+            accountType: userAccountType,
             openaiFallbackModel: premiumPlusOpenAiFallbackModel,
             forceOpenAiFallback: true,
             historyLimit: agentHistoryLimit,
@@ -2221,7 +2229,7 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        return await invokePremiumPlusLegalAgent(
+        return await (userAccountType === 'business' ? invokePremiumPlusProfessionalLegalAgent : invokePremiumPlusLitigantLegalAgent)(
           messageForAgent,
           threadId,
           userId,
@@ -2231,6 +2239,7 @@ export async function POST(request: NextRequest) {
             memoryContext: relatedThreadMemoryContext || undefined,
             autoDecideSearch: true,
             legalContext: userLegalContext,
+            accountType: userAccountType,
             anthropicModel: premiumPlusAnthropicModel || undefined,
             anthropicFallbackModel: premiumPlusAnthropicFallbackModel || undefined,
             historyLimit: agentHistoryLimit,
@@ -2238,7 +2247,7 @@ export async function POST(request: NextRequest) {
         )
       } catch (error) {
         console.error(`Premium+ Anthropic invocation failed; falling back to OpenAI ${premiumPlusOpenAiFallbackModel}.`, error)
-        return invokePremiumPlusLegalAgent(
+        return (userAccountType === 'business' ? invokePremiumPlusProfessionalLegalAgent : invokePremiumPlusLitigantLegalAgent)(
           messageForAgent,
           threadId,
           userId,
@@ -2249,6 +2258,7 @@ export async function POST(request: NextRequest) {
             autoDecideSearch: true,
             searchEngineOverride: 'perplexity',
             legalContext: userLegalContext,
+            accountType: userAccountType,
             openaiFallbackModel: premiumPlusOpenAiFallbackModel,
             forceOpenAiFallback: true,
             historyLimit: agentHistoryLimit,
@@ -2265,7 +2275,7 @@ export async function POST(request: NextRequest) {
       const anthropicApiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
       if (!anthropicApiKey) {
         console.warn(`Premium+ Anthropic API key missing; using OpenAI ${premiumPlusOpenAiFallbackModel} stream fallback.`)
-        return invokePremiumPlusLegalAgentStream(
+        return (userAccountType === 'business' ? invokePremiumPlusProfessionalLegalAgentStream : invokePremiumPlusLitigantLegalAgentStream)(
           messageForAgent,
           threadId,
           userId,
@@ -2276,6 +2286,7 @@ export async function POST(request: NextRequest) {
             autoDecideSearch: true,
             searchEngineOverride: 'perplexity',
             legalContext: userLegalContext,
+            accountType: userAccountType,
             openaiFallbackModel: premiumPlusOpenAiFallbackModel,
             forceOpenAiFallback: true,
             historyLimit: agentHistoryLimit,
@@ -2288,7 +2299,7 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        return await invokePremiumPlusLegalAgentStream(
+        return await (userAccountType === 'business' ? invokePremiumPlusProfessionalLegalAgentStream : invokePremiumPlusLitigantLegalAgentStream)(
           messageForAgent,
           threadId,
           userId,
@@ -2299,6 +2310,7 @@ export async function POST(request: NextRequest) {
             autoDecideSearch: true,
             searchEngineOverride: 'perplexity',
             legalContext: userLegalContext,
+            accountType: userAccountType,
             anthropicModel: premiumPlusAnthropicModel || undefined,
             anthropicFallbackModel: premiumPlusAnthropicFallbackModel || undefined,
             historyLimit: agentHistoryLimit,
@@ -2313,7 +2325,7 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         if (emittedDelta) throw error
         console.error(`Premium+ Anthropic streaming failed; falling back to OpenAI ${premiumPlusOpenAiFallbackModel} stream.`, error)
-        return invokePremiumPlusLegalAgentStream(
+        return (userAccountType === 'business' ? invokePremiumPlusProfessionalLegalAgentStream : invokePremiumPlusLitigantLegalAgentStream)(
           messageForAgent,
           threadId,
           userId,
@@ -2324,6 +2336,7 @@ export async function POST(request: NextRequest) {
             autoDecideSearch: true,
             searchEngineOverride: 'perplexity',
             legalContext: userLegalContext,
+            accountType: userAccountType,
             openaiFallbackModel: premiumPlusOpenAiFallbackModel,
             forceOpenAiFallback: true,
             historyLimit: agentHistoryLimit,
@@ -2517,7 +2530,7 @@ export async function POST(request: NextRequest) {
           try {
             sendEvent({ type: 'start' })
             const agentResponse = shouldStreamPremium
-              ? await invokePremiumLegalAgentStream(
+              ? await (userAccountType === 'business' ? invokePremiumProfessionalLegalAgentStream : invokePremiumLitigantLegalAgentStream)(
                   messageForAgent,
                   threadId,
                   userId,
@@ -2528,6 +2541,7 @@ export async function POST(request: NextRequest) {
                     autoDecideSearch: true,
                     searchEngineOverride: 'brave',
                     legalContext: userLegalContext,
+                    accountType: userAccountType,
                     openaiModel: premiumOpenAiModel,
                     openaiFallbackModel: premiumOpenAiFallbackModel,
                     historyLimit: agentHistoryLimit,
@@ -2565,19 +2579,21 @@ export async function POST(request: NextRequest) {
     }
 
     const agentResponse: AgentResponse = shouldUseBasicLegalAgent
-      ? await invokeBasicLegalAgent(messageForAgent, threadId, userId, effectiveConversationHistory, caseKeywords, {
+      ? await (userAccountType === 'business' ? invokeBasicProfessionalLegalAgent : invokeBasicLitigantLegalAgent)(messageForAgent, threadId, userId, effectiveConversationHistory, caseKeywords, {
           useSearch: false,
           memoryContext: relatedThreadMemoryContext || undefined,
           historyLimit: agentHistoryLimit,
           legalContext: userLegalContext,
+          accountType: userAccountType,
         })
       : shouldUsePremiumPlusLegalAgent
         ? await invokePremiumPlusWithOpenAiFallback()
-        : await invokePremiumLegalAgent(messageForAgent, threadId, userId, effectiveConversationHistory, caseKeywords, {
+        : await (userAccountType === 'business' ? invokePremiumProfessionalLegalAgent : invokePremiumLitigantLegalAgent)(messageForAgent, threadId, userId, effectiveConversationHistory, caseKeywords, {
             memoryContext: relatedThreadMemoryContext || undefined,
             autoDecideSearch: true,
             searchEngineOverride: 'brave',
             legalContext: userLegalContext,
+            accountType: userAccountType,
             openaiModel: premiumOpenAiModel,
             openaiFallbackModel: premiumOpenAiFallbackModel,
             historyLimit: agentHistoryLimit,

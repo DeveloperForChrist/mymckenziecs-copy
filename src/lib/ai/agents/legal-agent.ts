@@ -15,6 +15,7 @@ import {
   isUnitedKingdomContext,
   type UserLegalContext,
 } from '@/lib/legal/jurisdictions';
+import type { AccountType } from '@/lib/auth/account-type';
 
 // Shared legal-support system prompts
 const SYSTEM_PROMPT: string = `
@@ -89,6 +90,135 @@ OUTPUT GOAL
 
 `;
 
+const PROFESSIONAL_SYSTEM_PROMPT: string = `
+You are MyMckenzieCS Assistant for legal support professionals. Operate at premium, elite quality.
+You support independent legal support professionals handling client matters, documents, and procedural workflow.
+You provide legal information, procedural analysis, drafting support, and evidence-quality review. You do not provide legal advice.
+
+OPERATING STANDARD
+- Think like a senior legal workflow strategist: precise, structured, risk-aware, and commercially practical.
+- Prioritise outcome-critical factors: chronology integrity, evidential sufficiency, procedural compliance, and persuasive clarity.
+- Distinguish hard facts, contested assertions, assumptions, and unknowns in every substantial response.
+- If the prompt is underspecified, ask targeted high-leverage questions before proceeding.
+
+PROFESSIONAL REASONING FRAME
+- Stage-map the matter first: forum, posture, deadlines, burden points, and immediate procedural risks.
+- Pressure-test the file from an opposing perspective: weak links, credibility gaps, causation issues, quantum weaknesses, and procedural vulnerabilities.
+- Surface what is missing, what is risky, and what is strongest, in that order.
+- Keep analysis neutral and support-led: no advocacy claims, no certainty language, no legal-advice directives.
+
+DRAFTING AND DOCUMENT QUALITY
+- Produce boardroom-grade drafting: concise, coherent, logically sequenced, and evidence-anchored.
+- Remove noise, repetition, speculation, and emotive overreach.
+- Strengthen structure using: issues, facts, evidence, procedural position, and action sequence.
+- Where useful, rewrite sections end-to-end in a cleaner professional style.
+
+PRESENTATION
+- Plain text only.
+- Crisp, executive readability. Short paragraphs. Use lists only when they improve decision speed.
+- No markdown tables, no decorative formatting, no filler preamble.
+- Lead with the most decision-relevant conclusion, then supporting logic.
+
+TONE
+- Elite professional: calm, sharp, concise, commercially aware.
+- Never provide legal advice or imply representation authority.
+- Avoid definitive outcomes on disputed facts; use calibrated, risk-aware language.
+
+OUTPUT GOAL
+- Help professionals run tighter files, draft stronger documents, reduce avoidable risk, and improve procedural execution quality.
+`
+
+const LITIGANT_SYSTEM_PROMPT: string = `
+You are MyMckenzieCS Assistant, a knowledgeable and conversational UK legal support assistant designed to help users who are representing themselves in legal matters.
+You act as a calm, factual McKenzie Friend: supportive, clear, professional, and focused.
+You provide legal information, procedural guidance, document and evidence support, and clear explanations.
+You do not provide legal advice, act as a solicitor or barrister, advocate in court, predict outcomes, or tell the user what they must do.
+
+A McKenzie Friend in the UK is someone who helps a person understand proceedings, organise information, think clearly, and prepare themselves, without acting as their formal lawyer.
+
+PRIMARY METHOD
+- First identify the likely legal area, the user's role if relevant, the stage of the matter, and the key timeline.
+- When identifying legal area, use tentative framing such as "This appears to fall within..." or "This may fall under..." rather than definitive statements.
+- If a key fact is missing, ask a short clarifying question. Ask more only if genuinely necessary.
+- If enough is already known, answer directly without making the user repeat themselves.
+- Use earlier conversation context where available.
+- If the user refers to "this", "that", or "what we discussed earlier", use the available conversation context before asking them to restate it.
+- Explain legal concepts and procedure in plain English, using short examples only when they materially help understanding.
+- Distinguish clearly between known facts, assumptions, and uncertainty.
+- Keep users focused on relevant facts, evidence, credibility, and procedure rather than emotion or speculation.
+- Answer in a natural, human, free-flowing way by default rather than sounding procedural or robotic.
+
+JUDGE-LIKE FRAMING
+- Help users think the way a judge generally would: what happened, when, how can it be proved, what is relevant, what is disputed, and what procedural point matters next.
+- Help users consider how the other side may challenge their account, evidence, chronology, or reasoning, without becoming partisan and without giving legal advice.
+- Do not adopt the user's accusations as proven facts.
+- Present uncertainty honestly and neutrally.
+
+DOCUMENTS AND EVIDENCE
+- If a user shares or describes a document, review it for clarity, structure, consistency, chronology, missing dates, missing context, contradictions, speculation, and irrelevant material.
+- If useful, offer a clearer rewrite or a draft. Use placeholders in [SQUARE BRACKETS] only for genuinely missing details.
+- Help users identify what evidence they have, such as letters, contracts, statements, emails, text messages, witness accounts, photos, recordings, and official records.
+- If there are evidential gaps, explain neutrally what kinds of proof may improve clarity or credibility.
+
+
+PRESENTATION:
+Use plain text only.
+
+FORMAT RULES:
+- Default to natural prose and a conversational flow.
+- Keep the reply sounding like a direct conversation with the user, not a memo or checklist.
+- Use a short standalone plain-text line for a main section title only when the topic changes materially and a heading genuinely helps.
+- Use a short standalone plain-text line for a subheading only when a smaller branch is needed and it improves clarity.
+- Use numbered lists only for ordered steps, sequence, hierarchy, priority, or court process when prose would be less clear.
+- Use bullet points only for parallel facts, examples, evidence, options, or warnings when prose would be less clear.
+- Use the divider line only when changing mode, for example law -> practical, explanation -> example, or issue -> next steps.
+- Do not use ALL CAPS headings.
+- Do not end headings with a colon.
+- Do not use tables.
+- Do not use markdown headings like #, ##, or ###.
+- Do not use markdown bold, italics, or markdown links.
+- Use short paragraphs only, with 1 idea and no more than 3 sentences.
+- Use a list only when it genuinely improves clarity.
+- Do not force headings, lists, or an "In short:" line when the reply reads better without them.
+- End with a one-sentence compression line starting with "In short:" only when a summary would help.
+- When using court abbreviations in case references (for example UKSC, EWCA, EWHC), explain them in plain English on first mention.
+
+
+
+TONE:
+- Warm, clear, and concise.
+- Ask short clarifying questions only when they materially improve accuracy or usefulness.
+- Use general informational framing when describing legal classification or burden of proof, for example "generally", "typically", "may", and "unless the seller can show otherwise".
+- Sound like you are speaking directly to the user, not reading from an internal checklist.
+- DO not GIVE legal advice.
+- Avoid definitive legal conclusions on the user's facts.
+- Prefer hedged language such as "may", "might", "could", "can", "likely", "in general", "it may help to", "you may wish to", or "some judges may".
+- Prefer neutral phrasing instead of direct instructions.
+- Do not say "you should", "you must", "you need to", "the court will", "the judge will", "you will win", or "you will lose" unless directly quoting a rule or source. Rephrase those into neutral support language.
+- Do not say you chose, called, used, or had access to tools yourself. If search or authority context is present, treat it as context already provided to you.
+
+OUTPUT GOAL
+- Help the user understand their position, organise their facts and evidence, and present their case more clearly and coherently.
+
+`;
+
+const PROFESSIONAL_AUDIENCE_APPENDIX = `
+AUDIENCE MODE: LEGAL SUPPORT PROFESSIONAL
+- Treat the user as an independent legal support professional managing client-facing legal support work.
+- Write for someone with practical legal process experience, while still keeping language clear and neutral.
+- Focus on workflow quality: chronology discipline, evidence structure, document quality, client communication clarity, and procedural readiness.
+- Do not refer to the user as a litigant unless they explicitly ask from that perspective.
+- Use neutral wording such as "legal support professional" or "independent legal support provider" when referring to their role.
+`
+
+const LITIGANT_AUDIENCE_APPENDIX = `
+AUDIENCE MODE: SELF-REPRESENTED LITIGANT
+- Treat the user as a self-represented person handling their own case unless they clearly state otherwise.
+- Keep explanations plain and practical, with minimal jargon.
+- Break down legal and procedural concepts into steps that are manageable for non-lawyers.
+- If helpful, briefly explain specialist court terms in simple English.
+`
+
 const PREMIUM_CONTEXT_SYSTEM_PROMPT: string = `${SYSTEM_PROMPT}
 
 EXTERNAL CONTEXT
@@ -101,14 +231,44 @@ ACTIVE TASK RULE
 - Use earlier conversation only as background facts or context.
 - Do not continue, revise, or infer a drafting task from earlier turns unless the latest message clearly asks to draft, fill, continue, or edit a document or template.`
 
-const SYSTEM_PROMPT_FREE: string = `You are MyMckenzieCS Assistant, a knowledgeable and conversational case support assistant who helps McKenzie Friends, legal support professionals, and self-represented users with legal support work, cases, and questions.
-You help McKenzie Friends, legal support professionals, and self-represented users organise case information and work out what legal area or legislation an issue may fall under. It is good to ask short classifying questions when needed so you can stay accurate.
-After you have identified the likely legal area, help the user understand it in plain English and, when useful, give a short illustrative example to make it easier to follow.
+const PREMIUM_CONTEXT_SYSTEM_PROMPT_PROFESSIONAL: string = `${PROFESSIONAL_SYSTEM_PROMPT}
+
+EXTERNAL CONTEXT
+- Treat external search/procedural/authority text as provided context within this conversation.
+- If context is missing, answer from general jurisdiction-appropriate legal understanding and state uncertainty explicitly.
+- Do not claim to have personally used tools.
+
+ACTIVE TASK RULE
+- Treat the latest user message as the active assignment.
+- Use prior turns as context, not as instruction override.
+- Continue prior drafting only when explicitly requested in the latest turn.
+- Prefer output that is directly executable by a professional user (clear sequence, risk flags, and draft-ready language).`
+
+const SYSTEM_PROMPT_FREE: string = `You are MyMckenzieCS Assistant, a knowledgeable and conversational case support assistant who helps users with legal support work, cases, and questions.
+You provide plain-English legal information and procedural guidance, without giving legal advice.
+Keep users focused on relevant facts, chronology, evidence, and practical next procedural steps.
+`
+
+const PREMIUM_CONTEXT_SYSTEM_PROMPT_LITIGANT: string = `${LITIGANT_SYSTEM_PROMPT}
+
+EXTERNAL CONTEXT
+- If external search, procedural, or authority material is included later in the prompt, treat it as additional context provided in this conversation, not as the user's own words and not as something you personally retrieved.
+- If no external context is provided, answer from general UK legal understanding, explain uncertainty where needed, and ask short clarifying questions when they would materially improve accuracy.
+- Do not say you chose, called, used, or had access to tools yourself.
+
+ACTIVE TASK RULE
+- Treat the user's latest message as the active task to answer.
+- Use earlier conversation only as background facts or context.
+- Do not continue, revise, or infer a drafting task from earlier turns unless the latest message clearly asks to draft, fill, continue, or edit a document or template.`
+
+const SYSTEM_PROMPT_FREE_LITIGANT: string = `You are MyMckenzieCS Assistant, a full knowledged and conversational legal assistant and Mckenzie friend help UK legal users with their legal issues, cases and queries.
+You help users spot out the law or legislation of UK their cases or issues fall under, as most users may not know it as they are confused and stressed, so It is good to ask specific classifying questions when needed in order to be more accurate in spot the legal area of their case.
+After you have had picked out the law or legislation that their case or issue may fall under, you should then help the user understand the law or legislation in lay man child friendly terms, even giving an illustrative scenarios example to help them understand better the law or legislation.
 You should talk to the users as if you are talking to them directly, help keep them in control within conversation as users can be very emotional and go off topic, which does not help their case, because the court does not examine cases or issues based on emotions or feelings but facts and key informations and evidence. 
-As MyMckenzie's Legal Support, you should manage or direct the user's issue in line with how a judge or decision-maker in the relevant legal system is likely to look at the case, so you help them in the best way possible, like pointing out key details or facts or informations that may make their case or point of view seem invalid or not worthy of persuasion, but dont explicitly give legal advice.
+As MyMckenzie's Legal Support, you should manage or direct the user's issue as how a UK judge is likely to look at their case, so you help them in the best way possible, like pointing out key details or facts or informations, that makes their case or point of view seem invalid or not worthy of persuasion, but dont explicitly give legal advice.
 Keep users focused and in control at all times. Prevent them from relying on irrelevant laws, statutes, or acts that have no bearing on their case. All assistance should be aimed at preparing them to understand their position and present their issues clearly and confidently, with guidance framed from the perspective of how a judge would assess relevance and substance.
 
-When deemed suitable, you will need to make references to laws, acts, statutes, procedural rules, and similar authorities.
+When deemed suitable, you will need to make references to laws, acts, statutes and such.
 Do your best to make reference and utilise key facts that users have stated in the conversation to improve conversations with the user over their issues.
 You should share suitable knowledge of the law to users based on their case.
 
@@ -259,6 +419,29 @@ export type PremiumPlusToolSelection = {
   query?: string
   rationale?: string
 }
+type PromptAudience = 'litigant' | 'professional'
+
+const resolvePromptAudience = (accountType?: AccountType | null): PromptAudience =>
+  accountType === 'business' ? 'professional' : 'litigant'
+
+const getAudienceAppendix = (accountType?: AccountType | null): string =>
+  resolvePromptAudience(accountType) === 'professional'
+    ? PROFESSIONAL_AUDIENCE_APPENDIX
+    : LITIGANT_AUDIENCE_APPENDIX
+
+const buildPromptForAudience = (basePrompt: string, accountType?: AccountType | null): string =>
+  `${basePrompt}\n\n${getAudienceAppendix(accountType).trim()}`
+
+const getPremiumContextPromptForAccount = (accountType?: AccountType | null): string =>
+  resolvePromptAudience(accountType) === 'professional'
+    ? PREMIUM_CONTEXT_SYSTEM_PROMPT_PROFESSIONAL
+    : PREMIUM_CONTEXT_SYSTEM_PROMPT_LITIGANT
+
+const getFreePromptForAccount = (accountType?: AccountType | null): string =>
+  resolvePromptAudience(accountType) === 'professional'
+    ? SYSTEM_PROMPT_FREE
+    : SYSTEM_PROMPT_FREE_LITIGANT
+
 type LegalAgentOptions = {
   useSearch?: boolean
   autoDecideSearch?: boolean
@@ -281,6 +464,7 @@ type LegalAgentOptions = {
   consumeSearchQuota?: () => Promise<SearchQuotaResult>
   targetTokensFloor?: number
   maxTokensCap?: number
+  accountType?: AccountType
 }
 
 const buildJurisdictionSystemPrefix = (legalContext?: UserLegalContext | null) => {
@@ -1065,7 +1249,7 @@ export async function createLegalAgent(
   const tools = [new DocGeneratorTool()]
   const legalContext = options?.legalContext
   const systemPrompt = applyLegalContextToSystemPrompt(
-    options?.systemPrompt || PREMIUM_CONTEXT_SYSTEM_PROMPT,
+    options?.systemPrompt || getPremiumContextPromptForAccount(options?.accountType),
     legalContext
   )
   const memoryContext = typeof options?.memoryContext === 'string' && options.memoryContext.trim()
@@ -1363,6 +1547,7 @@ export async function invokePremiumLegalAgent(
     openaiFallbackModel?: string
     maxTokens?: number
     maxCompressionRetries?: number
+    accountType?: AccountType
   }
   ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
   return invokeLegalAgent(message, threadId, userId, conversationHistory, caseKeywords, {
@@ -1381,7 +1566,36 @@ export async function invokePremiumLegalAgent(
     searchModeOverride: options?.searchModeOverride,
     searchEngineOverride: options?.searchEngineOverride || 'brave',
     legalContext: options?.legalContext,
+    accountType: options?.accountType,
   })
+}
+
+export async function invokePremiumLitigantLegalAgent(
+  ...args: Parameters<typeof invokePremiumLegalAgent>
+) {
+  const [message, threadId, userId, conversationHistory, caseKeywords, options] = args
+  return invokePremiumLegalAgent(
+    message,
+    threadId,
+    userId,
+    conversationHistory,
+    caseKeywords,
+    { ...(options || {}), accountType: 'litigant' }
+  )
+}
+
+export async function invokePremiumProfessionalLegalAgent(
+  ...args: Parameters<typeof invokePremiumLegalAgent>
+) {
+  const [message, threadId, userId, conversationHistory, caseKeywords, options] = args
+  return invokePremiumLegalAgent(
+    message,
+    threadId,
+    userId,
+    conversationHistory,
+    caseKeywords,
+    { ...(options || {}), accountType: 'business' }
+  )
 }
 
 export async function invokePremiumLegalAgentStream(
@@ -1405,6 +1619,7 @@ export async function invokePremiumLegalAgentStream(
     maxCompressionRetries?: number
     onStatus?: (status: string) => void
     onToken?: (chunk: string) => void
+    accountType?: AccountType
   }
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
   const apiKey = (process.env.OPENAI_API_KEY || '').trim()
@@ -1419,7 +1634,10 @@ export async function invokePremiumLegalAgentStream(
   }
 
   const trimmedHistory = sanitizeConversationHistory(conversationHistory, resolveConversationHistoryLimit(options?.historyLimit))
-  const systemPrompt = applyLegalContextToSystemPrompt(PREMIUM_CONTEXT_SYSTEM_PROMPT, options?.legalContext)
+  const systemPrompt = applyLegalContextToSystemPrompt(
+    getPremiumContextPromptForAccount(options?.accountType),
+    options?.legalContext
+  )
   const memoryContext = typeof options?.memoryContext === 'string' && options.memoryContext.trim()
     ? `${options.memoryContext.trim()}\n\n`
     : ''
@@ -1692,6 +1910,34 @@ export async function invokePremiumLegalAgentStream(
   }
 }
 
+export async function invokePremiumLitigantLegalAgentStream(
+  ...args: Parameters<typeof invokePremiumLegalAgentStream>
+) {
+  const [message, threadId, userId, conversationHistory, caseKeywords, options] = args
+  return invokePremiumLegalAgentStream(
+    message,
+    threadId,
+    userId,
+    conversationHistory,
+    caseKeywords,
+    { ...(options || {}), accountType: 'litigant' }
+  )
+}
+
+export async function invokePremiumProfessionalLegalAgentStream(
+  ...args: Parameters<typeof invokePremiumLegalAgentStream>
+) {
+  const [message, threadId, userId, conversationHistory, caseKeywords, options] = args
+  return invokePremiumLegalAgentStream(
+    message,
+    threadId,
+    userId,
+    conversationHistory,
+    caseKeywords,
+    { ...(options || {}), accountType: 'business' }
+  )
+}
+
 type PremiumPlusToolExecutionResult = {
   content: string
   sources?: string[]
@@ -1801,6 +2047,12 @@ const buildPremiumPlusForcedFallbackToolCalls = (prompt: string): Array<{ id: st
 const PREMIUM_PLUS_TOOL_LOOP_LIMIT = Number.isFinite(Number(process.env.PREMIUM_PLUS_TOOL_LOOP_LIMIT))
   ? Math.min(8, Math.max(1, Math.floor(Number(process.env.PREMIUM_PLUS_TOOL_LOOP_LIMIT))))
   : 4
+const PREMIUM_PLUS_LITIGANT_CASE_LAW_DEFAULT_LIMIT = Number.isFinite(Number(process.env.PREMIUM_PLUS_LITIGANT_CASE_LAW_DEFAULT_LIMIT))
+  ? Math.max(1, Math.floor(Number(process.env.PREMIUM_PLUS_LITIGANT_CASE_LAW_DEFAULT_LIMIT)))
+  : 25
+const PREMIUM_PLUS_LITIGANT_CASE_LAW_MAX_LIMIT = Number.isFinite(Number(process.env.PREMIUM_PLUS_LITIGANT_CASE_LAW_MAX_LIMIT))
+  ? Math.max(PREMIUM_PLUS_LITIGANT_CASE_LAW_DEFAULT_LIMIT, Math.floor(Number(process.env.PREMIUM_PLUS_LITIGANT_CASE_LAW_MAX_LIMIT)))
+  : 100
 const PREMIUM_PLUS_TOOL_CALL_MAX_TOKENS = 700
 const PREMIUM_PLUS_ANTHROPIC_PROMPT_CACHING_BETA = 'prompt-caching-2024-07-31'
 const PREMIUM_PLUS_ANTHROPIC_PROMPT_CACHE_TTL = '5m'
@@ -1857,7 +2109,7 @@ const PREMIUM_PLUS_ANTHROPIC_TOOLS = [
           type: 'string',
           enum: ['suggestions', 'analysis', 'both'],
         },
-        limit: { type: 'integer', minimum: 1, maximum: 5 },
+        limit: { type: 'integer', minimum: 1, maximum: 100 },
       },
       required: ['query'],
     },
@@ -2009,10 +2261,10 @@ const isPremiumPlusPromptCachingUnsupportedError = (error: any) => {
   )
 }
 
-const buildPremiumPlusAnthropicSystemPrompt = (contextLines: string[] = []) =>
+const buildPremiumPlusAnthropicSystemPrompt = (contextLines: string[] = [], accountType?: AccountType) =>
   contextLines.length > 0
-    ? `${PREMIUM_PLUS_TOOL_SYSTEM_PROMPT}\n\nContext\n${contextLines.join('\n\n')}`
-    : PREMIUM_PLUS_TOOL_SYSTEM_PROMPT
+    ? `${buildPromptForAudience(PREMIUM_PLUS_TOOL_SYSTEM_PROMPT, accountType)}\n\nContext\n${contextLines.join('\n\n')}`
+    : buildPromptForAudience(PREMIUM_PLUS_TOOL_SYSTEM_PROMPT, accountType)
 
 const buildPremiumPlusContextLines = (options: {
   conversationHistory?: Array<{ role: string; content: string }>
@@ -2049,11 +2301,12 @@ const buildPremiumPlusDirectSystemPrompt = (options: {
   historyLimit?: number
   latestQuestion?: string
   legalContext?: UserLegalContext
+  accountType?: AccountType
 }) => {
   const contextLines = buildPremiumPlusContextLines(options)
   const basePrompt = contextLines.length > 0
-    ? `${PREMIUM_CONTEXT_SYSTEM_PROMPT}\n\nContext\n${contextLines.join('\n\n')}`
-    : PREMIUM_CONTEXT_SYSTEM_PROMPT
+    ? `${getPremiumContextPromptForAccount(options.accountType)}\n\nContext\n${contextLines.join('\n\n')}`
+    : getPremiumContextPromptForAccount(options.accountType)
   return applyLegalContextToSystemPrompt(basePrompt, options.legalContext)
 }
 
@@ -2094,6 +2347,7 @@ const callPremiumPlusDirectText = async (
     memoryContext?: string
     historyLimit?: number
     legalContext?: UserLegalContext
+    accountType?: AccountType
     maxTokens?: number
   }
 ) => {
@@ -2123,6 +2377,7 @@ const streamPremiumPlusDirectText = async (
     memoryContext?: string
     historyLimit?: number
     legalContext?: UserLegalContext
+    accountType?: AccountType
     maxTokens?: number
     onToken?: (chunk: string) => void
   }
@@ -2255,7 +2510,8 @@ const executePremiumPlusToolCall = async (
   toolName: string,
   args: Record<string, any>,
   searchEngineOverride: SearchEngine,
-  legalContext?: UserLegalContext
+  legalContext?: UserLegalContext,
+  accountType?: AccountType
 ): Promise<PremiumPlusToolExecutionResult> => {
   if (toolName === 'web_search') {
     const query = String(args.query || '').trim()
@@ -2267,12 +2523,17 @@ const executePremiumPlusToolCall = async (
   if (toolName === 'case_law_search') {
     const query = String(args.query || '').trim()
     const scopeRaw = String(args.scope || 'both').trim().toLowerCase()
-    const scope = scopeRaw === 'suggestions' || scopeRaw === 'analysis' || scopeRaw === 'both'
-      ? scopeRaw
-      : 'both'
+    let scope: 'suggestions' | 'analysis' | 'both' =
+      scopeRaw === 'suggestions' || scopeRaw === 'analysis' || scopeRaw === 'both'
+        ? scopeRaw
+        : 'both'
+    const maxLimit = accountType === 'business' ? 5 : PREMIUM_PLUS_LITIGANT_CASE_LAW_MAX_LIMIT
+    if (accountType !== 'business' && scope === 'analysis') {
+      scope = 'both'
+    }
     const limit = Number.isFinite(Number(args.limit))
-      ? Math.max(1, Math.min(5, Math.floor(Number(args.limit))))
-      : 3
+      ? Math.max(1, Math.min(maxLimit, Math.floor(Number(args.limit))))
+      : (accountType === 'business' ? 5 : PREMIUM_PLUS_LITIGANT_CASE_LAW_DEFAULT_LIMIT)
     if (!query) return { content: 'Case-law search was skipped because no query was provided.' }
     return executePremiumPlusCaseLawSearch(query, scope, limit, legalContext)
   }
@@ -2621,6 +2882,7 @@ const runPremiumPlusToolLoop = async (
     memoryContext?: string
     historyLimit?: number
     onStatus?: (status: string) => void
+    accountType?: AccountType
   }
 ): Promise<PremiumPlusToolLoopState> => {
   const client = createPremiumPlusAnthropic()
@@ -2629,7 +2891,7 @@ const runPremiumPlusToolLoop = async (
     latestQuestion: prompt,
   })
   const systemPrompt = applyLegalContextToSystemPrompt(
-    buildPremiumPlusAnthropicSystemPrompt(contextLines),
+    buildPremiumPlusAnthropicSystemPrompt(contextLines, options.accountType),
     options.legalContext
   )
   const messages: PremiumPlusAnthropicMessage[] = [{ role: 'user', content: prompt }]
@@ -2677,7 +2939,13 @@ const runPremiumPlusToolLoop = async (
     const executedToolResults = await Promise.all(
       toolUses.map(async (toolUse) => ({
         toolUse,
-        result: await executePremiumPlusToolCall(toolUse.name, toolUse.input, options.searchEngineOverride, options.legalContext),
+        result: await executePremiumPlusToolCall(
+          toolUse.name,
+          toolUse.input,
+          options.searchEngineOverride,
+          options.legalContext,
+          options.accountType
+        ),
       }))
     )
 
@@ -2725,6 +2993,7 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
     memoryContext?: string
     historyLimit?: number
     onStatus?: (status: string) => void
+    accountType?: AccountType
   }
 ): Promise<PremiumPlusToolLoopState> => {
   const apiKey = (process.env.OPENAI_API_KEY || '').trim()
@@ -2738,7 +3007,7 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
         buildPremiumPlusAnthropicSystemPrompt(buildPremiumPlusContextLines({
           ...options,
           latestQuestion: prompt,
-        })),
+        }), options.accountType),
         options.legalContext
       ),
     }
@@ -2750,7 +3019,7 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
     latestQuestion: prompt,
   })
   const systemPrompt = applyLegalContextToSystemPrompt(
-    buildPremiumPlusAnthropicSystemPrompt(contextLines),
+    buildPremiumPlusAnthropicSystemPrompt(contextLines, options.accountType),
     options.legalContext
   )
   const messages: PremiumPlusAnthropicMessage[] = [{ role: 'user', content: prompt }]
@@ -2795,7 +3064,7 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
               type: 'string',
               enum: ['suggestions', 'analysis', 'both'],
             },
-            limit: { type: 'integer', minimum: 1, maximum: 5 },
+            limit: { type: 'integer', minimum: 1, maximum: 100 },
           },
           required: ['query'],
         },
@@ -2936,7 +3205,8 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
             toolUse.name,
             toolUse.input,
             options.searchEngineOverride,
-            options.legalContext
+            options.legalContext,
+            options.accountType
           )
           return { toolUse, result }
         } catch (error: any) {
@@ -3003,6 +3273,7 @@ export async function invokePremiumPlusLegalAgent(
     forceOpenAiFallback?: boolean
     maxTokens?: number
     maxCompressionRetries?: number
+    accountType?: AccountType
   }
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }>; verifiedAuthorities?: VerifiedAuthority[] }> {
   const apiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
@@ -3058,6 +3329,7 @@ export async function invokePremiumPlusLegalAgent(
             memoryContext: options?.memoryContext,
             historyLimit: options?.historyLimit,
             legalContext: options?.legalContext,
+            accountType: options?.accountType,
             latestQuestion: message,
           }),
           openAiFallbackModel,
@@ -3074,6 +3346,7 @@ export async function invokePremiumPlusLegalAgent(
           memoryContext: options?.memoryContext,
           historyLimit: options?.historyLimit,
           legalContext: options?.legalContext,
+          accountType: options?.accountType,
         })
 
     return {
@@ -3097,6 +3370,7 @@ export async function invokePremiumPlusLegalAgent(
         caseKeywords,
         memoryContext: options?.memoryContext,
         historyLimit: options?.historyLimit,
+        accountType: options?.accountType,
       })
     : await runPremiumPlusToolLoop(message, {
         anthropicModel,
@@ -3107,6 +3381,7 @@ export async function invokePremiumPlusLegalAgent(
         caseKeywords,
         memoryContext: options?.memoryContext,
         historyLimit: options?.historyLimit,
+        accountType: options?.accountType,
       })
   const verifiedAuthorities = extractVerifiedAuthoritiesFromToolMessages(toolLoop.messages)
   const toolContext = extractPremiumPlusToolResultText(toolLoop.messages)
@@ -3138,6 +3413,7 @@ export async function invokePremiumPlusLegalAgent(
         memoryContext: options?.memoryContext,
         historyLimit: options?.historyLimit,
         legalContext: options?.legalContext,
+        accountType: options?.accountType,
         latestQuestion: message,
       }),
       model: openAiFallbackModel,
@@ -3215,6 +3491,34 @@ export async function invokePremiumPlusLegalAgent(
   }
 }
 
+export async function invokePremiumPlusLitigantLegalAgent(
+  ...args: Parameters<typeof invokePremiumPlusLegalAgent>
+) {
+  const [message, threadId, userId, conversationHistory, caseKeywords, options] = args
+  return invokePremiumPlusLegalAgent(
+    message,
+    threadId,
+    userId,
+    conversationHistory,
+    caseKeywords,
+    { ...(options || {}), accountType: 'litigant' }
+  )
+}
+
+export async function invokePremiumPlusProfessionalLegalAgent(
+  ...args: Parameters<typeof invokePremiumPlusLegalAgent>
+) {
+  const [message, threadId, userId, conversationHistory, caseKeywords, options] = args
+  return invokePremiumPlusLegalAgent(
+    message,
+    threadId,
+    userId,
+    conversationHistory,
+    caseKeywords,
+    { ...(options || {}), accountType: 'business' }
+  )
+}
+
 export async function invokePremiumPlusLegalAgentStream(
   message: string,
   threadId: string,
@@ -3238,6 +3542,7 @@ export async function invokePremiumPlusLegalAgentStream(
     maxCompressionRetries?: number
     onToken?: (chunk: string) => void
     onStatus?: (status: string) => void
+    accountType?: AccountType
   }
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }>; verifiedAuthorities?: VerifiedAuthority[] }> {
   const apiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
@@ -3302,6 +3607,7 @@ export async function invokePremiumPlusLegalAgentStream(
             memoryContext: options?.memoryContext,
             historyLimit: options?.historyLimit,
             legalContext: options?.legalContext,
+            accountType: options?.accountType,
             latestQuestion: message,
           }),
           openAiFallbackModel,
@@ -3318,6 +3624,7 @@ export async function invokePremiumPlusLegalAgentStream(
           memoryContext: options?.memoryContext,
           historyLimit: options?.historyLimit,
           legalContext: options?.legalContext,
+          accountType: options?.accountType,
           maxTokens: options?.maxTokens,
           onToken: options?.onToken,
         })
@@ -3347,6 +3654,7 @@ export async function invokePremiumPlusLegalAgentStream(
         caseKeywords,
         memoryContext: options?.memoryContext,
         historyLimit: options?.historyLimit,
+        accountType: options?.accountType,
         onStatus: emitStatus,
       })
     : await runPremiumPlusToolLoop(message, {
@@ -3358,6 +3666,7 @@ export async function invokePremiumPlusLegalAgentStream(
         caseKeywords,
         memoryContext: options?.memoryContext,
         historyLimit: options?.historyLimit,
+        accountType: options?.accountType,
         onStatus: emitStatus,
       })
   const verifiedAuthorities = extractVerifiedAuthoritiesFromToolMessages(toolLoop.messages)
@@ -3393,6 +3702,7 @@ export async function invokePremiumPlusLegalAgentStream(
             memoryContext: options?.memoryContext,
             historyLimit: options?.historyLimit,
             legalContext: options?.legalContext,
+            accountType: options?.accountType,
             latestQuestion: message,
           }),
           model: openAiFallbackModel,
@@ -3443,6 +3753,34 @@ export async function invokePremiumPlusLegalAgentStream(
   }
 }
 
+export async function invokePremiumPlusLitigantLegalAgentStream(
+  ...args: Parameters<typeof invokePremiumPlusLegalAgentStream>
+) {
+  const [message, threadId, userId, conversationHistory, caseKeywords, options] = args
+  return invokePremiumPlusLegalAgentStream(
+    message,
+    threadId,
+    userId,
+    conversationHistory,
+    caseKeywords,
+    { ...(options || {}), accountType: 'litigant' }
+  )
+}
+
+export async function invokePremiumPlusProfessionalLegalAgentStream(
+  ...args: Parameters<typeof invokePremiumPlusLegalAgentStream>
+) {
+  const [message, threadId, userId, conversationHistory, caseKeywords, options] = args
+  return invokePremiumPlusLegalAgentStream(
+    message,
+    threadId,
+    userId,
+    conversationHistory,
+    caseKeywords,
+    { ...(options || {}), accountType: 'business' }
+  )
+}
+
 export async function invokeBasicLegalAgent(
   message: string,
   threadId: string,
@@ -3459,6 +3797,7 @@ export async function invokeBasicLegalAgent(
     searchEngineOverride?: SearchEngine
     legalContext?: UserLegalContext
     consumeSearchQuota?: () => Promise<SearchQuotaResult>
+    accountType?: AccountType
   }
 ): Promise<{
   response: string
@@ -3473,8 +3812,12 @@ export async function invokeBasicLegalAgent(
     autoDecideSearch: options?.autoDecideSearch ?? options?.useSearch === undefined,
     includeCitations: true,
     caseAccessUserId: userId,
-    systemPrompt: applyLegalContextToSystemPrompt(SYSTEM_PROMPT_FREE, options?.legalContext),
+    systemPrompt: applyLegalContextToSystemPrompt(
+      getFreePromptForAccount(options?.accountType),
+      options?.legalContext
+    ),
     legalContext: options?.legalContext,
+    accountType: options?.accountType,
     memoryContext: options?.memoryContext,
     historyLimit: options?.historyLimit,
     searchQueryOverride: options?.searchQueryOverride,
@@ -3496,4 +3839,32 @@ export async function invokeBasicLegalAgent(
     sources: response.sources,
     basicDailySearchNotice: response.basicDailySearchNotice,
   }
+}
+
+export async function invokeBasicLitigantLegalAgent(
+  ...args: Parameters<typeof invokeBasicLegalAgent>
+) {
+  const [message, threadId, userId, conversationHistory, caseKeywords, options] = args
+  return invokeBasicLegalAgent(
+    message,
+    threadId,
+    userId,
+    conversationHistory,
+    caseKeywords,
+    { ...(options || {}), accountType: 'litigant' }
+  )
+}
+
+export async function invokeBasicProfessionalLegalAgent(
+  ...args: Parameters<typeof invokeBasicLegalAgent>
+) {
+  const [message, threadId, userId, conversationHistory, caseKeywords, options] = args
+  return invokeBasicLegalAgent(
+    message,
+    threadId,
+    userId,
+    conversationHistory,
+    caseKeywords,
+    { ...(options || {}), accountType: 'business' }
+  )
 }

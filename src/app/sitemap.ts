@@ -13,8 +13,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/uk/pricing/litigants',
     '/uk/pricing/business',
     '/us/pricing',
-    '/us/pricing/litigants',
-    '/us/pricing/business',
     '/uk/faq',
     '/us/faq',
     '/uk/help',

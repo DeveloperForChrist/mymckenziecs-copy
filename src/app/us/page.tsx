@@ -10,6 +10,14 @@ export const metadata: Metadata = {
       'Organize clients, court documents, deadlines, notes, and case progress using the U.S. version of MyMcKenzieCS for legal support professionals and self-represented users.',
     path: '/us',
   }),
+  alternates: {
+    canonical: '/us',
+    languages: {
+      'en-US': '/us',
+      'en-GB': '/uk',
+      'x-default': '/uk',
+    },
+  },
 };
 export const revalidate = 86400;
 
