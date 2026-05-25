@@ -63,6 +63,7 @@ export default function DashboardHomeClient({
   const [planLoaded, setPlanLoaded] = useState(Boolean(initialPlanLoaded));
   const [publicMarket, setPublicMarket] = useState<PublicMarket>(initialPublicMarket);
   const [calendarAlertCount, setCalendarAlertCount] = useState(0);
+  const [clientPortalNotificationCount, setClientPortalNotificationCount] = useState(0);
   const [trialStartPending, setTrialStartPending] = useState(false);
   const [trialStartError, setTrialStartError] = useState<string | null>(null);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -93,7 +94,6 @@ export default function DashboardHomeClient({
   const settingsHref = getAppRouteForMarket('/settings', normalizePublicMarket(publicMarket));
   const billingSettingsHref = getAppRouteForMarket('/settings?tab=billing', normalizePublicMarket(publicMarket));
   const clientInboxHref = '/client-portal';
-  const videoCallHref = '/video-call';
   const showActivationBanner =
     !clientPortalEnabled && planLoaded && emailVerified && (!hasPaidAccess || trialStartPending || Boolean(trialStartError));
   const trialDaysLeft = isTrialingStatus ? daysUntil(nextBillingDate) : null;
@@ -143,6 +143,7 @@ export default function DashboardHomeClient({
     if (!uid) {
       setClientPortalEnabled(false);
       setClientPortalLoaded(false);
+      setClientPortalNotificationCount(0);
       return;
     }
 
@@ -162,7 +163,33 @@ export default function DashboardHomeClient({
           setClientPortalEnabled(false);
           return;
         }
-        setClientPortalEnabled(Array.isArray(data) && data.length > 0);
+        const enabled = Array.isArray(data) && data.length > 0;
+        setClientPortalEnabled(enabled);
+
+        if (!enabled) {
+          setClientPortalNotificationCount(0);
+          return;
+        }
+
+        const { data: authData } = await supabase.auth.getUser();
+        const userEmail = authData.user?.email || '';
+        const [
+          { count: unreadMessages },
+          meetingsPayload,
+        ] = await Promise.all([
+          supabase
+            .from('inbox_messages')
+            .select('id', { count: 'exact', head: true })
+            .eq('recipient_email', userEmail)
+            .eq('is_read', false),
+          fetch('/api/client/meetings', { credentials: 'include', cache: 'no-store' })
+            .then((response) => response.ok ? response.json() : { meetings: [] })
+            .catch(() => ({ meetings: [] })),
+        ]);
+
+        if (cancelled) return;
+        const meetingCount = Array.isArray(meetingsPayload?.meetings) ? meetingsPayload.meetings.length : 0;
+        setClientPortalNotificationCount((unreadMessages || 0) + meetingCount);
       } catch {
         if (!cancelled) setClientPortalEnabled(false);
       } finally {
@@ -352,6 +379,7 @@ export default function DashboardHomeClient({
             desc: 'Open your client portal dashboard for messages and updates',
             href: clientInboxHref,
             color: '#2563eb,#60a5fa',
+            alertCount: clientPortalNotificationCount,
           },
         ]
       : [
@@ -411,13 +439,6 @@ export default function DashboardHomeClient({
             desc: 'View your messages and client portal invitations',
             href: clientInboxHref,
             color: '#0f766e,#2dd4bf'
-          },
-          {
-            icon: 'bx-video',
-            title: 'Video Call',
-            desc: 'Start or join a secure video call room',
-            href: videoCallHref,
-            color: '#1d4ed8,#60a5fa'
           },
         ]
       : []),
@@ -795,7 +816,7 @@ export default function DashboardHomeClient({
                           justifyContent: 'center',
                           boxShadow: '0 8px 18px rgba(0,0,0,0.24)',
                         }}
-                        aria-label={`${feature.alertCount} upcoming calendar event${feature.alertCount === 1 ? '' : 's'}`}
+                        aria-label={`${feature.alertCount} notification${feature.alertCount === 1 ? '' : 's'} for ${feature.title}`}
                       >
                         {feature.alertCount > 99 ? '99+' : feature.alertCount}
                       </div>

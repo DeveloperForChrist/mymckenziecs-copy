@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { readEdgeCountryCode } from '@/lib/legal/edge-country'
-import { copyCookies, readStoredMarketCookie, resolveRootMarket, setMarketCookie } from '@/lib/markets/geo-routing'
+import { readStoredMarketCookie, resolveRootMarket, setMarketCookie } from '@/lib/markets/geo-routing'
 import { getPublicRouteForMarket, type PublicMarket } from '@/lib/markets/public-routes'
 
 const parsePositiveInt = (value: string | undefined, fallback: number) => {
@@ -23,7 +23,7 @@ const logMiddlewarePerf = (
   const extra = metadata
     ? Object.entries(metadata).map(([key, value]) => `${key}=${String(value)}`).join(' ')
     : ''
-  console.info(`[perf][middleware] phase=${phase} duration_ms=${durationMs} path=${pathname}${extra ? ` ${extra}` : ''}`)
+  console.info(`[perf][proxy] phase=${phase} duration_ms=${durationMs} path=${pathname}${extra ? ` ${extra}` : ''}`)
 }
 
 function hasPaidPlan(plan: unknown): boolean {
@@ -119,7 +119,7 @@ function resolveApprovedPublicMarket(params: {
   })
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const userAgent = request.headers.get('user-agent')
   const socialCrawler = isSocialCrawler(userAgent)
@@ -156,6 +156,39 @@ export async function middleware(request: NextRequest) {
   const isRootPath = pathname === '/'
   const isPublicMarketRoutingCandidate = (isPublicMarketPage || isRootPath) && isMarketMappablePath(pathname)
 
+  if (isPublicMarketRoutingCandidate) {
+    const approvedMarket = socialCrawler
+      ? 'GB'
+      : resolveApprovedPublicMarket({
+        storedMarketCookie: request.cookies.get('market')?.value || null,
+        edgeCountryCode: readEdgeCountryCode(request.headers),
+        requestedMarket: request.nextUrl.searchParams.get('market'),
+        authenticated: false,
+      })
+
+    const neutralPath = toMarketNeutralPath(pathname)
+    const targetPath = getPublicRouteForMarket(neutralPath, approvedMarket)
+    const needsPathRedirect = targetPath !== pathname
+    const hasMarketQuery = request.nextUrl.searchParams.has('market')
+
+    if (needsPathRedirect || hasMarketQuery) {
+      const targetUrl = new URL(request.url)
+      targetUrl.pathname = targetPath
+      targetUrl.searchParams.delete('market')
+      const redirectResponse = NextResponse.redirect(targetUrl)
+      setMarketCookie(redirectResponse, approvedMarket, request.nextUrl.protocol === 'https:')
+      return redirectResponse
+    }
+
+    const publicResponse = NextResponse.next({
+      request: {
+        headers: request.headers,
+      },
+    })
+    setMarketCookie(publicResponse, approvedMarket, request.nextUrl.protocol === 'https:')
+    return publicResponse
+  }
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -185,11 +218,25 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Refresh session if exists
+  // Refresh session if exists. Stale browser cookies can contain a refresh token
+  // Supabase no longer recognises; treat that as an anonymous request and clear
+  // auth cookies instead of logging noisy AuthApiError stacks on public pages.
   const authStartedAt = Date.now()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: authData, error: authError } = await supabase.auth.getUser()
+  const user = authError ? null : authData.user
+  if (authError) {
+    const code = String((authError as any)?.code || '')
+    const message = String((authError as any)?.message || '')
+    if (code === 'refresh_token_not_found' || message.toLowerCase().includes('refresh token')) {
+      request.cookies.getAll().forEach((cookie) => {
+        if (cookie.name.startsWith('sb-') || cookie.name.includes('supabase')) {
+          response.cookies.delete(cookie.name)
+        }
+      })
+    } else {
+      console.error('Error refreshing auth session in proxy:', authError)
+    }
+  }
   logMiddlewarePerf('auth.getUser', authStartedAt, pathname, { authenticated: Boolean(user) })
 
   // Protected routes - require authentication
@@ -296,40 +343,10 @@ export async function middleware(request: NextRequest) {
     })
 
     if (profileError) {
-      console.error('Error checking user profile in middleware:', profileError)
+      console.error('Error checking user profile in proxy:', profileError)
     } else {
       userProfile = profileRow
     }
-  }
-
-  if (isPublicMarketRoutingCandidate) {
-    const approvedMarket = socialCrawler
-      ? 'GB'
-      : resolveApprovedPublicMarket({
-      profileCountryCode: userProfile?.country_code || (user as any)?.user_metadata?.country_code || null,
-      storedMarketCookie: request.cookies.get('market')?.value || null,
-      edgeCountryCode: readEdgeCountryCode(request.headers),
-      requestedMarket: request.nextUrl.searchParams.get('market'),
-      authenticated: Boolean(user),
-    })
-
-    const neutralPath = toMarketNeutralPath(pathname)
-    const targetPath = getPublicRouteForMarket(neutralPath, approvedMarket)
-    const needsPathRedirect = targetPath !== pathname
-    const hasMarketQuery = request.nextUrl.searchParams.has('market')
-
-    if (needsPathRedirect || hasMarketQuery) {
-      const targetUrl = new URL(request.url)
-      targetUrl.pathname = targetPath
-      targetUrl.searchParams.delete('market')
-
-      const redirectResponse = NextResponse.redirect(targetUrl)
-      copyCookies(response, redirectResponse)
-      setMarketCookie(redirectResponse, approvedMarket, request.nextUrl.protocol === 'https:')
-      return redirectResponse
-    }
-
-    setMarketCookie(response, approvedMarket, request.nextUrl.protocol === 'https:')
   }
 
   if (shouldEnforceVerification && user) {
@@ -373,7 +390,7 @@ export async function middleware(request: NextRequest) {
     })
 
     if (entitlementError) {
-      console.error('Error checking entitlement status in middleware:', entitlementError)
+      console.error('Error checking entitlement status in proxy:', entitlementError)
     } else {
       entitlement = entitlementRow
       if (!entitlement) {
@@ -392,7 +409,7 @@ export async function middleware(request: NextRequest) {
         })
 
         if (fallbackError) {
-          console.error('Error checking fallback subscription state in middleware:', fallbackError)
+          console.error('Error checking fallback subscription state in proxy:', fallbackError)
         } else if (fallbackSub) {
           const fallbackStatus = String(fallbackSub.status || '').toLowerCase()
           entitlement = {

@@ -6,9 +6,24 @@
  * {@link HostedVideoMeeting} (Jitsi embed) or another hosted SFU (Daily, LiveKit Cloud, 100ms).
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Camera,
+  CameraOff,
+  Check,
+  Clipboard,
+  FileText,
+  Mic,
+  MicOff,
+  PhoneOff,
+  ShieldCheck,
+  Sparkles,
+  UserRound,
+  UsersRound,
+} from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import styles from './WebRtcMeeting.module.css';
 
 const ICE_SERVERS: RTCConfiguration = {
   iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
@@ -74,6 +89,37 @@ export default function WebRtcMeeting({
   const [videoMuted, setVideoMuted] = useState(false);
   const [callEnded, setCallEnded] = useState(false);
   const [rejoinNonce, setRejoinNonce] = useState(0);
+  const [localReady, setLocalReady] = useState(false);
+  const [remoteReady, setRemoteReady] = useState(false);
+  const [roomCopied, setRoomCopied] = useState(false);
+
+  const initials = useMemo(() => {
+    const source = displayName.trim() || 'Participant';
+    return source
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join('');
+  }, [displayName]);
+
+  const shareUrl = useMemo(() => {
+    if (typeof window === 'undefined') return roomName;
+    const url = new URL(window.location.href);
+    url.searchParams.set('room', roomName);
+    return url.toString();
+  }, [roomName]);
+
+  const defaultMode = !className && !videoGridClassName && !primaryButtonClassName && !secondaryButtonClassName;
+
+  const copyInvite = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setRoomCopied(true);
+      window.setTimeout(() => setRoomCopied(false), 1800);
+    } catch {
+      setRoomCopied(false);
+    }
+  };
 
   const flushIce = useCallback(async (pc: RTCPeerConnection) => {
     const buf = iceBufRef.current;
@@ -100,6 +146,7 @@ export default function WebRtcMeeting({
     if (remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = null;
     }
+    setRemoteReady(false);
   }, []);
 
   const createPeerConnection = useCallback(() => {
@@ -125,6 +172,7 @@ export default function WebRtcMeeting({
       const [stream] = ev.streams;
       if (stream && remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = stream;
+        setRemoteReady(true);
       }
     };
 
@@ -194,6 +242,7 @@ export default function WebRtcMeeting({
           return;
         }
         localStreamRef.current = stream;
+        setLocalReady(true);
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream;
         }
@@ -366,6 +415,7 @@ export default function WebRtcMeeting({
       broadcastChannelRef.current = null;
       localStreamRef.current?.getTracks().forEach((t) => t.stop());
       localStreamRef.current = null;
+      setLocalReady(false);
       teardownPc();
     };
   }, [roomName, rejoinNonce, callEnded, createPeerConnection, flushIce, sendOfferTo, teardownPc]);
@@ -408,12 +458,16 @@ export default function WebRtcMeeting({
 
   const primaryCls = primaryButtonClassName ?? '';
   const secondaryCls = secondaryButtonClassName ?? primaryCls;
+  const gridClass = videoGridClassName
+    ? `${styles.videoGrid} ${videoGridClassName}`
+    : styles.videoGrid;
 
   if (callEnded && !onLeave) {
     return (
-      <div className={className}>
-        <p style={{ color: '#6b7280', marginBottom: '1rem' }}>You left the call.</p>
-        <button type="button" className={primaryCls || undefined} onClick={joinAgain}>
+      <div className={className || styles.endedState}>
+        <p>You left the call.</p>
+        <button type="button" className={primaryCls || styles.controlButton} onClick={joinAgain}>
+          <PhoneOff size={16} />
           Join again
         </button>
       </div>
@@ -421,102 +475,163 @@ export default function WebRtcMeeting({
   }
 
   return (
-    <div className={className}>
-      {error && (
-        <p style={{ color: '#b91c1c', marginBottom: '0.75rem', fontSize: '0.9rem' }}>{error}</p>
+    <div className={className || styles.meetingShell}>
+      {defaultMode && (
+        <header className={styles.topBar}>
+          <div className={styles.brandBlock}>
+            <span className={styles.brandMark}>M</span>
+            <div>
+              <p className={styles.eyebrow}>Client portal video room</p>
+              <h1 className={styles.title}>Secure consultation with MyMcKenzieCS</h1>
+            </div>
+          </div>
+          <div className={styles.sessionMeta}>
+            <span className={styles.statusPill}>
+              <span className={styles.statusDot} />
+              {status}
+            </span>
+          </div>
+        </header>
       )}
-      {signalingNote && !error && (
-        <p style={{ color: '#64748b', marginBottom: '0.75rem', fontSize: '0.82rem', lineHeight: 1.45 }}>
-          {signalingNote}
-        </p>
-      )}
-      <div
-        className={videoGridClassName}
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 8,
-          minHeight: 360,
-          background: '#0a0a0a',
-          borderRadius: 12,
-          overflow: 'hidden',
-        }}
-      >
-        <div style={{ position: 'relative', background: '#111' }}>
-          <video
-            ref={localVideoRef}
-            autoPlay
-            playsInline
-            muted
-            style={{ width: '100%', height: '100%', objectFit: 'cover', minHeight: 280 }}
-          />
-          <span
-            style={{
-              position: 'absolute',
-              left: 8,
-              bottom: 8,
-              padding: '4px 8px',
-              borderRadius: 6,
-              background: 'rgba(0,0,0,0.6)',
-              color: '#fff',
-              fontSize: 12,
-            }}
-          >
-            You{displayName ? ` (${displayName})` : ''}
-          </span>
-        </div>
-        <div style={{ position: 'relative', background: '#111' }}>
-          <video
-            ref={remoteVideoRef}
-            autoPlay
-            playsInline
-            style={{ width: '100%', height: '100%', objectFit: 'cover', minHeight: 280 }}
-          />
-          <span
-            style={{
-              position: 'absolute',
-              left: 8,
-              bottom: 8,
-              padding: '4px 8px',
-              borderRadius: 6,
-              background: 'rgba(0,0,0,0.6)',
-              color: '#fff',
-              fontSize: 12,
-            }}
-          >
-            Remote
-          </span>
-        </div>
-      </div>
-      <p style={{ marginTop: '0.75rem', color: '#6b7280', fontSize: '0.875rem' }}>
-        {status}
-        {roomName ? (
-          <>
-            {' '}
-            · Room: <code style={{ fontSize: '0.8rem' }}>{roomName}</code>
-          </>
-        ) : null}
-      </p>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.75rem' }}>
-        <button
-          type="button"
-          className={primaryCls || undefined}
-          onClick={toggleAudio}
-          disabled={!!error || callEnded}
-        >
-          {audioMuted ? 'Unmute' : 'Mute'}
-        </button>
-        <button
-          type="button"
-          className={primaryCls || undefined}
-          onClick={toggleVideo}
-          disabled={!!error || callEnded}
-        >
-          {videoMuted ? 'Start camera' : 'Stop camera'}
-        </button>
-        <button type="button" className={secondaryCls || undefined} onClick={leave}>
-          Leave call
-        </button>
+
+      <div className={defaultMode ? styles.mainLayout : undefined}>
+        <main className={defaultMode ? styles.stage : undefined}>
+          {error && <p className={styles.error}>{error}</p>}
+          {signalingNote && !error && <p className={styles.notice}>{signalingNote}</p>}
+
+          <div className={gridClass}>
+            <div className={styles.videoTile}>
+              <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                muted
+                className={`${styles.video} ${videoMuted ? styles.mutedVideo : ''}`}
+              />
+              {(!localReady || videoMuted) && (
+                <div className={styles.tileOverlay}>
+                  <span className={styles.participantAvatar}>{initials || 'Y'}</span>
+                </div>
+              )}
+              <div className={styles.tileLabel}>
+                <span className={styles.nameBadge}>
+                  <UserRound size={14} />
+                  <span>You{displayName ? ` (${displayName})` : ''}</span>
+                </span>
+                {audioMuted && (
+                  <span className={styles.qualityBadge}>
+                    <MicOff size={14} />
+                    Muted
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className={styles.videoTile}>
+              <video ref={remoteVideoRef} autoPlay playsInline className={styles.video} />
+              {!remoteReady && (
+                <div className={styles.tileOverlay}>
+                  <div className={styles.emptyParticipant}>
+                    <span className={styles.participantAvatar}>
+                      <UsersRound size={38} />
+                    </span>
+                    <strong>Waiting for the other participant</strong>
+                    <span>Keep this room open. The call connects as soon as they join with the same invite.</span>
+                  </div>
+                </div>
+              )}
+              <div className={styles.tileLabel}>
+                <span className={styles.nameBadge}>
+                  <UsersRound size={14} />
+                  <span>Client or professional</span>
+                </span>
+                {!remoteReady && <span className={styles.qualityBadge}>Not joined</span>}
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.callControls}>
+            <button
+              type="button"
+              className={`${primaryCls || styles.controlButton} ${audioMuted ? styles.activeMute : ''}`}
+              onClick={toggleAudio}
+              disabled={!!error || callEnded}
+            >
+              {audioMuted ? <MicOff size={17} /> : <Mic size={17} />}
+              {audioMuted ? 'Unmute' : 'Mute'}
+            </button>
+            <button
+              type="button"
+              className={`${primaryCls || styles.controlButton} ${videoMuted ? styles.activeMute : ''}`}
+              onClick={toggleVideo}
+              disabled={!!error || callEnded}
+            >
+              {videoMuted ? <CameraOff size={17} /> : <Camera size={17} />}
+              {videoMuted ? 'Start camera' : 'Stop camera'}
+            </button>
+            <button
+              type="button"
+              className={`${secondaryCls || styles.controlButton} ${!secondaryCls ? styles.dangerButton : ''}`}
+              onClick={leave}
+            >
+              <PhoneOff size={17} />
+              Leave call
+            </button>
+          </div>
+        </main>
+
+        {defaultMode && (
+          <aside className={styles.sidePanel} aria-label="Call details">
+            <div className={styles.panelHeading}>
+              <div>
+                <h2>Session details</h2>
+                <p>Use this room for client portal consultations and litigant support calls.</p>
+              </div>
+              <span className={styles.panelIcon}>
+                <ShieldCheck size={18} />
+              </span>
+            </div>
+
+            <div className={styles.panelList}>
+              <div className={styles.panelItem}>
+                <ShieldCheck size={17} />
+                <div>
+                  <strong>Private room link</strong>
+                  <span>Only people with this invite can attempt to join this room.</span>
+                </div>
+              </div>
+              <div className={styles.panelItem}>
+                <FileText size={17} />
+                <div>
+                  <strong>Consultation ready</strong>
+                  <span>Designed for client updates, document walkthroughs, and case-preparation meetings.</span>
+                </div>
+              </div>
+              <div className={styles.panelItem}>
+                <Sparkles size={17} />
+                <div>
+                  <strong>Browser based</strong>
+                  <span>No app install needed. Camera and microphone permissions are requested by your browser.</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <p className={styles.eyebrow}>Invite link</p>
+              <div className={styles.copyRow}>
+                <code className={styles.roomCode}>{shareUrl}</code>
+                <button
+                  type="button"
+                  className={styles.copyButton}
+                  onClick={copyInvite}
+                  aria-label={roomCopied ? 'Invite copied' : 'Copy invite link'}
+                  title={roomCopied ? 'Copied' : 'Copy invite link'}
+                >
+                  {roomCopied ? <Check size={16} /> : <Clipboard size={16} />}
+                </button>
+              </div>
+            </div>
+          </aside>
+        )}
       </div>
     </div>
   );

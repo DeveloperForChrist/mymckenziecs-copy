@@ -10,6 +10,12 @@ interface ClientContact { id: string; name: string; email: string }
 
 function makeRoom(title:string,id:string){return `mymckenziecs-${title.toLowerCase().replace(/[^a-z0-9]/g,'-').slice(0,28)}-${id}`}
 function fmtDate(d:string){return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}
+function meetingLink(roomName:string){
+  if (typeof window === 'undefined') return `/video-call?room=${encodeURIComponent(roomName)}`
+  const url = new URL('/video-call', window.location.origin)
+  url.searchParams.set('room', roomName)
+  return url.toString()
+}
 
 const LOCAL_MEETINGS_KEY='mymckenzie-business-client-meetings'
 const LOCAL_CLIENTS_KEY='mymckenzie-business-meeting-clients'
@@ -251,7 +257,7 @@ export function VideoCallPanel({
 
     if (form.clientEmail) {
       const meetingDateTime = `${fmtDate(form.date)}${form.time ? ` at ${form.time}` : ''}`
-      const link = `${window.location.origin}/join/${localMeeting.roomName}`
+      const link = meetingLink(localMeeting.roomName)
       const customMessage = form.inviteMessage.trim()
       const body = [
         `Hello ${form.clientName || 'there'},`,
@@ -261,6 +267,8 @@ export function VideoCallPanel({
         `Meeting: ${form.title}`,
         `When: ${meetingDateTime}`,
         `Join link: ${link}`,
+        '',
+        'You can join the video room directly from this link. A MyMcKenzieCS account is not required for the call.',
       ].join('\n')
       window.dispatchEvent(new CustomEvent('mymckenzie-inbox-compose', {
         detail: {
@@ -311,7 +319,7 @@ export function VideoCallPanel({
     void updateStatus(m, 'completed')
   }
   const copyLink=async(m:Meeting)=>{
-    const link=`${window.location.origin}/join/${m.roomName}`
+    const link=meetingLink(m.roomName)
     try{await navigator.clipboard.writeText(link)}catch{void 0}
     setCopied(true);setTimeout(()=>setCopied(false),2000)
   }
@@ -411,7 +419,7 @@ export function VideoCallPanel({
               {selected.agenda&&<div className={styles.detailSection}><span className={styles.detailSectionLabel}>Agenda</span><p className={styles.detailSectionText}>{selected.agenda}</p></div>}
               <div className={styles.detailSection}>
                 <span className={styles.detailSectionLabel}>Room Link</span>
-                <div className={styles.inviteStrip}><span>{typeof window!=='undefined'?`${window.location.origin}/join/${selected.roomName}`:selected.roomName}</span></div>
+                <div className={styles.inviteStrip}><span>{meetingLink(selected.roomName)}</span></div>
               </div>
               <div className={styles.detailSection}>
                 <span className={styles.detailSectionLabel}>Room Name</span>

@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
-import { Mail, FileText, Calendar, User, LogOut, MessageSquare } from 'lucide-react'
-import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout'
+import { Mail, FileText, Calendar, Clock, User, MessageSquare, Video, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
+import styles from './clientPortal.module.css'
 
 interface BusinessLink {
   id: string
@@ -34,12 +34,25 @@ interface ClientDocument {
   mimeType: string
 }
 
+interface ClientMeeting {
+  id: string
+  title: string
+  description: string
+  meetingDate: string
+  meetingTime: string
+  durationMinutes: number
+  roomName: string
+  status: string
+  businessName: string
+}
+
 export default function ClientPortalPage() {
   const [businessLinks, setBusinessLinks] = useState<BusinessLink[]>([])
   const [messages, setMessages] = useState<Message[]>([])
   const [documents, setDocuments] = useState<ClientDocument[]>([])
+  const [meetings, setMeetings] = useState<ClientMeeting[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedTab, setSelectedTab] = useState<'messages' | 'documents' | 'profile'>('messages')
+  const [selectedTab, setSelectedTab] = useState<'messages' | 'meetings' | 'documents' | 'profile'>('messages')
   const [showCompose, setShowCompose] = useState(false)
   const [composeForm, setComposeForm] = useState({ subject: '', content: '' })
   const [selectedBusinessId, setSelectedBusinessId] = useState<string>('')
@@ -47,7 +60,6 @@ export default function ClientPortalPage() {
   const [composeNotice, setComposeNotice] = useState('')
   const [leavingLinkId, setLeavingLinkId] = useState<string | null>(null)
   const [portalNotice, setPortalNotice] = useState('')
-  const [canUseLitigantWorkspace, setCanUseLitigantWorkspace] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -58,19 +70,6 @@ export default function ClientPortalPage() {
       const supabase = getSupabaseBrowserClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-
-      try {
-        const userResponse = await fetch('/api/user', {
-          credentials: 'include',
-          cache: 'no-store',
-        })
-        const userPayload = await userResponse.json().catch(() => ({}))
-        if (userResponse.ok) {
-          setCanUseLitigantWorkspace(Boolean(userPayload?.canUseLitigantWorkspace))
-        }
-      } catch {
-        setCanUseLitigantWorkspace(false)
-      }
 
       // Load business links
       const { data: links } = await supabase
@@ -146,19 +145,24 @@ export default function ClientPortalPage() {
           })),
         )
       }
+
+      try {
+        const meetingsResponse = await fetch('/api/client/meetings', {
+          credentials: 'include',
+          cache: 'no-store',
+        })
+        const meetingsPayload = await meetingsResponse.json().catch(() => ({}))
+        if (meetingsResponse.ok && Array.isArray(meetingsPayload?.meetings)) {
+          setMeetings(meetingsPayload.meetings)
+        }
+      } catch {
+        setMeetings([])
+      }
     } catch (error) {
       console.error('Failed to load data:', error)
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleLogout = async () => {
-    const shouldContinue = window.confirm('Sign out of your client dashboard now?')
-    if (!shouldContinue) return
-    const supabase = getSupabaseBrowserClient()
-    await safeBrowserSignOut(supabase)
-    window.location.href = '/'
   }
 
   const handleLeaveProfessional = async (linkId: string, businessName?: string) => {
@@ -255,6 +259,24 @@ export default function ClientPortalPage() {
     return `${Math.max(1, Math.round(bytes / 1024))} KB`
   }
 
+  const formatMeetingDate = (meeting: ClientMeeting) => {
+    const date = new Date(`${meeting.meetingDate}T${meeting.meetingTime || '00:00'}`)
+    if (Number.isNaN(date.getTime())) return meeting.meetingDate
+    return new Intl.DateTimeFormat(undefined, {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(date)
+  }
+
+  const meetingHref = (roomName: string) => `/video-call?room=${encodeURIComponent(roomName)}`
+  const unreadMessageCount = messages.filter((message) => !message.isRead).length
+  const upcomingMeetingCount = meetings.length
+  const connectedProfessionalCount = businessLinks.length
+  const portalIntroText =
+    'Use this portal for messages, meeting links, and documents shared by a professional. Your case workspace remains available from the header.'
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -264,277 +286,302 @@ export default function ClientPortalPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-gray-900">MyMcKenzieCS Client Portal</h1>
-            </div>
-            <div className="flex items-center gap-4">
-              {canUseLitigantWorkspace && (
-                <>
-                  <Link href="/client-portal" className="text-sm font-semibold text-purple-700 hover:text-purple-900">
-                    Client Portal
-                  </Link>
-                  <Link href="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-                    Litigant Workspace
-                  </Link>
-                </>
-              )}
-              <Link href="/dashboard/directory" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-                Directory
-              </Link>
-              <Link
-                href="/pricing/litigants?audience=litigant&from=client-portal"
-                className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
-              >
-                Subscribe to Litigant Workspace
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-              >
-                <LogOut size={16} />
-                Logout
-              </button>
-            </div>
+    <div className={styles.portalPage}>
+      <header className={styles.topbar}>
+        <div className={styles.brand}>
+          <div className={styles.brandIcon}>
+            <ShieldCheck size={20} />
+          </div>
+          <div>
+            <p className={styles.overline}>Client portal</p>
+            <h1 className={styles.title}>MyMcKenzieCS Client Portal</h1>
           </div>
         </div>
+        <nav className={styles.nav} aria-label="Client portal">
+          <Link href="/client-portal" aria-current="page" className={styles.navLinkActive}>Client Portal</Link>
+          <Link href="/dashboard" className={styles.navLink}>Go to dashboard</Link>
+        </nav>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {businessLinks.length === 0 && (
-          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-4">
-            <h2 className="text-sm font-semibold text-amber-900">No active professional links</h2>
-            <p className="mt-1 text-sm text-amber-800">
-              You have left all client portal connections. You can browse the directory to find a professional and return here any time.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Link
-                href="/dashboard/directory"
-                className="inline-flex items-center rounded-lg bg-amber-700 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-800"
-              >
-                Open Directory
-              </Link>
-              <Link
-                href="/client-portal"
-                className="inline-flex items-center rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-100"
-              >
-                Return to Client Portal
-              </Link>
-            </div>
+      <section className={styles.summary}>
+        <div className={styles.summaryText}>
+          <p className={styles.overline}>Client workspace</p>
+          <h2 className={styles.summaryTitle}>Messages, meetings, and documents from your professional.</h2>
+          <p className={styles.summaryCopy}>{portalIntroText}</p>
+        </div>
+        <div className={styles.stats} aria-label="Portal summary">
+          <div className={styles.stat}><strong>{connectedProfessionalCount}</strong>Professionals</div>
+          <div className={styles.stat}><strong>{upcomingMeetingCount}</strong>Meetings</div>
+          <div className={styles.stat}><strong>{documents.length}</strong>Documents</div>
+        </div>
+      </section>
+
+      {businessLinks.length === 0 && (
+        <div className={styles.emptyConnection}>
+          <h2>No professional connection yet</h2>
+          <p>Your client portal becomes active when a professional invites you or accepts your enquiry. Once connected, their messages, meeting links, and shared documents appear here automatically.</p>
+        </div>
+      )}
+
+      {portalNotice && (
+        <div className={styles.notice}>
+          <p>{portalNotice}</p>
+        </div>
+      )}
+
+      {(upcomingMeetingCount > 0 || unreadMessageCount > 0) && (
+        <div className={styles.notice}>
+          <h2>Client portal updates</h2>
+          <p>
+            {[
+              upcomingMeetingCount > 0 ? `${upcomingMeetingCount} upcoming video meeting${upcomingMeetingCount === 1 ? '' : 's'}` : '',
+              unreadMessageCount > 0 ? `${unreadMessageCount} unread message${unreadMessageCount === 1 ? '' : 's'}` : '',
+            ].filter(Boolean).join(' and ')}.
+          </p>
+        </div>
+      )}
+
+      <main className={styles.workspace}>
+        <aside className={styles.sidePanel}>
+          <div className={styles.panelHeader}>
+            <span className={styles.overline}>Portal sections</span>
+            <h2 className={styles.panelTitle}>Your workspace</h2>
           </div>
-        )}
-        {portalNotice && (
-          <div className="mb-4 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700">
-            {portalNotice}
+          <div className={styles.sectionNav}>
+            <button type="button" className={selectedTab === 'messages' ? styles.sectionButtonActive : styles.sectionButton} onClick={() => setSelectedTab('messages')}>
+              <span className={styles.sectionLabel}><MessageSquare size={16} />Messages</span>
+              {unreadMessageCount > 0 && <span className={styles.badge}>{unreadMessageCount > 99 ? '99+' : unreadMessageCount}</span>}
+            </button>
+            <button type="button" className={selectedTab === 'meetings' ? styles.sectionButtonActive : styles.sectionButton} onClick={() => setSelectedTab('meetings')}>
+              <span className={styles.sectionLabel}><Video size={16} />Meetings</span>
+              {upcomingMeetingCount > 0 && <span className={styles.badge}>{upcomingMeetingCount > 99 ? '99+' : upcomingMeetingCount}</span>}
+            </button>
+            <button type="button" className={selectedTab === 'documents' ? styles.sectionButtonActive : styles.sectionButton} onClick={() => setSelectedTab('documents')}>
+              <span className={styles.sectionLabel}><FileText size={16} />Documents</span>
+            </button>
+            <button type="button" className={selectedTab === 'profile' ? styles.sectionButtonActive : styles.sectionButton} onClick={() => setSelectedTab('profile')}>
+              <span className={styles.sectionLabel}><User size={16} />Profile</span>
+            </button>
           </div>
-        )}
-        {/* Business Links */}
-        {businessLinks.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Legal Professionals</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {businessLinks.map((link) => (
-                <div key={link.id} className="bg-white rounded-lg border border-gray-200 p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                      <User size={20} className="text-purple-600" />
+
+          {businessLinks.length > 0 && (
+            <>
+              <div className={styles.panelHeader}>
+                <span className={styles.overline}>Professionals</span>
+                <h2 className={styles.panelTitle}>Connected access</h2>
+              </div>
+              <div className={styles.professionals}>
+                {businessLinks.map((link) => (
+                  <div key={link.id} className={styles.professionalCard}>
+                    <div className={styles.professionalTop}>
+                      <div className={styles.avatar}><User size={18} /></div>
+                      <div>
+                        <p className={styles.professionalName}>{link.business_name || 'Legal Professional'}</p>
+                        <p className={styles.professionalMeta}>{link.is_closed ? 'Case closed' : link.has_open_matter ? 'Active matter' : 'Connected'}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">{link.business_name || 'Legal Professional'}</h3>
-                      <p className="text-sm text-gray-500">
-                        {link.is_closed ? 'Case closed' : link.has_open_matter ? 'Active matter' : 'Connected'}
-                      </p>
+                    <div className={styles.cardActions}>
+                      <button type="button" className={styles.messageButton} onClick={() => handleCompose(link.business_id, link.is_closed ? 'Request to open a new matter' : '')}>
+                        {link.is_closed ? 'Request matter' : 'Message'}
+                      </button>
+                      <button type="button" className={styles.dangerButton} onClick={() => handleLeaveProfessional(link.id, link.business_name)} disabled={leavingLinkId === link.id}>
+                        {leavingLinkId === link.id ? 'Leaving...' : 'Leave'}
+                      </button>
                     </div>
                   </div>
-                  <button
-                    onClick={() =>
-                      handleCompose(
-                        link.business_id,
-                        link.is_closed ? 'Request to open a new matter' : '',
-                      )
-                    }
-                    className="mt-3 w-full py-2 px-4 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
-                  >
-                    {link.is_closed ? 'Request New Matter' : 'Send Message'}
-                  </button>
-                  {link.is_closed && (
-                    <Link
-                      href="/dashboard/directory"
-                      className="mt-2 block w-full py-2 px-4 border border-gray-200 text-gray-700 rounded-lg text-center text-sm font-medium hover:bg-gray-50 transition-colors"
-                    >
-                      Find Another Professional
-                    </Link>
-                  )}
-                  <button
-                    onClick={() => handleLeaveProfessional(link.id, link.business_name)}
-                    disabled={leavingLinkId === link.id}
-                    className="mt-2 w-full py-2 px-4 border border-red-200 text-red-700 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors disabled:opacity-60"
-                  >
-                    {leavingLinkId === link.id ? 'Leaving...' : 'Leave Professional'}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+                ))}
+              </div>
+            </>
+          )}
+        </aside>
 
-        {/* Tabs */}
-        <div className="bg-white rounded-lg border border-gray-200">
-          <div className="border-b border-gray-200">
-            <nav className="flex gap-4 px-4">
-              <button
-                onClick={() => setSelectedTab('messages')}
-                className={`py-4 px-2 text-sm font-medium border-b-2 transition-colors ${
-                  selectedTab === 'messages'
-                    ? 'border-purple-600 text-purple-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <MessageSquare size={16} />
-                  Messages
-                </div>
-              </button>
-              <button
-                onClick={() => setSelectedTab('documents')}
-                className={`py-4 px-2 text-sm font-medium border-b-2 transition-colors ${
-                  selectedTab === 'documents'
-                    ? 'border-purple-600 text-purple-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <FileText size={16} />
-                  Documents
-                </div>
-              </button>
-              <button
-                onClick={() => setSelectedTab('profile')}
-                className={`py-4 px-2 text-sm font-medium border-b-2 transition-colors ${
-                  selectedTab === 'profile'
-                    ? 'border-purple-600 text-purple-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <User size={16} />
-                  Profile
-                </div>
-              </button>
-            </nav>
+        <section className={styles.listPanel}>
+          <div className={styles.listHeader}>
+            <h2 className={styles.listTitle}>
+              {selectedTab === 'messages' && 'Messages'}
+              {selectedTab === 'meetings' && 'Video meetings'}
+              {selectedTab === 'documents' && 'Documents'}
+              {selectedTab === 'profile' && 'Profile'}
+            </h2>
+            <p className={styles.listSub}>
+              {selectedTab === 'messages' && `${messages.length} received message${messages.length === 1 ? '' : 's'}`}
+              {selectedTab === 'meetings' && `${meetings.length} upcoming meeting${meetings.length === 1 ? '' : 's'}`}
+              {selectedTab === 'documents' && `${documents.length} shared document${documents.length === 1 ? '' : 's'}`}
+              {selectedTab === 'profile' && 'Your client portal details'}
+            </p>
           </div>
-
-          <div className="p-4">
+          <div className={styles.listContent}>
             {selectedTab === 'messages' && (
-              <div>
+              <>
                 {messages.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <Mail size={48} className="mx-auto mb-4 text-gray-300" />
-                    <p>No messages yet</p>
+                  <div className={styles.emptyState}>
+                    <div>
+                      <Mail size={44} />
+                      <strong>No messages yet</strong>
+                      <span>Messages from connected professionals will appear here.</span>
+                    </div>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <>
                     {messages.map((msg) => (
                       <div
                         key={msg.id}
-                        className={`p-4 rounded-lg border ${
-                          msg.isRead ? 'bg-gray-50 border-gray-200' : 'bg-white border-purple-200'
-                        }`}
+                        className={`${styles.listItem} ${!msg.isRead ? styles.listItemUnread : ''}`}
                       >
-                        <div className="flex justify-between items-start mb-2">
+                        <div className={styles.itemTop}>
                           <div>
-                            <h4 className="font-medium text-gray-900">{msg.subject}</h4>
-                            <p className="text-sm text-gray-500">From: {msg.sender}</p>
+                            <h4 className={styles.itemTitle}>{msg.subject}</h4>
+                            <p className={styles.itemMeta}>From {msg.sender}</p>
                           </div>
-                          <span className="text-xs text-gray-400">{msg.timestamp}</span>
+                          <span className={styles.itemTime}>{msg.timestamp}</span>
                         </div>
-                        <p className="text-sm text-gray-700 line-clamp-2">{msg.content}</p>
+                        <p className={styles.itemPreview}>{msg.content}</p>
                       </div>
                     ))}
-                  </div>
+                  </>
                 )}
-              </div>
+              </>
+            )}
+
+            {selectedTab === 'meetings' && (
+              <>
+                {meetings.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <div>
+                      <Video size={44} />
+                      <strong>No scheduled video meetings yet</strong>
+                      <span>When a professional schedules a call, the join button appears here.</span>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {meetings.map((meeting) => (
+                      <div key={meeting.id} className={styles.listItem}>
+                        <div className={styles.itemTop}>
+                          <div>
+                            <h4 className={styles.itemTitle}>{meeting.title}</h4>
+                            <p className={styles.itemMeta}>With {meeting.businessName}</p>
+                          </div>
+                          <span className={styles.statusPill}>{meeting.status === 'in_progress' ? 'Live' : 'Scheduled'}</span>
+                        </div>
+                        <div className={styles.meetingInfo}>
+                          <span><Calendar size={14} />{formatMeetingDate(meeting)}</span>
+                          <span><Clock size={14} />{meeting.meetingTime || 'Time TBC'} · {meeting.durationMinutes} min</span>
+                        </div>
+                            {meeting.description && (
+                          <p className={styles.itemPreview}>{meeting.description}</p>
+                            )}
+                          <Link
+                            href={meetingHref(meeting.roomName)}
+                          className={styles.primaryButton}
+                          >
+                            <Video size={16} />
+                            Join meeting
+                          </Link>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </>
             )}
 
             {selectedTab === 'documents' && (
-              <div>
+              <>
                 {documents.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <FileText size={48} className="mx-auto mb-4 text-gray-300" />
-                    <p>No documents yet</p>
+                  <div className={styles.emptyState}>
+                    <div>
+                      <FileText size={44} />
+                      <strong>No documents yet</strong>
+                      <span>Documents shared with you will be listed here.</span>
+                    </div>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <>
                     {documents.map((doc) => (
-                      <div key={doc.id} className="p-4 rounded-lg border bg-white border-gray-200 flex items-center justify-between gap-3">
-                        <div className="min-w-0">
-                          <h4 className="font-medium text-gray-900 truncate">{doc.name}</h4>
-                          <p className="text-sm text-gray-500">
+                      <div key={doc.id} className={`${styles.listItem} ${styles.documentRow}`}>
+                        <div>
+                          <h4 className={styles.itemTitle}>{doc.name}</h4>
+                          <p className={styles.itemMeta}>
                             {new Date(doc.createdAt).toLocaleDateString()} • {formatSize(doc.size)}
                           </p>
                         </div>
                         <button
                           type="button"
                           onClick={() => void handleOpenDocument(doc.id)}
-                          className="shrink-0 py-2 px-3 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50"
+                          className={styles.secondaryButton}
                         >
                           Open
                         </button>
                       </div>
                     ))}
-                  </div>
+                  </>
                 )}
-              </div>
+              </>
             )}
 
             {selectedTab === 'profile' && (
-              <div className="max-w-md">
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <div className={styles.listItem}>
+                <p className={styles.itemPreview}>This profile is used for your client portal connection.</p>
+                <div className={styles.field}>
+                    <label>Name</label>
                     <input
                       type="text"
                       value={businessLinks[0]?.client_name || ''}
                       readOnly
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                    className={styles.input}
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <div className={styles.field}>
+                    <label>Email</label>
                     <input
                       type="email"
                       readOnly
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                    className={styles.input}
                     />
-                  </div>
                 </div>
               </div>
             )}
           </div>
-        </div>
-      </div>
+        </section>
+
+        <section className={styles.detailPanel}>
+          <div className={styles.detailHeader}>
+            <h2 className={styles.detailTitle}>Portal overview</h2>
+          </div>
+          <div className={styles.detailBody}>
+            <p className={styles.detailText}>
+              This area keeps the practical items shared by your connected professional in one place. Use Messages for correspondence, Meetings for video links, and Documents for files they share with you.
+            </p>
+            {selectedTab === 'meetings' && meetings[0] && (
+              <div className={styles.listItem}>
+                <h3 className={styles.itemTitle}>Next meeting</h3>
+                <p className={styles.itemMeta}>{meetings[0].title} with {meetings[0].businessName}</p>
+                <div className={styles.cardActions}>
+                  <Link href={meetingHref(meetings[0].roomName)} className={styles.primaryButton}><Video size={16} />Join meeting</Link>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
 
       {/* Compose modal */}
       {showCompose && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Send Message</h2>
+        <div className={styles.composeOverlay}>
+          <div className={styles.composeModal}>
+            <div className={styles.composeHeader}>
+              <h2 className={styles.composeTitle}>Send Message</h2>
               <button
                 type="button"
                 onClick={() => setShowCompose(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className={styles.closeButton}
               >
                 ×
               </button>
             </div>
-            <form onSubmit={handleSendMessage} className="space-y-4">
-              <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
+            <form onSubmit={handleSendMessage} className={styles.composeForm}>
+              <div className={styles.field}>
+                <label htmlFor="subject">
                   Subject
                 </label>
                 <input
@@ -543,12 +590,12 @@ export default function ClientPortalPage() {
                   required
                   value={composeForm.subject}
                   onChange={(e) => setComposeForm({ ...composeForm, subject: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className={styles.input}
                   placeholder="Subject of your message"
                 />
               </div>
-              <div>
-                <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
+              <div className={styles.field}>
+                <label htmlFor="content">
                   Message
                 </label>
                 <textarea
@@ -557,27 +604,27 @@ export default function ClientPortalPage() {
                   rows={6}
                   value={composeForm.content}
                   onChange={(e) => setComposeForm({ ...composeForm, content: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                  className={styles.textarea}
                   placeholder="Type your message here..."
                 />
               </div>
               {composeNotice && (
-                <p className={composeNotice === 'sent' ? 'text-green-600' : 'text-red-600'}>
+                <p className={composeNotice === 'sent' ? styles.successText : styles.errorText}>
                   {composeNotice === 'sent' ? 'Message sent!' : composeNotice}
                 </p>
               )}
-              <div className="flex gap-3">
+              <div className={styles.composeActions}>
                 <button
                   type="submit"
                   disabled={composeSending}
-                  className="flex-1 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={styles.primaryButton}
                 >
                   {composeSending ? 'Sending...' : 'Send Message'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCompose(false)}
-                  className="px-6 py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  className={styles.secondaryButton}
                 >
                   Cancel
                 </button>
