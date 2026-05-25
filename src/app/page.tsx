@@ -81,18 +81,18 @@ const useCases = [
 const plans = [
   {
     name: 'Basic',
-    price: '18',
+    price: '14',
     bullets: ['MyMcKenzieCS Basic Assistant', '10 document storage', 'Conversation history included'],
   },
   {
     name: 'Premium',
-    price: '32',
+    price: '24',
     bullets: ['MyMcKenzieCS Smart Assistant', '25 document storage', 'Conversation history included', DEADLINE_REMINDER_FEATURE],
     highlight: true,
   },
   {
     name: 'Premium +',
-    price: '199',
+    price: '149',
     bullets: [
       'MyMcKenzieCS Intelligent Assistant',
       '150 document storage',
