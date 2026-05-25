@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { caseStudyAgent, type CaseData } from '@/lib/ai/agents/case-study-agent';
+import { getCaseStudyAgent, type CaseData } from '@/lib/ai/agents/case-study-agent';
 import { searchByText } from '@/lib/vector/milvus';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
@@ -282,7 +282,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Generate case study using the enhanced agent
-    const result = await caseStudyAgent.generateCaseStudy(validatedData as CaseData, {
+    const result = await getCaseStudyAgent().generateCaseStudy(validatedData as CaseData, {
       maxRetries: 3,
       timeout: 90000 // 90 seconds
     });

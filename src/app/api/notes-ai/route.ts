@@ -17,9 +17,16 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let cachedOpenAI: OpenAI | null = null;
+
+const getOpenAI = () => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY is not configured.");
+  }
+  cachedOpenAI ??= new OpenAI({ apiKey });
+  return cachedOpenAI;
+};
 
 const requestSchema = z.object({
   mode: z.enum(["summary", "calendar_extract"]),
@@ -168,7 +175,7 @@ export async function POST(request: NextRequest) {
     const noteContent = payload.data.noteContent.trim();
 
     if (payload.data.mode === "summary") {
-      const completion = await openai.chat.completions.create({
+      const completion = await getOpenAI().chat.completions.create({
         model: "gpt-4o-mini",
         temperature: 0.2,
         max_tokens: 700,
@@ -207,7 +214,7 @@ export async function POST(request: NextRequest) {
     }
 
     const todayIso = new Date().toISOString().slice(0, 10);
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.1,
       max_tokens: 900,

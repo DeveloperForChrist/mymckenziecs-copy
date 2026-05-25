@@ -167,6 +167,10 @@ export class CaseStudyAgent {
   private client: OpenAI;
 
   constructor() {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('Missing OPENAI_API_KEY env var');
+    }
+
     this.client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
@@ -461,5 +465,9 @@ For the complete case insights, visit: ${caseData.url || 'the relevant court dat
   }
 }
 
-// Export singleton instance
-export const caseStudyAgent = new CaseStudyAgent();
+let cachedCaseStudyAgent: CaseStudyAgent | null = null;
+
+export const getCaseStudyAgent = () => {
+  cachedCaseStudyAgent ??= new CaseStudyAgent();
+  return cachedCaseStudyAgent;
+};

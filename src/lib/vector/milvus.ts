@@ -2,7 +2,17 @@ import OpenAI from 'openai';
 import { spawn } from 'child_process';
 import path from 'path';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let cachedOpenAI: OpenAI | null = null;
+
+const getOpenAI = () => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('Missing OPENAI_API_KEY env var');
+  }
+  cachedOpenAI ??= new OpenAI({ apiKey });
+  return cachedOpenAI;
+};
+
 let pythonMilvusCheckComplete = false;
 let pythonMilvusAvailable = true;
 const PYTHON_BIN = process.env.PYTHON_BIN || 'python3';
@@ -49,7 +59,7 @@ const ensurePythonMilvusAvailable = async (): Promise<boolean> => {
 };
 
 export async function embedText(text: string): Promise<number[]> {
-  const resp = await openai.embeddings.create({ model: 'text-embedding-3-small', input: text });
+  const resp = await getOpenAI().embeddings.create({ model: 'text-embedding-3-small', input: text });
   return resp.data[0].embedding as number[];
 }
 
