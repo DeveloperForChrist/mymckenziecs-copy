@@ -1,31 +1,32 @@
-/* Google Keep-inspired Notes Page (light theme) */
+/* Documents-inspired Notes Page (glass UI) */
 
 .notesApp {
   display: flex;
-  flex: 1;
-  min-height: 0;
-  gap: 0;
-  padding: 0;
-  align-items: stretch;
-  background: #ffffff;
-  color: #111827;
-  overflow: hidden;
+  min-height: calc(100vh - 120px);
+  gap: 18px;
+  padding: 18px 0 36px;
+  align-items: flex-start;
+  background: transparent;
+  color: rgba(248, 250, 252, 0.96);
 }
 
 /* Left Sidebar */
 .sidebar {
-  width: 280px;
+  width: 320px;
   flex-shrink: 0;
-  background: #f9fafb;
-  border-right: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.04) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(18px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
 .sidebarHeader {
-  padding: 14px 12px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -34,24 +35,22 @@
 .searchBox {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 12px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  color: #6b7280;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(15, 23, 42, 0.35);
+  color: rgba(226, 232, 240, 0.78);
   font-size: 0.9rem;
   cursor: text;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .searchBox:hover {
-  border-color: #d1d5db;
+  background: rgba(15, 23, 42, 0.42);
 }
 
 .searchBox i {
   font-size: 1rem;
-  color: #9ca3af;
 }
 
 .searchInput {
@@ -59,12 +58,12 @@
   background: transparent;
   border: none;
   outline: none;
-  color: #111827;
+  color: rgba(248, 250, 252, 0.96);
   font-size: 0.92rem;
 }
 
 .searchInput::placeholder {
-  color: #9ca3af;
+  color: rgba(226, 232, 240, 0.58);
 }
 
 .newNoteBtn {
@@ -73,56 +72,57 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 9px 14px;
-  border-radius: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
   border: none;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 0.88rem;
-  background: #5b21b6;
+  font-weight: 650;
+  font-size: 0.9rem;
+  background: #7c3aed;
   color: #fff;
-  transition: background 0.15s ease;
 }
 
 .newNoteBtn:hover {
-  background: #4c1d95;
+  background: #6631d4;
 }
 
 .newNoteBtn:disabled {
   cursor: not-allowed;
-  opacity: 0.55;
+  opacity: 0.62;
+  background: #5b21b6;
 }
 
 .newNoteBtn i {
-  font-size: 1rem;
+  font-size: 1.1rem;
 }
 
 .notesListTitle {
-  padding: 10px 14px 8px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .notesListTitle h2 {
   margin: 0;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #6b7280;
+  color: rgba(226, 232, 240, 0.82);
 }
 
 .notesCount {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-left: 7px;
-  padding: 1px 8px;
+  margin-left: 8px;
+  padding: 2px 10px;
   border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #5b21b6;
-  background: #ede9fe;
-  border: 1px solid #ddd6fe;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: rgba(248, 250, 252, 0.95);
+  background: rgba(167, 139, 250, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .notesListContent {
@@ -131,28 +131,26 @@
   padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .noteCard {
-  padding: 11px 12px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  background: #f5f3ff;
+  padding: 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: background 0.18s ease, border-color 0.18s ease;
 }
 
 .noteCard:hover {
-  background: #ede9fe;
-  border-color: #c4b5fd;
-  box-shadow: 0 2px 8px rgba(91,33,182,0.08);
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .noteCard.active {
-  background: #ede9fe;
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 2px rgba(124,58,237,0.12);
+  background: rgba(167, 139, 250, 0.18);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .noteCardHeader {
@@ -160,13 +158,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 
 .noteCardTitle {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  color: #1f2937;
+  color: rgba(248, 250, 252, 0.98);
   min-width: 0;
   flex: 1;
   white-space: nowrap;
@@ -175,18 +173,18 @@
 }
 
 .noteDeleteBtn {
-  width: 26px;
-  height: 26px;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  background: transparent;
-  color: #9ca3af;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(226, 232, 240, 0.8);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+  transition: opacity 0.18s ease, background 0.18s ease;
 }
 
 .noteCard:hover .noteDeleteBtn {
@@ -194,43 +192,42 @@
 }
 
 .noteDeleteBtn:hover {
-  background: #fee2e2;
-  border-color: #fca5a5;
-  color: #dc2626;
+  background: rgba(239, 68, 68, 0.2);
+  color: #fecaca;
 }
 
 .noteDeleteBtn:disabled {
-  opacity: 0.35;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 .noteCardPreview {
-  color: #6b7280;
-  font-size: 0.82rem;
-  line-height: 1.4;
+  color: rgba(226, 232, 240, 0.74);
+  font-size: 0.86rem;
+  line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .noteCardMeta {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.73rem;
-  color: #9ca3af;
+  font-size: 0.75rem;
+  color: rgba(226, 232, 240, 0.6);
 }
 
 .noteCardDate {
-  color: #9ca3af;
+  color: rgba(226, 232, 240, 0.6);
 }
 
 .sidebarFooter {
-  padding: 12px;
-  border-top: 1px solid #e5e7eb;
+  padding: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .dashboardLink {
@@ -239,29 +236,29 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 9px 12px;
-  border-radius: 8px;
-  color: #374151;
+  padding: 10px 12px;
+  border-radius: 12px;
+  color: rgba(248, 250, 252, 0.94);
   text-decoration: none;
-  font-weight: 600;
-  font-size: 0.85rem;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  font-weight: 650;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .dashboardLink:hover {
-  background: #f5f3ff;
-  border-color: #c4b5fd;
-  color: #5b21b6;
+  background: rgba(255, 255, 255, 0.14);
 }
 
 /* Editor */
 .noteEditor {
   flex: 1;
   min-width: 0;
-  padding: 24px 28px;
-  background: #ffffff;
+  padding: 28px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 24px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(18px);
   display: flex;
   flex-direction: column;
 }
@@ -272,19 +269,18 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 14px 18px;
-  margin-bottom: 2px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.04) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 18px 20px;
 }
 
 .editorTitle {
   margin: 0;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #111827;
-  letter-spacing: -0.01em;
+  font-size: 1.55rem;
+  font-weight: 760;
+  color: rgba(248, 250, 252, 0.98);
+  letter-spacing: -0.02em;
 }
 
 .editorHeaderCopy {
@@ -292,18 +288,18 @@
 }
 
 .editorContext {
-  margin: 4px 0 0;
-  font-size: 0.82rem;
-  color: #6b7280;
+  margin: 6px 0 0;
+  font-size: 0.84rem;
+  color: rgba(226, 232, 240, 0.74);
 }
 
 .readOnlyBanner {
   margin: 10px 0 0;
   padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #fde68a;
-  background: #fefce8;
-  color: #92400e;
+  border-radius: 10px;
+  border: 1px solid rgba(251, 191, 36, 0.38);
+  background: rgba(120, 53, 15, 0.3);
+  color: rgba(254, 240, 138, 0.96);
   font-size: 0.8rem;
   line-height: 1.4;
 }
@@ -311,125 +307,109 @@
 .editorActions {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .micButton,
 .actionButton {
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  color: #374151;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(248, 250, 252, 0.96);
   cursor: pointer;
-  background: #ffffff;
-  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .micButton {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  background: rgba(15, 23, 42, 0.45);
+  font-size: 1.15rem;
 }
 
 .micButtonLive {
-  background: #fee2e2;
-  border-color: #fca5a5;
-  color: #dc2626;
+  background: rgba(220, 38, 38, 0.24);
+  border-color: rgba(248, 113, 113, 0.7);
+  color: #fecaca;
 }
 
 .actionButton {
-  padding: 8px 14px;
-  font-size: 0.84rem;
-  font-weight: 600;
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.42);
+  font-size: 0.86rem;
+  font-weight: 680;
 }
 
 .actionButton:hover:not(:disabled),
 .secondaryButton:hover:not(:disabled) {
-  background: #f5f3ff;
-  border-color: #c4b5fd;
-  color: #5b21b6;
+  background: rgba(124, 58, 237, 0.36);
 }
 
 .actionButton:disabled,
 .secondaryButton:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.62;
 }
 
 .editorContent {
   flex: 1;
-  padding: 16px 0 0;
+  padding: 18px 6px 0;
   overflow: auto;
 }
 
 .noteTitle {
   width: 100%;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  color: #111827;
-  font-size: 1.15rem;
-  font-weight: 700;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(15, 23, 42, 0.35);
+  color: rgba(248, 250, 252, 0.98);
+  font-size: 1.25rem;
+  font-weight: 760;
   outline: none;
-  margin-bottom: 10px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.noteTitle:focus {
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+  margin-bottom: 12px;
 }
 
 .noteTitle::placeholder {
-  color: #d1d5db;
+  color: rgba(226, 232, 240, 0.58);
 }
 
 .noteTitle:read-only {
-  background: #f9fafb;
+  opacity: 0.86;
   cursor: not-allowed;
-  color: #6b7280;
 }
 
 .noteBody {
   width: 100%;
   min-height: 340px;
   padding: 14px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  color: #1f2937;
-  font-size: 0.96rem;
-  line-height: 1.75;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(15, 23, 42, 0.30);
+  color: rgba(248, 250, 252, 0.94);
+  font-size: 0.98rem;
+  line-height: 1.7;
   resize: vertical;
   outline: none;
   font-family: inherit;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.noteBody:focus {
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
 }
 
 .noteBody::placeholder {
-  color: #d1d5db;
+  color: rgba(226, 232, 240, 0.52);
 }
 
 .noteBody:read-only {
-  background: #f9fafb;
+  opacity: 0.86;
   cursor: not-allowed;
-  color: #6b7280;
 }
 
 .helperCard {
-  margin-top: 12px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
+  margin-top: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(15, 23, 42, 0.34);
   padding: 12px 14px;
 }
 
@@ -437,9 +417,9 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  color: #374151;
+  color: rgba(248, 250, 252, 0.95);
 }
 
 .helperCardHeader {
@@ -450,54 +430,52 @@
 }
 
 .helperCloseButton {
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  color: #6b7280;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(226, 232, 240, 0.88);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.15s ease;
 }
 
 .helperCloseButton:hover {
-  background: #f3f4f6;
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .helperCardText {
   margin: 8px 0 0;
-  color: #4b5563;
-  font-size: 0.88rem;
-  line-height: 1.6;
+  color: rgba(226, 232, 240, 0.86);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .helperTranscript {
   margin: 8px 0 0;
-  color: #7c3aed;
-  font-size: 0.87rem;
+  color: rgba(196, 181, 253, 0.95);
+  font-size: 0.88rem;
   font-style: italic;
 }
 
 .helperSubheading {
-  margin: 10px 0 5px;
-  font-size: 0.75rem;
-  letter-spacing: 0.07em;
+  margin: 10px 0 6px;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #9ca3af;
-  font-weight: 600;
+  color: rgba(226, 232, 240, 0.75);
 }
 
 .helperList {
   margin: 0;
   padding-left: 18px;
   display: grid;
-  gap: 5px;
-  color: #374151;
-  font-size: 0.87rem;
+  gap: 6px;
+  color: rgba(226, 232, 240, 0.9);
+  font-size: 0.89rem;
 }
 
 .helperActions {
@@ -507,15 +485,14 @@
 }
 
 .secondaryButton {
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  color: #374151;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(15, 23, 42, 0.42);
+  color: rgba(248, 250, 252, 0.95);
   font-size: 0.84rem;
-  font-weight: 600;
-  padding: 7px 12px;
+  font-weight: 680;
+  padding: 8px 12px;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .eventList {
@@ -531,45 +508,37 @@
   justify-content: space-between;
   gap: 12px;
   padding: 9px 10px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(2, 6, 23, 0.25);
 }
 
 .eventTitle {
   margin: 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-size: 0.86rem;
+  font-weight: 680;
+  color: rgba(248, 250, 252, 0.95);
 }
 
 .eventMeta {
-  margin: 3px 0 0;
-  font-size: 0.77rem;
-  color: #6b7280;
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  color: rgba(226, 232, 240, 0.74);
 }
 
 .eventRemoveButton {
-  width: 26px;
-  height: 26px;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  background: transparent;
-  color: #9ca3af;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(226, 232, 240, 0.84);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.eventRemoveButton:hover {
-  background: #fee2e2;
-  border-color: #fca5a5;
-  color: #dc2626;
 }
 
 .editorFooter {
-  margin-top: 12px;
-  padding: 10px 0 0;
-  border-top: 1px solid #f3f4f6;
+  margin-top: 14px;
+  padding: 12px 4px 0;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -585,23 +554,23 @@
 
 .aiStatusText {
   margin: 0;
-  font-size: 0.79rem;
-  color: #7c3aed;
+  font-size: 0.8rem;
+  color: rgba(196, 181, 253, 0.92);
 }
 
 .saveStatus {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  font-size: 0.8rem;
-  color: #9ca3af;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: rgba(226, 232, 240, 0.72);
 }
 
 .saveStatusDot {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background: #10b981;
+  background: rgba(167, 139, 250, 0.9);
 }
 
 .saveStatusDot.saving {
@@ -627,54 +596,57 @@
   justify-content: center;
   text-align: center;
   padding: 40px;
-  color: #6b7280;
+  color: rgba(226, 232, 240, 0.8);
 }
 
 .emptyState i {
-  font-size: 3rem;
-  margin-bottom: 12px;
-  color: #c4b5fd;
+  font-size: 3.5rem;
+  margin-bottom: 14px;
+  opacity: 0.55;
+  color: rgba(167, 139, 250, 0.95);
 }
 
 .emptyState h3 {
-  margin: 0 0 6px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #374151;
+  margin: 0 0 8px;
+  font-size: 1.2rem;
+  font-weight: 750;
+  color: rgba(248, 250, 252, 0.98);
 }
 
 .emptyState p {
   margin: 0;
-  font-size: 0.88rem;
-  color: #9ca3af;
+  font-size: 0.92rem;
+  color: rgba(226, 232, 240, 0.78);
 }
 
 /* Scrollbars */
 .notesListContent::-webkit-scrollbar,
 .editorContent::-webkit-scrollbar {
-  width: 6px;
+  width: 12px;
 }
 
 .notesListContent::-webkit-scrollbar-track,
 .editorContent::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
 }
 
 .notesListContent::-webkit-scrollbar-thumb,
 .editorContent::-webkit-scrollbar-thumb {
-  background: #ddd6fe;
+  background: rgba(167, 139, 250, 0.35);
   border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.08);
 }
 
 .notesListContent::-webkit-scrollbar-thumb:hover,
 .editorContent::-webkit-scrollbar-thumb:hover {
-  background: #c4b5fd;
+  background: rgba(167, 139, 250, 0.55);
 }
 
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.35);
+  background: rgba(4, 4, 12, 0.72);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -684,76 +656,64 @@
 
 .modalCard {
   width: min(420px, 92vw);
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  color: #111827;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(20, 12, 32, 0.95);
+  color: rgba(248, 250, 252, 0.98);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.5);
   padding: 20px;
 }
 
 .modalTitle {
   margin: 0 0 6px;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  color: #111827;
 }
 
 .modalBody {
   margin: 0 0 16px;
-  color: #6b7280;
-  font-size: 0.9rem;
+  color: rgba(226, 232, 240, 0.86);
+  font-size: 0.92rem;
 }
 
 .modalActions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 10px;
 }
 
 .modalButtonSecondary,
 .modalButtonDanger {
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 0.86rem;
-  font-weight: 600;
+  font-weight: 650;
   cursor: pointer;
-  padding: 8px 14px;
+  padding: 9px 14px;
 }
 
 .modalButtonSecondary {
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  color: #374151;
-}
-
-.modalButtonSecondary:hover {
-  background: #f9fafb;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(248, 250, 252, 0.95);
 }
 
 .modalButtonDanger {
-  border: 1px solid #fca5a5;
-  background: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  background: rgba(220, 38, 38, 0.9);
   color: #fff;
-}
-
-.modalButtonDanger:hover {
-  background: #b91c1c;
 }
 
 @media (max-width: 1100px) {
   .notesApp {
     flex-direction: column;
-    border-radius: 12px;
   }
 
   .sidebar {
     width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #e5e7eb;
   }
 
   .noteEditor {
-    padding: 18px;
+    padding: 20px;
   }
 
   .editorActions {
@@ -762,24 +722,28 @@
 
   .actionButton {
     flex: 1;
-    min-width: 110px;
+    min-width: 130px;
   }
 }
 
 @media (max-width: 700px) {
   .notesApp {
-    gap: 0;
-    padding: 0;
+    gap: 12px;
+    padding: 12px 0 22px;
+  }
+
+  .sidebar {
+    border-radius: 16px;
   }
 
   .sidebarHeader,
   .sidebarFooter {
-    padding: 10px;
+    padding: 12px;
   }
 
   .notesListContent {
     padding: 8px;
-    gap: 6px;
+    gap: 8px;
   }
 
   .noteDeleteBtn {
@@ -788,15 +752,17 @@
 
   .noteEditor {
     padding: 14px;
+    border-radius: 16px;
   }
 
   .editorHeader {
-    padding: 12px 14px;
-    gap: 10px;
+    padding: 14px;
+    border-radius: 14px;
+    gap: 12px;
   }
 
   .editorTitle {
-    font-size: 1.1rem;
+    font-size: 1.25rem;
   }
 
   .editorActions {
@@ -810,18 +776,22 @@
     justify-content: center;
   }
 
+  .micButton {
+    height: 42px;
+  }
+
   .editorContent {
-    padding-top: 12px;
+    padding-top: 14px;
   }
 
   .noteTitle {
-    font-size: 1rem;
+    font-size: 1.05rem;
   }
 
   .noteBody {
-    min-height: 220px;
-    font-size: 0.92rem;
-    line-height: 1.6;
+    min-height: 240px;
+    font-size: 0.93rem;
+    line-height: 1.55;
   }
 
   .eventListItem {
@@ -857,22 +827,3 @@
     width: 100%;
   }
 }
-
-/* ── Business dashboard dark mode ── */
-:global([data-theme="dark"]) .notesApp{background:#1a1a1a;color:#e5e7eb}
-:global([data-theme="dark"]) .sidebar{background:#242424;border-color:#333}
-:global([data-theme="dark"]) .sidebarHeader,:global([data-theme="dark"]) .notesListTitle,:global([data-theme="dark"]) .sidebarFooter,:global([data-theme="dark"]) .editorFooter{border-color:#333}
-:global([data-theme="dark"]) .searchBox,:global([data-theme="dark"]) .dashboardLink,:global([data-theme="dark"]) .noteTitle,:global([data-theme="dark"]) .noteBody,:global([data-theme="dark"]) .micButton,:global([data-theme="dark"]) .actionButton,:global([data-theme="dark"]) .secondaryButton,:global([data-theme="dark"]) .helperCloseButton,:global([data-theme="dark"]) .eventListItem,:global([data-theme="dark"]) .modalCard{background:#2d2d2d;border-color:#444;color:#e5e7eb}
-:global([data-theme="dark"]) .searchInput{color:#e5e7eb}
-:global([data-theme="dark"]) .searchInput::placeholder,:global([data-theme="dark"]) .noteTitle::placeholder,:global([data-theme="dark"]) .noteBody::placeholder{color:#6b7280}
-:global([data-theme="dark"]) .notesListTitle h2,:global([data-theme="dark"]) .editorContext,:global([data-theme="dark"]) .noteCardPreview,:global([data-theme="dark"]) .noteCardMeta,:global([data-theme="dark"]) .noteCardDate,:global([data-theme="dark"]) .helperSubheading,:global([data-theme="dark"]) .eventMeta,:global([data-theme="dark"]) .saveStatus,:global([data-theme="dark"]) .emptyState,:global([data-theme="dark"]) .emptyState p,:global([data-theme="dark"]) .modalBody{color:#9ca3af}
-:global([data-theme="dark"]) .noteCard{background:#25233a;border-color:#3d335c}
-:global([data-theme="dark"]) .noteCard:hover,:global([data-theme="dark"]) .noteCard.active{background:#312450;border-color:#7c3aed}
-:global([data-theme="dark"]) .noteCardTitle,:global([data-theme="dark"]) .editorTitle,:global([data-theme="dark"]) .helperCardTitle,:global([data-theme="dark"]) .eventTitle,:global([data-theme="dark"]) .emptyState h3,:global([data-theme="dark"]) .modalTitle{color:#e5e7eb}
-:global([data-theme="dark"]) .noteEditor{background:#1a1a1a}
-:global([data-theme="dark"]) .editorHeader,:global([data-theme="dark"]) .helperCard{background:#242424;border-color:#333}
-:global([data-theme="dark"]) .noteTitle:read-only,:global([data-theme="dark"]) .noteBody:read-only{background:#242424;color:#9ca3af}
-:global([data-theme="dark"]) .helperCardText,:global([data-theme="dark"]) .helperList{color:#d1d5db}
-:global([data-theme="dark"]) .noteDeleteBtn{border-color:#444;color:#9ca3af}
-:global([data-theme="dark"]) .modalButtonSecondary{background:#2d2d2d;border-color:#444;color:#d1d5db}
-:global([data-theme="dark"]) .modalButtonSecondary:hover,:global([data-theme="dark"]) .dashboardLink:hover,:global([data-theme="dark"]) .actionButton:hover:not(:disabled),:global([data-theme="dark"]) .secondaryButton:hover:not(:disabled){background:#312450;border-color:#7c3aed;color:#c4b5fd}
