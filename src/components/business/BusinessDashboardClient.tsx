@@ -49,9 +49,9 @@ import ChatConversationHistory from '@/components/chatbot/ChatConversationHistor
 import DeleteConversationModal from '@/components/chatbot/DeleteConversationModal';
 import type { InitialChatPlanState } from '@/components/chatbot/hooks/useChatAuthPlan';
 import CaseLawSearchPageClient from '@/components/dashboard/CaseLawSearchPageClient';
-import DocumentsClientNew from '@/components/dashboard/DocumentsClientNew';
+import DocumentsClientNew from './documents-tool/DocumentsClientNew';
 import EnhancedCalendarClient from '@/components/dashboard/EnhancedCalendarClient';
-import NotesPageClient from '@/components/dashboard/NotesPageClient';
+import NotesPageClient from './notes-tool/NotesPageClient';
 import SettingsPageClient from '@/components/settings/SettingsPageClient';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import HostedVideoMeeting from '@/components/video/HostedVideoMeeting';

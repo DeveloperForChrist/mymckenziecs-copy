@@ -1,0 +1,878 @@
+/* Google Keep-inspired Notes Page (light theme) */
+
+.notesApp {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  gap: 0;
+  padding: 0;
+  align-items: stretch;
+  background: #ffffff;
+  color: #111827;
+  overflow: hidden;
+}
+
+/* Left Sidebar */
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  background: #f9fafb;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebarHeader {
+  padding: 14px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #6b7280;
+  font-size: 0.9rem;
+  cursor: text;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.searchBox:hover {
+  border-color: #d1d5db;
+}
+
+.searchBox i {
+  font-size: 1rem;
+  color: #9ca3af;
+}
+
+.searchInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #111827;
+  font-size: 0.92rem;
+}
+
+.searchInput::placeholder {
+  color: #9ca3af;
+}
+
+.newNoteBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.88rem;
+  background: #5b21b6;
+  color: #fff;
+  transition: background 0.15s ease;
+}
+
+.newNoteBtn:hover {
+  background: #4c1d95;
+}
+
+.newNoteBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.newNoteBtn i {
+  font-size: 1rem;
+}
+
+.notesListTitle {
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.notesListTitle h2 {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.notesCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 7px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #5b21b6;
+  background: #ede9fe;
+  border: 1px solid #ddd6fe;
+}
+
+.notesListContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.noteCard {
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f5f3ff;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.noteCard:hover {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  box-shadow: 0 2px 8px rgba(91,33,182,0.08);
+}
+
+.noteCard.active {
+  background: #ede9fe;
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 2px rgba(124,58,237,0.12);
+}
+
+.noteCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.noteCardTitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1f2937;
+  min-width: 0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.noteDeleteBtn {
+  width: 26px;
+  height: 26px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.noteCard:hover .noteDeleteBtn {
+  opacity: 1;
+}
+
+.noteDeleteBtn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.noteDeleteBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.noteCardPreview {
+  color: #6b7280;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.noteCardMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.73rem;
+  color: #9ca3af;
+}
+
+.noteCardDate {
+  color: #9ca3af;
+}
+
+.sidebarFooter {
+  padding: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.dashboardLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: #374151;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.dashboardLink:hover {
+  background: #f5f3ff;
+  border-color: #c4b5fd;
+  color: #5b21b6;
+}
+
+/* Editor */
+.noteEditor {
+  flex: 1;
+  min-width: 0;
+  padding: 24px 28px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.editorHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 2px;
+}
+
+.editorTitle {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.01em;
+}
+
+.editorHeaderCopy {
+  min-width: 0;
+}
+
+.editorContext {
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  color: #6b7280;
+}
+
+.readOnlyBanner {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #fde68a;
+  background: #fefce8;
+  color: #92400e;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.editorActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.micButton,
+.actionButton {
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  cursor: pointer;
+  background: #ffffff;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.micButton {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.micButtonLive {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.actionButton {
+  padding: 8px 14px;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.actionButton:hover:not(:disabled),
+.secondaryButton:hover:not(:disabled) {
+  background: #f5f3ff;
+  border-color: #c4b5fd;
+  color: #5b21b6;
+}
+
+.actionButton:disabled,
+.secondaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.editorContent {
+  flex: 1;
+  padding: 16px 0 0;
+  overflow: auto;
+}
+
+.noteTitle {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #111827;
+  font-size: 1.15rem;
+  font-weight: 700;
+  outline: none;
+  margin-bottom: 10px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.noteTitle:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+}
+
+.noteTitle::placeholder {
+  color: #d1d5db;
+}
+
+.noteTitle:read-only {
+  background: #f9fafb;
+  cursor: not-allowed;
+  color: #6b7280;
+}
+
+.noteBody {
+  width: 100%;
+  min-height: 340px;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 0.96rem;
+  line-height: 1.75;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.noteBody:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+}
+
+.noteBody::placeholder {
+  color: #d1d5db;
+}
+
+.noteBody:read-only {
+  background: #f9fafb;
+  cursor: not-allowed;
+  color: #6b7280;
+}
+
+.helperCard {
+  margin-top: 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  padding: 12px 14px;
+}
+
+.helperCardTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.helperCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.helperCloseButton {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #6b7280;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.helperCloseButton:hover {
+  background: #f3f4f6;
+}
+
+.helperCardText {
+  margin: 8px 0 0;
+  color: #4b5563;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.helperTranscript {
+  margin: 8px 0 0;
+  color: #7c3aed;
+  font-size: 0.87rem;
+  font-style: italic;
+}
+
+.helperSubheading {
+  margin: 10px 0 5px;
+  font-size: 0.75rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.helperList {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 5px;
+  color: #374151;
+  font-size: 0.87rem;
+}
+
+.helperActions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.secondaryButton {
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #374151;
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.eventList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.eventListItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.eventTitle {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.eventMeta {
+  margin: 3px 0 0;
+  font-size: 0.77rem;
+  color: #6b7280;
+}
+
+.eventRemoveButton {
+  width: 26px;
+  height: 26px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.eventRemoveButton:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.editorFooter {
+  margin-top: 12px;
+  padding: 10px 0 0;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.aiStatus {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.aiStatusText {
+  margin: 0;
+  font-size: 0.79rem;
+  color: #7c3aed;
+}
+
+.saveStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.saveStatusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.saveStatusDot.saving {
+  background: #f59e0b;
+  animation: pulse 1s infinite;
+}
+
+.saveStatusDot.error {
+  background: #ef4444;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Empty State */
+.emptyState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
+}
+
+.emptyState i {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  color: #c4b5fd;
+}
+
+.emptyState h3 {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #9ca3af;
+}
+
+/* Scrollbars */
+.notesListContent::-webkit-scrollbar,
+.editorContent::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notesListContent::-webkit-scrollbar-track,
+.editorContent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notesListContent::-webkit-scrollbar-thumb,
+.editorContent::-webkit-scrollbar-thumb {
+  background: #ddd6fe;
+  border-radius: 999px;
+}
+
+.notesListContent::-webkit-scrollbar-thumb:hover,
+.editorContent::-webkit-scrollbar-thumb:hover {
+  background: #c4b5fd;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2200;
+  padding: 20px;
+}
+
+.modalCard {
+  width: min(420px, 92vw);
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #111827;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  padding: 20px;
+}
+
+.modalTitle {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.modalBody {
+  margin: 0 0 16px;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.modalButtonSecondary,
+.modalButtonDanger {
+  border-radius: 8px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 14px;
+}
+
+.modalButtonSecondary {
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #374151;
+}
+
+.modalButtonSecondary:hover {
+  background: #f9fafb;
+}
+
+.modalButtonDanger {
+  border: 1px solid #fca5a5;
+  background: #dc2626;
+  color: #fff;
+}
+
+.modalButtonDanger:hover {
+  background: #b91c1c;
+}
+
+@media (max-width: 1100px) {
+  .notesApp {
+    flex-direction: column;
+    border-radius: 12px;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .noteEditor {
+    padding: 18px;
+  }
+
+  .editorActions {
+    width: 100%;
+  }
+
+  .actionButton {
+    flex: 1;
+    min-width: 110px;
+  }
+}
+
+@media (max-width: 700px) {
+  .notesApp {
+    gap: 0;
+    padding: 0;
+  }
+
+  .sidebarHeader,
+  .sidebarFooter {
+    padding: 10px;
+  }
+
+  .notesListContent {
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .noteDeleteBtn {
+    opacity: 1;
+  }
+
+  .noteEditor {
+    padding: 14px;
+  }
+
+  .editorHeader {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .editorTitle {
+    font-size: 1.1rem;
+  }
+
+  .editorActions {
+    width: 100%;
+  }
+
+  .actionButton,
+  .micButton {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .editorContent {
+    padding-top: 12px;
+  }
+
+  .noteTitle {
+    font-size: 1rem;
+  }
+
+  .noteBody {
+    min-height: 220px;
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+
+  .eventListItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .eventRemoveButton {
+    align-self: flex-end;
+  }
+
+  .editorFooter {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .modalOverlay {
+    padding: 12px;
+  }
+
+  .modalCard {
+    width: min(420px, 96vw);
+    padding: 16px;
+  }
+
+  .modalActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .modalButtonSecondary,
+  .modalButtonDanger {
+    width: 100%;
+  }
+}
+
+/* ── Business dashboard dark mode ── */
+:global([data-theme="dark"]) .notesApp{background:#1a1a1a;color:#e5e7eb}
+:global([data-theme="dark"]) .sidebar{background:#242424;border-color:#333}
+:global([data-theme="dark"]) .sidebarHeader,:global([data-theme="dark"]) .notesListTitle,:global([data-theme="dark"]) .sidebarFooter,:global([data-theme="dark"]) .editorFooter{border-color:#333}
+:global([data-theme="dark"]) .searchBox,:global([data-theme="dark"]) .dashboardLink,:global([data-theme="dark"]) .noteTitle,:global([data-theme="dark"]) .noteBody,:global([data-theme="dark"]) .micButton,:global([data-theme="dark"]) .actionButton,:global([data-theme="dark"]) .secondaryButton,:global([data-theme="dark"]) .helperCloseButton,:global([data-theme="dark"]) .eventListItem,:global([data-theme="dark"]) .modalCard{background:#2d2d2d;border-color:#444;color:#e5e7eb}
+:global([data-theme="dark"]) .searchInput{color:#e5e7eb}
+:global([data-theme="dark"]) .searchInput::placeholder,:global([data-theme="dark"]) .noteTitle::placeholder,:global([data-theme="dark"]) .noteBody::placeholder{color:#6b7280}
+:global([data-theme="dark"]) .notesListTitle h2,:global([data-theme="dark"]) .editorContext,:global([data-theme="dark"]) .noteCardPreview,:global([data-theme="dark"]) .noteCardMeta,:global([data-theme="dark"]) .noteCardDate,:global([data-theme="dark"]) .helperSubheading,:global([data-theme="dark"]) .eventMeta,:global([data-theme="dark"]) .saveStatus,:global([data-theme="dark"]) .emptyState,:global([data-theme="dark"]) .emptyState p,:global([data-theme="dark"]) .modalBody{color:#9ca3af}
+:global([data-theme="dark"]) .noteCard{background:#25233a;border-color:#3d335c}
+:global([data-theme="dark"]) .noteCard:hover,:global([data-theme="dark"]) .noteCard.active{background:#312450;border-color:#7c3aed}
+:global([data-theme="dark"]) .noteCardTitle,:global([data-theme="dark"]) .editorTitle,:global([data-theme="dark"]) .helperCardTitle,:global([data-theme="dark"]) .eventTitle,:global([data-theme="dark"]) .emptyState h3,:global([data-theme="dark"]) .modalTitle{color:#e5e7eb}
+:global([data-theme="dark"]) .noteEditor{background:#1a1a1a}
+:global([data-theme="dark"]) .editorHeader,:global([data-theme="dark"]) .helperCard{background:#242424;border-color:#333}
+:global([data-theme="dark"]) .noteTitle:read-only,:global([data-theme="dark"]) .noteBody:read-only{background:#242424;color:#9ca3af}
+:global([data-theme="dark"]) .helperCardText,:global([data-theme="dark"]) .helperList{color:#d1d5db}
+:global([data-theme="dark"]) .noteDeleteBtn{border-color:#444;color:#9ca3af}
+:global([data-theme="dark"]) .modalButtonSecondary{background:#2d2d2d;border-color:#444;color:#d1d5db}
+:global([data-theme="dark"]) .modalButtonSecondary:hover,:global([data-theme="dark"]) .dashboardLink:hover,:global([data-theme="dark"]) .actionButton:hover:not(:disabled),:global([data-theme="dark"]) .secondaryButton:hover:not(:disabled){background:#312450;border-color:#7c3aed;color:#c4b5fd}
