@@ -1,18 +1,17 @@
 "use client";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/database/supabase-browser";
 import { getAppMarketFromPathname, getAppRouteForMarket } from "@/lib/markets/app-routes";
 import styles from "./documents-page-new.module.css";
 import DocumentsActionBar from "./documents/DocumentsActionBar";
-import DocumentsFilters, { type FileTypeFilter } from "./documents/DocumentsFilters";
+import DocumentsFilters from "./documents/DocumentsFilters";
 import DocumentsFolderModal from "./documents/DocumentsFolderModal";
 import DocumentsHeader from "./documents/DocumentsHeader";
 import DocumentsSidebar from "./documents/DocumentsSidebar";
 import DocumentsTable from "./documents/DocumentsTable";
 import DocumentsViewerModal from "./documents/DocumentsViewerModal";
 import type { Document, Folder } from "./documents/types";
-import { BUSINESS_CLEAR_DOCUMENTS_FILTER_EVENT } from "@/lib/events/business-events";
 
 type DocumentsClientProps = {
   initialCanUpload?: boolean;
@@ -44,8 +43,6 @@ export default function DocumentsClient({
   caseIdOverride = null,
 }: DocumentsClientProps) {
   const [activeFilter, setActiveFilter] = useState<'recents'|'starred'>('recents');
-  const [fileTypeFilter, setFileTypeFilter] = useState<FileTypeFilter>('all');
-  const [activeSection, setActiveSection] = useState<'home'|'myfiles'|'shared'|'recycle'>('home');
   const [activeFolder, setActiveFolder] = useState<string|null>(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -56,8 +53,6 @@ export default function DocumentsClient({
   const [folderMap, setFolderMap] = useState<Record<string, string>>({});
   const [uploadFolderId, setUploadFolderId] = useState<string>('');
   const [uid, setUid] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string>('You');
-  const uploadInputRef = React.useRef<HTMLInputElement>(null);
   const [viewingDocument, setViewingDocument] = useState<Document | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewText, setPreviewText] = useState<string | null>(null);
@@ -74,26 +69,10 @@ export default function DocumentsClient({
   const [deleteModal, setDeleteModal] = useState<{ kind: 'document' | 'folder'; id: string } | null>(null);
   const [canUpload, setCanUpload] = useState(Boolean(initialCanUpload));
   const [planLoaded, setPlanLoaded] = useState(Boolean(initialPlanLoaded));
-  const [syncTargets, setSyncTargets] = useState<Array<{
-    businessId: string
-    businessName: string
-    caseId: string
-    matterId: string
-    matterLabel: string
-  }>>([]);
-  const [selectedSyncTargetId, setSelectedSyncTargetId] = useState<string>('');
-  const [selectedSyncIds, setSelectedSyncIds] = useState<string[]>([]);
-  const [syncBusy, setSyncBusy] = useState(false);
-  const [syncNotice, setSyncNotice] = useState<string>('');
   const appMarket = getAppMarketFromPathname(pathname);
   const dashboardHref = dashboardHrefOverride || getAppRouteForMarket('/dashboard', appMarket);
   const documentsHref = getAppRouteForMarket('/dashboard/documents', appMarket);
-  const caseIdFromOverride = typeof caseIdOverride === 'string' ? caseIdOverride.trim() : ''
-  const caseId =
-    (caseIdFromOverride ? caseIdFromOverride : null) ||
-    (searchParams?.get?.('caseId') || '').trim() ||
-    null;
-  const caseIdIsOverride = Boolean(caseIdFromOverride);
+  const caseIdFromOverride = typeof caseIdOverride === 'string' ? caseIdOverride.trim() : '';
 
   const readApiJson = async (res: Response) => {
     const contentType = res.headers.get('content-type') || '';
@@ -112,19 +91,9 @@ export default function DocumentsClient({
     const supabase = getSupabaseBrowserClient();
     supabase.auth.getUser().then(({ data }) => {
       setUid(data?.user?.id || null);
-      const u = data?.user;
-      if (u) {
-        const name = u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'You';
-        setUserName(name);
-      }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUid(session?.user?.id || null);
-      if (session?.user) {
-        const u = session.user;
-        const name = u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'You';
-        setUserName(name);
-      }
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -154,30 +123,6 @@ export default function DocumentsClient({
     return () => {
       cancelled = true;
     };
-  }, [uid]);
-
-  useEffect(() => {
-    const loadSyncTargets = async () => {
-      if (!uid) {
-        setSyncTargets([]);
-        setSelectedSyncTargetId('');
-        return;
-      }
-      try {
-        const res = await fetch('/api/client/document-sync', {
-          credentials: 'include',
-          cache: 'no-store',
-        });
-        const data = await readApiJson(res);
-        if (!res.ok) return;
-        const next = Array.isArray(data?.targets) ? data.targets : [];
-        setSyncTargets(next);
-        setSelectedSyncTargetId((prev) => prev || (next[0]?.businessId || ''));
-      } catch {
-        setSyncTargets([]);
-      }
-    };
-    void loadSyncTargets();
   }, [uid]);
 
   useEffect(() => {
@@ -219,9 +164,8 @@ export default function DocumentsClient({
         return;
       }
       try {
-        const caseQuery = caseId ? `&caseId=${encodeURIComponent(caseId)}` : '';
         const res = await fetch(
-          `/api/documents?limit=${DOCUMENTS_PAGE_SIZE}&offset=0${caseQuery}`,
+          `/api/documents?limit=${DOCUMENTS_PAGE_SIZE}&offset=0`,
           { credentials: 'include', signal: controller.signal }
         );
         const data: any = await readApiJson(res);
@@ -237,15 +181,14 @@ export default function DocumentsClient({
     };
     fetchDocuments();
     return () => controller.abort();
-  }, [uid, caseId]);
+  }, [uid]);
 
   const loadMoreDocuments = async () => {
     if (!uid || documentsLoadingMore || !documentsHasMore) return;
     setDocumentsLoadingMore(true);
     try {
-      const caseQuery = caseId ? `&caseId=${encodeURIComponent(caseId)}` : '';
       const res = await fetch(
-        `/api/documents?limit=${DOCUMENTS_PAGE_SIZE}&offset=${documentsNextOffset}${caseQuery}`,
+        `/api/documents?limit=${DOCUMENTS_PAGE_SIZE}&offset=${documentsNextOffset}`,
         { credentials: 'include' }
       );
       const data: any = await readApiJson(res);
@@ -303,7 +246,6 @@ export default function DocumentsClient({
       const files = Array.from(e.target.files);
       const formData = new FormData();
       files.forEach(file => formData.append('files', file));
-      if (caseId) formData.set('caseId', caseId);
       const targetFolderId = activeFolder || uploadFolderId || undefined;
 
       const res = await fetch('/api/documents', { method: 'POST', body: formData, credentials: 'include' });
@@ -331,22 +273,6 @@ export default function DocumentsClient({
     setDocuments(p => p.map(d => d.id == docId ? { ...d, folderId: folderId || undefined } : d));
     setFolderMap(p => ({ ...p, [docId]: folderId }));
   };
-
-  const clearCaseFilter = useCallback(() => {
-    if (!caseId) return;
-    if (caseIdIsOverride) {
-      window.dispatchEvent(new CustomEvent(BUSINESS_CLEAR_DOCUMENTS_FILTER_EVENT));
-      return;
-    }
-    try {
-      const next = new URLSearchParams(searchParams?.toString?.() || '');
-      next.delete('caseId');
-      const qs = next.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname);
-    } catch {
-      // ignore
-    }
-  }, [caseId, caseIdIsOverride, pathname, router, searchParams]);
 
   const toggleStar = async (id: string) => {
     const target = documents.find((d) => d.id === id);
@@ -403,14 +329,6 @@ export default function DocumentsClient({
 
   const confirmDeleteFolder = (folderId: string) => {
     setCustomFolders(p => p.filter(f => f.id !== folderId));
-    setDocuments(p => p.map(d => d.folderId === folderId ? { ...d, folderId: undefined } : d));
-    setFolderMap(prev => {
-      const next = { ...prev };
-      Object.keys(next).forEach(docId => {
-        if (next[docId] === folderId) delete next[docId];
-      });
-      return next;
-    });
     if (activeFolder === folderId) {
       setActiveFolder(null);
       try { router.replace(documentsHref); } catch(e){}
@@ -424,11 +342,7 @@ export default function DocumentsClient({
 
   const handleCreateFolder = () => {
     if (newFolderName.trim()) {
-      const folder = { id: `folder-${Date.now()}`, name: newFolderName.trim() };
-      setCustomFolders(p => [...p, folder]);
-      setActiveFolder(folder.id);
-      setUploadFolderId(folder.id);
-      try { router.replace(getAppRouteForMarket(`/dashboard/documents?folder=${encodeURIComponent(folder.id)}`, appMarket)); } catch (_) {}
+      setCustomFolders(p => [...p, { id: `folder-${Date.now()}`, name: newFolderName.trim() }]);
       setShowFolderModal(false);
       setNewFolderName('');
     }
@@ -695,37 +609,15 @@ export default function DocumentsClient({
     let arr = [...documents];
     if (activeFilter === 'starred') arr = arr.filter(d => d.starred);
     if (activeFolder) arr = arr.filter(d => d.folderId === activeFolder);
-    if (fileTypeFilter !== 'all') {
-      arr = arr.filter(doc => {
-        const name = (doc.title || '').toLowerCase();
-        const mime = (doc.mimeType || '').toLowerCase();
-        switch (fileTypeFilter) {
-          case 'word': return mime.includes('word') || name.endsWith('.doc') || name.endsWith('.docx');
-          case 'excel': return mime.includes('excel') || mime.includes('spreadsheet') || name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.csv');
-          case 'powerpoint': return mime.includes('powerpoint') || mime.includes('presentation') || name.endsWith('.pptx') || name.endsWith('.ppt');
-          case 'pdf': return mime.includes('pdf') || name.endsWith('.pdf');
-          case 'image': return mime.startsWith('image/') || /\.(png|jpe?g|gif|webp|svg|bmp)$/.test(name);
-          default: return true;
-        }
-      });
-    }
     if (searchQuery) arr = arr.filter(i => i.title.toLowerCase().includes(searchQuery.toLowerCase()));
     return arr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [documents, activeFilter, activeFolder, fileTypeFilter, searchQuery]);
+  }, [documents, activeFilter, activeFolder, searchQuery]);
 
   const totalDocs = documents.length;
   const starredDocs = documents.filter(d => d.starred).length;
   const totalBytes = documents.reduce((acc, doc) => acc + (doc.size || 0), 0);
   const activeFolderName = activeFolder ? folders.find(f => f.id === activeFolder)?.name : 'All files';
   const storageLabel = fmtSize(totalBytes);
-  const folderCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    documents.forEach(doc => {
-      if (!doc.folderId) return;
-      counts[doc.folderId] = (counts[doc.folderId] || 0) + 1;
-    });
-    return counts;
-  }, [documents]);
 
   const handleSelectAllFolders = () => {
     setActiveFolder(null);
@@ -762,95 +654,16 @@ export default function DocumentsClient({
     }
   };
 
-  const toggleSyncSelect = (id: string) => {
-    setSelectedSyncIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  };
-
-  const selectAllVisible = () => {
-    setSelectedSyncIds(items.map((doc) => doc.id));
-  };
-
-  const clearSelectedVisible = () => {
-    setSelectedSyncIds([]);
-  };
-
-  const syncSelectedDocuments = async () => {
-    if (!selectedSyncTargetId || selectedSyncIds.length === 0 || syncBusy) return;
-    setSyncBusy(true);
-    setSyncNotice('');
-    try {
-      const res = await fetch('/api/client/document-sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          businessId: selectedSyncTargetId,
-          documentIds: selectedSyncIds,
-        }),
-      });
-      const data = await readApiJson(res);
-      if (!res.ok) throw new Error(data?.message || 'Document sync failed.');
-      const syncedCount = Number(data?.syncedCount || 0);
-      const skippedCount = Number(data?.skippedCount || 0);
-      setSyncNotice(
-        `Synced ${syncedCount} document${syncedCount === 1 ? '' : 's'} to your professional. ${skippedCount > 0 ? `${skippedCount} already existed and were skipped.` : ''}`.trim(),
-      );
-      setSelectedSyncIds([]);
-    } catch (err: any) {
-      setSyncNotice(err?.message || 'Document sync failed.');
-    } finally {
-      setSyncBusy(false);
-    }
-  };
-
-  const removeSelectedSharedDocuments = async () => {
-    if (!selectedSyncTargetId || selectedSyncIds.length === 0 || syncBusy) return;
-    setSyncBusy(true);
-    setSyncNotice('');
-    try {
-      const res = await fetch('/api/client/document-sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          mode: 'remove',
-          businessId: selectedSyncTargetId,
-          documentIds: selectedSyncIds,
-        }),
-      });
-      const data = await readApiJson(res);
-      if (!res.ok) throw new Error(data?.message || 'Failed to remove shared copies.');
-      setSyncNotice('Removed shared copies for selected documents from the professional matter.');
-      setSelectedSyncIds([]);
-    } catch (err: any) {
-      setSyncNotice(err?.message || 'Failed to remove shared copies.');
-    } finally {
-      setSyncBusy(false);
-    }
-  };
-
   return (
     <div className={styles.container}>
-      <input
-        ref={uploadInputRef}
-        type="file"
-        multiple
-        hidden
-        onChange={handleUpload}
-        disabled={!canUpload || uploading}
-      />
       <DocumentsSidebar
         folders={folders}
         activeFolderId={activeFolder}
-        activeSection={activeSection}
         onSelectAll={handleSelectAllFolders}
         onSelectFolder={handleSelectFolder}
         onDeleteFolder={deleteFolder}
         onCreateFolder={createFolder}
-        onSelectSection={setActiveSection}
-        canUpload={canUpload}
-        userName={userName}
-        onUploadTrigger={() => uploadInputRef.current?.click()}
+        dashboardHref={dashboardHref}
       />
 
       {/* Main Content */}
@@ -859,18 +672,8 @@ export default function DocumentsClient({
           title={activeFolderName || 'All files'}
           totalDocs={totalDocs}
           starredDocs={starredDocs}
+          storageLabel={storageLabel}
         />
-        {caseId && (
-          <div className={styles.caseFilterBar} role="status" aria-live="polite">
-            <div className={styles.caseFilterText}>
-              <span className={styles.caseFilterLabel}>Matter filter</span>
-              <span className={styles.caseFilterValue}>Showing files linked to the selected client matter.</span>
-            </div>
-            <button type="button" className={styles.caseFilterClearBtn} onClick={clearCaseFilter}>
-              Clear
-            </button>
-          </div>
-        )}
 
         <DocumentsActionBar
           searchQuery={searchQuery}
@@ -881,7 +684,6 @@ export default function DocumentsClient({
           uploading={uploading}
           canUpload={canUpload}
           onUpload={handleUpload}
-          onCreateFolder={createFolder}
         />
         {!canUpload && planLoaded && (
           <p className={styles.readOnlyNotice}>
@@ -891,111 +693,8 @@ export default function DocumentsClient({
         {uploadError && (
           <p style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '-8px' }}>{uploadError}</p>
         )}
-        {syncTargets.length > 0 && (
-          <section
-            style={{
-              marginTop: '10px',
-              marginBottom: '8px',
-              border: '1px solid rgba(99,102,241,0.25)',
-              borderRadius: '12px',
-              padding: '12px',
-              background: '#f8faff',
-            }}
-          >
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-              <strong style={{ color: '#1e1b4b' }}>Share selected documents with professional</strong>
-              <select
-                value={selectedSyncTargetId}
-                onChange={(e) => setSelectedSyncTargetId(e.target.value)}
-                style={{ border: '1px solid #c7d2fe', borderRadius: 8, padding: '6px 10px' }}
-              >
-                {syncTargets.map((target) => (
-                  <option key={target.businessId} value={target.businessId}>
-                    {target.businessName} - {target.matterLabel}
-                  </option>
-                ))}
-              </select>
-              <button type="button" onClick={selectAllVisible} style={{ border: '1px solid #d1d5db', borderRadius: 8, padding: '6px 10px', background: '#fff' }}>
-                Select visible
-              </button>
-              <button type="button" onClick={clearSelectedVisible} style={{ border: '1px solid #d1d5db', borderRadius: 8, padding: '6px 10px', background: '#fff' }}>
-                Clear
-              </button>
-              <button
-                type="button"
-                onClick={() => void syncSelectedDocuments()}
-                disabled={!selectedSyncTargetId || selectedSyncIds.length === 0 || syncBusy}
-                style={{
-                  border: 'none',
-                  borderRadius: 8,
-                  padding: '7px 12px',
-                  background: '#4f46e5',
-                  color: '#fff',
-                  opacity: !selectedSyncTargetId || selectedSyncIds.length === 0 || syncBusy ? 0.6 : 1,
-                  cursor: !selectedSyncTargetId || selectedSyncIds.length === 0 || syncBusy ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {syncBusy ? 'Syncing...' : `Sync selected (${selectedSyncIds.length})`}
-              </button>
-              <button
-                type="button"
-                onClick={() => void removeSelectedSharedDocuments()}
-                disabled={!selectedSyncTargetId || selectedSyncIds.length === 0 || syncBusy}
-                style={{
-                  border: '1px solid #fecaca',
-                  borderRadius: 8,
-                  padding: '7px 12px',
-                  background: '#fff1f2',
-                  color: '#b91c1c',
-                  opacity: !selectedSyncTargetId || selectedSyncIds.length === 0 || syncBusy ? 0.6 : 1,
-                  cursor: !selectedSyncTargetId || selectedSyncIds.length === 0 || syncBusy ? 'not-allowed' : 'pointer',
-                }}
-              >
-                Remove shared copies
-              </button>
-            </div>
-            <p style={{ marginTop: 8, color: '#475569', fontSize: '0.85rem' }}>
-              Selected files will appear in your professional’s client case documents.
-            </p>
-            {syncNotice && (
-              <p style={{ marginTop: 6, color: syncNotice.toLowerCase().includes('failed') ? '#b91c1c' : '#166534', fontSize: '0.85rem' }}>
-                {syncNotice}
-              </p>
-            )}
-          </section>
-        )}
 
-        <DocumentsFilters
-          activeFilter={activeFilter}
-          fileTypeFilter={fileTypeFilter}
-          onFilterChange={setActiveFilter}
-          onFileTypeChange={setFileTypeFilter}
-        />
-
-        {!activeFolder && activeFilter === 'recents' && folders.length > 0 && (
-          <section className={styles.folderTilesSection} aria-label="Folders">
-            <div className={styles.sectionHeader}>
-              <h2>Folders</h2>
-              <span>{folders.length} folder{folders.length === 1 ? '' : 's'}</span>
-            </div>
-            <div className={styles.folderTiles}>
-              {folders.map(folder => (
-                <button
-                  key={folder.id}
-                  type="button"
-                  className={styles.folderTile}
-                  onClick={() => handleSelectFolder(folder.id)}
-                >
-                  <span className={styles.folderTileIcon}><i className="bx bxs-folder"></i></span>
-                  <span className={styles.folderTileText}>
-                    <strong>{folder.name}</strong>
-                    <small>{folderCounts[folder.id] || 0} file{(folderCounts[folder.id] || 0) === 1 ? '' : 's'}</small>
-                  </span>
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
+        <DocumentsFilters activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
         {/* File List */}
         <div className={styles.fileListContainer}>
@@ -1018,10 +717,6 @@ export default function DocumentsClient({
                 canDelete={canUpload}
                 onDelete={deleteDocument}
                 onFolderChange={handleFolderAssignment}
-                userName={userName}
-                selectable={syncTargets.length > 0}
-                selectedIds={selectedSyncIds}
-                onToggleSelect={toggleSyncSelect}
               />
               {documentsHasMore && (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0 4px' }}>

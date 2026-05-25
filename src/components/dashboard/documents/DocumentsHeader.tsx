@@ -4,12 +4,14 @@ type DocumentsHeaderProps = {
   title: string;
   totalDocs: number;
   starredDocs: number;
+  storageLabel: string;
 };
 
 export default function DocumentsHeader({
   title,
   totalDocs,
   starredDocs,
+  storageLabel,
 }: DocumentsHeaderProps) {
   return (
     <div className={styles.headerSection}>
@@ -27,6 +29,11 @@ export default function DocumentsHeader({
         <div className={styles.statItem}>
           <span className={styles.statValue}>{starredDocs}</span>
           <span className={styles.statLabel}>Starred</span>
+        </div>
+        <div className={styles.statDivider}></div>
+        <div className={styles.statItem}>
+          <span className={styles.statValue}>{storageLabel}</span>
+          <span className={styles.statLabel}>Storage</span>
         </div>
       </div>
     </div>

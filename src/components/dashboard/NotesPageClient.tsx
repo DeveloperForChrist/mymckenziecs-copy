@@ -786,13 +786,11 @@ export default function NotesPageClient({
           )}
         </div>
 
-        {!dashboardHrefOverride && (
-          <div className={styles.sidebarFooter}>
-            <a href={dashboardHref} className={styles.dashboardLink}>
-              <span>Go to Dashboard</span>
-            </a>
-          </div>
-        )}
+        <div className={styles.sidebarFooter}>
+          <a href={dashboardHref} className={styles.dashboardLink}>
+            <span>Go to Dashboard</span>
+          </a>
+        </div>
       </aside>
 
       {/* Note Editor Panel */}
