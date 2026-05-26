@@ -415,13 +415,17 @@ export default function DashboardHomeClient({
             href: notesHref,
             color: '#db2777,#f472b6'
           },
-          {
-            icon: 'bx-search',
-            title: 'Search Case Law',
-            desc: 'Research and study case law and judgments where available',
-            href: caseLawHref,
-            color: '#f59e42,#fbbf24'
-          },
+          ...(publicMarket !== 'US'
+            ? [
+                {
+                  icon: 'bx-search',
+                  title: 'Search Case Law',
+                  desc: 'Research and study case law and judgments where available',
+                  href: caseLawHref,
+                  color: '#f59e42,#fbbf24'
+                },
+              ]
+            : []),
           ...(publicMarket !== 'US'
             ? [
                 {

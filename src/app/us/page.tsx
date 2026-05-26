@@ -181,7 +181,7 @@ export default function UsHomePage() {
         { href: '/us/cookie-policy', label: 'Cookie Policy' },
         { href: '/us/contact', label: 'Contact' },
       ]}
-      marketSwitch={{ href: '/?market=GB', label: 'Need the UK / original version? Open the main site' }}
+      marketSwitch={{ href: '/uk', label: 'Need the UK / original version? Open the main site' }}
       ctaTitle="Start building your U.S. case workflow now."
       ctaText="Start with one question, then keep your filings, deadlines, hearing prep, and working notes in the same structure."
       plansNote="U.S. counterpart pricing is shown here as $25, $44, and $270 while the U.S. rollout continues expanding public content and jurisdiction-aware support."

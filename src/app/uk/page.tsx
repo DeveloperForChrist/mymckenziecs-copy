@@ -171,7 +171,7 @@ export default function UkHomePage() {
         { href: '/uk/cookie-policy', label: 'Cookie Policy' },
         { href: '/uk/contact', label: 'Contact' },
       ]}
-      marketSwitch={{ href: '/?market=US', label: 'Looking for the U.S. version? Open the U.S. site' }}
+      marketSwitch={{ href: '/us', label: 'Looking for the U.S. version? Open the U.S. site' }}
       ctaTitle="Start organising your client work now."
       ctaText="Start with one client matter, then keep documents, deadlines, notes, and preparation context in the same workspace."
     />

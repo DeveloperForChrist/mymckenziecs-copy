@@ -157,9 +157,14 @@ export async function proxy(request: NextRequest) {
   const isPublicMarketRoutingCandidate = (isPublicMarketPage || isRootPath) && isMarketMappablePath(pathname)
 
   if (isPublicMarketRoutingCandidate) {
+    const explicitPathMarket = pathname === '/us' || pathname.startsWith('/us/')
+      ? 'US'
+      : pathname === '/uk' || pathname.startsWith('/uk/')
+        ? 'GB'
+        : null
     const approvedMarket = socialCrawler
       ? 'GB'
-      : resolveApprovedPublicMarket({
+      : explicitPathMarket || resolveApprovedPublicMarket({
         storedMarketCookie: request.cookies.get('market')?.value || null,
         edgeCountryCode: readEdgeCountryCode(request.headers),
         requestedMarket: request.nextUrl.searchParams.get('market'),

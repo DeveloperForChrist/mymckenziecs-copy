@@ -116,6 +116,13 @@ const US_USER_ROW = {
   jurisdiction_label: 'Nevada',
 }
 
+const MICHIGAN_USER_ROW = {
+  id: 'user-1',
+  country_code: 'US',
+  jurisdiction_code: 'US-MI',
+  jurisdiction_label: 'Michigan',
+}
+
 describe('/api/chat route', () => {
   const originalEnv = { ...process.env }
 
@@ -187,6 +194,10 @@ describe('/api/chat route', () => {
             return createTableQuery(resolvedCasesRows)
           case 'messages':
             return createTableQuery(resolvedMessagesRows)
+          case 'user_entitlements':
+            return createTableQuery([])
+          case 'business_members':
+            return createTableQuery([])
           default:
             throw new Error(`Unexpected table: ${table}`)
         }
@@ -243,6 +254,18 @@ describe('/api/chat route', () => {
         }
       }) as any,
     }
+    Object.assign(legalAgentMocks, {
+      invokeBasicLitigantLegalAgent: legalAgentMocks.invokeBasicLegalAgent,
+      invokeBasicProfessionalLegalAgent: legalAgentMocks.invokeBasicLegalAgent,
+      invokePremiumLitigantLegalAgent: legalAgentMocks.invokePremiumLegalAgent,
+      invokePremiumProfessionalLegalAgent: legalAgentMocks.invokePremiumLegalAgent,
+      invokePremiumLitigantLegalAgentStream: legalAgentMocks.invokePremiumLegalAgentStream,
+      invokePremiumProfessionalLegalAgentStream: legalAgentMocks.invokePremiumLegalAgentStream,
+      invokePremiumPlusLitigantLegalAgent: legalAgentMocks.invokePremiumPlusLegalAgent,
+      invokePremiumPlusProfessionalLegalAgent: legalAgentMocks.invokePremiumPlusLegalAgent,
+      invokePremiumPlusLitigantLegalAgentStream: legalAgentMocks.invokePremiumPlusLegalAgentStream,
+      invokePremiumPlusProfessionalLegalAgentStream: legalAgentMocks.invokePremiumPlusLegalAgentStream,
+    })
     const searchByTextMock = vi.fn(searchByTextImpl || (async () => []))
     const webSearchUsageMock = {
       consumeBasicDailyWebSearchQuota: vi.fn(async () => ({
@@ -996,6 +1019,52 @@ describe('/api/chat route', () => {
       expect.objectContaining({
         autoDecideSearch: true,
         anthropicModel: 'claude-opus-4-6',
+      })
+    )
+  })
+
+  it('keeps a Michigan dog legal issue on the U.S. Premium+ path without UK case-law retrieval', { timeout: 15000 }, async () => {
+    process.env.PREMIUM_PLUS_ANTHROPIC_MODEL = 'claude-opus-4-6'
+
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'premium +', paidAccess: true, platformAccess: true, planStatus: 'active' },
+      usersRows: [MICHIGAN_USER_ROW],
+      processMessageResult: { task: 'case_lookup', contextType: 'general', urgency: 'normal', caseId: null },
+    })
+
+    ;(legalAgentMocks.invokePremiumPlusLegalAgent as any).mockResolvedValueOnce({
+      response: 'Michigan dog issue answer [1]',
+      guidance_provided: [],
+      next_steps: [],
+      sources: [
+        {
+          number: 1,
+          title: 'Michigan dog law source',
+          url: 'https://www.courts.michigan.gov/',
+        },
+      ],
+    })
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'A neighbor dog bit me in Michigan. Can I get case law or legal guidance on what matters?',
+        history: [],
+      })
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.response).toContain('Michigan dog issue answer')
+    expect(payload.metadata.debug.premiumPlusCaseLawRetrievalEnabled).toBe(false)
+    expect(payload.metadata.debug.vectorCaseLawRagEnabled).toBe(false)
+    expect(payload.metadata.debug.premiumPlusWebQuery).toContain('Michigan United States')
+    expect((legalAgentMocks.invokePremiumPlusLegalAgent as any).mock.calls[0][5]).toEqual(
+      expect.objectContaining({
+        legalContext: expect.objectContaining({
+          countryCode: 'US',
+          jurisdictionCode: 'US-MI',
+          jurisdictionLabel: 'Michigan',
+        }),
       })
     )
   })
