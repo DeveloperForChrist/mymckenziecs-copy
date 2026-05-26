@@ -1,5 +1,7 @@
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { searchByText } from '@/lib/vector/milvus';
+import type { UserLegalContext } from '@/lib/legal/jurisdictions';
+import { isUnitedStatesContext } from '@/lib/legal/jurisdictions';
 import {
   enrichResultsWithSupabase,
   enrichResultsWithUrlSummaries,
@@ -160,6 +162,7 @@ export async function searchCaseLawWithFallback(
   limit: number,
   options?: {
     urlEnrich?: boolean
+    legalContext?: UserLegalContext | null
   }
 ): Promise<RuntimeCaseLawSearchOutcome> {
   let results: RuntimeCaseLawResult[] = []
@@ -172,7 +175,9 @@ export async function searchCaseLawWithFallback(
       throw new Error('MILVUS_HOST missing')
     }
 
-    const vectorResults = await searchByText(query, Math.max(5, limit))
+    const vectorResults = await searchByText(query, Math.max(5, limit), {
+      legalContext: options?.legalContext,
+    })
     results = (vectorResults || []).map((result: any) => ({
       id: result.id,
       citation: result.citation,
@@ -180,8 +185,9 @@ export async function searchCaseLawWithFallback(
       url: result.url,
       summary: result.summary,
       extracts: result.extracts,
+      court: result.court,
       similarity_score: result.score,
-      source: 'vector',
+      source: result.source_provider || 'vector',
     }))
   } catch (error) {
     console.error('Vector search error:', error)
@@ -190,6 +196,15 @@ export async function searchCaseLawWithFallback(
 
   if (vectorFailure) {
     warning = 'Vector backend unavailable. Served fallback results.'
+
+    if (isUnitedStatesContext(options?.legalContext)) {
+      return {
+        results: [],
+        method: 'fallback_empty',
+        warning: 'U.S. case-law vector backend unavailable. No U.S. fallback database was used.',
+        vectorFailure,
+      }
+    }
 
     const supabaseFallbackResults = await searchSupabaseKeywordFallback(query, limit)
     if (supabaseFallbackResults.length > 0) {

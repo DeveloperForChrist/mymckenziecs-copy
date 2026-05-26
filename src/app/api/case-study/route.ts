@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     const legalContext = await getUserLegalContext(authData.user.id, authData.user.user_metadata as any);
     if (!isCaseLawAvailableForLegalContext(legalContext)) {
       return NextResponse.json(
-        { error: 'Case law study is not available for U.S. legal matters yet.' },
+        { error: 'Case law study is not available for your legal jurisdiction yet.' },
         { status: 403 }
       );
     }
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
     try {
       if (process.env.MILVUS_HOST) {
         const queryText = `${validatedData.title} ${validatedData.summary}`.slice(0, 4000);
-        const related = await searchByText(queryText, 5);
+        const related = await searchByText(queryText, 5, { legalContext });
         const relatedExtracts = (related || [])
           .map((r: any) => r.summary || (Array.isArray(r.extracts) ? r.extracts.join('\n') : null))
           .filter(Boolean);
@@ -201,7 +201,7 @@ export async function POST(req: NextRequest) {
       const needMore = !validatedData.extracts || validatedData.extracts.length < 3;
       if (needMore && process.env.MILVUS_HOST) {
         const queryText = `${validatedData.title} ${validatedData.summary}`.slice(0, 4000);
-        const hits = await searchByText(queryText, 5);
+        const hits = await searchByText(queryText, 5, { legalContext });
         const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
         for (const h of (hits || [])) {

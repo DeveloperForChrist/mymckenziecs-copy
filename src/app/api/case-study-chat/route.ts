@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     const legalContext = await getUserLegalContext(authData.user.id, authData.user.user_metadata as any);
     if (!isCaseLawAvailableForLegalContext(legalContext)) {
       return NextResponse.json(
-        { error: 'Case law study chat is not available for U.S. legal matters yet.' },
+        { error: 'Case law study chat is not available for your legal jurisdiction yet.' },
         { status: 403 }
       );
     }

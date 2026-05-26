@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import {
+  isUnitedStatesContext,
   isUnitedKingdomContext,
   type SupportedCountryCode,
   type UserLegalContext,
@@ -41,5 +42,9 @@ export async function getUserLegalContext(
 }
 
 export function isCaseLawAvailableForLegalContext(context?: UserLegalContext | null): boolean {
-  return isUnitedKingdomContext(context)
+  if (isUnitedKingdomContext(context)) return true
+  if (isUnitedStatesContext(context)) {
+    return Boolean(process.env.US_MILVUS_HOST || process.env.MILVUS_US_HOST)
+  }
+  return false
 }

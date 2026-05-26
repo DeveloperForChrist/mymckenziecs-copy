@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     const legalContext = await getUserLegalContext(userId, authData?.user?.user_metadata as any);
     if (!isCaseLawAvailableForLegalContext(legalContext)) {
       return NextResponse.json(
-        { error: 'Case law search is not available for U.S. legal matters yet.' },
+        { error: 'Case law search is not available for your legal jurisdiction yet.' },
         { status: 403 }
       );
     }
@@ -90,6 +90,7 @@ export async function POST(request: NextRequest) {
 
     const runtimeSearch = await searchCaseLawWithFallback(query, Math.max(5, limit), {
       urlEnrich: process.env.CASELAW_URL_ENRICH === '1',
+      legalContext,
     });
 
     if (runtimeSearch.vectorFailure) {

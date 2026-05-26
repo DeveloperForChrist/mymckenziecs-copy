@@ -34,10 +34,10 @@ export default async function CaseLawSearchPage() {
               }}
             >
               <h1 style={{ margin: 0, fontSize: '1.85rem', fontWeight: 700, color: '#fde68a' }}>
-                Case law tools are not available for U.S. matters yet
+                Case law tools are not available for this jurisdiction yet
               </h1>
               <p style={{ margin: '12px 0 0', color: '#fef3c7', lineHeight: 1.6 }}>
-                We are still filling the U.S. case-law database. For now, case-law search and case-law study are available only for UK legal matters.
+                Case-law search is available only for supported legal jurisdictions on eligible plans.
               </p>
               <div style={{ marginTop: '18px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 <Link

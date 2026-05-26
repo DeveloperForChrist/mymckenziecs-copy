@@ -73,7 +73,7 @@ export default function DashboardHomeClient({
   const [clientPortalEnabled, setClientPortalEnabled] = useState(false);
   const [clientPortalLoaded, setClientPortalLoaded] = useState(false);
 
-  const hasCaseLawFeature = publicMarket !== 'US' && initialCaseLawAvailable && hasCaseLawAccess(plan);
+  const hasCaseLawFeature = initialCaseLawAvailable && hasCaseLawAccess(plan);
   const normalizedPlanStatus = planStatus.trim().toLowerCase();
   const isPastDueStatus = normalizedPlanStatus === 'past_due';
   const isTrialingStatus = isTrialingStripeStatus(normalizedPlanStatus);
@@ -415,17 +415,13 @@ export default function DashboardHomeClient({
             href: notesHref,
             color: '#db2777,#f472b6'
           },
-          ...(publicMarket !== 'US'
-            ? [
-                {
-                  icon: 'bx-search',
-                  title: 'Search Case Law',
-                  desc: 'Research and study case law and judgments where available',
-                  href: caseLawHref,
-                  color: '#f59e42,#fbbf24'
-                },
-              ]
-            : []),
+          {
+            icon: 'bx-search',
+            title: 'Search Case Law',
+            desc: 'Research and study case law and judgments where available',
+            href: caseLawHref,
+            color: '#f59e42,#fbbf24'
+          },
           ...(publicMarket !== 'US'
             ? [
                 {

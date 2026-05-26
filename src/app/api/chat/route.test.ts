@@ -129,6 +129,7 @@ describe('/api/chat route', () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co'
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-test'
+    process.env.US_MILVUS_HOST = 'us-milvus.test'
   })
 
   afterEach(() => {
@@ -413,7 +414,7 @@ describe('/api/chat route', () => {
     expect(legalAgentMocks.invokeBasicLegalAgent).not.toHaveBeenCalled()
   })
 
-  it('disables premium plus UK case-law retrieval for U.S. users while keeping premium plus chat available', { timeout: 15000 }, async () => {
+  it('enables premium plus U.S. case-law retrieval for U.S. users when the U.S. vector DB is configured', { timeout: 15000 }, async () => {
     process.env.PREMIUM_PLUS_ANTHROPIC_MODEL = 'claude-opus-4-6'
 
     const { POST, legalAgentMocks } = await loadRoute({
@@ -438,8 +439,8 @@ describe('/api/chat route', () => {
     const payload = await response.json()
 
     expect(response.status).toBe(200)
-    expect(payload.metadata?.debug?.premiumPlusCaseLawRetrievalEnabled).toBe(false)
-    expect(payload.metadata?.debug?.vectorCaseLawRagEnabled).toBe(false)
+    expect(payload.metadata?.debug?.premiumPlusCaseLawRetrievalEnabled).toBe(true)
+    expect(payload.metadata?.debug?.vectorCaseLawRagEnabled).toBe(true)
     expect(payload.metadata?.debug?.premiumPlusWebQuery).toContain('Nevada United States')
     expect(legalAgentMocks.invokePremiumPlusLegalAgent).toHaveBeenCalledWith(
       expect.any(String),
@@ -1023,7 +1024,7 @@ describe('/api/chat route', () => {
     )
   })
 
-  it('keeps a Michigan dog legal issue on the U.S. Premium+ path without UK case-law retrieval', { timeout: 15000 }, async () => {
+  it('keeps a Michigan dog legal issue on the U.S. Premium+ path with U.S. case-law retrieval', { timeout: 15000 }, async () => {
     process.env.PREMIUM_PLUS_ANTHROPIC_MODEL = 'claude-opus-4-6'
 
     const { POST, legalAgentMocks } = await loadRoute({
@@ -1055,8 +1056,8 @@ describe('/api/chat route', () => {
 
     expect(response.status).toBe(200)
     expect(payload.response).toContain('Michigan dog issue answer')
-    expect(payload.metadata.debug.premiumPlusCaseLawRetrievalEnabled).toBe(false)
-    expect(payload.metadata.debug.vectorCaseLawRagEnabled).toBe(false)
+    expect(payload.metadata.debug.premiumPlusCaseLawRetrievalEnabled).toBe(true)
+    expect(payload.metadata.debug.vectorCaseLawRagEnabled).toBe(true)
     expect(payload.metadata.debug.premiumPlusWebQuery).toContain('Michigan United States')
     expect((legalAgentMocks.invokePremiumPlusLegalAgent as any).mock.calls[0][5]).toEqual(
       expect.objectContaining({
@@ -1176,8 +1177,8 @@ describe('/api/chat route', () => {
     {
       label: 'U.S.',
       userRow: US_USER_ROW,
-      expectedCaseLawRetrieval: false,
-      expectedVectorRag: false,
+      expectedCaseLawRetrieval: true,
+      expectedVectorRag: true,
       expectedWebQueryFragment: 'Nevada United States',
     },
   ])('routes Premium+ case-law questions correctly for %s users', { timeout: 15000 }, async ({

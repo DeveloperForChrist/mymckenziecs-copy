@@ -40,9 +40,9 @@ import {
 } from '@/lib/chat/assistant-presentation'
 import {
   buildJurisdictionSearchSuffix,
-  isUnitedKingdomContext,
   type UserLegalContext,
 } from '@/lib/legal/jurisdictions'
+import { isCaseLawAvailableForLegalContext } from '@/lib/legal/user-context'
 import { getAccountTypeForUser } from '@/lib/auth/account-type'
 
 export const dynamic = 'force-dynamic'
@@ -978,7 +978,7 @@ const shouldUsePremiumPlusCaseLawHeuristically = ({
   }
   legalContext?: UserLegalContext
 }): boolean => {
-  if (!isUnitedKingdomContext(legalContext)) return false
+  if (!isCaseLawAvailableForLegalContext(legalContext)) return false
   if (hasAttachments) return false
   if (retrievalFocusApplied === 'direct' || retrievalFocusApplied === 'web_only') return false
   if (hasExplicitAuthoritySignal({ message, history })) return true

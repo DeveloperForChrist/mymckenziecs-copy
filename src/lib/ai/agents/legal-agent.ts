@@ -13,6 +13,7 @@ import {
   getLegalSystemDescriptor,
   getSearchCountryCode,
   isUnitedKingdomContext,
+  isUnitedStatesContext,
   type UserLegalContext,
 } from '@/lib/legal/jurisdictions';
 import type { AccountType } from '@/lib/auth/account-type';
@@ -2057,6 +2058,8 @@ const PREMIUM_PLUS_ANTHROPIC_PROMPT_CACHING_BETA = 'prompt-caching-2024-07-31'
 const PREMIUM_PLUS_ANTHROPIC_PROMPT_CACHE_TTL = '5m'
 const PREMIUM_PLUS_CONTINUATION_PROMPT = 'Continue exactly from where you stopped. Do not repeat prior text. Keep the same structure and style.'
 
+const hasUsCaseLawVectorConfig = () => Boolean(process.env.US_MILVUS_HOST || process.env.MILVUS_US_HOST)
+
 type PremiumPlusAnthropicTextResult = {
   text: string
   stopReason: string | null
@@ -2064,6 +2067,23 @@ type PremiumPlusAnthropicTextResult = {
 
 const buildPremiumPlusToolExecutionInstructions = (legalContext?: UserLegalContext | null) => {
   if (legalContext?.countryCode === 'US') {
+    if (hasUsCaseLawVectorConfig()) {
+      return `TOOL EXECUTION
+- You have access to web_search and case_law_search for U.S. matters.
+- case_law_search retrieves from the U.S. case-law vector collection. Treat results as research leads and explain whether the court/jurisdiction appears binding, persuasive, federal, state, published, or otherwise limited when that information is available.
+- You may answer directly when the question is simple enough to answer.
+- If current real-time official guidance, procedure, forms, deadlines, statutes, court self-help pages, or practical process details are needed, call web_search.
+- If authorities, precedents, judicial reasoning, or illustrative examples from decided cases would materially help, call case_law_search.
+- You may call both tools when both materially help.
+- Use the available tools whenever they materially improve knowledge, understanding, accuracy, freshness, authority, case-specific relevance, or explanation.
+- If you are unsure whether retrieval would help, prefer the tool that best verifies the uncertain point.
+- After tool results are returned, answer the user directly in plain text.
+- If you discuss a specific U.S. authority from the provided case-law or web context, introduce it with a short standalone line containing the case name and citation before explaining it.
+- Do not mention tools, tool calls, internal routing, or function names to the user.
+- Treat tool outputs as context already provided to you.
+- If a source contains complex legal language, translate it into plain English for a non-lawyer before presenting it to the user.`
+    }
+
     return `TOOL EXECUTION
 - You have access to web_search for U.S. matters.
 - Internal case-law retrieval is currently configured for UK authorities only, so do not call case_law_search for U.S. matters unless the user explicitly asks for a UK comparison.
@@ -2254,7 +2274,9 @@ const buildPremiumPlusAnthropicTools = (
   legalContext?: UserLegalContext | null
 ) => {
   const tools = legalContext?.countryCode === 'US'
-    ? PREMIUM_PLUS_ANTHROPIC_TOOLS.filter((tool) => tool.name !== 'case_law_search')
+    ? (hasUsCaseLawVectorConfig()
+      ? PREMIUM_PLUS_ANTHROPIC_TOOLS
+      : PREMIUM_PLUS_ANTHROPIC_TOOLS.filter((tool) => tool.name !== 'case_law_search'))
     : PREMIUM_PLUS_ANTHROPIC_TOOLS
 
   return tools.map((tool, index) =>
@@ -2501,13 +2523,15 @@ const executePremiumPlusCaseLawSearch = async (
   limit: number,
   legalContext?: UserLegalContext
 ): Promise<PremiumPlusToolExecutionResult> => {
-  if (!isUnitedKingdomContext(legalContext)) {
+  if (!isUnitedKingdomContext(legalContext) && !isUnitedStatesContext(legalContext)) {
     return {
-      content: 'Case-law retrieval is currently configured for UK authorities only. For this user, rely on jurisdiction-aware web sources and explain that U.S. authority coverage is still limited.',
+      content: 'Case-law retrieval is not available for this legal jurisdiction.',
     }
   }
 
-  const runtimeSearch = await searchCaseLawWithFallback(query, Math.max(6, limit * 3))
+  const runtimeSearch = await searchCaseLawWithFallback(query, Math.max(6, limit * 3), {
+    legalContext,
+  })
   const rawResults = runtimeSearch.results
 
   const mapped = Array.isArray(rawResults)
@@ -3106,7 +3130,9 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
     },
   ] as const
   const tools = options.legalContext?.countryCode === 'US'
-    ? openAiTools.filter((tool) => tool.function.name !== 'case_law_search')
+    ? (hasUsCaseLawVectorConfig()
+      ? [...openAiTools]
+      : openAiTools.filter((tool) => tool.function.name !== 'case_law_search'))
     : [...openAiTools]
 
   const runOpenAiOnce = async (modelName: string) => {

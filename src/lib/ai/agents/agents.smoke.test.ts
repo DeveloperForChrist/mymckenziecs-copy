@@ -986,6 +986,9 @@ describe('agent smoke checks', () => {
   })
 
   it('premium plus U.S. tool path does not expose UK case-law retrieval', async () => {
+    delete process.env.US_MILVUS_HOST
+    delete process.env.MILVUS_US_HOST
+
     await invokePremiumPlusLegalAgent(
       'Can you give case law on this Nevada issue?',
       'thread_smoke_premium_plus_us_prompt_split',
@@ -1016,6 +1019,40 @@ describe('agent smoke checks', () => {
     expect(systemPrompt).toContain('do not call case_law_search for U.S. matters')
     expect(systemPrompt).toContain('plain English for a non-lawyer')
     expect(toolNames).toEqual(['web_search'])
+  })
+
+  it('premium plus U.S. tool path exposes U.S. case-law retrieval when configured', async () => {
+    process.env.US_MILVUS_HOST = 'us-milvus.test'
+
+    await invokePremiumPlusLegalAgent(
+      'Can you give case law on this Nevada issue?',
+      'thread_smoke_premium_plus_us_prompt_with_db',
+      'user_smoke_premium_plus_us_prompt_with_db',
+      [],
+      'Nevada consumer dispute',
+      {
+        useSearch: true,
+        anthropicModel: 'claude-sonnet-4-6',
+        anthropicFallbackModel: 'claude-opus-4-6',
+        legalContext: {
+          countryCode: 'US',
+          jurisdictionCode: 'US-NV',
+          jurisdictionLabel: 'Nevada',
+        },
+      }
+    )
+
+    const [payload] = (anthropicMockState.anthropicMessagesCreateMock.mock.calls[0] || []) as any[]
+    const systemPrompt = Array.isArray(payload?.system)
+      ? String(payload.system[0]?.text || '')
+      : String(payload?.system || '')
+    const toolNames = Array.isArray(payload?.tools)
+      ? payload.tools.map((tool: any) => String(tool?.name || ''))
+      : []
+
+    expect(systemPrompt).toContain('case_law_search retrieves from the U.S. case-law vector collection')
+    expect(toolNames).toContain('web_search')
+    expect(toolNames).toContain('case_law_search')
   })
 
   it('premium plus stream bypasses the tool loop for stable explanatory questions', async () => {
@@ -1214,6 +1251,9 @@ describe('agent smoke checks', () => {
   })
 
   it('premium plus case-law tool avoids UK authority retrieval for U.S. users', async () => {
+    delete process.env.US_MILVUS_HOST
+    delete process.env.MILVUS_US_HOST
+
     await invokePremiumPlusLegalAgent(
       'Can you give case law on this?',
       'thread_smoke_premium_plus_us_case_law_block',
