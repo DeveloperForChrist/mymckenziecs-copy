@@ -41,6 +41,9 @@ const anthropicMockState = vi.hoisted(() => {
       }
 
       if (payload?.tools?.length) {
+        const offeredToolNames = Array.isArray(payload.tools)
+          ? payload.tools.map((tool: any) => String(tool?.name || tool?.function?.name || ''))
+          : []
         if (combinedContent.includes('Earlier conversation marker: driver hit my car and ran away')) {
           return {
             content: [
@@ -53,7 +56,7 @@ const anthropicMockState = vi.hoisted(() => {
           }
         }
 
-        if (combinedContent.toLowerCase().includes('case law')) {
+        if (combinedContent.toLowerCase().includes('case law') && offeredToolNames.includes('case_law_search')) {
           return {
             content: [
               {
@@ -982,6 +985,39 @@ describe('agent smoke checks', () => {
     expect(systemPrompt).toContain('You have access to web_search and case_law_search.')
   })
 
+  it('premium plus U.S. tool path does not expose UK case-law retrieval', async () => {
+    await invokePremiumPlusLegalAgent(
+      'Can you give case law on this Nevada issue?',
+      'thread_smoke_premium_plus_us_prompt_split',
+      'user_smoke_premium_plus_us_prompt_split',
+      [],
+      'Nevada consumer dispute',
+      {
+        useSearch: true,
+        anthropicModel: 'claude-sonnet-4-6',
+        anthropicFallbackModel: 'claude-opus-4-6',
+        legalContext: {
+          countryCode: 'US',
+          jurisdictionCode: 'US-NV',
+          jurisdictionLabel: 'Nevada',
+        },
+      }
+    )
+
+    const [payload] = (anthropicMockState.anthropicMessagesCreateMock.mock.calls[0] || []) as any[]
+    const systemPrompt = Array.isArray(payload?.system)
+      ? String(payload.system[0]?.text || '')
+      : String(payload?.system || '')
+    const toolNames = Array.isArray(payload?.tools)
+      ? payload.tools.map((tool: any) => String(tool?.name || ''))
+      : []
+
+    expect(systemPrompt).toContain('You have access to web_search for U.S. matters.')
+    expect(systemPrompt).toContain('do not call case_law_search for U.S. matters')
+    expect(systemPrompt).toContain('plain English for a non-lawyer')
+    expect(toolNames).toEqual(['web_search'])
+  })
+
   it('premium plus stream bypasses the tool loop for stable explanatory questions', async () => {
     const onToken = vi.fn()
 
@@ -1196,20 +1232,17 @@ describe('agent smoke checks', () => {
       }
     )
 
-    const secondCallPayload = (anthropicMockState.anthropicMessagesCreateMock.mock.calls[1] || [])[0] as any
-    const toolResultMessage = Array.isArray(secondCallPayload?.messages)
-      ? secondCallPayload.messages.find(
-          (message: any) =>
-            Array.isArray(message?.content) &&
-            message.content.some((block: any) => block?.type === 'tool_result')
-        )
-      : null
-    const toolResultContent = Array.isArray(toolResultMessage?.content)
-      ? String(toolResultMessage.content[0]?.content || '')
-      : ''
+    const firstCallPayload = (anthropicMockState.anthropicMessagesCreateMock.mock.calls[0] || [])[0] as any
+    const systemPrompt = Array.isArray(firstCallPayload?.system)
+      ? String(firstCallPayload.system[0]?.text || '')
+      : String(firstCallPayload?.system || '')
+    const toolNames = Array.isArray(firstCallPayload?.tools)
+      ? firstCallPayload.tools.map((tool: any) => String(tool?.name || ''))
+      : []
 
-    expect(toolResultContent).toContain('Case-law retrieval is currently configured for UK authorities only.')
-    expect(toolResultContent).toContain('U.S. authority coverage is still limited')
+    expect(systemPrompt).toContain('Internal case-law retrieval is currently configured for UK authorities only')
+    expect(systemPrompt).toContain('do not call case_law_search for U.S. matters')
+    expect(toolNames).not.toContain('case_law_search')
   })
 
   it('premium plus agent enables Anthropic prompt caching on its tool path', async () => {

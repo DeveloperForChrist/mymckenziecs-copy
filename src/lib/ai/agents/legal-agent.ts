@@ -129,12 +129,10 @@ OUTPUT GOAL
 `
 
 const LITIGANT_SYSTEM_PROMPT: string = `
-You are MyMckenzieCS Assistant, a knowledgeable and conversational UK legal support assistant designed to help users who are representing themselves in legal matters.
-You act as a calm, factual McKenzie Friend: supportive, clear, professional, and focused.
+You are MyMckenzieCS Assistant, a knowledgeable and conversational legal support assistant designed to help users who are representing themselves in legal matters.
+You act as a calm, factual case support assistant: supportive, clear, professional, and focused.
 You provide legal information, procedural guidance, document and evidence support, and clear explanations.
-You do not provide legal advice, act as a solicitor or barrister, advocate in court, predict outcomes, or tell the user what they must do.
-
-A McKenzie Friend in the UK is someone who helps a person understand proceedings, organise information, think clearly, and prepare themselves, without acting as their formal lawyer.
+You do not provide legal advice, act as a lawyer, advocate in court, predict outcomes, or tell the user what they must do.
 
 PRIMARY METHOD
 - First identify the likely legal area, the user's role if relevant, the stage of the matter, and the key timeline.
@@ -253,7 +251,7 @@ const PREMIUM_CONTEXT_SYSTEM_PROMPT_LITIGANT: string = `${LITIGANT_SYSTEM_PROMPT
 
 EXTERNAL CONTEXT
 - If external search, procedural, or authority material is included later in the prompt, treat it as additional context provided in this conversation, not as the user's own words and not as something you personally retrieved.
-- If no external context is provided, answer from general UK legal understanding, explain uncertainty where needed, and ask short clarifying questions when they would materially improve accuracy.
+- If no external context is provided, answer from general legal understanding that fits the user's jurisdiction when available, explain uncertainty where needed, and ask short clarifying questions when they would materially improve accuracy.
 - Do not say you chose, called, used, or had access to tools yourself.
 
 ACTIVE TASK RULE
@@ -261,11 +259,11 @@ ACTIVE TASK RULE
 - Use earlier conversation only as background facts or context.
 - Do not continue, revise, or infer a drafting task from earlier turns unless the latest message clearly asks to draft, fill, continue, or edit a document or template.`
 
-const SYSTEM_PROMPT_FREE_LITIGANT: string = `You are MyMckenzieCS Assistant, a full knowledged and conversational legal assistant and Mckenzie friend help UK legal users with their legal issues, cases and queries.
-You help users spot out the law or legislation of UK their cases or issues fall under, as most users may not know it as they are confused and stressed, so It is good to ask specific classifying questions when needed in order to be more accurate in spot the legal area of their case.
-After you have had picked out the law or legislation that their case or issue may fall under, you should then help the user understand the law or legislation in lay man child friendly terms, even giving an illustrative scenarios example to help them understand better the law or legislation.
+const SYSTEM_PROMPT_FREE_LITIGANT: string = `You are MyMckenzieCS Assistant, a knowledgeable and conversational legal support assistant who helps self-represented users with legal issues, cases, and questions.
+You help users identify the legal area their case or issue may fall under, as many users may be confused or stressed, so it is useful to ask specific classifying questions when needed in order to improve accuracy.
+After you have identified the legal area that their case or issue may fall under, help the user understand it in plain English for a non-lawyer, using a short illustrative scenario when it materially helps.
 You should talk to the users as if you are talking to them directly, help keep them in control within conversation as users can be very emotional and go off topic, which does not help their case, because the court does not examine cases or issues based on emotions or feelings but facts and key informations and evidence. 
-As MyMckenzie's Legal Support, you should manage or direct the user's issue as how a UK judge is likely to look at their case, so you help them in the best way possible, like pointing out key details or facts or informations, that makes their case or point of view seem invalid or not worthy of persuasion, but dont explicitly give legal advice.
+As MyMckenzie's Legal Support, you should help the user think about how a judge or decision-maker may look at their case, so you help them in the best way possible, like pointing out key details, facts, or information that may weaken clarity or persuasion, but dont explicitly give legal advice.
 Keep users focused and in control at all times. Prevent them from relying on irrelevant laws, statutes, or acts that have no bearing on their case. All assistance should be aimed at preparing them to understand their position and present their issues clearly and confidently, with guidance framed from the perspective of how a judge would assess relevance and substance.
 
 When deemed suitable, you will need to make references to laws, acts, statutes and such.
@@ -484,6 +482,7 @@ const buildJurisdictionSystemPrefix = (legalContext?: UserLegalContext | null) =
 - Treat the user as a self-represented litigant in the United States, not a UK litigant in person.
 - Do not rely on UK procedure, UK courts, UK statutes, UK case citations, or UK terminology unless the user explicitly asks for comparison.
 - Keep explanations anchored to the user's stated U.S. state or district where possible, and be explicit when a point may vary between states or between state and federal procedure.
+- For deeds, title, probate, estate planning, tax, Medicaid, family-property, creditor, or asset-protection questions, avoid recommending a specific legal strategy. Explain the issues, risks, documents to check, and questions to take to a licensed attorney in the relevant state.
 `
   }
 
@@ -2063,9 +2062,23 @@ type PremiumPlusAnthropicTextResult = {
   stopReason: string | null
 }
 
-const PREMIUM_PLUS_TOOL_SYSTEM_PROMPT = `${PREMIUM_CONTEXT_SYSTEM_PROMPT}
+const buildPremiumPlusToolExecutionInstructions = (legalContext?: UserLegalContext | null) => {
+  if (legalContext?.countryCode === 'US') {
+    return `TOOL EXECUTION
+- You have access to web_search for U.S. matters.
+- Internal case-law retrieval is currently configured for UK authorities only, so do not call case_law_search for U.S. matters unless the user explicitly asks for a UK comparison.
+- You may answer directly when the question is simple enough to answer.
+- If current real-time official guidance, procedure, forms, deadlines, statutes, court self-help pages, or practical process details are needed, call web_search.
+- Use the available tools whenever they materially improve knowledge, understanding, accuracy, freshness, authority, case-specific relevance, or explanation.
+- If you are unsure whether retrieval would help, prefer web_search to verify the uncertain U.S. point from current public sources.
+- After tool results are returned, answer the user directly in plain text.
+- If you discuss a specific U.S. statute, rule, official guidance page, or public authority from the provided web context, name it clearly before explaining it.
+- Do not mention tools, tool calls, internal routing, or function names to the user.
+- Treat tool outputs as context already provided to you.
+- If a source contains complex legal language, translate it into plain English for a non-lawyer before presenting it to the user.`
+  }
 
-TOOL EXECUTION
+  return `TOOL EXECUTION
 - You have access to web_search and case_law_search.
 - You may answer directly when the question is simple enough to answer.
 - If current real-time official guidance, procedure, forms, deadlines, or practical process details are needed, call web_search.
@@ -2078,7 +2091,13 @@ TOOL EXECUTION
 - Do not use anonymous phrasing like "This case" or "This authority" for a retrieved authority unless the immediately preceding line already names that authority.
 - Do not mention tools, tool calls, internal routing, or function names to the user.
 - Treat tool outputs as context already provided to you.
-- If a tool returns a complex legal ruling, translate it into child-friendly terms before presenting to the user.`
+- If a tool returns a complex legal ruling, translate it into plain English for a non-lawyer before presenting it to the user.`
+}
+
+const buildPremiumPlusToolSystemPrompt = (legalContext?: UserLegalContext | null) =>
+  `${PREMIUM_CONTEXT_SYSTEM_PROMPT}
+
+${buildPremiumPlusToolExecutionInstructions(legalContext)}`
 
 const PREMIUM_PLUS_ANTHROPIC_TOOLS = [
   {
@@ -2230,9 +2249,16 @@ const buildPremiumPlusAnthropicSystemBlocks = (systemPrompt: string, promptCachi
       ]
     : systemPrompt
 
-const buildPremiumPlusAnthropicTools = (promptCachingEnabled: boolean) =>
-  PREMIUM_PLUS_ANTHROPIC_TOOLS.map((tool, index) =>
-    promptCachingEnabled && index === PREMIUM_PLUS_ANTHROPIC_TOOLS.length - 1
+const buildPremiumPlusAnthropicTools = (
+  promptCachingEnabled: boolean,
+  legalContext?: UserLegalContext | null
+) => {
+  const tools = legalContext?.countryCode === 'US'
+    ? PREMIUM_PLUS_ANTHROPIC_TOOLS.filter((tool) => tool.name !== 'case_law_search')
+    : PREMIUM_PLUS_ANTHROPIC_TOOLS
+
+  return tools.map((tool, index) =>
+    promptCachingEnabled && index === tools.length - 1
       ? {
           ...tool,
           cache_control: {
@@ -2242,6 +2268,7 @@ const buildPremiumPlusAnthropicTools = (promptCachingEnabled: boolean) =>
         }
       : { ...tool }
   )
+}
 
 const isPremiumPlusPromptCachingUnsupportedError = (error: any) => {
   const details = [
@@ -2261,10 +2288,14 @@ const isPremiumPlusPromptCachingUnsupportedError = (error: any) => {
   )
 }
 
-const buildPremiumPlusAnthropicSystemPrompt = (contextLines: string[] = [], accountType?: AccountType) =>
+const buildPremiumPlusAnthropicSystemPrompt = (
+  contextLines: string[] = [],
+  accountType?: AccountType,
+  legalContext?: UserLegalContext | null
+) =>
   contextLines.length > 0
-    ? `${buildPromptForAudience(PREMIUM_PLUS_TOOL_SYSTEM_PROMPT, accountType)}\n\nContext\n${contextLines.join('\n\n')}`
-    : buildPromptForAudience(PREMIUM_PLUS_TOOL_SYSTEM_PROMPT, accountType)
+    ? `${buildPromptForAudience(buildPremiumPlusToolSystemPrompt(legalContext), accountType)}\n\nContext\n${contextLines.join('\n\n')}`
+    : buildPromptForAudience(buildPremiumPlusToolSystemPrompt(legalContext), accountType)
 
 const buildPremiumPlusContextLines = (options: {
   conversationHistory?: Array<{ role: string; content: string }>
@@ -2551,6 +2582,7 @@ const buildPremiumPlusAnthropicRequest = (
     toolsEnabled?: boolean
     maxTokens?: number
     promptCachingEnabled?: boolean
+    legalContext?: UserLegalContext | null
   }
 ) => {
   const promptCachingEnabled = options?.promptCachingEnabled !== false && premiumPlusPromptCachingEnabled()
@@ -2563,7 +2595,7 @@ const buildPremiumPlusAnthropicRequest = (
   }
 
   if (options?.toolsEnabled) {
-    payload.tools = buildPremiumPlusAnthropicTools(promptCachingEnabled)
+    payload.tools = buildPremiumPlusAnthropicTools(promptCachingEnabled, options.legalContext)
     payload.tool_choice = { type: 'auto' }
   }
 
@@ -2589,6 +2621,7 @@ const callPremiumPlusAnthropic = async (
     toolsEnabled?: boolean
     maxTokens?: number
     requestType?: string
+    legalContext?: UserLegalContext | null
   }
 ) => {
   const runModel = async (modelName: string) => {
@@ -2891,7 +2924,7 @@ const runPremiumPlusToolLoop = async (
     latestQuestion: prompt,
   })
   const systemPrompt = applyLegalContextToSystemPrompt(
-    buildPremiumPlusAnthropicSystemPrompt(contextLines, options.accountType),
+    buildPremiumPlusAnthropicSystemPrompt(contextLines, options.accountType, options.legalContext),
     options.legalContext
   )
   const messages: PremiumPlusAnthropicMessage[] = [{ role: 'user', content: prompt }]
@@ -2909,6 +2942,7 @@ const runPremiumPlusToolLoop = async (
         toolsEnabled: true,
         maxTokens: PREMIUM_PLUS_TOOL_CALL_MAX_TOKENS,
         requestType: 'premium_plus_tool_loop',
+        legalContext: options.legalContext,
       }
     ) as any
 
@@ -3007,7 +3041,7 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
         buildPremiumPlusAnthropicSystemPrompt(buildPremiumPlusContextLines({
           ...options,
           latestQuestion: prompt,
-        }), options.accountType),
+        }), options.accountType, options.legalContext),
         options.legalContext
       ),
     }
@@ -3019,7 +3053,7 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
     latestQuestion: prompt,
   })
   const systemPrompt = applyLegalContextToSystemPrompt(
-    buildPremiumPlusAnthropicSystemPrompt(contextLines, options.accountType),
+    buildPremiumPlusAnthropicSystemPrompt(contextLines, options.accountType, options.legalContext),
     options.legalContext
   )
   const messages: PremiumPlusAnthropicMessage[] = [{ role: 'user', content: prompt }]
@@ -3030,7 +3064,7 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
     { role: 'system', content: systemPrompt },
     { role: 'user', content: prompt },
   ]
-  const tools = [
+  const openAiTools = [
     {
       type: 'function',
       function: {
@@ -3071,6 +3105,9 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
       },
     },
   ] as const
+  const tools = options.legalContext?.countryCode === 'US'
+    ? openAiTools.filter((tool) => tool.function.name !== 'case_law_search')
+    : [...openAiTools]
 
   const runOpenAiOnce = async (modelName: string) => {
     const normalized = modelName.trim().toLowerCase()
