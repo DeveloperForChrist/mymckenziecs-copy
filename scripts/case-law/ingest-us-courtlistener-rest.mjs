@@ -33,9 +33,11 @@ function parseArgs(argv) {
     courts: [],
     federalSeed: false,
     dryRun: false,
+    releaseBeforeUpsert: false,
     sleepSeconds: Number(process.env.COURTLISTENER_SLEEP_SECONDS || 1.2),
     embeddingModel: process.env.EMBEDDING_MODEL || 'text-embedding-3-small',
     vectorDim: Number(process.env.VECTOR_DIM || 1536),
+    upsertBatchSize: Number(process.env.ZILLIZ_UPSERT_BATCH_SIZE || 10),
     snapshot: '.data/bronze/case-law-us/courtlistener-rest-seed.jsonl',
   };
 
@@ -49,6 +51,7 @@ function parseArgs(argv) {
     else if (arg === '--court' && next) parsed.courts.push(next), index += 1;
     else if (arg === '--federal-seed') parsed.federalSeed = true;
     else if (arg === '--dry-run') parsed.dryRun = true;
+    else if (arg === '--release-before-upsert') parsed.releaseBeforeUpsert = true;
     else if (arg === '--sleep-seconds' && next) parsed.sleepSeconds = Number(next), index += 1;
     else if (arg === '--snapshot' && next) parsed.snapshot = next, index += 1;
     else if (arg === '--help') {
@@ -107,7 +110,7 @@ function jurisdictionFor(result) {
 function resultToRecord(result) {
   const opinion = Array.isArray(result.opinions) ? result.opinions[0] : null;
   const title = cleanText(result.caseNameFull || result.caseName, 2048);
-  const snippet = cleanText(opinion?.snippet || result.snippet || result.syllabus || '');
+  const snippet = cleanText(opinion?.snippet || result.snippet || result.syllabus || '', 12000);
   if (!title || !snippet) return null;
 
   const absoluteUrl = String(result.absolute_url || '');
@@ -122,7 +125,7 @@ function resultToRecord(result) {
     result.procedural_history,
     result.posture,
     snippet,
-  ].filter(Boolean).join(' | '));
+  ].filter(Boolean).join(' | '), 12000);
 
   return {
     id: stableId(result, opinion),
@@ -257,6 +260,13 @@ async function ensureCollection() {
   }, { allowAlreadyExists: true });
 }
 
+async function releaseCollection() {
+  await zillizRequest('/v2/vectordb/collections/release', {
+    collectionName: args.collection,
+  }, { allowAlreadyExists: true });
+  console.log(`Released ${args.collection} before upsert to reduce loaded memory pressure`);
+}
+
 function embeddingText(record) {
   return [record.title, record.citation, record.court, record.jurisdiction, record.summary, record.extracts]
     .filter(Boolean)
@@ -269,21 +279,27 @@ async function insertRecords(records) {
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is required for embeddings');
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   await ensureCollection();
+  if (args.releaseBeforeUpsert) {
+    await releaseCollection();
+  }
 
-  const response = await openai.embeddings.create({
-    model: args.embeddingModel,
-    input: records.map(embeddingText),
-  });
-  const entities = records.map((record, index) => ({
-    ...record,
-    embedding: response.data[index].embedding,
-  }));
+  for (let index = 0; index < records.length; index += args.upsertBatchSize) {
+    const batch = records.slice(index, index + args.upsertBatchSize);
+    const response = await openai.embeddings.create({
+      model: args.embeddingModel,
+      input: batch.map(embeddingText),
+    });
+    const entities = batch.map((record, itemIndex) => ({
+      ...record,
+      embedding: response.data[itemIndex].embedding,
+    }));
 
-  await zillizRequest('/v2/vectordb/entities/upsert', {
-    collectionName: args.collection,
-    data: entities,
-  });
-  console.log(`Upserted ${entities.length} records into ${args.collection}`);
+    await zillizRequest('/v2/vectordb/entities/upsert', {
+      collectionName: args.collection,
+      data: entities,
+    });
+    console.log(`Upserted ${Math.min(index + batch.length, records.length)}/${records.length} records into ${args.collection}`);
+  }
 }
 
 console.log(`Collecting up to ${args.maxRecords} U.S. case-law records from CourtListener...`);
