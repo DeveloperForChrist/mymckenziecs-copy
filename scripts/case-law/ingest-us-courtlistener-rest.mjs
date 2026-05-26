@@ -20,6 +20,59 @@ const DEFAULT_QUERIES = [
   'criminal appeal',
 ];
 const DEFAULT_FEDERAL_COURTS = ['scotus', 'ca1', 'ca2', 'ca3', 'ca4', 'ca5', 'ca6', 'ca7', 'ca8', 'ca9', 'ca10', 'ca11', 'cadc'];
+const COURTLISTENER_STATE_PREFIXES = {
+  ala: 'US-AL',
+  alaska: 'US-AK',
+  ariz: 'US-AZ',
+  ark: 'US-AR',
+  cal: 'US-CA',
+  colo: 'US-CO',
+  conn: 'US-CT',
+  del: 'US-DE',
+  dc: 'US-DC',
+  fla: 'US-FL',
+  ga: 'US-GA',
+  haw: 'US-HI',
+  idaho: 'US-ID',
+  ill: 'US-IL',
+  ind: 'US-IN',
+  iowa: 'US-IA',
+  kan: 'US-KS',
+  ky: 'US-KY',
+  la: 'US-LA',
+  me: 'US-ME',
+  md: 'US-MD',
+  mass: 'US-MA',
+  mich: 'US-MI',
+  minn: 'US-MN',
+  miss: 'US-MS',
+  mo: 'US-MO',
+  mont: 'US-MT',
+  neb: 'US-NE',
+  nev: 'US-NV',
+  nh: 'US-NH',
+  nj: 'US-NJ',
+  nm: 'US-NM',
+  ny: 'US-NY',
+  nc: 'US-NC',
+  nd: 'US-ND',
+  ohio: 'US-OH',
+  okla: 'US-OK',
+  or: 'US-OR',
+  pa: 'US-PA',
+  ri: 'US-RI',
+  sc: 'US-SC',
+  sd: 'US-SD',
+  tenn: 'US-TN',
+  tex: 'US-TX',
+  utah: 'US-UT',
+  vt: 'US-VT',
+  va: 'US-VA',
+  wash: 'US-WA',
+  wva: 'US-WV',
+  wis: 'US-WI',
+  wyo: 'US-WY',
+};
 
 const args = parseArgs(process.argv.slice(2));
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -106,6 +159,9 @@ function citationString(result) {
 function jurisdictionFor(result) {
   const courtId = String(result.court_id || '').toLowerCase();
   if (courtId === 'scotus' || courtId === 'cadc' || /^ca\d+$/.test(courtId)) return 'US-FED';
+  for (const [prefix, jurisdiction] of Object.entries(COURTLISTENER_STATE_PREFIXES)) {
+    if (courtId === prefix || courtId.startsWith(prefix)) return jurisdiction;
+  }
   return 'US';
 }
 

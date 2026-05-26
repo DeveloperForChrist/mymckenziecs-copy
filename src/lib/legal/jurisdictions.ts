@@ -24,7 +24,7 @@ const UNITED_KINGDOM_JURISDICTIONS: JurisdictionOption[] = [
   { code: 'GB-NIR', label: 'Northern Ireland' },
 ]
 
-const UNITED_STATES_JURISDICTIONS: JurisdictionOption[] = [
+export const UNITED_STATES_JURISDICTIONS: JurisdictionOption[] = [
   { code: 'US-AL', label: 'Alabama' },
   { code: 'US-AK', label: 'Alaska' },
   { code: 'US-AZ', label: 'Arizona' },
@@ -94,6 +94,65 @@ export const SUPPORTED_COUNTRIES: CountryOption[] = [
 ]
 
 const countryMap = new Map(SUPPORTED_COUNTRIES.map((country) => [country.code, country]))
+const unitedStatesJurisdictionMap = new Map(UNITED_STATES_JURISDICTIONS.map((jurisdiction) => [jurisdiction.code, jurisdiction]))
+
+const US_STATE_ABBREVIATIONS = new Map(
+  UNITED_STATES_JURISDICTIONS.map((jurisdiction) => [jurisdiction.code, jurisdiction.code.replace(/^US-/, '')])
+)
+
+const US_FEDERAL_CIRCUITS_BY_STATE: Record<string, string> = {
+  AL: 'ca11',
+  AK: 'ca9',
+  AZ: 'ca9',
+  AR: 'ca8',
+  CA: 'ca9',
+  CO: 'ca10',
+  CT: 'ca2',
+  DE: 'ca3',
+  DC: 'cadc',
+  FL: 'ca11',
+  GA: 'ca11',
+  HI: 'ca9',
+  ID: 'ca9',
+  IL: 'ca7',
+  IN: 'ca7',
+  IA: 'ca8',
+  KS: 'ca10',
+  KY: 'ca6',
+  LA: 'ca5',
+  ME: 'ca1',
+  MD: 'ca4',
+  MA: 'ca1',
+  MI: 'ca6',
+  MN: 'ca8',
+  MS: 'ca5',
+  MO: 'ca8',
+  MT: 'ca9',
+  NE: 'ca8',
+  NV: 'ca9',
+  NH: 'ca1',
+  NJ: 'ca3',
+  NM: 'ca10',
+  NY: 'ca2',
+  NC: 'ca4',
+  ND: 'ca8',
+  OH: 'ca6',
+  OK: 'ca10',
+  OR: 'ca9',
+  PA: 'ca3',
+  RI: 'ca1',
+  SC: 'ca4',
+  SD: 'ca8',
+  TN: 'ca6',
+  TX: 'ca5',
+  UT: 'ca10',
+  VT: 'ca2',
+  VA: 'ca4',
+  WA: 'ca9',
+  WV: 'ca4',
+  WI: 'ca7',
+  WY: 'ca10',
+}
 
 export function getCountryOption(countryCode?: string | null): CountryOption | null {
   if (!countryCode) return null
@@ -116,6 +175,23 @@ export function isSupportedJurisdictionCode(countryCode?: string | null, jurisdi
 export function getJurisdictionLabel(countryCode?: string | null, jurisdictionCode?: string | null): string | null {
   if (!countryCode || !jurisdictionCode) return null
   return getJurisdictionOptions(countryCode).find((option) => option.code === jurisdictionCode)?.label || null
+}
+
+export function getUnitedStatesJurisdictionTarget(context?: UserLegalContext | null) {
+  if (!isUnitedStatesContext(context) || !context?.jurisdictionCode) return null
+
+  const jurisdiction = unitedStatesJurisdictionMap.get(context.jurisdictionCode)
+  if (!jurisdiction) return null
+
+  const abbreviation = US_STATE_ABBREVIATIONS.get(jurisdiction.code)
+  if (!abbreviation) return null
+
+  return {
+    code: jurisdiction.code,
+    label: jurisdiction.label,
+    abbreviation,
+    federalCircuit: US_FEDERAL_CIRCUITS_BY_STATE[abbreviation] || null,
+  }
 }
 
 export function isUnitedKingdomContext(context?: UserLegalContext | null) {

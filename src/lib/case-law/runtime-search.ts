@@ -20,6 +20,8 @@ export type RuntimeCaseLawResult = {
   case_type?: string
   year?: number | null
   court?: string | null
+  court_id?: string | null
+  jurisdiction?: string | null
   outcome?: string | null
   similarity_score?: number
   source?: string
@@ -186,6 +188,8 @@ export async function searchCaseLawWithFallback(
       summary: result.summary,
       extracts: result.extracts,
       court: result.court,
+      court_id: result.court_id,
+      jurisdiction: result.jurisdiction,
       similarity_score: result.score,
       source: result.source_provider || 'vector',
     }))

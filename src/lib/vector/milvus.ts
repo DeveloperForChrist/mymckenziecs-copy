@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import { spawn } from 'child_process';
 import path from 'path';
 import type { UserLegalContext } from '@/lib/legal/jurisdictions';
-import { isUnitedStatesContext } from '@/lib/legal/jurisdictions';
+import { getUnitedStatesJurisdictionTarget, isUnitedStatesContext } from '@/lib/legal/jurisdictions';
 
 let cachedOpenAI: OpenAI | null = null;
 
@@ -25,6 +25,8 @@ type VectorSearchOptions = {
   legalContext?: UserLegalContext | null;
   collection?: string;
 };
+
+type UsJurisdictionTarget = NonNullable<ReturnType<typeof getUnitedStatesJurisdictionTarget>>;
 
 const trimProtocol = (value: string) => value.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
 
@@ -65,10 +67,91 @@ const normalizeZillizSearchResults = (payload: any): any[] => {
       court: entity?.court || null,
       jurisdiction: entity?.jurisdiction || null,
       decision_date: entity?.decision_date || null,
+      court_id: entity?.court_id || null,
       source_provider: entity?.source_provider || null,
       precedential_status: entity?.precedential_status || null,
     };
   });
+};
+
+const normalizeTextForMatching = (value: unknown) =>
+  String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const FEDERAL_CIRCUIT_LABEL_BY_ID: Record<string, string> = {
+  ca1: 'first circuit',
+  ca2: 'second circuit',
+  ca3: 'third circuit',
+  ca4: 'fourth circuit',
+  ca5: 'fifth circuit',
+  ca6: 'sixth circuit',
+  ca7: 'seventh circuit',
+  ca8: 'eighth circuit',
+  ca9: 'ninth circuit',
+  ca10: 'tenth circuit',
+  ca11: 'eleventh circuit',
+  cadc: 'district of columbia circuit',
+};
+
+const isSameUsStateAuthority = (result: any, target: UsJurisdictionTarget) => {
+  const jurisdiction = normalizeTextForMatching(result?.jurisdiction);
+  const court = normalizeTextForMatching(result?.court);
+  const courtId = normalizeTextForMatching(result?.court_id);
+  const state = normalizeTextForMatching(target.label);
+  const abbreviation = normalizeTextForMatching(target.abbreviation);
+  const jurisdictionCode = normalizeTextForMatching(target.code);
+
+  return (
+    jurisdiction === jurisdictionCode ||
+    jurisdiction === abbreviation ||
+    jurisdiction === `us ${abbreviation}` ||
+    court.includes(state) ||
+    courtId === abbreviation ||
+    courtId === jurisdictionCode ||
+    courtId.startsWith(`${abbreviation} `)
+  );
+};
+
+const isRelevantFederalAuthority = (result: any, target: UsJurisdictionTarget) => {
+  const jurisdiction = normalizeTextForMatching(result?.jurisdiction);
+  const court = normalizeTextForMatching(result?.court);
+  const courtId = normalizeTextForMatching(result?.court_id);
+  const circuit = normalizeTextForMatching(target.federalCircuit);
+  const circuitLabel = normalizeTextForMatching(FEDERAL_CIRCUIT_LABEL_BY_ID[target.federalCircuit || '']);
+
+  return (
+    jurisdiction === 'us fed' ||
+    courtId === 'scotus' ||
+    court.includes('supreme court of the united states') ||
+    (Boolean(circuit) && courtId === circuit) ||
+    (Boolean(circuitLabel) && court.includes(circuitLabel))
+  );
+};
+
+const applyUsStateAuthorityPreference = (results: any[], options?: VectorSearchOptions) => {
+  const target = getUnitedStatesJurisdictionTarget(options?.legalContext);
+  if (!target || results.length === 0) return results;
+
+  const sameState = results.filter((result) => isSameUsStateAuthority(result, target));
+  const federal = results.filter(
+    (result) => !isSameUsStateAuthority(result, target) && isRelevantFederalAuthority(result, target)
+  );
+
+  if (sameState.length > 0) {
+    return [...sameState, ...federal];
+  }
+
+  return federal.length > 0 ? federal : [];
+};
+
+const buildJurisdictionAwareVectorQuery = (text: string, options?: VectorSearchOptions) => {
+  const target = getUnitedStatesJurisdictionTarget(options?.legalContext);
+  if (!target) return text;
+
+  return `${target.label} ${target.abbreviation} ${text}`;
 };
 
 async function searchZillizRestByEmbedding(
@@ -98,6 +181,7 @@ async function searchZillizRestByEmbedding(
         'summary',
         'extracts',
         'court',
+        'court_id',
         'jurisdiction',
         'decision_date',
         'source_provider',
@@ -173,7 +257,7 @@ export async function searchVectorsByEmbedding(
   options?: VectorSearchOptions
 ): Promise<any[]> {
   const restResults = await searchZillizRestByEmbedding(embedding, topk, options);
-  if (restResults) return restResults;
+  if (restResults) return applyUsStateAuthorityPreference(restResults, options).slice(0, topk);
 
   // Prefer the HTTP bridge for persistent, lower-latency queries.
   try {
@@ -242,8 +326,8 @@ export async function searchVectorsByEmbedding(
 export async function searchByText(text: string, topk: number = 5, options?: VectorSearchOptions): Promise<any[]> {
   const restConfig = getMilvusRestConfig(options);
   if (restConfig) {
-    const emb = await embedText(text);
-    return searchVectorsByEmbedding(emb, topk, options);
+    const emb = await embedText(buildJurisdictionAwareVectorQuery(text, options));
+    return searchVectorsByEmbedding(emb, Math.max(topk * 6, 30), options).then((results) => results.slice(0, topk));
   }
 
   // Try HTTP bridge with text first (it will embed + search server-side).
@@ -253,7 +337,10 @@ export async function searchByText(text: string, topk: number = 5, options?: Vec
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, topk }),
     });
-    if (res.ok) return await res.json();
+    if (res.ok) {
+      const results = await res.json();
+      return applyUsStateAuthorityPreference(Array.isArray(results) ? results : [], options).slice(0, topk);
+    }
   } catch (err) {
     // ignore and fall back
   }

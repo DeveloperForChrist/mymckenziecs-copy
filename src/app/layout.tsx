@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
 import ClientErrorReporter from '@/components/monitoring/ClientErrorReporter'
@@ -120,6 +121,7 @@ export default function RootLayout({
         <ClientErrorReporter />
         <RouteTitleManager />
         {children}
+        <Analytics />
       </body>
     </html>
   )
