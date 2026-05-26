@@ -43,6 +43,7 @@ next-env.d.ts
 logs/legal_documents_export.csv
 
 # Large data exports
+.data/bronze/
 .data/logs/logs/legal_documents_export.csv
 .data/logs/
 *.csv
@@ -60,3 +61,4 @@ supabase/.temp/
 
 # Tooling cache
 .npm/
+__pycache__/
