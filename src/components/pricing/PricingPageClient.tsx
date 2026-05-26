@@ -662,7 +662,7 @@ export default function PricingPageClient({
                 {audienceDescription}
               </p>
               <p style={{ marginTop: '14px', color: '#fde68a', fontSize: '0.98rem', fontWeight: 700 }}>
-                Your first paid subscription starts with 7 days free.
+                Your first paid subscription starts with 3 days free.
               </p>
               <p style={{ marginTop: '14px', color: '#bfdbfe', fontSize: '0.95rem', maxWidth: '560px', lineHeight: 1.6 }}>
                 {availabilityMessage}
@@ -712,7 +712,7 @@ export default function PricingPageClient({
               <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#9cc8ff' }}>
                 {currencySymbol}{priceByPlan.basic}<span className="text-xl sm:text-2xl">/Month</span>
               </div>
-              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#dbeafe', fontWeight: 700 }}>New subscribers: 7 days free, then {currencySymbol}{priceByPlan.basic}/month</p>
+              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#dbeafe', fontWeight: 700 }}>New subscribers: 3 days free, then {currencySymbol}{priceByPlan.basic}/month</p>
               <ul className="space-y-3 mb-8 text-left flex-grow">
                 {basicPlanFeatures.map((feature) => (
                   <li key={feature} className="flex items-start text-white">
@@ -744,7 +744,7 @@ export default function PricingPageClient({
               <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#7bd4c9' }}>
                 {currencySymbol}{priceByPlan.premium}<span className="text-xl sm:text-2xl">/Month</span>
               </div>
-              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#d1fae5', fontWeight: 700 }}>New subscribers: 7 days free, then {currencySymbol}{priceByPlan.premium}/month</p>
+              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#d1fae5', fontWeight: 700 }}>New subscribers: 3 days free, then {currencySymbol}{priceByPlan.premium}/month</p>
               <ul className="space-y-3 mb-8 text-left flex-grow">
                 {premiumPlanFeatures.map((feature) => (
                   <li key={feature} className="flex items-start text-white">
@@ -776,7 +776,7 @@ export default function PricingPageClient({
               <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#f8a76f' }}>
                 {currencySymbol}{priceByPlan.premiumPlus}<span className="text-xl sm:text-2xl">/Month</span>
               </div>
-              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#ffedd5', fontWeight: 700 }}>New subscribers: 7 days free, then {currencySymbol}{priceByPlan.premiumPlus}/month</p>
+              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#ffedd5', fontWeight: 700 }}>New subscribers: 3 days free, then {currencySymbol}{priceByPlan.premiumPlus}/month</p>
               <ul className="space-y-3 mb-8 text-left flex-grow">
                 {premiumPlusPlanFeatures.map((feature) => (
                   <li key={feature} className="flex items-start text-white">

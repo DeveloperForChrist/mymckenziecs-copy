@@ -105,6 +105,7 @@ describe('/api/stripe/plan-checkout route', () => {
     }))
 
     vi.doMock('@/constants', () => ({
+      findBusinessMarketByPriceId: vi.fn(() => null),
       findPlanByAnyPriceId: vi.fn((priceId: string) => {
         if (priceId === 'price_basic') return { name: 'Basic' }
         if (priceId === 'price_premium') return { name: 'Premium' }
@@ -114,6 +115,9 @@ describe('/api/stripe/plan-checkout route', () => {
         if (priceId === 'price_basic' || priceId === 'price_premium') return 'GB'
         return null
       }),
+      getBusinessSoloStandardPriceId: vi.fn(() => ''),
+      isKnownBusinessIntroPriceId: vi.fn(() => false),
+      isKnownBusinessPriceId: vi.fn(() => false),
     }))
 
     const route = await import('./route')
@@ -124,7 +128,7 @@ describe('/api/stripe/plan-checkout route', () => {
     }
   }
 
-  it('applies a one-week trial to the first paid subscription checkout', async () => {
+  it('applies a three-day trial to the first paid subscription checkout', async () => {
     const { POST, checkoutSessionCreate, customerCreate } = await loadRoute()
 
     const response = await POST(
@@ -141,7 +145,7 @@ describe('/api/stripe/plan-checkout route', () => {
     const checkoutArgs = (checkoutSessionCreate as any).mock.calls[0]?.[0] as any
     expect(checkoutArgs?.metadata?.trialApplied).toBe('true')
     expect(checkoutArgs?.subscription_data?.metadata?.trialApplied).toBe('true')
-    expect(checkoutArgs?.subscription_data?.trial_period_days).toBe(7)
+    expect(checkoutArgs?.subscription_data?.trial_period_days).toBe(3)
     expect(checkoutArgs?.success_url).toContain('session_id={CHECKOUT_SESSION_ID}')
     expect(checkoutArgs?.success_url).not.toContain('%7BCHECKOUT_SESSION_ID%7D')
   })

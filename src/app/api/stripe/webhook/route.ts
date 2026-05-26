@@ -575,7 +575,7 @@ export async function POST(request: Request) {
         if (isTrialingStripeStatus(syncedSubscription?.status)) {
           const firstChargeDate = formatDateShort(
             getStripeSubscriptionPeriodEndUnix(syncedSubscription)
-          ) || '7 days from now';
+          ) || '3 days from now';
           const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech';
           const htmlBody = renderTemplate('27-free-trial-started.html', {
             name: user?.name || checkoutName || recipientEmail,
