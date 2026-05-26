@@ -35,6 +35,7 @@ function parseArgs(argv) {
     dryRun: false,
     releaseBeforeUpsert: false,
     sleepSeconds: Number(process.env.COURTLISTENER_SLEEP_SECONDS || 1.2),
+    retries: Number(process.env.COURTLISTENER_RETRIES || 3),
     embeddingModel: process.env.EMBEDDING_MODEL || 'text-embedding-3-small',
     vectorDim: Number(process.env.VECTOR_DIM || 1536),
     upsertBatchSize: Number(process.env.ZILLIZ_UPSERT_BATCH_SIZE || 10),
@@ -53,6 +54,7 @@ function parseArgs(argv) {
     else if (arg === '--dry-run') parsed.dryRun = true;
     else if (arg === '--release-before-upsert') parsed.releaseBeforeUpsert = true;
     else if (arg === '--sleep-seconds' && next) parsed.sleepSeconds = Number(next), index += 1;
+    else if (arg === '--retries' && next) parsed.retries = Number(next), index += 1;
     else if (arg === '--snapshot' && next) parsed.snapshot = next, index += 1;
     else if (arg === '--help') {
       printHelp();
@@ -153,12 +155,28 @@ async function courtListenerFetch(url) {
   const token = process.env.COURTLISTENER_API_TOKEN || process.env.COURTLISTENER_TOKEN;
   if (token) headers.Authorization = `Token ${token}`;
 
-  const response = await fetch(url, { headers });
-  if (!response.ok) {
-    throw new Error(`CourtListener HTTP ${response.status}: ${(await response.text()).slice(0, 500)}`);
+  let lastError;
+  for (let attempt = 0; attempt <= args.retries; attempt += 1) {
+    try {
+      const response = await fetch(url, { headers });
+      if (!response.ok) {
+        const detail = (await response.text()).slice(0, 500);
+        if ([429, 500, 502, 503, 504].includes(response.status) && attempt < args.retries) {
+          lastError = new Error(`CourtListener HTTP ${response.status}: ${detail}`);
+          await sleep((attempt + 1) * 2500);
+          continue;
+        }
+        throw new Error(`CourtListener HTTP ${response.status}: ${detail}`);
+      }
+      if (args.sleepSeconds > 0) await sleep(args.sleepSeconds * 1000);
+      return response.json();
+    } catch (error) {
+      lastError = error;
+      if (attempt >= args.retries) break;
+      await sleep((attempt + 1) * 2500);
+    }
   }
-  if (args.sleepSeconds > 0) await sleep(args.sleepSeconds * 1000);
-  return response.json();
+  throw lastError;
 }
 
 function searchUrl(query, court, nextUrl) {
