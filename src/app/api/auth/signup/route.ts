@@ -4,7 +4,7 @@ import { authRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceed
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { sendResendEmail } from '@/lib/email/resend'
 import { createHash, randomBytes } from 'node:crypto'
-import { getBillingMarketFromCountryCode } from '@/constants'
+import { findPlanByAnyPriceId, getBillingMarketFromCountryCode } from '@/constants'
 import type { BillingMarket } from '@/constants'
 import { getAppRouteForMarket } from '@/lib/markets/app-routes'
 import {
@@ -91,14 +91,21 @@ export async function POST(request: NextRequest) {
       ''
     )
     const plan = typeof body?.plan === 'string' ? body.plan.trim() : ''
+    const planId = typeof body?.planId === 'string' ? body.planId.trim() : ''
+    const resolvedPlan = plan || findPlanByAnyPriceId(planId)?.name || ''
     const market = String(body?.market || '').trim().toUpperCase() === 'US' ? 'US' : 'GB'
-    const selectedBusinessPlan = normalizeBusinessPlan(plan)
+    const selectedBusinessPlan = normalizeBusinessPlan(resolvedPlan)
     const isBusinessSignup =
       String(audience).trim().toLowerCase() === 'business' ||
       Boolean(selectedBusinessPlan)
+    const isAssistantPlanSelection = resolvedPlan.toLowerCase().startsWith('assistant ')
     const isAssistantSignup =
       !isBusinessSignup &&
-      (safeRedirectPath(requestedRedirect, '').startsWith('/assistant') || String(body?.signupSource || '').trim() === 'assistant')
+      (
+        safeRedirectPath(requestedRedirect, '').startsWith('/assistant') ||
+        String(body?.signupSource || '').trim().toLowerCase() === 'assistant' ||
+        isAssistantPlanSelection
+      )
     const inferredLegalContext = inferLegalContextFromRequest(request)
     const effectiveCountryCode = countryCode || (isAssistantSignup ? inferredLegalContext.countryCode : '')
     const effectiveJurisdictionCode = jurisdictionCode || (isAssistantSignup ? inferredLegalContext.jurisdictionCode : '')

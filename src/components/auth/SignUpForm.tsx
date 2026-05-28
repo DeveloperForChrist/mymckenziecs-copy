@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout'
+import { findPlanByAnyPriceId } from '@/constants'
 import {
   getCountryOption,
   getJurisdictionOptions,
@@ -80,16 +81,24 @@ export default function SignUpForm() {
 
   const selectedPlanId = (searchParams?.get('planId') || '').trim()
   const selectedPlanName = (searchParams?.get('plan') || '').trim()
+  const selectedPlan = findPlanByAnyPriceId(selectedPlanId)
+  const resolvedSelectedPlanName = selectedPlanName || selectedPlan?.name || ''
   const audienceParam = (
     searchParams?.get('audience') ||
     searchParams?.get('billingAudience') ||
     searchParams?.get('accountType') ||
     ''
   ).trim().toLowerCase()
-  const isBusinessPlan = ['solo'].includes(selectedPlanName.toLowerCase())
+  const isBusinessPlan = ['solo'].includes(resolvedSelectedPlanName.toLowerCase())
   const isBusinessSignup = audienceParam === 'business' || isBusinessPlan
   const redirectParam = (searchParams?.get('redirect') || '').trim()
-  const isAssistantSignup = redirectParam === '/assistant' || redirectParam.startsWith('/assistant/')
+  const signupSourceParam = (searchParams?.get('signupSource') || '').trim().toLowerCase()
+  const isAssistantPlanSelection = resolvedSelectedPlanName.toLowerCase().startsWith('assistant ')
+  const isAssistantSignup =
+    redirectParam === '/assistant' ||
+    redirectParam.startsWith('/assistant/') ||
+    signupSourceParam === 'assistant' ||
+    isAssistantPlanSelection
   const publicMarket = getPublicMarket({
     pathname: redirectParam || pathname,
     explicitMarket: searchParams?.get('market'),
@@ -244,7 +253,9 @@ export default function SignUpForm() {
           countryCode: isBusinessSignup || isAssistantSignup ? null : formData.countryCode,
           jurisdictionCode: isBusinessSignup || isAssistantSignup ? null : formData.jurisdictionCode,
           audience: isBusinessSignup ? 'business' : 'litigant',
-          plan: selectedPlanName,
+          plan: resolvedSelectedPlanName,
+          planId: selectedPlanId || undefined,
+          signupSource: isAssistantSignup ? 'assistant' : undefined,
           market: publicMarket,
           redirect: nextRedirect,
         }),

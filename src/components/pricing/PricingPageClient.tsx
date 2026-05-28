@@ -228,9 +228,13 @@ export default function PricingPageClient({
     const session = (await supabase.auth.getSession()).data.session;
     const idToken = session?.access_token;
     if (!idToken || !isBillingEligibleUser(session?.user)) {
+      const matchedPlan = findPlanByAnyPriceId(priceId);
+      const isAssistantPlanSelection = matchedPlan?.name.toLowerCase().startsWith('assistant ') || false;
       const redirectTo = getAppRouteForMarket(`/dashboard?activatePlan=${encodeURIComponent(priceId)}`, billingMarket);
       window.location.href = buildMarketAwareAuthHref('/auth/signup', billingMarket, {
         planId: priceId,
+        plan: matchedPlan?.name,
+        signupSource: isAssistantPlanSelection ? 'assistant' : undefined,
         redirect: redirectTo,
       });
       return;

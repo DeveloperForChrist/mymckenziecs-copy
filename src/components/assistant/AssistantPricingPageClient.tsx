@@ -198,7 +198,12 @@ export default function AssistantPricingPageClient({
     }
 
     if (!isSignedIn) {
-      window.location.href = `/auth/signup?redirect=${encodeURIComponent('/assistant/pricing')}`
+      const params = new URLSearchParams({
+        redirect: '/assistant/pricing',
+        signupSource: 'assistant',
+        planId: priceId,
+      })
+      window.location.href = `/auth/signup?${params.toString()}`
       return
     }
 
@@ -208,7 +213,12 @@ export default function AssistantPricingPageClient({
       const session = (await supabase.auth.getSession()).data.session
       const idToken = session?.access_token
       if (!idToken || !isBillingEligibleUser(session?.user)) {
-        window.location.href = `/auth/signup?redirect=${encodeURIComponent('/assistant/pricing')}`
+        const params = new URLSearchParams({
+          redirect: '/assistant/pricing',
+          signupSource: 'assistant',
+          planId: priceId,
+        })
+        window.location.href = `/auth/signup?${params.toString()}`
         return
       }
 

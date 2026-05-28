@@ -75,7 +75,7 @@ export default function ChatComposer({
     : 'File uploads are available to registered Plus and Premium users. Create an account or sign in to upload documents and keep them with your chat.'
   const authRedirect = pathname === '/assistant' ? '/assistant/pricing' : (pathname || '/assistant')
   const signInHref = `/auth/signin?redirect=${encodeURIComponent(authRedirect)}`
-  const signUpHref = `/auth/signup?redirect=${encodeURIComponent(authRedirect)}`
+  const signUpHref = `/auth/signup?redirect=${encodeURIComponent(authRedirect)}&signupSource=assistant`
 
   return (
     <form
