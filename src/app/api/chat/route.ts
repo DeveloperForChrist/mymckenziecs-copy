@@ -144,7 +144,7 @@ const readPositiveInteger = (value: string | undefined, fallback: number) => {
   const parsed = Number.parseInt(String(value || ''), 10)
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
 }
-const ANONYMOUS_CHAT_MESSAGE_LIMIT = readPositiveInteger(process.env.ANONYMOUS_CHAT_MESSAGE_LIMIT, 4)
+const ANONYMOUS_CHAT_MESSAGE_LIMIT = readPositiveInteger(process.env.ANONYMOUS_CHAT_MESSAGE_LIMIT, 3)
 const ANONYMOUS_CHAT_COOLDOWN_MS = readPositiveInteger(
   process.env.ANONYMOUS_CHAT_COOLDOWN_MS,
   5 * 60 * 60 * 1000

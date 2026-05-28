@@ -221,7 +221,7 @@ export default function AssistantProductClient({ initialChatPlan = null }: Assis
               composerPlacement="pane"
               paneWidth="standard"
               conversationHomeHref="/assistant"
-              anonymousMessageLimit={4}
+              anonymousMessageLimit={3}
             />
           </div>
         ) : activeView === 'documents' ? (
