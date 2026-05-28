@@ -9,6 +9,7 @@ type HeroActionButtonsProps = {
   howItWorksHref?: string;
   directoryHref?: string;
   signInHref?: string;
+  assistantHref?: string;
 };
 
 export default function HeroActionButtons({
@@ -16,6 +17,7 @@ export default function HeroActionButtons({
   howItWorksHref = '/legal-case-management-tool',
   directoryHref = '/dashboard/directory',
   signInHref = '/auth/signin',
+  assistantHref = '/assistant',
 }: HeroActionButtonsProps) {
   const [dashboardHref, setDashboardHref] = useState<string | null>(null);
 
@@ -42,6 +44,12 @@ export default function HeroActionButtons({
 
   return (
     <div className="mt-7 flex flex-wrap gap-3 justify-center xl:justify-start">
+      <Link
+        href={assistantHref}
+        className="app-button-secondary text-base sm:text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
+      >
+        Ask MyMcKenzie Assistant
+      </Link>
       {dashboardHref ? (
         <Link
           href={dashboardHref}
@@ -55,13 +63,7 @@ export default function HeroActionButtons({
             href={pricingHref}
             className="app-button-secondary text-base sm:text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
           >
-            Try for free
-          </Link>
-          <Link
-            href={signInHref}
-            className="app-button-secondary text-base sm:text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c0430]"
-          >
-            Sign In
+            View plans
           </Link>
         </>
       )}

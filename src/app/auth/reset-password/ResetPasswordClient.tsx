@@ -163,7 +163,7 @@ export default function ResetPasswordClient() {
             <h1 className={styles.heroTitle}>Reset your password.</h1>
             <p className={styles.heroCopy}>
               Send yourself a secure reset link or, if you already clicked one, choose a new password to get back into
-              your workspace.
+              your account.
             </p>
             <div className={styles.heroList}>
               <div className={styles.heroListItem}>
@@ -176,7 +176,7 @@ export default function ResetPasswordClient() {
               </div>
               <div className={styles.heroListItem}>
                 <span>03</span>
-                <div>Sign in again and keep working on your case prep.</div>
+                <div>Sign in again and continue where you left off.</div>
               </div>
             </div>
           </div>

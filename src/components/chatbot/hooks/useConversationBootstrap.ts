@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import type { Dispatch, SetStateAction } from 'react'
 import type { AssistantMetadata, Message } from '@/components/chatbot/chat-types'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
@@ -32,6 +32,8 @@ export function useConversationBootstrap({
   setIsConversationBootstrapping
 }: UseConversationBootstrapArgs) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const searchParamsKey = searchParams?.toString() || ''
 
   useEffect(() => {
     const conversationStorageKey = 'currentConversationId'
@@ -80,6 +82,23 @@ export function useConversationBootstrap({
       }
     }
 
+    const claimAnonymousConversation = async (anonymousUserId: string, targetConversationId: string): Promise<boolean> => {
+      try {
+        const response = await fetch('/api/chat/claim-anonymous', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            anonymousUserId,
+            conversationId: targetConversationId,
+          }),
+        })
+        return response.ok
+      } catch (error) {
+        console.error('Failed to claim anonymous conversation:', error)
+        return false
+      }
+    }
+
     const loadConversation = async () => {
       const urlParams = new URLSearchParams(window.location.search)
       const conversationId = urlParams.get('conversationId')
@@ -92,7 +111,13 @@ export function useConversationBootstrap({
       let storedUserId = localStorage.getItem('userId')
       if (authUserId) {
         const previousUserId = storedUserId
+        const previousConversationId = conversationId || localStorage.getItem(conversationStorageKey) || ''
         const previousSignInAt = localStorage.getItem(lastSignInAtStorageKey)
+        const switchedFromGuest = Boolean(previousUserId && previousUserId.startsWith('anon_') && previousUserId !== authUserId)
+        const claimedAnonymousConversation =
+          switchedFromGuest && previousConversationId
+            ? await claimAnonymousConversation(previousUserId as string, previousConversationId)
+            : false
         storedUserId = authUserId
         localStorage.setItem('userId', storedUserId)
         setUserId(storedUserId)
@@ -103,14 +128,13 @@ export function useConversationBootstrap({
         }
 
         // Prevent stale thread carry-over after auth transitions unless a specific conversation is requested.
-        const switchedFromGuest = Boolean(previousUserId && previousUserId.startsWith('anon_') && previousUserId !== storedUserId)
         const switchedAccounts = Boolean(previousUserId && !previousUserId.startsWith('anon_') && previousUserId !== storedUserId)
         const signedInAgain = Boolean(
           previousSignInAt &&
           currentSignInAt &&
           previousSignInAt !== currentSignInAt
         )
-        if (!conversationId && !isNew && (switchedFromGuest || switchedAccounts || signedInAgain)) {
+        if (!conversationId && !isNew && (switchedAccounts || signedInAgain || (switchedFromGuest && !claimedAnonymousConversation))) {
           setMessages([])
           setHistoryCursor(null)
           setHasMoreHistory(false)
@@ -121,7 +145,7 @@ export function useConversationBootstrap({
         }
       } else if (!storedUserId) {
         localStorage.removeItem(lastSignInAtStorageKey)
-        storedUserId = `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        storedUserId = `anon_${generateUUID()}`
         localStorage.setItem('userId', storedUserId)
       } else {
         localStorage.removeItem(lastSignInAtStorageKey)
@@ -197,6 +221,7 @@ export function useConversationBootstrap({
     setHistoryCursor,
     setHasMoreHistory,
     setIsConversationBootstrapping,
-    pathname
+    pathname,
+    searchParamsKey
   ])
 }

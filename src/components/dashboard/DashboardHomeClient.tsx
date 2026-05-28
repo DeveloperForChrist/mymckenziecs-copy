@@ -277,62 +277,9 @@ export default function DashboardHomeClient({
   }, [selectedPlanId]);
 
   useEffect(() => {
-    if (!selectedPlanId || !emailVerified || !planLoaded || hasPaidAccess || trialStartAttemptedRef.current) {
-      return;
-    }
-
-    let cancelled = false;
-    trialStartAttemptedRef.current = true;
-    setTrialStartPending(true);
+    trialStartAttemptedRef.current = Boolean(selectedPlanId && emailVerified && planLoaded && !hasPaidAccess);
+    setTrialStartPending(false);
     setTrialStartError(null);
-
-    const startTrial = async () => {
-      try {
-        const response = await fetch('/api/user/start-trial', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify({ planId: selectedPlanId }),
-        });
-        const payload = await response.json().catch(() => ({}));
-        if (cancelled) return;
-
-        if (!response.ok) {
-          if (payload?.code === 'EMAIL_VERIFICATION_REQUIRED' && typeof payload?.redirect === 'string') {
-            window.location.href = payload.redirect;
-            return;
-          }
-
-          setTrialStartError(
-            payload?.code === 'TRIAL_ALREADY_USED'
-              ? 'Your previous free trial has already been used. You can still use your dashboard now and add billing information whenever you are ready to continue on this plan.'
-              : payload?.error || 'We could not start your selected free trial automatically. You can still use your dashboard now and review billing whenever you are ready.'
-          );
-          return;
-        }
-
-        const planData = payload?.planData || {};
-        setPlan((planData?.plan || selectedPlanName).toString());
-        setPlanStatus((planData?.planStatus || 'inactive').toString().trim().toLowerCase());
-        setNextBillingDate(typeof planData?.nextBillingDate === 'string' ? planData.nextBillingDate : null);
-        setHasStripeCustomer(Boolean(planData?.hasStripeCustomer));
-        setCancelAtPeriodEnd(Boolean(planData?.cancelAtPeriodEnd));
-      } catch (error: any) {
-        if (cancelled) return;
-        setTrialStartError(error?.message || 'We could not start your selected free trial automatically. You can still use your dashboard now.');
-      } finally {
-        if (!cancelled) {
-          setTrialStartPending(false);
-        }
-      }
-    };
-
-    void startTrial();
-    return () => {
-      cancelled = true;
-    };
   }, [emailVerified, hasPaidAccess, planLoaded, selectedPlanId, selectedPlanName]);
 
   useEffect(() => {
@@ -385,7 +332,7 @@ export default function DashboardHomeClient({
       : [
           {
             icon: 'bx-message-dots',
-            title: 'Talk to MyMcKenzieCS Assistant',
+            title: 'Talk to MyMcKenzie Assistant',
             desc: 'Receive AI-assisted legal information and support',
             href: chatbotHref,
             color: '#10b981,#34d399',
@@ -557,9 +504,9 @@ export default function DashboardHomeClient({
               </h2>
               <p style={{ margin: '8px 0 0', color: '#cbd5f5', lineHeight: 1.5, maxWidth: '760px' }}>
                 {trialStartPending && selectedPlanId
-                  ? `Your email is verified and your tools are unlocked. We are starting your ${selectedPlanName} free trial now, and you can begin using the platform straight away.`
+                  ? `Your email is verified. We are preparing your ${selectedPlanName} checkout now.`
                   : selectedPlanId
-                    ? `Your email is verified and your tools are unlocked. You can start using the platform now, and your ${selectedPlanName} plan will be ready as soon as billing is in place.`
+                    ? `Your email is verified. Your ${selectedPlanName} plan will be ready as soon as billing is in place.`
                   : 'Your email is verified and your tools are unlocked. You can start using the platform now and explore paid plans later if you want expanded features.'}
               </p>
               <p style={{ margin: '10px 0 0', color: '#d1fae5', lineHeight: 1.45, fontWeight: 600 }}>
@@ -635,12 +582,12 @@ export default function DashboardHomeClient({
                 ×
               </button>
               <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#fde68a' }}>
-                Add billing information before your trial ends
+                Add billing information before access ends
               </h2>
               <p style={{ margin: '8px 0 0', color: '#fef3c7', lineHeight: 1.45 }}>
                 {trialDaysLeft === 1
-                  ? `Your free trial ends tomorrow on ${formatDateLabel(nextBillingDate)}. Add your billing information now if you want access to continue without interruption.`
-                  : `Your free trial ends in ${trialDaysLeft} days on ${formatDateLabel(nextBillingDate)}. Add your billing information before then if you want access to continue without interruption.`}
+                  ? `Your current access ends tomorrow on ${formatDateLabel(nextBillingDate)}. Add your billing information now if you want access to continue without interruption.`
+                  : `Your current access ends in ${trialDaysLeft} days on ${formatDateLabel(nextBillingDate)}. Add your billing information before then if you want access to continue without interruption.`}
               </p>
               {paymentSaveMessage && (
                 <p style={{ margin: '10px 0 0', color: '#d1fae5', lineHeight: 1.45 }}>
@@ -734,11 +681,11 @@ export default function DashboardHomeClient({
               }}
             >
               <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#dbeafe' }}>
-                Free trial active
+                Access active
               </h2>
               <p style={{ margin: '8px 0 0', color: '#bfdbfe', lineHeight: 1.45 }}>
-                Your workspace is fully active during the free trial.
-                {nextBillingDate ? ` First charge date: ${formatDateLabel(nextBillingDate)}.` : ''}
+                Your workspace is active.
+                {nextBillingDate ? ` Next billing date: ${formatDateLabel(nextBillingDate)}.` : ''}
               </p>
               <div style={{ marginTop: 12 }}>
                 <Link
@@ -856,7 +803,7 @@ export default function DashboardHomeClient({
         }}
         onSuccess={async () => {
           setPaymentModalOpen(false);
-          setPaymentSaveMessage('Billing information saved. Your card will be used only if you continue after the free trial ends.');
+          setPaymentSaveMessage('Billing information saved. Your card will be used for future billing.');
           await refreshPlanState().catch(() => null);
         }}
         onOpenPortalFallback={() => {

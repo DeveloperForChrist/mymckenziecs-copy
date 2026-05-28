@@ -20,7 +20,7 @@ import type { AccountType } from '@/lib/auth/account-type';
 
 // Shared legal-support system prompts
 const SYSTEM_PROMPT: string = `
-You are MyMckenzieCS Assistant, a knowledgeable and conversational case support assistant for McKenzie Friends, legal support professionals, and self-represented litigants.
+You are MyMcKenzie Assistant, a knowledgeable and conversational case support assistant for McKenzie Friends, legal support professionals, and self-represented litigants.
 You act as a calm, factual legal support assistant: supportive, clear, professional, and focused.
 You provide court information, procedural guidance, client matter organisation, document and evidence support, and clear explanations.
 You do not provide legal advice, act as a solicitor or barrister, advocate in court, predict outcomes, or tell the user what they must do.
@@ -92,7 +92,7 @@ OUTPUT GOAL
 `;
 
 const PROFESSIONAL_SYSTEM_PROMPT: string = `
-You are MyMckenzieCS Assistant for legal support professionals. Operate at premium, elite quality.
+You are MyMcKenzie Assistant for legal support professionals. Operate at premium, elite quality.
 You support independent legal support professionals handling client matters, documents, and procedural workflow.
 You provide legal information, procedural analysis, drafting support, and evidence-quality review. You do not provide legal advice.
 
@@ -129,8 +129,65 @@ OUTPUT GOAL
 - Help professionals run tighter files, draft stronger documents, reduce avoidable risk, and improve procedural execution quality.
 `
 
+const MYMCKENZIE_ASSISTANT_SYSTEM_PROMPT: string = `
+You are MyMcKenzie Assistant for self-represented users. Stay firmly informational.
+You support people handling their own matter with legal information, procedural explanation, document clarity, evidence organisation, chronology support, and preparation help.
+Use a non-advisory tone, phrasing, and style. Do not act as a lawyer, act as a McKenzie Friend in court, represent the user, advocate for the user, predict outcomes, or tell the user what to do.
+
+OPERATING STANDARD
+- Think like a senior case-preparation assistant: precise, structured, risk-aware, and practical.
+- Prioritise chronology integrity, evidential sufficiency, procedural awareness, document clarity, and realistic preparation.
+- Distinguish hard facts, disputed points, assumptions, missing information, and uncertainty in every substantial response.
+- If the prompt is underspecified, ask a small number of targeted questions before giving detailed analysis.
+
+SELF-REPRESENTED USER FRAME
+- Treat the user as someone managing their own case unless they clearly state otherwise.
+- Explain legal and procedural points in plain English without talking down to the user.
+- Help the user understand how a court or decision-maker may usually look at relevance, evidence, credibility, and timing.
+- Pressure-test the matter neutrally from the other side's possible perspective: weak links, missing proof, contradictions, procedural risk, and unclear drafting.
+- Do not adopt the user's allegations as proven facts.
+
+NON-ADVISORY STYLE
+- Give information, options to consider, common procedural routes, preparation checklists, and neutral drafting help.
+- Do not give directives such as "you should", "you must", "you need to", or "do this next" unless directly quoting a rule or official wording.
+- Rephrase direct advice into neutral support language such as "it may help to consider", "one practical point to check is", "a common next step may be", or "you may wish to discuss this with a qualified adviser".
+- Do not give definitive legal conclusions on the user's facts.
+- Do not say the user will win, lose, succeed, fail, be entitled to compensation, or definitely meet a legal test.
+- Avoid repeated disclaimer lines. The boundary should show through the style of the answer, not warning text.
+
+DRAFTING AND DOCUMENT QUALITY
+- Review documents for structure, chronology, missing dates, unclear facts, unsupported assertions, contradictions, repetition, emotional language, and relevance.
+- Where useful, rewrite sections in a clearer, more organised style using the user's own facts.
+- Use placeholders in [SQUARE BRACKETS] only for genuinely missing information.
+- Keep drafting neutral, evidence-anchored, and suitable for a self-represented person.
+
+EXTERNAL CONTEXT
+- Treat external search, procedural, authority, or document text as context provided in this conversation.
+- Do not claim to have personally used tools.
+- If context is missing or uncertain, say so clearly and answer from general jurisdiction-appropriate understanding where possible.
+
+ACTIVE TASK RULE
+- Treat the latest user message as the active task.
+- Use earlier conversation only as background context.
+- Continue or revise a drafting task only when the latest message clearly asks for it.
+
+PRESENTATION
+- Plain text only.
+- Use short paragraphs. Use lists only when they improve clarity.
+- Lead with the most useful answer, then explain the reasoning.
+- No markdown tables, decorative formatting, or filler preamble.
+
+TONE
+- Calm, clear, direct, and supportive.
+- Professional quality, but accessible to a non-lawyer.
+- Use calibrated language: may, might, could, generally, usually, appears, possible, and depends on.
+
+OUTPUT GOAL
+- Help self-represented users understand the issue, organise their facts and evidence, improve documents, and prepare more clearly in a non-advisory way.
+`
+
 const LITIGANT_SYSTEM_PROMPT: string = `
-You are MyMckenzieCS Assistant, a knowledgeable and conversational legal support assistant designed to help users who are representing themselves in legal matters.
+You are MyMcKenzie Assistant, a knowledgeable and conversational legal support assistant designed to help users who are representing themselves in legal matters.
 You act as a calm, factual case support assistant: supportive, clear, professional, and focused.
 You provide legal information, procedural guidance, document and evidence support, and clear explanations.
 You do not provide legal advice, act as a lawyer, advocate in court, predict outcomes, or tell the user what they must do.
@@ -243,7 +300,7 @@ ACTIVE TASK RULE
 - Continue prior drafting only when explicitly requested in the latest turn.
 - Prefer output that is directly executable by a professional user (clear sequence, risk flags, and draft-ready language).`
 
-const SYSTEM_PROMPT_FREE: string = `You are MyMckenzieCS Assistant, a knowledgeable and conversational case support assistant who helps users with legal support work, cases, and questions.
+const SYSTEM_PROMPT_FREE: string = `You are MyMcKenzie Assistant, a knowledgeable and conversational case support assistant who helps users with legal support work, cases, and questions.
 You provide plain-English legal information and procedural guidance, without giving legal advice.
 Keep users focused on relevant facts, chronology, evidence, and practical next procedural steps.
 `
@@ -260,11 +317,11 @@ ACTIVE TASK RULE
 - Use earlier conversation only as background facts or context.
 - Do not continue, revise, or infer a drafting task from earlier turns unless the latest message clearly asks to draft, fill, continue, or edit a document or template.`
 
-const SYSTEM_PROMPT_FREE_LITIGANT: string = `You are MyMckenzieCS Assistant, a knowledgeable and conversational legal support assistant who helps self-represented users with legal issues, cases, and questions.
+const SYSTEM_PROMPT_FREE_LITIGANT: string = `You are MyMcKenzie Assistant, a knowledgeable and conversational legal support assistant who helps self-represented users with legal issues, cases, and questions.
 You help users identify the legal area their case or issue may fall under, as many users may be confused or stressed, so it is useful to ask specific classifying questions when needed in order to improve accuracy.
 After you have identified the legal area that their case or issue may fall under, help the user understand it in plain English for a non-lawyer, using a short illustrative scenario when it materially helps.
 You should talk to the users as if you are talking to them directly, help keep them in control within conversation as users can be very emotional and go off topic, which does not help their case, because the court does not examine cases or issues based on emotions or feelings but facts and key informations and evidence. 
-As MyMckenzie's Legal Support, you should help the user think about how a judge or decision-maker may look at their case, so you help them in the best way possible, like pointing out key details, facts, or information that may weaken clarity or persuasion, but dont explicitly give legal advice.
+As MyMcKenzie Assistant, you should help the user think about how a judge or decision-maker may look at their case, so you help them in the best way possible, like pointing out key details, facts, or information that may weaken clarity or persuasion, but dont explicitly give legal advice.
 Keep users focused and in control at all times. Prevent them from relying on irrelevant laws, statutes, or acts that have no bearing on their case. All assistance should be aimed at preparing them to understand their position and present their issues clearly and confidently, with guidance framed from the perspective of how a judge would assess relevance and substance.
 
 When deemed suitable, you will need to make references to laws, acts, statutes and such.
@@ -400,6 +457,7 @@ type SearchQuotaResult = {
   remaining?: number | null
   resetsAt?: string | null
 }
+type CaseLawRetrievalQuotaResult = SearchQuotaResult
 export type PremiumPlusToolName =
   | 'direct_knowledge'
   | 'web_search_education'
@@ -435,6 +493,8 @@ const getPremiumContextPromptForAccount = (accountType?: AccountType | null): st
   resolvePromptAudience(accountType) === 'professional'
     ? PREMIUM_CONTEXT_SYSTEM_PROMPT_PROFESSIONAL
     : PREMIUM_CONTEXT_SYSTEM_PROMPT_LITIGANT
+
+export const getMyMcKenzieAssistantSystemPrompt = (): string => MYMCKENZIE_ASSISTANT_SYSTEM_PROMPT
 
 const getFreePromptForAccount = (accountType?: AccountType | null): string =>
   resolvePromptAudience(accountType) === 'professional'
@@ -1300,7 +1360,7 @@ export async function createLegalAgent(
         // 1. Check greeting
         if (isBasicGreeting(latestQuestion)) {
           return {
-            response: "Hello! I'm MyMcKenzieCS. How can I help with your legal question?",
+            response: "Hello! I'm MyMcKenzie Assistant. How can I help with your legal question?",
             document_generated: false,
             guidance_provided: true,
             sources: undefined
@@ -1356,6 +1416,7 @@ export async function createLegalAgent(
             const quota = await options.consumeSearchQuota()
             if (!quota?.allowed) {
               shouldUseSearch = false
+              basicDailySearchNotice = getBasicDailyWebSearchLimitReachedNotice(quota?.resetsAt)
             } else if (Number(quota?.remaining) === 0) {
               basicDailySearchNotice = getBasicDailyWebSearchLimitReachedNotice(quota?.resetsAt)
             }
@@ -1385,7 +1446,8 @@ export async function createLegalAgent(
             response: finalDirectAnswer,
             document_generated: false,
             guidance_provided: true,
-            sources: undefined
+            sources: undefined,
+            basicDailySearchNotice: basicDailySearchNotice || undefined
           }
         }
 
@@ -1433,7 +1495,7 @@ export async function createLegalAgent(
           ? 'Include inline citations in square brackets that match the sources list above, like [1] or [2]. Use citations on factual statements.'
           : 'Do not include any source citations.'
         const lengthInstruction = buildLengthInstruction(latestQuestion)
-        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory, latestQuestion)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} ${citationInstruction} Keep the reply conversational and natural. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
+        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory, latestQuestion)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} ${citationInstruction} Keep the reply conversational and natural. Keep the tone informational and non-advisory: avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
 
         let comprehensiveAnswer = await callLLM(
           comprehensivePrompt,
@@ -1477,10 +1539,7 @@ export async function createLegalAgent(
           document_generated: false,
           guidance_provided: true,
           sources: finalNoEngineCitations.sources,
-          basicDailySearchNotice:
-            basicDailySearchNotice && Array.isArray(finalNoEngineCitations.sources) && finalNoEngineCitations.sources.length > 0
-              ? basicDailySearchNotice
-              : undefined
+          basicDailySearchNotice: basicDailySearchNotice || undefined
         }
       } catch (error: any) {
         const message = error instanceof Error ? error.message : ''
@@ -1543,11 +1602,15 @@ export async function invokePremiumLegalAgent(
     searchModeOverride?: LegalSearchMode
     searchEngineOverride?: SearchEngine
     legalContext?: UserLegalContext
+    consumeSearchQuota?: () => Promise<SearchQuotaResult>
     openaiModel?: string
     openaiFallbackModel?: string
     maxTokens?: number
     maxCompressionRetries?: number
     accountType?: AccountType
+    systemPrompt?: string
+    consumeCaseLawRetrievalQuota?: () => Promise<CaseLawRetrievalQuotaResult>
+    caseLawRetrievalLimitNotice?: (resetsAt: string | null | undefined) => string
   }
   ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
   return invokeLegalAgent(message, threadId, userId, conversationHistory, caseKeywords, {
@@ -1567,6 +1630,8 @@ export async function invokePremiumLegalAgent(
     searchEngineOverride: options?.searchEngineOverride || 'brave',
     legalContext: options?.legalContext,
     accountType: options?.accountType,
+    systemPrompt: options?.systemPrompt,
+    consumeSearchQuota: options?.consumeSearchQuota,
   })
 }
 
@@ -1613,6 +1678,7 @@ export async function invokePremiumLegalAgentStream(
     searchModeOverride?: LegalSearchMode
     searchEngineOverride?: SearchEngine
     legalContext?: UserLegalContext
+    consumeSearchQuota?: () => Promise<SearchQuotaResult>
     openaiModel?: string
     openaiFallbackModel?: string
     maxTokens?: number
@@ -1620,8 +1686,9 @@ export async function invokePremiumLegalAgentStream(
     onStatus?: (status: string) => void
     onToken?: (chunk: string) => void
     accountType?: AccountType
+    systemPrompt?: string
   }
-): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }> }> {
+): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }>; basicDailySearchNotice?: string }> {
   const apiKey = (process.env.OPENAI_API_KEY || '').trim()
   if (!apiKey) {
     return {
@@ -1635,7 +1702,7 @@ export async function invokePremiumLegalAgentStream(
 
   const trimmedHistory = sanitizeConversationHistory(conversationHistory, resolveConversationHistoryLimit(options?.historyLimit))
   const systemPrompt = applyLegalContextToSystemPrompt(
-    getPremiumContextPromptForAccount(options?.accountType),
+    options?.systemPrompt || getPremiumContextPromptForAccount(options?.accountType),
     options?.legalContext
   )
   const memoryContext = typeof options?.memoryContext === 'string' && options.memoryContext.trim()
@@ -1788,7 +1855,7 @@ export async function invokePremiumLegalAgentStream(
 
   if (isBasicGreeting(latestQuestion)) {
     return {
-      response: "Hello! I'm MyMcKenzieCS. How can I help with your legal question?",
+      response: "Hello! I'm MyMcKenzie Assistant. How can I help with your legal question?",
       document_generated: false,
       guidance_provided: true,
       next_steps: [],
@@ -1813,6 +1880,7 @@ export async function invokePremiumLegalAgentStream(
   const fallbackSearchMode: LegalSearchMode = searchModeOverride || (isDefinitionQuery(latestQuestion) ? 'education' : 'general')
   let shouldUseSearch = explicitUseSearch ?? true
   let resolvedSearchMode = fallbackSearchMode
+  let basicDailySearchNotice = ''
   let resolvedSearchQuery = buildJurisdictionAwareSearchQuery(buildSearchQueryWithCaseContext(
     searchQueryOverride || latestQuestion,
     caseKeywords
@@ -1840,6 +1908,21 @@ export async function invokePremiumLegalAgentStream(
     ), options?.legalContext)
   }
 
+  if (shouldUseSearch && options?.consumeSearchQuota) {
+    try {
+      const quota = await options.consumeSearchQuota()
+      if (!quota?.allowed) {
+        shouldUseSearch = false
+        basicDailySearchNotice = getBasicDailyWebSearchLimitReachedNotice(quota?.resetsAt)
+      } else if (Number(quota?.remaining) === 0) {
+        basicDailySearchNotice = getBasicDailyWebSearchLimitReachedNotice(quota?.resetsAt)
+      }
+    } catch (error) {
+      console.warn('Search quota check failed; falling back to direct answer.', error)
+      shouldUseSearch = false
+    }
+  }
+
   if (!shouldUseSearch) {
     const lengthInstruction = buildLengthInstruction(latestQuestion)
     const directPrompt = `${memoryContext}${historyContext}${caseContext}User question: "${latestQuestion}"\n\nProvide a clear, helpful answer based on your general knowledge. ${lengthInstruction} Keep the reply conversational and natural. Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
@@ -1850,6 +1933,7 @@ export async function invokePremiumLegalAgentStream(
       guidance_provided: true,
       next_steps: [],
       sources: undefined,
+      basicDailySearchNotice: basicDailySearchNotice || undefined,
     }
   }
 
@@ -1892,7 +1976,7 @@ export async function invokePremiumLegalAgentStream(
   const citationInstruction = effectiveIncludeCitations
     ? 'Include inline citations in square brackets that match the sources list above, like [1] or [2]. Use citations on factual statements.'
     : 'Do not include any source citations.'
-  const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory, latestQuestion)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} ${citationInstruction} Keep the reply conversational and natural. This must remain legal information support only (not legal advice): avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
+  const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory, latestQuestion)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} ${citationInstruction} Keep the reply conversational and natural. Keep the tone informational and non-advisory: avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
 
   emitStatus('Drafting answer...')
   const streamedAnswer = await streamOpenAiText(comprehensivePrompt, searchMaxTokens)
@@ -1907,6 +1991,7 @@ export async function invokePremiumLegalAgentStream(
     guidance_provided: true,
     next_steps: [],
     sources: final.sources,
+    basicDailySearchNotice: basicDailySearchNotice || undefined,
   }
 }
 
@@ -2313,11 +2398,20 @@ const isPremiumPlusPromptCachingUnsupportedError = (error: any) => {
 const buildPremiumPlusAnthropicSystemPrompt = (
   contextLines: string[] = [],
   accountType?: AccountType,
-  legalContext?: UserLegalContext | null
-) =>
-  contextLines.length > 0
-    ? `${buildPromptForAudience(buildPremiumPlusToolSystemPrompt(legalContext), accountType)}\n\nContext\n${contextLines.join('\n\n')}`
+  legalContext?: UserLegalContext | null,
+  systemPrompt?: string
+) => {
+  const customPrompt = typeof systemPrompt === 'string' && systemPrompt.trim()
+    ? systemPrompt.trim()
+    : ''
+  const basePrompt = customPrompt
+    ? `${customPrompt}\n\n${buildPremiumPlusToolExecutionInstructions(legalContext)}`
     : buildPromptForAudience(buildPremiumPlusToolSystemPrompt(legalContext), accountType)
+
+  return contextLines.length > 0
+    ? `${basePrompt}\n\nContext\n${contextLines.join('\n\n')}`
+    : basePrompt
+}
 
 const buildPremiumPlusContextLines = (options: {
   conversationHistory?: Array<{ role: string; content: string }>
@@ -2355,11 +2449,15 @@ const buildPremiumPlusDirectSystemPrompt = (options: {
   latestQuestion?: string
   legalContext?: UserLegalContext
   accountType?: AccountType
+  systemPrompt?: string
 }) => {
   const contextLines = buildPremiumPlusContextLines(options)
-  const basePrompt = contextLines.length > 0
-    ? `${getPremiumContextPromptForAccount(options.accountType)}\n\nContext\n${contextLines.join('\n\n')}`
+  const rootPrompt = typeof options.systemPrompt === 'string' && options.systemPrompt.trim()
+    ? options.systemPrompt.trim()
     : getPremiumContextPromptForAccount(options.accountType)
+  const basePrompt = contextLines.length > 0
+    ? `${rootPrompt}\n\nContext\n${contextLines.join('\n\n')}`
+    : rootPrompt
   return applyLegalContextToSystemPrompt(basePrompt, options.legalContext)
 }
 
@@ -2401,6 +2499,7 @@ const callPremiumPlusDirectText = async (
     historyLimit?: number
     legalContext?: UserLegalContext
     accountType?: AccountType
+    systemPrompt?: string
     maxTokens?: number
   }
 ) => {
@@ -2431,6 +2530,7 @@ const streamPremiumPlusDirectText = async (
     historyLimit?: number
     legalContext?: UserLegalContext
     accountType?: AccountType
+    systemPrompt?: string
     maxTokens?: number
     onToken?: (chunk: string) => void
   }
@@ -2566,16 +2666,52 @@ const executePremiumPlusToolCall = async (
   args: Record<string, any>,
   searchEngineOverride: SearchEngine,
   legalContext?: UserLegalContext,
-  accountType?: AccountType
+  accountType?: AccountType,
+  consumeSearchQuota?: () => Promise<SearchQuotaResult>,
+  consumeCaseLawRetrievalQuota?: () => Promise<CaseLawRetrievalQuotaResult>,
+  caseLawRetrievalLimitNotice?: (resetsAt: string | null | undefined) => string
 ): Promise<PremiumPlusToolExecutionResult> => {
   if (toolName === 'web_search') {
     const query = String(args.query || '').trim()
     const mode = normalizeLegalSearchMode(args.mode) || 'general'
     if (!query) return { content: 'Web search was skipped because no query was provided.' }
+    if (consumeSearchQuota) {
+      try {
+        const quota = await consumeSearchQuota()
+        if (!quota?.allowed) {
+          return {
+            content: 'Web search is unavailable because the search limit has been reached. Continue from general context and any available uploaded documents.',
+          }
+        }
+      } catch (error) {
+        console.warn('Premium+ web search quota check failed; skipping web search.', error)
+        return {
+          content: 'Web search is temporarily unavailable. Continue from general context and any available uploaded documents.',
+        }
+      }
+    }
     return executePremiumPlusWebSearch(query, mode, searchEngineOverride, legalContext)
   }
 
   if (toolName === 'case_law_search') {
+    if (consumeCaseLawRetrievalQuota) {
+      try {
+        const quota = await consumeCaseLawRetrievalQuota()
+        if (!quota?.allowed) {
+          return {
+            content: caseLawRetrievalLimitNotice
+              ? caseLawRetrievalLimitNotice(quota?.resetsAt)
+              : 'Case-law retrieval is unavailable because the daily retrieval limit has been reached.',
+          }
+        }
+      } catch (error) {
+        console.warn('Case-law retrieval quota check failed; skipping case-law retrieval.', error)
+        return {
+          content: 'Case-law retrieval is temporarily unavailable. Continue from general context and web sources where available.',
+        }
+      }
+    }
+
     const query = String(args.query || '').trim()
     const scopeRaw = String(args.scope || 'both').trim().toLowerCase()
     let scope: 'suggestions' | 'analysis' | 'both' =
@@ -2940,6 +3076,10 @@ const runPremiumPlusToolLoop = async (
     historyLimit?: number
     onStatus?: (status: string) => void
     accountType?: AccountType
+    systemPrompt?: string
+    consumeSearchQuota?: () => Promise<SearchQuotaResult>
+    consumeCaseLawRetrievalQuota?: () => Promise<CaseLawRetrievalQuotaResult>
+    caseLawRetrievalLimitNotice?: (resetsAt: string | null | undefined) => string
   }
 ): Promise<PremiumPlusToolLoopState> => {
   const client = createPremiumPlusAnthropic()
@@ -2948,7 +3088,7 @@ const runPremiumPlusToolLoop = async (
     latestQuestion: prompt,
   })
   const systemPrompt = applyLegalContextToSystemPrompt(
-    buildPremiumPlusAnthropicSystemPrompt(contextLines, options.accountType, options.legalContext),
+    buildPremiumPlusAnthropicSystemPrompt(contextLines, options.accountType, options.legalContext, options.systemPrompt),
     options.legalContext
   )
   const messages: PremiumPlusAnthropicMessage[] = [{ role: 'user', content: prompt }]
@@ -3002,7 +3142,10 @@ const runPremiumPlusToolLoop = async (
           toolUse.input,
           options.searchEngineOverride,
           options.legalContext,
-          options.accountType
+          options.accountType,
+          options.consumeSearchQuota,
+          options.consumeCaseLawRetrievalQuota,
+          options.caseLawRetrievalLimitNotice
         ),
       }))
     )
@@ -3052,6 +3195,10 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
     historyLimit?: number
     onStatus?: (status: string) => void
     accountType?: AccountType
+    systemPrompt?: string
+    consumeSearchQuota?: () => Promise<SearchQuotaResult>
+    consumeCaseLawRetrievalQuota?: () => Promise<CaseLawRetrievalQuotaResult>
+    caseLawRetrievalLimitNotice?: (resetsAt: string | null | undefined) => string
   }
 ): Promise<PremiumPlusToolLoopState> => {
   const apiKey = (process.env.OPENAI_API_KEY || '').trim()
@@ -3065,7 +3212,7 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
         buildPremiumPlusAnthropicSystemPrompt(buildPremiumPlusContextLines({
           ...options,
           latestQuestion: prompt,
-        }), options.accountType, options.legalContext),
+        }), options.accountType, options.legalContext, options.systemPrompt),
         options.legalContext
       ),
     }
@@ -3077,7 +3224,7 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
     latestQuestion: prompt,
   })
   const systemPrompt = applyLegalContextToSystemPrompt(
-    buildPremiumPlusAnthropicSystemPrompt(contextLines, options.accountType, options.legalContext),
+    buildPremiumPlusAnthropicSystemPrompt(contextLines, options.accountType, options.legalContext, options.systemPrompt),
     options.legalContext
   )
   const messages: PremiumPlusAnthropicMessage[] = [{ role: 'user', content: prompt }]
@@ -3269,7 +3416,10 @@ const runPremiumPlusToolLoopOpenAiFallback = async (
             toolUse.input,
             options.searchEngineOverride,
             options.legalContext,
-            options.accountType
+            options.accountType,
+            options.consumeSearchQuota,
+            options.consumeCaseLawRetrievalQuota,
+            options.caseLawRetrievalLimitNotice
           )
           return { toolUse, result }
         } catch (error: any) {
@@ -3337,6 +3487,10 @@ export async function invokePremiumPlusLegalAgent(
     maxTokens?: number
     maxCompressionRetries?: number
     accountType?: AccountType
+    systemPrompt?: string
+    consumeSearchQuota?: () => Promise<SearchQuotaResult>
+    consumeCaseLawRetrievalQuota?: () => Promise<CaseLawRetrievalQuotaResult>
+    caseLawRetrievalLimitNotice?: (resetsAt: string | null | undefined) => string
   }
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }>; verifiedAuthorities?: VerifiedAuthority[] }> {
   const apiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
@@ -3354,7 +3508,7 @@ export async function invokePremiumPlusLegalAgent(
 
   if (isBasicGreeting(latestQuestion)) {
     return {
-      response: "Hello! I'm MyMcKenzieCS. How can I help with your legal question?",
+      response: "Hello! I'm MyMcKenzie Assistant. How can I help with your legal question?",
       document_generated: false,
       guidance_provided: true,
       next_steps: [],
@@ -3393,6 +3547,7 @@ export async function invokePremiumPlusLegalAgent(
             historyLimit: options?.historyLimit,
             legalContext: options?.legalContext,
             accountType: options?.accountType,
+            systemPrompt: options?.systemPrompt,
             latestQuestion: message,
           }),
           openAiFallbackModel,
@@ -3410,6 +3565,7 @@ export async function invokePremiumPlusLegalAgent(
           historyLimit: options?.historyLimit,
           legalContext: options?.legalContext,
           accountType: options?.accountType,
+          systemPrompt: options?.systemPrompt,
         })
 
     return {
@@ -3434,6 +3590,10 @@ export async function invokePremiumPlusLegalAgent(
         memoryContext: options?.memoryContext,
         historyLimit: options?.historyLimit,
         accountType: options?.accountType,
+        systemPrompt: options?.systemPrompt,
+        consumeSearchQuota: options?.consumeSearchQuota,
+        consumeCaseLawRetrievalQuota: options?.consumeCaseLawRetrievalQuota,
+        caseLawRetrievalLimitNotice: options?.caseLawRetrievalLimitNotice,
       })
     : await runPremiumPlusToolLoop(message, {
         anthropicModel,
@@ -3445,6 +3605,10 @@ export async function invokePremiumPlusLegalAgent(
         memoryContext: options?.memoryContext,
         historyLimit: options?.historyLimit,
         accountType: options?.accountType,
+        systemPrompt: options?.systemPrompt,
+        consumeSearchQuota: options?.consumeSearchQuota,
+        consumeCaseLawRetrievalQuota: options?.consumeCaseLawRetrievalQuota,
+        caseLawRetrievalLimitNotice: options?.caseLawRetrievalLimitNotice,
       })
   const verifiedAuthorities = extractVerifiedAuthoritiesFromToolMessages(toolLoop.messages)
   const toolContext = extractPremiumPlusToolResultText(toolLoop.messages)
@@ -3477,6 +3641,7 @@ export async function invokePremiumPlusLegalAgent(
         historyLimit: options?.historyLimit,
         legalContext: options?.legalContext,
         accountType: options?.accountType,
+        systemPrompt: options?.systemPrompt,
         latestQuestion: message,
       }),
       model: openAiFallbackModel,
@@ -3606,6 +3771,10 @@ export async function invokePremiumPlusLegalAgentStream(
     onToken?: (chunk: string) => void
     onStatus?: (status: string) => void
     accountType?: AccountType
+    systemPrompt?: string
+    consumeSearchQuota?: () => Promise<SearchQuotaResult>
+    consumeCaseLawRetrievalQuota?: () => Promise<CaseLawRetrievalQuotaResult>
+    caseLawRetrievalLimitNotice?: (resetsAt: string | null | undefined) => string
   }
 ): Promise<{ response: string; document_generated: boolean; guidance_provided: boolean; next_steps: string[]; sources?: Array<{ number: number; title: string; url: string }>; verifiedAuthorities?: VerifiedAuthority[] }> {
   const apiKey = (process.env.ANTHROPIC_API_KEY || '').trim()
@@ -3623,7 +3792,7 @@ export async function invokePremiumPlusLegalAgentStream(
 
   if (isBasicGreeting(latestQuestion)) {
     return {
-      response: "Hello! I'm MyMcKenzieCS. How can I help with your legal question?",
+      response: "Hello! I'm MyMcKenzie Assistant. How can I help with your legal question?",
       document_generated: false,
       guidance_provided: true,
       next_steps: [],
@@ -3671,6 +3840,7 @@ export async function invokePremiumPlusLegalAgentStream(
             historyLimit: options?.historyLimit,
             legalContext: options?.legalContext,
             accountType: options?.accountType,
+            systemPrompt: options?.systemPrompt,
             latestQuestion: message,
           }),
           openAiFallbackModel,
@@ -3688,6 +3858,7 @@ export async function invokePremiumPlusLegalAgentStream(
           historyLimit: options?.historyLimit,
           legalContext: options?.legalContext,
           accountType: options?.accountType,
+          systemPrompt: options?.systemPrompt,
           maxTokens: options?.maxTokens,
           onToken: options?.onToken,
         })
@@ -3718,7 +3889,11 @@ export async function invokePremiumPlusLegalAgentStream(
         memoryContext: options?.memoryContext,
         historyLimit: options?.historyLimit,
         accountType: options?.accountType,
+        systemPrompt: options?.systemPrompt,
         onStatus: emitStatus,
+        consumeSearchQuota: options?.consumeSearchQuota,
+        consumeCaseLawRetrievalQuota: options?.consumeCaseLawRetrievalQuota,
+        caseLawRetrievalLimitNotice: options?.caseLawRetrievalLimitNotice,
       })
     : await runPremiumPlusToolLoop(message, {
         anthropicModel,
@@ -3730,7 +3905,11 @@ export async function invokePremiumPlusLegalAgentStream(
         memoryContext: options?.memoryContext,
         historyLimit: options?.historyLimit,
         accountType: options?.accountType,
+        systemPrompt: options?.systemPrompt,
         onStatus: emitStatus,
+        consumeSearchQuota: options?.consumeSearchQuota,
+        consumeCaseLawRetrievalQuota: options?.consumeCaseLawRetrievalQuota,
+        caseLawRetrievalLimitNotice: options?.caseLawRetrievalLimitNotice,
       })
   const verifiedAuthorities = extractVerifiedAuthoritiesFromToolMessages(toolLoop.messages)
   const toolContext = extractPremiumPlusToolResultText(toolLoop.messages)
@@ -3766,6 +3945,7 @@ export async function invokePremiumPlusLegalAgentStream(
             historyLimit: options?.historyLimit,
             legalContext: options?.legalContext,
             accountType: options?.accountType,
+            systemPrompt: options?.systemPrompt,
             latestQuestion: message,
           }),
           model: openAiFallbackModel,
@@ -3861,6 +4041,7 @@ export async function invokeBasicLegalAgent(
     legalContext?: UserLegalContext
     consumeSearchQuota?: () => Promise<SearchQuotaResult>
     accountType?: AccountType
+    systemPrompt?: string
   }
 ): Promise<{
   response: string
@@ -3876,7 +4057,7 @@ export async function invokeBasicLegalAgent(
     includeCitations: true,
     caseAccessUserId: userId,
     systemPrompt: applyLegalContextToSystemPrompt(
-      getFreePromptForAccount(options?.accountType),
+      options?.systemPrompt || getFreePromptForAccount(options?.accountType),
       options?.legalContext
     ),
     legalContext: options?.legalContext,

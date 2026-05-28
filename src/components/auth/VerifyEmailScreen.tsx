@@ -2,14 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout'
 import { getAppRouteForMarket } from '@/lib/markets/app-routes'
 import { getPublicMarket } from '@/lib/markets/public-routes'
 
 export default function VerifyEmailScreen() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
   const [unauthorized, setUnauthorized] = useState(false)
@@ -74,20 +73,18 @@ export default function VerifyEmailScreen() {
           if (verified === 'success') {
             setNotice('Congratulations, you have been verified and your dashboard is ready. Redirecting you now...')
             window.setTimeout(() => {
-              router.replace(postVerifyRedirect)
-              router.refresh()
+              window.location.replace(postVerifyRedirect)
             }, 900)
             return
           }
           if (verify === 'sent') {
             setNotice('Congratulations, you have been verified and your dashboard is ready. Redirecting you now...')
             window.setTimeout(() => {
-              router.replace(postVerifyRedirect)
-              router.refresh()
+              window.location.replace(postVerifyRedirect)
             }, 900)
             return
           }
-          router.replace(postVerifyRedirect)
+          window.location.replace(postVerifyRedirect)
           return
         }
 
@@ -114,7 +111,7 @@ export default function VerifyEmailScreen() {
       cancelled = true
       window.clearInterval(interval)
     }
-  }, [postVerifyRedirect, router, verify, verified])
+  }, [postVerifyRedirect, verify, verified])
 
   const resendVerification = async () => {
     if (!userEmail || resendPending) return
@@ -146,8 +143,7 @@ export default function VerifyEmailScreen() {
     try {
       const supabase = getSupabaseBrowserClient()
       await safeBrowserSignOut(supabase)
-      router.replace(`/auth/signin?redirect=${encodeURIComponent(postVerifyRedirect)}`)
-      router.refresh()
+      window.location.replace(`/auth/signin?redirect=${encodeURIComponent(postVerifyRedirect)}`)
     } catch {
       setNotice('Could not switch account right now. Please try again.')
     } finally {

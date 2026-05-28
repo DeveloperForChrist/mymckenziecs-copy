@@ -182,7 +182,20 @@ describe('/api/chat route', () => {
     const resolvedChatActionItemsRows = chatActionItemsRows || []
 
     const supabaseAdmin = {
-      rpc: vi.fn(async () => ({ data: incrementedTurnCount, error: null })),
+      rpc: vi.fn(async (fnName: string) => {
+        if (fnName === 'consume_guest_message') {
+          return {
+            data: {
+              allowed: true,
+              message_count: 1,
+              window_start: '2026-03-12T00:00:00.000Z',
+              can_message_again_at: null,
+            },
+            error: null,
+          }
+        }
+        return { data: incrementedTurnCount, error: null }
+      }),
       from: vi.fn((table: string) => {
         switch (table) {
           case 'chat_memory':
@@ -254,6 +267,7 @@ describe('/api/chat route', () => {
           next_steps: [],
         }
       }) as any,
+      getMyMcKenzieAssistantSystemPrompt: vi.fn(() => 'MyMcKenzie Assistant safe prompt') as any,
     }
     Object.assign(legalAgentMocks, {
       invokeBasicLitigantLegalAgent: legalAgentMocks.invokeBasicLegalAgent,
@@ -269,6 +283,38 @@ describe('/api/chat route', () => {
     })
     const searchByTextMock = vi.fn(searchByTextImpl || (async () => []))
     const webSearchUsageMock = {
+      consumeAssistantFreeDailyWebSearchQuota: vi.fn(async () => ({
+        allowed: true,
+        limit: 3,
+        used: 1,
+        remaining: 2,
+        usageDate: '2026-03-12',
+        resetsAt: '2026-03-13T00:00:00.000Z',
+      })),
+      consumeAssistantPlusWebSearchQuota: vi.fn(async () => ({
+        allowed: true,
+        limit: 15,
+        used: 1,
+        remaining: 14,
+        usageDate: '2026-03-12',
+        resetsAt: '2026-03-13T00:00:00.000Z',
+      })),
+      consumeAssistantProWebSearchQuota: vi.fn(async () => ({
+        allowed: true,
+        limit: 750,
+        used: 1,
+        remaining: 749,
+        usageDate: '2026-03-01',
+        resetsAt: '2026-04-01T00:00:00.000Z',
+      })),
+      consumeAssistantProCaseLawRetrievalQuota: vi.fn(async () => ({
+        allowed: true,
+        limit: 500,
+        used: 1,
+        remaining: 499,
+        usageDate: '2026-03-01',
+        resetsAt: '2026-04-01T00:00:00.000Z',
+      })),
       consumeBasicDailyWebSearchQuota: vi.fn(async () => ({
         allowed: true,
         limit: 5,
@@ -277,6 +323,7 @@ describe('/api/chat route', () => {
         usageDate: '2026-03-12',
         resetsAt: '2026-03-13T00:00:00.000Z',
       })),
+      getAssistantProCaseLawRetrievalLimitReachedNotice: vi.fn(() => 'Case-law retrieval limit reached.'),
     }
 
     vi.doMock('@/lib/database/supabase-route', () => ({
@@ -315,6 +362,19 @@ describe('/api/chat route', () => {
     }))
     vi.doMock('@/lib/utils/rate-limit', () => ({
       aiRateLimiter: {},
+      assistantFreeChatRateLimiter: {},
+      assistantPlusChatDailyRateLimiter: {},
+      assistantPlusChatMonthlyRateLimiter: {},
+      assistantProChatMonthlyRateLimiter: {},
+      assistantUsageLimits: {
+        plusChatDaily: 50,
+        plusChatMonthly: 600,
+        proChatMonthly: 5000,
+        plusUploadDaily: 10,
+        plusUploadMonthly: 100,
+        proUploadDaily: 75,
+        proUploadMonthly: 750,
+      },
       rateLimit: vi.fn(async () => ({
         success: true,
         limit: 10,
@@ -322,6 +382,12 @@ describe('/api/chat route', () => {
         reset: Date.now() + 60_000,
       })),
       getIdentifier: vi.fn((value: string) => value),
+      acquireChatAiCapacity: vi.fn(async () => ({
+        success: true,
+        active: 1,
+        queuedMs: 0,
+        release: vi.fn(),
+      })),
       acquirePremiumProviderCapacity: vi.fn(async () => ({
         success: true,
         limit: 5,
@@ -356,16 +422,82 @@ describe('/api/chat route', () => {
     }
   }
 
-  it('returns a structured assistant payload when auth is missing', { timeout: 30000 }, async () => {
-    const { POST } = await loadRoute({ authUser: null })
+  it('allows anonymous assistant chat within the free message limit using the Premium+ teaser agent', { timeout: 30000 }, async () => {
+    const { POST, legalAgentMocks } = await loadRoute({ authUser: null })
 
-    const response = await POST(buildChatRequest({ message: 'What does CPR Part 7 mean?', history: [] }))
+    const response = await POST(buildChatRequest({ message: 'What does CPR Part 7 mean?', history: [], userId: 'anon_test', sessionMessageCount: 1 }))
     const payload = await response.json()
 
-    expect(response.status).toBe(401)
-    expect(payload.response).toBe('Please sign in and choose a paid plan to use chat.')
-    expect(payload.metadata.signInRequired).toBe(true)
+    expect(response.status).toBe(200)
+    expect(payload.response).toBe('Premium answer')
     expect(payload.metadata.presentation.version).toBe(1)
+    expect(legalAgentMocks.invokeBasicLegalAgent).not.toHaveBeenCalled()
+    expect(legalAgentMocks.invokePremiumPlusLegalAgent).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      'anon_test',
+      [],
+      '',
+      expect.objectContaining({
+        autoDecideSearch: true,
+        accountType: 'litigant',
+      })
+    )
+  })
+
+  it('uses the MyMcKenzie Assistant system prompt for Assistant Pro Premium+ chat', { timeout: 15000 }, async () => {
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'Assistant Pro', paidAccess: true, platformAccess: true, planStatus: 'active' },
+    })
+
+    const response = await POST(buildChatRequest({ message: 'Help me organise evidence for my hearing', history: [] }))
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.response).toContain('Premium answer')
+    expect(legalAgentMocks.getMyMcKenzieAssistantSystemPrompt).toHaveBeenCalled()
+    expect(legalAgentMocks.invokePremiumPlusLegalAgent).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      'user-1',
+      [],
+      '',
+      expect.objectContaining({
+        accountType: 'litigant',
+        systemPrompt: 'MyMcKenzie Assistant safe prompt',
+      })
+    )
+  })
+
+  it('gives Assistant Plus the daily web search quota in the Premium path', { timeout: 15000 }, async () => {
+    const { POST, legalAgentMocks, webSearchUsageMock } = await loadRoute({
+      planData: { plan: 'Assistant Plus', paidAccess: true, platformAccess: true, planStatus: 'active' },
+    })
+
+    const response = await POST(buildChatRequest({ message: 'I am at the pre-claim stage. Check current claim form guidance.', history: [] }))
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.response).toContain('Premium answer')
+    const call = (legalAgentMocks.invokePremiumLegalAgent as any).mock.calls[0]
+    expect(call[5]).toEqual(expect.objectContaining({
+      accountType: 'litigant',
+      systemPrompt: 'MyMcKenzie Assistant safe prompt',
+      consumeSearchQuota: expect.any(Function),
+    }))
+    await call[5].consumeSearchQuota()
+    expect(webSearchUsageMock.consumeAssistantPlusWebSearchQuota).toHaveBeenCalledWith('user-1')
+  })
+
+  it('prompts anonymous users to sign up after four free messages', { timeout: 30000 }, async () => {
+    const { POST } = await loadRoute({ authUser: null })
+
+    const response = await POST(buildChatRequest({ message: 'What does CPR Part 7 mean?', history: [], userId: 'anon_test', sessionMessageCount: 5 }))
+    const payload = await response.json()
+
+    expect(response.status).toBe(403)
+    expect(payload.response).toBe('Create a free account and we will bring this conversation with you after sign-up.')
+    expect(payload.metadata.signInRequired).toBe(true)
   })
 
   it('rejects an existing conversation that belongs to another user', { timeout: 15000 }, async () => {
@@ -619,13 +751,14 @@ describe('/api/chat route', () => {
       [],
       '',
       expect.objectContaining({
-        useSearch: false,
+        autoDecideSearch: true,
+        consumeSearchQuota: expect.any(Function),
         memoryContext: expect.stringContaining('Earlier conversation marker: driver hit my car and ran away'),
       })
     )
   })
 
-  it('keeps the Basic agent on direct answers without web search', { timeout: 15000 }, async () => {
+  it('gives the Basic/free agent limited web search through the daily quota', { timeout: 15000 }, async () => {
     const { POST, legalAgentMocks, webSearchUsageMock } = await loadRoute({
       planData: { plan: 'basic', paidAccess: true, planStatus: 'active' },
       processMessageResult: { task: 'legal_procedure', contextType: 'general', urgency: 'normal', caseId: null },
@@ -642,10 +775,11 @@ describe('/api/chat route', () => {
     const call = (legalAgentMocks.invokeBasicLegalAgent as any).mock.calls[0]
     expect(call).toBeTruthy()
     expect(call[5]).toEqual(expect.objectContaining({
-      useSearch: false,
+      autoDecideSearch: true,
+      consumeSearchQuota: expect.any(Function),
     }))
-    expect(call[5].consumeSearchQuota).toBeUndefined()
-    expect(webSearchUsageMock.consumeBasicDailyWebSearchQuota).not.toHaveBeenCalled()
+    await call[5].consumeSearchQuota()
+    expect(webSearchUsageMock.consumeBasicDailyWebSearchQuota).toHaveBeenCalledWith('user-1')
   })
 
   it('does not surface a Basic daily search notice when Basic web search is disabled', { timeout: 15000 }, async () => {
@@ -1103,7 +1237,8 @@ describe('/api/chat route', () => {
     expect(payload.metadata.debug.retrievalEnabled).toBe(false)
     expect((legalAgentMocks.invokeBasicLegalAgent as any).mock.calls[0][5]).toEqual(
       expect.objectContaining({
-        useSearch: false,
+        autoDecideSearch: true,
+        consumeSearchQuota: expect.any(Function),
         legalContext: expect.objectContaining({
           countryCode: userRow.country_code,
           jurisdictionCode: userRow.jurisdiction_code,

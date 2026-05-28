@@ -69,7 +69,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   {
     id: 'home',
-    label: 'MyMcKenzieCS Assistant',
+    label: 'MyMcKenzie Assistant',
     description: 'Business chat assistant',
     icon: Bot,
   },
@@ -432,7 +432,7 @@ function BusinessChatWorkspace({ initialChatPlan }: { initialChatPlan: InitialCh
       {/* Business Chat Navbar */}
       <div className={styles.businessChatNavbar}>
         <div className={styles.businessChatNavbarLeft}>
-          <span className={styles.businessChatTitle}>MyMcKenzieCS Assistant</span>
+          <span className={styles.businessChatTitle}>MyMcKenzie Assistant</span>
         </div>
         <div className={styles.businessChatNavbarRight}>
           <button 
@@ -453,6 +453,7 @@ function BusinessChatWorkspace({ initialChatPlan }: { initialChatPlan: InitialCh
           <ChatInterface
             initialAuthPlan={initialChatPlan}
             composerPlacement="pane"
+            paneWidth="standard"
             conversationHomeHref={businessChatHref}
           />
         </div>

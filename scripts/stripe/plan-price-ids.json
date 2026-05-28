@@ -1,17 +1,62 @@
 [
   {
+    "slug": "assistant-plus",
+    "currency": "gbp",
+    "productId": "prod_Ub6949UAiZ8S7P",
+    "priceId": "price_1Tbtx9F1Ztd0SoyJdMtNuuCg"
+  },
+  {
+    "slug": "assistant-plus",
+    "currency": "usd",
+    "productId": "prod_Ub6949UAiZ8S7P",
+    "priceId": "price_1TbtySF1Ztd0SoyJcj2m8ab1"
+  },
+  {
+    "slug": "assistant-pro",
+    "currency": "gbp",
+    "productId": "prod_Ub69HNnkiAzZkt",
+    "priceId": "price_1TbtxCF1Ztd0SoyJyvin6qmg"
+  },
+  {
+    "slug": "assistant-pro",
+    "currency": "usd",
+    "productId": "prod_Ub69HNnkiAzZkt",
+    "priceId": "price_1TbtyVF1Ztd0SoyJ7QwUmeD7"
+  },
+  {
     "slug": "basic",
+    "currency": "gbp",
     "productId": "prod_U1M5ZsVqIrWuLZ",
     "priceId": "price_1T3JNWF1Ztd0SoyJmU6F84sA"
   },
   {
+    "slug": "basic",
+    "currency": "usd",
+    "productId": "prod_U1M5ZsVqIrWuLZ",
+    "priceId": "price_1TbtyYF1Ztd0SoyJSWHPQFHh"
+  },
+  {
     "slug": "premium",
+    "currency": "gbp",
     "productId": "prod_U10Mf4Hb6wkU6M",
     "priceId": "price_1T3JNXF1Ztd0SoyJZIOSwuiP"
   },
   {
+    "slug": "premium",
+    "currency": "usd",
+    "productId": "prod_U10Mf4Hb6wkU6M",
+    "priceId": "price_1TbtyaF1Ztd0SoyJtqDhtHMx"
+  },
+  {
     "slug": "premium-plus",
+    "currency": "gbp",
     "productId": "prod_U10MHby4ybyVR5",
-    "priceId": "price_1T3JNZF1Ztd0SoyJ82XncUEU"
+    "priceId": "price_1TbtxFF1Ztd0SoyJXIeYH0Aq"
+  },
+  {
+    "slug": "premium-plus",
+    "currency": "usd",
+    "productId": "prod_U10MHby4ybyVR5",
+    "priceId": "price_1TOEWxF1Ztd0SoyJMt8g2IFY"
   }
 ]

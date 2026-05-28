@@ -25,7 +25,9 @@ const CHANGEABLE_STATUSES = ['active', 'past_due', 'trialing'] as const;
 
 function normalizePlanTypeFromPrice(priceId?: string | null): string {
   if (!priceId) return 'No plan';
-  const name = (findPlanByAnyPriceId(priceId)?.name || '').toLowerCase();
+  const configuredPlan = findPlanByAnyPriceId(priceId);
+  if (configuredPlan?.name) return configuredPlan.name;
+  const name = '';
   if (name.includes('basic') || name.includes('essential') || name.includes('premium cheap')) return 'Basic';
   if (name.includes('premium +') || name.includes('premium plus') || name.includes('plus') || name.includes('premium pro')) return 'Premium +';
   if (name.includes('premium')) return 'Premium';
@@ -34,6 +36,8 @@ function normalizePlanTypeFromPrice(priceId?: string | null): string {
 
 function planRank(plan: string): number {
   const normalized = plan.toLowerCase();
+  if (normalized.includes('assistant pro')) return 3;
+  if (normalized.includes('assistant plus')) return 2;
   if (normalized.includes('premium +') || normalized.includes('premium plus') || normalized.includes('premium pro') || normalized === 'plus') {
     return 3;
   }

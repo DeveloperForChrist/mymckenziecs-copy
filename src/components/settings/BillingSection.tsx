@@ -349,7 +349,7 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
       await refreshPlanData();
       setBillingActionMessage(
         isTrialingStatus
-          ? 'Your free trial will continue and billing will start on the first charge date shown unless you cancel again.'
+          ? 'Your access will continue and billing will start on the charge date shown unless you cancel again.'
           : 'Scheduled cancellation removed. Your subscription will continue renewing normally.'
       );
     } catch (err: any) {
@@ -382,7 +382,7 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
                   {isLapsedStatus
                     ? `Subscription ended: ${formatNextBillingDate(planData?.nextBillingDate)}`
                     : isTrialingStatus && isCancellationScheduled
-                      ? `Trial ends: ${formatNextBillingDate(planData?.nextBillingDate)}`
+                      ? `Access ends: ${formatNextBillingDate(planData?.nextBillingDate)}`
                       : isTrialingStatus
                         ? `First charge: ${formatNextBillingDate(planData?.nextBillingDate)}`
                     : isCancellationScheduled
@@ -392,16 +392,16 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
                 {isTrialingStatus && !isLapsedStatus && (
                   <p className={styles.planHint} style={{ color: '#bfdbfe' }}>
                     {isCancellationScheduled
-                      ? 'Your free trial is set to end on the date above. You will not be charged unless you resume before then.'
+                      ? 'Your access is set to end on the date above. You will not be charged unless you resume before then.'
                       : planData?.hasStripeCustomer
-                        ? 'Your free trial is active. Your saved billing information will be used on the date above unless you cancel beforehand.'
-                        : 'Your free trial is active. Add your billing information before the date above if you want access to continue without interruption.'}
+                        ? 'Your access is active. Your saved billing information will be used on the date above unless you cancel beforehand.'
+                        : 'Your access is active. Add your billing information before the date above if you want access to continue without interruption.'}
                   </p>
                 )}
                 {isCancellationScheduled && !isLapsedStatus && (
                   <p className={styles.planHint} style={{ color: '#fef3c7' }}>
                     {isTrialingStatus
-                      ? 'Cancellation scheduled. Trial access remains until the end date above, and billing will not start.'
+                      ? 'Cancellation scheduled. Access remains until the end date above, and billing will not start.'
                       : 'Cancellation scheduled. Future billing is stopped and paid access remains until the end date above.'}
                   </p>
                 )}
@@ -534,7 +534,7 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
                     </p>
                     {isTrialingStatus && (
                       <p className={styles.helpText}>
-                        This card will be used if you continue after your free trial ends.
+                        This card will be used for future billing.
                       </p>
                     )}
                   </>
@@ -543,7 +543,7 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
                     <h4>{isTrialingStatus ? 'No billing information on file' : 'No payment method on file'}</h4>
                     <p className={styles.helpText}>
                       {isTrialingStatus
-                        ? `Add your billing information before ${formatNextBillingDate(planData?.nextBillingDate)} to continue after your free trial.`
+                        ? `Add your billing information before ${formatNextBillingDate(planData?.nextBillingDate)} to continue access.`
                         : 'Add a payment method to manage your paid subscription.'}
                     </p>
                   </>
@@ -598,11 +598,11 @@ export default function BillingSection({ initialPlanData = null }: { initialPlan
         <div className={styles.modalOverlay} role="dialog" aria-modal="true" aria-labelledby="billing-cancel-title">
           <div className={styles.modalCard}>
             <h3 id="billing-cancel-title" className={styles.modalTitle}>
-              {isTrialingStatus ? 'Cancel free trial?' : 'Cancel subscription?'}
+              {isTrialingStatus ? 'Cancel access?' : 'Cancel subscription?'}
             </h3>
             <p className={styles.modalBody}>
               {isTrialingStatus
-                ? 'Your free trial will remain active until the date shown on this page. After that, billing will not start unless you resume before the trial ends.'
+                ? 'Your access will remain active until the date shown on this page. After that, billing will not start unless you resume before the end date.'
                 : 'Your subscription will remain active until the date shown on this page. After that, renewal billing will stop unless you resume before the end date.'}
             </p>
             <div className={styles.modalActions}>

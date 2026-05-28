@@ -11,6 +11,33 @@ const parsePositiveInt = (value: string | undefined, fallback: number) => {
 
 const REQUEST_TIMING_WARN_MS = parsePositiveInt(process.env.REQUEST_TIMING_WARN_MS, 250)
 const LOG_REQUEST_TIMING = process.env.LOG_REQUEST_TIMING === '1'
+const PROXY_PROFILE_CACHE_TTL_MS = parsePositiveInt(process.env.PROXY_PROFILE_CACHE_TTL_MS, 30_000)
+const PROXY_ENTITLEMENT_CACHE_TTL_MS = parsePositiveInt(process.env.PROXY_ENTITLEMENT_CACHE_TTL_MS, 15_000)
+
+type ProxyCacheEntry<T> = {
+  expiresAt: number
+  value: T
+}
+
+const proxyProfileCache = new Map<string, ProxyCacheEntry<MiddlewareUserProfile | null>>()
+const proxyEntitlementCache = new Map<string, ProxyCacheEntry<MiddlewareEntitlement | null>>()
+
+function readProxyCache<T>(cache: Map<string, ProxyCacheEntry<T>>, key: string): T | undefined {
+  const entry = cache.get(key)
+  if (!entry) return undefined
+  if (entry.expiresAt <= Date.now()) {
+    cache.delete(key)
+    return undefined
+  }
+  return entry.value
+}
+
+function writeProxyCache<T>(cache: Map<string, ProxyCacheEntry<T>>, key: string, value: T, ttlMs: number) {
+  cache.set(key, {
+    expiresAt: Date.now() + ttlMs,
+    value,
+  })
+}
 
 const logMiddlewarePerf = (
   phase: string,
@@ -41,6 +68,19 @@ function hasCaseProfileAccess(plan: unknown): boolean {
   return label.includes('premium')
 }
 
+function isIgnorableMissingAuthSessionError(error: unknown): boolean {
+  const code = String((error as any)?.code || '').toLowerCase()
+  const name = String((error as any)?.name || '').toLowerCase()
+  const message = String((error as any)?.message || '').toLowerCase()
+  return (
+    code === 'refresh_token_not_found' ||
+    name.includes('authsessionmissing') ||
+    message.includes('refresh token') ||
+    message.includes('auth session missing') ||
+    message.includes('session missing')
+  )
+}
+
 type MiddlewareUserProfile = {
   email_verified_at?: string | null
   role?: string | null
@@ -55,7 +95,52 @@ type MiddlewareEntitlement = {
 }
 
 const UNVERIFIED_ALLOWED_PAGE_PATHS = new Set(['/dashboard'])
-const UNVERIFIED_ALLOWED_API_PATHS = new Set(['/api/user', '/api/user/plan'])
+const UNVERIFIED_ALLOWED_API_PATHS = new Set(['/api/chat', '/api/user', '/api/user/plan'])
+
+const PROTECTED_PATHS = [
+  '/dashboard',
+  '/chatbot',
+  '/settings',
+  '/api/analyze-document',
+  '/api/analyse-doc',
+  '/api/search-case-law',
+  '/api/cases',
+  '/api/case-study',
+  '/api/case-study-chat',
+  '/api/case-analysis',
+  '/api/case-summary',
+  '/api/drafts',
+  '/api/evidence-bundle',
+  '/api/doc-review',
+  '/api/calendar',
+  '/api/chat-history',
+  '/api/chat-upload',
+  '/api/message-count',
+  '/api/passes',
+  '/api/user',
+]
+
+const PAID_PLAN_PATHS = [
+  '/api/analyze-document',
+  '/api/analyse-doc',
+  '/api/search-case-law',
+  '/api/cases',
+  '/api/case-study',
+  '/api/case-study-chat',
+  '/api/case-analysis',
+  '/api/case-summary',
+  '/api/drafts',
+  '/api/evidence-bundle',
+  '/api/doc-review',
+  '/api/calendar',
+  '/api/chat-history',
+  '/api/chat-upload',
+  '/api/message-count',
+  '/api/passes',
+]
+
+const ADMIN_PATHS = ['/jesusistheadmin', '/api/admin']
+const SOFT_SUSPENDED_PATHS = ['/dashboard', '/chatbot', '/settings']
 
 function toMarketNeutralPath(pathname: string): string {
   if (pathname === '/uk' || pathname === '/us') return '/'
@@ -200,6 +285,16 @@ export async function proxy(request: NextRequest) {
     },
   })
 
+  const requiresAuth = PROTECTED_PATHS.some((path) => pathname.startsWith(path))
+  const requiresAdmin = ADMIN_PATHS.some((path) => pathname.startsWith(path))
+  const isSoftSuspendedPath = SOFT_SUSPENDED_PATHS.some((path) => pathname.startsWith(path))
+  const requiresPaidPlanPath = PAID_PLAN_PATHS.some((path) => pathname.startsWith(path))
+  const needsProxyAuth = requiresAuth || requiresAdmin || isSoftSuspendedPath || requiresPaidPlanPath
+
+  if (!needsProxyAuth) {
+    return response
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -230,9 +325,7 @@ export async function proxy(request: NextRequest) {
   const { data: authData, error: authError } = await supabase.auth.getUser()
   const user = authError ? null : authData.user
   if (authError) {
-    const code = String((authError as any)?.code || '')
-    const message = String((authError as any)?.message || '')
-    if (code === 'refresh_token_not_found' || message.toLowerCase().includes('refresh token')) {
+    if (isIgnorableMissingAuthSessionError(authError)) {
       request.cookies.getAll().forEach((cookie) => {
         if (cookie.name.startsWith('sb-') || cookie.name.includes('supabase')) {
           response.cookies.delete(cookie.name)
@@ -244,56 +337,6 @@ export async function proxy(request: NextRequest) {
   }
   logMiddlewarePerf('auth.getUser', authStartedAt, pathname, { authenticated: Boolean(user) })
 
-  // Protected routes - require authentication
-  const protectedPaths = [
-    '/dashboard',
-    '/chatbot',
-    '/settings',
-    '/api/chat',
-    '/api/analyze-document',
-    '/api/analyse-doc',
-    '/api/search-case-law',
-    '/api/cases',
-    '/api/case-study',
-    '/api/case-study-chat',
-    '/api/case-analysis',
-    '/api/case-summary',
-    '/api/drafts',
-    '/api/evidence-bundle',
-    '/api/doc-review',
-    '/api/calendar',
-    '/api/chat-history',
-    '/api/chat-upload',
-    '/api/message-count',
-    '/api/passes',
-    '/api/user',
-  ]
-  const paidPlanPaths = [
-    '/api/chat',
-    '/api/analyze-document',
-    '/api/analyse-doc',
-    '/api/search-case-law',
-    '/api/cases',
-    '/api/case-study',
-    '/api/case-study-chat',
-    '/api/case-analysis',
-    '/api/case-summary',
-    '/api/drafts',
-    '/api/evidence-bundle',
-    '/api/doc-review',
-    '/api/calendar',
-    '/api/chat-history',
-    '/api/chat-upload',
-    '/api/message-count',
-    '/api/passes',
-  ]
-
-  // Admin routes - require admin role
-  const adminPaths = ['/jesusistheadmin', '/api/admin']
-
-  // Check if path requires authentication
-  const requiresAuth = protectedPaths.some((path) => pathname.startsWith(path))
-  const requiresAdmin = adminPaths.some((path) => pathname.startsWith(path))
   const isUnverifiedAllowedPage = UNVERIFIED_ALLOWED_PAGE_PATHS.has(pathname)
   const isUnverifiedAllowedApi = pathname.startsWith('/api/') && UNVERIFIED_ALLOWED_API_PATHS.has(pathname)
   const shouldEnforceVerification =
@@ -318,9 +361,13 @@ export async function proxy(request: NextRequest) {
   let userProfile: MiddlewareUserProfile | null = null
   if (user && shouldLoadUserProfile) {
     const profileStartedAt = Date.now()
-    let profileRow: MiddlewareUserProfile | null = null
+    const profileCacheKey = `profile:${user.id}`
+    const cachedProfile = readProxyCache(proxyProfileCache, profileCacheKey)
+    let profileRow: MiddlewareUserProfile | null = cachedProfile === undefined ? null : cachedProfile
     let profileError: any = null
-    {
+    const profileCacheHit = cachedProfile !== undefined
+
+    if (!profileCacheHit) {
       const result = await supabase
         .from('users')
         .select('email_verified_at, role, country_code')
@@ -330,7 +377,7 @@ export async function proxy(request: NextRequest) {
       profileError = result.error
     }
 
-    if (profileError?.code === '42703' && String(profileError?.message || '').toLowerCase().includes('role')) {
+    if (!profileCacheHit && profileError?.code === '42703' && String(profileError?.message || '').toLowerCase().includes('role')) {
       const fallback = await supabase
         .from('users')
         .select('email_verified_at, country_code')
@@ -345,12 +392,16 @@ export async function proxy(request: NextRequest) {
       hasError: Boolean(profileError),
       needsVerification: shouldEnforceVerification,
       needsAdmin: requiresAdmin,
+      cacheHit: profileCacheHit,
     })
 
     if (profileError) {
       console.error('Error checking user profile in proxy:', profileError)
     } else {
       userProfile = profileRow
+      if (!profileCacheHit) {
+        writeProxyCache(proxyProfileCache, profileCacheKey, profileRow, PROXY_PROFILE_CACHE_TTL_MS)
+      }
     }
   }
 
@@ -375,30 +426,39 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  const softSuspendedPaths = ['/dashboard', '/chatbot', '/settings']
-  const isSoftSuspendedPath = softSuspendedPaths.some((path) => pathname.startsWith(path))
-  const requiresPaidPlan = paidPlanPaths.some((path) => pathname.startsWith(path)) && Boolean(user)
+  const requiresPaidPlan = requiresPaidPlanPath && Boolean(user)
 
   let entitlement: MiddlewareEntitlement | null = null
 
   if (user && (isSoftSuspendedPath || requiresPaidPlan)) {
     const entitlementStartedAt = Date.now()
-    const { data: entitlementRow, error: entitlementError } = await supabase
-      .from('user_entitlements')
-      .select('plan_type, paid_access, plan_status, archive_at')
-      .eq('user_id', user.id)
-      .maybeSingle()
+    const entitlementCacheKey = `entitlement:${user.id}`
+    const cachedEntitlement = readProxyCache(proxyEntitlementCache, entitlementCacheKey)
+    let entitlementRow: MiddlewareEntitlement | null = cachedEntitlement === undefined ? null : cachedEntitlement
+    let entitlementError: any = null
+    const entitlementCacheHit = cachedEntitlement !== undefined
+
+    if (!entitlementCacheHit) {
+      const result = await supabase
+        .from('user_entitlements')
+        .select('plan_type, paid_access, plan_status, archive_at')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      entitlementRow = result.data as MiddlewareEntitlement | null
+      entitlementError = result.error
+    }
 
     logMiddlewarePerf('user_entitlements.snapshot', entitlementStartedAt, pathname, {
       hasRow: Boolean(entitlementRow),
       hasError: Boolean(entitlementError),
+      cacheHit: entitlementCacheHit,
     })
 
     if (entitlementError) {
       console.error('Error checking entitlement status in proxy:', entitlementError)
     } else {
       entitlement = entitlementRow
-      if (!entitlement) {
+      if (!entitlement && !entitlementCacheHit) {
         const fallbackStartedAt = Date.now()
         const { data: fallbackSub, error: fallbackError } = await supabase
           .from('subscriptions')
@@ -426,6 +486,9 @@ export async function proxy(request: NextRequest) {
             archive_at: fallbackSub.lifecycle_archive_at,
           }
         }
+      }
+      if (!entitlementCacheHit) {
+        writeProxyCache(proxyEntitlementCache, entitlementCacheKey, entitlement, PROXY_ENTITLEMENT_CACHE_TTL_MS)
       }
     }
   }

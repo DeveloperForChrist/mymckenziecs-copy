@@ -134,8 +134,12 @@ export default function MarketHomepage({
                     {description}
                   </p>
                   <HeroActionButtons pricingHref={pricingHref} howItWorksHref={howItWorksHref} directoryHref={directoryHref} />
-                  <div className="mt-3 text-sm text-white/75">
-                    Invited by a legal support professional? Use <Link href="/auth/signin" className="underline hover:text-purple-200 transition-colors">Sign In</Link> and you&apos;ll be taken to your Client Portal automatically.
+                  <div className="mt-4 text-base md:text-lg text-white/82 leading-relaxed">
+                    Already have an account or client portal invite?{' '}
+                    <Link href="/auth/signin" className="font-semibold underline underline-offset-4 hover:text-purple-200 transition-colors">
+                      Sign in here
+                    </Link>
+                    .
                   </div>
                   <div className="mt-5 flex flex-wrap justify-center gap-2 text-xs uppercase tracking-[0.16em] text-white/70 xl:justify-start">
                     <span className="rounded-full border border-white/15 px-3 py-2">Client matters</span>
@@ -315,11 +319,11 @@ export default function MarketHomepage({
                   {ctaText}
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
+                  <Link href={pricingHref} className="app-button-secondary">
+                    View plans
+                  </Link>
                   <Link href={learnBasicsHref} className="app-button-secondary">
                     View guides
-                  </Link>
-                  <Link href={comparePlansHref} className="app-button-secondary">
-                    Compare plans
                   </Link>
                 </div>
               </div>

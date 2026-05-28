@@ -128,7 +128,7 @@ describe('/api/stripe/plan-checkout route', () => {
     }
   }
 
-  it('applies a three-day trial to the first paid subscription checkout', async () => {
+  it('does not apply a trial to first paid subscription checkout', async () => {
     const { POST, checkoutSessionCreate, customerCreate } = await loadRoute()
 
     const response = await POST(
@@ -143,14 +143,14 @@ describe('/api/stripe/plan-checkout route', () => {
     expect(customerCreate).toHaveBeenCalledTimes(1)
 
     const checkoutArgs = (checkoutSessionCreate as any).mock.calls[0]?.[0] as any
-    expect(checkoutArgs?.metadata?.trialApplied).toBe('true')
-    expect(checkoutArgs?.subscription_data?.metadata?.trialApplied).toBe('true')
-    expect(checkoutArgs?.subscription_data?.trial_period_days).toBe(3)
+    expect(checkoutArgs?.metadata?.trialApplied).toBe('false')
+    expect(checkoutArgs?.subscription_data?.metadata?.trialApplied).toBe('false')
+    expect(checkoutArgs?.subscription_data?.trial_period_days).toBeUndefined()
     expect(checkoutArgs?.success_url).toContain('session_id={CHECKOUT_SESSION_ID}')
     expect(checkoutArgs?.success_url).not.toContain('%7BCHECKOUT_SESSION_ID%7D')
   })
 
-  it('does not reapply the trial when the user already has subscription history', async () => {
+  it('reuses an existing customer without applying a trial', async () => {
     const { POST, checkoutSessionCreate, customerCreate } = await loadRoute({
       existingSubscriptionRow: {
         stripe_customer_id: 'cus_existing',

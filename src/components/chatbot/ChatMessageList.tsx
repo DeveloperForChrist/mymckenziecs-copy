@@ -20,6 +20,7 @@ type ChatMessageListProps = {
   messagesEndRef: MutableRefObject<HTMLDivElement | null>
   StatusIndicatorComponent: StatusIndicatorComponentType
   scrollContainerRef?: RefObject<HTMLDivElement | null>
+  fullWidth?: boolean
 }
 
 type VirtualRow = {
@@ -276,12 +277,13 @@ function ChatMessageRow({
   style,
   onMeasured,
   StatusIndicatorComponent,
+  fullWidth = false,
 }: ChatMessageRowProps) {
   const rowRef = useRef<HTMLDivElement>(null)
   const messageSideInsetPx = 0
   const messageBubbleMaxWidth = `calc(100% - ${messageSideInsetPx * 2}px)`
   const userMessageMaxWidth = `calc((${messageBubbleMaxWidth} / 2) + 40px)`
-  const assistantMaxWidth = `min(${messageBubbleMaxWidth}, 650px)`
+  const assistantMaxWidth = fullWidth ? messageBubbleMaxWidth : `min(${messageBubbleMaxWidth}, 650px)`
   const isAlert = message.content?.trim().startsWith('⚠️')
   const isUser = message.role === 'user'
   const assistantDisplayContent = !isUser
@@ -779,6 +781,7 @@ export default function ChatMessageList({
   messagesEndRef,
   StatusIndicatorComponent,
   scrollContainerRef,
+  fullWidth = false,
 }: ChatMessageListProps) {
   const [scrollMetrics, setScrollMetrics] = useState({ top: 0, height: 0 })
   const [layoutVersion, setLayoutVersion] = useState(0)
@@ -905,6 +908,7 @@ export default function ChatMessageList({
                 onRegenerate={onRegenerate}
                 onFeedback={onFeedback}
                 StatusIndicatorComponent={StatusIndicatorComponent}
+                fullWidth={fullWidth}
                 style={{
                   position: 'absolute',
                   top: `${row.top}px`,
@@ -932,6 +936,7 @@ export default function ChatMessageList({
                 onRegenerate={onRegenerate}
                 onFeedback={onFeedback}
                 StatusIndicatorComponent={StatusIndicatorComponent}
+                fullWidth={fullWidth}
                 onMeasured={virtualizationEnabled ? (height) => handleMeasuredHeight(rowKey, height) : undefined}
               />
             )

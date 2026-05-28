@@ -8,6 +8,7 @@ import {
   findPlanByAnyPriceId,
   getPlanFeatures,
   getPlanPriceId,
+  getBusinessSoloIntroPriceId,
   isKnownPlanPriceId,
   PLAN_PRICES,
   type BillingMarket,
@@ -15,6 +16,7 @@ import {
 import { getAppRouteForMarket } from '@/lib/markets/app-routes';
 import { buildMarketAwareAuthHref } from '@/lib/markets/public-routes';
 import { isBillingActiveStripeStatus, isTrialingStripeStatus } from '@/lib/payments/subscription-status';
+import styles from '@/components/assistant/assistantPricing.module.css';
 
 type PricingGuideLink = {
   href: string;
@@ -36,6 +38,22 @@ type PricingPageClientProps = {
   };
 };
 
+type PricingAudience = 'individual' | 'professionals';
+type IndividualProduct = 'assistant' | 'workspace';
+type PricingCard = {
+  key: string;
+  name: string;
+  description: string;
+  price: string;
+  period?: string;
+  features: string[];
+  cta: string;
+  highlighted?: boolean;
+  priceId?: string;
+  planName?: string;
+  href?: string;
+};
+
 const defaultGuideLinks: PricingGuideLink[] = [
   { href: '/litigant-in-person-uk', label: 'UK self-representation guide' },
   { href: '/mckenzie-friend-support', label: 'McKenzie friend support guide' },
@@ -43,9 +61,9 @@ const defaultGuideLinks: PricingGuideLink[] = [
 ];
 
 export default function PricingPageClient({
-  audienceDescription = 'Compare plans for McKenzie Friends, legal support professionals, and the clients they support, then start with the option that fits your workload.',
+  audienceDescription = 'Use Assistant for quick help. Use Case workspace to organise a matter.',
   availabilityMessage = 'Case-law tools are available now for UK legal matters. U.S. authority coverage and database access will be introduced soon.',
-  guideIntroText = 'If you support UK clients, start with the',
+  guideIntroText = 'If you are managing your own matter, start with the',
   guideLinks = defaultGuideLinks,
   faqHref = '/faq',
   billingMarket = 'GB',
@@ -53,7 +71,7 @@ export default function PricingPageClient({
   priceByPlan = {
     basic: '18',
     premium: '32',
-    premiumPlus: '199',
+    premiumPlus: '149',
   },
 }: PricingPageClientProps) {
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -105,7 +123,9 @@ export default function PricingPageClient({
     return (
       label.includes('basic') ||
       label.includes('premium') ||
-      label.includes('premium +')
+      label.includes('premium +') ||
+      label.includes('assistant plus') ||
+      label.includes('assistant pro')
     );
   }
 
@@ -142,6 +162,8 @@ export default function PricingPageClient({
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [checkoutErrorPlanKey, setCheckoutErrorPlanKey] = useState<string | null>(null);
   const [changePlanMessage, setChangePlanMessage] = useState<string | null>(null);
+  const [pricingAudience, setPricingAudience] = useState<PricingAudience>('individual');
+  const [individualProduct, setIndividualProduct] = useState<IndividualProduct>('assistant');
 
   const hasConfiguredPriceId = (priceId: string) => priceId.trim().length > 0;
   const isCurrentPlanLabel = (planName: string) => currentPlan.trim().toLowerCase() === planName.trim().toLowerCase();
@@ -158,7 +180,7 @@ export default function PricingPageClient({
 
   const getPlanButtonLabel = (priceId: string, planName: string) => {
     if (checkoutLoading === priceId) return 'Updating…';
-    if (!hasPaidPlan) return isLapsedStatus ? 'Resume plan' : 'Start free trial';
+    if (!hasPaidPlan) return isLapsedStatus ? 'Resume plan' : 'Choose plan';
 
     const normalizedCurrent = currentPlan.trim().toLowerCase();
     const normalizedTarget = planName.trim().toLowerCase();
@@ -214,7 +236,7 @@ export default function PricingPageClient({
       return;
     }
 
-    const startStripeCheckout = async () => {
+    try {
       const res = await fetch('/api/stripe/plan-checkout', {
         method: 'POST',
         headers: {
@@ -234,40 +256,11 @@ export default function PricingPageClient({
       if (!res.ok || !data?.url) {
         setCheckoutError(data?.error || 'Unable to start checkout');
         setCheckoutErrorPlanKey(planKey);
-        return true;
+        return;
       }
       window.location.href = data.url;
-      return true;
-    };
-
-    try {
-      const res = await fetch('/api/user/start-trial', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({ planId: priceId }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok && data?.code === 'EMAIL_VERIFICATION_REQUIRED' && typeof data?.redirect === 'string') {
-        window.location.href = data.redirect;
-        return;
-      }
-      if (!res.ok && data?.code === 'TRIAL_ALREADY_USED') {
-        await startStripeCheckout();
-        return;
-      }
-      if (!res.ok) {
-        setCheckoutError(data?.error || 'Unable to start your free trial');
-        setCheckoutErrorPlanKey(planKey);
-        return;
-      }
-
-      const nextLocation = redirectPath.startsWith('/') ? redirectPath : dashboardHref;
-      window.location.href = nextLocation;
     } catch (err: any) {
-      setCheckoutError(err.message || 'Failed to start your free trial');
+      setCheckoutError(err.message || 'Failed to start checkout');
       setCheckoutErrorPlanKey(planKey);
     } finally {
       setCheckoutLoading(null);
@@ -334,8 +327,12 @@ export default function PricingPageClient({
   const basicPriceId = getPlanPriceId('Basic', billingMarket);
   const premiumPriceId = getPlanPriceId('Premium', billingMarket);
   const premiumPlusPriceId = getPlanPriceId('Premium +', billingMarket);
+  const assistantPlusPriceId = getPlanPriceId('Assistant Plus', billingMarket);
+  const assistantProPriceId = getPlanPriceId('Assistant Pro', billingMarket);
+  const businessSoloPriceId = getBusinessSoloIntroPriceId(billingMarket);
+  const businessPrice = billingMarket === 'US' ? '54' : '29.99';
 
-  const CASE_LAW_FEATURE = 'Advanced case law retrieval and study';
+  const CASE_LAW_FEATURE = 'Advanced case-law retrieval and study';
   const decoratePlanFeaturesForMarket = (features: string[]) => {
     if (billingMarket !== 'US') return features;
     return features.map((feature) =>
@@ -348,6 +345,19 @@ export default function PricingPageClient({
   const basicPlanFeatures = decoratePlanFeaturesForMarket(getPlanFeatures('Basic'));
   const premiumPlanFeatures = decoratePlanFeaturesForMarket(getPlanFeatures('Premium'));
   const premiumPlusPlanFeatures = decoratePlanFeaturesForMarket(getPlanFeatures('Premium +'));
+  const assistantPlusPlanFeatures = getPlanFeatures('Assistant Plus');
+  const assistantProPlanFeatures = decoratePlanFeaturesForMarket(getPlanFeatures('Assistant Pro'));
+
+  const businessSignupHref = () => {
+    const params = new URLSearchParams({
+      audience: 'business',
+      plan: 'Solo',
+      redirect: '/business/dashboard',
+    });
+    if (businessSoloPriceId) params.set('planId', businessSoloPriceId);
+    if (billingMarket === 'US') params.set('market', 'US');
+    return buildMarketAwareAuthHref('/auth/signup', billingMarket, Object.fromEntries(params.entries()));
+  };
 
   useEffect(() => {
     if (!authChecked || !isSignedIn || autoCheckoutStartedRef.current) return;
@@ -421,40 +431,154 @@ export default function PricingPageClient({
     };
   }, [authChecked, isSignedIn]);
 
+  const assistantCards: PricingCard[] = [
+    {
+      key: 'assistant-free',
+      name: 'Free',
+      description: 'Basic question answering assistant.',
+      price: 'Free',
+      cta: 'Start free',
+      href: '/assistant',
+      features: [
+        'Saved chats',
+        'Limited web searches',
+        'Limited messages',
+        'No document uploads',
+      ],
+    },
+    {
+      key: 'assistant-plus',
+      name: 'Assistant Plus',
+      description: 'More capable help with document uploads.',
+      price: `${currencySymbol}${billingMarket === 'US' ? '15' : '12'}`,
+      period: '/month',
+      cta: assistantPlusPriceId ? getPlanButtonLabel(assistantPlusPriceId, 'Assistant Plus') : 'Pricing pending',
+      highlighted: true,
+      priceId: assistantPlusPriceId,
+      planName: 'Assistant Plus',
+      features: assistantPlusPlanFeatures,
+    },
+    {
+      key: 'assistant-pro',
+      name: 'Assistant Pro',
+      description: 'Deeper assistant support with saved documents.',
+      price: `${currencySymbol}${billingMarket === 'US' ? '59.99' : '49.99'}`,
+      period: '/month',
+      cta: assistantProPriceId ? getPlanButtonLabel(assistantProPriceId, 'Assistant Pro') : 'Pricing pending',
+      priceId: assistantProPriceId,
+      planName: 'Assistant Pro',
+      features: assistantProPlanFeatures,
+    },
+  ];
+
+  const workspaceCards: PricingCard[] = [
+    {
+      key: 'basic',
+      name: 'Basic',
+      description: 'A lightweight case workspace for organising your matter.',
+      price: `${currencySymbol}${priceByPlan.basic}`,
+      period: '/month',
+      cta: getPlanButtonLabel(basicPriceId, 'Basic'),
+      priceId: basicPriceId,
+      planName: 'Basic',
+      features: basicPlanFeatures,
+    },
+    {
+      key: 'premium',
+      name: 'Premium',
+      description: 'For ongoing matters with more documents and reminders.',
+      price: `${currencySymbol}${priceByPlan.premium}`,
+      period: '/month',
+      cta: getPlanButtonLabel(premiumPriceId, 'Premium'),
+      highlighted: true,
+      priceId: premiumPriceId,
+      planName: 'Premium',
+      features: premiumPlanFeatures,
+    },
+    {
+      key: 'premium-plus',
+      name: 'Premium +',
+      description: 'For heavier case preparation and deeper research support.',
+      price: `${currencySymbol}${priceByPlan.premiumPlus}`,
+      period: '/month',
+      cta: getPlanButtonLabel(premiumPlusPriceId, 'Premium +'),
+      priceId: premiumPlusPriceId,
+      planName: 'Premium +',
+      features: premiumPlusPlanFeatures,
+    },
+  ];
+
+  const professionalCards: PricingCard[] = [
+    {
+      key: 'solo',
+      name: 'Solo',
+      description: 'Professional dashboard for independent support work.',
+      price: `${currencySymbol}${businessPrice}`,
+      period: '/month',
+      cta: 'Start Solo',
+      highlighted: true,
+      href: businessSignupHref(),
+      features: [
+        'One business workspace',
+        'Client matters, notes, documents, and deadlines',
+        'Business-grade AI assistant',
+        'Source-cited research support',
+      ],
+    },
+  ];
+
+  const activeIndividualCards = individualProduct === 'assistant' ? assistantCards : workspaceCards;
+  const activeCards = pricingAudience === 'individual' ? activeIndividualCards : professionalCards;
+
+  const renderCard = (card: PricingCard) => {
+    const disabled = Boolean(
+      card.priceId &&
+      (checkoutLoading === card.priceId || (hasPaidPlan && card.planName && isCurrentPlanLabel(card.planName)))
+    ) || Boolean(card.planName && !card.priceId && card.key.startsWith('assistant-'));
+
+    return (
+      <article key={card.key} className={`${styles.card} ${card.highlighted ? styles.highlighted : ''}`}>
+        {card.highlighted && <div className={styles.badge}>Popular</div>}
+        <div>
+          <h2>{card.name}</h2>
+          <p className={styles.description}>{card.description}</p>
+          <div className={styles.price}>
+            <span>{card.price}</span>
+            {card.period && <small>{card.period}</small>}
+          </div>
+        </div>
+
+        <ul className={styles.features}>
+          {card.features.map((feature) => (
+            <li key={feature}>{feature}</li>
+          ))}
+        </ul>
+
+        {card.href ? (
+          <a href={card.href} className={card.highlighted ? styles.primaryButton : styles.secondaryButton}>
+            {card.cta}
+          </a>
+        ) : (
+          <button
+            type="button"
+            className={card.highlighted ? styles.primaryButton : styles.secondaryButton}
+            onClick={() => card.priceId && card.planName && handlePlanButtonClick(card.priceId, card.planName, card.key)}
+            disabled={disabled}
+          >
+            {card.cta}
+          </button>
+        )}
+        {checkoutError && checkoutErrorPlanKey === card.key && (
+          <p style={{ color: '#fecaca', margin: '0', fontWeight: 700 }}>{checkoutError}</p>
+        )}
+      </article>
+    );
+  };
+
   return (
     <>
-      <main style={{
-        paddingTop: '1rem',
-        minHeight: '100vh',
-        paddingBottom: '5rem',
-        paddingLeft: 'clamp(0.75rem, 2.6vw, 1rem)',
-        paddingRight: 'clamp(0.75rem, 2.6vw, 1rem)',
-        background: 'radial-gradient(circle at 18% 14%, rgba(147, 51, 234, 0.2), transparent 48%), radial-gradient(circle at 86% 10%, rgba(236, 72, 153, 0.14), transparent 44%), linear-gradient(180deg, #270427 0%, #1d0326 48%, #13021a 100%)',
-        color: '#f8fafc',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        <div style={{
-          position: 'absolute',
-          top: '140px',
-          right: '-120px',
-          width: 'min(360px, 72vw)',
-          height: 'min(360px, 72vw)',
-          background: 'radial-gradient(circle, rgba(168, 85, 247, 0.24), transparent 70%)',
-          filter: 'blur(20px)',
-          opacity: 0.7
-        }} />
-        <div style={{
-          position: 'absolute',
-          bottom: '-120px',
-          left: '-80px',
-          width: 'min(320px, 65vw)',
-          height: 'min(320px, 65vw)',
-          background: 'radial-gradient(circle, rgba(217, 70, 239, 0.18), transparent 70%)',
-          filter: 'blur(24px)',
-          opacity: 0.7
-        }} />
-        <div className="max-w-6xl mx-auto" style={{ position: 'relative', zIndex: 1 }}>
+      <main className={styles.page}>
+        <div style={{ width: 'min(1120px, 100%)', margin: '0 auto' }}>
           <div style={{
             position: 'sticky',
             top: 0,
@@ -586,7 +710,9 @@ export default function PricingPageClient({
               )}
             </div>
           </div>
+        </div>
 
+        <div style={{ width: 'min(1120px, 100%)', margin: '0 auto' }}>
           {authChecked && isSignedIn && planChecked && !hasPaidPlan && isLapsedStatus && (
             <div
               style={{
@@ -613,8 +739,8 @@ export default function PricingPageClient({
               }}
             >
               <p style={{ margin: 0, color: '#dbeafe', fontWeight: 600 }}>
-                Free trial active.
-                {nextBillingDate ? ` First charge on ${formatPlanDate(nextBillingDate)} unless you cancel beforehand.` : ''}
+                Access active.
+                {nextBillingDate ? ` Next billing date: ${formatPlanDate(nextBillingDate)}.` : ''}
               </p>
             </div>
           )}
@@ -649,159 +775,79 @@ export default function PricingPageClient({
               </p>
             </div>
           )}
-
-          <div style={{ display: 'grid', gap: 'clamp(1.2rem, 4vw, 2.5rem)', alignItems: 'center', gridTemplateColumns: 'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', marginBottom: '3.5rem' }}>
-            <div>
-              <p style={{ textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.75rem', color: '#f8a76f', fontWeight: 600 }}>Pricing</p>
-              <h1 style={{ fontSize: 'clamp(2rem, 8vw, 3.6rem)', lineHeight: 1.05, margin: '0.8rem 0 1rem 0' }}>
-                Start with the workspace,
-                <br />
-                then choose the level your practice needs.
-              </h1>
-              <p style={{ fontSize: 'clamp(1rem, 3.2vw, 1.2rem)', color: '#cbd5f5', maxWidth: '520px' }}>
-                {audienceDescription}
-              </p>
-              <p style={{ marginTop: '14px', color: '#fde68a', fontSize: '0.98rem', fontWeight: 700 }}>
-                Your first paid subscription starts with 3 days free.
-              </p>
-              <p style={{ marginTop: '14px', color: '#bfdbfe', fontSize: '0.95rem', maxWidth: '560px', lineHeight: 1.6 }}>
-                {availabilityMessage}
-              </p>
-              <p style={{ marginTop: '14px', color: '#cbd5f5', fontSize: '0.95rem' }}>
-                Not sure where to start? <a href={faqHref} style={{ color: '#f8fafc', textDecoration: 'underline' }}>Read the plan FAQ</a>
-              </p>
-              <p style={{ marginTop: '10px', color: '#cbd5f5', fontSize: '0.95rem' }}>
-                {guideIntroText} {renderGuideLinks(guideLinks)}.
-              </p>
-            </div>
-            <div style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02))',
-              borderRadius: '24px',
-              padding: '1.8rem',
-              border: '1px solid rgba(248, 250, 252, 0.12)',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.35)'
-            }}>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '0.5rem' }}>Plan at a glance</h2>
-              <p style={{ color: '#cbd5f5', marginBottom: '1rem' }}>Pick the tier that matches your client workload and urgency.</p>
-                <div style={{ display: 'grid', gap: '0.8rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
-                    <span>Basic</span>
-                    <span style={{ color: '#9cc8ff' }}>{currencySymbol}{priceByPlan.basic} / mo</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
-                    <span>Premium</span>
-                    <span style={{ color: '#7bd4c9' }}>{currencySymbol}{priceByPlan.premium} / mo</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
-                    <span>Premium +</span>
-                    <span style={{ color: '#f8a76f' }}>{currencySymbol}{priceByPlan.premiumPlus} / mo</span>
-                  </div>
-                </div>
-              </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Basic Plan */}
-            <div className="p-8 text-center relative transition-all duration-300 hover:-translate-y-2 flex flex-col" style={{
-              background: 'linear-gradient(160deg, rgba(17, 24, 39, 0.98), rgba(30, 41, 59, 0.92))',
-              borderRadius: '26px',
-              border: '1px solid rgba(248, 250, 252, 0.12)',
-              boxShadow: '0 20px 45px rgba(0, 0, 0, 0.4)'
-            }}>
-              <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">Basic</h3>
-              <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#9cc8ff' }}>
-                {currencySymbol}{priceByPlan.basic}<span className="text-xl sm:text-2xl">/Month</span>
-              </div>
-              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#dbeafe', fontWeight: 700 }}>New subscribers: 3 days free, then {currencySymbol}{priceByPlan.basic}/month</p>
-              <ul className="space-y-3 mb-8 text-left flex-grow">
-                {basicPlanFeatures.map((feature) => (
-                  <li key={feature} className="flex items-start text-white">
-                    <span className="mr-2 font-bold" style={{ color: '#9cc8ff' }}>✓</span> {feature}
-                  </li>
-                ))}
-              </ul>
-              <button
-                className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
-                style={{ background: 'linear-gradient(135deg, #93c5fd, #3b82f6)', border: '2px solid transparent' }}
-                onClick={() => handlePlanButtonClick(basicPriceId, 'Basic', 'basic')}
-                disabled={checkoutLoading === basicPriceId || (hasPaidPlan && isCurrentPlanLabel('Basic'))}
-              >
-                {getPlanButtonLabel(basicPriceId, 'Basic')}
-              </button>
-              {checkoutError && checkoutErrorPlanKey === 'basic' && (
-                <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>
-              )}
-            </div>
-
-            {/* Premium Plan */}
-            <div className="p-8 text-center relative transition-all duration-300 hover:-translate-y-2 flex flex-col" style={{
-              background: 'linear-gradient(160deg, rgba(20, 20, 30, 0.98), rgba(24, 32, 40, 0.92))',
-              borderRadius: '26px',
-              border: '1px solid rgba(248, 250, 252, 0.12)',
-              boxShadow: '0 20px 45px rgba(0, 0, 0, 0.4)'
-            }}>
-              <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">Premium</h3>
-              <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#7bd4c9' }}>
-                {currencySymbol}{priceByPlan.premium}<span className="text-xl sm:text-2xl">/Month</span>
-              </div>
-              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#d1fae5', fontWeight: 700 }}>New subscribers: 3 days free, then {currencySymbol}{priceByPlan.premium}/month</p>
-              <ul className="space-y-3 mb-8 text-left flex-grow">
-                {premiumPlanFeatures.map((feature) => (
-                  <li key={feature} className="flex items-start text-white">
-                    <span className="mr-2 font-bold" style={{ color: '#7bd4c9' }}>✓</span> {feature}
-                  </li>
-                ))}
-              </ul>
-              <button
-                className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
-                style={{ background: 'linear-gradient(135deg, #7bd4c9, #3aa79d)', border: '2px solid transparent' }}
-                onClick={() => handlePlanButtonClick(premiumPriceId, 'Premium', 'premium')}
-                disabled={checkoutLoading === premiumPriceId || (hasPaidPlan && isCurrentPlanLabel('Premium'))}
-              >
-                {getPlanButtonLabel(premiumPriceId, 'Premium')}
-              </button>
-              {checkoutError && checkoutErrorPlanKey === 'premium' && (
-                <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>
-              )}
-            </div>
-
-            {/* Premium + Plan */}
-            <div className="p-8 text-center relative transition-all duration-300 hover:-translate-y-2 flex flex-col" style={{
-              background: 'linear-gradient(160deg, rgba(15, 15, 25, 0.95), rgba(30, 20, 18, 0.9))',
-              borderRadius: '26px',
-              border: '1px solid rgba(248, 250, 252, 0.12)',
-              boxShadow: '0 16px 40px rgba(0, 0, 0, 0.35)'
-            }}>
-              <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">Premium +</h3>
-              <div className="text-4xl sm:text-5xl font-bold mb-6" style={{ color: '#f8a76f' }}>
-                {currencySymbol}{priceByPlan.premiumPlus}<span className="text-xl sm:text-2xl">/Month</span>
-              </div>
-              <p style={{ marginTop: '-10px', marginBottom: '18px', color: '#ffedd5', fontWeight: 700 }}>New subscribers: 3 days free, then {currencySymbol}{priceByPlan.premiumPlus}/month</p>
-              <ul className="space-y-3 mb-8 text-left flex-grow">
-                {premiumPlusPlanFeatures.map((feature) => (
-                  <li key={feature} className="flex items-start text-white">
-                    <span className="mr-2 font-bold" style={{ color: '#f8a76f' }}>✓</span> {feature}
-                  </li>
-                ))}
-              </ul>
-              <button
-                className="block w-full py-4 px-8 rounded-[26px] text-white font-bold transition-all duration-300 hover:-translate-y-1"
-                style={{ background: 'linear-gradient(135deg, #f8a76f, #f26a3d)', border: '2px solid transparent' }}
-                onClick={() => handlePlanButtonClick(premiumPlusPriceId, 'Premium +', 'premium-plus')}
-                disabled={checkoutLoading === premiumPlusPriceId || (hasPaidPlan && isCurrentPlanLabel('Premium +'))}
-              >
-                {getPlanButtonLabel(premiumPlusPriceId, 'Premium +')}
-              </button>
-              {checkoutError && checkoutErrorPlanKey === 'premium-plus' && (
-                <p style={{ color: '#dc2626', marginTop: '8px' }}>{checkoutError}</p>
-              )}
-            </div>
-          </div>
-          {checkoutError && !checkoutErrorPlanKey && (
-            <p style={{ color: '#dc2626', marginTop: '12px', fontWeight: 600 }}>{checkoutError}</p>
-          )}
-
         </div>
+
+        <header className={styles.header} style={{ marginBottom: 'clamp(14px, 3vw, 26px)' }}>
+          <div>
+            <p className={styles.kicker}>
+              Pricing
+            </p>
+            <h1>
+              Choose the plan for your needs.
+            </h1>
+          </div>
+        </header>
+
+        <div className={styles.switcherWrap} aria-label="Pricing audience">
+          <div className={styles.switcher}>
+            <span
+              className={styles.switcherThumb}
+              style={{ transform: pricingAudience === 'individual' ? 'translateX(0)' : 'translateX(100%)' }}
+              aria-hidden="true"
+            />
+            <button
+              type="button"
+              className={pricingAudience === 'individual' ? styles.switcherActive : ''}
+              onClick={() => setPricingAudience('individual')}
+            >
+              Individual
+            </button>
+            <button
+              type="button"
+              className={pricingAudience === 'professionals' ? styles.switcherActive : ''}
+              onClick={() => setPricingAudience('professionals')}
+            >
+              Professionals
+            </button>
+          </div>
+        </div>
+
+        {pricingAudience === 'individual' && (
+          <div className={styles.productTabs} aria-label="Individual product">
+              <button
+                type="button"
+                className={`${styles.productTab} ${individualProduct === 'assistant' ? styles.productTabActive : ''}`}
+                onClick={() => setIndividualProduct('assistant')}
+              >
+                MyMcKenzie Assistant
+              </button>
+              <button
+                type="button"
+                className={`${styles.productTab} ${individualProduct === 'workspace' ? styles.productTabActive : ''}`}
+                onClick={() => setIndividualProduct('workspace')}
+              >
+                Case workspace
+              </button>
+          </div>
+        )}
+
+        {checkoutError && !checkoutErrorPlanKey && (
+          <div className={styles.errorBox}>{checkoutError}</div>
+        )}
+
+        <section
+          className={styles.grid}
+          style={pricingAudience === 'professionals' ? { gridTemplateColumns: 'minmax(0, 380px)', justifyContent: 'center' } : undefined}
+          aria-label={
+            pricingAudience === 'professionals'
+              ? 'Professional plans'
+              : individualProduct === 'assistant'
+                ? 'Assistant plans'
+                : 'Case workspace plans'
+          }
+        >
+          {activeCards.map(renderCard)}
+        </section>
       </main>
     </>
   )

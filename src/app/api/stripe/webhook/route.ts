@@ -8,7 +8,7 @@ import { isBillingActiveStripeStatus, isTrialingStripeStatus, normalizeStripeSub
 import { buildLifecycleSchedule, getLifecycleArchiveDays, getLifecycleDeleteDays } from '@/lib/payments/subscription-lifecycle';
 import { syncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
-import { getStripeSubscriptionPeriodEndIso, getStripeSubscriptionPeriodEndUnix, getStripeSubscriptionPeriodStartIso } from '@/lib/payments/subscription-period';
+import { getStripeSubscriptionPeriodEndIso, getStripeSubscriptionPeriodStartIso } from '@/lib/payments/subscription-period';
 import { getStripeSubscriptionPeriodStartUnix } from '@/lib/payments/subscription-period';
 import { formatLondonDateTime } from '@/lib/utils/london-time';
 import fs from 'fs';
@@ -308,7 +308,9 @@ function getConfiguredGraceDays(): number {
 function normalizePlanTypeFromPrice(priceId?: string | null): string {
   if (!priceId) return 'No plan';
   if (isKnownBusinessPriceId(priceId)) return 'Solo';
-  const name = (findPlanByAnyPriceId(priceId)?.name || '').toLowerCase();
+  const configuredPlan = findPlanByAnyPriceId(priceId);
+  if (configuredPlan?.name) return configuredPlan.name;
+  const name = '';
   if (name.includes('basic') || name.includes('essential') || name.includes('premium cheap')) return 'Basic';
   if (name.includes('premium +') || name.includes('premium plus') || name.includes('plus') || name.includes('premium pro')) return 'Premium +';
   if (name.includes('premium')) return 'Premium';
@@ -317,6 +319,8 @@ function normalizePlanTypeFromPrice(priceId?: string | null): string {
 
 function displayPlanName(planType?: string | null): string {
   const raw = (planType || '').toLowerCase();
+  if (raw.includes('assistant pro')) return 'Assistant Pro';
+  if (raw.includes('assistant plus')) return 'Assistant Plus';
   if (raw.includes('basic') || raw.includes('essential') || raw.includes('premium cheap')) return 'Basic';
   if (raw.includes('premium +') || raw.includes('premium plus') || raw.includes('premium pro') || raw.includes('plus')) return 'Premium +';
   if (raw.includes('premium')) return 'Premium';
@@ -572,42 +576,22 @@ export async function POST(request: Request) {
 
       if (recipientEmail && planId) {
         const planName = resolvePlanNameFromPriceId(planId);
-        if (isTrialingStripeStatus(syncedSubscription?.status)) {
-          const firstChargeDate = formatDateShort(
-            getStripeSubscriptionPeriodEndUnix(syncedSubscription)
-          ) || '3 days from now';
-          const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech';
-          const htmlBody = renderTemplate('27-free-trial-started.html', {
-            name: user?.name || checkoutName || recipientEmail,
-            plan_name: planName,
-            first_charge_date: firstChargeDate,
-            manage_url: `${getAppUrl(request)}/settings`,
-            support_email: supportEmail,
-          });
-          await sendResendEmail({
-            to: recipientEmail,
-            subject: 'Your MyMcKenzieCS free trial has started',
-            htmlBody,
-            tag: 'billing-trial-started',
-          });
-        } else {
-          const invoicePdfUrl =
-            (session?.invoice && typeof session.invoice === 'object' ? session.invoice.invoice_pdf : null) ||
-            `${getAppUrl(request)}/settings`;
-          const htmlBody = renderTemplate('04-plan-upgrade-receipt.html', {
-            name: user?.name || checkoutName || recipientEmail,
-            txn_id: String(session?.payment_intent || session?.id || '—'),
-            amount: formatAmount(session?.amount_total, session?.currency),
-            new_plan: planName,
-            invoice_pdf_url: String(invoicePdfUrl),
-          });
-          await sendResendEmail({
-            to: recipientEmail,
-            subject: 'Your MyMcKenzieCS plan is being activated',
-            htmlBody,
-            tag: 'billing-plan-upgrade',
-          });
-        }
+        const invoicePdfUrl =
+          (session?.invoice && typeof session.invoice === 'object' ? session.invoice.invoice_pdf : null) ||
+          `${getAppUrl(request)}/settings`;
+        const htmlBody = renderTemplate('04-plan-upgrade-receipt.html', {
+          name: user?.name || checkoutName || recipientEmail,
+          txn_id: String(session?.payment_intent || session?.id || '—'),
+          amount: formatAmount(session?.amount_total, session?.currency),
+          new_plan: planName,
+          invoice_pdf_url: String(invoicePdfUrl),
+        });
+        await sendResendEmail({
+          to: recipientEmail,
+          subject: 'Your MyMcKenzieCS plan is being activated',
+          htmlBody,
+          tag: 'billing-plan-upgrade',
+        });
       } else {
         console.warn('Checkout session missing recipient email or planId, skipping upgrade email', {
           hasUserId: Boolean(userId),

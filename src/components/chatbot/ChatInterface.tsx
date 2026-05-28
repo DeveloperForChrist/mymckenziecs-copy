@@ -317,15 +317,21 @@ const getOrInitSessionStart = (userId: string) => {
 type ChatInterfaceProps = {
   initialAuthPlan?: InitialChatPlanState | null
   composerPlacement?: 'viewport' | 'pane'
+  paneWidth?: 'full' | 'standard'
   conversationHomeHref?: string
+  anonymousMessageLimit?: number | null
 }
 
 export default function ChatInterface({
   initialAuthPlan = null,
   composerPlacement = 'viewport',
+  paneWidth = 'full',
   conversationHomeHref,
+  anonymousMessageLimit = null,
 }: ChatInterfaceProps = {}) {
   const dockComposerToPane = composerPlacement === 'pane'
+  const useFullPaneWidth = dockComposerToPane && paneWidth === 'full'
+  const shouldConstrainPaneContent = dockComposerToPane && paneWidth === 'standard'
   const [caseId, setCaseId] = useState<string>("");
   const supabase = getSupabaseBrowserClient();
   const pendingActiveCaseOverrideRef = useRef<string | null>(null)
@@ -341,6 +347,7 @@ export default function ChatInterface({
   const {
     supabaseUser,
     plan,
+    paidAccess,
     platformAccess,
     planLoaded,
     authLoaded,
@@ -400,6 +407,7 @@ export default function ChatInterface({
   const [attachedFiles, setAttachedFiles] = useState<File[]>([])
   const [guestUploadWarning, setGuestUploadWarning] = useState<string | null>(null)
   const [showGuestSignupModal, setShowGuestSignupModal] = useState(false)
+  const [guestSignupReason, setGuestSignupReason] = useState<'upload' | 'limit'>('upload')
   const [isConversationBootstrapping, setIsConversationBootstrapping] = useState(true)
   const [historyCursor, setHistoryCursor] = useState<string | null>(null)
   const [hasMoreHistory, setHasMoreHistory] = useState(false)
@@ -408,6 +416,7 @@ export default function ChatInterface({
   const [floatingNotice, setFloatingNotice] = useState<string | null>(null)
   const [activeInlineStreamMessageId, setActiveInlineStreamMessageId] = useState<string | null>(null)
   const isSignedInPlanLocked = Boolean(supabaseUser) && planLoaded && !platformAccess
+  const canUploadAttachments = Boolean(supabaseUser) && paidAccess
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -442,6 +451,21 @@ export default function ChatInterface({
     const value = metadata?.basicDailySearchNotice
     return typeof value === 'string' && value.trim() ? value.trim() : null
   }
+  const formatLimitReturnTime = (value?: unknown) => {
+    if (typeof value !== 'string' || !value.trim()) return ''
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return ''
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+  const extractAssistantFreeLimitNotice = (metadata?: AssistantMetadata): string | null => {
+    if (!metadata?.assistantFreeLimitNotice) return null
+    const returnTime = formatLimitReturnTime(metadata.canMessageAgainAt)
+    return returnTime
+      ? `You have hit your limit. Come back at ${returnTime} to continue, or upgrade your plan for more access.`
+      : 'You have hit your limit. Come back later to continue, or upgrade your plan for more access.'
+  }
+  const extractComposerNotice = (metadata?: AssistantMetadata): string | null =>
+    extractAssistantFreeLimitNotice(metadata) || extractBasicDailySearchNotice(metadata)
 
   const showFloatingNotice = (message: string | null | undefined) => {
     const normalized = String(message || '').trim()
@@ -655,7 +679,15 @@ export default function ChatInterface({
 
   const handleAttachClick = () => {
     if (!supabaseUser) {
+      setGuestSignupReason('upload')
       setShowGuestSignupModal(true)
+      return
+    }
+    if (!canUploadAttachments) {
+      setNoticeModal({
+        title: 'Document uploads are on Plus',
+        message: 'Free Assistant includes chat and limited web search. Upgrade to an Assistant Plus or workspace plan to upload documents in chat.',
+      })
       return
     }
     fileInputRef.current?.click()
@@ -665,7 +697,16 @@ export default function ChatInterface({
     const files = Array.from(e.target.files || [])
     if (!files.length) return
     if (!supabaseUser) {
+      setGuestSignupReason('upload')
       setShowGuestSignupModal(true)
+      e.target.value = ''
+      return
+    }
+    if (!canUploadAttachments) {
+      setNoticeModal({
+        title: 'Document uploads are on Plus',
+        message: 'Free Assistant includes chat and limited web search. Upgrade to an Assistant Plus or workspace plan to upload documents in chat.',
+      })
       e.target.value = ''
       return
     }
@@ -702,8 +743,12 @@ export default function ChatInterface({
   const uploadAttachments = async (files: File[], targetCaseId?: string | null): Promise<UploadedAttachment[]> => {
     if (!files.length) return []
     if (!supabaseUser) {
+      setGuestSignupReason('upload')
       setShowGuestSignupModal(true)
       return []
+    }
+    if (!canUploadAttachments) {
+      throw new Error('Document uploads are available on Assistant Plus and higher plans.')
     }
 
     const uploaded: UploadedAttachment[] = []
@@ -960,7 +1005,7 @@ export default function ChatInterface({
       typeMessageById(
         assistantText,
         assistantMessageId,
-        () => showFloatingNotice(extractBasicDailySearchNotice(data.metadata as AssistantMetadata | undefined))
+        () => showFloatingNotice(extractComposerNotice(data.metadata as AssistantMetadata | undefined))
       )
       chatRequestAbortRef.current = null
     } catch (error: any) {
@@ -1132,7 +1177,7 @@ export default function ChatInterface({
       }
       return updated
     })
-    showFloatingNotice(extractBasicDailySearchNotice(metadata))
+    showFloatingNotice(extractComposerNotice(metadata))
   }
 
   const flushStreamDeltaBufferById = (messageId: string) => {
@@ -1491,8 +1536,24 @@ export default function ChatInterface({
       })
       return
     }
+    if (!supabaseUser && typeof anonymousMessageLimit === 'number' && anonymousMessageLimit > 0) {
+      const nextGuestMessageCount = messages.filter((msg) => msg.role === 'user').length + 1
+      if (nextGuestMessageCount > anonymousMessageLimit) {
+        setGuestSignupReason('limit')
+        setShowGuestSignupModal(true)
+        return
+      }
+    }
     if (hasAttachments && !supabaseUser) {
+      setGuestSignupReason('upload')
       setShowGuestSignupModal(true)
+      return
+    }
+    if (hasAttachments && !canUploadAttachments) {
+      setNoticeModal({
+        title: 'Document uploads are on Plus',
+        message: 'Free Assistant includes chat and limited web search. Upgrade to an Assistant Plus or workspace plan to upload documents in chat.',
+      })
       return
     }
 
@@ -1676,7 +1737,7 @@ export default function ChatInterface({
       typeMessageById(
         assistantText,
         assistantMessageId,
-        () => showFloatingNotice(extractBasicDailySearchNotice(data.metadata as AssistantMetadata | undefined))
+        () => showFloatingNotice(extractComposerNotice(data.metadata as AssistantMetadata | undefined))
       )
       chatRequestAbortRef.current = null
     } catch (error: any) {
@@ -1724,8 +1785,8 @@ export default function ChatInterface({
     padding: '0',
     position: 'relative'
   }
-  const messageLaneMaxWidth = 'min(700px, 100%)'
-  const messageLanePadding = '0 12px'
+  const messageContentMaxWidth = shouldConstrainPaneContent ? 'min(700px, 100%)' : '100%'
+  const messageLanePadding = shouldConstrainPaneContent ? '0 12px' : '0 clamp(16px, 3vw, 36px)'
 
   return (
     <>
@@ -1751,9 +1812,7 @@ export default function ChatInterface({
                   <div
                     style={{
                       width: '100%',
-                      maxWidth: messageLaneMaxWidth,
                       margin: '20px auto 0 auto',
-                      padding: messageLanePadding,
                       boxSizing: 'border-box',
                       flex: 1,
                       display: 'flex',
@@ -1764,8 +1823,31 @@ export default function ChatInterface({
             <div
               ref={scrollContainerRef}
               onScroll={handleScroll}
-              style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingLeft: 0, paddingRight: 0 }}
+              className="chat-message-scroll-container"
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                minHeight: 0,
+                width: '100%',
+                paddingLeft: 0,
+                paddingRight: 0,
+                scrollbarGutter: 'stable',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+              }}
             >
+              <div
+                style={{
+                  width: '100%',
+                  maxWidth: messageContentMaxWidth,
+                  minHeight: '100%',
+                  margin: '0 auto',
+                  padding: messageLanePadding,
+                  boxSizing: 'border-box',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
             {loadingOlderHistory && messages.length > 0 && (
               <div
                 style={{
@@ -1799,7 +1881,9 @@ export default function ChatInterface({
               messagesEndRef={messagesEndRef}
               StatusIndicatorComponent={StatusIndicator}
               scrollContainerRef={scrollContainerRef}
+              fullWidth={useFullPaneWidth}
             />
+              </div>
             </div>
           </div>
           {(showScrollToBottomButton || showScrollToBottomButtonByWindow) && messages.length > 0 && (
@@ -1840,6 +1924,8 @@ export default function ChatInterface({
             onSubmit={handleSubmit}
             showGuestSignupModal={showGuestSignupModal}
             onCloseGuestSignupModal={() => setShowGuestSignupModal(false)}
+            guestSignupReason={guestSignupReason}
+            anonymousMessageLimit={anonymousMessageLimit}
             attachedFiles={attachedFiles}
             onRemoveFile={handleRemoveFile}
             guestUploadWarning={guestUploadWarning}
@@ -1851,13 +1937,14 @@ export default function ChatInterface({
             fileInputRef={fileInputRef}
             onFileChange={handleFileChange}
             onAttachClick={handleAttachClick}
-            hasSupabaseUser={Boolean(supabaseUser)}
+            hasSupabaseUser={canUploadAttachments}
             onStopGeneration={handleStopGeneration}
             canSubmit={!isSignedInPlanLocked && (input.trim().length > 0 || attachedFiles.length > 0)}
             showWordLimitWarning={showWordLimitWarning}
             isPlanLocked={isSignedInPlanLocked}
             planLockMessage="Plan paused: chat is locked. Your documents remain safe and available in read-only mode."
             dockToPane={dockComposerToPane}
+            paneWidth={paneWidth}
           />
 
         {floatingNotice && (
@@ -1921,6 +2008,11 @@ export default function ChatInterface({
           onSubmit={handleSubmitReport}
         />
         <NoticeModal notice={noticeModal} onClose={() => setNoticeModal(null)} />
+        <style jsx>{`
+          .chat-message-scroll-container::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
         </div>
       </div>
     </>

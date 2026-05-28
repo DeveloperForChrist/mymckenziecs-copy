@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import AccountSection from '@/components/settings/AccountSection';
 import BillingSection from '@/components/settings/BillingSection';
 import ContactSection from '@/components/settings/ContactSection';
@@ -35,7 +35,6 @@ export default function SettingsPageClient({
   mode?: 'standalone' | 'embedded';
 }) {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const publicMarket = initialBillingPlan?.publicMarket === 'US' ? 'US' : 'GB';
   const dashboardHref = dashboardHrefOverride || getAppRouteForMarket('/dashboard', publicMarket);
   const isEmbedded = mode === 'embedded';
@@ -57,7 +56,7 @@ export default function SettingsPageClient({
     try {
       const url = new URL(window.location.href);
       url.searchParams.set('tab', next);
-      router.replace(`${url.pathname}${url.search}${url.hash}`);
+      window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
     } catch {
       // ignore
     }

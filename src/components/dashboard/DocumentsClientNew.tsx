@@ -17,6 +17,7 @@ type DocumentsClientProps = {
   initialCanUpload?: boolean;
   initialPlanLoaded?: boolean;
   dashboardHrefOverride?: string;
+  documentsHrefOverride?: string;
   caseIdOverride?: string | null;
 };
 
@@ -40,6 +41,7 @@ export default function DocumentsClient({
   initialCanUpload = false,
   initialPlanLoaded = false,
   dashboardHrefOverride,
+  documentsHrefOverride,
   caseIdOverride = null,
 }: DocumentsClientProps) {
   const [activeFilter, setActiveFilter] = useState<'recents'|'starred'>('recents');
@@ -71,7 +73,7 @@ export default function DocumentsClient({
   const [planLoaded, setPlanLoaded] = useState(Boolean(initialPlanLoaded));
   const appMarket = getAppMarketFromPathname(pathname);
   const dashboardHref = dashboardHrefOverride || getAppRouteForMarket('/dashboard', appMarket);
-  const documentsHref = getAppRouteForMarket('/dashboard/documents', appMarket);
+  const documentsHref = documentsHrefOverride || getAppRouteForMarket('/dashboard/documents', appMarket);
   const caseIdFromOverride = typeof caseIdOverride === 'string' ? caseIdOverride.trim() : '';
 
   const readApiJson = async (res: Response) => {
@@ -626,7 +628,7 @@ export default function DocumentsClient({
 
   const handleSelectFolder = (folderId: string) => {
     setActiveFolder(folderId);
-    try { router.replace(getAppRouteForMarket(`/dashboard/documents?folder=${encodeURIComponent(folderId)}`, appMarket)); } catch (_) {}
+    try { router.replace(`${documentsHref.split('?')[0]}?folder=${encodeURIComponent(folderId)}`); } catch (_) {}
   };
 
   const handleViewDocument = (doc: Document) => {

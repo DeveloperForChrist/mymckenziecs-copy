@@ -60,9 +60,145 @@ const PREMIUM_PROVIDER_QUEUE_WAIT_MS = Number.isFinite(Number(process.env.PREMIU
 const PREMIUM_PROVIDER_QUEUE_RETRIES = Number.isFinite(Number(process.env.PREMIUM_PROVIDER_QUEUE_RETRIES))
   ? Math.max(0, Math.floor(Number(process.env.PREMIUM_PROVIDER_QUEUE_RETRIES)))
   : 2
+const CHAT_AI_MAX_IN_FLIGHT = Number.isFinite(Number(process.env.CHAT_AI_MAX_IN_FLIGHT))
+  ? Math.max(1, Math.floor(Number(process.env.CHAT_AI_MAX_IN_FLIGHT)))
+  : 120
+const CHAT_AI_QUEUE_LIMIT = Number.isFinite(Number(process.env.CHAT_AI_QUEUE_LIMIT))
+  ? Math.max(0, Math.floor(Number(process.env.CHAT_AI_QUEUE_LIMIT)))
+  : 1_000
+const CHAT_AI_QUEUE_TIMEOUT_MS = Number.isFinite(Number(process.env.CHAT_AI_QUEUE_TIMEOUT_MS))
+  ? Math.max(0, Math.floor(Number(process.env.CHAT_AI_QUEUE_TIMEOUT_MS)))
+  : 2_500
+const ASSISTANT_FREE_CHAT_MESSAGE_LIMIT = Number.isFinite(Number(process.env.ASSISTANT_FREE_CHAT_MESSAGE_LIMIT))
+  ? Math.max(1, Math.floor(Number(process.env.ASSISTANT_FREE_CHAT_MESSAGE_LIMIT)))
+  : 8
+const ASSISTANT_FREE_CHAT_COOLDOWN_SECONDS = Number.isFinite(Number(process.env.ASSISTANT_FREE_CHAT_COOLDOWN_MS))
+  ? Math.max(60, Math.ceil(Number(process.env.ASSISTANT_FREE_CHAT_COOLDOWN_MS) / 1000))
+  : 5 * 60 * 60
+const ASSISTANT_PLUS_CHAT_DAILY_LIMIT = Number.isFinite(Number(process.env.ASSISTANT_PLUS_CHAT_DAILY_LIMIT))
+  ? Math.max(1, Math.floor(Number(process.env.ASSISTANT_PLUS_CHAT_DAILY_LIMIT)))
+  : 50
+const ASSISTANT_PLUS_CHAT_MONTHLY_LIMIT = Number.isFinite(Number(process.env.ASSISTANT_PLUS_CHAT_MONTHLY_LIMIT))
+  ? Math.max(1, Math.floor(Number(process.env.ASSISTANT_PLUS_CHAT_MONTHLY_LIMIT)))
+  : 600
+const ASSISTANT_PRO_CHAT_MONTHLY_LIMIT = Number.isFinite(Number(process.env.ASSISTANT_PRO_CHAT_MONTHLY_LIMIT))
+  ? Math.max(1, Math.floor(Number(process.env.ASSISTANT_PRO_CHAT_MONTHLY_LIMIT)))
+  : 5000
+const ASSISTANT_PLUS_UPLOAD_DAILY_LIMIT = Number.isFinite(Number(process.env.ASSISTANT_PLUS_UPLOAD_DAILY_LIMIT))
+  ? Math.max(1, Math.floor(Number(process.env.ASSISTANT_PLUS_UPLOAD_DAILY_LIMIT)))
+  : 10
+const ASSISTANT_PLUS_UPLOAD_MONTHLY_LIMIT = Number.isFinite(Number(process.env.ASSISTANT_PLUS_UPLOAD_MONTHLY_LIMIT))
+  ? Math.max(1, Math.floor(Number(process.env.ASSISTANT_PLUS_UPLOAD_MONTHLY_LIMIT)))
+  : 100
+const ASSISTANT_PRO_UPLOAD_DAILY_LIMIT = Number.isFinite(Number(process.env.ASSISTANT_PRO_UPLOAD_DAILY_LIMIT))
+  ? Math.max(1, Math.floor(Number(process.env.ASSISTANT_PRO_UPLOAD_DAILY_LIMIT)))
+  : 75
+const ASSISTANT_PRO_UPLOAD_MONTHLY_LIMIT = Number.isFinite(Number(process.env.ASSISTANT_PRO_UPLOAD_MONTHLY_LIMIT))
+  ? Math.max(1, Math.floor(Number(process.env.ASSISTANT_PRO_UPLOAD_MONTHLY_LIMIT)))
+  : 750
 
 // Fallback to in-memory if Redis is not configured
 const inMemoryLimiter = new InMemoryRateLimiter()
+
+type LocalConcurrencyLease = {
+  success: true
+  active: number
+  queuedMs: number
+  release: () => void
+}
+
+type LocalConcurrencyRejection = {
+  success: false
+  active: number
+  queued: number
+  retryAfterMs: number
+  reason: 'queue_full' | 'queue_timeout'
+}
+
+type QueuedConcurrencyRequest = {
+  enqueuedAt: number
+  resolve: (lease: LocalConcurrencyLease | LocalConcurrencyRejection) => void
+  timeout: ReturnType<typeof setTimeout> | null
+}
+
+class LocalConcurrencyLimiter {
+  private active = 0
+  private queue: QueuedConcurrencyRequest[] = []
+
+  constructor(
+    private readonly maxActive: number,
+    private readonly maxQueue: number,
+    private readonly queueTimeoutMs: number
+  ) {}
+
+  acquire(): Promise<LocalConcurrencyLease | LocalConcurrencyRejection> {
+    if (this.active < this.maxActive) {
+      return Promise.resolve(this.createLease(Date.now()))
+    }
+
+    if (this.queue.length >= this.maxQueue || this.queueTimeoutMs <= 0) {
+      return Promise.resolve(this.reject('queue_full'))
+    }
+
+    return new Promise((resolve) => {
+      const request: QueuedConcurrencyRequest = {
+        enqueuedAt: Date.now(),
+        resolve,
+        timeout: null,
+      }
+
+      request.timeout = setTimeout(() => {
+        const index = this.queue.indexOf(request)
+        if (index !== -1) this.queue.splice(index, 1)
+        resolve(this.reject('queue_timeout'))
+      }, this.queueTimeoutMs)
+
+      this.queue.push(request)
+    })
+  }
+
+  private createLease(enqueuedAt: number): LocalConcurrencyLease {
+    this.active += 1
+    let released = false
+
+    return {
+      success: true,
+      active: this.active,
+      queuedMs: Math.max(0, Date.now() - enqueuedAt),
+      release: () => {
+        if (released) return
+        released = true
+        this.active = Math.max(0, this.active - 1)
+        this.drainQueue()
+      },
+    }
+  }
+
+  private reject(reason: LocalConcurrencyRejection['reason']): LocalConcurrencyRejection {
+    return {
+      success: false,
+      active: this.active,
+      queued: this.queue.length,
+      retryAfterMs: Math.max(1000, this.queueTimeoutMs || 1000),
+      reason,
+    }
+  }
+
+  private drainQueue() {
+    while (this.active < this.maxActive && this.queue.length > 0) {
+      const request = this.queue.shift()
+      if (!request) return
+      if (request.timeout) clearTimeout(request.timeout)
+      request.resolve(this.createLease(request.enqueuedAt))
+    }
+  }
+}
+
+const chatAiConcurrencyLimiter = new LocalConcurrencyLimiter(
+  CHAT_AI_MAX_IN_FLIGHT,
+  CHAT_AI_QUEUE_LIMIT,
+  CHAT_AI_QUEUE_TIMEOUT_MS
+)
 
 /**
  * Rate limiter for AI/expensive operations
@@ -89,6 +225,91 @@ export const aiIpRateLimiter = redis
       prefix: 'ratelimit:ai_ip',
     })
   : null
+
+export const assistantFreeChatRateLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(
+        ASSISTANT_FREE_CHAT_MESSAGE_LIMIT,
+        `${ASSISTANT_FREE_CHAT_COOLDOWN_SECONDS} s`
+      ),
+      analytics: true,
+      prefix: 'ratelimit:assistant_free_chat',
+    })
+  : null
+
+export const assistantPlusChatDailyRateLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(ASSISTANT_PLUS_CHAT_DAILY_LIMIT, '86400 s'),
+      analytics: true,
+      prefix: 'ratelimit:assistant_plus_chat_daily',
+    })
+  : null
+
+export const assistantPlusChatMonthlyRateLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(ASSISTANT_PLUS_CHAT_MONTHLY_LIMIT, '2592000 s'),
+      analytics: true,
+      prefix: 'ratelimit:assistant_plus_chat_monthly',
+    })
+  : null
+
+export const assistantProChatMonthlyRateLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(ASSISTANT_PRO_CHAT_MONTHLY_LIMIT, '2592000 s'),
+      analytics: true,
+      prefix: 'ratelimit:assistant_pro_chat_monthly',
+    })
+  : null
+
+export const assistantPlusUploadDailyRateLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(ASSISTANT_PLUS_UPLOAD_DAILY_LIMIT, '86400 s'),
+      analytics: true,
+      prefix: 'ratelimit:assistant_plus_upload_daily',
+    })
+  : null
+
+export const assistantPlusUploadMonthlyRateLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(ASSISTANT_PLUS_UPLOAD_MONTHLY_LIMIT, '2592000 s'),
+      analytics: true,
+      prefix: 'ratelimit:assistant_plus_upload_monthly',
+    })
+  : null
+
+export const assistantProUploadDailyRateLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(ASSISTANT_PRO_UPLOAD_DAILY_LIMIT, '86400 s'),
+      analytics: true,
+      prefix: 'ratelimit:assistant_pro_upload_daily',
+    })
+  : null
+
+export const assistantProUploadMonthlyRateLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(ASSISTANT_PRO_UPLOAD_MONTHLY_LIMIT, '2592000 s'),
+      analytics: true,
+      prefix: 'ratelimit:assistant_pro_upload_monthly',
+    })
+  : null
+
+export const assistantUsageLimits = {
+  plusChatDaily: ASSISTANT_PLUS_CHAT_DAILY_LIMIT,
+  plusChatMonthly: ASSISTANT_PLUS_CHAT_MONTHLY_LIMIT,
+  proChatMonthly: ASSISTANT_PRO_CHAT_MONTHLY_LIMIT,
+  plusUploadDaily: ASSISTANT_PLUS_UPLOAD_DAILY_LIMIT,
+  plusUploadMonthly: ASSISTANT_PLUS_UPLOAD_MONTHLY_LIMIT,
+  proUploadDaily: ASSISTANT_PRO_UPLOAD_DAILY_LIMIT,
+  proUploadMonthly: ASSISTANT_PRO_UPLOAD_MONTHLY_LIMIT,
+}
 
 /**
  * Global provider budget for paid premium chat flow.
@@ -259,6 +480,10 @@ export async function acquirePremiumProviderCapacity() {
     waitedMs,
     retryAfterMs,
   }
+}
+
+export async function acquireChatAiCapacity() {
+  return chatAiConcurrencyLimiter.acquire()
 }
 
 /**

@@ -130,7 +130,7 @@ describe('/api/stripe/cancel-subscription route', () => {
     }
   }
 
-  it('sends an immediate confirmation email when a free trial cancellation is scheduled', async () => {
+  it('sends an immediate confirmation email when access cancellation is scheduled', async () => {
     const { POST, sendResendEmail, subscriptionUpdate } = await loadRoute({
       subscriptionRow: {
         stripe_subscription_id: 'sub_trial',
@@ -149,9 +149,9 @@ describe('/api/stripe/cancel-subscription route', () => {
     expect(sendResendEmail).toHaveBeenCalledTimes(1)
 
     const emailArgs = (sendResendEmail as any).mock.calls[0]?.[0] as any
-    expect(emailArgs?.subject).toContain('free trial will end on')
+    expect(emailArgs?.subject).toContain('access will end on')
     expect(emailArgs?.tag).toBe('billing-trial-cancellation-scheduled')
-    expect(emailArgs?.htmlBody).toContain('free trial has been scheduled to end')
+    expect(emailArgs?.htmlBody).toContain('access has been scheduled to end')
   })
 
   it('does not resend the email when cancellation is already scheduled', async () => {

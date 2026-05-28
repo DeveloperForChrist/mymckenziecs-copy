@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { isTrialingStripeStatus } from '@/lib/payments/subscription-status';
 import { getAppRouteForMarket } from '@/lib/markets/app-routes';
 import { getPublicRouteForMarket, normalizePublicMarket } from '@/lib/markets/public-routes';
@@ -9,7 +9,6 @@ import { getPublicRouteForMarket, normalizePublicMarket } from '@/lib/markets/pu
 type SyncState = 'syncing' | 'failed';
 
 export default function CheckoutSuccessPageClient() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [state, setState] = useState<SyncState>('syncing');
   const [message, setMessage] = useState('Finalizing your subscription...');
@@ -41,7 +40,7 @@ export default function CheckoutSuccessPageClient() {
     const run = async () => {
       try {
         if (!sessionId) {
-          router.replace(dashboardHref);
+          window.location.replace(dashboardHref);
           return;
         }
 
@@ -60,10 +59,10 @@ export default function CheckoutSuccessPageClient() {
         if (cancelled) return;
         setMessage(
           isTrialingStripeStatus(payload?.status)
-            ? 'Free trial confirmed. Redirecting...'
+            ? 'Plan confirmed. Redirecting...'
             : 'Payment confirmed. Redirecting...'
         );
-        router.replace(dashboardHref);
+        window.location.replace(dashboardHref);
       } catch (error: any) {
         if (cancelled) return;
         setState('failed');
@@ -75,7 +74,7 @@ export default function CheckoutSuccessPageClient() {
     return () => {
       cancelled = true;
     };
-  }, [dashboardHref, router, sessionId]);
+  }, [dashboardHref, sessionId]);
 
   return (
     <main

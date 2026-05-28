@@ -3,7 +3,7 @@ import type { SupportedCountryCode } from '@/lib/legal/jurisdictions';
 export type BillingMarket = Extract<SupportedCountryCode, 'GB' | 'US'>;
 
 export type PlanPriceConfig = {
-  name: 'Basic' | 'Premium' | 'Premium +';
+  name: 'Basic' | 'Premium' | 'Premium +' | 'Assistant Plus' | 'Assistant Pro';
   priceId: string;
   priceIds: Record<BillingMarket, string>;
   display: string;
@@ -43,7 +43,64 @@ const premiumPlusUsPriceId =
   process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PLUS_PRICE_ID_US ||
   '';
 
+const assistantPlusGbPriceId =
+  process.env.NEXT_PUBLIC_STRIPE_ASSISTANT_PLUS_PRICE_ID ||
+  '';
+
+const assistantPlusUsPriceId =
+  process.env.NEXT_PUBLIC_STRIPE_ASSISTANT_PLUS_PRICE_ID_US ||
+  '';
+
+const assistantProGbPriceId =
+  process.env.NEXT_PUBLIC_STRIPE_ASSISTANT_PRO_PRICE_ID ||
+  '';
+
+const assistantProUsPriceId =
+  process.env.NEXT_PUBLIC_STRIPE_ASSISTANT_PRO_PRICE_ID_US ||
+  '';
+
 export const PLAN_PRICES: PlanPriceConfig[] = [
+  {
+    name: 'Assistant Plus',
+    priceId: assistantPlusGbPriceId,
+    priceIds: {
+      GB: assistantPlusGbPriceId,
+      US: assistantPlusUsPriceId,
+    },
+    display: '£12/Month',
+    displayByMarket: {
+      GB: '£12/Month',
+      US: '$15/Month',
+    },
+    features: [
+      'Premium assistant responses',
+      'Document uploads in chat',
+      'More daily web searches with sources',
+      'Saved chats',
+    ],
+  },
+  {
+    name: 'Assistant Pro',
+    priceId: assistantProGbPriceId,
+    priceIds: {
+      GB: assistantProGbPriceId,
+      US: assistantProUsPriceId,
+    },
+    display: '£49.99/Month',
+    displayByMarket: {
+      GB: '£49.99/Month',
+      US: '$59.99/Month',
+    },
+    features: [
+      'Premium+ assistant responses',
+      'Persistent memory',
+      'Higher web research allowance',
+      'Document uploads',
+      'Saved document library',
+      'Case-law retrieval in chat',
+      'Case Law page',
+    ],
+  },
   {
     name: 'Basic',
     priceId: basicGbPriceId,
@@ -51,10 +108,10 @@ export const PLAN_PRICES: PlanPriceConfig[] = [
       GB: basicGbPriceId,
       US: basicUsPriceId,
     },
-    display: '£14/Month',
+    display: '£18/Month',
     displayByMarket: {
-      GB: '£14/Month',
-      US: '$25/Month',
+      GB: '£18/Month',
+      US: '$32/Month',
     },
     features: [
       'MyMcKenzieCS Basic Assistant',
@@ -70,10 +127,10 @@ export const PLAN_PRICES: PlanPriceConfig[] = [
       GB: premiumGbPriceId,
       US: premiumUsPriceId,
     },
-    display: '£24/Month',
+    display: '£32/Month',
     displayByMarket: {
-      GB: '£24/Month',
-      US: '$44/Month',
+      GB: '£32/Month',
+      US: '$58/Month',
     },
     features: [
       'MyMcKenzieCS Smart Assistant',
@@ -100,7 +157,7 @@ export const PLAN_PRICES: PlanPriceConfig[] = [
       '150 document storage',
       'Persistent chat history',
       'Enhanced research support with source citations',
-      'Advanced case law retrieval and study',
+      'Advanced case-law retrieval and study',
       DEADLINE_REMINDER_FEATURE,
     ],
   },

@@ -2,8 +2,21 @@ import { after, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
-import { getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse, uploadIpRateLimiter } from '@/lib/utils/rate-limit'
+import {
+  assistantPlusUploadDailyRateLimiter,
+  assistantPlusUploadMonthlyRateLimiter,
+  assistantProUploadDailyRateLimiter,
+  assistantProUploadMonthlyRateLimiter,
+  assistantUsageLimits,
+  getClientIp,
+  getIdentifier,
+  rateLimit,
+  rateLimitExceededResponse,
+  uploadIpRateLimiter,
+} from '@/lib/utils/rate-limit'
 import { formatSupportedAttachmentTypes, isSupportedChatAttachment } from '@/lib/chat/attachments'
+import { getUserPlanData } from '@/lib/payments/user-plan'
+import { getPlanTier } from '@/lib/plans/access'
 import {
   CHAT_UPLOAD_BUCKET,
   CHAT_UPLOAD_TTL_MS,
@@ -25,11 +38,62 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
+    const planData = await getUserPlanData(user.id, user.email || null)
+    if (!planData?.paidAccess) {
+      return NextResponse.json(
+        { message: 'Document uploads are available on Assistant Plus and higher plans.' },
+        { status: 403 }
+      )
+    }
+    const planTier = getPlanTier(planData.plan || '')
 
     const ip = getClientIp(request.headers)
     const limit = await rateLimit(uploadIpRateLimiter, `upload:chat:ip:${getIdentifier(undefined, ip)}`, 60, 10 * 60 * 1000)
     if (!limit.success) {
       return rateLimitExceededResponse(limit, 'Too many upload requests. Please try again later.')
+    }
+    if (planTier === 'assistant_plus' || planTier === 'assistant_pro') {
+      const dailyUploadLimit = planTier === 'assistant_pro'
+        ? assistantUsageLimits.proUploadDaily
+        : assistantUsageLimits.plusUploadDaily
+      const dailyLimiter = planTier === 'assistant_pro'
+        ? assistantProUploadDailyRateLimiter
+        : assistantPlusUploadDailyRateLimiter
+      const dailyLimit = await rateLimit(
+        dailyLimiter,
+        `upload:chat:${planTier}:${user.id}`,
+        dailyUploadLimit,
+        24 * 60 * 60 * 1000
+      )
+      if (!dailyLimit.success) {
+        return rateLimitExceededResponse(
+          dailyLimit,
+          planTier === 'assistant_pro'
+            ? 'You have reached today\'s Assistant Pro upload limit. Please try again tomorrow.'
+            : 'You have reached today\'s Assistant Plus upload limit. Please try again tomorrow.'
+        )
+      }
+
+      const monthlyUploadLimit = planTier === 'assistant_pro'
+        ? assistantUsageLimits.proUploadMonthly
+        : assistantUsageLimits.plusUploadMonthly
+      const monthlyLimiter = planTier === 'assistant_pro'
+        ? assistantProUploadMonthlyRateLimiter
+        : assistantPlusUploadMonthlyRateLimiter
+      const monthlyLimit = await rateLimit(
+        monthlyLimiter,
+        `upload:chat:${planTier}:monthly:${user.id}`,
+        monthlyUploadLimit,
+        30 * 24 * 60 * 60 * 1000
+      )
+      if (!monthlyLimit.success) {
+        return rateLimitExceededResponse(
+          monthlyLimit,
+          planTier === 'assistant_pro'
+            ? 'You have reached the Assistant Pro monthly upload limit. Please try again when it resets.'
+            : 'You have reached the Assistant Plus monthly upload limit. Upgrade to Pro for more uploads, or try again when it resets.'
+        )
+      }
     }
 
     await deleteExpiredChatUploads()

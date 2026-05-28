@@ -59,6 +59,13 @@ function resolveAccountType(authUser: any, userRow?: Record<string, any> | null)
   )
 }
 
+function resolvePreferredProduct(authUser: any) {
+  const metadata = (authUser?.user_metadata || {}) as Record<string, any>
+  const source = String(metadata.signup_source || metadata.product_source || '').trim().toLowerCase()
+  if (source === 'assistant' || source === 'assistant-demo') return 'assistant'
+  return null
+}
+
 async function loadWorkspaceAccessFlags(userId: string) {
   const [businessMembershipResult, clientLinkResult] = await Promise.all([
     supabaseAdmin
@@ -123,6 +130,7 @@ export async function GET(_request: NextRequest) {
         emailVerified: Boolean(authEmailVerifiedAt),
         hasBusinessWorkspace: accessFlags.hasBusinessWorkspace,
         hasClientPortalAccess: accessFlags.hasClientPortalAccess,
+        preferredProduct: resolvePreferredProduct(data.user),
         canUseLitigantWorkspace: true,
       })
     }
@@ -149,6 +157,7 @@ export async function GET(_request: NextRequest) {
       emailVerified: Boolean(emailVerifiedAt),
       hasBusinessWorkspace: accessFlags.hasBusinessWorkspace,
       hasClientPortalAccess: accessFlags.hasClientPortalAccess,
+      preferredProduct: resolvePreferredProduct(data.user),
       canUseLitigantWorkspace: true,
     })
   } catch (error: any) {

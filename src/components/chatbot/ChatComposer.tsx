@@ -1,6 +1,7 @@
 "use client"
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import type { FormEvent, KeyboardEvent, MutableRefObject, ChangeEvent } from 'react'
 import { CHAT_ATTACHMENT_ACCEPT } from '@/lib/chat/attachments'
 
@@ -8,6 +9,8 @@ type ChatComposerProps = {
   onSubmit: (e?: FormEvent<HTMLFormElement>) => void
   showGuestSignupModal: boolean
   onCloseGuestSignupModal: () => void
+  guestSignupReason?: 'upload' | 'limit'
+  anonymousMessageLimit?: number | null
   attachedFiles: File[]
   onRemoveFile: (index: number) => void
   guestUploadWarning: string | null
@@ -26,12 +29,15 @@ type ChatComposerProps = {
   isPlanLocked: boolean
   planLockMessage?: string
   dockToPane?: boolean
+  paneWidth?: 'full' | 'standard'
 }
 
 export default function ChatComposer({
   onSubmit,
   showGuestSignupModal,
   onCloseGuestSignupModal,
+  guestSignupReason = 'upload',
+  anonymousMessageLimit = null,
   attachedFiles,
   onRemoveFile,
   guestUploadWarning,
@@ -50,12 +56,26 @@ export default function ChatComposer({
   isPlanLocked,
   planLockMessage,
   dockToPane = false,
+  paneWidth = 'full',
 }: ChatComposerProps) {
+  const pathname = usePathname()
+  const useFullPaneWidth = dockToPane && paneWidth === 'full'
   const controlButtonSize = 'clamp(28px, 1.15vw + 22px, 40px)'
   const controlIconSize = 'clamp(16px, 0.45vw + 14px, 22px)'
   const controlFontSize = 'clamp(12px, 0.2vw + 11px, 14px)'
-  const composerShellMaxWidth = 'min(760px, 100%)'
-  const composerPanelMaxWidth = 'min(700px, 100%)'
+  const composerShellMaxWidth = useFullPaneWidth ? '100%' : 'min(760px, 100%)'
+  const composerPanelMaxWidth = useFullPaneWidth ? '100%' : 'min(700px, 100%)'
+  const composerInlinePaddingEnd = useFullPaneWidth ? 'clamp(16px, 3vw, 36px)' : 'max(10px, env(safe-area-inset-right))'
+  const composerInlinePaddingStart = useFullPaneWidth ? 'clamp(16px, 3vw, 36px)' : 'max(10px, env(safe-area-inset-left))'
+  const signupTitle = guestSignupReason === 'limit'
+    ? 'Create a free account to continue this chat'
+    : 'Sign up to attach documents'
+  const signupBody = guestSignupReason === 'limit'
+    ? 'Create a free account and we will bring this conversation with you after sign-up.'
+    : 'File uploads are available to registered Plus and Premium users. Create an account or sign in to upload documents and keep them with your chat.'
+  const authRedirect = pathname === '/assistant' ? '/assistant/pricing' : (pathname || '/assistant')
+  const signInHref = `/auth/signin?redirect=${encodeURIComponent(authRedirect)}`
+  const signUpHref = `/auth/signup?redirect=${encodeURIComponent(authRedirect)}`
 
   return (
     <form
@@ -77,76 +97,128 @@ export default function ChatComposer({
             position: 'fixed',
             inset: 0,
             zIndex: 70,
-            background: 'linear-gradient(120deg, rgba(15,3,20,0.86), rgba(46,7,55,0.88))',
+            background: 'rgba(10, 8, 12, 0.86)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
             display: 'flex',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             justifyContent: 'center',
-            padding: 'clamp(12px, 4vw, 24px)'
+            padding: 'clamp(88px, 22vh, 190px) clamp(16px, 5vw, 28px) clamp(28px, 8vh, 60px)'
           }}
           onClick={onCloseGuestSignupModal}
         >
+          <button
+            type="button"
+            onClick={onCloseGuestSignupModal}
+            aria-label="Close"
+            style={{
+              position: 'fixed',
+              top: '18px',
+              right: '22px',
+              width: '34px',
+              height: '34px',
+              display: 'grid',
+              placeItems: 'center',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '999px',
+              background: 'rgba(255,255,255,0.06)',
+              color: 'rgba(255,255,255,0.86)',
+              cursor: 'pointer',
+              fontSize: '20px',
+              lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
               width: '100%',
-              maxWidth: 'min(520px, 100vw)',
-              background: 'rgba(20, 6, 26, 0.98)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: '16px',
-              padding: 'clamp(18px, 5vw, 28px)',
+              maxWidth: '360px',
+              background: 'transparent',
+              border: '0',
+              borderRadius: '0',
+              padding: '0',
               color: '#fff',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
+              boxShadow: 'none',
+              textAlign: 'center'
             }}
           >
-            <div style={{ fontSize: 'clamp(1.1rem, 4.8vw, 1.35rem)', fontWeight: 700, marginBottom: '10px' }}>
-              Sign up to attach documents
+            <div
+              style={{
+                fontSize: 'clamp(1.65rem, 5vw, 2.25rem)',
+                fontWeight: 650,
+                lineHeight: 1.12,
+                marginBottom: '14px',
+                letterSpacing: 0,
+              }}
+            >
+              {signupTitle}
             </div>
-            <div style={{ opacity: 0.85, lineHeight: 1.6, marginBottom: '20px' }}>
-              File uploads are available to registered users. Create an account to upload documents and keep them with your case.
+            <div
+              style={{
+                opacity: 0.78,
+                lineHeight: 1.55,
+                margin: '0 auto 28px',
+                fontSize: '0.95rem',
+                maxWidth: '340px',
+              }}
+            >
+              {signupBody}
             </div>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+              <Link
+                href={signUpHref}
+                style={{
+                  minHeight: '44px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 16px',
+                  borderRadius: '8px',
+                  background: '#f3f0f4',
+                  color: '#17131a',
+                  fontWeight: 800,
+                  textDecoration: 'none',
+                  border: '1px solid rgba(255,255,255,0.18)',
+                }}
+              >
+                Create account
+              </Link>
+              <Link
+                href={signInHref}
+                style={{
+                  minHeight: '42px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 16px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'rgba(255,255,255,0.08)',
+                  color: '#f8fafc',
+                  fontWeight: 750,
+                  textDecoration: 'none'
+                }}
+              >
+                Sign in
+              </Link>
               <button
                 type="button"
                 onClick={onCloseGuestSignupModal}
                 style={{
-                  padding: '10px 16px',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(255,255,255,0.18)',
+                  minHeight: '36px',
+                  padding: '0 16px',
+                  borderRadius: '8px',
+                  border: '0',
                   background: 'transparent',
-                  color: '#fff',
+                  color: 'rgba(255,255,255,0.58)',
                   fontWeight: 600,
                   cursor: 'pointer'
                 }}
               >
                 Maybe later
               </button>
-              <Link
-                href="/auth/signin"
-                style={{
-                  padding: '10px 16px',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(255,255,255,0.18)',
-                  background: 'rgba(255,255,255,0.08)',
-                  color: '#fff',
-                  fontWeight: 700,
-                  textDecoration: 'none'
-                }}
-              >
-                Sign in
-              </Link>
-              <Link
-                href="/auth/signup"
-                style={{
-                  padding: '10px 16px',
-                  borderRadius: '10px',
-                  background: '#8b5cf6',
-                  color: '#fff',
-                  fontWeight: 700,
-                  textDecoration: 'none'
-                }}
-              >
-                Create account
-              </Link>
             </div>
           </div>
         </div>
@@ -158,7 +230,7 @@ export default function ChatComposer({
           right: dockToPane ? undefined : 0,
           bottom: dockToPane ? undefined : 0,
           width: '100%',
-          padding: '0 max(10px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left))',
+          padding: `0 ${composerInlinePaddingEnd} calc(10px + env(safe-area-inset-bottom)) ${composerInlinePaddingStart}`,
           pointerEvents: 'auto',
           zIndex: 50,
           background: dockToPane
@@ -431,7 +503,7 @@ export default function ChatComposer({
                 lineHeight: 1.4,
               }}
             >
-              Informational support only - MyMcKenzieCS Assistant is not a substitute for legal advice.
+              Informational support only - MyMcKenzie Assistant can make mistakes and is not a substitute for legal advice.
             </div>
 
             {showWordLimitWarning && (

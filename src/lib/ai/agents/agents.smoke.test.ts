@@ -501,13 +501,13 @@ describe('agent smoke checks', () => {
     expect(result.response).toMatch(/\[\d+\]/)
     expect((result.sources || []).length).toBeGreaterThan(0)
     expect((result as any).basicDailySearchNotice).toBe(
-      'Daily web search limit reached. Back to standard answers.'
+      'You have used your web search limit for today. You can continue without web search, or upgrade for more search access.'
     )
     expect(consumeSearchQuota).toHaveBeenCalledTimes(1)
     expect(searchSpy).toHaveBeenCalledTimes(1)
   })
 
-  it('basic agent falls back to direct guidance without a repeated cap message when quota is exhausted', async () => {
+  it('basic agent falls back to direct guidance with a cap notice when quota is exhausted', async () => {
     const searchSpy = vi.spyOn(SearchTool.prototype, '_call')
     const consumeSearchQuota = vi.fn(async () => ({
       allowed: false,
@@ -532,7 +532,9 @@ describe('agent smoke checks', () => {
 
     expect(result.response).not.toContain("You've used your 5 searches today. Upgrade for unlimited research.")
     expect(result.response).not.toContain('Daily web search limit reached. Back to standard answers')
-    expect((result as any).basicDailySearchNotice).toBeUndefined()
+    expect((result as any).basicDailySearchNotice).toBe(
+      'You have used your web search limit for today. You can continue without web search, or upgrade for more search access.'
+    )
     expect(consumeSearchQuota).toHaveBeenCalledTimes(1)
     expect(searchSpy).not.toHaveBeenCalled()
   })
@@ -639,7 +641,7 @@ describe('agent smoke checks', () => {
       ? String(payload.messages.find((message: any) => message?.role === 'system')?.content || '')
       : ''
 
-    expect(systemPrompt).toContain('You are MyMckenzieCS Assistant')
+    expect(systemPrompt).toContain('You are MyMcKenzie Assistant')
     expect(systemPrompt).not.toContain('You have access to web_search')
     expect(systemPrompt).not.toContain('case_law_search')
   })

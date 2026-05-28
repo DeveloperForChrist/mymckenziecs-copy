@@ -17,13 +17,13 @@ export default function UkLitigantsPricingPage() {
     <Suspense fallback={null}>
       <PricingPageClient
         billingMarket="GB"
-        audienceDescription="Founding-member offer for early members. Compare plans for UK litigants in person who need help organising documents, tracking deadlines, keeping notes, and preparing their own case with structured support."
-        availabilityMessage="Founding-member launch offer: 25% off for early members, with a 3-day free trial before billing starts."
+        audienceDescription="Compare plans for UK litigants in person who need help organising documents, tracking deadlines, keeping notes, and preparing their own case with structured support."
+        availabilityMessage="Choose the plan that fits the level of support you need."
         faqHref="/uk/faq"
         guideIntroText="If you are managing your own UK matter, start with the"
         priceByPlan={{
-          basic: '14',
-          premium: '24',
+          basic: '18',
+          premium: '32',
           premiumPlus: '149',
         }}
         guideLinks={[

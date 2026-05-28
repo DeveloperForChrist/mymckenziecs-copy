@@ -22,8 +22,8 @@ export default function UsPricingPage() {
         billingMarket="US"
         currencySymbol="$"
         priceByPlan={{
-          basic: '25',
-          premium: '44',
+          basic: '32',
+          premium: '58',
           premiumPlus: '270',
         }}
         guideLinks={[

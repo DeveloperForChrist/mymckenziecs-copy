@@ -7,7 +7,7 @@ import { buildMarketAwareAuthHref, getPublicMarket, getPublicRouteForMarket } fr
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Create Account',
-  description: 'Create a MyMcKenzieCS account and start organising client legal support work in one workspace.',
+  description: 'Create a MyMcKenzieCS account.',
   path: '/auth/signup',
   noIndex: true,
 })
@@ -27,37 +27,38 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
   })
   const pricingHref = getPublicRouteForMarket('/pricing', market)
   const faqHref = getPublicRouteForMarket('/faq', market)
-  const signInHref = buildMarketAwareAuthHref('/auth/signin', market)
+  const signInHref = buildMarketAwareAuthHref('/auth/signin', market, {
+    redirect: redirectPath,
+  })
 
   return (
     <>
       <main className={styles.page}>
         <div className={styles.shell}>
           <section className={styles.hero}>
-            <span className={styles.heroTag}>For legal support professionals</span>
+            <span className={styles.heroTag}>Your account</span>
             <div>
-              <h1 className={styles.heroTitle}>Create your client workspace.</h1>
+              <h1 className={styles.heroTitle}>Create your account.</h1>
               <p className={styles.heroCopy}>
-                MyMcKenzieCS keeps client notes, deadlines, and document context together so your support work
-                feels clearer, calmer, and more professional.
+                Use one account for MyMcKenzieCS tools and any client portal access.
               </p>
               <div className={styles.heroList}>
                 <div className={styles.heroListItem}>
                   <span>01</span>
-                  <div>Track key dates, documents, client notes, and next steps in one place.</div>
+                  <div>Ask questions and continue saved chats.</div>
                 </div>
                 <div className={styles.heroListItem}>
                   <span>02</span>
-                <div>Give client matters a clearer structure without presenting the platform as legal advice.</div>
+                <div>Choose a plan when you are ready.</div>
                 </div>
                 <div className={styles.heroListItem}>
                   <span>03</span>
-                  <div>Start using the workspace now and upgrade anytime as your workload grows.</div>
+                  <div>Invited by a professional? Use the same account.</div>
                 </div>
               </div>
             </div>
             <div className={styles.heroFooter}>
-              <span className={styles.pill}>Create your workspace and choose your plan in billing when ready.</span>
+              <span className={styles.pill}>Create your account and continue.</span>
               <a href={pricingHref}>Plans</a>
               <a href={faqHref}>Plan FAQ</a>
             </div>
@@ -67,7 +68,7 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
             <div>
               <h2 className={styles.formTitle}>Create your account</h2>
               <p className={styles.formSubtitle}>
-                Enter your details to create your account. We&apos;ll send a verification email next so you can unlock your workspace and start using it.
+                Enter your details. We&apos;ll send a verification email next.
               </p>
             </div>
             <Suspense fallback={<div className={styles.formSubtitle}>Loading account form...</div>}>

@@ -9,8 +9,12 @@ import {
 import { searchCaseLawWithFallback } from '@/lib/case-law/runtime-search';
 import { captureServerException } from '@/lib/monitoring/error-logger';
 import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
-import { hasCaseLawAccess } from '@/lib/plans/access';
+import { getPlanTier, hasCaseLawAccess } from '@/lib/plans/access';
 import { getUserLegalContext, isCaseLawAvailableForLegalContext } from '@/lib/legal/user-context';
+import {
+  consumeAssistantProCaseLawRetrievalQuota,
+  getAssistantProCaseLawRetrievalLimitReachedNotice,
+} from '@/lib/payments/web-search-usage';
 
 const caseLawRequestSchema = z.object({
   query: z.string(),
@@ -54,6 +58,7 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
+    const planTier = getPlanTier(snapshot?.plan_type || '');
 
     // Rate limiting
     const identifier = getIdentifier(userId ?? undefined, safeIp);
@@ -86,6 +91,20 @@ export async function POST(request: NextRequest) {
 
     if (!query || query.trim().length === 0) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
+    }
+
+    if (planTier === 'assistant_pro') {
+      const quota = await consumeAssistantProCaseLawRetrievalQuota(userId);
+      if (!quota.allowed) {
+        return NextResponse.json(
+          {
+            error: getAssistantProCaseLawRetrievalLimitReachedNotice(quota.resetsAt),
+            resetsAt: quota.resetsAt,
+            limit: quota.limit,
+          },
+          { status: 429 }
+        );
+      }
     }
 
     const runtimeSearch = await searchCaseLawWithFallback(query, Math.max(5, limit), {

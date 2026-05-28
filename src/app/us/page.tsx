@@ -89,7 +89,7 @@ const useCases = [
 const plans = [
   {
     name: 'Basic',
-    price: '25',
+    price: '32',
     bullets: [
       'MyMcKenzieCS Basic Assistant',
       '10 document storage',
@@ -98,7 +98,7 @@ const plans = [
   },
   {
     name: 'Premium',
-    price: '44',
+    price: '58',
     bullets: [
       'MyMcKenzieCS Smart Assistant',
       '25 document storage',
@@ -184,7 +184,7 @@ export default function UsHomePage() {
       marketSwitch={{ href: '/uk', label: 'Need the UK / original version? Open the main site' }}
       ctaTitle="Start building your U.S. case workflow now."
       ctaText="Start with one question, then keep your filings, deadlines, hearing prep, and working notes in the same structure."
-      plansNote="U.S. counterpart pricing is shown here as $25, $44, and $270 while the U.S. rollout continues expanding public content and jurisdiction-aware support."
+      plansNote="U.S. counterpart pricing is shown here as $32, $58, and $270 while the U.S. rollout continues expanding public content and jurisdiction-aware support."
     />
   );
 }

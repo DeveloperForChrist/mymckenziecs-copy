@@ -131,18 +131,18 @@ export async function POST(req: Request) {
           const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech';
           const billingMarket = getBillingMarketFromCountryCode((userRow as any)?.country_code || null);
           const htmlBody = renderTemplate('29-cancellation-scheduled.html', {
-            heading: 'Your free trial cancellation is confirmed',
+            heading: 'Your cancellation is confirmed',
             name: userRow.name || 'there',
-            summary_text: `This confirms that your <strong>${planName}</strong> free trial has been scheduled to end on <strong>${endDate}</strong>.`,
+            summary_text: `This confirms that your <strong>${planName}</strong> access has been scheduled to end on <strong>${endDate}</strong>.`,
             detail_text:
-              'Your workspace will remain active until that date. Billing will not begin unless you resume the plan before the trial ends.',
+              'Your workspace will remain active until that date. Billing will not begin unless you resume the plan before access ends.',
             manage_url: `${appUrl}${getAppRouteForMarket('/settings?tab=billing', billingMarket)}`,
             support_email: supportEmail,
           });
 
           await sendResendEmail({
             to: userRow.email,
-            subject: `Your MyMcKenzieCS free trial will end on ${endDate}`,
+            subject: `Your MyMcKenzieCS access will end on ${endDate}`,
             htmlBody,
             tag: 'billing-trial-cancellation-scheduled',
           });
@@ -222,13 +222,13 @@ export async function POST(req: Request) {
         const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech';
         const billingMarket = getBillingMarketFromCountryCode((userRow as any)?.country_code || null);
         const htmlBody = renderTemplate('29-cancellation-scheduled.html', {
-          heading: isTrialCancellation ? 'Your free trial cancellation is confirmed' : 'Your cancellation is confirmed',
+          heading: isTrialCancellation ? 'Your cancellation is confirmed' : 'Your cancellation is confirmed',
           name: userRow.name || 'there',
           summary_text: isTrialCancellation
-            ? `This confirms that your <strong>${planName}</strong> free trial has been scheduled to end on <strong>${endDate}</strong>.`
+            ? `This confirms that your <strong>${planName}</strong> access has been scheduled to end on <strong>${endDate}</strong>.`
             : `This confirms that your <strong>${planName}</strong> subscription has been scheduled to end on <strong>${endDate}</strong>.`,
           detail_text: isTrialCancellation
-            ? 'Your workspace will remain active until that date. Billing will not begin unless you resume the plan before the trial ends.'
+            ? 'Your workspace will remain active until that date. Billing will not begin unless you resume the plan before access ends.'
             : 'Your access will remain active until that date. Automatic renewal has been turned off, and no further renewal charges will be made unless you resume before then.',
           manage_url: `${appUrl}${getAppRouteForMarket('/settings?tab=billing', billingMarket)}`,
           support_email: supportEmail,
@@ -237,7 +237,7 @@ export async function POST(req: Request) {
         await sendResendEmail({
           to: userRow.email,
           subject: isTrialCancellation
-            ? `Your MyMcKenzieCS free trial will end on ${endDate}`
+            ? `Your MyMcKenzieCS access will end on ${endDate}`
             : `Your MyMcKenzieCS subscription will end on ${endDate}`,
           htmlBody,
           tag: isTrialCancellation ? 'billing-trial-cancellation-scheduled' : 'billing-cancellation-scheduled',

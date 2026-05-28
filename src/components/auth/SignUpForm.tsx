@@ -89,6 +89,7 @@ export default function SignUpForm() {
   const isBusinessPlan = ['solo'].includes(selectedPlanName.toLowerCase())
   const isBusinessSignup = audienceParam === 'business' || isBusinessPlan
   const redirectParam = (searchParams?.get('redirect') || '').trim()
+  const isAssistantSignup = redirectParam === '/assistant' || redirectParam.startsWith('/assistant/')
   const publicMarket = getPublicMarket({
     pathname: redirectParam || pathname,
     explicitMarket: searchParams?.get('market'),
@@ -112,7 +113,7 @@ export default function SignUpForm() {
   useEffect(() => {
     let cancelled = false
 
-    if (isBusinessSignup) {
+    if (isBusinessSignup || isAssistantSignup) {
       setGeoHint({
         status: 'ready',
         message: '',
@@ -186,7 +187,7 @@ export default function SignUpForm() {
     return () => {
       cancelled = true
     }
-  }, [isBusinessSignup])
+  }, [isBusinessSignup, isAssistantSignup])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -212,13 +213,13 @@ export default function SignUpForm() {
       return
     }
 
-    if (!isBusinessSignup && !selectedCountry) {
+    if (!isBusinessSignup && !isAssistantSignup && !selectedCountry) {
       setError('Please select the country your legal matter is in.')
       setLoading(false)
       return
     }
 
-    if (!isBusinessSignup && !jurisdictionOptions.some((option) => option.code === formData.jurisdictionCode)) {
+    if (!isBusinessSignup && !isAssistantSignup && !jurisdictionOptions.some((option) => option.code === formData.jurisdictionCode)) {
       setError(`Please select your ${selectedCountry?.jurisdictionLabel.toLowerCase() || 'jurisdiction'}.`)
       setLoading(false)
       return
@@ -240,8 +241,8 @@ export default function SignUpForm() {
           fullName: normalized,
           firstName,
           lastName,
-          countryCode: isBusinessSignup ? null : formData.countryCode,
-          jurisdictionCode: isBusinessSignup ? null : formData.jurisdictionCode,
+          countryCode: isBusinessSignup || isAssistantSignup ? null : formData.countryCode,
+          jurisdictionCode: isBusinessSignup || isAssistantSignup ? null : formData.jurisdictionCode,
           audience: isBusinessSignup ? 'business' : 'litigant',
           plan: selectedPlanName,
           market: publicMarket,
@@ -323,7 +324,7 @@ export default function SignUpForm() {
         />
       </div>
 
-      {!isBusinessSignup && (
+      {!isBusinessSignup && !isAssistantSignup && (
         <>
           <div>
             <div className={styles.fieldHeader}>

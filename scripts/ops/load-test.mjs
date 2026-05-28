@@ -2,6 +2,11 @@
 
 import { performance } from 'node:perf_hooks';
 import crypto from 'node:crypto';
+import dotenv from 'dotenv';
+import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
+
+dotenv.config({ path: '.env.local' });
 
 const argv = process.argv.slice(2);
 
@@ -23,7 +28,11 @@ const target = getArg('target', 'chat').toLowerCase();
 const seconds = toInt(getArg('seconds', process.env.LOAD_TEST_SECONDS || '30'), 30);
 const concurrency = toInt(getArg('concurrency', process.env.LOAD_TEST_CONCURRENCY || '20'), 20);
 const timeoutMs = toInt(getArg('timeout-ms', process.env.LOAD_TEST_TIMEOUT_MS || '15000'), 15000);
-const authCookie = getArg('auth-cookie', process.env.LOAD_TEST_AUTH_COOKIE || '');
+let authCookie = getArg('auth-cookie', process.env.LOAD_TEST_AUTH_COOKIE || '');
+const authEmail = getArg('auth-email', process.env.LOAD_TEST_AUTH_EMAIL || process.env.ADMIN_EMAIL || '');
+const authPassword = getArg('auth-password', process.env.LOAD_TEST_AUTH_PASSWORD || process.env.ADMIN_PASSWORD || '');
+const supabaseUrl = getArg('supabase-url', process.env.NEXT_PUBLIC_SUPABASE_URL || '');
+const supabaseAnonKey = getArg('anon-key', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '');
 const rotateIp = getArg('rotate-ip', process.env.LOAD_TEST_ROTATE_IP || '0') === '1';
 const chatPromptMode = getArg('chat-prompt', process.env.LOAD_TEST_CHAT_PROMPT || 'support').toLowerCase();
 
@@ -106,7 +115,61 @@ const pickMode = () => {
 
 const shouldSkipAuthTarget = (mode) => (mode === 'plan' || mode === 'documents') && !authCookie;
 
+const createCookieHeaderFromSession = async (session) => {
+  /** @type {Array<{name: string, value: string}>} */
+  let cookieJar = [];
+  const upsertCookie = (name, value) => {
+    const idx = cookieJar.findIndex((c) => c.name === name);
+    if (idx === -1) cookieJar.push({ name, value });
+    else cookieJar[idx] = { name, value };
+  };
+
+  const serverClient = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return cookieJar;
+      },
+      setAll(cookiesToSet) {
+        for (const cookie of cookiesToSet) {
+          upsertCookie(cookie.name, cookie.value || '');
+        }
+      },
+    },
+  });
+
+  const { error } = await serverClient.auth.setSession({
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+  });
+  if (error) throw error;
+
+  return cookieJar
+    .filter((cookie) => cookie.value)
+    .map((cookie) => `${cookie.name}=${cookie.value}`)
+    .join('; ');
+};
+
+const resolveAuthCookie = async () => {
+  if (authCookie || !authEmail || !authPassword) return;
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase URL and anon key are required for --auth-email/--auth-password login.');
+  }
+
+  const browserClient = createClient(supabaseUrl, supabaseAnonKey);
+  const { data, error } = await browserClient.auth.signInWithPassword({
+    email: authEmail,
+    password: authPassword,
+  });
+  if (error || !data.session) {
+    throw new Error(error?.message || 'Supabase sign-in did not return a session.');
+  }
+
+  authCookie = await createCookieHeaderFromSession(data.session);
+};
+
 const run = async () => {
+  await resolveAuthCookie();
+
   const endAt = Date.now() + seconds * 1000;
   const latencies = [];
   let ok = 0;

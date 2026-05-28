@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import PricingAudienceSelector from '@/components/pricing/PricingAudienceSelector';
+import { Suspense } from 'react';
+import PricingPageClient from '@/components/pricing/PricingPageClient';
 import { buildPageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = buildPageMetadata({
@@ -11,5 +12,15 @@ export const metadata: Metadata = buildPageMetadata({
 export const revalidate = 86400;
 
 export default function UkPricingPage() {
-  return <PricingAudienceSelector marketPrefix="/uk" homeHref="/uk" regionLabel="UK pricing" />;
+  return (
+    <Suspense fallback={null}>
+      <PricingPageClient
+        priceByPlan={{
+          basic: '18',
+          premium: '32',
+          premiumPlus: '149',
+        }}
+      />
+    </Suspense>
+  );
 }

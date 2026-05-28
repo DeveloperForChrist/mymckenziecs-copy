@@ -30,6 +30,42 @@ function normalizeBusinessPlan(value: unknown): 'Solo' | null {
   return null
 }
 
+function getEdgeCountryCode(headers: Headers): string {
+  return String(
+    headers.get('x-vercel-ip-country') ||
+    headers.get('cf-ipcountry') ||
+    headers.get('x-country-code') ||
+    ''
+  ).trim().toUpperCase()
+}
+
+function getEdgeRegionCode(headers: Headers): string {
+  return String(
+    headers.get('x-vercel-ip-country-region') ||
+    headers.get('x-vercel-ip-region') ||
+    headers.get('x-region-code') ||
+    ''
+  ).trim().toUpperCase()
+}
+
+function inferLegalContextFromRequest(request: NextRequest) {
+  const edgeCountryCode = getEdgeCountryCode(request.headers)
+  const edgeRegionCode = getEdgeRegionCode(request.headers)
+  const inferredCountryCode = isSupportedCountryCode(edgeCountryCode) ? edgeCountryCode : ''
+  const inferredJurisdictionCode =
+    inferredCountryCode === 'US' && /^[A-Z]{2}$/.test(edgeRegionCode)
+      ? `US-${edgeRegionCode}`
+      : ''
+  const validInferredJurisdiction = isSupportedJurisdictionCode(inferredCountryCode, inferredJurisdictionCode)
+    ? inferredJurisdictionCode
+    : ''
+
+  return {
+    countryCode: inferredCountryCode,
+    jurisdictionCode: validInferredJurisdiction,
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const ip = getClientIp(request.headers)
@@ -60,6 +96,12 @@ export async function POST(request: NextRequest) {
     const isBusinessSignup =
       String(audience).trim().toLowerCase() === 'business' ||
       Boolean(selectedBusinessPlan)
+    const isAssistantSignup =
+      !isBusinessSignup &&
+      (safeRedirectPath(requestedRedirect, '').startsWith('/assistant') || String(body?.signupSource || '').trim() === 'assistant')
+    const inferredLegalContext = inferLegalContextFromRequest(request)
+    const effectiveCountryCode = countryCode || (isAssistantSignup ? inferredLegalContext.countryCode : '')
+    const effectiveJurisdictionCode = jurisdictionCode || (isAssistantSignup ? inferredLegalContext.jurisdictionCode : '')
 
     if (!fullName) {
       return NextResponse.json({ message: 'Full name is required.' }, { status: 400 })
@@ -73,11 +115,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Please choose a stronger password.' }, { status: 400 })
     }
 
-    if (!isBusinessSignup && !isSupportedCountryCode(countryCode)) {
+    if (!isBusinessSignup && !isAssistantSignup && !isSupportedCountryCode(countryCode)) {
       return NextResponse.json({ message: 'Please select the country your legal matter is in.' }, { status: 400 })
     }
 
-    if (!isBusinessSignup && !isSupportedJurisdictionCode(countryCode, jurisdictionCode)) {
+    if (!isBusinessSignup && !isAssistantSignup && !isSupportedJurisdictionCode(countryCode, jurisdictionCode)) {
       return NextResponse.json(
         {
           message: `Please select a valid ${getCountryOption(countryCode)?.jurisdictionLabel.toLowerCase() || 'jurisdiction'}.`,
@@ -86,14 +128,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const billingMarket: BillingMarket = isBusinessSignup ? market : getBillingMarketFromCountryCode(countryCode)
+    const billingCountryCode = isSupportedCountryCode(effectiveCountryCode) ? effectiveCountryCode : market
+    const billingMarket: BillingMarket = isBusinessSignup ? market : getBillingMarketFromCountryCode(billingCountryCode)
     const redirect = safeRedirectPath(
       requestedRedirect,
       isBusinessSignup ? '/business/dashboard' : getAppRouteForMarket('/dashboard', billingMarket)
     )
-    const jurisdictionLabel = isBusinessSignup ? null : getJurisdictionLabel(countryCode, jurisdictionCode)
-    const profileCountryCode = isBusinessSignup ? null : countryCode
-    const profileJurisdictionCode = isBusinessSignup ? null : jurisdictionCode
+    const jurisdictionLabel = isBusinessSignup ? null : getJurisdictionLabel(effectiveCountryCode, effectiveJurisdictionCode)
+    const profileCountryCode = isBusinessSignup ? null : (isSupportedCountryCode(effectiveCountryCode) ? effectiveCountryCode : null)
+    const profileJurisdictionCode = isBusinessSignup
+      ? null
+      : isSupportedJurisdictionCode(effectiveCountryCode, effectiveJurisdictionCode)
+        ? effectiveJurisdictionCode
+        : null
 
     const metadata = {
       full_name: fullName,
@@ -103,6 +150,7 @@ export async function POST(request: NextRequest) {
       account_type: isBusinessSignup ? 'business' : 'litigant',
       billing_audience: isBusinessSignup ? 'business' : 'litigant',
       selected_business_plan: isBusinessSignup ? (selectedBusinessPlan || 'Solo') : null,
+      signup_source: isAssistantSignup ? 'assistant' : null,
       country_code: profileCountryCode,
       jurisdiction_code: profileJurisdictionCode,
       jurisdiction_label: jurisdictionLabel,

@@ -31,6 +31,8 @@ function clampLimit(input: string | null) {
 function normalizePlanLabel(input: string | null | undefined) {
   const value = String(input || '').trim().toLowerCase();
   if (!value) return '';
+  if (value === 'assistant plus') return 'assistant plus';
+  if (value === 'assistant pro') return 'assistant pro';
   if (value === 'premium +' || value === 'premium plus' || value === 'plus' || value === 'premium pro') return 'premium +';
   if (value === 'basic' || value === 'essential' || value === 'premium cheap') return 'basic';
   if (value === 'premium') return 'premium';
@@ -40,6 +42,8 @@ function normalizePlanLabel(input: string | null | undefined) {
 
 function formatPlanLabel(input: string | null | undefined) {
   const normalized = normalizePlanLabel(input);
+  if (normalized === 'assistant plus') return 'Assistant Plus';
+  if (normalized === 'assistant pro') return 'Assistant Pro';
   if (normalized === 'premium +') return 'Premium +';
   if (normalized === 'premium') return 'Premium';
   if (normalized === 'basic') return 'Basic';

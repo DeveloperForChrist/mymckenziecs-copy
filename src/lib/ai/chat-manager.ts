@@ -240,6 +240,10 @@ export class ChatManager {
     return !this.isGuestUser();
   }
 
+  private shouldPersistConversationMessages(): boolean {
+    return true;
+  }
+
   private parseUserAgent(ua: string | null | undefined) {
     const userAgent = (ua || '').toLowerCase();
     const isMobile = /mobi|android|iphone|ipad|ipod/.test(userAgent);
@@ -327,7 +331,7 @@ export class ChatManager {
       throw new Error('conversationId must be initialized before storing messages');
     }
 
-    if (!this.shouldPersistMessages()) {
+    if (!this.shouldPersistConversationMessages()) {
       return null;
     }
 
@@ -341,7 +345,7 @@ export class ChatManager {
       timestamp: new Date().toISOString()
     };
     const metadataPayload = metadata && typeof metadata === 'object' ? metadata : {}
-    const ownershipMetadata = this.shouldPersistMessages() ? { owner_user_id: this.userId } : {}
+    const ownershipMetadata = this.shouldPersistConversationMessages() ? { owner_user_id: this.userId } : {}
     const normalizedMetadata = { ...metadataPayload, ...ownershipMetadata }
     const insertPayload = { ...basePayload, metadata: normalizedMetadata }
     const isMissingMetadataColumnError = (err: any) => {

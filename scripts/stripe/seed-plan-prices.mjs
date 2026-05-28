@@ -14,9 +14,16 @@ if (!stripeKey) {
 const stripe = new Stripe(stripeKey, { apiVersion: '2024-11-20.acacia' });
 
 const PLANS = [
+  { slug: 'assistant-plus', label: 'Assistant Plus', amount: 1200, interval: 'month', currency: 'gbp' },
+  { slug: 'assistant-plus', label: 'Assistant Plus', amount: 1500, interval: 'month', currency: 'usd' },
+  { slug: 'assistant-pro', label: 'Assistant Pro', amount: 4999, interval: 'month', currency: 'gbp' },
+  { slug: 'assistant-pro', label: 'Assistant Pro', amount: 5999, interval: 'month', currency: 'usd' },
   { slug: 'basic', label: 'Basic', amount: 1800, interval: 'month', currency: 'gbp' },
+  { slug: 'basic', label: 'Basic', amount: 3200, interval: 'month', currency: 'usd' },
   { slug: 'premium', label: 'Premium', amount: 3200, interval: 'month', currency: 'gbp' },
-  { slug: 'premium-plus', label: 'Premium +', amount: 19900, interval: 'month', currency: 'gbp' },
+  { slug: 'premium', label: 'Premium', amount: 5800, interval: 'month', currency: 'usd' },
+  { slug: 'premium-plus', label: 'Premium +', amount: 14900, interval: 'month', currency: 'gbp' },
+  { slug: 'premium-plus', label: 'Premium +', amount: 27000, interval: 'month', currency: 'usd' },
 ];
 
 async function findProductBySlug(slug) {
@@ -69,12 +76,12 @@ async function ensurePlan(plan) {
     console.log(`  Found price ${price.id} (${currency} ${amount/100}/${interval})`);
   }
 
-  if (product.default_price !== price.id) {
+  if (currency === 'gbp' && product.default_price !== price.id) {
     await stripe.products.update(product.id, { default_price: price.id });
     console.log(`  Linked ${price.id} as default for ${product.id}`);
   }
 
-  return { slug, productId: product.id, priceId: price.id };
+  return { slug, currency, productId: product.id, priceId: price.id };
 }
 
 async function main() {
@@ -92,7 +99,7 @@ async function main() {
   const outPath = path.join(ROOT, 'scripts', 'stripe', 'plan-price-ids.json');
   fs.writeFileSync(outPath, JSON.stringify(results, null, 2));
   console.log('\nWrote mapping to', outPath);
-  results.forEach(r => console.log(` • ${r.slug}: product=${r.productId}, price=${r.priceId}`));
+  results.forEach(r => console.log(` • ${r.slug} ${r.currency}: product=${r.productId}, price=${r.priceId}`));
 }
 
 main().catch(err => { console.error(err); process.exit(1); });

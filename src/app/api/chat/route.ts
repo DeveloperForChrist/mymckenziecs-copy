@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createHash } from 'node:crypto'
+import type { User } from '@supabase/supabase-js'
 import {
   type LegalSearchMode,
   type PremiumPlusToolSelection,
@@ -12,6 +14,7 @@ import {
   invokePremiumPlusLitigantLegalAgentStream,
   invokePremiumPlusProfessionalLegalAgent,
   invokePremiumPlusProfessionalLegalAgentStream,
+  getMyMcKenzieAssistantSystemPrompt,
 } from '@/lib/ai/agents/legal-agent'
 import { neutralizeLegalAdviceTone } from '@/lib/ai/agents/legal-tone'
 import { ChatManager } from '@/lib/ai/chat-manager'
@@ -19,15 +22,29 @@ import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import {
   aiRateLimiter,
+  assistantFreeChatRateLimiter,
+  assistantPlusChatDailyRateLimiter,
+  assistantPlusChatMonthlyRateLimiter,
+  assistantProChatMonthlyRateLimiter,
+  assistantUsageLimits,
   rateLimit,
   getIdentifier,
+  acquireChatAiCapacity,
   acquirePremiumProviderCapacity,
 } from '@/lib/utils/rate-limit'
 import { chatMessageSchema } from '@/validators/index'
 import { z } from 'zod'
 import { captureServerException } from '@/lib/monitoring/error-logger'
-import { isBasicPlan, isPremiumPlan, isPremiumPlusPlan } from '@/lib/plans/access'
+import { getPlanTier, isBasicPlan, isPremiumPlan, isPremiumPlusPlan } from '@/lib/plans/access'
 import { getUserPlanData } from '@/lib/payments/user-plan'
+import {
+  consumeAssistantFreeDailyWebSearchQuota,
+  consumeAssistantPlusWebSearchQuota,
+  consumeAssistantProCaseLawRetrievalQuota,
+  consumeAssistantProWebSearchQuota,
+  consumeBasicDailyWebSearchQuota,
+  getAssistantProCaseLawRetrievalLimitReachedNotice,
+} from '@/lib/payments/web-search-usage'
 import { extractTextFromBuffer } from '@/lib/chat/text-extraction'
 import {
   getConversationAccess,
@@ -123,6 +140,28 @@ const chatRequestSchema = z.object({
 }).passthrough()
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const readPositiveInteger = (value: string | undefined, fallback: number) => {
+  const parsed = Number.parseInt(String(value || ''), 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
+}
+const ANONYMOUS_CHAT_MESSAGE_LIMIT = readPositiveInteger(process.env.ANONYMOUS_CHAT_MESSAGE_LIMIT, 4)
+const ANONYMOUS_CHAT_COOLDOWN_MS = readPositiveInteger(
+  process.env.ANONYMOUS_CHAT_COOLDOWN_MS,
+  5 * 60 * 60 * 1000
+)
+const ASSISTANT_FREE_CHAT_MESSAGE_LIMIT = readPositiveInteger(process.env.ASSISTANT_FREE_CHAT_MESSAGE_LIMIT, 8)
+const ASSISTANT_FREE_CHAT_COOLDOWN_MS = readPositiveInteger(
+  process.env.ASSISTANT_FREE_CHAT_COOLDOWN_MS,
+  5 * 60 * 60 * 1000
+)
+
+const normalizeGuestUuid = (value?: string | null): string | null => {
+  const raw = String(value || '').trim()
+  if (!raw) return null
+  if (uuidRegex.test(raw)) return raw
+  const anonMatch = raw.match(/^anon_([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i)
+  return anonMatch?.[1] && uuidRegex.test(anonMatch[1]) ? anonMatch[1] : null
+}
 
 const getEnvModelValue = (...keys: string[]): string | null => {
   for (const key of keys) {
@@ -192,9 +231,191 @@ const PREMIUM_THREAD_MAX_USER_TURNS = Number.isFinite(Number(process.env.PREMIUM
 const PREMIUM_PLUS_THREAD_MAX_USER_TURNS = Number.isFinite(Number(process.env.PREMIUM_PLUS_THREAD_MAX_USER_TURNS))
   ? Math.max(10, Math.floor(Number(process.env.PREMIUM_PLUS_THREAD_MAX_USER_TURNS)))
   : CHAT_THREAD_MAX_USER_TURNS_DEFAULT
+const SUPPORT_RESPONSE_CACHE_TTL_MS = Number.isFinite(Number(process.env.SUPPORT_RESPONSE_CACHE_TTL_MS))
+  ? Math.max(1000, Math.floor(Number(process.env.SUPPORT_RESPONSE_CACHE_TTL_MS)))
+  : 5 * 60 * 1000
+
+type CachedSupportResponse = {
+  expiresAt: number
+  payload: ReturnType<typeof buildAssistantResponsePayload>
+}
+
+const supportResponseCache = new Map<string, CachedSupportResponse>()
+
+const CHAT_AUTH_CACHE_TTL_MS = Number.isFinite(Number(process.env.CHAT_AUTH_CACHE_TTL_MS))
+  ? Math.max(1000, Math.floor(Number(process.env.CHAT_AUTH_CACHE_TTL_MS)))
+  : 10_000
+const CHAT_AUTH_CACHE_MAX = Number.isFinite(Number(process.env.CHAT_AUTH_CACHE_MAX))
+  ? Math.max(100, Math.floor(Number(process.env.CHAT_AUTH_CACHE_MAX)))
+  : 20_000
+
+type CachedChatAuthData = {
+  user: User | null
+}
+
+type ChatAuthCacheEntry = {
+  expiresAt: number
+  value: CachedChatAuthData
+}
+
+const chatAuthCache = new Map<string, ChatAuthCacheEntry>()
+const chatAuthInFlight = new Map<string, Promise<CachedChatAuthData>>()
+
+const CHAT_USER_CONTEXT_CACHE_TTL_MS = Number.isFinite(Number(process.env.CHAT_USER_CONTEXT_CACHE_TTL_MS))
+  ? Math.max(1000, Math.floor(Number(process.env.CHAT_USER_CONTEXT_CACHE_TTL_MS)))
+  : 30_000
+
+type CachedChatUserContext = {
+  emailVerified: boolean
+  legalContext: UserLegalContext
+}
+
+const chatUserContextCache = new Map<string, { expiresAt: number; value: CachedChatUserContext }>()
+const chatUserContextInFlight = new Map<string, Promise<CachedChatUserContext>>()
+
+const hashCacheKey = (value: string) =>
+  createHash('sha256').update(value).digest('base64url')
+
+const pruneChatAuthCache = () => {
+  if (chatAuthCache.size < CHAT_AUTH_CACHE_MAX) return
+  const now = Date.now()
+  for (const [key, entry] of chatAuthCache) {
+    if (entry.expiresAt <= now || chatAuthCache.size >= CHAT_AUTH_CACHE_MAX) {
+      chatAuthCache.delete(key)
+    }
+    if (chatAuthCache.size < CHAT_AUTH_CACHE_MAX) break
+  }
+}
+
+const readChatAuthCache = (cacheKey: string): CachedChatAuthData | null => {
+  const cached = chatAuthCache.get(cacheKey)
+  if (!cached) return null
+  if (cached.expiresAt <= Date.now()) {
+    chatAuthCache.delete(cacheKey)
+    return null
+  }
+  return cached.value
+}
+
+const writeChatAuthCache = (cacheKey: string, value: CachedChatAuthData) => {
+  pruneChatAuthCache()
+  chatAuthCache.set(cacheKey, {
+    expiresAt: Date.now() + CHAT_AUTH_CACHE_TTL_MS,
+    value,
+  })
+}
+
+const getCachedChatAuthData = async (
+  cacheKey: string,
+  resolveAuthData: () => Promise<CachedChatAuthData>
+) => {
+  const cached = readChatAuthCache(cacheKey)
+  if (cached) return cached
+
+  const inFlight = chatAuthInFlight.get(cacheKey)
+  if (inFlight) return inFlight
+
+  const resolvePromise = resolveAuthData().then((value) => {
+    if (value.user) {
+      writeChatAuthCache(cacheKey, value)
+    }
+    return value
+  }).finally(() => {
+    chatAuthInFlight.delete(cacheKey)
+  })
+
+  chatAuthInFlight.set(cacheKey, resolvePromise)
+  return resolvePromise
+}
+
+const getCachedChatUserContext = async (user: User): Promise<CachedChatUserContext> => {
+  const cacheKey = `user-context:${user.id}`
+  const cached = chatUserContextCache.get(cacheKey)
+  if (cached && cached.expiresAt > Date.now()) return cached.value
+  if (cached) chatUserContextCache.delete(cacheKey)
+
+  const inFlight = chatUserContextInFlight.get(cacheKey)
+  if (inFlight) return inFlight
+
+  const resolvePromise = (async () => {
+    const { data: userProfileRow } = await supabaseAdmin
+      .from('users')
+      .select('country_code, jurisdiction_code, jurisdiction_label, email_verified_at')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    const legalContext = {
+      countryCode: ((userProfileRow as any)?.country_code || (user.user_metadata as any)?.country_code || null) as UserLegalContext['countryCode'],
+      jurisdictionCode: (userProfileRow as any)?.jurisdiction_code || (user.user_metadata as any)?.jurisdiction_code || null,
+      jurisdictionLabel: (userProfileRow as any)?.jurisdiction_label || (user.user_metadata as any)?.jurisdiction_label || null,
+    }
+    const value = {
+      emailVerified: Boolean((userProfileRow as any)?.email_verified_at || user.email_confirmed_at),
+      legalContext,
+    }
+
+    chatUserContextCache.set(cacheKey, {
+      expiresAt: Date.now() + CHAT_USER_CONTEXT_CACHE_TTL_MS,
+      value,
+    })
+
+    return value
+  })().finally(() => {
+    chatUserContextInFlight.delete(cacheKey)
+  })
+
+  chatUserContextInFlight.set(cacheKey, resolvePromise)
+  return resolvePromise
+}
 
 const normalizePlanLabel = (value: any): string =>
   typeof value === 'string' ? value.trim().toLowerCase() : ''
+
+const normalizeSupportPrompt = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9@.+\s-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+const isSupportOrBillingContactPrompt = (value: string) => {
+  const prompt = normalizeSupportPrompt(value)
+  if (!prompt) return false
+  const mentionsSupport = /\b(support|help|contact|email|reach|speak|billing|payment|invoice|subscription|refund)\b/.test(prompt)
+  const asksContactRoute = /\b(how|where|what|who|can|need|want)\b/.test(prompt) || prompt.includes('?')
+  const isLegalQuestion = /\b(case law|precedent|court|claim|defence|defense|hearing|evidence|judge|order|application|appeal|legal advice)\b/.test(prompt)
+  return mentionsSupport && asksContactRoute && !isLegalQuestion
+}
+
+const buildCachedSupportResponse = (message: string, accountType: string, planLabel: string) => {
+  const key = `${accountType || 'unknown'}:${planLabel || 'none'}:${normalizeSupportPrompt(message)}`
+  const now = Date.now()
+  const cached = supportResponseCache.get(key)
+  if (cached && cached.expiresAt > now) {
+    return { payload: cached.payload, hit: true }
+  }
+  if (cached) supportResponseCache.delete(key)
+
+  const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com'
+  const response =
+    `For billing or account support, email ${supportEmail}. Include the email address on your account, the plan or payment issue, and any Stripe receipt or invoice reference if you have one.\n\n` +
+    'For urgent access issues, mention that in the subject line so it can be triaged quickly.'
+  const payload = buildAssistantResponsePayload(response, {
+    cachedResponse: true,
+    supportResponse: true,
+    activePlan: planLabel || 'none',
+  }, {
+    document_generated: false,
+    guidance_provided: true,
+    next_steps: [`Email ${supportEmail} with your account and billing details.`],
+  })
+
+  supportResponseCache.set(key, {
+    expiresAt: now + SUPPORT_RESPONSE_CACHE_TTL_MS,
+    payload,
+  })
+  return { payload, hit: false }
+}
 
 const normalizeHost = (value: string | null) => {
   const trimmed = (value || '').trim()
@@ -1664,6 +1885,12 @@ const loadRelatedThreadMemory = async ({
 
 export async function POST(request: NextRequest) {
   let authUserId: string | undefined
+  let releaseChatCapacity: (() => void) | null = null
+  const releaseChatCapacityOnce = () => {
+    if (!releaseChatCapacity) return
+    releaseChatCapacity()
+    releaseChatCapacity = null
+  }
 
   try {
     const secFetchSite = request.headers.get('sec-fetch-site')
@@ -1679,26 +1906,202 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unsupported Media Type' }, { status: 415 })
     }
 
-    const supabase = await createSupabaseRouteClient()
-    const { data: authData } = await supabase.auth.getUser()
-    authUserId = authData?.user?.id
-
-    if (!authUserId) {
-      return NextResponse.json(
-        buildAssistantResponsePayload('Please sign in and choose a paid plan to use chat.', {
-          signInRequired: true,
-          upgradeRequired: true,
-        }),
-        { status: 401 }
-      )
+    const body = await request.json()
+    const parsedBody = chatRequestSchema.safeParse(body)
+    if (!parsedBody.success) {
+      return NextResponse.json({ error: 'Invalid input', details: parsedBody.error.issues }, { status: 400 })
     }
 
-    const userId = authUserId
-    const userAccountType = await getAccountTypeForUser(authData?.user)
-    const guestId: string | null = null
+    const bodyData = parsedBody.data
+
+    const sanitizedCaseId =
+      typeof bodyData?.activeCaseId === 'string' && uuidRegex.test(bodyData.activeCaseId.trim())
+        ? bodyData.activeCaseId.trim()
+        : undefined
+
+    const validation = chatMessageSchema.safeParse({
+      message: bodyData.message,
+      caseId: sanitizedCaseId,
+      mode: bodyData.mode,
+    })
+    if (!validation.success) {
+      return NextResponse.json({ error: 'Invalid input', details: validation.error.issues }, { status: 400 })
+    }
+
+    const { message, history, conversationId, attachments, sessionMessageCount, sessionStartedAt } = bodyData
+    const activeCaseId = sanitizedCaseId
+    const sanitizedHistory = Array.isArray(history)
+      ? history
+          .filter((entry: any) => entry && typeof entry.role === 'string' && typeof entry.content === 'string')
+          .map((entry: any) => ({
+            role: entry.role === 'assistant' ? 'assistant' : 'user',
+            content: truncateText(entry.content, 600),
+          }))
+      : []
+
+    if (!message || typeof message !== 'string') {
+      return NextResponse.json({ message: 'Message is required' }, { status: 400 })
+    }
+
+    if (
+      isSupportOrBillingContactPrompt(message) &&
+      !activeCaseId &&
+      (!Array.isArray(attachments) || attachments.length === 0)
+    ) {
+      const cachedSupportResponse = buildCachedSupportResponse(message, 'unknown', 'none')
+      return NextResponse.json(cachedSupportResponse.payload, {
+        status: 200,
+        headers: {
+          'Cache-Control': 'private, max-age=300',
+          'X-MyMcKenzie-Cache': cachedSupportResponse.hit ? 'HIT' : 'MISS',
+        },
+      })
+    }
+
+    const requestCookieHeader = request.headers.get('cookie') || ''
+    const authCacheKey = requestCookieHeader ? hashCacheKey(requestCookieHeader) : ''
+    const supabase = await createSupabaseRouteClient()
+    const authData = authCacheKey
+      ? await getCachedChatAuthData(authCacheKey, async () => {
+          const { data } = await supabase.auth.getUser()
+          return { user: data?.user ?? null }
+        })
+      : await (async () => {
+          const { data } = await supabase.auth.getUser()
+          return { user: data?.user ?? null }
+        })()
+    authUserId = authData?.user?.id
+
+    const requestedGuestId = typeof bodyData.userId === 'string' && bodyData.userId.startsWith('anon_')
+      ? bodyData.userId.slice(0, 96)
+      : `anon_${Date.now()}`
+    const guestUuid: string | null = authUserId ? null : normalizeGuestUuid(requestedGuestId)
+    const anonymousMessageCount = typeof sessionMessageCount === 'number'
+      ? sessionMessageCount
+      : sanitizedHistory.filter((entry) => entry.role === 'user').length + 1
+
+    if (!authUserId) {
+      let allowedByGuestUsage = !guestUuid
+      let canMessageAgainAt: string | null = null
+
+      if (guestUuid) {
+        const { data: guestUsage, error: guestUsageError } = await supabaseAdmin.rpc('consume_guest_message', {
+          p_guest_id: guestUuid,
+          p_limit: ANONYMOUS_CHAT_MESSAGE_LIMIT,
+          p_window_ms: ANONYMOUS_CHAT_COOLDOWN_MS,
+        })
+
+        if (guestUsageError) {
+          console.warn('Anonymous chat usage lookup failed:', guestUsageError)
+          allowedByGuestUsage = anonymousMessageCount <= ANONYMOUS_CHAT_MESSAGE_LIMIT
+        } else {
+          const row = Array.isArray(guestUsage) ? guestUsage[0] : guestUsage
+          allowedByGuestUsage = row?.allowed !== false
+          canMessageAgainAt = typeof row?.can_message_again_at === 'string' ? row.can_message_again_at : null
+        }
+      } else {
+        allowedByGuestUsage = anonymousMessageCount <= ANONYMOUS_CHAT_MESSAGE_LIMIT
+      }
+
+      if (!allowedByGuestUsage) {
+        return NextResponse.json(
+          buildAssistantResponsePayload('Create a free account and we will bring this conversation with you after sign-up.', {
+            signInRequired: true,
+            canMessageAgainAt,
+          }),
+          { status: 403 }
+        )
+      }
+    }
+
+    const userId = authUserId || requestedGuestId
+    const userAccountType = authData?.user ? await getAccountTypeForUser(authData.user) : 'litigant'
+    const guestMemoryId: string | null = authUserId ? null : requestedGuestId
     const withCookie = (res: NextResponse) => res
 
     const identifier = getIdentifier(userId)
+    let hasPaidPlan = false
+    let hasPlatformAccess = false
+    let basicPlanActive = false
+    let premiumPlanActive = false
+    let premiumPlusActive = false
+    let assistantFreeActive = false
+    let assistantFreeUsage:
+      | {
+          remaining: number
+          resetAt: string
+          limit: number
+        }
+      | null = null
+    let activePlanLabel = 'none'
+    let chatManagerPlanSeed: string | null = null
+    let userLegalContext: UserLegalContext = {
+      countryCode: null,
+      jurisdictionCode: null,
+      jurisdictionLabel: null,
+    }
+    if (authData?.user) {
+      const userContext = await getCachedChatUserContext(authData.user)
+      userLegalContext = userContext.legalContext
+
+      const planData = await getUserPlanData(authData.user.id, authData.user.email || null, {
+        emailVerified: userContext.emailVerified,
+        legalContext: userLegalContext,
+      })
+      hasPaidPlan = Boolean(planData?.paidAccess)
+      hasPlatformAccess = Boolean(planData?.platformAccess ?? planData?.paidAccess)
+      activePlanLabel = normalizePlanLabel(planData?.plan || '') || (hasPlatformAccess ? 'basic' : 'none')
+      basicPlanActive = (hasPlatformAccess && !hasPaidPlan) || isBasicPlan(activePlanLabel)
+      premiumPlusActive = hasPaidPlan && isPremiumPlusPlan(activePlanLabel)
+      premiumPlanActive = hasPaidPlan && isPremiumPlan(activePlanLabel)
+      assistantFreeActive = hasPlatformAccess && !hasPaidPlan
+      chatManagerPlanSeed = planData?.plan || (hasPlatformAccess ? 'Basic' : null)
+
+      if (!hasPlatformAccess) {
+        return withCookie(
+          NextResponse.json(
+            buildAssistantResponsePayload('Verify your email to continue using chat.', {
+              upgradeRequired: true,
+              activePlan: activePlanLabel || 'none',
+              planStatus: String(planData?.planStatus || 'inactive').toLowerCase(),
+            }),
+            { status: 403 }
+          )
+        )
+      }
+    }
+    if (!authData?.user) {
+      hasPlatformAccess = true
+      activePlanLabel = 'guest'
+      premiumPlusActive = true
+      chatManagerPlanSeed = 'Guest'
+    }
+    const activePlanTier = getPlanTier(activePlanLabel)
+    const assistantPlusActive = activePlanTier === 'assistant_plus'
+    const assistantProActive = activePlanTier === 'assistant_pro'
+    const assistantProductActive =
+      activePlanLabel === 'guest' ||
+      assistantFreeActive ||
+      assistantPlusActive ||
+      assistantProActive
+
+    if (
+      isSupportOrBillingContactPrompt(message) &&
+      !activeCaseId &&
+      (!Array.isArray(attachments) || attachments.length === 0)
+    ) {
+      const cachedSupportResponse = buildCachedSupportResponse(message, userAccountType, activePlanLabel)
+      return withCookie(
+        NextResponse.json(cachedSupportResponse.payload, {
+          status: 200,
+          headers: {
+            'Cache-Control': 'private, max-age=300',
+            'X-MyMcKenzie-Cache': cachedSupportResponse.hit ? 'HIT' : 'MISS',
+          },
+        })
+      )
+    }
+
     const rateLimitResult = await rateLimit(aiRateLimiter, identifier, 10, 60000)
     if (!rateLimitResult.success) {
       return withCookie(
@@ -1720,41 +2123,153 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = await request.json()
-    const parsedBody = chatRequestSchema.safeParse(body)
-    if (!parsedBody.success) {
-      return withCookie(NextResponse.json({ error: 'Invalid input', details: parsedBody.error.issues }, { status: 400 }))
+    if (authUserId && assistantFreeActive) {
+      const assistantFreeLimitResult = await rateLimit(
+        assistantFreeChatRateLimiter,
+        `assistant-free-chat:${authUserId}`,
+        ASSISTANT_FREE_CHAT_MESSAGE_LIMIT,
+        ASSISTANT_FREE_CHAT_COOLDOWN_MS
+      )
+      assistantFreeUsage = {
+        remaining: assistantFreeLimitResult.remaining,
+        resetAt: new Date(assistantFreeLimitResult.reset).toISOString(),
+        limit: assistantFreeLimitResult.limit,
+      }
+      if (!assistantFreeLimitResult.success) {
+        return withCookie(
+          NextResponse.json(
+            buildAssistantResponsePayload('You have hit your free message limit. Come back later to continue, or upgrade your plan for more access.', {
+              upgradeRequired: true,
+              activePlan: 'free',
+              canMessageAgainAt: assistantFreeUsage.resetAt,
+            }),
+            {
+              status: 403,
+              headers: {
+                'X-RateLimit-Limit': String(assistantFreeLimitResult.limit),
+                'X-RateLimit-Remaining': String(assistantFreeLimitResult.remaining),
+                'X-RateLimit-Reset': String(assistantFreeLimitResult.reset),
+              },
+            }
+          )
+        )
+      }
     }
 
-    const bodyData = parsedBody.data
+    if (authUserId && assistantPlusActive) {
+      const assistantPlusDailyLimitResult = await rateLimit(
+        assistantPlusChatDailyRateLimiter,
+        `assistant-plus-chat:${authUserId}`,
+        assistantUsageLimits.plusChatDaily,
+        24 * 60 * 60 * 1000
+      )
+      if (!assistantPlusDailyLimitResult.success) {
+        return withCookie(
+          NextResponse.json(
+            buildAssistantResponsePayload('You have reached today\'s Assistant Plus message limit. Come back tomorrow to continue, or upgrade to Pro for heavier use.', {
+              upgradeRequired: true,
+              activePlan: 'assistant plus',
+              canMessageAgainAt: new Date(assistantPlusDailyLimitResult.reset).toISOString(),
+            }),
+            {
+              status: 403,
+              headers: {
+                'X-RateLimit-Limit': String(assistantPlusDailyLimitResult.limit),
+                'X-RateLimit-Remaining': String(assistantPlusDailyLimitResult.remaining),
+                'X-RateLimit-Reset': String(assistantPlusDailyLimitResult.reset),
+              },
+            }
+          )
+        )
+      }
 
-    const sanitizedCaseId =
-      typeof bodyData?.activeCaseId === 'string' && uuidRegex.test(bodyData.activeCaseId.trim())
-        ? bodyData.activeCaseId.trim()
-        : undefined
-
-    const validation = chatMessageSchema.safeParse({
-      message: bodyData.message,
-      caseId: sanitizedCaseId,
-      mode: bodyData.mode,
-    })
-    if (!validation.success) {
-      return withCookie(NextResponse.json({ error: 'Invalid input', details: validation.error.issues }, { status: 400 }))
+      const assistantPlusMonthlyLimitResult = await rateLimit(
+        assistantPlusChatMonthlyRateLimiter,
+        `assistant-plus-chat-monthly:${authUserId}`,
+        assistantUsageLimits.plusChatMonthly,
+        30 * 24 * 60 * 60 * 1000
+      )
+      if (!assistantPlusMonthlyLimitResult.success) {
+        return withCookie(
+          NextResponse.json(
+            buildAssistantResponsePayload('You have reached the Assistant Plus monthly message limit. Upgrade to Pro for heavier use, or continue when the limit resets.', {
+              upgradeRequired: true,
+              activePlan: 'assistant plus',
+              canMessageAgainAt: new Date(assistantPlusMonthlyLimitResult.reset).toISOString(),
+            }),
+            {
+              status: 403,
+              headers: {
+                'X-RateLimit-Limit': String(assistantPlusMonthlyLimitResult.limit),
+                'X-RateLimit-Remaining': String(assistantPlusMonthlyLimitResult.remaining),
+                'X-RateLimit-Reset': String(assistantPlusMonthlyLimitResult.reset),
+              },
+            }
+          )
+        )
+      }
     }
 
-    const { message, history, conversationId, attachments, sessionMessageCount, sessionStartedAt } = bodyData
-    const activeCaseId = sanitizedCaseId
-
-    if (!message || typeof message !== 'string') {
-      return withCookie(NextResponse.json({ message: 'Message is required' }, { status: 400 }))
+    if (authUserId && assistantProActive) {
+      const assistantProLimitResult = await rateLimit(
+        assistantProChatMonthlyRateLimiter,
+        `assistant-pro-chat:${authUserId}`,
+        assistantUsageLimits.proChatMonthly,
+        30 * 24 * 60 * 60 * 1000
+      )
+      if (!assistantProLimitResult.success) {
+        return withCookie(
+          NextResponse.json(
+            buildAssistantResponsePayload('You have reached the Assistant Pro fair-use message limit for this period. You can continue when the limit resets.', {
+              upgradeRequired: true,
+              activePlan: 'assistant pro',
+              canMessageAgainAt: new Date(assistantProLimitResult.reset).toISOString(),
+            }),
+            {
+              status: 403,
+              headers: {
+                'X-RateLimit-Limit': String(assistantProLimitResult.limit),
+                'X-RateLimit-Remaining': String(assistantProLimitResult.remaining),
+                'X-RateLimit-Reset': String(assistantProLimitResult.reset),
+              },
+            }
+          )
+        )
+      }
     }
+
+    const chatCapacity = await acquireChatAiCapacity()
+    if (!chatCapacity.success) {
+      const retryAfterSeconds = Math.max(1, Math.ceil(chatCapacity.retryAfterMs / 1000))
+      return withCookie(
+        NextResponse.json(
+          {
+            error: 'Chat capacity reached',
+            message: 'Chat is busy right now. Please retry in a few seconds.',
+            retryAfterMs: chatCapacity.retryAfterMs,
+            reason: chatCapacity.reason,
+          },
+          {
+            status: 429,
+            headers: {
+              'Retry-After': String(retryAfterSeconds),
+              'X-MyMcKenzie-Capacity': 'busy',
+              'X-MyMcKenzie-Active': String(chatCapacity.active),
+              'X-MyMcKenzie-Queued': String(chatCapacity.queued),
+            },
+          }
+        )
+      )
+    }
+    releaseChatCapacity = chatCapacity.release
 
     let safeConversationId = conversationId
-    if (typeof conversationId === 'string' && conversationId.trim()) {
+    if (authUserId && typeof conversationId === 'string' && conversationId.trim()) {
       const scopedUserIds = await resolveScopedUserIds(authUserId, authData?.user?.email || null)
       const caseIds = await getOwnedCaseIds(scopedUserIds)
       const access = await getConversationAccess(scopedUserIds, conversationId.trim(), caseIds)
       if (access === 'forbidden') {
+        releaseChatCapacityOnce()
         return withCookie(
           NextResponse.json(
             buildAssistantResponsePayload('That conversation is unavailable.', {
@@ -1768,62 +2283,7 @@ export async function POST(request: NextRequest) {
     }
 
     const chatManager = new ChatManager(userId, activeCaseId, safeConversationId, authData?.user?.email || null)
-
-    const sanitizedHistory = Array.isArray(history)
-      ? history
-          .filter((entry: any) => entry && typeof entry.role === 'string' && typeof entry.content === 'string')
-          .map((entry: any) => ({
-            role: entry.role === 'assistant' ? 'assistant' : 'user',
-            content: truncateText(entry.content, 600),
-          }))
-      : []
-
-    let hasPaidPlan = false
-    let hasPlatformAccess = false
-    let basicPlanActive = false
-    let premiumPlanActive = false
-    let premiumPlusActive = false
-    let activePlanLabel = 'none'
-    let userLegalContext: UserLegalContext = {
-      countryCode: null,
-      jurisdictionCode: null,
-      jurisdictionLabel: null,
-    }
-    if (authUserId) {
-      const { data: userProfileRow } = await supabaseAdmin
-        .from('users')
-        .select('country_code, jurisdiction_code, jurisdiction_label')
-        .eq('id', authUserId)
-        .maybeSingle()
-
-      userLegalContext = {
-        countryCode: ((userProfileRow as any)?.country_code || (authData?.user?.user_metadata as any)?.country_code || null) as UserLegalContext['countryCode'],
-        jurisdictionCode: (userProfileRow as any)?.jurisdiction_code || (authData?.user?.user_metadata as any)?.jurisdiction_code || null,
-        jurisdictionLabel: (userProfileRow as any)?.jurisdiction_label || (authData?.user?.user_metadata as any)?.jurisdiction_label || null,
-      }
-
-      const planData = await getUserPlanData(authUserId, authData?.user?.email || null)
-      hasPaidPlan = Boolean(planData?.paidAccess)
-      hasPlatformAccess = Boolean(planData?.platformAccess ?? planData?.paidAccess)
-      activePlanLabel = normalizePlanLabel(planData?.plan || '') || (hasPlatformAccess ? 'basic' : 'none')
-      basicPlanActive = (hasPlatformAccess && !hasPaidPlan) || isBasicPlan(activePlanLabel)
-      premiumPlusActive = hasPaidPlan && isPremiumPlusPlan(activePlanLabel)
-      premiumPlanActive = hasPaidPlan && isPremiumPlan(activePlanLabel)
-      chatManager.seedUserPlan(planData?.plan || (hasPlatformAccess ? 'Basic' : null))
-
-      if (!hasPlatformAccess) {
-        return withCookie(
-          NextResponse.json(
-            buildAssistantResponsePayload('Verify your email to continue using chat.', {
-              upgradeRequired: true,
-              activePlan: activePlanLabel || 'none',
-              planStatus: String(planData?.planStatus || 'inactive').toLowerCase(),
-            }),
-            { status: 403 }
-          )
-        )
-      }
-    }
+    chatManager.seedUserPlan(chatManagerPlanSeed)
 
     const threadTurnLimit = resolveThreadTurnLimit({
       basicPlanActive,
@@ -1840,6 +2300,7 @@ export async function POST(request: NextRequest) {
         sessionInfo.cases
           .map((c: any, i: number) => `${i + 1}. ${c.caseType || 'Case'} - ${c.caseNumber || c.id}`)
           .join('\n')
+      releaseChatCapacityOnce()
       return withCookie(
         NextResponse.json(
           buildAssistantResponsePayload(caseSelectionResponse, undefined, {
@@ -1866,7 +2327,19 @@ export async function POST(request: NextRequest) {
     )
 
     const hasAttachments = Array.isArray(attachments) && attachments.length > 0
-    const cookieHeader = request.headers.get('cookie')
+    if (hasAttachments && (!authUserId || !hasPaidPlan)) {
+      releaseChatCapacityOnce()
+      return withCookie(
+        NextResponse.json(
+          buildAssistantResponsePayload('Document uploads are available on Assistant Plus and higher plans.', {
+            upgradeRequired: true,
+            activePlan: activePlanLabel || 'none',
+          }),
+          { status: authUserId ? 403 : 401 }
+        )
+      )
+    }
+    const cookieHeader = requestCookieHeader
     const attachmentContext = hasAttachments && baseUrl
       ? await buildAttachmentContext(attachments, baseUrl, cookieHeader, message, authUserId)
       : ''
@@ -1882,6 +2355,7 @@ export async function POST(request: NextRequest) {
       const providerCapacity = await acquirePremiumProviderCapacity()
       if (!providerCapacity.success) {
         const retryAfterSeconds = Math.max(1, Math.ceil(providerCapacity.retryAfterMs / 1000))
+        releaseChatCapacityOnce()
         return withCookie(
           NextResponse.json(
             {
@@ -1913,14 +2387,14 @@ export async function POST(request: NextRequest) {
       resolvedCaseId = null
     }
 
-    const memoryKey = buildMemoryKey(authUserId, guestId, resolvedCaseId || null, activeConversationId)
+    const memoryKey = buildMemoryKey(authUserId, guestMemoryId, resolvedCaseId || null, activeConversationId)
     const initialFacts = extractKeyFactsFromMessage(message)
     const { data: incrementedTurnCount, error: incrementTurnError } = await supabaseAdmin.rpc(
       'increment_chat_memory_turn_count',
       {
         p_memory_key: memoryKey,
         p_user_id: authUserId || null,
-        p_guest_id: guestId || null,
+        p_guest_id: guestUuid,
         p_case_id: resolvedCaseId || null,
         p_conversation_id: activeConversationId,
         p_last_intent: processingResult.task,
@@ -1945,6 +2419,7 @@ export async function POST(request: NextRequest) {
           ? Math.max(1, memoryRow.user_turn_count)
           : 1
     if (threadUserTurnCount >= threadTurnLimit) {
+      releaseChatCapacityOnce()
       return withCookie(
         NextResponse.json(
           buildAssistantResponsePayload(
@@ -1966,12 +2441,15 @@ export async function POST(request: NextRequest) {
         )
       )
     }
-    const relatedThreadMemory = await loadRelatedThreadMemory({
-      authUserId: authUserId || null,
-      guestId,
-      caseId: resolvedCaseId,
-      excludeConversationId: activeConversationId,
-    })
+    const canUseRelatedThreadMemory = !assistantProductActive || assistantProActive
+    const relatedThreadMemory = canUseRelatedThreadMemory
+      ? await loadRelatedThreadMemory({
+          authUserId: authUserId || null,
+          guestId: guestUuid,
+          caseId: resolvedCaseId,
+          excludeConversationId: activeConversationId,
+        })
+      : null
     let effectiveMemoryRow = memoryRow
     let relatedThreadMemoryUsed = false
     if (!hasUsefulMemory(effectiveMemoryRow) && hasUsefulMemory(relatedThreadMemory)) {
@@ -2008,7 +2486,7 @@ export async function POST(request: NextRequest) {
         {
           memory_key: memoryKey,
           user_id: authUserId || null,
-          guest_id: guestId || null,
+          guest_id: guestUuid,
           case_id: resolvedCaseId || null,
           conversation_id: activeConversationId,
           memory_summary: truncateText(`User asked: ${message}`, 320),
@@ -2019,6 +2497,7 @@ export async function POST(request: NextRequest) {
         { onConflict: 'memory_key' }
       )
 
+      releaseChatCapacityOnce()
       return withCookie(
         NextResponse.json(
           buildAssistantResponsePayload(clarificationQuestion, {
@@ -2044,6 +2523,18 @@ export async function POST(request: NextRequest) {
       ? getPremiumPlusAnthropicFallbackModel(premiumPlusAnthropicModel)
       : null
     const premiumPlusOpenAiFallbackModel = getPremiumPlusOpenAiFallbackModel()
+    const assistantPromptOption = assistantProductActive
+      ? { systemPrompt: getMyMcKenzieAssistantSystemPrompt() }
+      : {}
+    const assistantProCaseLawQuotaOption = assistantProActive
+      ? {
+          consumeCaseLawRetrievalQuota: () => consumeAssistantProCaseLawRetrievalQuota(userId),
+          caseLawRetrievalLimitNotice: getAssistantProCaseLawRetrievalLimitReachedNotice,
+        }
+      : {}
+    const assistantProWebSearchQuotaOption = assistantProActive
+      ? { consumeSearchQuota: () => consumeAssistantProWebSearchQuota(userId) }
+      : {}
     const caseLawSuggestionDecision = evaluateCaseLawSuggestionNeed({
       message,
       history: effectiveConversationHistory,
@@ -2221,6 +2712,9 @@ export async function POST(request: NextRequest) {
             searchEngineOverride: 'perplexity',
             legalContext: userLegalContext,
             accountType: userAccountType,
+            ...assistantPromptOption,
+            ...assistantProWebSearchQuotaOption,
+            ...assistantProCaseLawQuotaOption,
             openaiFallbackModel: premiumPlusOpenAiFallbackModel,
             forceOpenAiFallback: true,
             historyLimit: agentHistoryLimit,
@@ -2240,6 +2734,9 @@ export async function POST(request: NextRequest) {
             autoDecideSearch: true,
             legalContext: userLegalContext,
             accountType: userAccountType,
+            ...assistantPromptOption,
+            ...assistantProWebSearchQuotaOption,
+            ...assistantProCaseLawQuotaOption,
             anthropicModel: premiumPlusAnthropicModel || undefined,
             anthropicFallbackModel: premiumPlusAnthropicFallbackModel || undefined,
             historyLimit: agentHistoryLimit,
@@ -2259,6 +2756,9 @@ export async function POST(request: NextRequest) {
             searchEngineOverride: 'perplexity',
             legalContext: userLegalContext,
             accountType: userAccountType,
+            ...assistantPromptOption,
+            ...assistantProWebSearchQuotaOption,
+            ...assistantProCaseLawQuotaOption,
             openaiFallbackModel: premiumPlusOpenAiFallbackModel,
             forceOpenAiFallback: true,
             historyLimit: agentHistoryLimit,
@@ -2287,6 +2787,9 @@ export async function POST(request: NextRequest) {
             searchEngineOverride: 'perplexity',
             legalContext: userLegalContext,
             accountType: userAccountType,
+            ...assistantPromptOption,
+            ...assistantProWebSearchQuotaOption,
+            ...assistantProCaseLawQuotaOption,
             openaiFallbackModel: premiumPlusOpenAiFallbackModel,
             forceOpenAiFallback: true,
             historyLimit: agentHistoryLimit,
@@ -2311,6 +2814,9 @@ export async function POST(request: NextRequest) {
             searchEngineOverride: 'perplexity',
             legalContext: userLegalContext,
             accountType: userAccountType,
+            ...assistantPromptOption,
+            ...assistantProWebSearchQuotaOption,
+            ...assistantProCaseLawQuotaOption,
             anthropicModel: premiumPlusAnthropicModel || undefined,
             anthropicFallbackModel: premiumPlusAnthropicFallbackModel || undefined,
             historyLimit: agentHistoryLimit,
@@ -2337,6 +2843,9 @@ export async function POST(request: NextRequest) {
             searchEngineOverride: 'perplexity',
             legalContext: userLegalContext,
             accountType: userAccountType,
+            ...assistantPromptOption,
+            ...assistantProWebSearchQuotaOption,
+            ...assistantProCaseLawQuotaOption,
             openaiFallbackModel: premiumPlusOpenAiFallbackModel,
             forceOpenAiFallback: true,
             historyLimit: agentHistoryLimit,
@@ -2389,7 +2898,7 @@ export async function POST(request: NextRequest) {
         const rows = actionItems.map((item) => ({
           memory_key: memoryKey,
           user_id: authUserId || null,
-          guest_id: guestId || null,
+          guest_id: guestUuid,
           case_id: resolvedCaseId || null,
           conversation_id: sessionInfo.conversationId || safeConversationId || null,
           title: item.title,
@@ -2405,7 +2914,7 @@ export async function POST(request: NextRequest) {
         {
           memory_key: memoryKey,
           user_id: authUserId || null,
-          guest_id: guestId || null,
+          guest_id: guestUuid,
           case_id: resolvedCaseId || null,
           conversation_id: activeConversationId,
           memory_summary: truncateText(`User: ${message} | Assistant: ${finalAssistantResponse}`, 480),
@@ -2416,7 +2925,7 @@ export async function POST(request: NextRequest) {
         { onConflict: 'memory_key' }
       )
 
-      if (chatManager.shouldPersistMessages()) {
+      if (chatManager.shouldPersistMessages() || !authUserId) {
         await chatManager.storeRawMessage(
           finalAssistantResponse,
           'assistant',
@@ -2438,6 +2947,13 @@ export async function POST(request: NextRequest) {
 	        nextSteps: agentResponse.next_steps,
 	        sources: agentResponse.sources || [],
           ...(basicDailySearchNotice ? { basicDailySearchNotice } : {}),
+          ...(assistantFreeActive && assistantFreeUsage?.remaining === 0
+            ? {
+                assistantFreeLimitNotice: true,
+                canMessageAgainAt: assistantFreeUsage.resetAt,
+                assistantFreeMessageLimit: assistantFreeUsage.limit,
+              }
+            : {}),
 	        caseLawExplanationStyle: caseLawSuggestionDecision.explanationStyle,
 	        caseLawSoftNextStep,
         caseProcessing: processingResult,
@@ -2542,6 +3058,8 @@ export async function POST(request: NextRequest) {
                     searchEngineOverride: 'brave',
                     legalContext: userLegalContext,
                     accountType: userAccountType,
+                    ...assistantPromptOption,
+                    ...(assistantPlusActive ? { consumeSearchQuota: () => consumeAssistantPlusWebSearchQuota(userId) } : {}),
                     openaiModel: premiumOpenAiModel,
                     openaiFallbackModel: premiumOpenAiFallbackModel,
                     historyLimit: agentHistoryLimit,
@@ -2570,6 +3088,7 @@ export async function POST(request: NextRequest) {
               message: sanitizeChatErrorMessage(error),
             })
           } finally {
+            releaseChatCapacityOnce()
             controller.close()
           }
         },
@@ -2578,13 +3097,25 @@ export async function POST(request: NextRequest) {
       return new Response(stream, { status: 200, headers: streamHeaders })
     }
 
+    const basicSearchQuotaUserId = authUserId || null
+    const consumeBasicSearchQuota = basicSearchQuotaUserId
+      ? () => assistantFreeActive
+        ? consumeAssistantFreeDailyWebSearchQuota(basicSearchQuotaUserId)
+        : consumeBasicDailyWebSearchQuota(basicSearchQuotaUserId)
+      : undefined
+    const consumeAssistantPlusSearchQuota = assistantPlusActive
+      ? () => consumeAssistantPlusWebSearchQuota(userId)
+      : undefined
     const agentResponse: AgentResponse = shouldUseBasicLegalAgent
       ? await (userAccountType === 'business' ? invokeBasicProfessionalLegalAgent : invokeBasicLitigantLegalAgent)(messageForAgent, threadId, userId, effectiveConversationHistory, caseKeywords, {
-          useSearch: false,
+          useSearch: basicSearchQuotaUserId ? undefined : false,
+          autoDecideSearch: Boolean(basicSearchQuotaUserId),
+          consumeSearchQuota: consumeBasicSearchQuota,
           memoryContext: relatedThreadMemoryContext || undefined,
           historyLimit: agentHistoryLimit,
           legalContext: userLegalContext,
           accountType: userAccountType,
+          ...assistantPromptOption,
         })
       : shouldUsePremiumPlusLegalAgent
         ? await invokePremiumPlusWithOpenAiFallback()
@@ -2594,6 +3125,8 @@ export async function POST(request: NextRequest) {
             searchEngineOverride: 'brave',
             legalContext: userLegalContext,
             accountType: userAccountType,
+            ...assistantPromptOption,
+            consumeSearchQuota: consumeAssistantPlusSearchQuota,
             openaiModel: premiumOpenAiModel,
             openaiFallbackModel: premiumOpenAiFallbackModel,
             historyLimit: agentHistoryLimit,
@@ -2601,10 +3134,12 @@ export async function POST(request: NextRequest) {
 
     const payload = await finalizeAgentResponse(agentResponse)
 
+    releaseChatCapacityOnce()
     return withCookie(
       NextResponse.json(payload, { status: 200 })
     )
   } catch (error: any) {
+    releaseChatCapacityOnce()
     await captureServerException(error, {
       component: 'chat',
       route: '/api/chat',

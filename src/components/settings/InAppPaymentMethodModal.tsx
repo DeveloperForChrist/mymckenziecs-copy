@@ -115,8 +115,8 @@ function PaymentMethodSetupForm({
         <p className={styles.modalBody} style={{ marginBottom: 12 }}>
           {isTrialing
             ? hasExistingPaymentMethod
-              ? 'Enter the card you want us to use if you continue after your free trial ends.'
-              : 'Add your billing information now so your access can continue after the free trial ends.'
+              ? 'Enter the card you want future billing to use.'
+              : 'Add your billing information now so your access can continue.'
             : hasExistingPaymentMethod
               ? 'Enter the new card you want future renewals to use.'
               : 'Add a card so your paid subscription can renew automatically.'}

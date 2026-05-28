@@ -7,7 +7,7 @@ import { buildMarketAwareAuthHref, getPublicMarket, getPublicRouteForMarket } fr
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Sign In',
-  description: 'Sign in to your MyMcKenzieCS account to resume your case workspace.',
+  description: 'Sign in to your MyMcKenzieCS account.',
   path: '/auth/signin',
   noIndex: true,
 })
@@ -27,31 +27,33 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   })
   const pricingHref = getPublicRouteForMarket('/pricing', market)
   const faqHref = getPublicRouteForMarket('/faq', market)
-  const signUpHref = buildMarketAwareAuthHref('/auth/signup', market)
+  const signUpHref = buildMarketAwareAuthHref('/auth/signup', market, {
+    redirect: redirectPath,
+  })
 
   return (
     <>
       <main className={styles.page}>
         <div className={styles.shell}>
           <section className={styles.hero}>
-            <span className={styles.heroTag}>Case-ready workflow</span>
+            <span className={styles.heroTag}>Your account</span>
             <div>
-              <h1 className={styles.heroTitle}>Pick up where you left off.</h1>
+              <h1 className={styles.heroTitle}>Continue where you left off.</h1>
               <p className={styles.heroCopy}>
-                Review your notes, continue your case plan, and stay aligned with deadlines and documents.
+                Sign in once to use MyMcKenzieCS tools and any client portal access.
               </p>
               <div className={styles.heroList}>
                 <div className={styles.heroListItem}>
                   <span>01</span>
-                  <div>Live case notes and chat summaries in one place.</div>
+                  <div>Continue saved chats and account activity.</div>
                 </div>
                 <div className={styles.heroListItem}>
                   <span>02</span>
-                  <div>Document context stays attached to the case.</div>
+                  <div>Manage your plan and account settings.</div>
                 </div>
                 <div className={styles.heroListItem}>
                   <span>03</span>
-                  <div>Need more support? Add Basic, Premium, or Premium + anytime.</div>
+                  <div>Invited by a professional? Use the same sign-in.</div>
                 </div>
               </div>
             </div>
@@ -65,7 +67,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
             <div>
               <h2 className={styles.formTitle}>Welcome back</h2>
               <p className={styles.formSubtitle}>
-                Sign in to resume your workspace and continue preparing your legal matter.
+                Sign in to continue.
               </p>
               <p className={styles.formSubtitle} style={{ marginTop: '8px' }}>
                 Invited by a legal professional? Use this same sign-in. You&apos;ll be taken to your Client Portal automatically.

@@ -10,7 +10,9 @@ import { getStripeSubscriptionPeriodEndIso, getStripeSubscriptionPeriodStartIso 
 
 function normalizePlanTypeFromPrice(priceId?: string | null): string {
   if (!priceId) return 'No plan';
-  const name = (findPlanByAnyPriceId(priceId)?.name || '').toLowerCase();
+  const configuredPlan = findPlanByAnyPriceId(priceId);
+  if (configuredPlan?.name) return configuredPlan.name;
+  const name = '';
   if (name.includes('basic') || name.includes('essential') || name.includes('premium cheap')) return 'Basic';
   if (name.includes('premium +') || name.includes('premium plus') || name.includes('plus') || name.includes('premium pro')) return 'Premium +';
   if (name.includes('premium')) return 'Premium';

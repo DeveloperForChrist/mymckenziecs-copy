@@ -23,6 +23,14 @@ function mapSupabaseError(error: AuthApiError) {
   return error.message || 'We could not sign you in. Please try again.'
 }
 
+function isAssistantPlanLabel(plan: unknown) {
+  return String(plan || '').trim().toLowerCase().startsWith('assistant ')
+}
+
+function navigateAfterAuth(path: string) {
+  window.location.assign(path)
+}
+
 export default function SignInForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -107,6 +115,7 @@ export default function SignInForm() {
       let accountType = 'litigant'
       let hasBusinessWorkspace = false
       let hasClientPortalAccess = false
+      let preferredProduct: string | null = null
       try {
         const verificationRes = await fetch('/api/user', {
           credentials: 'include',
@@ -121,6 +130,9 @@ export default function SignInForm() {
           accountType = String(verificationPayload?.accountType || 'litigant').trim().toLowerCase()
           hasBusinessWorkspace = Boolean(verificationPayload?.hasBusinessWorkspace)
           hasClientPortalAccess = Boolean(verificationPayload?.hasClientPortalAccess)
+          preferredProduct = typeof verificationPayload?.preferredProduct === 'string'
+            ? verificationPayload.preferredProduct.trim().toLowerCase()
+            : null
         }
       } catch {
         // Fail open to avoid blocking verified users on transient API issues.
@@ -135,22 +147,8 @@ export default function SignInForm() {
         nextPath.startsWith('/dashboard?') ||
         nextPath === '/us/dashboard' ||
         nextPath.startsWith('/us/dashboard?')
-      const accountDashboardHref = (() => {
-        if (hasExplicitRedirect) return nextPath
-        if (isBusinessAccount && isDashboardRedirect) return businessDashboardHref
-        if (hasClientPortalAccess && !isBusinessAccount && isDashboardRedirect) return clientPortalHref
-        return nextPath
-      })()
-
-      if (!isVerified) {
-        const verifyRedirectTarget = accountDashboardHref
-        const verifyRedirect = `/auth/verify-email?redirect=${encodeURIComponent(verifyRedirectTarget)}`
-        router.push(verifyRedirect)
-        router.refresh()
-        return
-      }
-
       let hasPaidPlan = false
+      let planLabel = 'No plan'
       try {
         const planRes = await fetch('/api/user/plan', {
           credentials: 'include',
@@ -159,22 +157,37 @@ export default function SignInForm() {
         if (planRes.ok) {
           const planPayload = await planRes.json().catch(() => ({}))
           hasPaidPlan = Boolean(planPayload?.paidAccess)
+          planLabel = String(planPayload?.plan || 'No plan')
         }
       } catch {
         hasPaidPlan = false
       }
 
+      const isAssistantAccount = preferredProduct === 'assistant' || isAssistantPlanLabel(planLabel)
+      const accountDashboardHref = (() => {
+        if (hasExplicitRedirect) return nextPath
+        if (isBusinessAccount && isDashboardRedirect) return businessDashboardHref
+        if (hasClientPortalAccess && !isBusinessAccount && isDashboardRedirect) return clientPortalHref
+        if (!isBusinessAccount && !hasClientPortalAccess && isAssistantAccount && isDashboardRedirect) return '/assistant'
+        return nextPath
+      })()
+
+      if (!isVerified) {
+        const verifyRedirectTarget = accountDashboardHref
+        const verifyRedirect = `/auth/verify-email?redirect=${encodeURIComponent(verifyRedirectTarget)}`
+        navigateAfterAuth(verifyRedirect)
+        return
+      }
+
       if (!hasPaidPlan) {
-        router.push(accountDashboardHref)
-        router.refresh()
+        navigateAfterAuth(accountDashboardHref)
         return
       }
 
       const verifiedRedirect = accountDashboardHref.startsWith('/auth/verify-email')
-        ? (isBusinessAccount ? businessDashboardHref : defaultDashboardHref)
+        ? (isBusinessAccount ? businessDashboardHref : isAssistantAccount ? '/assistant' : defaultDashboardHref)
         : accountDashboardHref
-      router.push(verifiedRedirect)
-      router.refresh()
+      navigateAfterAuth(verifiedRedirect)
     } catch (err: any) {
       if (err instanceof AuthApiError) {
         setError(mapSupabaseError(err))

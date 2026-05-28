@@ -5,7 +5,6 @@ import { stripe } from '@/lib/payments/stripe';
 import { logApiUsage } from '@/lib/utils/api-usage-logger';
 import { billingIpRateLimiter, billingRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 import { getAppUrl } from '@/lib/app-url';
-import { SUBSCRIPTION_TRIAL_DAYS } from '@/lib/payments/trials';
 import { isPaidPlan } from '@/lib/plans/access';
 import {
   findBusinessMarketByPriceId,
@@ -165,7 +164,7 @@ export async function POST(request: NextRequest) {
     // Create Stripe subscription checkout session
     const sessionStart = Date.now();
     try {
-      const trialApplied = !isBusinessPrice && !hasPreviousSubscription;
+      const trialApplied = false;
       const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
         customer: customerId,
@@ -189,7 +188,6 @@ export async function POST(request: NextRequest) {
             businessIntroPriceApplied: isBusinessIntroPrice ? 'true' : 'false',
             businessStandardPriceId: businessStandardPriceId || '',
           },
-          ...(trialApplied ? { trial_period_days: SUBSCRIPTION_TRIAL_DAYS } : {}),
         },
         success_url: successUrl ? withCheckoutParams(successUrl, 'success', market) : defaultSuccessUrl,
         cancel_url: cancelUrl ? withCheckoutParams(cancelUrl, 'cancelled', market) : defaultCancelUrl,

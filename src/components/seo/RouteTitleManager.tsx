@@ -33,6 +33,8 @@ const titleByPath: Record<string, string> = {
   '/cookie-policy': 'Cookie Policy',
   '/us/cookie-policy': 'U.S. Cookie Policy',
   '/chatbot': 'Chat Assistant',
+  '/assistant': 'MyMcKenzie Assistant',
+  '/assistant/pricing': 'Assistant Pricing',
   '/us/chatbot': 'U.S. Chat Assistant',
   '/settings': 'Settings',
   '/us/settings': 'U.S. Settings',
@@ -69,6 +71,7 @@ const normalizePath = (value: string) => {
 
 const segmentLabelOverrides: Record<string, string> = {
   chatbot: 'Chat Assistant',
+  assistant: 'MyMcKenzie Assistant',
   mynotes: 'My Notes',
   'case-law-search': 'Case Law Search',
   signin: 'Sign In',

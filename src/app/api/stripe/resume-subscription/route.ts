@@ -14,19 +14,8 @@ import { syncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { invalidateUserPlanCache } from '@/lib/payments/user-plan';
 import { isBillingActiveStripeStatus, normalizeStripeSubscriptionStatus } from '@/lib/payments/subscription-status';
 import { getStripeSubscriptionPeriodEndIso, getStripeSubscriptionPeriodStartIso } from '@/lib/payments/subscription-period';
-import { getBillingMarketFromCountryCode, getPlanPriceId } from '@/constants';
-import { planDisplayName } from '@/lib/plans/access';
-import { getUserLegalContext } from '@/lib/legal/user-context';
 
-const RESUMABLE_STATUSES = ['active', 'past_due', 'trialing'] as const;
-
-async function resolvePriceIdFromPlan(userId: string, planType?: string | null, fallbackMetadata?: any) {
-  const displayName = planDisplayName(planType || '');
-  if (displayName === 'No plan') return '';
-  const legalContext = await getUserLegalContext(userId, fallbackMetadata);
-  const market = getBillingMarketFromCountryCode(legalContext.countryCode);
-  return getPlanPriceId(displayName, market);
-}
+const RESUMABLE_STATUSES = ['active', 'past_due'] as const;
 
 export async function POST(req: Request) {
   try {
@@ -72,100 +61,6 @@ export async function POST(req: Request) {
       .maybeSingle();
 
     const stripeSubscriptionId = subscriptionRow?.stripe_subscription_id || null;
-    if (!stripeSubscriptionId && String(subscriptionRow?.status || '').toLowerCase() === 'trialing') {
-      const nowIso = new Date().toISOString();
-      let nextStatus = 'trialing';
-      let nextPeriodStart = null;
-      let nextPeriodEnd = subscriptionRow?.current_period_end || null;
-
-      const customerId = subscriptionRow?.stripe_customer_id || null;
-      const currentPeriodEnd = subscriptionRow?.current_period_end || null;
-      const hasFutureTrialEnd =
-        Boolean(currentPeriodEnd) && new Date(String(currentPeriodEnd)).getTime() > Date.now() + 60_000;
-
-      if (customerId && hasFutureTrialEnd) {
-        try {
-          const customer = await stripe.customers.retrieve(customerId, {
-            expand: ['invoice_settings.default_payment_method'],
-          });
-          const defaultPaymentMethodId =
-            typeof (customer as any)?.invoice_settings?.default_payment_method === 'string'
-              ? (customer as any).invoice_settings.default_payment_method
-              : (customer as any)?.invoice_settings?.default_payment_method?.id || null;
-
-          if (defaultPaymentMethodId) {
-            const priceId = await resolvePriceIdFromPlan(
-              authUid,
-              subscriptionRow?.plan_type || '',
-              authData.user.user_metadata as any
-            );
-            if (priceId) {
-              const subscription = await stripe.subscriptions.create({
-                customer: customerId,
-                items: [{ price: priceId, quantity: 1 }],
-                default_payment_method: defaultPaymentMethodId,
-                trial_end: Math.floor(new Date(String(currentPeriodEnd)).getTime() / 1000),
-                metadata: {
-                  userId: authUid,
-                  planId: priceId,
-                  trialApplied: 'true',
-                  origin: 'trial-resume',
-                },
-              });
-              nextStatus = normalizeStripeSubscriptionStatus(subscription.status);
-              nextPeriodStart = getStripeSubscriptionPeriodStartIso(subscription);
-              nextPeriodEnd = getStripeSubscriptionPeriodEndIso(subscription);
-
-              const { error: trialUpdateError } = await supabaseAdmin
-                .from('subscriptions')
-                .update({
-                  stripe_subscription_id: subscription.id,
-                  stripe_customer_id: customerId,
-                  status: nextStatus,
-                  current_period_start: nextPeriodStart,
-                  current_period_end: nextPeriodEnd,
-                  cancel_at_period_end: false,
-                  updated_at: nowIso,
-                })
-                .eq('id', subscriptionRow?.id);
-
-              if (trialUpdateError) {
-                console.error('Resume subscription: failed to attach Stripe subscription to local trial', trialUpdateError);
-                return NextResponse.json({ error: 'Failed to resume trial billing state' }, { status: 500 });
-              }
-            }
-          }
-        } catch (creationError: any) {
-          console.error('Resume subscription: failed to create Stripe subscription for local trial', creationError);
-        }
-      }
-
-      const { error: updateError } = await supabaseAdmin
-        .from('subscriptions')
-        .update({
-          cancel_at_period_end: false,
-          status: nextStatus,
-          current_period_start: nextPeriodStart,
-          current_period_end: nextPeriodEnd,
-          updated_at: nowIso,
-        })
-        .eq('id', subscriptionRow?.id);
-
-      if (updateError) {
-        console.error('Resume subscription: failed to update local trial', updateError);
-        return NextResponse.json({ error: 'Failed to update local trial state' }, { status: 500 });
-      }
-
-      await syncUserEntitlementSnapshot(authUid);
-      invalidateUserPlanCache(authUid);
-      return NextResponse.json({
-        ok: true,
-        status: nextStatus,
-        cancelAtPeriodEnd: false,
-        currentPeriodEnd: nextPeriodEnd,
-      });
-    }
-
     if (!stripeSubscriptionId) {
       return NextResponse.json({ error: 'No scheduled cancellation found' }, { status: 404 });
     }
