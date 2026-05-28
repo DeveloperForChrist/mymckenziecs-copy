@@ -142,6 +142,7 @@ describe('/api/chat route', () => {
     authUser = { id: 'user-1', email: 'user@example.com' },
     planData = { plan: 'basic', paidAccess: true, platformAccess: true, planStatus: 'active' },
     incrementedTurnCount = 1,
+    clientIp,
     searchByTextImpl,
     processMessageResult = {
       task: 'legal_procedure',
@@ -158,6 +159,7 @@ describe('/api/chat route', () => {
     authUser?: { id: string; email?: string | null } | null
     planData?: { plan?: string | null; paidAccess?: boolean; platformAccess?: boolean; planStatus?: string | null }
     incrementedTurnCount?: number
+    clientIp?: string
     searchByTextImpl?: (...args: any[]) => Promise<any[]>
     processMessageResult?: { task: string; contextType: string; urgency: string; caseId: string | null }
     usersRows?: MockRow[]
@@ -183,7 +185,7 @@ describe('/api/chat route', () => {
 
     const supabaseAdmin = {
       rpc: vi.fn(async (fnName: string) => {
-        if (fnName === 'consume_guest_message') {
+        if (fnName === 'consume_guest_message' || fnName === 'consume_guest_message_scoped') {
           return {
             data: {
               allowed: true,
@@ -382,6 +384,7 @@ describe('/api/chat route', () => {
         reset: Date.now() + 60_000,
       })),
       getIdentifier: vi.fn((value: string) => value),
+      getClientIp: vi.fn(() => clientIp),
       acquireChatAiCapacity: vi.fn(async () => ({
         success: true,
         active: 1,
@@ -441,6 +444,31 @@ describe('/api/chat route', () => {
       expect.objectContaining({
         autoDecideSearch: true,
         accountType: 'litigant',
+      })
+    )
+  })
+
+  it('enforces anonymous chat usage by guest id and client IP for a six-hour window', { timeout: 30000 }, async () => {
+    const { POST, supabaseAdmin } = await loadRoute({ authUser: null, clientIp: '203.0.113.10' })
+    const anonymousUserId = 'anon_11111111-1111-4111-8111-111111111111'
+
+    const response = await POST(
+      buildChatRequest({
+        message: 'What does CPR Part 7 mean?',
+        history: [],
+        userId: anonymousUserId,
+        sessionMessageCount: 1,
+      })
+    )
+
+    expect(response.status).toBe(200)
+    expect(supabaseAdmin.rpc).toHaveBeenCalledWith(
+      'consume_guest_message_scoped',
+      expect.objectContaining({
+        p_guest_id: '11111111-1111-4111-8111-111111111111',
+        p_ip_usage_id: expect.stringMatching(/^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/),
+        p_limit: 3,
+        p_window_ms: 6 * 60 * 60 * 1000,
       })
     )
   })
@@ -530,7 +558,7 @@ describe('/api/chat route', () => {
     expect(chatManagerInstance.initializeSession).not.toHaveBeenCalled()
   })
 
-  it('allows Basic chat when the signed-in user has platform access but no paid plan', { timeout: 15000 }, async () => {
+  it('answers broad Basic legal procedure prompts instead of forcing an upfront stage question', { timeout: 15000 }, async () => {
     const { POST, chatManagerInstance, legalAgentMocks } = await loadRoute({
       planData: { plan: 'none', paidAccess: false, platformAccess: true, planStatus: 'inactive' },
     })
@@ -539,11 +567,35 @@ describe('/api/chat route', () => {
     const payload = await response.json()
 
     expect(response.status).toBe(200)
-    expect(payload.response).toContain('Which stage are you at right now')
+    expect(payload.response).toBe('Basic answer')
     expect(payload.metadata.upgradeRequired).toBeUndefined()
-    expect(payload.metadata.requiresClarification).toBe(true)
+    expect(payload.metadata.requiresClarification).toBeUndefined()
     expect(chatManagerInstance.seedUserPlan).toHaveBeenCalledWith('none')
-    expect(legalAgentMocks.invokeBasicLegalAgent).not.toHaveBeenCalled()
+    expect(legalAgentMocks.invokeBasicLegalAgent).toHaveBeenCalled()
+  })
+
+  it.each([
+    ['deadline_query', 'I have a deadline coming up and I am worried what to do next.'],
+    ['document_review', 'Can you review if my evidence is strong enough?'],
+    ['form_guidance', 'Which court form might be relevant for this application?'],
+  ])('answers %s prompts instead of route-blocking for missing context', { timeout: 15000 }, async (task, message) => {
+    const { POST, legalAgentMocks } = await loadRoute({
+      planData: { plan: 'none', paidAccess: false, platformAccess: true, planStatus: 'inactive' },
+      processMessageResult: {
+        task,
+        contextType: 'general',
+        urgency: 'normal',
+        caseId: null,
+      },
+    })
+
+    const response = await POST(buildChatRequest({ message, history: [] }))
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.response).toBe('Basic answer')
+    expect(payload.metadata.requiresClarification).toBeUndefined()
+    expect(legalAgentMocks.invokeBasicLegalAgent).toHaveBeenCalled()
   })
 
   it('enables premium plus U.S. case-law retrieval for U.S. users when the U.S. vector DB is configured', { timeout: 15000 }, async () => {

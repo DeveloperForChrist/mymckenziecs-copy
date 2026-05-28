@@ -29,6 +29,7 @@ import {
   assistantUsageLimits,
   rateLimit,
   getIdentifier,
+  getClientIp,
   acquireChatAiCapacity,
   acquirePremiumProviderCapacity,
 } from '@/lib/utils/rate-limit'
@@ -147,7 +148,7 @@ const readPositiveInteger = (value: string | undefined, fallback: number) => {
 const ANONYMOUS_CHAT_MESSAGE_LIMIT = readPositiveInteger(process.env.ANONYMOUS_CHAT_MESSAGE_LIMIT, 3)
 const ANONYMOUS_CHAT_COOLDOWN_MS = readPositiveInteger(
   process.env.ANONYMOUS_CHAT_COOLDOWN_MS,
-  5 * 60 * 60 * 1000
+  6 * 60 * 60 * 1000
 )
 const ASSISTANT_FREE_CHAT_MESSAGE_LIMIT = readPositiveInteger(process.env.ASSISTANT_FREE_CHAT_MESSAGE_LIMIT, 8)
 const ASSISTANT_FREE_CHAT_COOLDOWN_MS = readPositiveInteger(
@@ -161,6 +162,23 @@ const normalizeGuestUuid = (value?: string | null): string | null => {
   if (uuidRegex.test(raw)) return raw
   const anonMatch = raw.match(/^anon_([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i)
   return anonMatch?.[1] && uuidRegex.test(anonMatch[1]) ? anonMatch[1] : null
+}
+
+const uuidFromStableKey = (key: string): string => {
+  const hex = createHash('sha256').update(key).digest('hex').slice(0, 32)
+  const variant = ((Number.parseInt(hex[16] || '8', 16) & 0x3) | 0x8).toString(16)
+  return [
+    hex.slice(0, 8),
+    hex.slice(8, 12),
+    `5${hex.slice(13, 16)}`,
+    `${variant}${hex.slice(17, 20)}`,
+    hex.slice(20, 32),
+  ].join('-')
+}
+
+const getAnonymousIpUsageId = (headers: Headers): string | null => {
+  const clientIp = getClientIp(headers)
+  return clientIp ? uuidFromStableKey(`anonymous-chat-ip:${clientIp}`) : null
 }
 
 const getEnvModelValue = (...keys: string[]): string | null => {
@@ -1728,25 +1746,6 @@ const extractActionItems = (text: string): ExtractedAction[] => {
   return actions
 }
 
-const inferFollowUpQuestion = (task: string, message: string) => {
-  const text = message.toLowerCase()
-  const hasDate = /\b\d{1,2}[/\-]\d{1,2}([/\-]\d{2,4})?\b|\b(today|tomorrow|next week|next month|monday|tuesday|wednesday|thursday|friday)\b/i.test(message)
-
-  if (task === 'deadline_query' && !hasDate) {
-    return 'Could you share the exact deadline or hearing date so I can give guidance in the right order and timing?'
-  }
-  if (task === 'document_review' && !/\b(document|email|letter|photo|screenshot|witness|statement)\b/.test(text)) {
-    return 'What evidence do you currently have (for example emails, letters, screenshots, or witnesses)?'
-  }
-  if (task === 'legal_procedure' && !/\b(claim form|defence|hearing|judgment|order|appeal|n244|cpr)\b/.test(text)) {
-    return 'Which stage are you at right now (for example pre-claim, claim filed, defence filed, or hearing listed)?'
-  }
-  if (task === 'form_guidance' && !/\b(n\d{1,3}|claim form|defence form|n244|n180|n1)\b/.test(text)) {
-    return 'Which court form do you need help with (for example N1, N180, or N244)?'
-  }
-  return null
-}
-
 const resolveThreadTurnLimit = ({
   basicPlanActive,
   premiumPlanActive,
@@ -1981,12 +1980,14 @@ export async function POST(request: NextRequest) {
       : sanitizedHistory.filter((entry) => entry.role === 'user').length + 1
 
     if (!authUserId) {
-      let allowedByGuestUsage = !guestUuid
+      const anonymousIpUsageId = getAnonymousIpUsageId(request.headers)
+      let allowedByGuestUsage = !guestUuid && !anonymousIpUsageId
       let canMessageAgainAt: string | null = null
 
-      if (guestUuid) {
-        const { data: guestUsage, error: guestUsageError } = await supabaseAdmin.rpc('consume_guest_message', {
+      if (guestUuid || anonymousIpUsageId) {
+        const { data: guestUsage, error: guestUsageError } = await supabaseAdmin.rpc('consume_guest_message_scoped', {
           p_guest_id: guestUuid,
+          p_ip_usage_id: anonymousIpUsageId,
           p_limit: ANONYMOUS_CHAT_MESSAGE_LIMIT,
           p_window_ms: ANONYMOUS_CHAT_COOLDOWN_MS,
         })
@@ -2471,49 +2472,6 @@ export async function POST(request: NextRequest) {
           )
         : ''
 
-    const followUpQuestion = inferFollowUpQuestion(processingResult.task, message)
-    const shouldShortCircuitToQuestion = Boolean(
-      followUpQuestion &&
-      !hasAttachments &&
-      effectiveConversationHistory.length <= 1 &&
-      !relatedThreadMemoryContext
-    )
-
-    if (shouldShortCircuitToQuestion) {
-      const clarificationQuestion = followUpQuestion || 'Can you clarify the main point you need help with?'
-      const mergedFacts = mergeFacts(effectiveMemoryRow?.key_facts, initialFacts)
-      await supabaseAdmin.from('chat_memory').upsert(
-        {
-          memory_key: memoryKey,
-          user_id: authUserId || null,
-          guest_id: guestUuid,
-          case_id: resolvedCaseId || null,
-          conversation_id: activeConversationId,
-          memory_summary: truncateText(`User asked: ${message}`, 320),
-          key_facts: mergedFacts,
-          open_questions: [clarificationQuestion],
-          last_intent: processingResult.task,
-        },
-        { onConflict: 'memory_key' }
-      )
-
-      releaseChatCapacityOnce()
-      return withCookie(
-        NextResponse.json(
-          buildAssistantResponsePayload(clarificationQuestion, {
-            followUpQuestion: clarificationQuestion,
-            requiresClarification: true,
-            caseProcessing: processingResult,
-            activeCaseId: resolvedCaseId,
-            task: processingResult.task,
-            contextType: processingResult.contextType,
-            urgency: processingResult.urgency,
-          }),
-          { status: 200 }
-        )
-      )
-    }
-
     const caseContext = caseContextData ? buildCaseContext(caseContextData) : ''
     const caseKeywords = caseContextData ? extractCaseKeywords(caseContextData) : ''
     const premiumOpenAiModel = getPremiumOpenAiModel()
@@ -2962,7 +2920,6 @@ export async function POST(request: NextRequest) {
         task: processingResult.task,
         contextType: processingResult.contextType,
         urgency: processingResult.urgency,
-        followUpQuestion,
         actionItems,
         ...(includeDebug
             ? {
