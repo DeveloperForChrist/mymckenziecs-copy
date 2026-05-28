@@ -1,5 +1,7 @@
 "use client"
 
+import Link from 'next/link'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import ChatInterface from '@/components/chatbot/ChatInterface'
 import CaseLawSearchPageClient from '@/components/dashboard/CaseLawSearchPageClient'
@@ -7,6 +9,7 @@ import DocumentsClientNew from '@/components/dashboard/DocumentsClientNew'
 import SettingsPageClient from '@/components/settings/SettingsPageClient'
 import type { InitialChatPlanState } from '@/components/chatbot/hooks/useChatAuthPlan'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
+import { getPublicMarket, getPublicRouteForMarket } from '@/lib/markets/public-routes'
 import styles from './assistantProduct.module.css'
 
 type Conversation = {
@@ -38,6 +41,8 @@ const isAssistantProPlan = (plan?: string | null) => {
 }
 
 export default function AssistantProductClient({ initialChatPlan = null }: AssistantProductClientProps) {
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [isSignedIn, setIsSignedIn] = useState(Boolean(initialChatPlan?.userId))
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
@@ -59,6 +64,14 @@ export default function AssistantProductClient({ initialChatPlan = null }: Assis
     paidAccess: Boolean(initialChatPlan?.paidAccess),
     publicMarket: 'GB' as const,
   }), [initialChatPlan?.paidAccess, initialChatPlan?.plan, initialChatPlan?.planStatus])
+  const homeHref = getPublicRouteForMarket(
+    '/',
+    getPublicMarket({
+      pathname,
+      explicitMarket: searchParams?.get('market'),
+      countryCode: settingsPlan.publicMarket,
+    })
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -213,6 +226,13 @@ export default function AssistantProductClient({ initialChatPlan = null }: Assis
           <div>
             <h1>MyMcKenzie Assistant</h1>
           </div>
+          {!isSignedIn && (
+            <div className={styles.topbarActions}>
+              <Link href={homeHref} className={styles.actionLink} aria-label="Go to homepage">
+                Home
+              </Link>
+            </div>
+          )}
         </header>
         {activeView === 'chat' ? (
           <div className={styles.chatPane}>
@@ -221,6 +241,7 @@ export default function AssistantProductClient({ initialChatPlan = null }: Assis
               composerPlacement="pane"
               paneWidth="standard"
               conversationHomeHref="/assistant"
+              guestHomeHref={homeHref}
               anonymousMessageLimit={3}
             />
           </div>

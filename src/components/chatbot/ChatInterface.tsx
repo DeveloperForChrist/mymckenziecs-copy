@@ -319,6 +319,7 @@ type ChatInterfaceProps = {
   composerPlacement?: 'viewport' | 'pane'
   paneWidth?: 'full' | 'standard'
   conversationHomeHref?: string
+  guestHomeHref?: string
   anonymousMessageLimit?: number | null
 }
 
@@ -327,6 +328,7 @@ export default function ChatInterface({
   composerPlacement = 'viewport',
   paneWidth = 'full',
   conversationHomeHref,
+  guestHomeHref,
   anonymousMessageLimit = null,
 }: ChatInterfaceProps = {}) {
   const dockComposerToPane = composerPlacement === 'pane'
@@ -1925,6 +1927,7 @@ export default function ChatInterface({
             showGuestSignupModal={showGuestSignupModal}
             onCloseGuestSignupModal={() => setShowGuestSignupModal(false)}
             guestSignupReason={guestSignupReason}
+            guestHomeHref={guestHomeHref}
             anonymousMessageLimit={anonymousMessageLimit}
             attachedFiles={attachedFiles}
             onRemoveFile={handleRemoveFile}

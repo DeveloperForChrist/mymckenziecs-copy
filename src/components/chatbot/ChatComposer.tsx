@@ -10,6 +10,7 @@ type ChatComposerProps = {
   showGuestSignupModal: boolean
   onCloseGuestSignupModal: () => void
   guestSignupReason?: 'upload' | 'limit'
+  guestHomeHref?: string
   anonymousMessageLimit?: number | null
   attachedFiles: File[]
   onRemoveFile: (index: number) => void
@@ -37,6 +38,7 @@ export default function ChatComposer({
   showGuestSignupModal,
   onCloseGuestSignupModal,
   guestSignupReason = 'upload',
+  guestHomeHref = '/uk',
   anonymousMessageLimit = null,
   attachedFiles,
   onRemoveFile,
@@ -203,22 +205,43 @@ export default function ChatComposer({
               >
                 Sign in
               </Link>
-              <button
-                type="button"
-                onClick={onCloseGuestSignupModal}
-                style={{
-                  minHeight: '36px',
-                  padding: '0 16px',
-                  borderRadius: '8px',
-                  border: '0',
-                  background: 'transparent',
-                  color: 'rgba(255,255,255,0.58)',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Maybe later
-              </button>
+              {guestSignupReason === 'limit' ? (
+                <Link
+                  href={guestHomeHref}
+                  style={{
+                    minHeight: '36px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0 16px',
+                    borderRadius: '8px',
+                    border: '0',
+                    background: 'transparent',
+                    color: 'rgba(255,255,255,0.68)',
+                    fontWeight: 650,
+                    textDecoration: 'none'
+                  }}
+                >
+                  Go home
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onCloseGuestSignupModal}
+                  style={{
+                    minHeight: '36px',
+                    padding: '0 16px',
+                    borderRadius: '8px',
+                    border: '0',
+                    background: 'transparent',
+                    color: 'rgba(255,255,255,0.58)',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Maybe later
+                </button>
+              )}
             </div>
           </div>
         </div>
