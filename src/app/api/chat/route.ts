@@ -249,17 +249,6 @@ const PREMIUM_THREAD_MAX_USER_TURNS = Number.isFinite(Number(process.env.PREMIUM
 const PREMIUM_PLUS_THREAD_MAX_USER_TURNS = Number.isFinite(Number(process.env.PREMIUM_PLUS_THREAD_MAX_USER_TURNS))
   ? Math.max(10, Math.floor(Number(process.env.PREMIUM_PLUS_THREAD_MAX_USER_TURNS)))
   : CHAT_THREAD_MAX_USER_TURNS_DEFAULT
-const SUPPORT_RESPONSE_CACHE_TTL_MS = Number.isFinite(Number(process.env.SUPPORT_RESPONSE_CACHE_TTL_MS))
-  ? Math.max(1000, Math.floor(Number(process.env.SUPPORT_RESPONSE_CACHE_TTL_MS)))
-  : 5 * 60 * 1000
-
-type CachedSupportResponse = {
-  expiresAt: number
-  payload: ReturnType<typeof buildAssistantResponsePayload>
-}
-
-const supportResponseCache = new Map<string, CachedSupportResponse>()
-
 const CHAT_AUTH_CACHE_TTL_MS = Number.isFinite(Number(process.env.CHAT_AUTH_CACHE_TTL_MS))
   ? Math.max(1000, Math.floor(Number(process.env.CHAT_AUTH_CACHE_TTL_MS)))
   : 10_000
@@ -388,52 +377,6 @@ const getCachedChatUserContext = async (user: User): Promise<CachedChatUserConte
 
 const normalizePlanLabel = (value: any): string =>
   typeof value === 'string' ? value.trim().toLowerCase() : ''
-
-const normalizeSupportPrompt = (value: string) =>
-  value
-    .toLowerCase()
-    .replace(/[^a-z0-9@.+\s-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-
-const isSupportOrBillingContactPrompt = (value: string) => {
-  const prompt = normalizeSupportPrompt(value)
-  if (!prompt) return false
-  const mentionsSupport = /\b(support|help|contact|email|reach|speak|billing|payment|invoice|subscription|refund)\b/.test(prompt)
-  const asksContactRoute = /\b(how|where|what|who|can|need|want)\b/.test(prompt) || prompt.includes('?')
-  const isLegalQuestion = /\b(case law|precedent|court|claim|defence|defense|hearing|evidence|judge|order|application|appeal|legal advice)\b/.test(prompt)
-  return mentionsSupport && asksContactRoute && !isLegalQuestion
-}
-
-const buildCachedSupportResponse = (message: string, accountType: string, planLabel: string) => {
-  const key = `${accountType || 'unknown'}:${planLabel || 'none'}:${normalizeSupportPrompt(message)}`
-  const now = Date.now()
-  const cached = supportResponseCache.get(key)
-  if (cached && cached.expiresAt > now) {
-    return { payload: cached.payload, hit: true }
-  }
-  if (cached) supportResponseCache.delete(key)
-
-  const supportEmail = process.env.SUPPORT_EMAIL || 'support@mymckenziecs.com'
-  const response =
-    `For billing or account support, email ${supportEmail}. Include the email address on your account, the plan or payment issue, and any Stripe receipt or invoice reference if you have one.\n\n` +
-    'For urgent access issues, mention that in the subject line so it can be triaged quickly.'
-  const payload = buildAssistantResponsePayload(response, {
-    cachedResponse: true,
-    supportResponse: true,
-    activePlan: planLabel || 'none',
-  }, {
-    document_generated: false,
-    guidance_provided: true,
-    next_steps: [`Email ${supportEmail} with your account and billing details.`],
-  })
-
-  supportResponseCache.set(key, {
-    expiresAt: now + SUPPORT_RESPONSE_CACHE_TTL_MS,
-    payload,
-  })
-  return { payload, hit: false }
-}
 
 const normalizeHost = (value: string | null) => {
   const trimmed = (value || '').trim()
@@ -1942,21 +1885,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Message is required' }, { status: 400 })
     }
 
-    if (
-      isSupportOrBillingContactPrompt(message) &&
-      !activeCaseId &&
-      (!Array.isArray(attachments) || attachments.length === 0)
-    ) {
-      const cachedSupportResponse = buildCachedSupportResponse(message, 'unknown', 'none')
-      return NextResponse.json(cachedSupportResponse.payload, {
-        status: 200,
-        headers: {
-          'Cache-Control': 'private, max-age=300',
-          'X-MyMcKenzie-Cache': cachedSupportResponse.hit ? 'HIT' : 'MISS',
-        },
-      })
-    }
-
     const requestCookieHeader = request.headers.get('cookie') || ''
     const authCacheKey = requestCookieHeader ? hashCacheKey(requestCookieHeader) : ''
     const supabase = await createSupabaseRouteClient()
@@ -2085,23 +2013,6 @@ export async function POST(request: NextRequest) {
       assistantFreeActive ||
       assistantPlusActive ||
       assistantProActive
-
-    if (
-      isSupportOrBillingContactPrompt(message) &&
-      !activeCaseId &&
-      (!Array.isArray(attachments) || attachments.length === 0)
-    ) {
-      const cachedSupportResponse = buildCachedSupportResponse(message, userAccountType, activePlanLabel)
-      return withCookie(
-        NextResponse.json(cachedSupportResponse.payload, {
-          status: 200,
-          headers: {
-            'Cache-Control': 'private, max-age=300',
-            'X-MyMcKenzie-Cache': cachedSupportResponse.hit ? 'HIT' : 'MISS',
-          },
-        })
-      )
-    }
 
     const rateLimitResult = await rateLimit(aiRateLimiter, identifier, 10, 60000)
     if (!rateLimitResult.success) {
