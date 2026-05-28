@@ -435,7 +435,7 @@ const PREMIUM_PLUS_CONCISE_MAX_TOKENS = Number.isFinite(Number(process.env.PREMI
   : 1200
 const PREMIUM_PLUS_MAX_AUTO_CONTINUES = Number.isFinite(Number(process.env.PREMIUM_PLUS_MAX_AUTO_CONTINUES))
   ? Math.max(0, Math.floor(Number(process.env.PREMIUM_PLUS_MAX_AUTO_CONTINUES)))
-  : 2
+  : 6
 const PREMIUM_LENGTH_TAIL_TOKENS = Number.isFinite(Number(process.env.PREMIUM_LENGTH_TAIL_TOKENS))
   ? Math.max(100, Math.floor(Number(process.env.PREMIUM_LENGTH_TAIL_TOKENS)))
   : 300
@@ -445,7 +445,7 @@ const BASIC_MAX_TOKENS = Number.isFinite(Number(process.env.BASIC_AGENT_MAX_TOKE
   : 1600
 const BASIC_MAX_AUTO_CONTINUES = Number.isFinite(Number(process.env.BASIC_AGENT_MAX_AUTO_CONTINUES))
   ? Math.max(0, Math.floor(Number(process.env.BASIC_AGENT_MAX_AUTO_CONTINUES)))
-  : 2
+  : 6
 
 // =====================================================
 // SIMPLE HELPERS
@@ -1085,7 +1085,7 @@ function hasUnclosedPairs(text: string, openChar: string, closeChar: string): bo
   return balance > 0
 }
 
-function endsMidSentenceOrSection(text: string): boolean {
+export function endsMidSentenceOrSection(text: string): boolean {
   const trimmed = (text || '').trim()
   if (!trimmed) return false
 
@@ -1217,9 +1217,9 @@ async function callLLM(
 
       const canContinue =
         autoContinueOnLength &&
-        finishReason === 'length' &&
         continueCount < continuationLimit &&
-        endsMidSentenceOrSection(cleanedChunk)
+        endsMidSentenceOrSection(cleanedChunk) &&
+        (finishReason === 'length' || finishReason === 'stop' || !finishReason)
       if (!canContinue) {
         if (finishReason === 'length') endedByLengthWithoutRecovery = true
         break
@@ -1742,8 +1742,8 @@ export async function invokePremiumLegalAgentStream(
   }
 
   const openai = new OpenAI({ apiKey })
-  const continuationPrompt = 'Continue exactly from where you stopped. Do not repeat prior text. Keep the same structure and style.'
-  const continuationLimit = 1
+  const continuationPrompt = 'Continue exactly from where you stopped and finish the answer completely. Do not repeat prior text. Keep the same structure and style.'
+  const continuationLimit = 6
 
   const streamOpenAiText = async (prompt: string, tokenLimit: number): Promise<string> => {
     const transcript: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
@@ -1852,9 +1852,9 @@ export async function invokePremiumLegalAgentStream(
       }
 
       const canContinue =
-        finishReason === 'length' &&
         continueCount < continuationLimit &&
-        endsMidSentenceOrSection(cleanedChunk)
+        endsMidSentenceOrSection(cleanedChunk) &&
+        (finishReason === 'length' || finishReason === 'stop' || !finishReason)
       if (!canContinue) break
 
       continueCount += 1
@@ -2155,7 +2155,7 @@ const PREMIUM_PLUS_LITIGANT_CASE_LAW_MAX_LIMIT = Number.isFinite(Number(process.
 const PREMIUM_PLUS_TOOL_CALL_MAX_TOKENS = 700
 const PREMIUM_PLUS_ANTHROPIC_PROMPT_CACHING_BETA = 'prompt-caching-2024-07-31'
 const PREMIUM_PLUS_ANTHROPIC_PROMPT_CACHE_TTL = '5m'
-const PREMIUM_PLUS_CONTINUATION_PROMPT = 'Continue exactly from where you stopped. Do not repeat prior text. Keep the same structure and style.'
+const PREMIUM_PLUS_CONTINUATION_PROMPT = 'Continue exactly from where you stopped and finish the answer completely. Do not repeat prior text. Keep the same structure and style.'
 
 const hasUsCaseLawVectorConfig = () => Boolean(process.env.US_MILVUS_HOST || process.env.MILVUS_US_HOST)
 
@@ -2975,7 +2975,12 @@ const callPremiumPlusAnthropicText = async (
   let continueCount = 0
   const continuationLimit = Math.max(0, Math.floor(maxAutoContinues))
 
-  while (stopReason === 'max_tokens' && continueCount < continuationLimit && combinedText.trim()) {
+  while (
+    continueCount < continuationLimit &&
+    combinedText.trim() &&
+    (stopReason === 'max_tokens' || stopReason === 'end_turn' || !stopReason) &&
+    (stopReason === 'max_tokens' || endsMidSentenceOrSection(combinedText))
+  ) {
     completion = await callPremiumPlusAnthropic(
       client,
       model,
@@ -3031,7 +3036,12 @@ const streamPremiumPlusAnthropicTextWithAutoContinue = async (
   let continueCount = 0
   const continuationLimit = Math.max(0, Math.floor(maxAutoContinues))
 
-  while (stopReason === 'max_tokens' && continueCount < continuationLimit && combinedText.trim()) {
+  while (
+    continueCount < continuationLimit &&
+    combinedText.trim() &&
+    (stopReason === 'max_tokens' || stopReason === 'end_turn' || !stopReason) &&
+    (stopReason === 'max_tokens' || endsMidSentenceOrSection(combinedText))
+  ) {
     result = await streamPremiumPlusAnthropic(
       client,
       model,
@@ -3688,9 +3698,17 @@ export async function invokePremiumPlusLegalAgent(
     finalText = extractAnthropicTextContent(finalCompletion?.content)
     let continueCount = 0
     while (
-      String(finalCompletion?.stop_reason || '').trim().toLowerCase() === 'max_tokens' &&
       continueCount < PREMIUM_PLUS_MAX_AUTO_CONTINUES &&
-      finalText.trim()
+      finalText.trim() &&
+      (
+        String(finalCompletion?.stop_reason || '').trim().toLowerCase() === 'max_tokens' ||
+        String(finalCompletion?.stop_reason || '').trim().toLowerCase() === 'end_turn' ||
+        !String(finalCompletion?.stop_reason || '').trim()
+      ) &&
+      (
+        String(finalCompletion?.stop_reason || '').trim().toLowerCase() === 'max_tokens' ||
+        endsMidSentenceOrSection(finalText)
+      )
     ) {
       finalCompletion = await callPremiumPlusAnthropic(
         client,
