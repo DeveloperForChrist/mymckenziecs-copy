@@ -254,7 +254,7 @@ const isAnecdotalCommunitySource = (url: string): boolean => {
 
 const getSourceUseGuidance = (url: string): string =>
   isAnecdotalCommunitySource(url)
-    ? 'Anecdotal/community source. Use only for lived experience, common practical issues, or user sentiment. Do not rely on it for law, court procedure, forms, deadlines, rights, legal standards, or case authority; verify those points against official guidance, statutes, rules, court pages, or case-law retrieval.'
+    ? 'Anecdotal/community source. Use only for lived experience, common practical issues, or user sentiment. If used in the answer, identify it transparently as Reddit/forum/community discussion and phrase it as user reports or forum discussion, not legal fact. Do not rely on it for law, court procedure, forms, deadlines, rights, legal standards, or case authority; verify those points against official guidance, statutes, rules, court pages, or case-law retrieval.'
     : 'General web source. Check whether it is official, primary, professional, or merely commentary before relying on it for legal or procedural points.'
 
 const tokenize = (value: string): string[] =>

@@ -483,7 +483,7 @@ const buildLengthInstruction = (_question: string): string => {
 }
 
 const ANECDOTAL_SOURCE_INSTRUCTION =
-  'If retrieved material includes Reddit, forums, social posts, or community discussions, treat those sources as anecdotal only: useful for common practical experiences, user sentiment, or pitfalls, but not authority for law, procedure, deadlines, forms, rights, legal standards, or case outcomes. Verify legal/procedural points against official guidance, statutes, rules, court pages, or case-law retrieval.'
+  'If retrieved material includes Reddit, forums, social posts, or community discussions, treat those sources as anecdotal only: useful for common practical experiences, user sentiment, or pitfalls, but not authority for law, procedure, deadlines, forms, rights, legal standards, or case outcomes. If you use that material in the answer, identify it transparently as Reddit/forum/community discussion, phrase it as "users report", "forum discussions suggest", or similar, and make clear it is anecdotal. Verify legal/procedural points against official guidance, statutes, rules, court pages, or case-law retrieval.'
 export type PremiumPlusToolSelection = {
   tool: PremiumPlusToolName
   query?: string
@@ -2174,7 +2174,7 @@ const buildPremiumPlusToolExecutionInstructions = (legalContext?: UserLegalConte
 - If current real-time official guidance, procedure, forms, deadlines, statutes, court self-help pages, or practical process details are needed, call web_search.
 - If authorities, precedents, judicial reasoning, or illustrative examples from decided cases would materially help, call case_law_search.
 - You may call both tools when both materially help.
-- Treat Reddit, forums, social posts, and community discussions as anecdotal only. They may help reveal common practical experiences, user sentiment, or pitfalls, but never use them as authority for law, procedure, deadlines, forms, rights, legal standards, or case outcomes. Verify those points against official guidance, statutes, rules, court pages, or case-law retrieval.
+- Treat Reddit, forums, social posts, and community discussions as anecdotal only. They may help reveal common practical experiences, user sentiment, or pitfalls, but never use them as authority for law, procedure, deadlines, forms, rights, legal standards, or case outcomes. If you mention them, identify them transparently as Reddit/forum/community discussion, phrase them as user reports or forum discussion rather than fact, and make clear they are anecdotal. Verify legal/procedural points against official guidance, statutes, rules, court pages, or case-law retrieval.
 - Use the available tools whenever they materially improve knowledge, understanding, accuracy, freshness, authority, case-specific relevance, or explanation.
 - If you are unsure whether retrieval would help, prefer the tool that best verifies the uncertain point.
 - After tool results are returned, answer the user directly in plain text.
@@ -2191,7 +2191,7 @@ const buildPremiumPlusToolExecutionInstructions = (legalContext?: UserLegalConte
 - If current real-time official guidance, procedure, forms, deadlines, statutes, court self-help pages, or practical process details are needed, call web_search.
 - Use the available tools whenever they materially improve knowledge, understanding, accuracy, freshness, authority, case-specific relevance, or explanation.
 - If you are unsure whether retrieval would help, prefer web_search to verify the uncertain U.S. point from current public sources.
-- Treat Reddit, forums, social posts, and community discussions as anecdotal only. They may help reveal common practical experiences, user sentiment, or pitfalls, but never use them as authority for law, procedure, deadlines, forms, rights, legal standards, or case outcomes. Verify those points against official guidance, statutes, rules, or court pages.
+- Treat Reddit, forums, social posts, and community discussions as anecdotal only. They may help reveal common practical experiences, user sentiment, or pitfalls, but never use them as authority for law, procedure, deadlines, forms, rights, legal standards, or case outcomes. If you mention them, identify them transparently as Reddit/forum/community discussion, phrase them as user reports or forum discussion rather than fact, and make clear they are anecdotal. Verify legal/procedural points against official guidance, statutes, rules, or court pages.
 - After tool results are returned, answer the user directly in plain text.
 - If you discuss a specific U.S. statute, rule, official guidance page, or public authority from the provided web context, name it clearly before explaining it.
 - Do not mention tools, tool calls, internal routing, or function names to the user.
@@ -2205,7 +2205,7 @@ const buildPremiumPlusToolExecutionInstructions = (legalContext?: UserLegalConte
 - If current real-time official guidance, procedure, forms, deadlines, or practical process details are needed, call web_search.
 - If authorities, precedents, judicial reasoning, or illustrative examples from decided cases would materially help, call case_law_search.
 - You may call both tools when both materially help.
-- Treat Reddit, forums, social posts, and community discussions as anecdotal only. They may help reveal common practical experiences, user sentiment, or pitfalls, but never use them as authority for law, procedure, deadlines, forms, rights, legal standards, or case outcomes. Verify those points against official guidance, statutes, rules, court pages, or case-law retrieval.
+- Treat Reddit, forums, social posts, and community discussions as anecdotal only. They may help reveal common practical experiences, user sentiment, or pitfalls, but never use them as authority for law, procedure, deadlines, forms, rights, legal standards, or case outcomes. If you mention them, identify them transparently as Reddit/forum/community discussion, phrase them as user reports or forum discussion rather than fact, and make clear they are anecdotal. Verify legal/procedural points against official guidance, statutes, rules, court pages, or case-law retrieval.
 - Use the available tools whenever they materially improve knowledge, understanding, accuracy, freshness, authority, case-specific relevance, or explanation.
 - If you are unsure whether retrieval would help, prefer the tool that best verifies the uncertain point.
 - After tool results are returned, answer the user directly in plain text.

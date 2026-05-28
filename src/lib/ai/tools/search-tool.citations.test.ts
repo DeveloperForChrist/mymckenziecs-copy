@@ -317,6 +317,8 @@ describe('search-tool source capture', () => {
 
     expect(parsed.sources).toContain('https://www.reddit.com/r/LegalAdviceUK/comments/example/thread/')
     expect(parsed.packet).toContain('Anecdotal/community source')
+    expect(parsed.packet).toContain('identify it transparently as Reddit/forum/community discussion')
+    expect(parsed.packet).toContain('user reports or forum discussion')
     expect(parsed.packet).toContain('Do not rely on it for law, court procedure, forms, deadlines, rights, legal standards, or case authority')
     expect(parsed.packet).toContain('General web source')
   })
