@@ -985,6 +985,7 @@ describe('agent smoke checks', () => {
 
     expect(systemPrompt).toContain('TOOL EXECUTION')
     expect(systemPrompt).toContain('You have access to web_search and case_law_search.')
+    expect(systemPrompt).toContain('Treat Reddit, forums, social posts, and community discussions as anecdotal only')
   })
 
   it('premium plus U.S. tool path does not expose UK case-law retrieval', async () => {

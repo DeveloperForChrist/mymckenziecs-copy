@@ -481,6 +481,9 @@ export type PremiumPlusToolName =
 const buildLengthInstruction = (_question: string): string => {
   return 'Keep the answer disciplined and useful: usually about 220 to 450 words. Default to short, natural paragraphs. Use headings or lists only when they genuinely improve clarity.'
 }
+
+const ANECDOTAL_SOURCE_INSTRUCTION =
+  'If retrieved material includes Reddit, forums, social posts, or community discussions, treat those sources as anecdotal only: useful for common practical experiences, user sentiment, or pitfalls, but not authority for law, procedure, deadlines, forms, rights, legal standards, or case outcomes. Verify legal/procedural points against official guidance, statutes, rules, court pages, or case-law retrieval.'
 export type PremiumPlusToolSelection = {
   tool: PremiumPlusToolName
   query?: string
@@ -1505,7 +1508,7 @@ export async function createLegalAgent(
           ? 'Include inline citations in square brackets that match the sources list above, like [1] or [2]. Use citations on factual statements.'
           : 'Do not include any source citations.'
         const lengthInstruction = buildLengthInstruction(latestQuestion)
-        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory, latestQuestion)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} ${citationInstruction} Keep the reply conversational and natural. Keep the tone informational and non-advisory: avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
+        const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory, latestQuestion)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${ANECDOTAL_SOURCE_INSTRUCTION} ${lengthInstruction} ${citationInstruction} Keep the reply conversational and natural. Keep the tone informational and non-advisory: avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
 
         let comprehensiveAnswer = await callLLM(
           comprehensivePrompt,
@@ -1986,7 +1989,7 @@ export async function invokePremiumLegalAgentStream(
   const citationInstruction = effectiveIncludeCitations
     ? 'Include inline citations in square brackets that match the sources list above, like [1] or [2]. Use citations on factual statements.'
     : 'Do not include any source citations.'
-  const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory, latestQuestion)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${lengthInstruction} ${citationInstruction} Keep the reply conversational and natural. Keep the tone informational and non-advisory: avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
+  const comprehensivePrompt = `${sourceBlock}\n\nComprehensive legal information retrieved:\n${searchedInfo}\n\n${memoryContext}${buildHistoryContext(trimmedHistory, latestQuestion)}${caseContext}User question: "${latestQuestion}"\n\nGenerate a clear answer that covers the user's actual question using the retrieved information. ${ANECDOTAL_SOURCE_INSTRUCTION} ${lengthInstruction} ${citationInstruction} Keep the reply conversational and natural. Keep the tone informational and non-advisory: avoid definitive conclusions on this user's exact facts and prefer neutral phrases like "may", "can", and "generally". Output must be plain text only. Avoid markdown links, markdown bold, italics, and tables.`
 
   emitStatus('Drafting answer...')
   const streamedAnswer = await streamOpenAiText(comprehensivePrompt, searchMaxTokens)
@@ -2062,6 +2065,7 @@ const extractPremiumPlusToolResultText = (messages: PremiumPlusAnthropicMessage[
 const buildPremiumPlusOpenAiFallbackFinalPrompt = (message: string, toolContext: string) =>
   `${message}\n\n` +
   `Tool results already retrieved for this request:\n${toolContext || 'No tool output available.'}\n\n` +
+  `${ANECDOTAL_SOURCE_INSTRUCTION}\n\n` +
   'Now answer the user directly in plain text using the tool results above. Do not mention tools or internal routing.'
 
 const isPremiumPlusPlaceholderResponse = (text: string) => {
@@ -2170,6 +2174,7 @@ const buildPremiumPlusToolExecutionInstructions = (legalContext?: UserLegalConte
 - If current real-time official guidance, procedure, forms, deadlines, statutes, court self-help pages, or practical process details are needed, call web_search.
 - If authorities, precedents, judicial reasoning, or illustrative examples from decided cases would materially help, call case_law_search.
 - You may call both tools when both materially help.
+- Treat Reddit, forums, social posts, and community discussions as anecdotal only. They may help reveal common practical experiences, user sentiment, or pitfalls, but never use them as authority for law, procedure, deadlines, forms, rights, legal standards, or case outcomes. Verify those points against official guidance, statutes, rules, court pages, or case-law retrieval.
 - Use the available tools whenever they materially improve knowledge, understanding, accuracy, freshness, authority, case-specific relevance, or explanation.
 - If you are unsure whether retrieval would help, prefer the tool that best verifies the uncertain point.
 - After tool results are returned, answer the user directly in plain text.
@@ -2186,6 +2191,7 @@ const buildPremiumPlusToolExecutionInstructions = (legalContext?: UserLegalConte
 - If current real-time official guidance, procedure, forms, deadlines, statutes, court self-help pages, or practical process details are needed, call web_search.
 - Use the available tools whenever they materially improve knowledge, understanding, accuracy, freshness, authority, case-specific relevance, or explanation.
 - If you are unsure whether retrieval would help, prefer web_search to verify the uncertain U.S. point from current public sources.
+- Treat Reddit, forums, social posts, and community discussions as anecdotal only. They may help reveal common practical experiences, user sentiment, or pitfalls, but never use them as authority for law, procedure, deadlines, forms, rights, legal standards, or case outcomes. Verify those points against official guidance, statutes, rules, or court pages.
 - After tool results are returned, answer the user directly in plain text.
 - If you discuss a specific U.S. statute, rule, official guidance page, or public authority from the provided web context, name it clearly before explaining it.
 - Do not mention tools, tool calls, internal routing, or function names to the user.
@@ -2199,6 +2205,7 @@ const buildPremiumPlusToolExecutionInstructions = (legalContext?: UserLegalConte
 - If current real-time official guidance, procedure, forms, deadlines, or practical process details are needed, call web_search.
 - If authorities, precedents, judicial reasoning, or illustrative examples from decided cases would materially help, call case_law_search.
 - You may call both tools when both materially help.
+- Treat Reddit, forums, social posts, and community discussions as anecdotal only. They may help reveal common practical experiences, user sentiment, or pitfalls, but never use them as authority for law, procedure, deadlines, forms, rights, legal standards, or case outcomes. Verify those points against official guidance, statutes, rules, court pages, or case-law retrieval.
 - Use the available tools whenever they materially improve knowledge, understanding, accuracy, freshness, authority, case-specific relevance, or explanation.
 - If you are unsure whether retrieval would help, prefer the tool that best verifies the uncertain point.
 - After tool results are returned, answer the user directly in plain text.
@@ -3663,7 +3670,7 @@ export async function invokePremiumPlusLegalAgent(
       ...toolLoop.messages,
       {
         role: 'user',
-        content: 'Now answer the user directly in plain text using any tool results already provided. Do not call any more tools. If you discuss a retrieved authority, put a short standalone line with its case name and citation immediately before the explanation.',
+        content: `${ANECDOTAL_SOURCE_INSTRUCTION} Now answer the user directly in plain text using any tool results already provided. Do not call any more tools. If you discuss a retrieved authority, put a short standalone line with its case name and citation immediately before the explanation.`,
       },
     ]
     let finalCompletion = await callPremiumPlusAnthropic(
@@ -3975,7 +3982,7 @@ export async function invokePremiumPlusLegalAgentStream(
             ...toolLoop.messages,
             {
               role: 'user',
-              content: 'Now answer the user directly in plain text using any tool results already provided. Do not call any more tools. If you discuss a retrieved authority, put a short standalone line with its case name and citation immediately before the explanation.',
+              content: `${ANECDOTAL_SOURCE_INSTRUCTION} Now answer the user directly in plain text using any tool results already provided. Do not call any more tools. If you discuss a retrieved authority, put a short standalone line with its case name and citation immediately before the explanation.`,
             },
           ],
           options?.maxTokens || PREMIUM_PLUS_CONCISE_MAX_TOKENS,

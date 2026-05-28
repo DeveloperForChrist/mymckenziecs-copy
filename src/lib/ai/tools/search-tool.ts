@@ -228,9 +228,34 @@ const getHost = (url: string): string => {
 const getDomainQuality = (url: string): number => {
   const host = getHost(url)
   if (!host) return 0
+  if (isAnecdotalCommunitySource(url)) return 2
   // Keep domain quality neutral so no source family is favored by host alone.
   return 5
 }
+
+const isAnecdotalCommunitySource = (url: string): boolean => {
+  const host = getHost(url).replace(/^www\./, '')
+  if (!host) return false
+  return (
+    host === 'reddit.com' ||
+    host.endsWith('.reddit.com') ||
+    host === 'old.reddit.com' ||
+    host === 'new.reddit.com' ||
+    host === 'mumsnet.com' ||
+    host.endsWith('.mumsnet.com') ||
+    host === 'quora.com' ||
+    host.endsWith('.quora.com') ||
+    host === 'stackexchange.com' ||
+    host.endsWith('.stackexchange.com') ||
+    host === 'forum.moneysavingexpert.com' ||
+    /\b(forum|community|discussion|comments?)\b/i.test(host)
+  )
+}
+
+const getSourceUseGuidance = (url: string): string =>
+  isAnecdotalCommunitySource(url)
+    ? 'Anecdotal/community source. Use only for lived experience, common practical issues, or user sentiment. Do not rely on it for law, court procedure, forms, deadlines, rights, legal standards, or case authority; verify those points against official guidance, statutes, rules, court pages, or case-law retrieval.'
+    : 'General web source. Check whether it is official, primary, professional, or merely commentary before relying on it for legal or procedural points.'
 
 const tokenize = (value: string): string[] =>
   normalizeWhitespace(value)
@@ -754,7 +779,7 @@ export class SearchTool extends Tool {
         rankedForPacket.map((s, idx) => {
           const titleLine = s.title ? `Title: ${s.title}\n` : ''
           const queryLine = s.fromQuery ? `Matched query: ${s.fromQuery}\n` : ''
-          return `SOURCE ${idx + 1} (Score: ${s.score}/10 | Relevance: ${s.relevance}/10 | Recency: ${s.recency}/10 | Domain quality: ${s.quality}/10):\n${queryLine}${titleLine}URL: ${s.url}\nEXTRACT: ${s.excerpt}`
+          return `SOURCE ${idx + 1} (Score: ${s.score}/10 | Relevance: ${s.relevance}/10 | Recency: ${s.recency}/10 | Domain quality: ${s.quality}/10):\n${queryLine}${titleLine}URL: ${s.url}\nSOURCE USE: ${getSourceUseGuidance(s.url)}\nEXTRACT: ${s.excerpt}`
         }).join('\n\n')
 
       const output: SearchToolOutput = {

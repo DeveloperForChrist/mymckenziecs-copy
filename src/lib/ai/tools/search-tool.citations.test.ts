@@ -278,6 +278,49 @@ describe('search-tool source capture', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
+  it('labels Reddit and forum-style results as anecdotal community sources', async () => {
+    process.env.PERPLEXITY_API_KEY = 'perplexity-test-key'
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = typeof input === 'string' ? input : input.toString()
+
+      if (url === 'https://api.perplexity.ai/search') {
+        return new Response(
+          JSON.stringify({
+            results: [
+              {
+                url: 'https://www.reddit.com/r/LegalAdviceUK/comments/example/thread/',
+                title: 'Similar small claims experience',
+                snippet: 'People discuss practical experiences with small claims hearings.',
+                date: '2026-01-10',
+              },
+              {
+                url: 'https://www.gov.uk/make-court-claim-for-money',
+                title: 'Make a court claim for money',
+                snippet: 'Official government guidance on making a money claim.',
+                date: '2026-02-15',
+              },
+            ],
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } }
+        )
+      }
+
+      return new Response('unexpected page fetch', { status: 500 })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    const tool = new SearchTool({ engine: 'perplexity' })
+    const raw = await tool._call(JSON.stringify({ query: 'small claims hearing experience', mode: 'general' }))
+    const parsed = JSON.parse(raw) as { packet: string; sources: string[] }
+
+    expect(parsed.sources).toContain('https://www.reddit.com/r/LegalAdviceUK/comments/example/thread/')
+    expect(parsed.packet).toContain('Anecdotal/community source')
+    expect(parsed.packet).toContain('Do not rely on it for law, court procedure, forms, deadlines, rights, legal standards, or case authority')
+    expect(parsed.packet).toContain('General web source')
+  })
+
   it('keeps packet ranking query-driven without forced authority injection', async () => {
     const pageHtml = (title: string, body: string) =>
       `<html><head><title>${title}</title></head><body>${body}</body></html>`
