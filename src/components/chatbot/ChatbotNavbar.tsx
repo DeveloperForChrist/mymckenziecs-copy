@@ -277,6 +277,22 @@ export default function ChatbotNavbar({
       })
 
       if (response.ok) {
+        const deletedConversationId = deleteTargetConversationId
+        const activeConversationId = new URLSearchParams(window.location.search).get('conversationId')
+        const storedConversationId = localStorage.getItem('currentConversationId')
+
+        if (activeConversationId === deletedConversationId || storedConversationId === deletedConversationId) {
+          localStorage.removeItem('currentConversationId')
+          const next = new URL(chatbotHref, 'https://app.local')
+          window.history.replaceState({}, '', `${next.pathname}${next.search}${next.hash}`)
+        }
+
+        window.dispatchEvent(
+          new CustomEvent('chatConversationDeleted', {
+            detail: { conversationId: deletedConversationId },
+          })
+        )
+
         setConversations((prev) => prev.filter((conv) => conv.id !== deleteTargetConversationId))
         setIsDeleteModalOpen(false)
         setDeleteTargetConversationId(null)

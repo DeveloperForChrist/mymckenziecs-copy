@@ -1452,6 +1452,51 @@ export default function ChatInterface({
     setIsConversationBootstrapping
   })
 
+  useEffect(() => {
+    const handleConversationDeleted = (event: Event) => {
+      const deletedConversationId = (event as CustomEvent<{ conversationId?: string }>).detail?.conversationId?.trim()
+      if (!deletedConversationId) return
+
+      const activeConversationId =
+        conversationIdRef.current ||
+        (typeof window !== 'undefined' ? localStorage.getItem('currentConversationId') || '' : '')
+      const urlConversationId =
+        typeof window !== 'undefined'
+          ? new URLSearchParams(window.location.search).get('conversationId') || ''
+          : ''
+
+      if (activeConversationId !== deletedConversationId && urlConversationId !== deletedConversationId) {
+        return
+      }
+
+      chatRequestAbortRef.current?.abort()
+      chatRequestAbortRef.current = null
+      streamRawTextRef.current = ''
+      streamPendingDeltaRef.current = ''
+      streamStatusPendingLabelRef.current = ''
+      pendingStreamFinalizeRef.current = null
+      setActiveInlineStreamMessageId(null)
+      setMessages([])
+      setHistoryCursor(null)
+      setHasMoreHistory(false)
+      setLoadingOlderHistory(false)
+      loadingOlderHistoryRef.current = false
+      setLoading(false)
+      setLoadingLabel(null)
+
+      const nextConversationId = generateUUID()
+      setConversationId(nextConversationId)
+      conversationIdRef.current = nextConversationId
+      localStorage.setItem('currentConversationId', nextConversationId)
+
+      const nextHref = conversationHomeHref || window.location.pathname
+      window.history.replaceState({}, '', nextHref)
+    }
+
+    window.addEventListener('chatConversationDeleted', handleConversationDeleted as EventListener)
+    return () => window.removeEventListener('chatConversationDeleted', handleConversationDeleted as EventListener)
+  }, [conversationHomeHref])
+
   // Reset textarea height when input is cleared
   useEffect(() => {
     if (textareaRef.current && input === '') {

@@ -161,7 +161,7 @@ export function useConversationBootstrap({
       setHistoryCursor(null)
       setHasMoreHistory(false)
 
-      if (isNew) {
+      const startFreshConversation = () => {
         setMessages([])
         setHistoryCursor(null)
         setHasMoreHistory(false)
@@ -169,13 +169,21 @@ export function useConversationBootstrap({
         setConversationId(newConversationId)
         localStorage.setItem(conversationStorageKey, newConversationId)
         window.history.replaceState({}, '', chatbotHref)
+        return newConversationId
+      }
+
+      if (isNew) {
+        startFreshConversation()
         return
       }
 
       if (conversationId) {
         setConversationId(conversationId)
         localStorage.setItem(conversationStorageKey, conversationId)
-        await loadMessagesForConversation(conversationId)
+        const loadedCount = await loadMessagesForConversation(conversationId)
+        if (loadedCount === 0) {
+          startFreshConversation()
+        }
       } else {
         const storedConvId = localStorage.getItem(conversationStorageKey)
         if (storedConvId) {
@@ -187,12 +195,12 @@ export function useConversationBootstrap({
               setConversationId(fallbackConversationId)
               localStorage.setItem(conversationStorageKey, fallbackConversationId)
               await loadMessagesForConversation(fallbackConversationId)
+            } else {
+              startFreshConversation()
             }
           }
         } else {
-          const newConversationId = generateUUID()
-          setConversationId(newConversationId)
-          localStorage.setItem(conversationStorageKey, newConversationId)
+          startFreshConversation()
         }
       }
     }
