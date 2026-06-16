@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { crypto } from 'node:crypto'
 
 /**
  * Security Headers Middleware

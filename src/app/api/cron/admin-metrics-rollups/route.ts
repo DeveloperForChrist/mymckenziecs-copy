@@ -22,11 +22,16 @@ export async function POST(request: Request) {
     const results: Array<{ period: string; ok: boolean; status: number }> = []
 
     for (const period of PERIODS) {
+      const headers = new Headers({
+        cookie: request.headers.get('cookie') || '',
+      })
+
+      if (cronSecret) {
+        headers.set('x-cron-secret', cronSecret)
+      }
+
       const response = await fetch(`${origin}/api/admin/metrics?period=${period}`, {
-        headers: {
-          cookie: request.headers.get('cookie') || '',
-          'x-cron-secret': cronSecret,
-        },
+        headers,
         cache: 'no-store',
       })
 

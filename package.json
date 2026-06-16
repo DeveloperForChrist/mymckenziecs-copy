@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "WATCHPACK_POLLING=1 next dev --webpack",
     "dev:webpack": "next dev --webpack",
     "dev:polling": "WATCHPACK_POLLING=1 next dev --webpack",
     "dev:py": "python3 scripts/case-law/milvus_bridge.py",
