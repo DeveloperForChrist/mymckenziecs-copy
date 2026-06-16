@@ -36,18 +36,27 @@ const demos = [
     name: 'Free Demo',
     planType: 'No plan',
     paidAccess: false,
+    countryCode: 'GB',
+    jurisdictionCode: 'GB-ENG-WLS',
+    jurisdictionLabel: 'England and Wales',
   },
   {
     email: 'plus@demo.com',
     name: 'Assistant Plus Demo',
     planType: 'Assistant Plus',
     paidAccess: true,
+    countryCode: 'GB',
+    jurisdictionCode: 'GB-ENG-WLS',
+    jurisdictionLabel: 'England and Wales',
   },
   {
     email: 'pro@demo.com',
     name: 'Assistant Pro Demo',
     planType: 'Assistant Pro',
     paidAccess: true,
+    countryCode: 'GB',
+    jurisdictionCode: 'GB-ENG-WLS',
+    jurisdictionLabel: 'England and Wales',
   },
 ]
 
@@ -79,6 +88,9 @@ async function ensureAuthUser(demo) {
         display_name: demo.name,
         account_type: 'litigant',
         billing_audience: 'litigant',
+        country_code: demo.countryCode,
+        jurisdiction_code: demo.jurisdictionCode,
+        jurisdiction_label: demo.jurisdictionLabel,
         signup_source: 'assistant-demo',
       },
     })

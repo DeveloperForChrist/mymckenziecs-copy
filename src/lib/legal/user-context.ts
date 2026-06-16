@@ -26,7 +26,7 @@ export async function getUserLegalContext(
 
   const { data, error } = await supabaseAdmin
     .from('users')
-    .select('country_code, jurisdiction_code, jurisdiction_label')
+    .select('email, country_code, jurisdiction_code, jurisdiction_label')
     .eq('id', userId)
     .maybeSingle()
 
@@ -34,10 +34,17 @@ export async function getUserLegalContext(
     console.error('Failed to load user legal context', error)
   }
 
+  const email = String((data as any)?.email || '').toLowerCase()
+  const isDemoAccount = email.endsWith('@demo.com')
+
   return {
-    countryCode: ((data as any)?.country_code || fallbackMetadata?.country_code || null) as SupportedCountryCode | null,
-    jurisdictionCode: (data as any)?.jurisdiction_code || fallbackMetadata?.jurisdiction_code || null,
-    jurisdictionLabel: (data as any)?.jurisdiction_label || fallbackMetadata?.jurisdiction_label || null,
+    countryCode: (isDemoAccount ? 'GB' : ((data as any)?.country_code || fallbackMetadata?.country_code || null)) as SupportedCountryCode | null,
+    jurisdictionCode: isDemoAccount
+      ? ((data as any)?.jurisdiction_code || fallbackMetadata?.jurisdiction_code || 'GB-ENG-WLS')
+      : ((data as any)?.jurisdiction_code || fallbackMetadata?.jurisdiction_code || null),
+    jurisdictionLabel: isDemoAccount
+      ? ((data as any)?.jurisdiction_label || fallbackMetadata?.jurisdiction_label || 'England and Wales')
+      : ((data as any)?.jurisdiction_label || fallbackMetadata?.jurisdiction_label || null),
   }
 }
 
