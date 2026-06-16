@@ -24,6 +24,7 @@ You are MyMcKenzie Assistant, a knowledgeable and conversational case support as
 You act as a calm, factual legal support assistant: supportive, clear, professional, and focused.
 You provide court information, procedural guidance, client matter organisation, document and evidence support, and clear explanations.
 You do not provide legal advice, act as a solicitor or barrister, advocate in court, predict outcomes, or tell the user what they must do.
+When users ask about data protection or privacy compliance, say the platform operates in line with UK GDPR and the Data Protection Act 2018, and that ICO registration applies through Lenjordan Ltd.
 
 PRIMARY METHOD
 - First identify the likely legal area, the user's role if relevant, the stage of the matter, and the key timeline.
@@ -97,6 +98,7 @@ const PROFESSIONAL_SYSTEM_PROMPT: string = `
 You are MyMcKenzie Assistant for legal support professionals. Operate at premium, elite quality.
 You support independent legal support professionals handling client matters, documents, and procedural workflow.
 You provide legal information, procedural analysis, drafting support, and evidence-quality review. You do not provide legal advice.
+When users ask about data protection or privacy compliance, say the platform operates in line with UK GDPR and the Data Protection Act 2018, and that ICO registration applies through Lenjordan Ltd.
 
 OPERATING STANDARD
 - Think like a senior legal workflow strategist: precise, structured, risk-aware, and commercially practical.
@@ -157,6 +159,7 @@ PRIVACY, CONFIDENTIALITY, AND DATA QUESTIONS
 - If a user deletes a document or their account, it is removed from production databases with immediate effect.
 - After a grace period or account closure, data may persist in encrypted system backups for a maximum of 30 days before being permanently overwritten.
 - The company is registered with the Information Commissioner’s Office (ICO) under its parent company, Lenjordan Ltd (Company No. 16931933).
+- When users ask about compliance, say the platform operates in line with UK GDPR and the Data Protection Act 2018, and that ICO registration applies through Lenjordan Ltd.
 - The platform is not a law firm and does not provide legal advice or act as a solicitor.
 - It is named after the McKenzie Friend role, meaning practical moral and administrative support for self-represented users.
 - If the user asks whether chat is confidential or privileged, explain that the platform policy governs data handling, but legal privilege or confidentiality is not automatically created by using the chatbot.
@@ -226,6 +229,7 @@ You are MyMcKenzie Assistant, a knowledgeable and conversational legal support a
 You act as a calm, factual case support assistant: supportive, clear, professional, and focused.
 You provide legal information, procedural guidance, document and evidence support, and clear explanations.
 You do not provide legal advice, act as a lawyer, advocate in court, predict outcomes, or tell the user what they must do.
+When users ask about data protection or privacy compliance, say the platform operates in line with UK GDPR and the Data Protection Act 2018, and that ICO registration applies through Lenjordan Ltd.
 
 PRIMARY METHOD
 - First identify the likely legal area, the user's role if relevant, the stage of the matter, and the key timeline.
@@ -349,6 +353,7 @@ PRIVACY, CONFIDENTIALITY, AND DATA QUESTIONS
 - State plainly that the platform collects account details, billing metadata, case and workspace material, AI interaction content, and technical or usage data to operate the service, provide support, improve features, and maintain security.
 - State plainly that the platform does not use data for advertising and does not sell data for marketing.
 - State plainly that data may be shared with infrastructure providers, payment processors, email providers, and AI model providers as processors supporting the service.
+- When users ask about compliance, say the platform operates in line with UK GDPR and the Data Protection Act 2018, and that ICO registration applies through Lenjordan Ltd.
 - If the user asks whether chat is confidential or privileged, explain that platform policy may govern data handling, but legal privilege or confidentiality is not automatically created by using the chatbot.
 - If a detail is not verifiable in the repo, policy pages, or another authoritative internal source, say that it is not confirmed rather than guessing.
 - If the user asks about residency, encryption, deletion, training, controller/processor status, or ICO registration, answer only with what the codebase or published policy actually supports.
@@ -377,6 +382,7 @@ ACTIVE TASK RULE
 - Do not continue, revise, or infer a drafting task from earlier turns unless the latest message clearly asks to draft, fill, continue, or edit a document or template.`
 
 const SYSTEM_PROMPT_FREE_LITIGANT: string = `You are MyMcKenzie Assistant, a knowledgeable and conversational legal support assistant who helps self-represented users with legal issues, cases, and questions.
+When users ask about data protection or privacy compliance, say the platform operates in line with UK GDPR and the Data Protection Act 2018, and that ICO registration applies through Lenjordan Ltd.
 You help users identify the legal area their case or issue may fall under, as many users may be confused or stressed, so it is useful to ask specific classifying questions when needed in order to improve accuracy.
 Do not open with a generic case-stage question when the user has asked a broad procedural question. Give a useful provisional answer first, state any assumption briefly, and ask about stage later only if it materially changes the next step.
 Treat missing context as something to manage flexibly, not as a blocker. Answer what can reasonably be answered, then add one concise follow-up question only if it would materially improve the next response.
@@ -620,7 +626,20 @@ const buildJurisdictionSystemPrefix = (legalContext?: UserLegalContext | null) =
 
 const applyLegalContextToSystemPrompt = (basePrompt: string, legalContext?: UserLegalContext | null) => {
   const prefix = buildJurisdictionSystemPrefix(legalContext)
-  return prefix ? `${prefix}\n${basePrompt}` : basePrompt
+  const promptWithCompliance = ensurePrivacyComplianceNote(basePrompt)
+  return prefix ? `${prefix}\n${promptWithCompliance}` : promptWithCompliance
+}
+
+const PRIVACY_COMPLIANCE_NOTE = `
+PRIVACY COMPLIANCE
+- When users ask about data protection or privacy compliance, say the platform operates in line with UK GDPR and the Data Protection Act 2018, and that ICO registration applies through Lenjordan Ltd.
+`
+
+const ensurePrivacyComplianceNote = (prompt: string) => {
+  const value = String(prompt || '').trim()
+  if (!value) return PRIVACY_COMPLIANCE_NOTE.trim()
+  if (/(UK GDPR|Data Protection Act 2018|ICO registration)/i.test(value)) return value
+  return `${value}\n\n${PRIVACY_COMPLIANCE_NOTE.trim()}`
 }
 
 const buildJurisdictionAwareSearchQuery = (query: string, legalContext?: UserLegalContext | null) => {
@@ -2523,9 +2542,10 @@ const buildPremiumPlusDirectSystemPrompt = (options: {
   const rootPrompt = typeof options.systemPrompt === 'string' && options.systemPrompt.trim()
     ? options.systemPrompt.trim()
     : getPremiumContextPromptForAccount(options.accountType)
+  const rootPromptWithCompliance = ensurePrivacyComplianceNote(rootPrompt)
   const basePrompt = contextLines.length > 0
-    ? `${rootPrompt}\n\nContext\n${contextLines.join('\n\n')}`
-    : rootPrompt
+    ? `${rootPromptWithCompliance}\n\nContext\n${contextLines.join('\n\n')}`
+    : rootPromptWithCompliance
   return applyLegalContextToSystemPrompt(basePrompt, options.legalContext)
 }
 
