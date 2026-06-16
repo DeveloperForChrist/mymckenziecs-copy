@@ -483,8 +483,7 @@ function BusinessChatWorkspace({ initialChatPlan }: { initialChatPlan: InitialCh
         <div className={styles.chatbotFrame}>
           <ChatInterface
             initialAuthPlan={initialChatPlan}
-            composerPlacement="pane"
-            paneWidth="standard"
+            composerPlacement="viewport"
             conversationHomeHref={businessChatHref}
           />
         </div>
