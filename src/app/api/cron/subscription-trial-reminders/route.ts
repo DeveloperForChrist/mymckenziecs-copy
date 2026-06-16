@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { verifyCronSecret } from '@/lib/security/timing-safe';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -6,15 +7,9 @@ export const fetchCache = 'force-no-store';
 
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
-  const headerSecret = (request.headers.get('x-cron-secret') || request.headers.get('authorization') || '')
-    .replace(/^Bearer\s+/i, '');
+  const headerSecret = request.headers.get('x-cron-secret') || request.headers.get('authorization');
 
-  if (!cronSecret) {
-    console.error('CRON_SECRET is not configured for subscription-trial-reminders cron route');
-    return NextResponse.json({ error: 'Cron not configured' }, { status: 503 });
-  }
-
-  if (headerSecret !== cronSecret) {
+  if (!verifyCronSecret(headerSecret, cronSecret)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

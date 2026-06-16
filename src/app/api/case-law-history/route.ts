@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
+import { getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse, apiRateLimiter } from '@/lib/utils/rate-limit';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -153,6 +154,10 @@ export async function GET() {
     }
 
     const userId = authData.user.id;
+    // Rate limit case-law history reads per user
+    const identifier = getIdentifier(userId, undefined)
+    const rl = await rateLimit(apiRateLimiter, `case-law-history:user:${identifier}`, 30, 10 * 60 * 1000)
+    if (!rl.success) return rateLimitExceededResponse(rl, 'Too many requests. Please try again later.')
     const { data, error } = await supabaseAdmin
       .from('user_case_law_history')
       .select('search_history, viewed_history, updated_at')

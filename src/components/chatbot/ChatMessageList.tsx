@@ -283,7 +283,7 @@ function ChatMessageRow({
   const messageSideInsetPx = 0
   const messageBubbleMaxWidth = `calc(100% - ${messageSideInsetPx * 2}px)`
   const userMessageMaxWidth = `calc((${messageBubbleMaxWidth} / 2) + 40px)`
-  const assistantMaxWidth = fullWidth ? messageBubbleMaxWidth : `min(${messageBubbleMaxWidth}, 650px)`
+  const assistantMaxWidth = fullWidth ? messageBubbleMaxWidth : `min(${messageBubbleMaxWidth}, 620px)`
   const isAlert = message.content?.trim().startsWith('⚠️')
   const isUser = message.role === 'user'
   const assistantDisplayContent = !isUser

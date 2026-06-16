@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { sendResendEmail } from '@/lib/email/resend';
 import { getAppUrl } from '@/lib/app-url';
+import { verifyCronSecret } from '@/lib/security/timing-safe';
 import { getBillingMarketFromCountryCode } from '@/constants';
 import { getPublicRouteForMarket } from '@/lib/markets/public-routes';
 import {
@@ -113,15 +114,9 @@ async function deleteRetainedUserData(userId: string) {
 export async function GET(request: Request) {
   try {
     const cronSecret = process.env.CRON_SECRET;
-    const headerSecret = (request.headers.get('x-cron-secret') || request.headers.get('authorization') || '')
-      .replace(/^Bearer\s+/i, '');
+    const headerSecret = request.headers.get('x-cron-secret') || request.headers.get('authorization');
 
-    if (!cronSecret) {
-      console.error('CRON_SECRET is not configured for subscription-lifecycle cron route');
-      return NextResponse.json({ error: 'Cron not configured' }, { status: 503 });
-    }
-
-    if (headerSecret !== cronSecret) {
+    if (!verifyCronSecret(headerSecret, cronSecret)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

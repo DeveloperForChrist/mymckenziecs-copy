@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { validateCsrfToken } from '@/lib/security/csrf'
 import fs from 'fs';
 import path from 'path';
 import { stripe } from '@/lib/payments/stripe';
@@ -47,6 +48,9 @@ function formatDateShort(value?: string | null) {
 
 export async function POST(req: Request) {
   try {
+    if (!await validateCsrfToken(req as any)) {
+      return NextResponse.json({ error: 'CSRF validation failed' }, { status: 403 })
+    }
     const supabase = await createSupabaseRouteClient();
     const { data: authData, error: authError } = await supabase.auth.getUser();
     if (authError || !authData?.user) {

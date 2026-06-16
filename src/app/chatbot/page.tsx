@@ -55,10 +55,10 @@ export default async function ChatbotPage() {
         }
         initialIsLoggedIn={Boolean(initialAuthPlan?.userId)}
       />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', paddingTop: '35px' }}>
-        <div style={{ flex: 1, display: 'flex', width: '100%' }}>
-          <main style={{ width: '100%' }}>
-            <ChatInterface initialAuthPlan={initialAuthPlan} />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', paddingTop: 'clamp(12px, 2vw, 24px)' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '1180px', margin: '0 auto', minHeight: 0, paddingInline: 'clamp(12px, 3vw, 24px)' }}>
+          <main style={{ width: '100%', flex: 1, minHeight: 0 }}>
+            <ChatInterface initialAuthPlan={initialAuthPlan} composerPlacement="pane" paneWidth="standard" />
           </main>
         </div>
       </div>

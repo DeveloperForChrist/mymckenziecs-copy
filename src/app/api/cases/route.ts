@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { hasUserPlatformAccess } from '@/lib/auth/platform-access';
+import { getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse, apiRateLimiter } from '@/lib/utils/rate-limit';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -41,6 +42,10 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = authData.user.id;
+    // Rate limit case list reads per user
+    const identifier = getIdentifier(userId, undefined)
+    const rl = await rateLimit(apiRateLimiter, `cases:list:user:${identifier}`, 30, 10 * 60 * 1000)
+    if (!rl.success) return rateLimitExceededResponse(rl, 'Too many requests. Please try again later.')
     const { searchParams } = new URL(request.url);
     const limit = parseBoundedPositiveInt(searchParams.get('limit'), DEFAULT_CASE_LIMIT, MAX_CASE_LIMIT);
     const offset = parseBoundedPositiveInt(searchParams.get('offset'), 0, Number.MAX_SAFE_INTEGER);

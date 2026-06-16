@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { verifyCronSecret } from '@/lib/security/timing-safe'
 
 const PERIODS = ['day', 'week', 'month'] as const
 
@@ -8,16 +9,9 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: Request) {
   try {
     const cronSecret = process.env.CRON_SECRET
-    const headerSecret = (request.headers.get('x-cron-secret') || request.headers.get('authorization') || '')
-      .replace(/^Bearer\s+/i, '')
-      .trim()
+    const headerSecret = request.headers.get('x-cron-secret') || request.headers.get('authorization')
 
-    if (!cronSecret) {
-      console.error('CRON_SECRET is not configured for admin-metrics-rollups cron route')
-      return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-    }
-
-    if (headerSecret !== cronSecret) {
+    if (!verifyCronSecret(headerSecret, cronSecret)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

@@ -64,6 +64,17 @@ export async function fetchConversationHistoryPage({
   const data = rawData as ConversationHistoryPageResponse
 
   if (!response.ok) {
+    if ([401, 403, 404].includes(response.status)) {
+      return {
+        messages: [],
+        total: 0,
+        limited: false,
+        pageLimit: limit,
+        hasMoreOlder: false,
+        nextCursor: null,
+      }
+    }
+
     const errorMessage =
       typeof (rawData as { error?: unknown })?.error === 'string'
         ? (rawData as { error?: string }).error

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { validateCsrfToken } from '@/lib/security/csrf'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { stripe } from '@/lib/payments/stripe';
@@ -153,6 +154,11 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    // CSRF validation
+    if (!await validateCsrfToken(req as any)) {
+      return NextResponse.json({ error: 'CSRF validation failed' }, { status: 403 });
+    }
+
     const user = await requireAuthenticatedUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -195,6 +201,11 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
+    // CSRF validation
+    if (!await validateCsrfToken(req as any)) {
+      return NextResponse.json({ error: 'CSRF validation failed' }, { status: 403 });
+    }
+
     const user = await requireAuthenticatedUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { validateCsrfToken } from '@/lib/security/csrf'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { stripe } from '@/lib/payments/stripe';
@@ -60,6 +61,10 @@ async function releaseExistingSchedule(scheduleId?: string | null) {
 
 export async function POST(req: Request) {
   try {
+    // Validate CSRF token for state-changing action
+    if (!await validateCsrfToken(req as any)) {
+      return NextResponse.json({ error: 'CSRF validation failed' }, { status: 403 })
+    }
     const supabase = await createSupabaseRouteClient();
     const { data: authData, error: authError } = await supabase.auth.getUser();
     if (authError || !authData?.user) {

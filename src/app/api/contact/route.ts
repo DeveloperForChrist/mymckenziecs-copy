@@ -5,6 +5,7 @@ import { sendResendEmail } from '@/lib/email/resend';
 import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { isPremiumPlusPlan, planDisplayName } from '@/lib/plans/access';
 import { emailDailyRateLimiter, emailRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
+import { htmlEscape } from '@/lib/utils/html-escape';
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,8 +32,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Use email from form, or try to get from auth
-    const userEmail = email;
-    let userName = email.split('@')[0];
+    const userEmail = String(email || '');
+    let userName = String(email.split('@')[0] || '');
     let planLabel = 'No plan';
     
     try {
@@ -58,17 +59,22 @@ export async function POST(req: NextRequest) {
     const premiumPlus = isPremiumPlusPlan(planLabel);
     const normalizedPlanLabel = planDisplayName(planLabel);
     const subjectPrefix = premiumPlus ? '[PRIORITY][Premium +]' : `[${normalizedPlanLabel}]`;
-    const subjectLine = `${subjectPrefix} ${subject} - ${userName}`;
+    const safeUserName = htmlEscape(userName)
+    const safeUserEmail = htmlEscape(userEmail)
+    const safeSubject = htmlEscape(subject)
+    const safeMessage = htmlEscape(message)
+
+    const subjectLine = `${subjectPrefix} ${safeSubject} - ${safeUserName}`;
     const textBody = `
 Contact Form Submission
 
-From: ${userName}
-Email: ${userEmail}
+From: ${safeUserName}
+Email: ${safeUserEmail}
 Plan: ${planLabel}
-Subject: ${subject}
+Subject: ${safeSubject}
 
 Message:
-${message}
+${safeMessage}
 
 ---
 Sent from MyMcKenzieCS Contact Form
@@ -79,11 +85,11 @@ Sent from MyMcKenzieCS Contact Form
           <table style="width: 100%; border-collapse: collapse;">
             <tr>
               <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>From:</strong></td>
-              <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${userName}</td>
+              <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${safeUserName}</td>
             </tr>
             <tr>
               <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Email:</strong></td>
-              <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${userEmail}</td>
+              <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${safeUserEmail}</td>
             </tr>
             <tr>
               <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Plan:</strong></td>
@@ -91,12 +97,12 @@ Sent from MyMcKenzieCS Contact Form
             </tr>
             <tr>
               <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Subject:</strong></td>
-              <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${subject}</td>
+              <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${safeSubject}</td>
             </tr>
           </table>
           <div style="margin-top: 20px; padding: 20px; background: #f9fafb; border-radius: 8px;">
             <h3 style="margin-top: 0;">Message:</h3>
-            <p style="white-space: pre-wrap;">${message}</p>
+            <p style="white-space: pre-wrap;">${safeMessage}</p>
           </div>
           <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">
             Sent from MyMcKenzieCS Contact Form

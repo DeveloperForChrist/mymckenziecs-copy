@@ -4,6 +4,7 @@ import { authRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceed
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { sendResendEmail } from '@/lib/email/resend'
 import { createHash, randomBytes } from 'node:crypto'
+import { htmlEscape } from '@/lib/utils/html-escape'
 import { findPlanByAnyPriceId, getBillingMarketFromCountryCode } from '@/constants'
 import type { BillingMarket } from '@/constants'
 import { getAppRouteForMarket } from '@/lib/markets/app-routes'
@@ -212,10 +213,11 @@ export async function POST(request: NextRequest) {
     const appUrl = getAppUrl(request)
 
     const verifyUrl = `${appUrl}/api/email/verify?token=${encodeURIComponent(rawToken)}&redirect=${encodeURIComponent(redirect)}`
+    const safeFirstName = htmlEscape(fullName.split(' ')[0] || 'there')
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
         <h2 style="margin: 0 0 12px;">Verify your email</h2>
-        <p>Hi ${fullName.split(' ')[0] || 'there'},</p>
+        <p>Hi ${safeFirstName},</p>
         <p>Click the button below to verify your email and open your dashboard.</p>
         <p style="margin: 22px 0;">
           <a href="${verifyUrl}" style="background:#2e1065;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;display:inline-block;">

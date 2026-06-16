@@ -14,8 +14,14 @@ const DEFAULT_DOCUMENT_LIMIT = 100
 const MAX_DOCUMENT_LIMIT = 250
 const ONBOARDING_DOCUMENT_LIMIT = documentLimitForPlan('basic')
 
-const sanitizeFilename = (name: string) =>
-  name.replace(/[^a-zA-Z0-9._\- ]/g, '').trim() || 'uploaded-document'
+const sanitizeFilename = (name: string) => {
+  if (!name || typeof name !== 'string') return 'uploaded-document'
+  const raw = name.trim()
+  // Reject path traversal and path separators explicitly
+  if (raw.includes('..') || raw.includes('/') || raw.includes('\\')) return 'uploaded-document'
+  const cleaned = raw.replace(/[^a-zA-Z0-9._\- ]/g, '').trim()
+  return cleaned || 'uploaded-document'
+}
 
 const getExtension = (name: string) => {
   const parts = name.split('.')
@@ -37,6 +43,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const user = authData.user
+    
+    // Rate limit document list requests
+    const ip = getClientIp(request.headers)
+    const userRateLimit = await rateLimit(uploadRateLimiter, `documents:list:user:${getIdentifier(user.id, ip)}`, 30, 10 * 60 * 1000)
+    if (!userRateLimit.success) {
+      return rateLimitExceededResponse(userRateLimit, 'Too many document list requests. Please try again later.')
+    }
+    
     const { searchParams } = new URL(request.url)
     const limit = parseBoundedPositiveInt(searchParams.get('limit'), DEFAULT_DOCUMENT_LIMIT, MAX_DOCUMENT_LIMIT)
     const offset = parseBoundedPositiveInt(searchParams.get('offset'), 0, Number.MAX_SAFE_INTEGER)

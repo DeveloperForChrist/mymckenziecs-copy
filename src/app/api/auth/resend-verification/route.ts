@@ -6,6 +6,7 @@ import { getAppUrl } from '@/lib/app-url'
 import { getBillingMarketFromCountryCode } from '@/constants'
 import { getAppRouteForMarket } from '@/lib/markets/app-routes'
 import { emailDailyRateLimiter, emailRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit'
+import { htmlEscape } from '@/lib/utils/html-escape'
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
     const appUrl = getAppUrl(request)
 
     const verifyUrl = `${appUrl}/api/email/verify?token=${encodeURIComponent(rawToken)}&redirect=${encodeURIComponent(redirect)}`
-    const firstName = (userRow.name || '').trim().split(/\s+/)[0] || email.split('@')[0] || 'there'
+    const firstName = htmlEscape((userRow.name || '').trim().split(/\s+/)[0] || email.split('@')[0] || 'there')
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
         <h2 style="margin: 0 0 12px;">Verify your email</h2>
