@@ -298,7 +298,6 @@ export default function ClientPortalPage() {
           </div>
         </div>
         <nav className={styles.nav} aria-label="Client portal">
-          <Link href="/client-portal" aria-current="page" className={styles.navLinkActive}>Client Portal</Link>
           <Link href="/dashboard" className={styles.navLink}>Go to dashboard</Link>
         </nav>
       </header>
