@@ -489,6 +489,149 @@
   gap: 12px;
 }
 
+.sharedDocsPanel {
+  margin-bottom: 14px;
+  border: 1px solid #dbe3ef;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.sharedDocsHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid #edf1f7;
+  background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
+}
+
+.sharedDocsCount {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #ede9fe;
+  color: #5b21b6;
+  padding: 5px 9px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.sharedDocsEmpty {
+  padding: 14px 16px;
+  color: #64748b;
+  font-size: 0.84rem;
+}
+
+.sharedDocsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.sharedDocsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.sharedDocsRow:first-child {
+  border-top: 0;
+}
+
+.uploadPanel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  border: 1px solid #dbe3ef;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  padding: 14px 16px;
+}
+
+.uploadPanelTitle {
+  margin: 0;
+  color: #182033;
+  font-size: 0.92rem;
+  font-weight: 850;
+}
+
+.uploadPanelCopy {
+  max-width: 58ch;
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.uploadButton {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 8px;
+  border: 1px solid #5b21b6;
+  background: #5b21b6;
+  color: #ffffff;
+  padding: 0 14px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.uploadButton:hover {
+  background: #4c1d95;
+}
+
+.portalUploadNotice {
+  margin: 0 0 14px;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  background: #f0fdf4;
+  color: #15803d;
+  padding: 10px 12px;
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+.messageAttachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.messageAttachmentBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #dbe3ef;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #334155;
+  padding: 7px 10px;
+  font-size: 0.78rem;
+  font-weight: 750;
+  cursor: pointer;
+  text-align: left;
+}
+
+.messageAttachmentBtn:hover {
+  background: #eef2ff;
+  border-color: #c4b5fd;
+  color: #5b21b6;
+}
+
 .meetingInfo {
   display: flex;
   flex-wrap: wrap;
@@ -616,6 +759,108 @@
   gap: 10px;
 }
 
+.previewOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.62);
+  padding: 20px;
+}
+
+.previewModal {
+  width: min(980px, 100%);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 28px 90px rgba(15, 23, 42, 0.32);
+}
+
+.previewHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid #edf1f7;
+}
+
+.previewEyebrow {
+  margin: 0;
+  color: #7c3aed;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.previewTitle {
+  margin: 6px 0 0;
+  color: #182033;
+  font-size: 1rem;
+  font-weight: 850;
+  line-height: 1.3;
+}
+
+.previewMeta {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.previewBody {
+  min-height: 360px;
+  flex: 1;
+  background: #f8fafc;
+}
+
+.previewLoading,
+.previewError {
+  min-height: 360px;
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  padding: 24px;
+  color: #64748b;
+  text-align: center;
+}
+
+.previewError p,
+.previewLoading p {
+  margin: 0;
+}
+
+.previewFrame {
+  width: 100%;
+  height: 70vh;
+  border: 0;
+  background: #ffffff;
+}
+
+.previewImage {
+  display: block;
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  background: #ffffff;
+}
+
+.previewFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 18px 18px;
+  border-top: 1px solid #edf1f7;
+  background: #ffffff;
+}
+
 .successText {
   color: #15803d;
   font-size: 0.85rem;
@@ -654,7 +899,47 @@
     padding: 14px 16px 22px;
   }
 
+  .uploadPanel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .uploadButton {
+    width: 100%;
+    justify-content: center;
+  }
+
   .nav {
     justify-content: flex-start;
+  }
+
+  .previewOverlay {
+    padding: 12px;
+    align-items: stretch;
+  }
+
+  .previewModal {
+    max-height: calc(100vh - 24px);
+  }
+
+  .previewBody,
+  .previewLoading,
+  .previewError {
+    min-height: 280px;
+  }
+
+  .previewFrame,
+  .previewImage {
+    height: min(62vh, 520px);
+    max-height: none;
+  }
+
+  .previewFooter {
+    flex-direction: column;
+  }
+
+  .previewFooter .primaryButton,
+  .previewFooter .secondaryButton {
+    width: 100%;
   }
 }

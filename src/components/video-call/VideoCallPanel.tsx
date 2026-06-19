@@ -1,8 +1,11 @@
 'use client'
-import { useState, useCallback, useEffect } from 'react'
-import { Video, Plus, Calendar, Clock, User, Mail, Copy, CheckCircle2, Play, XCircle } from 'lucide-react'
+import Link from 'next/link'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+import { usePathname } from 'next/navigation'
+import { Video, Plus, Calendar, Clock, User, Mail, Copy, CheckCircle2, Play, XCircle, Maximize2, Minimize2 } from 'lucide-react'
 import WebRtcMeeting from '@/components/video/WebRtcMeeting'
 import styles from './videocall.module.css'
+import { getAppMarketFromPathname, getAppRouteForMarket } from '@/lib/markets/app-routes'
 
 type MeetingStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'no_show'
 interface Meeting { id:string; clientId?: string | null; title:string; clientName:string; clientEmail:string; date:string; time:string; duration:number; roomName:string; status:MeetingStatus; agenda?:string; source?: 'database' | 'local' }
@@ -10,6 +13,23 @@ interface ClientContact { id: string; name: string; email: string }
 
 function makeRoom(title:string,id:string){return `mymckenziecs-${title.toLowerCase().replace(/[^a-z0-9]/g,'-').slice(0,28)}-${id}`}
 function fmtDate(d:string){return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}
+function formatMeetingStamp(meeting: Meeting) {
+  return `${fmtDate(meeting.date)}${meeting.time ? ` at ${meeting.time}` : ''}`
+}
+function buildMeetingNoteTitle(meeting: Meeting) {
+  const clientName = meeting.clientName || 'client'
+  return `Meeting with ${clientName} at ${formatMeetingStamp(meeting)} notes`
+}
+function buildMeetingNoteContent(meeting: Meeting, noteBody: string) {
+  return [
+    `Meeting: ${meeting.title || 'Client consultation'}`,
+    `Client: ${meeting.clientName || 'Client'}`,
+    `When: ${formatMeetingStamp(meeting)}`,
+    `Room: ${meeting.roomName}`,
+    '',
+    noteBody.trim(),
+  ].join('\n')
+}
 function meetingLink(roomName:string){
   if (typeof window === 'undefined') return `/video-call?room=${encodeURIComponent(roomName)}`
   const url = new URL('/video-call', window.location.origin)
@@ -19,6 +39,7 @@ function meetingLink(roomName:string){
 
 const LOCAL_MEETINGS_KEY='mymckenzie-business-client-meetings'
 const LOCAL_CLIENTS_KEY='mymckenzie-business-meeting-clients'
+const LOCAL_MEETING_NOTES_KEY='mymckenzie-business-meeting-notes'
 const LEGACY_MOCK_MEETINGS_CACHE_CLEANUP_KEY='mymckenzie-business-meetings-cache-cleanup-v1'
 const LEGACY_MOCK_MEETING_IDS = new Set(['1', '2', '3'])
 
@@ -70,6 +91,31 @@ function loadLocal(): { meetings: Meeting[]; clients: ClientContact[] } {
   return { meetings: [], clients: [] }
 }
 
+function loadRecordStore(key: string): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(key)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
+    return Object.entries(parsed as Record<string, unknown>).reduce<Record<string, string>>((acc, [entryKey, value]) => {
+      if (typeof entryKey === 'string' && typeof value === 'string') {
+        acc[entryKey] = value
+      }
+      return acc
+    }, {})
+  } catch {
+    return {}
+  }
+}
+
+function saveRecordStore(key: string, value: Record<string, string>) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch {
+    // ignore localStorage failures
+  }
+}
+
 function mapRowsToMeetings(rows: any[], clients: ClientContact[]): Meeting[] {
   const clientsById = new Map(clients.map((client) => [client.id, client]))
   return rows.map((row) => {
@@ -107,12 +153,114 @@ export function VideoCallPanel({
   const [showForm,setShowForm]=useState(false)
   const [inCall,setInCall]=useState(false)
   const [session,setSession]=useState(0)
+  const [callExpanded,setCallExpanded]=useState(true)
   const [copied,setCopied]=useState(false)
   const [notice,setNotice]=useState('')
   const [err,setErr]=useState('')
   const [loading,setLoading]=useState(true)
   const [dataMode,setDataMode]=useState<'database'|'local'>('database')
   const [form,setForm]=useState({title:'',clientName:'',clientEmail:'',date:'',time:'',duration:'60',agenda:'',inviteMessage:''})
+  const [meetingNotes, setMeetingNotes] = useState<Record<string, string>>({})
+  const [meetingNoteStatus, setMeetingNoteStatus] = useState<string | null>(null)
+  const [savingMeetingNote, setSavingMeetingNote] = useState(false)
+  const [noteSavedPopup, setNoteSavedPopup] = useState<string | null>(null)
+  const pathname = usePathname()
+  const notesPageHref = useMemo(
+    () => getAppRouteForMarket('/dashboard/MyNotes', getAppMarketFromPathname(pathname)),
+    [pathname]
+  )
+
+  useEffect(() => {
+    if (!inCall || !callExpanded) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [inCall, callExpanded])
+
+  useEffect(() => {
+    setMeetingNotes(loadRecordStore(LOCAL_MEETING_NOTES_KEY))
+  }, [])
+
+  const activeMeetingId = selected?.id || ''
+  const activeNotes = activeMeetingId ? meetingNotes[activeMeetingId] || '' : ''
+
+  const updateMeetingNotes = useCallback((value: string) => {
+    if (!activeMeetingId) return
+    setMeetingNotes((current) => {
+      const next = { ...current, [activeMeetingId]: value }
+      saveRecordStore(LOCAL_MEETING_NOTES_KEY, next)
+      return next
+    })
+  }, [activeMeetingId])
+
+  const saveMeetingNotesToNotesPage = useCallback(async () => {
+    if (!selected) return
+    const noteBody = activeNotes.trim()
+    if (!noteBody) {
+      setMeetingNoteStatus('Add some notes before saving.')
+      return
+    }
+
+    setSavingMeetingNote(true)
+    setMeetingNoteStatus(null)
+
+    const title = buildMeetingNoteTitle(selected)
+    const content = buildMeetingNoteContent(selected, noteBody)
+    const now = new Date().toISOString()
+    const newPage = {
+      id: `meeting-${Date.now()}`,
+      title,
+      content,
+      createdAt: now,
+      updatedAt: now,
+    }
+
+    try {
+      const response = await fetch('/api/notes', { cache: 'no-store', credentials: 'include' })
+      const payload = await response.json().catch(() => ({} as Record<string, any>))
+      const existingPages = Array.isArray(payload?.notesPages) ? payload.notesPages : []
+      const normalizedPages = existingPages
+        .filter((page: any) => page && typeof page === 'object')
+        .map((page: any) => ({
+          id: String(page.id || `note-${Date.now()}`),
+          title: String(page.title || 'Untitled note'),
+          content: String(page.content || ''),
+          createdAt: String(page.createdAt || now),
+          updatedAt: String(page.updatedAt || now),
+        }))
+      const nextPages = [newPage, ...normalizedPages]
+
+      const saveResponse = await fetch('/api/notes', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          notesPages: nextPages,
+          activePageId: newPage.id,
+        }),
+      })
+      const savePayload = await saveResponse.json().catch(() => ({} as Record<string, any>))
+      if (saveResponse.status === 402) {
+        const message = typeof savePayload.error === 'string' ? savePayload.error : 'Notes are read-only for this account.'
+        setMeetingNoteStatus(message)
+        return
+      }
+      if (!saveResponse.ok) {
+        throw new Error(typeof savePayload.error === 'string' ? savePayload.error : 'Failed to save note.')
+      }
+
+      setMeetingNoteStatus(null)
+      setNoteSavedPopup(`Meeting notes saved. You can view them in the Notes page as "${title}".`)
+      window.setTimeout(() => setNoteSavedPopup(null), 4500)
+    } catch (error) {
+      console.error('Failed to save meeting note', error)
+      setMeetingNoteStatus('Could not save this note right now.')
+    } finally {
+      setSavingMeetingNote(false)
+    }
+  }, [activeNotes, selected])
 
   const loadMeetings = useCallback(async () => {
     let mounted = true
@@ -312,6 +460,7 @@ export function VideoCallPanel({
   const join=(m:Meeting)=>{
     void updateStatus(m, 'in_progress')
     setInCall(true)
+    setCallExpanded(true)
   }
   const leave=()=>{setInCall(false);setSession(s=>s+1)}
   const endMeeting=(m:Meeting)=>{
@@ -325,7 +474,7 @@ export function VideoCallPanel({
   }
 
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${inCall && callExpanded ? styles.pageFullscreen : ''}`}>
       <div className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <h2 className={styles.sidebarTitle}>Client Meetings</h2>
@@ -429,29 +578,106 @@ export function VideoCallPanel({
             </div>
           </div>
 
-          {inCall&&selected&&(
-            <div className={styles.callModalBackdrop} onClick={(e)=>{if(e.target===e.currentTarget)leave()}}>
-              <div className={styles.callModal}>
-                <div className={styles.callModalHeader}>
-                  <div>
-                    <p className={styles.callModalTitle}>{selected.title}</p>
-                    <span className={styles.callModalMeta}>{selected.clientName} · {selected.roomName}</span>
-                  </div>
-                  <button type="button" className={styles.callModalCloseBtn} onClick={leave}><XCircle size={14}/>Leave</button>
-                </div>
-                <div className={styles.callModalBody}>
-                  <WebRtcMeeting key={`${selected.id}-${session}`} roomName={selected.roomName} displayName="Business User" onLeave={leave} videoGridClassName={styles.callModalJitsiWrap} primaryButtonClassName={styles.callModalGhostBtn} secondaryButtonClassName={styles.callModalGhostBtn}/>
-                </div>
-                <div className={styles.callModalFooter}>
-                  <button type="button" className={styles.callModalGhostBtn} onClick={leave}><XCircle size={14}/>Leave call</button>
-                  <button type="button" className={styles.callModalEndBtn} onClick={()=>endMeeting(selected)}><CheckCircle2 size={14}/>End &amp; Mark Done</button>
-                </div>
-              </div>
-            </div>
-          )}
           </>
         )}
       </div>
+      {inCall&&selected&&(
+        <div
+          className={`${styles.callModalBackdrop} ${callExpanded ? styles.callModalBackdropExpanded : styles.callModalBackdropCompact}`}
+          onClick={(e)=>{if(e.target===e.currentTarget)leave()}}
+        >
+          <div className={`${styles.callModal} ${callExpanded ? styles.callModalExpanded : styles.callModalCompact}`}>
+            <div className={styles.callModalHeader}>
+              <div>
+                <p className={styles.callModalTitle}>{selected.title}</p>
+                <span className={styles.callModalMeta}>{selected.clientName} · {selected.roomName}</span>
+              </div>
+              <div className={styles.callModalActions}>
+                <button
+                  type="button"
+                  className={styles.callModalToggleBtn}
+                  onClick={()=>setCallExpanded((current)=>!current)}
+                  aria-label={callExpanded ? 'Collapse call window' : 'Expand call window'}
+                  title={callExpanded ? 'Collapse' : 'Expand'}
+                >
+                  {callExpanded ? <Minimize2 size={14}/> : <Maximize2 size={14}/>}
+                  {callExpanded ? 'Collapse' : 'Expand'}
+                </button>
+                <button type="button" className={styles.callModalCloseBtn} onClick={leave}><XCircle size={14}/>Leave</button>
+              </div>
+            </div>
+            <div className={styles.callModalBody}>
+              <div className={styles.callModalWorkspace}>
+                <WebRtcMeeting
+                  key={`${selected.id}-${session}`}
+                  className={styles.callModalMeetingShell}
+                  roomName={selected.roomName}
+                  displayName="Business User"
+                  onLeave={leave}
+                  videoGridClassName={styles.callModalJitsiWrap}
+                  primaryButtonClassName={styles.callModalGhostBtn}
+                  secondaryButtonClassName={styles.callModalGhostBtn}
+                />
+
+                <aside className={styles.callNotesPanel} aria-label="Meeting notes">
+                  <div className={styles.callNotesHeader}>
+                    <div>
+                      <h3>Meeting Notes</h3>
+                      <p>Save running notes straight into My Notes.</p>
+                    </div>
+                  </div>
+
+                  <label className={styles.callNotesField}>
+                    <span className={styles.callNotesLabel}>Notes</span>
+                    <textarea
+                      className={styles.callNotesTextarea}
+                      value={activeNotes}
+                      onChange={(event) => updateMeetingNotes(event.target.value)}
+                      placeholder="Capture action items, key points, or follow-up tasks..."
+                    />
+                  </label>
+
+                  <div className={styles.callNotesFooter}>
+                    <div className={styles.callNotesMeta}>
+                      <span className={styles.callNotesLabel}>Will save as</span>
+                      <p>{buildMeetingNoteTitle(selected)}</p>
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.callTranscriptButton}
+                      onClick={() => void saveMeetingNotesToNotesPage()}
+                      disabled={savingMeetingNote || !activeNotes.trim()}
+                    >
+                      {savingMeetingNote ? 'Saving...' : 'Save notes'}
+                    </button>
+                  </div>
+                  {meetingNoteStatus && <p className={styles.callNotesStatus}>{meetingNoteStatus}</p>}
+                </aside>
+              </div>
+            </div>
+            <div className={styles.callModalFooter}>
+              <button type="button" className={styles.callModalGhostBtn} onClick={leave}><XCircle size={14}/>Leave call</button>
+              <button type="button" className={styles.callModalEndBtn} onClick={()=>endMeeting(selected)}><CheckCircle2 size={14}/>End &amp; Mark Done</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {noteSavedPopup && (
+        <div className={styles.callNotePopupBackdrop} role="status" aria-live="polite">
+          <div className={styles.callNotePopup}>
+            <p className={styles.callNotePopupTitle}>Notes saved</p>
+            <p className={styles.callNotePopupBody}>{noteSavedPopup}</p>
+            <div className={styles.callNotePopupActions}>
+              <Link href={notesPageHref} className={styles.callNotePopupButton} onClick={() => setNoteSavedPopup(null)}>
+                Open Notes Page
+              </Link>
+              <button type="button" className={styles.callNotePopupSecondaryButton} onClick={() => setNoteSavedPopup(null)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

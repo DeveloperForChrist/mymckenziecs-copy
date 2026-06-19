@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
+import { createBusinessAlert } from '@/lib/business/alerts'
 import { documentLimitForPlan, planDisplayName } from '@/lib/plans/access'
 import { getUserPlanData } from '@/lib/payments/user-plan'
 import { getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse, uploadIpRateLimiter, uploadRateLimiter } from '@/lib/utils/rate-limit'
@@ -178,6 +179,7 @@ export async function POST(request: NextRequest) {
     }
     const files = formData.getAll('files').filter(Boolean) as File[]
     const caseIdFromForm = formData.get('caseId') as string | null
+    const source = String(formData.get('source') || '').trim().toLowerCase()
 
     if (!files.length) {
       return NextResponse.json({ error: 'No files provided' }, { status: 400 })
@@ -273,6 +275,48 @@ export async function POST(request: NextRequest) {
       }
 
       if (inserted) results.push(inserted)
+    }
+
+    if (source === 'client-portal' && results.length > 0) {
+      const clientName =
+        String(user.user_metadata?.full_name || user.user_metadata?.display_name || '').trim() ||
+        String(user.email || '').split('@')[0] ||
+        'Client'
+      const uploadedNames = results
+        .map((doc) => String(doc.name || 'Document'))
+        .filter(Boolean)
+      const previewNames = uploadedNames.slice(0, 3)
+      const previewSuffix = uploadedNames.length > previewNames.length ? ', ...' : ''
+      const documentLabel = results.length === 1 ? 'document' : 'documents'
+
+      const { data: links, error: linksError } = await supabaseAdmin
+        .from('client_business_links')
+        .select('business_id')
+        .eq('client_id', user.id)
+        .eq('status', 'active')
+
+      if (!linksError && Array.isArray(links) && links.length > 0) {
+        await Promise.all(
+          links.map((link) =>
+            createBusinessAlert({
+              businessId: String(link.business_id),
+              type: 'document',
+              priority: 'medium',
+              title: `${clientName} uploaded ${results.length} ${documentLabel}`,
+              body: `${clientName} uploaded ${results.length} ${documentLabel}${uploadedNames.length > 0 ? `: ${previewNames.join(', ')}${previewSuffix}` : ''}.`,
+              clientName,
+              actionLabel: 'View Documents',
+              metadata: {
+                clientId: user.id,
+                clientEmail: user.email || null,
+                documentCount: results.length,
+                documentIds: results.map((doc) => doc.id),
+                source: 'client-portal',
+              },
+            }),
+          ),
+        )
+      }
     }
 
     return NextResponse.json({ documents: results })

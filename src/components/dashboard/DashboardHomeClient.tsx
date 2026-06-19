@@ -181,7 +181,8 @@ export default function DashboardHomeClient({
             .from('inbox_messages')
             .select('id', { count: 'exact', head: true })
             .eq('recipient_email', userEmail)
-            .eq('is_read', false),
+            .eq('is_read', false)
+            .is('deleted_at', null),
           fetch('/api/client/meetings', { credentials: 'include', cache: 'no-store' })
             .then((response) => response.ok ? response.json() : { meetings: [] })
             .catch(() => ({ meetings: [] })),

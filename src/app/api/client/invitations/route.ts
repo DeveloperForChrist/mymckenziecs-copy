@@ -17,6 +17,55 @@ function isExpired(expiresAt: string | null | undefined) {
   return ts < Date.now()
 }
 
+async function recordInvitationOpenAlert(invitation: {
+  id: string
+  business_id: string
+  invited_email: string | null
+  client_name: string | null
+  status: string
+  portal_opened_at?: string | null
+}) {
+  if (invitation.status !== 'pending') return false
+  if (invitation.portal_opened_at) return false
+
+  const openedAt = new Date().toISOString()
+  const { data: updatedInvitation, error } = await supabaseAdmin
+    .from('client_invitations')
+    .update({ portal_opened_at: openedAt })
+    .eq('id', invitation.id)
+    .is('portal_opened_at', null)
+    .select('id')
+    .maybeSingle()
+
+  if (error) {
+    console.error('Invitation portal open update error:', error)
+    return false
+  }
+
+  if (!updatedInvitation?.id) return false
+
+  const clientName = String(invitation.client_name || invitation.invited_email || 'Client').trim()
+
+  await createBusinessAlert({
+    businessId: String(invitation.business_id),
+    type: 'lead',
+    priority: 'medium',
+    title: 'Client portal opened',
+    body: `${clientName} opened their client portal invite.`,
+    clientName,
+    actionLabel: 'Open Client Work',
+    metadata: {
+      invitationId: invitation.id,
+      clientEmail: invitation.invited_email || null,
+      portalOpenedAt: openedAt,
+    },
+    dedupeKey: `client-portal-opened:${invitation.id}`,
+    dedupeWindowMinutes: 60 * 24 * 7,
+  })
+
+  return true
+}
+
 export async function GET(request: NextRequest) {
   try {
     const token = request.nextUrl.searchParams.get('token')
@@ -26,7 +75,7 @@ export async function GET(request: NextRequest) {
 
     const { data: invitation, error } = await supabaseAdmin
       .from('client_invitations')
-      .select('id, invited_email, inviter_email, client_name, status, expires_at, businesses(name)')
+      .select('id, business_id, invited_email, inviter_email, client_name, status, expires_at, portal_opened_at, businesses(name)')
       .eq('token', token)
       .single()
 
@@ -41,6 +90,15 @@ export async function GET(request: NextRequest) {
     if (isExpired(invitation.expires_at)) {
       return NextResponse.json({ message: 'Invitation link has expired.' }, { status: 410 })
     }
+
+    await recordInvitationOpenAlert({
+      id: invitation.id,
+      business_id: String(invitation.business_id),
+      invited_email: invitation.invited_email,
+      client_name: invitation.client_name,
+      status: invitation.status,
+      portal_opened_at: invitation.portal_opened_at,
+    })
 
     return NextResponse.json({
       invitation: {
@@ -81,7 +139,7 @@ export async function POST(request: NextRequest) {
 
     const { data: invitation, error: invitationError } = await supabaseAdmin
       .from('client_invitations')
-      .select('id, business_id, invited_email, client_name, status, expires_at')
+      .select('id, business_id, invited_email, client_name, status, expires_at, portal_opened_at')
       .eq('token', token)
       .single()
 
@@ -105,6 +163,15 @@ export async function POST(request: NextRequest) {
     if (isExpired(invitation.expires_at)) {
       return NextResponse.json({ message: 'Invitation link has expired.' }, { status: 410 })
     }
+
+    await recordInvitationOpenAlert({
+      id: invitation.id,
+      business_id: String(invitation.business_id),
+      invited_email: invitation.invited_email,
+      client_name: invitation.client_name,
+      status: invitation.status,
+      portal_opened_at: invitation.portal_opened_at,
+    })
 
     const clientName =
       invitation.client_name ||

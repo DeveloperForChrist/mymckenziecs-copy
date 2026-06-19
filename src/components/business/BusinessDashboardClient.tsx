@@ -29,6 +29,7 @@ import {
   Search,
   Send,
   Settings,
+  Sparkles,
   UserPlus,
   UserRound,
   UserCircle2,
@@ -56,6 +57,7 @@ import SettingsPageClient from '@/components/settings/SettingsPageClient';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import HostedVideoMeeting from '@/components/video/HostedVideoMeeting';
 import { BUSINESS_CLEAR_DOCUMENTS_FILTER_EVENT, BUSINESS_OPEN_DOCUMENTS_EVENT } from '@/lib/events/business-events';
+import BusinessFeedbackPage from './BusinessFeedbackPage';
 import styles from './businessDashboard.module.css';
 
 type NavItem = {
@@ -145,10 +147,17 @@ const navItems: NavItem[] = [
     description: 'Account, billing, and support',
     icon: Settings,
   },
+  {
+    id: 'feedback',
+    label: 'Feedback',
+    description: 'Product ideas and improvement requests',
+    icon: Sparkles,
+  },
 ];
 
 type BusinessDashboardClientProps = {
   initialChatPlan: InitialChatPlanState;
+  initialActiveId?: NavItem['id'];
 };
 
 type ChatConversation = {
@@ -452,7 +461,8 @@ function BusinessChatWorkspace({ initialChatPlan }: { initialChatPlan: InitialCh
         <div className={styles.chatbotFrame}>
           <ChatInterface
             initialAuthPlan={initialChatPlan}
-            composerPlacement="viewport"
+            composerPlacement="pane"
+            paneWidth="standard"
             conversationHomeHref={businessChatHref}
           />
         </div>
@@ -518,6 +528,7 @@ function EmbeddedToolShell({ children, variant = 'purple' }: { children: ReactNo
 function BusinessWorkspacePage({
   activeId,
   initialChatPlan,
+  initialActiveId = 'home',
   inboxComposePreset,
   documentsCaseIdOverride,
   meetingPreset,
@@ -525,6 +536,7 @@ function BusinessWorkspacePage({
 }: {
   activeId: NavItem['id'];
   initialChatPlan: InitialChatPlanState;
+  initialActiveId?: NavItem['id'];
   inboxComposePreset: { to: string; subject: string; body?: string } | null;
   documentsCaseIdOverride: string | null;
   meetingPreset: { clientName?: string; clientEmail?: string; context?: string } | null;
@@ -630,6 +642,14 @@ function BusinessWorkspacePage({
     );
   }
 
+  if (activeId === 'feedback') {
+    return (
+      <EmbeddedToolShell variant="plain">
+        <BusinessFeedbackPage />
+      </EmbeddedToolShell>
+    );
+  }
+
   if (activeId === 'profile') {
     return <BusinessProfilePage />;
   }
@@ -643,9 +663,9 @@ function BusinessWorkspacePage({
 
 const THEME_KEY = 'mymckenzie-dash-theme';
 
-export default function BusinessDashboardClient({ initialChatPlan }: BusinessDashboardClientProps) {
+export default function BusinessDashboardClient({ initialChatPlan, initialActiveId = 'home' }: BusinessDashboardClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeId, setActiveId] = useState('home');
+  const [activeId, setActiveId] = useState(initialActiveId);
   const [leadsCount, setLeadsCount] = useState(0);
   const [inboxCount, setInboxCount] = useState(0);
   const [alertsCount, setAlertsCount] = useState(0);
@@ -774,7 +794,8 @@ export default function BusinessDashboardClient({ initialChatPlan }: BusinessDas
           .from('inbox_messages')
           .select('id', { count: 'exact', head: true })
           .eq('recipient_email', user.email)
-          .eq('is_read', false);
+          .eq('is_read', false)
+          .is('deleted_at', null);
         setInboxCount(typeof count === 'number' ? count : 0);
       } catch {
         setInboxCount(0);

@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import AccountSection from '@/components/settings/AccountSection';
 import BillingSection from '@/components/settings/BillingSection';
 import ContactSection from '@/components/settings/ContactSection';
+import MeetingReminderSection from '@/components/settings/MeetingReminderSection';
 import SettingsSidebar from '@/components/settings/SettingsSidebar';
 import styles from '@/components/settings/settingsPage.module.css';
 import { getAppRouteForMarket } from '@/lib/markets/app-routes';
@@ -41,7 +42,7 @@ export default function SettingsPageClient({
 
   const requestedTab = useMemo(() => {
     const raw = (searchParams?.get('tab') || searchParams?.get('section') || '').trim().toLowerCase();
-    if (raw === 'billing' || raw === 'contact' || raw === 'account') return raw;
+    if (raw === 'billing' || raw === 'contact' || raw === 'account' || raw === 'reminders') return raw;
     return 'account';
   }, [searchParams]);
   const [active, setActive] = useState(requestedTab);
@@ -70,6 +71,10 @@ export default function SettingsPageClient({
     billing: {
       title: 'Billing & Plans',
       desc: 'Review your current subscription and payment methods',
+    },
+    reminders: {
+      title: 'Meeting Reminders',
+      desc: 'Choose how far in advance you want meeting reminders to go out',
     },
     contact: {
       title: publicMarket === 'US' ? 'U.S. Support' : 'Contact Us',
@@ -105,6 +110,14 @@ export default function SettingsPageClient({
               </button>
               <button
                 type="button"
+                className={`${styles.embeddedTab} ${active === 'reminders' ? styles.embeddedTabActive : ''}`}
+                onClick={() => setActiveAndSyncUrl('reminders')}
+                aria-current={active === 'reminders' ? 'page' : undefined}
+              >
+                Reminders
+              </button>
+              <button
+                type="button"
                 className={`${styles.embeddedTab} ${active === 'contact' ? styles.embeddedTabActive : ''}`}
                 onClick={() => setActiveAndSyncUrl('contact')}
                 aria-current={active === 'contact' ? 'page' : undefined}
@@ -131,6 +144,9 @@ export default function SettingsPageClient({
             </div>
             <div aria-hidden={active !== 'billing'} style={{ display: active === 'billing' ? 'block' : 'none' }}>
               <BillingSection initialPlanData={initialBillingPlan} />
+            </div>
+            <div aria-hidden={active !== 'reminders'} style={{ display: active === 'reminders' ? 'block' : 'none' }}>
+              <MeetingReminderSection />
             </div>
             <div aria-hidden={active !== 'contact'} style={{ display: active === 'contact' ? 'block' : 'none' }}>
               <ContactSection initialPublicMarket={publicMarket} />

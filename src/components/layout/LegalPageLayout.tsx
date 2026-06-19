@@ -4,10 +4,11 @@ type LegalPageLayoutProps = {
   title: string;
   subtitle?: string;
   meta?: string;
+  actions?: React.ReactNode;
   children: React.ReactNode;
 };
 
-export default function LegalPageLayout({ title, subtitle, meta, children }: LegalPageLayoutProps) {
+export default function LegalPageLayout({ title, subtitle, meta, actions, children }: LegalPageLayoutProps) {
   const pageStyle = {
     background: 'linear-gradient(180deg, #0f0b1f 0%, #140f2a 45%, #0f0a1a 100%)',
     minHeight: '100vh',
@@ -15,7 +16,7 @@ export default function LegalPageLayout({ title, subtitle, meta, children }: Leg
   };
 
   return (
-    <main style={pageStyle}>
+    <main className="legal-print-root" style={pageStyle}>
       <div
         className="app-container"
         style={{
@@ -25,6 +26,7 @@ export default function LegalPageLayout({ title, subtitle, meta, children }: Leg
       >
         <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
           <aside
+            className="legal-print-aside"
             style={{
               background: 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))',
               border: '1px solid rgba(255,255,255,0.12)',
@@ -46,8 +48,14 @@ export default function LegalPageLayout({ title, subtitle, meta, children }: Leg
             {meta && (
               <p style={{ marginTop: '1.5rem', color: 'rgba(226,232,240,0.7)', fontSize: '0.95rem' }}>{meta}</p>
             )}
+            {actions && (
+              <div style={{ marginTop: '1.5rem' }} className="legal-print-hide">
+                {actions}
+              </div>
+            )}
           </aside>
           <section
+            className="legal-print-content"
             style={{
               background: 'rgba(10, 8, 20, 0.72)',
               border: '1px solid rgba(255,255,255,0.1)',

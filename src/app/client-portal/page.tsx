@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
-import { Mail, FileText, Calendar, Clock, User, MessageSquare, Video, ShieldCheck } from 'lucide-react'
+import { Mail, FileText, Calendar, Clock, User, MessageSquare, Video, ShieldCheck, UploadCloud, Paperclip, X, Loader2, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import styles from './clientPortal.module.css'
+import { parseInboxAttachments, type InboxMessageAttachment } from '@/lib/inbox/attachments'
 
 interface BusinessLink {
   id: string
@@ -24,6 +25,7 @@ interface Message {
   content: string
   timestamp: string
   isRead: boolean
+  attachments?: InboxMessageAttachment[]
 }
 
 interface ClientDocument {
@@ -32,6 +34,16 @@ interface ClientDocument {
   createdAt: string
   size: number
   mimeType: string
+  sourceLabel?: string
+}
+
+type PreviewDocument = {
+  id: string
+  name: string
+  createdAt: string
+  size: number
+  mimeType: string
+  sourceLabel?: string
 }
 
 interface ClientMeeting {
@@ -50,6 +62,7 @@ export default function ClientPortalPage() {
   const [businessLinks, setBusinessLinks] = useState<BusinessLink[]>([])
   const [messages, setMessages] = useState<Message[]>([])
   const [documents, setDocuments] = useState<ClientDocument[]>([])
+  const [sharedPortalDocuments, setSharedPortalDocuments] = useState<ClientDocument[]>([])
   const [meetings, setMeetings] = useState<ClientMeeting[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedTab, setSelectedTab] = useState<'messages' | 'meetings' | 'documents' | 'profile'>('messages')
@@ -60,6 +73,40 @@ export default function ClientPortalPage() {
   const [composeNotice, setComposeNotice] = useState('')
   const [leavingLinkId, setLeavingLinkId] = useState<string | null>(null)
   const [portalNotice, setPortalNotice] = useState('')
+  const [portalUploading, setPortalUploading] = useState(false)
+  const [portalUploadNotice, setPortalUploadNotice] = useState('')
+  const [previewDocument, setPreviewDocument] = useState<PreviewDocument | null>(null)
+  const [previewUrl, setPreviewUrl] = useState('')
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewError, setPreviewError] = useState('')
+  const portalUploadInputRef = useRef<HTMLInputElement>(null)
+
+  const formatPreviewDate = (value: string) => {
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return value
+    return date.toLocaleDateString()
+  }
+
+  const sharedDocuments = useMemo(() => {
+    const seen = new Map<string, ClientDocument>()
+    sharedPortalDocuments.forEach((doc) => {
+      seen.set(doc.id, doc)
+    })
+    messages.forEach((message) => {
+      message.attachments?.forEach((attachment) => {
+        if (!attachment.documentId || seen.has(attachment.documentId)) return
+        seen.set(attachment.documentId, {
+          id: attachment.documentId,
+          name: attachment.name,
+          createdAt: message.timestamp,
+          size: attachment.size || 0,
+          mimeType: attachment.mimeType || '',
+          sourceLabel: 'Message attachment',
+        })
+      })
+    })
+    return Array.from(seen.values())
+  }, [messages, sharedPortalDocuments])
 
   useEffect(() => {
     loadData()
@@ -113,6 +160,7 @@ export default function ClientPortalPage() {
         .from('inbox_messages')
         .select('*')
         .eq('recipient_email', user.email)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
 
       if (msgs) {
@@ -124,26 +172,26 @@ export default function ClientPortalPage() {
           content: msg.content,
           timestamp: new Date(msg.created_at).toLocaleDateString(),
           isRead: msg.is_read,
+          attachments: parseInboxAttachments(msg.metadata),
         })))
       }
 
-      const { data: docs } = await supabase
-        .from('documents')
-        .select('id, name, created_at, file_size, mime_type')
-        .eq('uploaded_by', user.id)
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false })
-
-      if (docs) {
-        setDocuments(
-          docs.map((doc: any) => ({
-            id: String(doc.id),
-            name: String(doc.name || 'Document'),
-            createdAt: String(doc.created_at || new Date().toISOString()),
-            size: Number(doc.file_size || 0),
-            mimeType: String(doc.mime_type || ''),
-          })),
-        )
+      const docsResponse = await fetch('/api/client/documents', {
+        credentials: 'include',
+        cache: 'no-store',
+      })
+      const docsPayload = await docsResponse.json().catch(() => ({}))
+      if (docsResponse.ok && Array.isArray(docsPayload?.documents)) {
+        const nextDocs = docsPayload.documents.map((doc: any) => ({
+          id: String(doc.id),
+          name: String(doc.name || 'Document'),
+          createdAt: String(doc.createdAt || doc.created_at || new Date().toISOString()),
+          size: Number(doc.size || doc.file_size || 0),
+          mimeType: String(doc.mimeType || doc.mime_type || ''),
+          sourceLabel: typeof doc.sourceLabel === 'string' ? doc.sourceLabel : undefined,
+        }))
+        setDocuments(nextDocs.filter((doc: ClientDocument) => doc.sourceLabel !== 'Shared by your professional'))
+        setSharedPortalDocuments(nextDocs.filter((doc: ClientDocument) => doc.sourceLabel === 'Shared by your professional'))
       }
 
       try {
@@ -237,7 +285,29 @@ export default function ClientPortalPage() {
     }
   }
 
-  const handleOpenDocument = async (id: string) => {
+  const handleOpenDocument = async (id: string, previewMeta?: Partial<PreviewDocument>) => {
+    const matched = documents.find((doc) => doc.id === id)
+    setPreviewDocument(
+      previewMeta
+        ? {
+            id,
+            name: previewMeta.name || matched?.name || 'Document',
+            createdAt: previewMeta.createdAt || matched?.createdAt || new Date().toISOString(),
+            size: typeof previewMeta.size === 'number' ? previewMeta.size : matched?.size || 0,
+            mimeType: previewMeta.mimeType || matched?.mimeType || '',
+            sourceLabel: previewMeta.sourceLabel,
+          }
+        : matched || {
+            id,
+            name: 'Document',
+            createdAt: new Date().toISOString(),
+            size: 0,
+            mimeType: '',
+          },
+    )
+    setPreviewUrl('')
+    setPreviewError('')
+    setPreviewLoading(true)
     try {
       const response = await fetch(`/api/documents/${encodeURIComponent(id)}/signed`, {
         credentials: 'include',
@@ -247,9 +317,58 @@ export default function ClientPortalPage() {
       if (!response.ok || !payload?.url) {
         throw new Error(payload?.error || 'Unable to open document.')
       }
-      window.open(String(payload.url), '_blank', 'noopener,noreferrer')
+      setPreviewUrl(String(payload.url))
     } catch (error) {
-      setPortalNotice(error instanceof Error ? error.message : 'Unable to open document.')
+      setPreviewError(error instanceof Error ? error.message : 'Unable to open document.')
+    } finally {
+      setPreviewLoading(false)
+    }
+  }
+
+  const closePreview = () => {
+    setPreviewDocument(null)
+    setPreviewUrl('')
+    setPreviewLoading(false)
+    setPreviewError('')
+  }
+
+  const handlePortalUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    setPortalUploading(true)
+    setPortalUploadNotice('')
+
+    try {
+      const supabase = getSupabaseBrowserClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
+
+      const formData = new FormData()
+      formData.append('source', 'client-portal')
+      for (const file of Array.from(files)) {
+        formData.append('files', file)
+      }
+
+      const response = await fetch('/api/documents', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Upload failed.')
+      }
+
+      const uploadedCount = Array.isArray(payload?.documents) ? payload.documents.length : files.length
+      const sharedNote = businessLinks.length > 0
+        ? ' Your connected professional has been notified.'
+        : ''
+      setPortalUploadNotice(`${uploadedCount} document${uploadedCount === 1 ? '' : 's'} uploaded.${sharedNote}`)
+      if (portalUploadInputRef.current) portalUploadInputRef.current.value = ''
+      await loadData()
+    } catch (error) {
+      setPortalUploadNotice(error instanceof Error ? error.message : 'Upload failed.')
+    } finally {
+      setPortalUploading(false)
     }
   }
 
@@ -311,7 +430,7 @@ export default function ClientPortalPage() {
         <div className={styles.stats} aria-label="Portal summary">
           <div className={styles.stat}><strong>{connectedProfessionalCount}</strong>Professionals</div>
           <div className={styles.stat}><strong>{upcomingMeetingCount}</strong>Meetings</div>
-          <div className={styles.stat}><strong>{documents.length}</strong>Documents</div>
+          <div className={styles.stat}><strong>{documents.length + sharedPortalDocuments.length}</strong>Documents</div>
         </div>
       </section>
 
@@ -405,7 +524,7 @@ export default function ClientPortalPage() {
             <p className={styles.listSub}>
               {selectedTab === 'messages' && `${messages.length} received message${messages.length === 1 ? '' : 's'}`}
               {selectedTab === 'meetings' && `${meetings.length} upcoming meeting${meetings.length === 1 ? '' : 's'}`}
-              {selectedTab === 'documents' && `${documents.length} shared document${documents.length === 1 ? '' : 's'}`}
+              {selectedTab === 'documents' && `${documents.length + sharedPortalDocuments.length} shared document${documents.length + sharedPortalDocuments.length === 1 ? '' : 's'}`}
               {selectedTab === 'profile' && 'Your client portal details'}
             </p>
           </div>
@@ -435,6 +554,27 @@ export default function ClientPortalPage() {
                           <span className={styles.itemTime}>{msg.timestamp}</span>
                         </div>
                         <p className={styles.itemPreview}>{msg.content}</p>
+                        {msg.attachments && msg.attachments.length > 0 && (
+                          <div className={styles.messageAttachments}>
+                            {msg.attachments.map((attachment) => (
+                              <button
+                                key={attachment.documentId}
+                                type="button"
+                                className={styles.messageAttachmentBtn}
+                                onClick={() => void handleOpenDocument(attachment.documentId, {
+                                  name: attachment.name,
+                                  createdAt: msg.timestamp,
+                                  size: attachment.size || 0,
+                                  mimeType: attachment.mimeType || '',
+                                  sourceLabel: 'Message attachment',
+                                })}
+                              >
+                                <Paperclip size={13} />
+                                <span>{attachment.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </>
@@ -486,12 +626,73 @@ export default function ClientPortalPage() {
 
             {selectedTab === 'documents' && (
               <>
-                {documents.length === 0 ? (
+                <div className={styles.sharedDocsPanel}>
+                  <div className={styles.sharedDocsHeader}>
+                    <div>
+                      <h3 className={styles.uploadPanelTitle}>Shared by your professional</h3>
+                      <p className={styles.uploadPanelCopy}>Documents sent by your professional appear here so you can open them without leaving the workspace.</p>
+                    </div>
+                    <span className={styles.sharedDocsCount}>{sharedDocuments.length} file{sharedDocuments.length === 1 ? '' : 's'}</span>
+                  </div>
+                  {sharedDocuments.length === 0 ? (
+                    <div className={styles.sharedDocsEmpty}>No shared documents yet.</div>
+                  ) : (
+                    <div className={styles.sharedDocsList}>
+                      {sharedDocuments.map((doc) => (
+                        <div key={doc.id} className={styles.sharedDocsRow}>
+                          <div>
+                            <h4 className={styles.itemTitle}>{doc.name}</h4>
+                            <p className={styles.itemMeta}>
+                              {doc.sourceLabel || 'Shared document'} • {doc.size > 0 ? `${Math.max(1, Math.round(doc.size / 1024))} KB` : 'Document'}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => void handleOpenDocument(doc.id, {
+                              name: doc.name,
+                              createdAt: doc.createdAt,
+                              size: doc.size,
+                              mimeType: doc.mimeType,
+                              sourceLabel: 'Shared by your professional',
+                            })}
+                            className={styles.secondaryButton}
+                          >
+                            Open
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className={styles.uploadPanel}>
+                  <div>
+                    <h3 className={styles.uploadPanelTitle}>Upload documents</h3>
+                    <p className={styles.uploadPanelCopy}>Your files stay in your portal, and connected professionals are notified when you upload from here.</p>
+                  </div>
+                  <label className={styles.uploadButton}>
+                    <UploadCloud size={16} />
+                    {portalUploading ? 'Uploading…' : 'Choose files'}
+                    <input
+                      ref={portalUploadInputRef}
+                      type="file"
+                      multiple
+                      hidden
+                      onChange={(event) => void handlePortalUpload(event.target.files)}
+                      disabled={portalUploading}
+                    />
+                  </label>
+                </div>
+                {portalUploadNotice && (
+                  <div className={styles.portalUploadNotice}>
+                    <p>{portalUploadNotice}</p>
+                  </div>
+                )}
+                {documents.length === 0 && sharedPortalDocuments.length === 0 ? (
                   <div className={styles.emptyState}>
                     <div>
                       <FileText size={44} />
                       <strong>No documents yet</strong>
-                      <span>Documents shared with you will be listed here.</span>
+                      <span>Documents uploaded here and documents shared by your professional will be listed here.</span>
                     </div>
                   </div>
                 ) : (
@@ -502,11 +703,17 @@ export default function ClientPortalPage() {
                           <h4 className={styles.itemTitle}>{doc.name}</h4>
                           <p className={styles.itemMeta}>
                             {new Date(doc.createdAt).toLocaleDateString()} • {formatSize(doc.size)}
+                            {doc.sourceLabel ? ` • ${doc.sourceLabel}` : ''}
                           </p>
                         </div>
                         <button
                           type="button"
-                          onClick={() => void handleOpenDocument(doc.id)}
+                          onClick={() => void handleOpenDocument(doc.id, {
+                            name: doc.name,
+                            createdAt: doc.createdAt,
+                            size: doc.size,
+                            mimeType: doc.mimeType,
+                          })}
                           className={styles.secondaryButton}
                         >
                           Open
@@ -629,6 +836,65 @@ export default function ClientPortalPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Document preview modal */}
+      {previewDocument && (
+        <div className={styles.previewOverlay} onClick={(event) => { if (event.target === event.currentTarget) closePreview() }}>
+          <div className={styles.previewModal} onClick={(event) => event.stopPropagation()}>
+            <div className={styles.previewHeader}>
+              <div>
+                <p className={styles.previewEyebrow}>{previewDocument.sourceLabel || 'Shared document'}</p>
+                <h2 className={styles.previewTitle}>{previewDocument.name}</h2>
+                <p className={styles.previewMeta}>
+                  {previewDocument.createdAt ? formatPreviewDate(previewDocument.createdAt) : 'Document'}
+                  {previewDocument.size > 0 ? ` • ${Math.max(1, Math.round(previewDocument.size / 1024))} KB` : ''}
+                </p>
+              </div>
+              <button type="button" className={styles.closeButton} onClick={closePreview} aria-label="Close document preview">
+                <X size={16} />
+              </button>
+            </div>
+            <div className={styles.previewBody}>
+              {previewLoading ? (
+                <div className={styles.previewLoading}>
+                  <Loader2 size={20} className={styles.spin} />
+                  <p>Loading document…</p>
+                </div>
+              ) : previewError ? (
+                <div className={styles.previewError}>
+                  <p>{previewError}</p>
+                  <button type="button" className={styles.primaryButton} onClick={() => void handleOpenDocument(previewDocument.id)}>
+                    Retry
+                  </button>
+                </div>
+              ) : previewUrl ? (
+                <>
+                  {previewDocument.mimeType.startsWith('image/') ? (
+                    <img src={previewUrl} alt={previewDocument.name} className={styles.previewImage} />
+                  ) : (
+                    <iframe src={previewUrl} title={previewDocument.name} className={styles.previewFrame} />
+                  )}
+                </>
+              ) : (
+                <div className={styles.previewError}>
+                  <p>Preparing document preview…</p>
+                </div>
+              )}
+            </div>
+            <div className={styles.previewFooter}>
+              <button type="button" className={styles.secondaryButton} onClick={closePreview}>
+                Close
+              </button>
+              {previewUrl && (
+                <a href={previewUrl} target="_blank" rel="noreferrer" className={styles.primaryButton}>
+                  <ExternalLink size={14} />
+                  Open in new tab
+                </a>
+              )}
+            </div>
           </div>
         </div>
       )}

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { sendResendEmail } from '@/lib/email/resend'
+import { renderEmailTemplate } from '@/lib/email/render-template'
+import { getAppUrl } from '@/lib/app-url'
+import { htmlEscape } from '@/lib/utils/html-escape'
 import nodemailer from 'nodemailer'
 import { createBusinessAlert } from '@/lib/business/alerts'
 
@@ -104,34 +107,29 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate signup link with token
-    const signupUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/signup?token=${encodeURIComponent(invitation.token)}`
+    const appUrl = getAppUrl(request)
+    const signupUrl = `${appUrl}/signup?token=${encodeURIComponent(invitation.token)}`
 
-    const subject = `You are invited to join ${businessData.name}'s client portal`
-    const textBody =
-      `Hello,\n\n` +
-      `${businessData.name} has invited you to join their secure client portal on MyMcKenzieCS.\n\n` +
-      `Please use the link below to sign in or create your account and access your client workspace:\n` +
-      `${signupUrl}\n\n` +
-      `If you were not expecting this invitation, you can safely ignore this email.\n\n` +
-      `Kind regards,\n` +
-      `${businessData.name}`
-    const htmlBody = `
-      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; line-height: 1.5; color: #111827;">
-        <h2 style="margin: 0 0 12px;">Invitation to Join ${businessData.name}'s Client Portal</h2>
-        <p style="margin: 0 0 16px;">Hello,</p>
-        <p style="margin: 0 0 16px;">${businessData.name} has invited <strong>${invitedEmail}</strong> to join their secure client portal on MyMcKenzieCS.</p>
-        <p style="margin: 0 0 16px;">Please use the button below to sign in or create your account and access your client workspace.</p>
-        <p style="margin: 0 0 16px;">
-          <a href="${signupUrl}" style="display:inline-block;background:#270427;color:#ffffff;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:700;border:1px solid #1c1a42;">
-            Sign in or create account
-          </a>
-        </p>
-        <p style="margin: 0 0 8px; color: #6b7280; font-size: 13px;">If the button doesn't work, copy and paste this link:</p>
-        <p style="margin: 0; font-size: 13px; word-break: break-all;"><a href="${signupUrl}">${signupUrl}</a></p>
-        <p style="margin: 16px 0 0;">If you were not expecting this invitation, you can safely ignore this email.</p>
-        <p style="margin: 16px 0 0;">Kind regards,<br />${businessData.name}</p>
-      </div>
-    `
+    const subject = `Invitation to join ${businessData.name}'s client portal`
+    const textBody = [
+      `Hello ${body.name || invitedEmail},`,
+      '',
+      `${businessData.name} has invited you to join their secure client portal on MyMcKenzieCS.`,
+      '',
+      `Please use the link below to sign in or create your account and access your client workspace:`,
+      signupUrl,
+      '',
+      `If you were not expecting this invitation, you can safely ignore this email.`,
+      '',
+      `Kind regards,`,
+      businessData.name,
+    ].join('\n')
+    const htmlBody = renderEmailTemplate('30-client-portal-invite.html', {
+      recipient_name: htmlEscape(body.name || invitedEmail),
+      business_name: htmlEscape(businessData.name),
+      invited_email: htmlEscape(invitedEmail),
+      cta_url: htmlEscape(signupUrl),
+    })
 
     const inviteSenderName =
       String(user.user_metadata?.full_name || user.user_metadata?.display_name || '').trim() ||

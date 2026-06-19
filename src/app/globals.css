@@ -187,6 +187,59 @@ a {
   text-decoration: none;
 }
 
+@media print {
+  html,
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  body {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 11pt !important;
+  }
+
+  .legal-print-root {
+    background: #ffffff !important;
+    min-height: auto !important;
+  }
+
+  .legal-print-root .app-container {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .legal-print-aside {
+    position: static !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border: 0 !important;
+    color: #111827 !important;
+    padding: 0 0 14pt !important;
+  }
+
+  .legal-print-content {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: #111827 !important;
+    padding: 0 !important;
+  }
+
+  .legal-print-hide {
+    display: none !important;
+  }
+
+  a {
+    color: #111827 !important;
+    text-decoration: underline !important;
+  }
+
+  @page {
+    margin: 14mm;
+  }
+}
+
 .app-shell {
   min-height: 100vh;
 }

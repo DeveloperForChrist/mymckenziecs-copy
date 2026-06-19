@@ -25,11 +25,15 @@ const feedbackPayloadSchema = z
   .object({
     conversationId: z.string().max(160).optional(),
     messageIndex: z.number().int().min(0).max(100000).nullable().optional(),
-    feedbackType: z.enum(['like', 'dislike', 'report']),
+    feedbackType: z.enum(['like', 'dislike', 'report', 'suggestion']),
     messageContent: z.string().min(1).max(5000),
     timestamp: z.string().optional(),
     reportIssue: z.string().max(240).optional(),
     reportProblem: z.string().max(2000).optional(),
+    suggestionArea: z.string().max(120).optional(),
+    suggestionTitle: z.string().max(180).optional(),
+    suggestionDetails: z.string().max(6000).optional(),
+    suggestionImpact: z.string().max(3000).optional(),
   })
   .superRefine((value, ctx) => {
     if (value.feedbackType === 'report') {
@@ -45,6 +49,22 @@ const feedbackPayloadSchema = z
           code: z.ZodIssueCode.custom,
           path: ['reportProblem'],
           message: 'reportProblem is required for report feedback',
+        });
+      }
+    }
+    if (value.feedbackType === 'suggestion') {
+      if (!value.suggestionTitle || value.suggestionTitle.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['suggestionTitle'],
+          message: 'suggestionTitle is required for suggestion feedback',
+        });
+      }
+      if (!value.suggestionDetails || value.suggestionDetails.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['suggestionDetails'],
+          message: 'suggestionDetails is required for suggestion feedback',
         });
       }
     }
@@ -79,6 +99,10 @@ export async function POST(request: NextRequest) {
       timestamp,
       reportIssue,
       reportProblem,
+      suggestionArea,
+      suggestionTitle,
+      suggestionDetails,
+      suggestionImpact,
     } = parsed.data;
 
     // Store feedback in audit_log table (or a dedicated feedback table if exists)
@@ -95,6 +119,10 @@ export async function POST(request: NextRequest) {
           timestamp: timestamp || new Date().toISOString(),
           reportIssue: reportIssue || null,
           reportProblem: reportProblem || null,
+          suggestionArea: suggestionArea || null,
+          suggestionTitle: suggestionTitle || null,
+          suggestionDetails: suggestionDetails || null,
+          suggestionImpact: suggestionImpact || null,
         },
       });
 
@@ -165,6 +193,7 @@ export async function GET(request: NextRequest) {
       likes: feedback.filter((f) => f.feedbackType === 'like').length,
       dislikes: feedback.filter((f) => f.feedbackType === 'dislike').length,
       reports: feedback.filter((f) => f.feedbackType === 'report').length,
+      suggestions: feedback.filter((f) => f.feedbackType === 'suggestion').length,
       total: feedback.length
     };
 

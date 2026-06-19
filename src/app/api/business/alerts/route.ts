@@ -103,6 +103,7 @@ export async function GET() {
         .select('id, sender_name, created_at, subject')
         .eq('recipient_email', user.email)
         .eq('is_read', false)
+        .is('deleted_at', null)
         .contains('metadata', { fromClient: true })
         .lte('created_at', staleIso)
         .limit(10)

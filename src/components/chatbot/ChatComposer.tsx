@@ -62,11 +62,12 @@ export default function ChatComposer({
 }: ChatComposerProps) {
   const pathname = usePathname()
   const useFullPaneWidth = dockToPane && paneWidth === 'full'
+  const useStandardPaneWidth = dockToPane && paneWidth === 'standard'
   const controlButtonSize = 'clamp(28px, 1.15vw + 22px, 40px)'
   const controlIconSize = 'clamp(16px, 0.45vw + 14px, 22px)'
   const controlFontSize = 'clamp(12px, 0.2vw + 11px, 14px)'
-  const composerShellMaxWidth = useFullPaneWidth ? '100%' : 'min(760px, 100%)'
-  const composerPanelMaxWidth = useFullPaneWidth ? '100%' : 'min(760px, 100%)'
+  const composerShellMaxWidth = useFullPaneWidth ? '100%' : useStandardPaneWidth ? 'min(860px, 100%)' : 'min(760px, 100%)'
+  const composerPanelMaxWidth = useFullPaneWidth ? '100%' : useStandardPaneWidth ? 'min(860px, 100%)' : 'min(760px, 100%)'
   const composerInlinePaddingEnd = useFullPaneWidth ? 'clamp(16px, 3vw, 36px)' : 'max(10px, env(safe-area-inset-right))'
   const composerInlinePaddingStart = useFullPaneWidth ? 'clamp(16px, 3vw, 36px)' : 'max(10px, env(safe-area-inset-left))'
   const signupTitle = guestSignupReason === 'limit'

@@ -10,6 +10,7 @@ type SendEmailPayload = {
   to: string
   subject: string
   body: string
+  attachmentIds?: string[]
 }
 
 function asString(value: unknown) {
@@ -42,6 +43,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Recipient, subject, and message are required.' }, { status: 400 })
     }
 
+    const attachmentIds = Array.from(
+      new Set(
+        Array.isArray(payload?.attachmentIds)
+          ? payload.attachmentIds.map((id) => asString(id)).filter(Boolean)
+          : [],
+      ),
+    )
+
+    const attachments =
+      attachmentIds.length > 0
+        ? await (async () => {
+            const { data: docs, error: docsError } = await supabaseAdmin
+              .from('documents')
+              .select('id, name, storage_path, mime_type, file_size, uploaded_by, deleted_at')
+              .in('id', attachmentIds)
+              .eq('uploaded_by', user.id)
+              .is('deleted_at', null)
+
+            if (docsError) {
+              throw docsError
+            }
+
+            const foundDocs = Array.isArray(docs) ? docs : []
+            if (foundDocs.length !== attachmentIds.length) {
+              throw new Error('One or more attachments could not be found.')
+            }
+
+            return foundDocs.map((doc) => ({
+              documentId: String(doc.id),
+              name: String(doc.name || 'Document'),
+              mimeType: doc.mime_type || null,
+              size: typeof doc.file_size === 'number' ? doc.file_size : null,
+            }))
+          })()
+        : []
+
     const senderName =
       asString(user.user_metadata?.full_name) ||
       asString(user.user_metadata?.display_name) ||
@@ -62,6 +99,8 @@ export async function POST(request: NextRequest) {
           channel: 'platform_message',
           direction: 'outbound',
           sentByBusinessDashboard: true,
+          attachmentIds,
+          attachments,
         },
       })
 
@@ -75,7 +114,7 @@ export async function POST(request: NextRequest) {
         to,
         senderName,
         subjectLine: subject,
-        preview: body.slice(0, 180),
+        preview: `${body.slice(0, 180)}${attachments.length > 0 ? ` (${attachments.length} attachment${attachments.length === 1 ? '' : 's'})` : ''}`,
         inboxUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/client-portal`,
       })
     } catch (notificationError) {

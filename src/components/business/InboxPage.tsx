@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Mail, Send, FileText, Trash2, Archive, Star, Search, Reply, Forward, X, UserPlus, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Mail, Send, FileText, Trash2, Archive, Star, Search, Reply, Forward, X, UserPlus, CheckCircle2, XCircle, Loader2, Paperclip, UploadCloud, RotateCcw } from 'lucide-react'
 import styles from './inbox.module.css'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
+import { parseInboxAttachments, type InboxMessageAttachment } from '@/lib/inbox/attachments'
 
 interface Message {
   id: string
@@ -24,7 +25,18 @@ interface Message {
     invited_email?: string
     client_name?: string
     accepted_at?: string | null
+    fromClient?: boolean
+    attachmentIds?: string[]
+    attachments?: InboxMessageAttachment[]
   }
+  deletedAt?: string | null
+}
+
+type DocumentOption = {
+  id: string
+  name: string
+  createdAt: string
+  size: number
 }
 
 const ROLE_LABEL: Record<string, string> = {
@@ -67,10 +79,59 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
   const [showClientInvite, setShowClientInvite] = useState(false)
   const [composeForm, setComposeForm] = useState({ to: '', subject: '', body: '' })
   const [clientInviteForm, setClientInviteForm] = useState({ email: '', name: '' })
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([])
+  const [availableDocuments, setAvailableDocuments] = useState<DocumentOption[]>([])
+  const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
+  const [documentsLoading, setDocumentsLoading] = useState(false)
+  const [documentsError, setDocumentsError] = useState('')
   const [composeSending, setComposeSending] = useState(false)
   const [inviteSending, setInviteSending] = useState(false)
   const [composeNotice, setComposeNotice] = useState('')
   const [inviteNotice, setInviteNotice] = useState('')
+  const attachmentInputRef = useRef<HTMLInputElement>(null)
+
+  const resetComposeAttachments = () => {
+    setAttachedFiles([])
+    setSelectedDocumentIds([])
+    setAvailableDocuments([])
+    setDocumentsError('')
+    if (attachmentInputRef.current) attachmentInputRef.current.value = ''
+  }
+
+  const openComposeDraft = (draft: { to: string; subject: string; body: string }, message?: Message) => {
+    if (message) {
+      setSelectedFolder('inbox')
+      setSelectedMsg(message)
+    }
+    setComposeNotice('')
+    setComposeForm(draft)
+    resetComposeAttachments()
+    setShowCompose(true)
+  }
+
+  const openReply = (message: Message) => {
+    const replySubject = message.subject.toLowerCase().startsWith('re:') ? message.subject : `Re: ${message.subject}`
+    openComposeDraft(
+      {
+        to: message.senderEmail,
+        subject: replySubject,
+        body: `\n\n--- Original message ---\nFrom: ${message.sender} <${message.senderEmail}>\nSent: ${message.timestamp}\nSubject: ${message.subject}\n\n${message.content}`,
+      },
+      message,
+    )
+  }
+
+  const openForward = (message: Message) => {
+    const forwardSubject = message.subject.toLowerCase().startsWith('fwd:') ? message.subject : `Fwd: ${message.subject}`
+    openComposeDraft(
+      {
+        to: '',
+        subject: forwardSubject,
+        body: `\n\n--- Forwarded message ---\nFrom: ${message.sender} <${message.senderEmail}>\nSent: ${message.timestamp}\nSubject: ${message.subject}\n\n${message.content}`,
+      },
+      message,
+    )
+  }
 
   useEffect(() => { loadData() }, [])
 
@@ -85,6 +146,49 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
     })
     setShowCompose(true)
   }, [composePreset?.to, composePreset?.subject, composePreset?.body])
+
+  useEffect(() => {
+    if (!showCompose) return
+
+    let cancelled = false
+    const loadDocuments = async () => {
+      setDocumentsLoading(true)
+      setDocumentsError('')
+      try {
+        const res = await fetch('/api/documents?limit=100&offset=0', {
+          credentials: 'include',
+          cache: 'no-store',
+        })
+        const payload = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          throw new Error(payload?.error || 'Unable to load documents.')
+        }
+
+        const docs = Array.isArray(payload?.documents) ? payload.documents : []
+        if (!cancelled) {
+          setAvailableDocuments(
+            docs.map((doc: Record<string, unknown>) => ({
+              id: String(doc.id || ''),
+              name: String(doc.name || 'Document'),
+              createdAt: String(doc.created_at || new Date().toISOString()),
+              size: typeof doc.file_size === 'number' ? doc.file_size : Number(doc.file_size || 0),
+            })).filter((doc: DocumentOption) => Boolean(doc.id)),
+          )
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setDocumentsError(err instanceof Error ? err.message : 'Unable to load documents.')
+        }
+      } finally {
+        if (!cancelled) setDocumentsLoading(false)
+      }
+    }
+
+    void loadDocuments()
+    return () => {
+      cancelled = true
+    }
+  }, [showCompose])
 
   async function loadData() {
     setLoading(true)
@@ -110,7 +214,12 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
           isRead: Boolean(r.is_read),
           isStarred: Boolean(r.is_starred),
           type: 'email' as const,
-          metadata: r.metadata as Record<string, unknown> | undefined,
+          deletedAt: typeof r.deleted_at === 'string' ? r.deleted_at : null,
+          metadata: {
+            ...(r.metadata as Record<string, unknown> | undefined),
+            fromClient: Boolean((r.metadata as Record<string, unknown> | undefined)?.fromClient),
+            attachments: parseInboxAttachments(r.metadata),
+          } as Message['metadata'],
         }))
 
         // Separate client messages from regular messages
@@ -190,6 +299,27 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) throw new Error('Not authenticated')
 
+      let attachmentIds: string[] = []
+      if (attachedFiles.length > 0) {
+        const formData = new FormData()
+        attachedFiles.forEach((file) => formData.append('files', file))
+        const uploadRes = await fetch('/api/documents', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include',
+        })
+        const uploadPayload = await uploadRes.json().catch(() => ({}))
+        if (!uploadRes.ok) {
+          throw new Error(uploadPayload?.error || 'Failed to upload attachments')
+        }
+        const uploadedDocs = Array.isArray(uploadPayload?.documents) ? uploadPayload.documents : []
+        if (uploadedDocs.length !== attachedFiles.length) {
+          throw new Error('One or more attachments could not be uploaded.')
+        }
+        attachmentIds = uploadedDocs.map((doc: Record<string, unknown>) => String(doc.id || '')).filter(Boolean)
+      }
+      attachmentIds = Array.from(new Set([...selectedDocumentIds, ...attachmentIds]))
+
       const response = await fetch('/api/business/send-email', {
         method: 'POST',
         headers: {
@@ -200,6 +330,7 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
           to: composeForm.to,
           subject: composeForm.subject,
           body: composeForm.body,
+          attachmentIds,
         }),
       })
       const payload = await response.json().catch(() => ({}))
@@ -208,6 +339,13 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
       }
       setComposeNotice('sent')
       setComposeForm({ to: '', subject: '', body: '' })
+      setAttachedFiles([])
+      setSelectedDocumentIds([])
+      setAvailableDocuments([])
+      setDocumentsError('')
+      if (attachmentInputRef.current) {
+        attachmentInputRef.current.value = ''
+      }
       void loadData()
       setTimeout(() => { setShowCompose(false); setComposeNotice('') }, 1500)
     } catch (err: unknown) {
@@ -266,6 +404,8 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
 
   const handleMarkAsRead = async (id: string) => {
     setMessages(prev => prev.map(m => m.id === id ? { ...m, isRead: true } : m))
+    setClientMessages(prev => prev.map(m => m.id === id ? { ...m, isRead: true } : m))
+    setSelectedMsg(prev => prev?.id === id ? { ...prev, isRead: true } : prev)
     try {
       const supabase = getSupabaseBrowserClient()
       await supabase.from('inbox_messages').update({ is_read: true }).eq('id', id)
@@ -274,19 +414,34 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
 
   const handleStar = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    const msg = messages.find(m => m.id === id); if (!msg) return
+    const msg = [...messages, ...clientMessages].find(m => m.id === id)
+    if (!msg) return
     setMessages(prev => prev.map(m => m.id === id ? { ...m, isStarred: !m.isStarred } : m))
+    setClientMessages(prev => prev.map(m => m.id === id ? { ...m, isStarred: !m.isStarred } : m))
+    setSelectedMsg(prev => prev?.id === id ? { ...prev, isStarred: !prev.isStarred } : prev)
     try {
       const supabase = getSupabaseBrowserClient()
       await supabase.from('inbox_messages').update({ is_starred: !msg.isStarred }).eq('id', id)
     } catch { /* ignore */ }
   }
 
-  const listed = selectedFolder === 'clients' ? clientMessages
+  const updateLocalMessage = (id: string, updater: (message: Message) => Message) => {
+    setMessages(prev => prev.map(m => (m.id === id ? updater(m) : m)))
+    setClientMessages(prev => prev.map(m => (m.id === id ? updater(m) : m)))
+    setSelectedMsg(prev => (prev?.id === id ? updater(prev) : prev))
+  }
+
+  const activeMessages = messages.filter(m => !m.deletedAt)
+  const activeClientMessages = clientMessages.filter(m => !m.deletedAt)
+  const trashedMessages = [...messages, ...clientMessages].filter(m => Boolean(m.deletedAt))
+
+  const listed = selectedFolder === 'clients' ? activeClientMessages
     : selectedFolder === 'invitations' ? invitations
     : selectedFolder === 'client-invites' ? clientInvites
-    : selectedFolder === 'starred' ? messages.filter(m => m.isStarred)
-    : messages
+    : selectedFolder === 'starred' ? activeMessages.filter(m => m.isStarred)
+    : selectedFolder === 'trash' ? trashedMessages
+    : selectedFolder === 'archive' ? []
+    : activeMessages
 
   const filtered = listed.filter(m =>
     m.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -295,11 +450,86 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
   )
 
   const counts: Record<string, number> = {
-    inbox: messages.filter(m => !m.isRead).length,
-    clients: clientMessages.filter(m => !m.isRead).length,
+    inbox: activeMessages.filter(m => !m.isRead).length,
+    clients: activeClientMessages.filter(m => !m.isRead).length,
     invitations: invitations.filter(m => m.metadata?.status === 'pending').length,
     'client-invites': clientInvites.filter(m => m.metadata?.status === 'pending').length,
-    starred: messages.filter(m => m.isStarred).length,
+    starred: activeMessages.filter(m => m.isStarred).length,
+    trash: trashedMessages.length,
+    archive: 0,
+  }
+
+  const selectedMsgIsTrashed = Boolean(selectedMsg?.deletedAt)
+
+  const moveMessageToTrash = async (message: Message) => {
+    if (message.deletedAt) return
+    setActionLoading(message.id)
+    try {
+      const response = await fetch(`/api/business/inbox/${encodeURIComponent(message.id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'trash' }),
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(payload?.error || payload?.message || 'Failed to move message to Trash.')
+      }
+
+      const deletedAt = typeof payload?.message?.deletedAt === 'string' ? payload.message.deletedAt : new Date().toISOString()
+      updateLocalMessage(message.id, (current) => ({ ...current, deletedAt }))
+      setSelectedFolder('trash')
+    } catch {
+      // Keep the current state if the server update fails.
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const restoreMessage = async (message: Message) => {
+    if (!message.deletedAt) return
+    setActionLoading(message.id)
+    try {
+      const response = await fetch(`/api/business/inbox/${encodeURIComponent(message.id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'restore' }),
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(payload?.error || payload?.message || 'Failed to restore message.')
+      }
+
+      updateLocalMessage(message.id, (current) => ({ ...current, deletedAt: null }))
+      setSelectedFolder('inbox')
+    } catch {
+      // Keep the current state if the server update fails.
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const permanentlyDeleteMessage = async (message: Message) => {
+    if (!message.deletedAt) return
+    if (!window.confirm('Delete this message permanently? This cannot be undone.')) return
+
+    setActionLoading(message.id)
+    try {
+      const response = await fetch(`/api/business/inbox/${encodeURIComponent(message.id)}`, {
+        method: 'DELETE',
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(payload?.error || payload?.message || 'Failed to permanently delete message.')
+      }
+
+      setMessages(prev => prev.filter(m => m.id !== message.id))
+      setClientMessages(prev => prev.filter(m => m.id !== message.id))
+      setSelectedMsg(prev => (prev?.id === message.id ? null : prev))
+    } catch {
+      // Keep the message in Trash if the hard delete fails.
+    } finally {
+      setActionLoading(null)
+    }
   }
 
   return (
@@ -307,26 +537,129 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
 
       {/* Compose modal */}
       {showCompose && (
-        <div className={styles.composeOverlay} onClick={e => { if (e.target === e.currentTarget) setShowCompose(false)}}>
+        <div
+              className={styles.composeOverlay}
+              onClick={e => {
+                if (e.target === e.currentTarget) {
+                  setShowCompose(false)
+                  resetComposeAttachments()
+                }
+              }}
+            >
           <div className={styles.composeModal}>
             <div className={styles.composeHeader}>
               <span className={styles.composeTitle}>New Message</span>
-              <button type="button" className={styles.composeClose} onClick={() => setShowCompose(false)}><X size={16}/></button>
+              <button
+                type="button"
+                className={styles.composeClose}
+                onClick={() => {
+                  setShowCompose(false)
+                  resetComposeAttachments()
+                }}
+              >
+                <X size={16}/>
+              </button>
             </div>
             <form onSubmit={handleComposeSend} className={styles.composeForm}>
               <div className={styles.composeField}>
-                <label className={styles.composeLabel}>To</label>
+                <label className={styles.composeLabel}>To:</label>
                 <input className={styles.composeInput} type="email" required placeholder="recipient@email.com"
                   value={composeForm.to} onChange={e => setComposeForm(f => ({ ...f, to: e.target.value }))}/>
               </div>
               <div className={styles.composeField}>
-                <label className={styles.composeLabel}>Subject</label>
+                <label className={styles.composeLabel}>Subject:</label>
                 <input className={styles.composeInput} type="text" required placeholder="Subject"
                   value={composeForm.subject} onChange={e => setComposeForm(f => ({ ...f, subject: e.target.value }))}/>
               </div>
               <div className={styles.composeBodyField}>
                 <textarea className={styles.composeTextarea} rows={8} placeholder="Write your message…"
                   value={composeForm.body} onChange={e => setComposeForm(f => ({ ...f, body: e.target.value }))}/>
+              </div>
+              <div className={styles.attachmentField}>
+                <div className={styles.attachmentHeader}>
+                  <span className={styles.attachmentLabel}>Attachments</span>
+                  <label className={styles.attachmentUploadBtn}>
+                    <UploadCloud size={14} />
+                    Add files
+                    <input
+                      ref={attachmentInputRef}
+                      type="file"
+                      multiple
+                      hidden
+                      onChange={(event) => {
+                        const files = Array.from(event.target.files || [])
+                        if (files.length === 0) return
+                        setAttachedFiles((prev) => [...prev, ...files])
+                        event.target.value = ''
+                      }}
+                    />
+                  </label>
+                </div>
+                {attachedFiles.length > 0 ? (
+                  <div className={styles.attachmentList}>
+                    {attachedFiles.map((file, index) => (
+                      <span key={`${file.name}-${file.size}-${index}`} className={styles.attachmentChip}>
+                        <Paperclip size={13} />
+                        <span className={styles.attachmentChipName}>{file.name}</span>
+                          <button
+                            type="button"
+                            className={styles.attachmentChipRemove}
+                            onClick={() => setAttachedFiles((prev) => prev.filter((_, idx) => idx !== index))}
+                            aria-label={`Remove ${file.name}`}
+                          >
+                            <X size={12} />
+                          </button>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className={styles.attachmentHint}>Attach one or more documents. They will be uploaded and included with this message.</p>
+                )}
+              </div>
+              <div className={styles.documentPicker}>
+                <div className={styles.documentPickerHeader}>
+                  <span className={styles.documentPickerLabel}>Attach existing documents</span>
+                  <span className={styles.documentPickerMeta}>
+                    {availableDocuments.length > 0 ? `${availableDocuments.length} available` : 'No documents loaded'}
+                  </span>
+                </div>
+                {documentsLoading ? (
+                  <div className={styles.documentPickerEmpty}>Loading your documents…</div>
+                ) : documentsError ? (
+                  <div className={styles.documentPickerError}>{documentsError}</div>
+                ) : availableDocuments.length === 0 ? (
+                  <div className={styles.documentPickerEmpty}>You do not have any saved documents yet.</div>
+                ) : (
+                  <div className={styles.documentPickerList}>
+                    {availableDocuments.map((doc) => {
+                      const checked = selectedDocumentIds.includes(doc.id)
+                      return (
+                        <label key={doc.id} className={checked ? styles.documentPickerItemActive : styles.documentPickerItem}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => {
+                              setSelectedDocumentIds((prev) =>
+                                checked ? prev.filter((id) => id !== doc.id) : [...prev, doc.id]
+                              )
+                            }}
+                          />
+                          <div className={styles.documentPickerInfo}>
+                            <span className={styles.documentPickerName}>{doc.name}</span>
+                            <span className={styles.documentPickerSub}>
+                              {new Date(doc.createdAt).toLocaleDateString()} • {Math.max(1, Math.round(doc.size / 1024))} KB
+                            </span>
+                          </div>
+                        </label>
+                      )
+                    })}
+                  </div>
+                )}
+                {selectedDocumentIds.length > 0 && (
+                  <div className={styles.documentPickerSelected}>
+                    {selectedDocumentIds.length} existing document{selectedDocumentIds.length === 1 ? '' : 's'} selected
+                  </div>
+                )}
               </div>
               <p className={styles.composeHint} role="note">
                 Messages are delivered securely in the client portal. The recipient receives an email notification to sign in and reply.
@@ -341,7 +674,16 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
                   {composeSending ? <Loader2 size={14} className={styles.spin}/> : <Send size={14}/>}
                   {composeSending ? 'Sending…' : 'Send'}
                 </button>
-                <button type="button" className={styles.composeCancelBtn} onClick={() => setShowCompose(false)}>Discard</button>
+                <button
+                  type="button"
+                  className={styles.composeCancelBtn}
+                  onClick={() => {
+                    setShowCompose(false)
+                    resetComposeAttachments()
+                  }}
+                >
+                  Discard
+                </button>
               </div>
             </form>
           </div>
@@ -487,7 +829,38 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
                     <button type="button" className={`${styles.starActionBtn} ${selectedMsg.isStarred ? styles.starActionBtnActive : ''}`} onClick={e => handleStar(selectedMsg.id, e)} aria-label="Star">
                       <Star size={16} fill={selectedMsg.isStarred ? 'currentColor' : 'none'}/>
                     </button>
-                    <button type="button" className={styles.deleteActionBtn} aria-label="Delete"><Trash2 size={16}/></button>
+                    {!selectedMsgIsTrashed ? (
+                      <button
+                        type="button"
+                        className={styles.deleteActionBtn}
+                        onClick={() => void moveMessageToTrash(selectedMsg)}
+                        aria-label="Move to Trash"
+                        disabled={actionLoading === selectedMsg.id}
+                      >
+                        {actionLoading === selectedMsg.id ? <Loader2 size={16} className={styles.spin} /> : <Trash2 size={16} />}
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          className={styles.restoreActionBtn}
+                          onClick={() => void restoreMessage(selectedMsg)}
+                          aria-label="Restore from Trash"
+                          disabled={actionLoading === selectedMsg.id}
+                        >
+                          {actionLoading === selectedMsg.id ? <Loader2 size={16} className={styles.spin} /> : <RotateCcw size={16} />}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.deleteActionBtn}
+                          onClick={() => void permanentlyDeleteMessage(selectedMsg)}
+                          aria-label="Delete permanently"
+                          disabled={actionLoading === selectedMsg.id}
+                        >
+                          {actionLoading === selectedMsg.id ? <Loader2 size={16} className={styles.spin} /> : <Trash2 size={16} />}
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -505,6 +878,44 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
 
             <div className={styles.previewBody}>
               <p className={styles.emailBodyText}>{selectedMsg.content}</p>
+              {selectedMsgIsTrashed && (
+                <div className={styles.trashNotice} role="note">
+                  This message is in Trash. Restore it to move it back to the inbox, or permanently delete it if you no longer need it.
+                </div>
+              )}
+
+              {selectedMsg.metadata?.attachments && selectedMsg.metadata.attachments.length > 0 && (
+                <div className={styles.previewAttachments}>
+                  <h3 className={styles.previewAttachmentsTitle}>Attachments</h3>
+                  <div className={styles.previewAttachmentList}>
+                    {selectedMsg.metadata.attachments.map((attachment) => (
+                      <button
+                        key={attachment.documentId}
+                        type="button"
+                        className={styles.previewAttachmentBtn}
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(`/api/documents/${encodeURIComponent(attachment.documentId)}/signed`, {
+                              credentials: 'include',
+                              cache: 'no-store',
+                            })
+                            const data = await res.json().catch(() => ({}))
+                            if (!res.ok || !data?.url) {
+                              throw new Error(data?.error || 'Unable to open attachment.')
+                            }
+                            window.open(String(data.url), '_blank', 'noopener,noreferrer')
+                          } catch {
+                            // Let the existing preview stay usable even when attachment opening fails.
+                          }
+                        }}
+                      >
+                        <Paperclip size={14} />
+                        <span>{attachment.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {selectedMsg.type === 'invitation' && selectedMsg.metadata?.status === 'pending' && (
                 <div className={styles.invitationActions}>
@@ -540,8 +951,8 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
 
             {selectedMsg.type === 'email' && (
               <div className={styles.previewFooter}>
-                <button type="button" className={styles.replyBtn}><Reply size={15}/>Reply</button>
-                <button type="button" className={styles.forwardBtn}><Forward size={15}/>Forward</button>
+                <button type="button" className={styles.replyBtn} onClick={() => openReply(selectedMsg)}><Reply size={15}/>Reply</button>
+                <button type="button" className={styles.forwardBtn} onClick={() => openForward(selectedMsg)}><Forward size={15}/>Forward</button>
               </div>
             )}
           </>

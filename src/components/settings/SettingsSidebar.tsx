@@ -16,6 +16,7 @@ export default function SettingsSidebar({
   const menuItems: Item[] = [
     { label: 'Account Info', key: 'account' },
     { label: 'Billing & Plans', key: 'billing' },
+    { label: 'Meeting Reminders', key: 'reminders' },
     { label: publicMarket === 'US' ? 'U.S. Support' : 'Contact Us', key: 'contact' },
   ];
 

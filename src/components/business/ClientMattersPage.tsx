@@ -6,6 +6,8 @@ import {
   ArchiveRestore,
   CalendarClock,
   ChevronRight,
+  Edit3,
+  Save,
   X,
   Mail,
   Phone,
@@ -44,6 +46,38 @@ const STAGE_LABELS: Record<MatterStage, string> = {
 const stageOptions = Object.keys(STAGE_LABELS) as MatterStage[]
 const ownerOptions = ['Unassigned', 'You', 'Support assistant', 'External advisor']
 
+type MatterEditForm = {
+  clientName: string
+  email: string
+  phone: string
+  location: string
+  issueType: string
+  summary: string
+  fullDetails: string
+  courtDate: string
+  opposing: string
+  nextAction: string
+  nextDeadline: string
+  matterNumber: string
+}
+
+function createMatterEditForm(matter: ClientMatter): MatterEditForm {
+  return {
+    clientName: matter.clientName,
+    email: matter.email,
+    phone: matter.phone,
+    location: matter.location,
+    issueType: matter.issueType,
+    summary: matter.summary,
+    fullDetails: matter.fullDetails,
+    courtDate: matter.courtDate || '',
+    opposing: matter.opposing || '',
+    nextAction: matter.nextAction,
+    nextDeadline: matter.nextDeadline || '',
+    matterNumber: matter.matterNumber,
+  }
+}
+
 function formatDate(value?: string) {
   if (!value) return 'No date'
   const date = new Date(value)
@@ -77,6 +111,8 @@ export default function ClientMattersPage() {
   const [syncNotice, setSyncNotice] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [detailTab, setDetailTab] = useState<'overview' | 'documents'>('overview')
+  const [isEditingMatter, setIsEditingMatter] = useState(false)
+  const [editForm, setEditForm] = useState<MatterEditForm | null>(null)
   const [createForm, setCreateForm] = useState({
     clientName: '',
     email: '',
@@ -189,7 +225,14 @@ export default function ClientMattersPage() {
     const next = matters.find((matter) => matter.id === selectedMatterId)
     if (!next) return
     setDetailTab(next.stage === 'documents' ? 'documents' : 'overview')
+    setIsEditingMatter(false)
+    setEditForm(createMatterEditForm(next))
   }, [matters, selectedMatterId])
+
+  useEffect(() => {
+    if (!selectedMatter || isEditingMatter) return
+    setEditForm(createMatterEditForm(selectedMatter))
+  }, [selectedMatter, isEditingMatter])
 
   const stats = useMemo(() => {
     const active = matters.filter((matter) => matter.status === 'active')
@@ -219,6 +262,38 @@ export default function ClientMattersPage() {
       writeClientMatters(optimistic)
       setSyncNotice('Saved locally. It will sync when the business database is available.')
     }
+  }
+
+  const beginMatterEdit = () => {
+    if (!selectedMatter) return
+    setEditForm(createMatterEditForm(selectedMatter))
+    setIsEditingMatter(true)
+  }
+
+  const cancelMatterEdit = () => {
+    if (!selectedMatter) return
+    setEditForm(createMatterEditForm(selectedMatter))
+    setIsEditingMatter(false)
+  }
+
+  const saveMatterEdit = async () => {
+    if (!selectedMatter || !editForm) return
+    const patch: Partial<ClientMatter> = {
+      clientName: editForm.clientName.trim() || selectedMatter.clientName,
+      email: editForm.email.trim(),
+      phone: editForm.phone.trim(),
+      location: editForm.location.trim(),
+      issueType: editForm.issueType.trim() || selectedMatter.issueType,
+      summary: editForm.summary.trim() || selectedMatter.summary,
+      fullDetails: editForm.fullDetails.trim() || selectedMatter.fullDetails,
+      courtDate: editForm.courtDate.trim() || undefined,
+      opposing: editForm.opposing.trim() || undefined,
+      nextAction: editForm.nextAction.trim() || selectedMatter.nextAction,
+      nextDeadline: editForm.nextDeadline.trim() || undefined,
+      matterNumber: editForm.matterNumber.trim() || selectedMatter.matterNumber,
+    }
+    await updateMatter(selectedMatter.id, patch)
+    setIsEditingMatter(false)
   }
 
   const createMatter = async (payload: typeof createForm) => {
@@ -522,6 +597,14 @@ export default function ClientMattersPage() {
                   <ShieldAlert size={13} />
                   {selectedMatter.urgency} priority
                 </span>
+                <button
+                  type="button"
+                  className={styles.editMatterBtn}
+                  onClick={isEditingMatter ? cancelMatterEdit : beginMatterEdit}
+                >
+                  {isEditingMatter ? <X size={15} /> : <Edit3 size={15} />}
+                  {isEditingMatter ? 'Cancel edit' : 'Edit details'}
+                </button>
                 <button type="button" className={styles.closeDetail} onClick={() => setSelectedMatterId(null)} aria-label="Close work panel">
                   <X size={16} />
                 </button>
@@ -551,35 +634,142 @@ export default function ClientMattersPage() {
               </div>
 
               <div className={styles.detailBody}>
-                <div className={styles.quickFacts}>
-                  <span><Mail size={14} /> {selectedMatter.email || 'No email'}</span>
-                  <span><Phone size={14} /> {selectedMatter.phone || 'No phone'}</span>
-                  <span><CalendarClock size={14} /> {formatDate(selectedMatter.nextDeadline)}</span>
-                </div>
+                {isEditingMatter && editForm ? (
+                  <section className={styles.editPanel}>
+                    <div className={styles.editGrid}>
+                      <label className={styles.controlGroup}>
+                        <span>Client name</span>
+                        <input
+                          value={editForm.clientName}
+                          onChange={(event) => setEditForm((prev) => prev ? { ...prev, clientName: event.target.value } : prev)}
+                        />
+                      </label>
+                      <label className={styles.controlGroup}>
+                        <span>Email</span>
+                        <input
+                          type="email"
+                          value={editForm.email}
+                          onChange={(event) => setEditForm((prev) => prev ? { ...prev, email: event.target.value } : prev)}
+                        />
+                      </label>
+                      <label className={styles.controlGroup}>
+                        <span>Phone</span>
+                        <input
+                          value={editForm.phone}
+                          onChange={(event) => setEditForm((prev) => prev ? { ...prev, phone: event.target.value } : prev)}
+                        />
+                      </label>
+                      <label className={styles.controlGroup}>
+                        <span>Location</span>
+                        <input
+                          value={editForm.location}
+                          onChange={(event) => setEditForm((prev) => prev ? { ...prev, location: event.target.value } : prev)}
+                        />
+                      </label>
+                      <label className={styles.controlGroup}>
+                        <span>Issue type</span>
+                        <input
+                          value={editForm.issueType}
+                          onChange={(event) => setEditForm((prev) => prev ? { ...prev, issueType: event.target.value } : prev)}
+                        />
+                      </label>
+                      <label className={styles.controlGroup}>
+                        <span>Matter number</span>
+                        <input
+                          value={editForm.matterNumber}
+                          onChange={(event) => setEditForm((prev) => prev ? { ...prev, matterNumber: event.target.value } : prev)}
+                        />
+                      </label>
+                      <label className={styles.controlGroup}>
+                        <span>Court date</span>
+                        <input
+                          type="date"
+                          value={editForm.courtDate}
+                          onChange={(event) => setEditForm((prev) => prev ? { ...prev, courtDate: event.target.value } : prev)}
+                        />
+                      </label>
+                      <label className={styles.controlGroup}>
+                        <span>Next deadline</span>
+                        <input
+                          type="date"
+                          value={editForm.nextDeadline}
+                          onChange={(event) => setEditForm((prev) => prev ? { ...prev, nextDeadline: event.target.value } : prev)}
+                        />
+                      </label>
+                    </div>
+                    <label className={styles.controlGroup}>
+                      <span>Opposing party</span>
+                      <input
+                        value={editForm.opposing}
+                        onChange={(event) => setEditForm((prev) => prev ? { ...prev, opposing: event.target.value } : prev)}
+                      />
+                    </label>
+                    <label className={styles.controlGroup}>
+                      <span>Next action</span>
+                      <input
+                        value={editForm.nextAction}
+                        onChange={(event) => setEditForm((prev) => prev ? { ...prev, nextAction: event.target.value } : prev)}
+                      />
+                    </label>
+                    <label className={styles.controlGroup}>
+                      <span>Summary</span>
+                      <textarea
+                        rows={4}
+                        value={editForm.summary}
+                        onChange={(event) => setEditForm((prev) => prev ? { ...prev, summary: event.target.value } : prev)}
+                      />
+                    </label>
+                    <label className={styles.controlGroup}>
+                      <span>Full details</span>
+                      <textarea
+                        rows={6}
+                        value={editForm.fullDetails}
+                        onChange={(event) => setEditForm((prev) => prev ? { ...prev, fullDetails: event.target.value } : prev)}
+                      />
+                    </label>
+                    <div className={styles.editActions}>
+                      <button type="button" className={styles.secondaryBtn} onClick={cancelMatterEdit}>
+                        Cancel
+                      </button>
+                      <button type="button" className={styles.primaryBtn} onClick={() => void saveMatterEdit()}>
+                        <Save size={15} />
+                        Save changes
+                      </button>
+                    </div>
+                  </section>
+                ) : (
+                  <>
+                    <div className={styles.quickFacts}>
+                      <span><Mail size={14} /> {selectedMatter.email || 'No email'}</span>
+                      <span><Phone size={14} /> {selectedMatter.phone || 'No phone'}</span>
+                      <span><CalendarClock size={14} /> {formatDate(selectedMatter.nextDeadline)}</span>
+                    </div>
 
-                <label className={styles.controlGroup}>
-                  <span>Stage</span>
-                  <select
-                    value={selectedMatter.stage}
-                    onChange={(event) => updateMatter(selectedMatter.id, { stage: event.target.value as MatterStage })}
-                  >
-                    {stageOptions.map((stage) => (
-                      <option key={stage} value={stage}>{STAGE_LABELS[stage]}</option>
-                    ))}
-                  </select>
-                </label>
+                    <label className={styles.controlGroup}>
+                      <span>Stage</span>
+                      <select
+                        value={selectedMatter.stage}
+                        onChange={(event) => updateMatter(selectedMatter.id, { stage: event.target.value as MatterStage })}
+                      >
+                        {stageOptions.map((stage) => (
+                          <option key={stage} value={stage}>{STAGE_LABELS[stage]}</option>
+                        ))}
+                      </select>
+                    </label>
 
-                <label className={styles.controlGroup}>
-                  <span>Responsible person</span>
-                  <select
-                    value={selectedMatter.owner}
-                    onChange={(event) => updateMatter(selectedMatter.id, { owner: event.target.value })}
-                  >
-                    {ownerOptions.map((owner) => (
-                      <option key={owner} value={owner}>{owner}</option>
-                    ))}
-                  </select>
-                </label>
+                    <label className={styles.controlGroup}>
+                      <span>Responsible person</span>
+                      <select
+                        value={selectedMatter.owner}
+                        onChange={(event) => updateMatter(selectedMatter.id, { owner: event.target.value })}
+                      >
+                        {ownerOptions.map((owner) => (
+                          <option key={owner} value={owner}>{owner}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </>
+                )}
 
                 {detailTab === 'overview' ? (
                   <>
