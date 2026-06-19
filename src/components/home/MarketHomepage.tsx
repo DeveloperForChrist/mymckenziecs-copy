@@ -32,6 +32,12 @@ type MarketSwitchLink = {
   label: string;
 };
 
+type MarketBanner = {
+  href: string;
+  title: string;
+  linkLabel: string;
+};
+
 type MarketHomepageProps = {
   audienceLabel: string;
   titleLines: string[];
@@ -56,6 +62,7 @@ type MarketHomepageProps = {
   ctaTitle: string;
   ctaText: string;
   plansNote?: string;
+  marketBanner?: MarketBanner;
 };
 
 const defaultFooterLinks: FooterLink[] = [
@@ -89,6 +96,7 @@ export default function MarketHomepage({
   ctaTitle,
   ctaText,
   plansNote,
+  marketBanner,
 }: MarketHomepageProps) {
   // Homepage no longer includes the "Send to MCS Portal" lead form. Leads are collected from the directory page.
   return (
@@ -107,6 +115,21 @@ export default function MarketHomepage({
         <section className="w-full">
           <div className="app-container relative z-10">
             <div className="pt-12 pb-4 md:pt-16 md:pb-6">
+              {marketBanner && (
+                <div className="mb-5 rounded-2xl border border-white/12 bg-white/8 px-4 py-3 text-white/85 shadow-[0_12px_30px_rgba(0,0,0,0.18)] backdrop-blur-sm">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                    <div className="text-sm md:text-base font-medium">
+                      {marketBanner.title}
+                    </div>
+                    <Link
+                      href={marketBanner.href}
+                      className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs md:text-sm font-semibold text-white transition hover:bg-white/15"
+                    >
+                      {marketBanner.linkLabel}
+                    </Link>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-1 xl:grid-cols-[1.03fr_0.97fr] gap-8 md:gap-10 items-center">
                 <div className="text-center xl:text-left">
                   {marketSwitch && (
