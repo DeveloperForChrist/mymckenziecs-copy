@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout';
 import { flushNotesDraftNow } from '@/lib/notes/flush-notes-draft';
@@ -14,6 +14,7 @@ export default function AccountSection({ publicMarket }: { publicMarket?: 'GB' |
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [exportingData, setExportingData] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [passwordSaving, setPasswordSaving] = useState(false);
@@ -34,6 +35,9 @@ export default function AccountSection({ publicMarket }: { publicMarket?: 'GB' |
   const [initialProfile, setInitialProfile] = useState({ firstName: '', lastName: '', email: '' });
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [privacyRequestType, setPrivacyRequestType] = useState<'access' | 'erasure' | 'correction' | 'restriction'>('access');
+  const [privacyRequestDetails, setPrivacyRequestDetails] = useState('');
+  const [privacyRequestSubmitting, setPrivacyRequestSubmitting] = useState(false);
 
   // Load user data from Supabase
   useEffect(() => {
@@ -132,6 +136,88 @@ export default function AccountSection({ publicMarket }: { publicMarket?: 'GB' |
       console.error('Sign out error:', error);
       setStatusModal({ title: 'Sign out failed', message: 'Failed to sign out. Please try again.' });
       setSigningOut(false);
+    }
+  };
+
+  const handleDownloadData = async () => {
+    setExportingData(true);
+    try {
+      const response = await fetch('/api/user/export', {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data?.error || 'Failed to build your data export.');
+      }
+
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get('content-disposition') || '';
+      const filenameMatch = /filename="([^"]+)"/i.exec(contentDisposition);
+      const filename = filenameMatch?.[1] || `mymckenziecs-data-export-${new Date().toISOString().slice(0, 10)}.json`;
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = objectUrl;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(objectUrl);
+
+      setStatusModal({
+        title: 'Export downloaded',
+        message: 'Your data export has been downloaded to your device.',
+      });
+    } catch (error) {
+      console.error('Data export failed:', error);
+      setStatusModal({
+        title: 'Export failed',
+        message: error instanceof Error ? error.message : 'We could not prepare your export right now.',
+      });
+    } finally {
+      setExportingData(false);
+    }
+  };
+
+  const handleSubmitPrivacyRequest = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!privacyRequestType) {
+      setStatusModal({ title: 'Request unavailable', message: 'Please choose a privacy request type.' });
+      return;
+    }
+
+    setPrivacyRequestSubmitting(true);
+    try {
+      const response = await fetch('/api/user/privacy-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          requestType: privacyRequestType,
+          details: privacyRequestDetails.trim(),
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Failed to submit your privacy request.');
+      }
+
+      setPrivacyRequestDetails('');
+      setPrivacyRequestType('access');
+      setStatusModal({
+        title: 'Privacy request sent',
+        message: 'Your request has been added to the support queue for review.',
+      });
+    } catch (error) {
+      console.error('Privacy request submission failed:', error);
+      setStatusModal({
+        title: 'Request failed',
+        message: error instanceof Error ? error.message : 'We could not submit your request right now.',
+      });
+    } finally {
+      setPrivacyRequestSubmitting(false);
     }
   };
 
@@ -415,6 +501,7 @@ export default function AccountSection({ publicMarket }: { publicMarket?: 'GB' |
         <h2 className={styles.sectionHeading}>Active Sessions</h2>
         <div className={styles.sessionControls}>
           <button 
+            type="button"
             className={styles.dangerOutlineBtn} 
             onClick={handleSignOut}
             disabled={signingOut}
@@ -425,16 +512,70 @@ export default function AccountSection({ publicMarket }: { publicMarket?: 'GB' |
           <p className={styles.helpText} style={{ marginTop: '8px' }}>Sign out from your current session.</p>
         </div>
       </section>
+      <section className={styles.settingsSection}>
+        <h2 className={styles.sectionHeading}>Privacy &amp; Data</h2>
+        <p className={styles.desc}>
+          Download a copy of your account data or submit a privacy request for manual review.
+        </p>
+        <div className={styles.actionsRow} style={{ marginTop: '12px', marginBottom: '18px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className={styles.primaryBtn}
+            onClick={handleDownloadData}
+            disabled={exportingData}
+          >
+            {exportingData ? 'Preparing export...' : 'Download my data'}
+          </button>
+        </div>
+        <form className={styles.formGrid} onSubmit={handleSubmitPrivacyRequest}>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Request type</label>
+            <select
+              className={styles.selectInput}
+              value={privacyRequestType}
+              onChange={(e) => setPrivacyRequestType(e.target.value as 'access' | 'erasure' | 'correction' | 'restriction')}
+            >
+              <option value="access">Access / copy of data</option>
+              <option value="erasure">Erasure / deletion review</option>
+              <option value="correction">Correction</option>
+              <option value="restriction">Restriction / objection</option>
+            </select>
+          </div>
+          <div className={styles.formGroupFull}>
+            <label className={styles.formLabel}>Details</label>
+            <textarea
+              className={styles.textArea}
+              rows={4}
+              placeholder="Add any details that will help us handle the request..."
+              value={privacyRequestDetails}
+              onChange={(e) => setPrivacyRequestDetails(e.target.value)}
+            />
+            <p className={styles.helpText} style={{ marginTop: '8px' }}>
+              Optional, but useful if you want us to focus on a specific record set or concern.
+            </p>
+          </div>
+          <div className={styles.actionsRow}>
+            <button
+              type="submit"
+              className={styles.secondaryBtn}
+              disabled={privacyRequestSubmitting}
+            >
+              {privacyRequestSubmitting ? 'Sending...' : 'Submit privacy request'}
+            </button>
+          </div>
+        </form>
+      </section>
       <CookiePreferencesSection measurementId={googleAnalyticsMeasurementId} market={publicMarket} />
       <div className={styles.bottomActions}>
         <button 
+          type="button"
           className={styles.primaryBtn}
           onClick={handleSaveChanges}
           disabled={saving || loading}
         >
           {saving ? 'Saving...' : 'Save Changes'}
         </button>
-        <button className={styles.dangerBtn} onClick={handleDeleteAccount}>
+        <button type="button" className={styles.dangerBtn} onClick={handleDeleteAccount}>
           Delete Account
         </button>
       </div>

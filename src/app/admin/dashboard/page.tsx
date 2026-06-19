@@ -15,6 +15,7 @@ type AdminTab =
   | 'analytics'
   | 'system'
   | 'feedback'
+  | 'privacy'
   | 'inbox'
   | 'api'
 
@@ -117,6 +118,21 @@ interface ApiUsageSummary {
   totalCostUsd: number
   errorRate: number
 }
+
+interface PrivacyRequest {
+  id: string
+  user_id?: string | null
+  user_email: string
+  request_type: 'access' | 'erasure' | 'correction' | 'restriction'
+  status: 'pending' | 'in_review' | 'completed' | 'rejected'
+  details?: string | null
+  admin_notes?: string | null
+  submitted_at?: string | null
+  updated_at?: string | null
+  completed_at?: string | null
+}
+
+type PrivacyActionStatus = 'in_review' | 'completed' | 'rejected'
 
 interface AdminMetrics {
   users?: {
@@ -278,6 +294,17 @@ export default function AdminDashboard() {
     totalCostUsd: 0,
     errorRate: 0,
   })
+  const [privacyRequests, setPrivacyRequests] = useState<PrivacyRequest[]>([])
+  const [privacyRequestCounts, setPrivacyRequestCounts] = useState<{ pending: number; in_review: number; completed: number; rejected: number; total: number }>({
+    pending: 0,
+    in_review: 0,
+    completed: 0,
+    rejected: 0,
+    total: 0,
+  })
+  const [privacyActionTarget, setPrivacyActionTarget] = useState<PrivacyRequest | null>(null)
+  const [privacyActionStatus, setPrivacyActionStatus] = useState<PrivacyActionStatus>('in_review')
+  const [privacyActionNotes, setPrivacyActionNotes] = useState('')
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null)
   const [metricsWarnings, setMetricsWarnings] = useState<string[]>([])
   const [usersHasMore, setUsersHasMore] = useState(false)
@@ -302,22 +329,24 @@ export default function AdminDashboard() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [analyticsRes, usersRes, casesRes, docsRes, healthRes, feedbackRes] = await Promise.all([
+      const [analyticsRes, usersRes, casesRes, docsRes, healthRes, feedbackRes, privacyRes] = await Promise.all([
         fetch(`/api/admin/analytics?period=${period}`, { credentials: 'include' }),
         fetch(`/api/admin/users?limit=${USERS_PAGE_LIMIT}&offset=0`, { credentials: 'include' }),
         fetch(`/api/admin/cases?limit=${CASES_PAGE_LIMIT}&offset=0`, { credentials: 'include' }),
         fetch(`/api/admin/documents?limit=${DOCUMENTS_PAGE_LIMIT}&offset=0`, { credentials: 'include' }),
         fetch('/api/admin/system', { credentials: 'include' }),
         fetch('/api/admin/feedback?limit=200', { credentials: 'include' }),
+        fetch('/api/admin/privacy-requests?limit=200', { credentials: 'include' }),
       ])
 
-      const [analyticsData, usersData, casesData, docsData, healthData, feedbackData] = await Promise.all([
+      const [analyticsData, usersData, casesData, docsData, healthData, feedbackData, privacyData] = await Promise.all([
         analyticsRes.json(),
         usersRes.json(),
         casesRes.json(),
         docsRes.json(),
         healthRes.json(),
         feedbackRes.json(),
+        privacyRes.json(),
       ])
 
       if (!usersRes.ok) {
@@ -337,6 +366,16 @@ export default function AdminDashboard() {
       setSystemHealth(healthData.health)
       setFeedback(feedbackData.feedback || [])
       setFeedbackCounts(feedbackData.counts || { likes: 0, dislikes: 0, reports: 0, total: 0 })
+      setPrivacyRequests(privacyData.requests || [])
+      setPrivacyRequestCounts(
+        privacyData.counts || {
+          pending: 0,
+          in_review: 0,
+          completed: 0,
+          rejected: 0,
+          total: 0,
+        }
+      )
     } catch (error: any) {
       console.error('Failed to fetch data:', error)
     }
@@ -553,6 +592,54 @@ export default function AdminDashboard() {
     setDeleteCaseIdPending(caseId)
   }
 
+  const openPrivacyAction = (request: PrivacyRequest, status: PrivacyActionStatus) => {
+    setPrivacyActionTarget(request)
+    setPrivacyActionStatus(status)
+    setPrivacyActionNotes(request.admin_notes || '')
+  }
+
+  const submitPrivacyAction = async () => {
+    if (!privacyActionTarget) return
+
+    try {
+      const response = await fetch('/api/admin/privacy-requests', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: privacyActionTarget.id,
+          status: privacyActionStatus,
+          adminNotes: privacyActionNotes,
+        }),
+      })
+
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        setStatusModal({
+          title: 'Request update failed',
+          message: result?.error || 'Failed to update privacy request.',
+        })
+        return
+      }
+
+      setPrivacyActionTarget(null)
+      setPrivacyActionNotes('')
+      setStatusModal({
+        title: 'Request updated',
+        message: `Privacy request marked as ${privacyActionStatus.replace(/_/g, ' ')}.`,
+      })
+      fetchData()
+    } catch (error: any) {
+      console.error('Failed to update privacy request:', error)
+      setStatusModal({
+        title: 'Request update failed',
+        message: error instanceof Error ? error.message : 'Failed to update privacy request.',
+      })
+    }
+  }
+
   const confirmDeleteCase = async () => {
     if (!deleteCaseIdPending) return
     const caseId = deleteCaseIdPending
@@ -604,6 +691,7 @@ export default function AdminDashboard() {
       { id: 'analytics' as const, label: 'Analytics', hint: 'Trends & ratios' },
       { id: 'system' as const, label: 'System', hint: 'Health & actions' },
       { id: 'feedback' as const, label: 'Feedback', hint: 'User sentiment' },
+      { id: 'privacy' as const, label: 'Privacy', hint: 'DSAR review' },
       { id: 'inbox' as const, label: 'Inbox', hint: 'Reports queue' },
       { id: 'api' as const, label: 'API Usage', hint: 'Cost & volume' },
     ],
@@ -1464,6 +1552,130 @@ export default function AdminDashboard() {
             </>
           )}
 
+          {activeTab === 'privacy' && (
+            <>
+              <div className={styles.cardGrid}>
+                <div className={styles.card}>
+                  <div className={styles.cardTitle}>Pending</div>
+                  <div className={styles.cardValue}>{formatNumber(privacyRequestCounts.pending)}</div>
+                  <div className={styles.cardHint}>Awaiting review</div>
+                </div>
+                <div className={styles.card}>
+                  <div className={styles.cardTitle}>In Review</div>
+                  <div className={styles.cardValue}>{formatNumber(privacyRequestCounts.in_review)}</div>
+                  <div className={styles.cardHint}>Being worked</div>
+                </div>
+                <div className={styles.card}>
+                  <div className={styles.cardTitle}>Completed</div>
+                  <div className={styles.cardValue}>{formatNumber(privacyRequestCounts.completed)}</div>
+                  <div className={styles.cardHint}>Resolved requests</div>
+                </div>
+                <div className={styles.card}>
+                  <div className={styles.cardTitle}>Total</div>
+                  <div className={styles.cardValue}>{formatNumber(privacyRequestCounts.total)}</div>
+                  <div className={styles.cardHint}>All DSAR items</div>
+                </div>
+              </div>
+
+              <div className={styles.panel}>
+                <div className={styles.panelHeader}>
+                  <div>
+                    <div className={styles.panelTitle}>Privacy Request Queue</div>
+                    <div className={styles.panelSubtitle}>Access, correction, restriction, and erasure requests</div>
+                  </div>
+                </div>
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Request</th>
+                        <th>User</th>
+                        <th>Submitted</th>
+                        <th>Status</th>
+                        <th>Details</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {privacyRequests.map((request) => (
+                        <tr key={request.id}>
+                          <td>
+                            <div style={{ display: 'grid', gap: 4 }}>
+                              <strong>{toTitleCase(request.request_type)}</strong>
+                              <span className={styles.pill}>{request.id.slice(0, 8)}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div style={{ display: 'grid', gap: 4 }}>
+                              <span>{request.user_email}</span>
+                              <span className={styles.panelSubtitle}>{request.user_id || 'No linked user'}</span>
+                            </div>
+                          </td>
+                          <td>{formatDate(request.submitted_at)}</td>
+                          <td>
+                            <span
+                              className={
+                                request.status === 'completed'
+                                  ? styles.pillSuccess
+                                  : request.status === 'rejected'
+                                    ? styles.pillDanger
+                                    : styles.pill
+                              }
+                            >
+                              {toTitleCase(request.status)}
+                            </span>
+                          </td>
+                          <td style={{ maxWidth: 360 }}>
+                            <div style={{ display: 'grid', gap: 6 }}>
+                              <span>{request.details || 'No additional details provided.'}</span>
+                              {request.admin_notes && (
+                                <span className={styles.panelSubtitle}>Admin note: {request.admin_notes}</span>
+                              )}
+                              {request.completed_at && (
+                                <span className={styles.panelSubtitle}>
+                                  Completed: {formatDate(request.completed_at)}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <div className={styles.toolbar}>
+                              <button
+                                className={styles.actionButtonSecondary}
+                                onClick={() => openPrivacyAction(request, 'in_review')}
+                              >
+                                Review
+                              </button>
+                              <button
+                                className={styles.actionButtonSecondary}
+                                onClick={() => openPrivacyAction(request, 'completed')}
+                              >
+                                Complete
+                              </button>
+                              <button
+                                className={styles.actionButtonSecondary}
+                                onClick={() => openPrivacyAction(request, 'rejected')}
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {privacyRequests.length === 0 && (
+                        <tr>
+                          <td colSpan={6} className={styles.emptyState}>
+                            No privacy requests in the queue.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+
           {activeTab === 'inbox' && (
             <div className={styles.panel}>
               <div className={styles.panelHeader}>
@@ -1640,6 +1852,40 @@ export default function AdminDashboard() {
                       void handleUserAction(target.userId, 'updatePlan', { plan: target.nextPlan })
                     }}
                   >
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          {privacyActionTarget && (
+            <div className={styles.modalOverlay} role="dialog" aria-modal="true">
+              <div className={styles.modalCard}>
+                <h3 className={styles.modalTitle}>Update privacy request</h3>
+                <p className={styles.modalBody}>
+                  {privacyActionTarget.user_email} · {toTitleCase(privacyActionTarget.request_type)}
+                </p>
+                <select
+                  className={styles.modalSelect}
+                  value={privacyActionStatus}
+                  onChange={(e) => setPrivacyActionStatus(e.target.value as PrivacyActionStatus)}
+                >
+                  <option value="in_review">Mark in review</option>
+                  <option value="completed">Mark completed</option>
+                  <option value="rejected">Mark rejected</option>
+                </select>
+                <textarea
+                  className={styles.modalTextarea}
+                  rows={4}
+                  value={privacyActionNotes}
+                  onChange={(e) => setPrivacyActionNotes(e.target.value)}
+                  placeholder="Optional admin notes for the record..."
+                />
+                <div className={styles.modalActions}>
+                  <button className={styles.modalCancelBtn} onClick={() => setPrivacyActionTarget(null)}>
+                    Cancel
+                  </button>
+                  <button className={styles.modalPrimaryBtn} onClick={submitPrivacyAction}>
                     Save
                   </button>
                 </div>

@@ -452,6 +452,40 @@ export async function DELETE(_request: NextRequest) {
       user.user_metadata?.display_name ||
       (userEmail ? userEmail.split('@')[0] : 'there')
 
+    const nowIso = new Date().toISOString()
+
+    try {
+      const { error: privacyUpdateError } = await supabaseAdmin
+        .from('privacy_requests')
+        .update({
+          status: 'completed',
+          completed_at: nowIso,
+          updated_at: nowIso,
+          admin_notes: 'Completed during account deletion.',
+        })
+        .eq('user_id', userId)
+        .eq('request_type', 'erasure')
+        .in('status', ['pending', 'in_review'])
+
+      if (privacyUpdateError) {
+        console.error('Failed to close erasure requests before deletion', privacyUpdateError)
+      } else {
+        await supabaseAdmin.from('audit_log').insert({
+          user_id: null,
+          table_name: 'privacy_requests',
+          record_id: userId,
+          action: 'privacy_requests_completed_on_account_deletion',
+          new_data: {
+            requestType: 'erasure',
+            completedAt: nowIso,
+            userEmail,
+          } as any,
+        })
+      }
+    } catch (privacyCompletionError) {
+      console.error('Failed to update privacy requests before deletion', privacyCompletionError)
+    }
+
     if (userEmail) {
       try {
         // Idempotency: if we've already sent the deletion email for this user, skip.
@@ -470,17 +504,17 @@ export async function DELETE(_request: NextRequest) {
         if (Array.isArray(alreadySent) && alreadySent.length > 0) {
           // Continue with deletion, but don't spam emails.
         } else {
-        const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech'
-        const htmlBody = renderTemplate('18-account-deleted.html', {
-          name: String(displayName),
-          support_email: supportEmail,
-        })
-        await sendResendEmail({
-          to: userEmail,
-          subject: 'Your MyMcKenzieCS account was deleted',
-          htmlBody,
-          tag: 'account-deleted-confirmation',
-        })
+          const supportEmail = process.env.SUPPORT_EMAIL || 'jordan@lenjordan.tech'
+          const htmlBody = renderTemplate('18-account-deleted.html', {
+            name: String(displayName),
+            support_email: supportEmail,
+          })
+          await sendResendEmail({
+            to: userEmail,
+            subject: 'Your MyMcKenzieCS account was deleted',
+            htmlBody,
+            tag: 'account-deleted-confirmation',
+          })
 
           // Record that we sent this email (store user_id as null to avoid FK issues).
           await supabaseAdmin.from('audit_log').insert({
