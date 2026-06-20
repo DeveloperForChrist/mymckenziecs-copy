@@ -56,7 +56,11 @@ import NotesPageClient from './notes-tool/NotesPageClient';
 import SettingsPageClient from '@/components/settings/SettingsPageClient';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import HostedVideoMeeting from '@/components/video/HostedVideoMeeting';
-import { BUSINESS_CLEAR_DOCUMENTS_FILTER_EVENT, BUSINESS_OPEN_DOCUMENTS_EVENT } from '@/lib/events/business-events';
+import {
+  BUSINESS_CLEAR_DOCUMENTS_FILTER_EVENT,
+  BUSINESS_MEETINGS_UPDATED_EVENT,
+  BUSINESS_OPEN_DOCUMENTS_EVENT,
+} from '@/lib/events/business-events';
 import BusinessFeedbackPage from './BusinessFeedbackPage';
 import styles from './businessDashboard.module.css';
 
@@ -670,6 +674,7 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
   const [inboxCount, setInboxCount] = useState(0);
   const [alertsCount, setAlertsCount] = useState(0);
   const [calendarCount, setCalendarCount] = useState(0);
+  const [meetingsCount, setMeetingsCount] = useState(0);
   const [inboxComposePreset, setInboxComposePreset] = useState<{ to: string; subject: string; body?: string } | null>(null);
   const [meetingPreset, setMeetingPreset] = useState<{ clientName?: string; clientEmail?: string; context?: string } | null>(null);
   const [documentsCaseIdOverride, setDocumentsCaseIdOverride] = useState<string | null>(null);
@@ -756,10 +761,11 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
   useEffect(() => {
     const fetchCounts = async () => {
       try {
-        const [leadsResponse, calendarResponse, alertsResponse] = await Promise.all([
+        const [leadsResponse, calendarResponse, alertsResponse, meetingsResponse] = await Promise.all([
           fetch('/api/business/leads', { credentials: 'include', cache: 'no-store' }),
           fetch('/api/calendar/alerts?windowDays=7', { credentials: 'include', cache: 'no-store' }),
           fetch('/api/business/alerts', { credentials: 'include', cache: 'no-store' }),
+          fetch('/api/business/meetings', { credentials: 'include', cache: 'no-store' }),
         ]);
 
         if (leadsResponse.ok) {
@@ -778,6 +784,12 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
           const data = await alertsResponse.json().catch(() => ({}));
           const alerts = Array.isArray(data?.alerts) ? data.alerts : [];
           setAlertsCount(alerts.filter((alert: any) => !alert?.read).length);
+        }
+
+        if (meetingsResponse.ok) {
+          const data = await meetingsResponse.json().catch(() => ({}));
+          const meetings = Array.isArray(data?.meetings) ? data.meetings : [];
+          setMeetingsCount(meetings.filter((meeting: any) => meeting.status === 'scheduled' || meeting.status === 'in_progress').length);
         }
       } catch (error) {
         console.error('Failed to fetch business notification counts:', error);
@@ -811,11 +823,14 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
       })
       .catch(() => {})
     };
+    const onMeetingsUpdated = () => { void fetchCounts(); };
     window.addEventListener(BUSINESS_ALERTS_UPDATED_EVENT, onAlertsUpdated as EventListener);
+    window.addEventListener(BUSINESS_MEETINGS_UPDATED_EVENT, onMeetingsUpdated as EventListener);
     const interval = setInterval(() => { void fetchCounts(); }, 30000);
     return () => {
       clearInterval(interval);
       window.removeEventListener(BUSINESS_ALERTS_UPDATED_EVENT, onAlertsUpdated as EventListener);
+      window.removeEventListener(BUSINESS_MEETINGS_UPDATED_EVENT, onMeetingsUpdated as EventListener);
     };
   }, []);
 
@@ -859,11 +874,13 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
                 ? leadsCount
                 : item.id === 'messages'
                   ? inboxCount
-                  : item.id === 'notifications'
-                    ? alertsCount
-                    : item.id === 'calendar'
-                      ? calendarCount
-                      : item.count;
+                : item.id === 'notifications'
+                  ? alertsCount
+                : item.id === 'calendar'
+                  ? calendarCount
+                : item.id === 'video'
+                  ? meetingsCount
+                  : item.count;
             const hasCount = typeof count === 'number' ? count > 0 : Boolean(count);
             const countLabel = typeof count === 'number' && count > 99 ? '99+' : count;
             return (

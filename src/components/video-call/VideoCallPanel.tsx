@@ -6,6 +6,7 @@ import { Video, Plus, Calendar, Clock, User, Mail, Copy, CheckCircle2, Play, XCi
 import WebRtcMeeting from '@/components/video/WebRtcMeeting'
 import styles from './videocall.module.css'
 import { getAppMarketFromPathname, getAppRouteForMarket } from '@/lib/markets/app-routes'
+import { BUSINESS_MEETINGS_UPDATED_EVENT } from '@/lib/events/business-events'
 
 type MeetingStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'no_show'
 interface Meeting { id:string; clientId?: string | null; title:string; clientName:string; clientEmail:string; date:string; time:string; duration:number; roomName:string; status:MeetingStatus; agenda?:string; source?: 'database' | 'local' }
@@ -57,6 +58,11 @@ function saveLocal(meetings: Meeting[], clients: ClientContact[]) {
   } catch {
     // ignore localStorage failures
   }
+}
+
+function notifyMeetingsUpdated() {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new CustomEvent(BUSINESS_MEETINGS_UPDATED_EVENT))
 }
 
 function looksLikeLegacyMockMeetings(meetings: Meeting[]) {
@@ -392,6 +398,7 @@ export function VideoCallPanel({
         saveLocal(next, nextClients)
         return next
       })
+      notifyMeetingsUpdated()
       setSelected(persisted)
     } catch {
       setMeetings((current) => {
@@ -451,6 +458,7 @@ export function VideoCallPanel({
         credentials: 'include',
         body: JSON.stringify({ id: meeting.id, status }),
       })
+      notifyMeetingsUpdated()
     } catch {
       setNotice('Status updated locally. Database sync failed.')
       setTimeout(() => setNotice(''), 3000)
