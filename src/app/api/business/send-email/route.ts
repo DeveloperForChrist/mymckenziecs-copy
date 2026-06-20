@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { sendPlatformMessageNotification } from '@/lib/email/platform-notifications'
 import { loadProfessionalEmailBranding } from '@/lib/email/professional-branding'
+import { EMAIL_ATTACHMENT_LABEL, isAllowedEmailAttachment } from '@/lib/inbox/attachment-policy'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -69,6 +70,13 @@ export async function POST(request: NextRequest) {
             const foundDocs = Array.isArray(docs) ? docs : []
             if (foundDocs.length !== attachmentIds.length) {
               throw new Error('One or more attachments could not be found.')
+            }
+
+            const invalidAttachment = foundDocs.find(
+              (doc) => !isAllowedEmailAttachment({ name: String(doc.name || ''), mimeType: doc.mime_type || null }),
+            )
+            if (invalidAttachment) {
+              throw new Error(`Only ${EMAIL_ATTACHMENT_LABEL} can be sent as inbox attachments.`)
             }
 
             return foundDocs.map((doc) => ({

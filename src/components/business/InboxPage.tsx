@@ -5,6 +5,7 @@ import { Mail, Send, FileText, Trash2, Archive, Star, Search, Reply, Forward, X,
 import styles from './inbox.module.css'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import { parseInboxAttachments, type InboxMessageAttachment } from '@/lib/inbox/attachments'
+import { EMAIL_ATTACHMENT_ACCEPT, EMAIL_ATTACHMENT_LABEL, isAllowedEmailAttachment } from '@/lib/inbox/attachment-policy'
 
 interface Message {
   id: string
@@ -303,6 +304,7 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
       if (attachedFiles.length > 0) {
         const formData = new FormData()
         attachedFiles.forEach((file) => formData.append('files', file))
+        formData.append('source', 'business-inbox-attachment')
         const uploadRes = await fetch('/api/documents', {
           method: 'POST',
           body: formData,
@@ -589,9 +591,17 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
                       onChange={(event) => {
                         const files = Array.from(event.target.files || [])
                         if (files.length === 0) return
-                        setAttachedFiles((prev) => [...prev, ...files])
+                        const validFiles = files.filter((file) => isAllowedEmailAttachment({ name: file.name, mimeType: file.type || null }))
+                        const rejectedCount = files.length - validFiles.length
+                        if (rejectedCount > 0) {
+                          setComposeNotice(`Only ${EMAIL_ATTACHMENT_LABEL} are allowed as email attachments.`)
+                        }
+                        if (validFiles.length > 0) {
+                          setAttachedFiles((prev) => [...prev, ...validFiles])
+                        }
                         event.target.value = ''
                       }}
+                      accept={EMAIL_ATTACHMENT_ACCEPT}
                     />
                   </label>
                 </div>
@@ -613,7 +623,7 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
                     ))}
                   </div>
                 ) : (
-                  <p className={styles.attachmentHint}>Attach one or more documents. They will be uploaded and included with this message.</p>
+                  <p className={styles.attachmentHint}>Attach one or more documents. Allowed types: {EMAIL_ATTACHMENT_LABEL}.</p>
                 )}
               </div>
               <div className={styles.documentPicker}>

@@ -5,6 +5,7 @@ import { createBusinessAlert } from '@/lib/business/alerts'
 import { documentLimitForPlan, planDisplayName } from '@/lib/plans/access'
 import { getUserPlanData } from '@/lib/payments/user-plan'
 import { getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse, uploadIpRateLimiter, uploadRateLimiter } from '@/lib/utils/rate-limit'
+import { EMAIL_ATTACHMENT_LABEL, isAllowedEmailAttachment } from '@/lib/inbox/attachment-policy'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -235,6 +236,13 @@ export async function POST(request: NextRequest) {
     for (const file of files) {
       if (file.size > MAX_FILE_SIZE) {
         return NextResponse.json({ error: `File too large. Max size is 25MB.` }, { status: 400 })
+      }
+
+      if (source === 'business-inbox-attachment' && !isAllowedEmailAttachment({ name: file.name, mimeType: file.type || null })) {
+        return NextResponse.json(
+          { error: `That file type is not allowed for inbox attachments. Use ${EMAIL_ATTACHMENT_LABEL}.` },
+          { status: 400 },
+        )
       }
 
       const cleanName = sanitizeFilename(file.name)
