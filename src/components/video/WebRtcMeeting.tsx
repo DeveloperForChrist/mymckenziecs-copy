@@ -461,11 +461,10 @@ export default function WebRtcMeeting({
 
   const primaryCls = primaryButtonClassName ?? '';
   const secondaryCls = secondaryButtonClassName ?? primaryCls;
+  const baseGridClass = defaultMode ? styles.videoGrid : styles.embeddedVideoGrid;
   const gridClass = videoGridClassName
-    ? `${styles.videoGrid} ${videoGridClassName}`
-    : defaultMode
-      ? styles.videoGrid
-      : styles.embeddedVideoGrid;
+    ? `${baseGridClass} ${videoGridClassName}`
+    : baseGridClass;
 
   if (callEnded && !onLeave) {
     return (
