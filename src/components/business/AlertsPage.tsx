@@ -41,6 +41,7 @@ export default function AlertsPage() {
   const [tab, setTab] = useState<FilterTab>('all')
   const [selected, setSelected] = useState<Alert | null>(null)
   const [loading, setLoading] = useState(true)
+  const [hasLoaded, setHasLoaded] = useState(false)
 
   const filtered = alerts.filter(a => {
     if (tab === 'all') return true
@@ -57,8 +58,9 @@ export default function AlertsPage() {
   }, [alerts])
 
   useEffect(() => {
-    const loadAlerts = async () => {
-      setLoading(true)
+    const loadAlerts = async (options: { silent?: boolean } = {}) => {
+      const { silent = false } = options
+      if (!silent) setLoading(true)
       try {
         const response = await fetch('/api/business/alerts', { credentials: 'include', cache: 'no-store' })
         const payload = await response.json().catch(() => ({}))
@@ -71,16 +73,19 @@ export default function AlertsPage() {
           return nextAlerts.find((alert) => alert.id === prev.id) || nextAlerts[0]
         })
       } catch {
-        setAlerts([])
-        setSelected(null)
+        if (!silent) {
+          setAlerts([])
+          setSelected(null)
+        }
       } finally {
-        setLoading(false)
+        setHasLoaded(true)
+        if (!silent) setLoading(false)
       }
     }
 
     void loadAlerts()
     const interval = setInterval(() => {
-      void loadAlerts()
+      void loadAlerts({ silent: true })
     }, 30000)
     return () => clearInterval(interval)
   }, [])
@@ -148,7 +153,7 @@ export default function AlertsPage() {
           ))}
         </div>
         <div className={styles.alertList}>
-          {loading && <div className={styles.emptyList}><Bell size={28}/><p>Loading alerts...</p></div>}
+          {loading && !hasLoaded && <div className={styles.emptyList}><Bell size={28}/><p>Loading alerts...</p></div>}
           {filtered.length === 0 && <div className={styles.emptyList}><Bell size={28}/><p>No alerts</p></div>}
           {filtered.map(a => {
             const Icon = TYPE_ICON[a.type]

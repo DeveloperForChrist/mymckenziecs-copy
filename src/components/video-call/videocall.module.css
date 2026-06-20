@@ -80,8 +80,8 @@
 .callModalToggleBtn:hover{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.24);color:#fff}
 .callModalCloseBtn{display:flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.35);border-radius:7px;color:#fca5a5;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .15s}
 .callModalCloseBtn:hover{background:rgba(239,68,68,0.28);border-color:rgba(239,68,68,0.6);color:#fff}
-.callModalBody{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:16px 20px;gap:12px;min-height:0}
-.callModalWorkspace{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,340px);gap:12px}
+.callModalBody{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:14px 16px;gap:10px;min-height:0}
+.callModalWorkspace{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(250px,300px);gap:10px}
 .callNotesPanel{min-width:0;display:flex;flex-direction:column;gap:12px;padding:14px;border:1px solid rgba(255,255,255,0.08);border-radius:12px;background:rgba(15,23,42,0.78);overflow:hidden}
 .callNotesHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .callNotesHeader h3{margin:0;color:#f8fafc;font-size:.95rem;line-height:1.2}
@@ -108,7 +108,6 @@
 .callNotePopupButton:hover{background:rgba(20,184,166,0.24);border-color:rgba(153,246,228,0.35)}
 .callNotePopupSecondaryButton{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 14px;border:1px solid rgba(148,163,184,0.26);border-radius:8px;background:rgba(148,163,184,0.1);color:#e2e8f0;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s}
 .callNotePopupSecondaryButton:hover{background:rgba(148,163,184,0.16);border-color:rgba(148,163,184,0.38)}
-.callModalFooter{padding:12px 20px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#1f2937;flex-shrink:0}
 .callModalGhostBtn{display:flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:7px;color:#d1d5db;font-size:.813rem;cursor:pointer;font-weight:500;transition:all .15s}
 .callModalGhostBtn:hover{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.24);color:#fff}
 .callModalEndBtn{display:flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.35);border-radius:7px;color:#fca5a5;font-size:.813rem;font-weight:600;cursor:pointer;transition:all .15s;margin-left:auto}
@@ -166,8 +165,7 @@
   }
 
   .callModalHeader,
-  .callModalBody,
-  .callModalFooter {
+  .callModalBody {
     padding-left: 14px;
     padding-right: 14px;
   }

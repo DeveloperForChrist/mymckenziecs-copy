@@ -617,6 +617,12 @@ export function VideoCallPanel({
                   videoGridClassName={styles.callModalJitsiWrap}
                   primaryButtonClassName={styles.callModalGhostBtn}
                   secondaryButtonClassName={styles.callModalGhostBtn}
+                  footerAction={(
+                    <button type="button" className={styles.callModalEndBtn} onClick={() => endMeeting(selected)}>
+                      <CheckCircle2 size={14} />
+                      End &amp; Mark Done
+                    </button>
+                  )}
                 />
 
                 <aside className={styles.callNotesPanel} aria-label="Meeting notes">
@@ -654,10 +660,6 @@ export function VideoCallPanel({
                   {meetingNoteStatus && <p className={styles.callNotesStatus}>{meetingNoteStatus}</p>}
                 </aside>
               </div>
-            </div>
-            <div className={styles.callModalFooter}>
-              <button type="button" className={styles.callModalGhostBtn} onClick={leave}><XCircle size={14}/>Leave call</button>
-              <button type="button" className={styles.callModalEndBtn} onClick={()=>endMeeting(selected)}><CheckCircle2 size={14}/>End &amp; Mark Done</button>
             </div>
           </div>
         </div>

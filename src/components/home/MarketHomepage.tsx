@@ -132,16 +132,6 @@ export default function MarketHomepage({
               )}
               <div className="grid grid-cols-1 xl:grid-cols-[1.03fr_0.97fr] gap-8 md:gap-10 items-center">
                 <div className="text-center xl:text-left">
-                  {marketSwitch && (
-                    <div className="mb-5 inline-flex justify-center xl:justify-start">
-                      <Link
-                        href={marketSwitch.href}
-                        className="rounded-full border border-white/15 bg-white/8 px-4 py-2 text-xs md:text-sm font-medium tracking-[0.12em] text-white/80 transition-colors hover:bg-white/12"
-                      >
-                        {marketSwitch.label}
-                      </Link>
-                    </div>
-                  )}
                   <div className="text-xs md:text-sm font-medium uppercase tracking-[0.2em] text-white/70">
                     {audienceLabel}
                   </div>
@@ -360,6 +350,13 @@ export default function MarketHomepage({
           <div className="text-base md:text-lg font-medium mb-4 text-white/85">
             MyMcKenzieCS is a product of Lenjordan Ltd.<br/>Company No. 16931933
           </div>
+          {marketSwitch && (
+            <div className="mb-4 text-xs md:text-sm text-white/55">
+              <Link href={marketSwitch.href} className="underline underline-offset-4 hover:text-purple-200 transition-colors">
+                {marketSwitch.label}
+              </Link>
+            </div>
+          )}
           <div className="flex flex-wrap justify-center gap-3 mb-4 text-sm md:text-base text-white/80">
             {footerLinks.map((link, index) => (
               <span key={link.href} className="contents">

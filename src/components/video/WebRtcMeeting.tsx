@@ -20,7 +20,7 @@ import {
   UserRound,
   UsersRound,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import styles from './WebRtcMeeting.module.css';
@@ -53,6 +53,7 @@ export type WebRtcMeetingProps = {
   videoGridClassName?: string;
   primaryButtonClassName?: string;
   secondaryButtonClassName?: string;
+  footerAction?: ReactNode;
   onLeave?: () => void;
 };
 
@@ -63,6 +64,7 @@ export default function WebRtcMeeting({
   videoGridClassName,
   primaryButtonClassName,
   secondaryButtonClassName,
+  footerAction,
   onLeave,
 }: WebRtcMeetingProps) {
   const myPeerId = useRef<string>(
@@ -542,9 +544,9 @@ export default function WebRtcMeeting({
               <div className={styles.tileLabel}>
                 <span className={styles.nameBadge}>
                   <UsersRound size={14} />
-                  <span>Client or professional</span>
+                  <span>Participant</span>
                 </span>
-                {!remoteReady && <span className={styles.qualityBadge}>Not joined</span>}
+                {!remoteReady && <span className={styles.qualityBadge}>Waiting</span>}
               </div>
             </div>
           </div>
@@ -576,6 +578,7 @@ export default function WebRtcMeeting({
               <PhoneOff size={17} />
               Leave call
             </button>
+            {footerAction}
           </div>
         </main>
 
