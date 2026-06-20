@@ -112,6 +112,7 @@ export default function WebRtcMeeting({
   }, [roomName]);
 
   const defaultMode = !className && !videoGridClassName && !primaryButtonClassName && !secondaryButtonClassName;
+  const stageClass = defaultMode ? styles.stage : styles.embeddedStage;
 
   const copyInvite = async () => {
     try {
@@ -462,7 +463,9 @@ export default function WebRtcMeeting({
   const secondaryCls = secondaryButtonClassName ?? primaryCls;
   const gridClass = videoGridClassName
     ? `${styles.videoGrid} ${videoGridClassName}`
-    : styles.videoGrid;
+    : defaultMode
+      ? styles.videoGrid
+      : styles.embeddedVideoGrid;
 
   if (callEnded && !onLeave) {
     return (
@@ -497,7 +500,7 @@ export default function WebRtcMeeting({
       )}
 
       <div className={defaultMode ? styles.mainLayout : undefined}>
-        <main className={defaultMode ? styles.stage : undefined}>
+        <main className={stageClass}>
           {error && <p className={styles.error}>{error}</p>}
           {signalingNote && !error && <p className={styles.notice}>{signalingNote}</p>}
 

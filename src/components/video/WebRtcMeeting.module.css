@@ -114,8 +114,25 @@
   gap: 14px;
 }
 
+.embeddedStage {
+  min-width: 0;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
 .videoGrid {
-  min-height: min(68vh, 740px);
+  min-height: min(74vh, 820px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.embeddedVideoGrid {
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
@@ -396,8 +413,8 @@
   z-index: 2;
   justify-content: center;
   gap: 10px;
-  margin-top: 6px;
-  padding: 12px 14px;
+  margin-top: 0;
+  padding: 10px 12px;
   border: 1px solid rgba(226, 232, 240, 0.14);
   border-radius: 8px;
   background: rgba(15, 23, 42, 0.82);
@@ -405,9 +422,13 @@
   backdrop-filter: blur(18px);
 }
 
+.embeddedStage .callControls {
+  margin-top: auto;
+}
+
 .controlButton {
-  min-width: 112px;
-  min-height: 40px;
+  min-width: 106px;
+  min-height: 38px;
   justify-content: center;
   gap: 8px;
   border: 1px solid rgba(226, 232, 240, 0.14);
@@ -416,7 +437,7 @@
   color: #f8fafc;
   cursor: pointer;
   font: inherit;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 800;
   transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
 }
@@ -474,6 +495,26 @@
   }
 }
 
+@media (max-width: 1400px) {
+  .embeddedStage {
+    gap: 10px;
+  }
+
+  .embeddedVideoGrid {
+    min-height: 0;
+    grid-template-columns: 1fr;
+    align-content: stretch;
+  }
+
+  .videoTile {
+    min-height: min(42vh, 420px);
+  }
+
+  .callControls {
+    justify-content: flex-start;
+  }
+}
+
 @media (max-width: 760px) {
   .meetingShell {
     padding: 10px;
@@ -487,6 +528,11 @@
   }
 
   .videoGrid {
+    min-height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .embeddedVideoGrid {
     min-height: auto;
     grid-template-columns: 1fr;
   }
