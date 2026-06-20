@@ -80,8 +80,8 @@
 .callModalToggleBtn:hover{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.24);color:#fff}
 .callModalCloseBtn{display:flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.35);border-radius:7px;color:#fca5a5;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .15s}
 .callModalCloseBtn:hover{background:rgba(239,68,68,0.28);border-color:rgba(239,68,68,0.6);color:#fff}
-.callModalBody{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:14px 16px;gap:10px;min-height:0}
-.callModalWorkspace{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(250px,300px);gap:10px}
+.callModalBody{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:12px 14px;gap:8px;min-height:0}
+.callModalWorkspace{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(240px,280px);gap:8px}
 .callNotesPanel{min-width:0;display:flex;flex-direction:column;gap:12px;padding:14px;border:1px solid rgba(255,255,255,0.08);border-radius:12px;background:rgba(15,23,42,0.78);overflow:hidden}
 .callNotesHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .callNotesHeader h3{margin:0;color:#f8fafc;font-size:.95rem;line-height:1.2}
@@ -114,6 +114,9 @@
 .callModalEndBtn:hover{background:rgba(239,68,68,0.28);border-color:rgba(239,68,68,0.6);color:#fff}
 .callModalMeetingShell{height:100%;flex:1;min-height:0;display:flex;flex-direction:column;gap:10px}
 .callModalJitsiWrap{flex:1;overflow:hidden;background:#0a0a0a;border-radius:8px;min-height:0}
+.callModalExpanded .callModalBody{padding:10px 12px 12px;gap:8px}
+.callModalExpanded .callModalWorkspace{grid-template-columns:minmax(0,1.65fr) minmax(250px,300px)}
+.callModalExpanded .callNotesPanel{padding:12px}
 .detailBody{flex:1;overflow-y:auto;padding:22px 28px;display:flex;flex-direction:column;gap:18px;background:#fff}
 .detailSection{display:flex;flex-direction:column;gap:6px}
 .detailSectionLabel{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af}
@@ -144,6 +147,12 @@
 :global([data-theme="dark"]) .copyBtn,:global([data-theme="dark"]) .tag{background:#312450;border-color:#7c3aed;color:#c4b5fd}
 :global([data-theme="dark"]) .inviteStrip{background:#2d2d2d;border-color:#444;color:#d1d5db}
 :global([data-theme="dark"]) .emptyRoom{color:#4b5563}
+
+@media (max-width: 1200px) {
+  .callModalExpanded .callModalWorkspace {
+    grid-template-columns: minmax(0, 1.35fr) minmax(220px, 252px);
+  }
+}
 
 @media (max-width: 768px) {
   .pageFullscreen .sidebar,
