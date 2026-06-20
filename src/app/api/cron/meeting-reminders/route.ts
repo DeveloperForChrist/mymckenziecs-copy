@@ -4,8 +4,8 @@ import { sendResendEmail } from '@/lib/email/resend'
 import { getAppUrl } from '@/lib/app-url'
 import { verifyCronSecret } from '@/lib/security/timing-safe'
 import { createBusinessAlert } from '@/lib/business/alerts'
-import { renderEmailTemplate } from '@/lib/email/render-template'
-import { htmlEscape } from '@/lib/utils/html-escape'
+import { renderBrandedEmail } from '@/lib/email/branded-template'
+import type { ProfessionalEmailBranding } from '@/lib/email/professional-branding'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -48,6 +48,16 @@ type PreferenceRow = {
   user_id: string
   email_notifications: boolean | null
   meeting_reminder_minutes: number | null
+}
+
+type ProfessionalProfileRow = {
+  owner_id: string
+  display_name: string | null
+  business_name: string | null
+  email: string | null
+  website: string | null
+  profile_image_url: string | null
+  cover_image_url: string | null
 }
 
 function pad(value: number) {
@@ -94,6 +104,33 @@ function buildProfessionalName(user: UserRow | undefined) {
 
 function buildClientName(client: ClientRow | undefined) {
   return String(client?.name || 'Client')
+}
+
+function asOptionalString(value: unknown) {
+  const normalized = typeof value === 'string' ? value.trim() : ''
+  return normalized || null
+}
+
+function buildBranding(params: {
+  user: UserRow | undefined
+  business: BusinessRow | undefined
+  profile: ProfessionalProfileRow | undefined
+}) {
+  const businessName =
+    asOptionalString(params.profile?.business_name) ||
+    asOptionalString(params.business?.name) ||
+    buildProfessionalName(params.user)
+
+  const branding: ProfessionalEmailBranding = {
+    businessName,
+    displayName: asOptionalString(params.profile?.display_name) || buildProfessionalName(params.user),
+    logoUrl: asOptionalString(params.profile?.profile_image_url),
+    heroImageUrl: asOptionalString(params.profile?.cover_image_url),
+    contactEmail: asOptionalString(params.profile?.email) || asOptionalString(params.user?.email),
+    website: asOptionalString(params.profile?.website),
+  }
+
+  return branding
 }
 
 function isDue(meetingDateTime: Date, leadMinutes: number, now: Date) {
@@ -207,7 +244,7 @@ export async function GET(request: Request) {
     )
     const userIds = Array.from(new Set(meetingRows.map((meeting) => String(meeting.user_id || '').trim()).filter(Boolean)))
 
-    const [clientsResult, usersResult, businessesResult, prefsResult] = await Promise.all([
+    const [clientsResult, usersResult, businessesResult, prefsResult, profilesResult] = await Promise.all([
       clientIds.length
         ? supabaseAdmin.from('clients').select('id,name,email').in('id', clientIds)
         : Promise.resolve({ data: [], error: null } as any),
@@ -219,6 +256,12 @@ export async function GET(request: Request) {
         : Promise.resolve({ data: [], error: null } as any),
       userIds.length
         ? supabaseAdmin.from('user_preferences').select('user_id,email_notifications,meeting_reminder_minutes').in('user_id', userIds)
+        : Promise.resolve({ data: [], error: null } as any),
+      userIds.length
+        ? supabaseAdmin
+            .from('professional_profiles')
+            .select('owner_id,display_name,business_name,email,website,profile_image_url,cover_image_url')
+            .in('owner_id', userIds)
         : Promise.resolve({ data: [], error: null } as any),
     ])
 
@@ -242,6 +285,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Failed to load user preferences' }, { status: 500 })
     }
 
+    if (profilesResult.error) {
+      console.error('Meeting reminders: failed to load professional profiles', profilesResult.error)
+      return NextResponse.json({ error: 'Failed to load professional profiles' }, { status: 500 })
+    }
+
     const clientsById = new Map<string, ClientRow>(
       (clientsResult.data || []).map((row: any) => [String(row.id), row]),
     )
@@ -254,6 +302,9 @@ export async function GET(request: Request) {
     const prefsByUserId = new Map<string, PreferenceRow>(
       (prefsResult.data || []).map((row: any) => [String(row.user_id), row]),
     )
+    const profilesByUserId = new Map<string, ProfessionalProfileRow>(
+      (profilesResult.data || []).map((row: any) => [String(row.owner_id), row]),
+    )
 
     const appUrl = getAppUrl(request)
     let remindersSent = 0
@@ -265,6 +316,7 @@ export async function GET(request: Request) {
       const user = usersById.get(String(meeting.user_id))
       const client = meeting.client_id ? clientsById.get(String(meeting.client_id)) : undefined
       const business = businessesByUserId.get(String(meeting.user_id))
+      const profile = profilesByUserId.get(String(meeting.user_id))
       const prefs = prefsByUserId.get(String(meeting.user_id))
       const leadMinutes = parseLeadMinutes(prefs?.meeting_reminder_minutes)
 
@@ -273,7 +325,8 @@ export async function GET(request: Request) {
       const meetingTitle = String(meeting.title || 'Client consultation')
       const clientName = buildClientName(client)
       const professionalName = buildProfessionalName(user)
-      const businessName = String(business?.name || professionalName)
+      const branding = buildBranding({ user, business, profile })
+      const businessName = branding.businessName
       const dateLabel = formatDateLabel(meetingDateTime)
       const timeLabel = formatTimeLabel(meeting.meeting_time)
       const joinUrl = `${appUrl}/video-call?room=${encodeURIComponent(String(meeting.room_name || ''))}`
@@ -309,14 +362,23 @@ export async function GET(request: Request) {
           updates.professional_reminder_sent_at = nowIso
         } else {
           try {
-            const htmlBody = renderEmailTemplate('32-meeting-reminder-professional.html', {
-              professional_name: htmlEscape(professionalName),
-              client_name: htmlEscape(clientName),
-              client_notice: htmlEscape(clientNotice),
-              meeting_title: htmlEscape(meetingTitle),
-              meeting_date: htmlEscape(dateLabel),
-              meeting_time: htmlEscape(timeLabel),
-              join_url: htmlEscape(joinUrl),
+            const htmlBody = renderBrandedEmail({
+              branding,
+              preheader: `${meetingTitle} with ${clientName} is due soon.`,
+              eyebrow: 'Meeting reminder',
+              title: 'Upcoming client meeting',
+              greeting: `Hello ${professionalName},`,
+              intro: `A video call with ${clientName} is due soon. ${clientNotice}`,
+              detailsTitle: 'Meeting summary',
+              details: [
+                { label: 'Meeting', value: meetingTitle },
+                { label: 'Date', value: dateLabel },
+                { label: 'Time', value: timeLabel },
+                { label: 'Client', value: clientName },
+              ],
+              ctaLabel: 'Open meeting room',
+              ctaUrl: joinUrl,
+              note: 'If the meeting details have changed, update the schedule in your dashboard.',
             })
 
             const textBody = buildProfessionalReminderText({
@@ -352,13 +414,22 @@ export async function GET(request: Request) {
           updates.client_reminder_sent_at = nowIso
         } else {
           try {
-            const htmlBody = renderEmailTemplate('31-meeting-reminder-client.html', {
-              client_name: htmlEscape(clientName),
-              business_name: htmlEscape(businessName),
-              meeting_title: htmlEscape(meetingTitle),
-              meeting_date: htmlEscape(dateLabel),
-              meeting_time: htmlEscape(timeLabel),
-              join_url: htmlEscape(joinUrl),
+            const htmlBody = renderBrandedEmail({
+              branding,
+              preheader: `Your video call with ${businessName} is coming up soon.`,
+              eyebrow: 'Meeting reminder',
+              title: 'Upcoming video call',
+              greeting: `Hello ${clientName},`,
+              intro: `This is a reminder that your video call with ${businessName} is coming up soon.`,
+              detailsTitle: 'Meeting summary',
+              details: [
+                { label: 'Meeting', value: meetingTitle },
+                { label: 'Date', value: dateLabel },
+                { label: 'Time', value: timeLabel },
+              ],
+              ctaLabel: 'Join meeting',
+              ctaUrl: joinUrl,
+              note: `If you need to reschedule, please contact ${businessName}.`,
             })
 
             const textBody = buildClientReminderText({

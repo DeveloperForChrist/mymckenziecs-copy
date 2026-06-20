@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { sendPlatformMessageNotification } from '@/lib/email/platform-notifications'
+import { loadProfessionalEmailBranding } from '@/lib/email/professional-branding'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -84,6 +85,7 @@ export async function POST(request: NextRequest) {
       asString(user.user_metadata?.display_name) ||
       user.email.split('@')[0] ||
       'MyMcKenzieCS Professional'
+    const branding = await loadProfessionalEmailBranding(user.id, senderName)
 
     const { error: insertError } = await supabaseAdmin
       .from('inbox_messages')
@@ -116,6 +118,7 @@ export async function POST(request: NextRequest) {
         subjectLine: subject,
         preview: `${body.slice(0, 180)}${attachments.length > 0 ? ` (${attachments.length} attachment${attachments.length === 1 ? '' : 's'})` : ''}`,
         inboxUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/client-portal`,
+        branding,
       })
     } catch (notificationError) {
       console.error('Failed to send platform message notification email:', notificationError)

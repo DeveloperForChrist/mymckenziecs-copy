@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { sendResendEmail } from '@/lib/email/resend'
-import { renderEmailTemplate } from '@/lib/email/render-template'
 import { getAppUrl } from '@/lib/app-url'
-import { htmlEscape } from '@/lib/utils/html-escape'
 import nodemailer from 'nodemailer'
 import { createBusinessAlert } from '@/lib/business/alerts'
+import { renderBrandedEmail } from '@/lib/email/branded-template'
+import { loadProfessionalEmailBranding } from '@/lib/email/professional-branding'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -124,11 +124,24 @@ export async function POST(request: NextRequest) {
       `Kind regards,`,
       businessData.name,
     ].join('\n')
-    const htmlBody = renderEmailTemplate('30-client-portal-invite.html', {
-      recipient_name: htmlEscape(body.name || invitedEmail),
-      business_name: htmlEscape(businessData.name),
-      invited_email: htmlEscape(invitedEmail),
-      cta_url: htmlEscape(signupUrl),
+    const branding = await loadProfessionalEmailBranding(user.id, businessData.name)
+    const htmlBody = renderBrandedEmail({
+      branding,
+      preheader: `${branding.businessName} invited you to a secure client portal.`,
+      eyebrow: 'Client portal invitation',
+      title: 'Join your secure client portal',
+      greeting: `Hello ${body.name || invitedEmail},`,
+      intro: `${branding.businessName} has invited you to join their secure client portal on MyMcKenzieCS. The portal gives you a private place to view messages, meetings, shared documents, and ongoing updates from your professional.`,
+      detailsTitle: 'Invitation details',
+      details: [
+        { label: 'Business', value: branding.businessName },
+        { label: 'Invited email', value: invitedEmail },
+      ],
+      bodyHtml: `<p style="margin:0 0 16px;">Use the button below to sign in or create your account and access your client workspace.</p>`,
+      ctaLabel: 'Join the client portal',
+      ctaUrl: signupUrl,
+      note: 'If you were not expecting this invitation, you can safely ignore this email.',
+      closing: `Kind regards,\n${branding.businessName}`,
     })
 
     const inviteSenderName =
