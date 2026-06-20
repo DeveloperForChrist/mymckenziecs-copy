@@ -4,8 +4,7 @@ import { sendResendEmail } from '@/lib/email/resend'
 import { getAppUrl } from '@/lib/app-url'
 import nodemailer from 'nodemailer'
 import { createBusinessAlert } from '@/lib/business/alerts'
-import { renderBrandedEmail } from '@/lib/email/branded-template'
-import { loadProfessionalEmailBranding } from '@/lib/email/professional-branding'
+import { renderPlainEmail } from '@/lib/email/plain-template'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -124,24 +123,21 @@ export async function POST(request: NextRequest) {
       `Kind regards,`,
       businessData.name,
     ].join('\n')
-    const branding = await loadProfessionalEmailBranding(user.id, businessData.name)
-    const htmlBody = renderBrandedEmail({
-      branding,
-      preheader: `${branding.businessName} invited you to a secure client portal.`,
-      eyebrow: 'Client portal invitation',
+    const htmlBody = renderPlainEmail({
+      preheader: `${businessData.name} invited you to a secure client portal.`,
       title: 'Join your secure client portal',
       greeting: `Hello ${body.name || invitedEmail},`,
-      intro: `${branding.businessName} has invited you to join their secure client portal on MyMcKenzieCS. The portal gives you a private place to view messages, meetings, shared documents, and ongoing updates from your professional.`,
+      intro: `${businessData.name} has invited you to join their secure client portal on MyMcKenzieCS. The portal gives you a private place to view messages, meetings, shared documents, and ongoing updates from your professional.`,
       detailsTitle: 'Invitation details',
       details: [
-        { label: 'Business', value: branding.businessName },
+        { label: 'Business', value: businessData.name },
         { label: 'Invited email', value: invitedEmail },
       ],
       bodyHtml: `<p style="margin:0 0 16px;">Use the button below to sign in or create your account and access your client workspace.</p>`,
       ctaLabel: 'Join the client portal',
       ctaUrl: signupUrl,
       note: 'If you were not expecting this invitation, you can safely ignore this email.',
-      closing: `Kind regards,\n${branding.businessName}`,
+      closing: `Kind regards,\n${businessData.name}`,
     })
 
     const inviteSenderName =

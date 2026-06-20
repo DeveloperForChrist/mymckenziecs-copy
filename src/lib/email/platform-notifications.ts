@@ -1,6 +1,5 @@
 import { sendResendEmail } from '@/lib/email/resend'
-import { renderBrandedEmail } from '@/lib/email/branded-template'
-import type { ProfessionalEmailBranding } from '@/lib/email/professional-branding'
+import { renderPlainEmail } from '@/lib/email/plain-template'
 
 export async function sendPlatformMessageNotification(params: {
   to: string
@@ -9,21 +8,12 @@ export async function sendPlatformMessageNotification(params: {
   subjectLine: string
   preview?: string | null
   inboxUrl?: string
-  branding?: ProfessionalEmailBranding | null
 }) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const inboxUrl = params.inboxUrl || `${appUrl}/client-portal`
   const preview = String(params.preview || '').trim()
   const greeting = params.recipientName ? `Hello ${params.recipientName},` : 'Hello,'
   const subject = `New secure message from ${params.senderName} on MyMcKenzieCS`
-  const branding = params.branding || {
-    businessName: params.senderName,
-    displayName: params.senderName,
-    logoUrl: null,
-    heroImageUrl: null,
-    contactEmail: null,
-    website: null,
-  }
 
   const textBody = [
     greeting,
@@ -41,10 +31,8 @@ export async function sendPlatformMessageNotification(params: {
     'MyMcKenzieCS',
   ].join('\n')
 
-  const htmlBody = renderBrandedEmail({
-    branding,
+  const htmlBody = renderPlainEmail({
     preheader: `New secure message from ${params.senderName}.`,
-    eyebrow: 'Secure message notification',
     title: 'New secure message',
     greeting,
     intro: `You have received a new secure message from ${params.senderName} on MyMcKenzieCS.`,
@@ -56,7 +44,7 @@ export async function sendPlatformMessageNotification(params: {
     ctaLabel: 'Open My Messages',
     ctaUrl: inboxUrl,
     note: 'This notification email does not include the full message content for privacy and security.',
-    closing: `Kind regards,\n${branding.businessName}`,
+    closing: 'Kind regards,\nMyMcKenzieCS',
   })
 
   await sendResendEmail({

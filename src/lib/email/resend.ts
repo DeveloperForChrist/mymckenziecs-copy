@@ -5,12 +5,21 @@ type ResendSendEmailParams = {
   textBody?: string;
   tag?: string;
   from?: string;
+  fromName?: string;
   replyTo?: string | string[];
+  attachments?: ResendEmailAttachment[];
 };
 
-function formatFromAddress(from: string, fallbackName: string) {
+export type ResendEmailAttachment = {
+  filename: string;
+  content: Buffer | string;
+  contentType?: string;
+};
+
+function formatFromAddress(from: string, fallbackName?: string) {
   if (!from) return from;
   if (from.includes('<')) return from;
+  if (!fallbackName) return from;
   return `${fallbackName} <${from}>`;
 }
 
@@ -33,7 +42,7 @@ export async function sendResendEmail(params: ResendSendEmailParams) {
     process.env.SUPPORT_EMAIL ||
     process.env.GMAIL_USER ||
     'noreply@mymckenziecs.com';
-  const fromName = process.env.RESEND_FROM_NAME || 'MyMcKenzieCS';
+  const fromName = params.fromName;
   const from = formatFromAddress(rawFrom, fromName);
 
   if (!from) {
@@ -50,6 +59,13 @@ export async function sendResendEmail(params: ResendSendEmailParams) {
     html: params.htmlBody,
     text: params.textBody,
     replyTo: params.replyTo,
+    attachments: params.attachments?.map((attachment) => ({
+      filename: attachment.filename,
+      content: Buffer.isBuffer(attachment.content)
+        ? attachment.content.toString('base64')
+        : attachment.content,
+      contentType: attachment.contentType,
+    })),
     tags: params.tag ? [{ name: params.tag, value: params.tag }] : undefined,
   } as any);
 

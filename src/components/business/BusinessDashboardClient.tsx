@@ -42,7 +42,7 @@ import { VideoCallPanel } from '@/components/video-call/VideoCallPanel';
 import InboxPage from './InboxPage';
 import LeadsPage from './LeadsPage';
 import AlertsPage from './AlertsPage';
-import { BUSINESS_ALERTS_UPDATED_EVENT } from './AlertsPage';
+import { BUSINESS_ALERTS_REFRESH_EVENT, BUSINESS_ALERTS_UPDATED_EVENT } from './AlertsPage';
 import ClientMattersPage from './ClientMattersPage';
 import BusinessProfilePage from './BusinessProfilePage';
 import DirectoryClient from '@/components/directory/DirectoryClient';
@@ -673,6 +673,7 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
   const [leadsCount, setLeadsCount] = useState(0);
   const [inboxCount, setInboxCount] = useState(0);
   const [alertsCount, setAlertsCount] = useState(0);
+  const [alertsBusinessId, setAlertsBusinessId] = useState<string | null>(null);
   const [calendarCount, setCalendarCount] = useState(0);
   const [meetingsCount, setMeetingsCount] = useState(0);
   const [inboxComposePreset, setInboxComposePreset] = useState<{ to: string; subject: string; body?: string } | null>(null);
@@ -815,6 +816,10 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
         if (alertsResponse.ok) {
           const data = await alertsResponse.json().catch(() => ({}));
           const alerts = Array.isArray(data?.alerts) ? data.alerts : [];
+          const nextBusinessId = typeof data?.businessId === 'string' ? data.businessId : '';
+          if (nextBusinessId) {
+            setAlertsBusinessId(nextBusinessId);
+          }
           setAlertsCount(alerts.filter((alert: any) => !alert?.read).length);
         }
 
@@ -847,24 +852,82 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
     };
 
     void fetchCounts();
-    const onAlertsUpdated = () => { void fetch('/api/business/alerts', { credentials: 'include', cache: 'no-store' })
-      .then((r) => r.json().catch(() => ({})))
-      .then((data) => {
-        const alerts = Array.isArray((data as any)?.alerts) ? (data as any).alerts : [];
-        setAlertsCount(alerts.filter((alert: any) => !alert?.read).length);
-      })
-      .catch(() => {})
+    const onAlertsUpdated = (event?: Event) => {
+      const unreadCount = (event as CustomEvent<{ unreadCount?: number }> | undefined)?.detail?.unreadCount;
+      if (typeof unreadCount === 'number') {
+        setAlertsCount(unreadCount);
+        return;
+      }
+
+      void fetch('/api/business/alerts', { credentials: 'include', cache: 'no-store' })
+        .then((r) => r.json().catch(() => ({})))
+        .then((data) => {
+          const alerts = Array.isArray((data as any)?.alerts) ? (data as any).alerts : [];
+          setAlertsCount(alerts.filter((alert: any) => !alert?.read).length);
+        })
+        .catch(() => {});
     };
     const onMeetingsUpdated = () => { void fetchCounts(); };
     window.addEventListener(BUSINESS_ALERTS_UPDATED_EVENT, onAlertsUpdated as EventListener);
     window.addEventListener(BUSINESS_MEETINGS_UPDATED_EVENT, onMeetingsUpdated as EventListener);
-    const interval = setInterval(() => { void fetchCounts(); }, 30000);
     return () => {
-      clearInterval(interval);
       window.removeEventListener(BUSINESS_ALERTS_UPDATED_EVENT, onAlertsUpdated as EventListener);
       window.removeEventListener(BUSINESS_MEETINGS_UPDATED_EVENT, onMeetingsUpdated as EventListener);
     };
   }, []);
+
+  useEffect(() => {
+    if (!alertsBusinessId) return;
+
+    const supabase = getSupabaseBrowserClient();
+    const channelName = `business-alerts-${alertsBusinessId}`;
+    let disposed = false;
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const refreshAlerts = async () => {
+      try {
+        const response = await fetch('/api/business/alerts', { credentials: 'include', cache: 'no-store' });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || disposed) return;
+        const alerts = Array.isArray(data?.alerts) ? data.alerts : [];
+        const unreadCount = alerts.filter((alert: any) => !alert?.read).length;
+        setAlertsCount(unreadCount);
+        window.dispatchEvent(new CustomEvent(BUSINESS_ALERTS_REFRESH_EVENT, {
+          detail: { alerts, unreadCount },
+        }));
+      } catch {
+        // ignore live refresh failures; the dashboard still has the last known state
+      }
+    };
+
+    const scheduleRefresh = () => {
+      if (disposed || refreshTimer) return;
+      refreshTimer = setTimeout(() => {
+        refreshTimer = null;
+        void refreshAlerts();
+      }, 250);
+    };
+
+    const channel = supabase
+      .channel(channelName)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'business_alerts',
+        filter: `business_id=eq.${alertsBusinessId}`,
+      }, () => {
+        scheduleRefresh();
+      })
+      .subscribe();
+
+    return () => {
+      disposed = true;
+      if (refreshTimer) {
+        clearTimeout(refreshTimer);
+      }
+      void channel.unsubscribe();
+    };
+  }, [alertsBusinessId]);
 
   const toggleTheme = () => {
     setTheme((t) => {

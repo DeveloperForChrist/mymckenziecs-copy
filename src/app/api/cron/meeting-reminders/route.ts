@@ -4,8 +4,7 @@ import { sendResendEmail } from '@/lib/email/resend'
 import { getAppUrl } from '@/lib/app-url'
 import { verifyCronSecret } from '@/lib/security/timing-safe'
 import { createBusinessAlert } from '@/lib/business/alerts'
-import { renderBrandedEmail } from '@/lib/email/branded-template'
-import type { ProfessionalEmailBranding } from '@/lib/email/professional-branding'
+import { renderPlainEmail } from '@/lib/email/plain-template'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -54,10 +53,6 @@ type ProfessionalProfileRow = {
   owner_id: string
   display_name: string | null
   business_name: string | null
-  email: string | null
-  website: string | null
-  profile_image_url: string | null
-  cover_image_url: string | null
 }
 
 function pad(value: number) {
@@ -111,26 +106,16 @@ function asOptionalString(value: unknown) {
   return normalized || null
 }
 
-function buildBranding(params: {
+function buildBusinessName(params: {
   user: UserRow | undefined
   business: BusinessRow | undefined
   profile: ProfessionalProfileRow | undefined
 }) {
-  const businessName =
+  return (
     asOptionalString(params.profile?.business_name) ||
     asOptionalString(params.business?.name) ||
     buildProfessionalName(params.user)
-
-  const branding: ProfessionalEmailBranding = {
-    businessName,
-    displayName: asOptionalString(params.profile?.display_name) || buildProfessionalName(params.user),
-    logoUrl: asOptionalString(params.profile?.profile_image_url),
-    heroImageUrl: asOptionalString(params.profile?.cover_image_url),
-    contactEmail: asOptionalString(params.profile?.email) || asOptionalString(params.user?.email),
-    website: asOptionalString(params.profile?.website),
-  }
-
-  return branding
+  )
 }
 
 function isDue(meetingDateTime: Date, leadMinutes: number, now: Date) {
@@ -325,8 +310,7 @@ export async function GET(request: Request) {
       const meetingTitle = String(meeting.title || 'Client consultation')
       const clientName = buildClientName(client)
       const professionalName = buildProfessionalName(user)
-      const branding = buildBranding({ user, business, profile })
-      const businessName = branding.businessName
+      const businessName = buildBusinessName({ user, business, profile })
       const dateLabel = formatDateLabel(meetingDateTime)
       const timeLabel = formatTimeLabel(meeting.meeting_time)
       const joinUrl = `${appUrl}/video-call?room=${encodeURIComponent(String(meeting.room_name || ''))}`
@@ -362,10 +346,8 @@ export async function GET(request: Request) {
           updates.professional_reminder_sent_at = nowIso
         } else {
           try {
-            const htmlBody = renderBrandedEmail({
-              branding,
+            const htmlBody = renderPlainEmail({
               preheader: `${meetingTitle} with ${clientName} is due soon.`,
-              eyebrow: 'Meeting reminder',
               title: 'Upcoming client meeting',
               greeting: `Hello ${professionalName},`,
               intro: `A video call with ${clientName} is due soon. ${clientNotice}`,
@@ -379,6 +361,7 @@ export async function GET(request: Request) {
               ctaLabel: 'Open meeting room',
               ctaUrl: joinUrl,
               note: 'If the meeting details have changed, update the schedule in your dashboard.',
+              closing: 'Kind regards,\nMyMcKenzieCS',
             })
 
             const textBody = buildProfessionalReminderText({
@@ -414,10 +397,8 @@ export async function GET(request: Request) {
           updates.client_reminder_sent_at = nowIso
         } else {
           try {
-            const htmlBody = renderBrandedEmail({
-              branding,
+            const htmlBody = renderPlainEmail({
               preheader: `Your video call with ${businessName} is coming up soon.`,
-              eyebrow: 'Meeting reminder',
               title: 'Upcoming video call',
               greeting: `Hello ${clientName},`,
               intro: `This is a reminder that your video call with ${businessName} is coming up soon.`,
@@ -430,6 +411,7 @@ export async function GET(request: Request) {
               ctaLabel: 'Join meeting',
               ctaUrl: joinUrl,
               note: `If you need to reschedule, please contact ${businessName}.`,
+              closing: 'Kind regards,\nMyMcKenzieCS',
             })
 
             const textBody = buildClientReminderText({

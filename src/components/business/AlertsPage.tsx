@@ -20,6 +20,25 @@ interface Alert {
 
 export const BUSINESS_ALERTS_STORAGE_KEY = 'mymckenzie-business-alerts'
 export const BUSINESS_ALERTS_UPDATED_EVENT = 'mymckenzie-business-alerts-updated'
+export const BUSINESS_ALERTS_REFRESH_EVENT = 'mymckenzie-business-alerts-refresh'
+
+type BusinessAlertsUpdatedDetail = {
+  unreadCount?: number
+}
+
+export function dispatchBusinessAlertsUpdated(detail: BusinessAlertsUpdatedDetail = {}) {
+  window.dispatchEvent(new CustomEvent(BUSINESS_ALERTS_UPDATED_EVENT, { detail }))
+}
+
+type BusinessAlertsRefreshDetail = {
+  alerts?: Alert[]
+  unreadCount?: number
+}
+
+export function dispatchBusinessAlertsRefresh(detail: BusinessAlertsRefreshDetail = {}) {
+  window.dispatchEvent(new CustomEvent(BUSINESS_ALERTS_REFRESH_EVENT, { detail }))
+}
+
 const TYPE_ICON: Record<AlertType, React.ElementType> = { deadline: AlertTriangle, message: MessageSquare, lead: User, system: Info, document: FileText, meeting: Calendar }
 const TYPE_LABEL: Record<AlertType, string> = { deadline: 'Deadline', message: 'Message', lead: 'New Lead', system: 'System', document: 'Document', meeting: 'Meeting' }
 const PRIORITY_CLS: Record<AlertPriority, string> = { urgent: 'priorityUrgent', high: 'priorityHigh', medium: 'priorityMedium', low: 'priorityLow' }
@@ -52,12 +71,21 @@ export default function AlertsPage() {
   const unreadCount = alerts.filter(a => !a.read).length
 
   useEffect(() => {
-    window.dispatchEvent(new CustomEvent(BUSINESS_ALERTS_UPDATED_EVENT, {
-      detail: { unreadCount: alerts.filter((alert) => !alert.read).length },
-    }))
+    dispatchBusinessAlertsUpdated({
+      unreadCount: alerts.filter((alert) => !alert.read).length,
+    })
   }, [alerts])
 
   useEffect(() => {
+    const applyAlerts = (nextAlerts: Alert[]) => {
+      setAlerts(nextAlerts)
+      setSelected((prev) => {
+        if (!nextAlerts.length) return null
+        if (!prev) return nextAlerts[0]
+        return nextAlerts.find((alert) => alert.id === prev.id) || nextAlerts[0]
+      })
+    }
+
     const loadAlerts = async (options: { silent?: boolean } = {}) => {
       const { silent = false } = options
       if (!silent) setLoading(true)
@@ -66,12 +94,7 @@ export default function AlertsPage() {
         const payload = await response.json().catch(() => ({}))
         if (!response.ok) throw new Error(payload?.message || 'Unable to load alerts.')
         const nextAlerts = Array.isArray(payload?.alerts) ? payload.alerts as Alert[] : []
-        setAlerts(nextAlerts)
-        setSelected((prev) => {
-          if (!nextAlerts.length) return null
-          if (!prev) return nextAlerts[0]
-          return nextAlerts.find((alert) => alert.id === prev.id) || nextAlerts[0]
-        })
+        applyAlerts(nextAlerts)
       } catch {
         if (!silent) {
           setAlerts([])
@@ -83,11 +106,23 @@ export default function AlertsPage() {
       }
     }
 
-    void loadAlerts()
-    const interval = setInterval(() => {
+    const onRefresh = (event: Event) => {
+      const detail = (event as CustomEvent<BusinessAlertsRefreshDetail>).detail
+      if (Array.isArray(detail?.alerts)) {
+        applyAlerts(detail.alerts)
+        setHasLoaded(true)
+        setLoading(false)
+        return
+      }
+
       void loadAlerts({ silent: true })
-    }, 30000)
-    return () => clearInterval(interval)
+    }
+
+    void loadAlerts()
+    window.addEventListener(BUSINESS_ALERTS_REFRESH_EVENT, onRefresh as EventListener)
+    return () => {
+      window.removeEventListener(BUSINESS_ALERTS_REFRESH_EVENT, onRefresh as EventListener)
+    }
   }, [])
 
   const markRead = (id: string) => {

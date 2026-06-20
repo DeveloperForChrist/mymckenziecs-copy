@@ -127,7 +127,7 @@ export async function GET() {
       .sort((a, b) => (a.time === 'Live' ? -1 : b.time === 'Live' ? 1 : 0))
       .slice(0, 300)
 
-    return NextResponse.json({ alerts: merged })
+    return NextResponse.json({ alerts: merged, businessId: workspace.businessId })
   } catch (error) {
     return errorResponse(error, 'Unable to load alerts.')
   }
