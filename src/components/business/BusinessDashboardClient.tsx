@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, Suspense, useCallback, useEffect, useMemo, useState, type MouseEvent, type ReactNode } from 'react';
+import { FormEvent, Suspense, useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import {
   Bell,
   BookOpen,
@@ -681,14 +681,46 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
   // Avoid hydration mismatches: always render "light" on the server + first client paint,
   // then sync the persisted theme after mount.
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const hasLocalThemePreferenceRef = useRef(false);
+  const themeManuallyUpdatedRef = useRef(false);
 
   useEffect(() => {
     try {
       const persisted = localStorage.getItem(THEME_KEY);
-      if (persisted === 'dark' || persisted === 'light') setTheme(persisted);
+      if (persisted === 'dark' || persisted === 'light') {
+        hasLocalThemePreferenceRef.current = true;
+        setTheme(persisted);
+      }
     } catch {
       // ignore
     }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadThemePreference = async () => {
+      try {
+        const response = await fetch('/api/user/preferences', { credentials: 'include', cache: 'no-store' });
+        if (!response.ok) return;
+        const payload = await response.json().catch(() => ({}));
+        const persistedTheme = payload?.theme === 'dark' || payload?.theme === 'light' ? payload.theme : null;
+        if (!persistedTheme || cancelled || hasLocalThemePreferenceRef.current || themeManuallyUpdatedRef.current) return;
+        try {
+          localStorage.setItem(THEME_KEY, persistedTheme);
+        } catch {
+          // ignore
+        }
+        setTheme(persistedTheme);
+      } catch {
+        // ignore
+      }
+    };
+
+    void loadThemePreference();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -837,11 +869,19 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
   const toggleTheme = () => {
     setTheme((t) => {
       const next = t === 'light' ? 'dark' : 'light';
+      themeManuallyUpdatedRef.current = true;
+      hasLocalThemePreferenceRef.current = true;
       try {
         localStorage.setItem(THEME_KEY, next);
       } catch {
         // Storage can be unavailable in private browsing; the in-memory toggle should still work.
       }
+      void fetch('/api/user/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ theme: next }),
+      }).catch(() => {});
       return next;
     });
   };
