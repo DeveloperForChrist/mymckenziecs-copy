@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { FormEvent, Suspense, useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import {
   Bell,
@@ -358,6 +359,7 @@ function formatChatHistoryDate(isoDate: string) {
 }
 
 function BusinessChatWorkspace({ initialChatPlan }: { initialChatPlan: InitialChatPlanState }) {
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -389,13 +391,13 @@ function BusinessChatWorkspace({ initialChatPlan }: { initialChatPlan: InitialCh
   const openConversation = (conversationId: string) => {
     const next = new URL(businessChatHref, window.location.origin);
     next.searchParams.set('conversationId', conversationId);
-    window.location.href = `${next.pathname}${next.search}${next.hash}`;
+    router.push(`${next.pathname}${next.search}${next.hash}`);
   };
 
   const startNewChat = () => {
     const next = new URL(businessChatHref, window.location.origin);
     next.searchParams.set('new', 'true');
-    window.location.href = `${next.pathname}${next.search}${next.hash}`;
+    router.push(`${next.pathname}${next.search}${next.hash}`);
   };
 
   const handleDeleteConversation = (conversationId: string, event: MouseEvent) => {
@@ -579,6 +581,7 @@ function BusinessWorkspacePage({
           dashboardHrefOverride={businessDashboardHref}
           settingsHrefOverride={`${businessDashboardHref}#settings`}
           forceAccess
+          embedded
         />
       </Suspense>
     );

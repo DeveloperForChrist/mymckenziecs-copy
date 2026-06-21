@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { Search, Filter, ExternalLink, Scale, Calendar, Building2, Lock, BookOpen, Loader2, ChevronLeft, ChevronRight, MessageCircle, Send } from 'lucide-react';
 import { hasCaseLawAccess } from '@/lib/plans/access';
@@ -309,6 +309,7 @@ type CaseLawSearchPageClientProps = {
   dashboardHrefOverride?: string;
   settingsHrefOverride?: string;
   forceAccess?: boolean;
+  embedded?: boolean;
 };
 
 export default function CaseLawSearchPageClient({
@@ -319,8 +320,20 @@ export default function CaseLawSearchPageClient({
   dashboardHrefOverride,
   settingsHrefOverride,
   forceAccess = false,
+  embedded = false,
 }: CaseLawSearchPageClientProps = {}) {
   const workspaceMaxWidth = 'var(--app-shell-max-width, 1720px)';
+  const pageShellStyle: CSSProperties = {
+    background: '#270427',
+    height: embedded ? '100%' : '100vh',
+    minHeight: 0,
+    width: '100%',
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    overscrollBehavior: 'contain',
+    WebkitOverflowScrolling: 'touch',
+    padding: 'clamp(12px, 3vw, 24px)',
+  };
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<CaseLawResult[]>([]);
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
@@ -781,11 +794,7 @@ export default function CaseLawSearchPageClient({
   // Show loading state while checking plan
   if (!planChecked) {
     return (
-      <div style={{
-        background: '#270427',
-        minHeight: '100vh',
-        padding: 'clamp(12px, 3vw, 24px)'
-      }}>
+      <div style={pageShellStyle}>
         <div style={{ maxWidth: workspaceMaxWidth, margin: '0 auto' }}>
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-white text-center">
@@ -802,11 +811,7 @@ export default function CaseLawSearchPageClient({
 
   if (!hasPlanAccess) {
     return (
-      <div style={{
-        background: '#270427',
-        minHeight: '100vh',
-        padding: 'clamp(12px, 3vw, 24px)'
-      }}>
+      <div style={pageShellStyle}>
         <div style={{ maxWidth: '960px', margin: '0 auto' }}>
           <div className="mb-8">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -857,11 +862,7 @@ export default function CaseLawSearchPageClient({
   }
 
   return (
-    <div style={{
-      background: '#270427',
-      minHeight: '100vh',
-      padding: 'clamp(12px, 3vw, 24px)'
-    }}>
+    <div style={pageShellStyle}>
       <div style={{ maxWidth: workspaceMaxWidth, margin: '0 auto' }}>
         {/* Header */}
         <div className="mb-8">

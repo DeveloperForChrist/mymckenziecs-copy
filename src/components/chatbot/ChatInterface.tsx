@@ -1832,7 +1832,7 @@ export default function ChatInterface({
     padding: '0',
     position: 'relative'
   }
-  const messageContentMaxWidth = shouldConstrainPaneContent ? 'min(860px, 100%)' : 'min(700px, 100%)'
+  const messageContentMaxWidth = shouldConstrainPaneContent ? 'min(760px, 100%)' : 'min(700px, 100%)'
   const messageLanePadding = '0'
 
   return (
