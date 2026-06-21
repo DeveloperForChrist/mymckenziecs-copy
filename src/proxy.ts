@@ -83,7 +83,6 @@ function isIgnorableMissingAuthSessionError(error: unknown): boolean {
 
 type MiddlewareUserProfile = {
   email_verified_at?: string | null
-  role?: string | null
   country_code?: string | null
 }
 
@@ -346,7 +345,7 @@ export async function proxy(request: NextRequest) {
     !isUnverifiedAllowedApi
   const shouldLoadUserProfile =
     Boolean(user) &&
-    (shouldEnforceVerification || requiresAdmin || isPublicMarketRoutingCandidate)
+    (shouldEnforceVerification || isPublicMarketRoutingCandidate)
 
   if (requiresAuth && !user) {
     // Redirect to sign-in for protected routes
@@ -370,21 +369,11 @@ export async function proxy(request: NextRequest) {
     if (!profileCacheHit) {
       const result = await supabase
         .from('users')
-        .select('email_verified_at, role, country_code')
+        .select('email_verified_at, country_code')
         .eq('id', user.id)
         .maybeSingle()
       profileRow = result.data as MiddlewareUserProfile | null
       profileError = result.error
-    }
-
-    if (!profileCacheHit && profileError?.code === '42703' && String(profileError?.message || '').toLowerCase().includes('role')) {
-      const fallback = await supabase
-        .from('users')
-        .select('email_verified_at, country_code')
-        .eq('id', user.id)
-        .maybeSingle()
-      profileRow = (fallback.data ? { ...fallback.data, role: null } : null) as MiddlewareUserProfile | null
-      profileError = fallback.error
     }
 
     logMiddlewarePerf('user.profile', profileStartedAt, pathname, {
@@ -509,19 +498,6 @@ export async function proxy(request: NextRequest) {
 
   if (requiresPaidPlan && user) {
     if (pathname.startsWith('/dashboard/case-profile') && entitlement && !hasCaseProfileAccess(entitlement?.plan_type)) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-  }
-
-  if (requiresAdmin && user) {
-    if (!userProfile || userProfile.role !== 'admin') {
-      if (pathname.startsWith('/api/')) {
-        return NextResponse.json({ 
-          error: 'Forbidden - Admin access required',
-          message: 'Your account does not have admin privileges. Contact support if you need admin access.',
-          debug: { hasProfile: !!userProfile, role: userProfile?.role, userId: user.id }
-        }, { status: 403 })
-      }
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }
