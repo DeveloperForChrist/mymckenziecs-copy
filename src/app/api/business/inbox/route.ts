@@ -52,6 +52,10 @@ function fmtTime(dateStr: string) {
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
 }
 
+function normalizeEmail(value: string | null | undefined) {
+  return String(value || '').trim().toLowerCase()
+}
+
 async function getContext() {
   const supabase = await createSupabaseRouteClient()
   const { data: authData } = await supabase.auth.getUser()
@@ -89,11 +93,12 @@ function mapMessage(row: InboxMessageRecord): SerializedInboxMessage {
 export async function GET() {
   try {
     const { user } = await getContext()
+    const userEmail = normalizeEmail(user.email)
 
     const { data: receivedRows, error: receivedError } = await supabaseAdmin
       .from('inbox_messages')
       .select('id, sender_id, sender_email, sender_name, recipient_email, subject, content, created_at, is_read, is_starred, deleted_at, type, metadata')
-      .eq('recipient_email', user.email)
+      .eq('recipient_email', userEmail)
       .order('created_at', { ascending: false })
 
     if (receivedError) {
@@ -103,7 +108,7 @@ export async function GET() {
     const { data: sentRows, error: sentError } = await supabaseAdmin
       .from('inbox_messages')
       .select('id, sender_id, sender_email, sender_name, recipient_email, subject, content, created_at, is_read, is_starred, deleted_at, type, metadata')
-      .or(`sender_id.eq.${user.id},sender_email.eq.${String(user.email || '')}`)
+      .or(`sender_id.eq.${user.id},sender_email.eq.${userEmail}`)
       .order('created_at', { ascending: false })
 
     if (sentError) {
@@ -113,7 +118,7 @@ export async function GET() {
     const receivedMessages = (receivedRows || []).map((row) => mapMessage(row as InboxMessageRecord))
     const sentMessages = (sentRows || [])
       .map((row) => mapMessage(row as InboxMessageRecord))
-      .filter((message) => message.senderEmail === user.email || message.metadata?.sentByBusinessDashboard)
+      .filter((message) => normalizeEmail(message.senderEmail) === userEmail || message.metadata?.sentByBusinessDashboard)
 
     return NextResponse.json({
       messages: receivedMessages,

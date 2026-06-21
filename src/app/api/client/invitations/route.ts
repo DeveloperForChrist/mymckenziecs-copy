@@ -178,6 +178,7 @@ export async function POST(request: NextRequest) {
       String(user.user_metadata?.full_name || user.user_metadata?.display_name || '').trim() ||
       user.email?.split('@')[0] ||
       'Client'
+    const clientEmail = normalizeEmail(user.email)
 
     const { error: linkError } = await supabaseAdmin
       .from('client_business_links')
@@ -186,7 +187,7 @@ export async function POST(request: NextRequest) {
           client_id: user.id,
           business_id: invitation.business_id,
           client_name: clientName,
-          client_email: user.email || null,
+          client_email: clientEmail || null,
           status: 'active',
           updated_at: new Date().toISOString(),
         },
@@ -222,7 +223,7 @@ export async function POST(request: NextRequest) {
       metadata: {
         invitationId: invitation.id,
         clientId: user.id,
-        clientEmail: user.email || null,
+        clientEmail: clientEmail || null,
       },
     })
 

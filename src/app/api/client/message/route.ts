@@ -13,6 +13,10 @@ interface ClientMessageFormData {
   content: string
 }
 
+function normalizeEmail(value: string | null | undefined) {
+  return String(value || '').trim().toLowerCase()
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as ClientMessageFormData
@@ -42,6 +46,8 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       )
     }
+
+    const senderEmail = normalizeEmail(user.email)
 
     // Verify the client is linked to this business
     const { data: link } = await supabaseAdmin
@@ -90,9 +96,9 @@ export async function POST(request: NextRequest) {
       .from('inbox_messages')
       .insert({
         sender_id: user.id,
-        sender_email: user.email,
+        sender_email: senderEmail || null,
         sender_name: link.client_name || user.email?.split('@')[0] || 'Client',
-        recipient_email: ownerData.user.email,
+        recipient_email: normalizeEmail(ownerData.user.email),
         subject: body.subject,
         content: body.content,
         type: 'email',

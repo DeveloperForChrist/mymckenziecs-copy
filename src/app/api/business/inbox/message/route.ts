@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
   try {
     const { user, workspace } = await getContext()
     const payload = (await request.json().catch(() => ({}))) as SendPortalMessagePayload
+    const senderEmail = normalizeEmail(asString(user.email || ''))
 
     const recipientEmail = normalizeEmail(asString(payload?.to))
     const subject = asString(payload?.subject)
@@ -240,7 +241,7 @@ export async function POST(request: NextRequest) {
       .from('inbox_messages')
       .insert({
         sender_id: user.id,
-        sender_email: user.email,
+        sender_email: senderEmail || null,
         sender_name: senderName,
         recipient_email: recipientEmail,
         subject,

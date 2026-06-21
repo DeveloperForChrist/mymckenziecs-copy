@@ -35,6 +35,10 @@ function asString(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+function normalizeEmail(value: string | null | undefined) {
+  return String(value || '').trim().toLowerCase()
+}
+
 function renderMessageBodyHtml(body: string) {
   return body
     .split(/\n{2,}/)
@@ -74,9 +78,10 @@ export async function POST(request: NextRequest) {
     if (authError || !user?.email) {
       return NextResponse.json({ message: 'Unauthorized.' }, { status: 401 })
     }
+    const senderEmail = normalizeEmail(user.email)
 
     const payload = (await request.json()) as SendEmailPayload
-    const to = asString(payload?.to)
+    const to = normalizeEmail(payload?.to)
     const subject = asString(payload?.subject)
     const body = asString(payload?.body)
     if (!to || !subject || !body) {
@@ -263,7 +268,7 @@ export async function POST(request: NextRequest) {
       .from('inbox_messages')
       .insert({
         sender_id: user.id,
-        sender_email: user.email,
+        sender_email: senderEmail,
         sender_name: senderName,
         recipient_email: to,
         subject,

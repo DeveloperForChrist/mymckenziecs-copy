@@ -18,6 +18,10 @@ interface TeamMember {
   avatarInitials: string
 }
 
+function normalizeEmail(value: string | null | undefined) {
+  return String(value || '').trim().toLowerCase()
+}
+
 function makeInitials(email: string) {
   return email.split('@')[0].replace(/[._-]/g, ' ').split(' ')
     .slice(0, 2).map(p => p[0] || '').join('').toUpperCase() || '?'
@@ -86,31 +90,33 @@ export default function TeamPage() {
       const supabase = getSupabaseBrowserClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
+      const inviterEmail = normalizeEmail(user.email)
+      const invitedEmail = normalizeEmail(inviteForm.email)
       const { data: inv, error: invErr } = await supabase.from('team_invitations')
-        .insert({ inviter_id: user.id, inviter_email: user.email,
-          invited_email: inviteForm.email, role: inviteForm.role, status: 'pending' })
+        .insert({ inviter_id: user.id, inviter_email: inviterEmail || null,
+          invited_email: invitedEmail, role: inviteForm.role, status: 'pending' })
         .select().single()
       if (invErr) throw invErr
       await supabase.from('inbox_messages').insert({
-        sender_id: user.id, sender_email: user.email,
+        sender_id: user.id, sender_email: inviterEmail || null,
         sender_name: user.email?.split('@')[0] || 'McKenzie Friend',
-        recipient_email: inviteForm.email,
+        recipient_email: invitedEmail,
         subject: `Team invitation from ${user.email}`,
         content: `You have been invited to join a team as ${ROLE_LABEL[inviteForm.role]}. Log in to your MyMcKenzieCS dashboard to accept or decline this invitation.`,
         type: 'invitation',
-        metadata: { invitation_id: (inv as Record<string, unknown>)?.id, role: inviteForm.role, inviter_email: user.email },
+        metadata: { invitation_id: (inv as Record<string, unknown>)?.id, role: inviteForm.role, inviter_email: inviterEmail || null },
       })
       const newMember: TeamMember = {
         id: String((inv as Record<string, unknown>)?.id || Date.now()),
-        name: inviteForm.email.split('@')[0], email: inviteForm.email,
+        name: invitedEmail.split('@')[0], email: invitedEmail,
         role: inviteForm.role, status: 'invited', matters: 0, joinedAt: '—',
-        avatarInitials: makeInitials(inviteForm.email),
+        avatarInitials: makeInitials(invitedEmail),
       }
       setMembers(p => [...p, newMember])
       setSelected(newMember)
       setInviteForm({ email: '', role: 'viewer' })
       setShowInvite(false)
-      setNotice('Invitation sent to ' + inviteForm.email)
+      setNotice('Invitation sent to ' + invitedEmail)
       setTimeout(() => setNotice(''), 4000)
     } catch (err: unknown) {
       setNoticeError(true)

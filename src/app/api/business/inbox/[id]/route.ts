@@ -16,6 +16,10 @@ type InboxMessageRecord = {
   deleted_at: string | null
 }
 
+function normalizeEmail(value: string | null | undefined) {
+  return String(value || '').trim().toLowerCase()
+}
+
 async function getAuthedUserEmail() {
   const supabase = await createSupabaseRouteClient()
   const { data: authData, error: authError } = await supabase.auth.getUser()
@@ -23,7 +27,7 @@ async function getAuthedUserEmail() {
     return { email: null, error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
   }
 
-  return { email: authData.user.email, error: null }
+  return { email: normalizeEmail(authData.user.email), error: null }
 }
 
 async function loadInboxMessage(id: string) {
@@ -56,7 +60,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     }
 
     const message = await loadInboxMessage(id)
-    if (!message || message.recipient_email !== email) {
+    if (!message || normalizeEmail(message.recipient_email) !== email) {
       return NextResponse.json({ error: 'Message not found.' }, { status: 404 })
     }
 
@@ -99,7 +103,7 @@ export async function DELETE(_request: NextRequest, context: { params: Promise<{
     }
 
     const message = await loadInboxMessage(id)
-    if (!message || message.recipient_email !== email) {
+    if (!message || normalizeEmail(message.recipient_email) !== email) {
       return NextResponse.json({ error: 'Message not found.' }, { status: 404 })
     }
 

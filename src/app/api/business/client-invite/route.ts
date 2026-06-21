@@ -53,6 +53,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const inviterEmail = normalizeEmail(user.email)
+
     // Get business for the user
     const { data: businessData, error: businessError } = await supabase
       .from('businesses')
@@ -89,7 +91,7 @@ export async function POST(request: NextRequest) {
       .insert({
         business_id: businessData.id,
         inviter_id: user.id,
-        inviter_email: user.email,
+        inviter_email: inviterEmail || null,
         invited_email: invitedEmail,
         client_name: body.name || null,
         status: 'pending',
@@ -150,7 +152,7 @@ export async function POST(request: NextRequest) {
       .from('inbox_messages')
       .insert({
         sender_id: user.id,
-        sender_email: user.email,
+        sender_email: inviterEmail || null,
         sender_name: inviteSenderName,
         recipient_email: invitedEmail,
         subject: `Client portal invite from ${businessData.name}`,
@@ -160,6 +162,7 @@ export async function POST(request: NextRequest) {
           invitation_id: invitation.id,
           business_id: businessData.id,
           invited_email: invitedEmail,
+          inviter_email: inviterEmail || null,
           status: 'pending',
           signup_url: signupUrl,
         },

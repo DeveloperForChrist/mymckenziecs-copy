@@ -67,12 +67,13 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
   let isSharedAttachment = false
   let isSharedCaseDoc = false
   if (!isOwner && user.email) {
+    const userEmail = normalizeEmail(user.email)
     const clientCaseIds = await loadClientCaseIds(user.id, user.email)
     const [receivedMessagesResult, sentMessagesResult] = await Promise.all([
       supabaseAdmin
         .from('inbox_messages')
         .select('metadata')
-        .eq('recipient_email', user.email)
+        .eq('recipient_email', userEmail)
         .limit(200),
       supabaseAdmin
         .from('inbox_messages')

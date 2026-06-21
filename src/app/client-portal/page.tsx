@@ -58,6 +58,10 @@ interface ClientMeeting {
   businessName: string
 }
 
+function normalizeEmail(value: string | null | undefined) {
+  return String(value || '').trim().toLowerCase()
+}
+
 export default function ClientPortalPage() {
   const [businessLinks, setBusinessLinks] = useState<BusinessLink[]>([])
   const [messages, setMessages] = useState<Message[]>([])
@@ -117,6 +121,7 @@ export default function ClientPortalPage() {
       const supabase = getSupabaseBrowserClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+      const userEmail = normalizeEmail(user.email)
 
       // Load business links
       const { data: links } = await supabase
@@ -159,7 +164,7 @@ export default function ClientPortalPage() {
       const { data: msgs } = await supabase
         .from('inbox_messages')
         .select('*')
-        .eq('recipient_email', user.email)
+        .eq('recipient_email', userEmail)
         .is('deleted_at', null)
         .order('created_at', { ascending: false })
 

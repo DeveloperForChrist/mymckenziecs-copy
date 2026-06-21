@@ -21,6 +21,10 @@ function toRelativeTime(value: string) {
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+function normalizeEmail(value: string | null | undefined) {
+  return String(value || '').trim().toLowerCase()
+}
+
 async function getContext() {
   const supabase = await createSupabaseRouteClient()
   const { data: authData } = await supabase.auth.getUser()
@@ -97,11 +101,12 @@ export async function GET() {
     }
 
     if (user.email) {
+      const userEmail = normalizeEmail(user.email)
       const staleIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
       const { data: staleMessages } = await supabaseAdmin
         .from('inbox_messages')
         .select('id, sender_name, created_at, subject')
-        .eq('recipient_email', user.email)
+        .eq('recipient_email', userEmail)
         .eq('is_read', false)
         .is('deleted_at', null)
         .contains('metadata', { fromClient: true })
