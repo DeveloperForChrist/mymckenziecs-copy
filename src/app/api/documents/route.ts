@@ -259,7 +259,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: uploadError.message }, { status: 500 })
       }
 
-      const { data: inserted, error: insertError } = await supabase
+      const { data: inserted, error: insertError } = await supabaseAdmin
         .from('documents')
         .insert({
           case_id: caseId,

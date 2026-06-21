@@ -209,6 +209,14 @@ type MeetingFormState = {
   description: string;
 };
 
+type InboxComposePreset = {
+  to: string;
+  subject: string;
+  body?: string;
+  caseId?: string;
+  matterLabel?: string;
+} | null;
+
 const NEW_CLIENT_VALUE = '__new_client__';
 const LOCAL_CLIENTS_KEY = 'mymckenzie-business-meeting-clients';
 const LOCAL_MEETINGS_KEY = 'mymckenzie-business-client-meetings';
@@ -397,6 +405,8 @@ function BusinessChatWorkspace({ initialChatPlan }: { initialChatPlan: InitialCh
   const startNewChat = () => {
     const next = new URL(businessChatHref, window.location.origin);
     next.searchParams.set('new', 'true');
+    next.searchParams.set('fresh', 'true');
+    localStorage.removeItem('currentConversationId');
     router.push(`${next.pathname}${next.search}${next.hash}`);
   };
 
@@ -543,7 +553,7 @@ function BusinessWorkspacePage({
   activeId: NavItem['id'];
   initialChatPlan: InitialChatPlanState;
   initialActiveId?: NavItem['id'];
-  inboxComposePreset: { to: string; subject: string; body?: string } | null;
+  inboxComposePreset: InboxComposePreset;
   documentsCaseIdOverride: string | null;
   meetingPreset: { clientName?: string; clientEmail?: string; context?: string } | null;
   onMeetingPresetConsumed: () => void;
@@ -679,7 +689,7 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
   const [alertsBusinessId, setAlertsBusinessId] = useState<string | null>(null);
   const [calendarCount, setCalendarCount] = useState(0);
   const [meetingsCount, setMeetingsCount] = useState(0);
-  const [inboxComposePreset, setInboxComposePreset] = useState<{ to: string; subject: string; body?: string } | null>(null);
+  const [inboxComposePreset, setInboxComposePreset] = useState<InboxComposePreset>(null);
   const [meetingPreset, setMeetingPreset] = useState<{ clientName?: string; clientEmail?: string; context?: string } | null>(null);
   const [documentsCaseIdOverride, setDocumentsCaseIdOverride] = useState<string | null>(null);
   // Avoid hydration mismatches: always render "light" on the server + first client paint,
@@ -742,12 +752,14 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
 
   useEffect(() => {
     const onCompose = (event: Event) => {
-      const custom = event as CustomEvent<{ to?: string; subject?: string; body?: string }>;
+      const custom = event as CustomEvent<{ to?: string; subject?: string; body?: string; caseId?: string; matterLabel?: string }>;
       const to = String(custom.detail?.to || '').trim();
       const subject = String(custom.detail?.subject || '').trim();
       const body = typeof custom.detail?.body === 'string' ? custom.detail.body : '';
+      const caseId = String(custom.detail?.caseId || '').trim();
+      const matterLabel = String(custom.detail?.matterLabel || '').trim();
       if (!to) return;
-      setInboxComposePreset({ to, subject, body });
+      setInboxComposePreset({ to, subject, body, caseId, matterLabel });
       setActiveId('messages');
     };
     window.addEventListener('mymckenzie-inbox-compose', onCompose as EventListener);

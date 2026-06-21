@@ -5,6 +5,7 @@ import {
   Archive,
   ArchiveRestore,
   CalendarClock,
+  CheckCircle2,
   ChevronRight,
   Edit3,
   Save,
@@ -34,6 +35,7 @@ import {
 } from '@/lib/business/client-matters'
 import MatterDocumentsPanel from '@/components/business/MatterDocumentsPanel'
 import styles from './clientMatters.module.css'
+import WorkspaceLoadingState from './WorkspaceLoadingState'
 
 const STAGE_LABELS: Record<MatterStage, string> = {
   intake: 'Intake',
@@ -325,9 +327,27 @@ export default function ClientMattersPage() {
     }
   }
 
-  const archiveMatter = async (id: string, status: ClientMatter['status']) => {
-    await updateMatter(id, { status })
-    setCheckedMatterIds((current) => current.filter((matterId) => matterId !== id))
+  const archiveMatter = async (matter: ClientMatter, status: ClientMatter['status']) => {
+    const patch: Partial<ClientMatter> = { status }
+    if (status === 'active' && matter.stage === 'closed') {
+      patch.stage = 'advice'
+    }
+    await updateMatter(matter.id, patch)
+    setCheckedMatterIds((current) => current.filter((matterId) => matterId !== matter.id))
+  }
+
+  const closeMatter = async (matter: ClientMatter) => {
+    if (matter.status === 'archived' && matter.stage === 'closed') return
+    const confirmed = window.confirm(`Close ${matter.clientName}'s work item and move it to archived client work?`)
+    if (!confirmed) return
+
+    setIsEditingMatter(false)
+    setDetailTab('overview')
+    await updateMatter(matter.id, {
+      stage: 'closed',
+      status: 'archived',
+    })
+    setCheckedMatterIds((current) => current.filter((matterId) => matterId !== matter.id))
   }
 
   const archiveCheckedMatters = async () => {
@@ -336,7 +356,12 @@ export default function ClientMattersPage() {
     const ids = checkedMatterIds
     const optimistic = matters.map((matter) => (
         checkedMatterIds.includes(matter.id)
-          ? { ...matter, status: nextStatus, lastActivity: new Date().toISOString() }
+          ? {
+              ...matter,
+              status: nextStatus,
+              stage: showArchived && matter.stage === 'closed' ? 'advice' : matter.stage,
+              lastActivity: new Date().toISOString(),
+            }
           : matter
       ))
     setMatters(optimistic)
@@ -345,7 +370,13 @@ export default function ClientMattersPage() {
     setSyncNotice(null)
 
     try {
-      const updatedMatters = await Promise.all(ids.map((id) => updateClientMatter(id, { status: nextStatus })))
+      const updatedMatters = await Promise.all(ids.map((id) => {
+        const matter = matters.find((item) => item.id === id)
+        return updateClientMatter(id, {
+          status: nextStatus,
+          ...(showArchived && matter?.stage === 'closed' ? { stage: 'advice' as MatterStage } : {}),
+        })
+      }))
       const updatedById = new Map(updatedMatters.map((matter) => [matter.id, matter]))
       const remoteMatters = optimistic.map((matter) => updatedById.get(matter.id) ?? matter)
       setMatters(remoteMatters)
@@ -463,9 +494,11 @@ export default function ClientMattersPage() {
           <span className={styles.kicker}>Case books</span>
           <h1>Client Work</h1>
           <p>A simple solo workspace for client issues, deadlines, documents and next actions.</p>
-          {(loading || syncNotice) && (
-            <p className={styles.syncNotice}>{loading ? 'Loading saved client work...' : syncNotice}</p>
-          )}
+          {loading ? (
+            <WorkspaceLoadingState variant="inline" label="Loading saved client work..." className={styles.syncNotice} />
+          ) : syncNotice ? (
+            <p className={styles.syncNotice}>{syncNotice}</p>
+          ) : null}
         </div>
 
         <div className={styles.stats}>
@@ -578,7 +611,7 @@ export default function ClientMattersPage() {
                     <button
                       type="button"
                       title={matter.status === 'archived' ? 'Restore work item' : 'Archive work item'}
-                      onClick={() => archiveMatter(matter.id, matter.status === 'archived' ? 'active' : 'archived')}
+                      onClick={() => archiveMatter(matter, matter.status === 'archived' ? 'active' : 'archived')}
                     >
                       {matter.status === 'archived' ? <ArchiveRestore size={15} /> : <Archive size={15} />}
                     </button>
@@ -593,23 +626,56 @@ export default function ClientMattersPage() {
           <aside className={styles.detailPanel}>
             <>
               <div className={styles.detailHeader}>
-                <span className={`${styles.riskBadge} ${styles[`risk_${selectedMatter.urgency}`]}`}>
-                  <ShieldAlert size={13} />
-                  {selectedMatter.urgency} priority
-                </span>
-                <button
-                  type="button"
-                  className={styles.editMatterBtn}
-                  onClick={isEditingMatter ? cancelMatterEdit : beginMatterEdit}
-                >
-                  {isEditingMatter ? <X size={15} /> : <Edit3 size={15} />}
-                  {isEditingMatter ? 'Cancel edit' : 'Edit details'}
-                </button>
+                <div className={styles.detailHeaderMeta}>
+                  <span className={`${styles.riskBadge} ${styles[`risk_${selectedMatter.urgency}`]}`}>
+                    <ShieldAlert size={13} />
+                    {selectedMatter.urgency} priority
+                  </span>
+                  {selectedMatter.status === 'archived' && (
+                    <span className={styles.stateBadge}>
+                      {selectedMatter.stage === 'closed' ? 'Closed and archived' : 'Archived'}
+                    </span>
+                  )}
+                </div>
+                <div className={styles.detailHeaderActions}>
+                  {selectedMatter.status === 'active' ? (
+                    <button
+                      type="button"
+                      className={styles.closeMatterBtn}
+                      onClick={() => void closeMatter(selectedMatter)}
+                    >
+                      <CheckCircle2 size={15} />
+                      Close case
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className={styles.editMatterBtn}
+                      onClick={() => archiveMatter(selectedMatter, 'active')}
+                    >
+                      <ArchiveRestore size={15} />
+                      Reopen case
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={styles.editMatterBtn}
+                    onClick={isEditingMatter ? cancelMatterEdit : beginMatterEdit}
+                  >
+                    {isEditingMatter ? <X size={15} /> : <Edit3 size={15} />}
+                    {isEditingMatter ? 'Cancel edit' : 'Edit details'}
+                  </button>
+                </div>
                 <button type="button" className={styles.closeDetail} onClick={() => setSelectedMatterId(null)} aria-label="Close work panel">
                   <X size={16} />
                 </button>
                 <h2>{selectedMatter.clientName}</h2>
                 <p>{selectedMatter.issueType}</p>
+                {selectedMatter.status === 'archived' && (
+                  <span className={styles.detailSubtext}>
+                    Closed work stays in the portal history and can be reopened later if the client returns.
+                  </span>
+                )}
               </div>
 
               <div className={styles.detailTabs} role="tablist" aria-label="Client work workspace">
@@ -838,6 +904,8 @@ export default function ClientMattersPage() {
                         detail: {
                           to: selectedMatter.email,
                           subject: `Regarding your client work ${selectedMatter.matterNumber}`,
+                          caseId: selectedMatter.caseId || '',
+                          matterLabel: selectedMatter.matterNumber || selectedMatter.clientName,
                         },
                       }))
                     }}

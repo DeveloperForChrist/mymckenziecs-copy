@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { Mail, Send, FileText, Trash2, Archive, Star, Search, Reply, Forward, X, UserPlus, CheckCircle2, XCircle, Loader2, Paperclip, UploadCloud, RotateCcw } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Mail, Send, FileText, Trash2, Archive, Star, Search, Reply, X, UserPlus, CheckCircle2, XCircle, Loader2, Paperclip, UploadCloud, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react'
 import styles from './inbox.module.css'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import { parseInboxAttachments, type InboxMessageAttachment } from '@/lib/inbox/attachments'
 import { EMAIL_ATTACHMENT_ACCEPT, EMAIL_ATTACHMENT_LABEL, isAllowedEmailAttachment } from '@/lib/inbox/attachment-policy'
+import WorkspaceLoadingState from './WorkspaceLoadingState'
 
 interface Message {
   id: string
@@ -18,6 +19,7 @@ interface Message {
   isRead: boolean
   isStarred: boolean
   type: 'email' | 'invitation' | 'client_invite'
+  isSentByBusiness?: boolean
   metadata?: {
     invitation_id?: string
     role?: string
@@ -27,6 +29,12 @@ interface Message {
     client_name?: string
     accepted_at?: string | null
     fromClient?: boolean
+    caseId?: string | null
+    matterId?: string | null
+    matterNumber?: string | null
+    matterLabel?: string | null
+    matterStage?: string | null
+    matterStatus?: string | null
     attachmentIds?: string[]
     attachments?: InboxMessageAttachment[]
   }
@@ -38,6 +46,26 @@ type DocumentOption = {
   name: string
   createdAt: string
   size: number
+}
+
+type ActiveClientOption = {
+  id: string
+  name: string
+  email: string
+  label: string
+  updatedAt: string | null
+}
+
+type MatterOption = {
+  id: string
+  caseId: string | null
+  email: string
+  clientName: string
+  matterNumber: string
+  issueType: string
+  status: 'active' | 'archived'
+  stage: string
+  lastActivity: string | null
 }
 
 const ROLE_LABEL: Record<string, string> = {
@@ -66,11 +94,49 @@ function fmtTime(dateStr: string) {
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
 }
 
-export default function InboxPage({ composePreset }: { composePreset?: { to: string; subject?: string; body?: string } | null }) {
+function mapInboxMessageRow(row: Record<string, unknown>, overrides?: { sentByBusiness?: boolean }): Message {
+  const metadata = (row.metadata as Record<string, unknown> | undefined) || {}
+  return {
+    id: String(row.id),
+    sender: String(row.sender_name || String(row.sender_email || '').split('@')[0] || 'Unknown'),
+    senderEmail: String(row.sender_email || ''),
+    subject: String(row.subject || ''),
+    preview: String(row.content || '').slice(0, 100),
+    content: String(row.content || ''),
+    timestamp: fmtTime(String(row.created_at || new Date().toISOString())),
+    isRead: Boolean(row.is_read),
+    isStarred: Boolean(row.is_starred),
+    type: 'email',
+    isSentByBusiness: Boolean(overrides?.sentByBusiness),
+    deletedAt: typeof row.deleted_at === 'string' ? row.deleted_at : null,
+    metadata: {
+      ...metadata,
+      fromClient: Boolean(metadata.fromClient),
+      attachments: parseInboxAttachments(metadata),
+    },
+  }
+}
+
+function normalizeRecipient(value: string) {
+  return value.trim().toLowerCase()
+}
+
+export default function InboxPage({
+  composePreset,
+}: {
+  composePreset?: { to: string; subject?: string; body?: string; caseId?: string; matterLabel?: string } | null
+}) {
   const [messages, setMessages] = useState<Message[]>([])
   const [clientMessages, setClientMessages] = useState<Message[]>([])
+  const [sentMessages, setSentMessages] = useState<Message[]>([])
   const [invitations, setInvitations] = useState<Message[]>([])
   const [clientInvites, setClientInvites] = useState<Message[]>([])
+  const [activeClients, setActiveClients] = useState<ActiveClientOption[]>([])
+  const [activeClientsLoading, setActiveClientsLoading] = useState(false)
+  const [activeClientsError, setActiveClientsError] = useState('')
+  const [matterOptions, setMatterOptions] = useState<MatterOption[]>([])
+  const [mattersLoading, setMattersLoading] = useState(false)
+  const [mattersError, setMattersError] = useState('')
   const [selectedMsg, setSelectedMsg] = useState<Message | null>(null)
   const [selectedFolder, setSelectedFolder] = useState('inbox')
   const [searchQuery, setSearchQuery] = useState('')
@@ -79,12 +145,20 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
   const [showCompose, setShowCompose] = useState(false)
   const [showClientInvite, setShowClientInvite] = useState(false)
   const [composeForm, setComposeForm] = useState({ to: '', subject: '', body: '' })
+  const [recipientQuery, setRecipientQuery] = useState('')
+  const [selectedRecipient, setSelectedRecipient] = useState<ActiveClientOption | null>(null)
+  const [recipientPickerOpen, setRecipientPickerOpen] = useState(false)
+  const [activeRecipientIndex, setActiveRecipientIndex] = useState(0)
   const [clientInviteForm, setClientInviteForm] = useState({ email: '', name: '' })
   const [attachedFiles, setAttachedFiles] = useState<File[]>([])
   const [availableDocuments, setAvailableDocuments] = useState<DocumentOption[]>([])
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
   const [documentsLoading, setDocumentsLoading] = useState(false)
   const [documentsError, setDocumentsError] = useState('')
+  const [documentPickerOpen, setDocumentPickerOpen] = useState(true)
+  const [selectedMatter, setSelectedMatter] = useState<MatterOption | null>(null)
+  const [composeCaseId, setComposeCaseId] = useState('')
+  const [composeMatterLabel, setComposeMatterLabel] = useState('')
   const [composeSending, setComposeSending] = useState(false)
   const [inviteSending, setInviteSending] = useState(false)
   const [composeNotice, setComposeNotice] = useState('')
@@ -99,13 +173,50 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
     if (attachmentInputRef.current) attachmentInputRef.current.value = ''
   }
 
-  const openComposeDraft = (draft: { to: string; subject: string; body: string }, message?: Message) => {
+  const resetRecipientPicker = () => {
+    setActiveClients([])
+    setActiveClientsError('')
+    setActiveClientsLoading(false)
+    setMatterOptions([])
+    setMattersError('')
+    setMattersLoading(false)
+    setRecipientQuery('')
+    setSelectedRecipient(null)
+    setSelectedMatter(null)
+    setRecipientPickerOpen(false)
+    setActiveRecipientIndex(0)
+  }
+
+  const closeComposeModal = () => {
+    setShowCompose(false)
+    resetComposeAttachments()
+    resetRecipientPicker()
+    setDocumentPickerOpen(true)
+    setComposeCaseId('')
+    setComposeMatterLabel('')
+    setComposeForm({ to: '', subject: '', body: '' })
+    setComposeNotice('')
+  }
+
+  const openComposeDraft = (
+    draft: { to: string; subject: string; body: string },
+    message?: Message,
+    context?: { caseId?: string; matterLabel?: string },
+  ) => {
     if (message) {
       setSelectedFolder('inbox')
       setSelectedMsg(message)
     }
     setComposeNotice('')
     setComposeForm(draft)
+    setRecipientQuery(draft.to)
+    setSelectedRecipient(null)
+    setSelectedMatter(null)
+    setRecipientPickerOpen(true)
+    setActiveRecipientIndex(0)
+    setDocumentPickerOpen(true)
+    setComposeCaseId((context?.caseId || '').trim())
+    setComposeMatterLabel((context?.matterLabel || '').trim())
     resetComposeAttachments()
     setShowCompose(true)
   }
@@ -119,19 +230,96 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
         body: `\n\n--- Original message ---\nFrom: ${message.sender} <${message.senderEmail}>\nSent: ${message.timestamp}\nSubject: ${message.subject}\n\n${message.content}`,
       },
       message,
+      {
+        caseId: typeof message.metadata?.caseId === 'string' ? message.metadata.caseId : '',
+        matterLabel: typeof message.metadata?.matterNumber === 'string'
+          ? message.metadata.matterNumber
+          : typeof message.metadata?.matterLabel === 'string'
+            ? message.metadata.matterLabel
+            : '',
+      },
     )
   }
 
-  const openForward = (message: Message) => {
-    const forwardSubject = message.subject.toLowerCase().startsWith('fwd:') ? message.subject : `Fwd: ${message.subject}`
-    openComposeDraft(
-      {
-        to: '',
-        subject: forwardSubject,
-        body: `\n\n--- Forwarded message ---\nFrom: ${message.sender} <${message.senderEmail}>\nSent: ${message.timestamp}\nSubject: ${message.subject}\n\n${message.content}`,
-      },
-      message,
+  const filteredActiveClients = useMemo(() => {
+    const term = normalizeRecipient(recipientQuery)
+    if (!term) return activeClients
+    return activeClients.filter((client) =>
+      [client.name, client.email, client.label].some((value) => normalizeRecipient(value).includes(term))
     )
+  }, [activeClients, recipientQuery])
+
+  const visibleActiveClients = useMemo(() => filteredActiveClients.slice(0, 8), [filteredActiveClients])
+
+  const recipientMatters = useMemo(() => {
+    if (!selectedRecipient) return []
+    return matterOptions.filter((matter) => normalizeRecipient(matter.email) === normalizeRecipient(selectedRecipient.email))
+  }, [matterOptions, selectedRecipient])
+
+  const requiresMatterSelection = Boolean(selectedRecipient && recipientMatters.length > 1 && !selectedMatter)
+
+  const selectMatter = (matter: MatterOption | null) => {
+    setSelectedMatter(matter)
+    setComposeCaseId(matter?.caseId || '')
+    setComposeMatterLabel(matter?.matterNumber || matter?.issueType || matter?.clientName || '')
+    setSelectedDocumentIds([])
+  }
+
+  const selectRecipient = (client: ActiveClientOption) => {
+    setSelectedRecipient(client)
+    setRecipientQuery(client.label)
+    setComposeForm((prev) => ({ ...prev, to: client.email }))
+    selectMatter(null)
+    setRecipientPickerOpen(false)
+    setActiveRecipientIndex(0)
+    setActiveClientsError('')
+  }
+
+  const clearRecipient = () => {
+    setSelectedRecipient(null)
+    selectMatter(null)
+    setRecipientQuery('')
+    setComposeForm((prev) => ({ ...prev, to: '' }))
+    setRecipientPickerOpen(true)
+    setActiveRecipientIndex(0)
+  }
+
+  const handleRecipientKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (visibleActiveClients.length === 0) {
+      if (event.key === 'Escape') {
+        setRecipientPickerOpen(false)
+      }
+      return
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setRecipientPickerOpen(true)
+      setActiveRecipientIndex((current) => (current + 1) % visibleActiveClients.length)
+      return
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setRecipientPickerOpen(true)
+      setActiveRecipientIndex((current) => (current - 1 + visibleActiveClients.length) % visibleActiveClients.length)
+      return
+    }
+
+    if (event.key === 'Enter' && recipientPickerOpen) {
+      const recipient = visibleActiveClients[activeRecipientIndex]
+      if (recipient) {
+        event.preventDefault()
+        selectRecipient(recipient)
+      }
+      return
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      setRecipientPickerOpen(false)
+      setActiveRecipientIndex(0)
+    }
   }
 
   useEffect(() => { loadData() }, [])
@@ -140,23 +328,38 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
     if (!composePreset?.to) return
     setSelectedFolder('inbox')
     setSelectedMsg(null)
+    setRecipientQuery(composePreset.to)
+    setSelectedRecipient(null)
+    setSelectedMatter(null)
+    setRecipientPickerOpen(true)
     setComposeForm({
       to: composePreset.to,
       subject: composePreset.subject || '',
       body: composePreset.body || '',
     })
+    setComposeCaseId((composePreset.caseId || '').trim())
+    setComposeMatterLabel((composePreset.matterLabel || '').trim())
+    setDocumentPickerOpen(true)
     setShowCompose(true)
-  }, [composePreset?.to, composePreset?.subject, composePreset?.body])
+  }, [composePreset?.to, composePreset?.subject, composePreset?.body, composePreset?.caseId, composePreset?.matterLabel])
 
   useEffect(() => {
     if (!showCompose) return
 
     let cancelled = false
     const loadDocuments = async () => {
+      setSelectedDocumentIds([])
+      if (!composeCaseId) {
+        setAvailableDocuments([])
+        setDocumentsError('')
+        setDocumentsLoading(false)
+        return
+      }
+
       setDocumentsLoading(true)
       setDocumentsError('')
       try {
-        const res = await fetch('/api/documents?limit=100&offset=0', {
+        const res = await fetch(`/api/documents?limit=100&offset=0&caseId=${encodeURIComponent(composeCaseId)}`, {
           credentials: 'include',
           cache: 'no-store',
         })
@@ -189,44 +392,219 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
     return () => {
       cancelled = true
     }
+  }, [showCompose, composeCaseId])
+
+  useEffect(() => {
+    if (!showCompose) return
+
+    let cancelled = false
+    const loadMatters = async () => {
+      setMattersLoading(true)
+      setMattersError('')
+      try {
+        const response = await fetch('/api/business/client-matters', {
+          credentials: 'include',
+          cache: 'no-store',
+        })
+        const payload = await response.json().catch(() => ({}))
+        if (!response.ok) {
+          throw new Error(payload?.message || 'Unable to load client matters.')
+        }
+
+        const nextMatters = (Array.isArray(payload?.matters) ? payload.matters : [])
+          .map((matter: Record<string, unknown>) => {
+            const email = normalizeRecipient(String(matter.email || ''))
+            if (!email) return null
+            return {
+              id: String(matter.id || ''),
+              caseId: typeof matter.caseId === 'string' ? matter.caseId : null,
+              email,
+              clientName: String(matter.clientName || 'Client').trim() || 'Client',
+              matterNumber: String(matter.matterNumber || '').trim(),
+              issueType: String(matter.issueType || 'Client matter').trim() || 'Client matter',
+              status: String(matter.status || 'active') === 'archived' ? 'archived' : 'active',
+              stage: String(matter.stage || '').trim(),
+              lastActivity: typeof matter.lastActivity === 'string' ? matter.lastActivity : null,
+            } satisfies MatterOption
+          })
+          .filter((matter: MatterOption | null): matter is MatterOption => Boolean(matter?.id))
+          .sort((a: MatterOption, b: MatterOption) => {
+            if (a.status !== b.status) return a.status === 'active' ? -1 : 1
+            return String(b.lastActivity || '').localeCompare(String(a.lastActivity || ''))
+          })
+
+        if (!cancelled) {
+          setMatterOptions(nextMatters)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setMatterOptions([])
+          setMattersError(err instanceof Error ? err.message : 'Unable to load client matters.')
+        }
+      } finally {
+        if (!cancelled) setMattersLoading(false)
+      }
+    }
+
+    void loadMatters()
+    return () => {
+      cancelled = true
+    }
+  }, [showCompose])
+
+  useEffect(() => {
+    if (!showCompose || !selectedRecipient) return
+
+    const currentRecipientEmail = normalizeRecipient(selectedRecipient.email)
+    const matchingMatters = matterOptions.filter((matter) => normalizeRecipient(matter.email) === currentRecipientEmail)
+    const presetMatter = composeCaseId
+      ? matchingMatters.find((matter) => matter.caseId === composeCaseId)
+      : null
+
+    if (presetMatter) {
+      if (selectedMatter?.id !== presetMatter.id) {
+        setSelectedMatter(presetMatter)
+        setComposeMatterLabel(presetMatter.matterNumber || presetMatter.issueType || presetMatter.clientName)
+      }
+      return
+    }
+
+    if (matchingMatters.length === 1) {
+      const onlyMatter = matchingMatters[0]
+      if (selectedMatter?.id !== onlyMatter.id) {
+        selectMatter(onlyMatter)
+      }
+      return
+    }
+
+    if (matchingMatters.length === 0) {
+      if (selectedMatter) selectMatter(null)
+      return
+    }
+
+    if (selectedMatter && matchingMatters.some((matter) => matter.id === selectedMatter.id)) {
+      return
+    }
+
+    selectMatter(null)
+  }, [showCompose, selectedRecipient, matterOptions, composeCaseId, selectedMatter])
+
+  useEffect(() => {
+    if (!selectedRecipient && selectedMatter) {
+      setSelectedMatter(null)
+    }
+  }, [selectedRecipient, selectedMatter])
+
+  useEffect(() => {
+    if (!showCompose) return
+
+    let cancelled = false
+    const loadActiveClients = async () => {
+      setActiveClientsLoading(true)
+      setActiveClientsError('')
+      try {
+        const supabase = getSupabaseBrowserClient()
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.access_token) {
+          throw new Error('Not authenticated')
+        }
+
+        const response = await fetch('/api/business/clients', {
+          credentials: 'include',
+          cache: 'no-store',
+        })
+        const payload = await response.json().catch(() => ({}))
+        if (!response.ok) {
+          throw new Error(payload?.message || 'Unable to load clients.')
+        }
+
+        const clients = Array.isArray(payload?.clients) ? payload.clients : []
+        if (cancelled) return
+
+        const nextClients: ActiveClientOption[] = clients
+          .map((client: Record<string, unknown>) => {
+            const email = normalizeRecipient(String(client.email || ''))
+            if (!email) return null
+            const name = String(client.name || email.split('@')[0] || 'Client').trim()
+            return {
+              id: String(client.id || email),
+              name,
+              email,
+              label: String(client.label || `${name} <${email}>`),
+              updatedAt: typeof client.updatedAt === 'string' ? client.updatedAt : null,
+            } satisfies ActiveClientOption
+          })
+          .filter((client: ActiveClientOption | null): client is ActiveClientOption => client !== null)
+
+        setActiveClients(nextClients)
+
+        const initialRecipient = normalizeRecipient(composeForm.to)
+        if (initialRecipient) {
+          const matchedClient = nextClients.find((client) => normalizeRecipient(client.email) === initialRecipient)
+          if (matchedClient) {
+            setSelectedRecipient(matchedClient)
+            setRecipientQuery(matchedClient.label)
+            setComposeForm((prev) => ({ ...prev, to: matchedClient.email }))
+            setActiveRecipientIndex(0)
+          }
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setActiveClients([])
+          setActiveClientsError(err instanceof Error ? err.message : 'Unable to load clients.')
+        }
+      } finally {
+        if (!cancelled) setActiveClientsLoading(false)
+      }
+    }
+
+    void loadActiveClients()
+    return () => {
+      cancelled = true
+    }
   }, [showCompose])
 
   async function loadData() {
     setLoading(true)
     try {
       const supabase = getSupabaseBrowserClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user?.email) { setLoading(false); return }
+      const [{ data: sessionData }, { data: userData }] = await Promise.all([
+        supabase.auth.getSession(),
+        supabase.auth.getUser(),
+      ])
+      const session = sessionData.session
+      const user = userData.user
 
-      const { data: msgs } = await supabase
-        .from('inbox_messages').select('*')
-        .eq('recipient_email', user.email)
-        .order('created_at', { ascending: false })
-
-      if (msgs) {
-        const allMessages = msgs.map((r: Record<string, unknown>) => ({
-          id: String(r.id),
-          sender: String(r.sender_name || String(r.sender_email || '').split('@')[0] || 'Unknown'),
-          senderEmail: String(r.sender_email || ''),
-          subject: String(r.subject),
-          preview: String(r.content || '').slice(0, 100),
-          content: String(r.content || ''),
-          timestamp: fmtTime(String(r.created_at)),
-          isRead: Boolean(r.is_read),
-          isStarred: Boolean(r.is_starred),
-          type: 'email' as const,
-          deletedAt: typeof r.deleted_at === 'string' ? r.deleted_at : null,
-          metadata: {
-            ...(r.metadata as Record<string, unknown> | undefined),
-            fromClient: Boolean((r.metadata as Record<string, unknown> | undefined)?.fromClient),
-            attachments: parseInboxAttachments(r.metadata),
-          } as Message['metadata'],
-        }))
-
-        // Separate client messages from regular messages
-        setMessages(allMessages.filter(m => !m.metadata?.fromClient))
-        setClientMessages(allMessages.filter(m => m.metadata?.fromClient))
+      if (!session?.access_token || !user?.email) {
+        setMessages([])
+        setClientMessages([])
+        setSentMessages([])
+        setInvitations([])
+        setClientInvites([])
+        return
       }
+
+      const inboxResponse = await fetch('/api/business/inbox', {
+        credentials: 'include',
+        cache: 'no-store',
+      })
+      const inboxPayload = await inboxResponse.json().catch(() => ({}))
+      if (!inboxResponse.ok) {
+        throw new Error(inboxPayload?.message || 'Unable to load inbox messages.')
+      }
+
+      const allMessages: Message[] = Array.isArray(inboxPayload?.messages)
+        ? inboxPayload.messages.map((row: Record<string, unknown>) => mapInboxMessageRow(row))
+        : []
+      const allSentMessages: Message[] = Array.isArray(inboxPayload?.sentMessages)
+        ? inboxPayload.sentMessages
+            .map((row: Record<string, unknown>) => mapInboxMessageRow(row, { sentByBusiness: true }))
+            .filter((message: Message) => message.senderEmail === user.email)
+        : []
+
+      setMessages(allMessages.filter((m: Message) => !m.metadata?.fromClient))
+      setClientMessages(allMessages.filter((m: Message) => m.metadata?.fromClient))
+      setSentMessages(allSentMessages)
 
       const { data: invs } = await supabase
         .from('team_invitations').select('*')
@@ -248,7 +626,6 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
         })))
       }
 
-      const { data: { session } } = await supabase.auth.getSession()
       if (session?.access_token) {
         try {
           const res = await fetch('/api/business/client-invite', {
@@ -300,11 +677,37 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) throw new Error('Not authenticated')
 
+      const recipientEmail = normalizeRecipient(selectedRecipient?.email || composeForm.to)
+      const recipient = activeClients.find((client) => normalizeRecipient(client.email) === recipientEmail)
+      if (!recipient) {
+        throw new Error('Choose an active client from the picker.')
+      }
+
+      if (!selectedRecipient || selectedRecipient.email !== recipient.email) {
+        setSelectedRecipient(recipient)
+        setRecipientQuery(recipient.label)
+        setComposeForm((prev) => ({ ...prev, to: recipient.email }))
+      }
+
+      const matchingMatters = matterOptions.filter((matter) => normalizeRecipient(matter.email) === recipient.email)
+      const resolvedMatter = selectedMatter || (matchingMatters.length === 1 ? matchingMatters[0] : null)
+
+      if (matchingMatters.length > 1 && !resolvedMatter) {
+        throw new Error('Choose which matter this message belongs to.')
+      }
+
+      if (resolvedMatter && selectedMatter?.id !== resolvedMatter.id) {
+        selectMatter(resolvedMatter)
+      }
+
       let attachmentIds: string[] = []
       if (attachedFiles.length > 0) {
         const formData = new FormData()
         attachedFiles.forEach((file) => formData.append('files', file))
         formData.append('source', 'business-inbox-attachment')
+        if (resolvedMatter?.caseId) {
+          formData.append('caseId', resolvedMatter.caseId)
+        }
         const uploadRes = await fetch('/api/documents', {
           method: 'POST',
           body: formData,
@@ -322,17 +725,19 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
       }
       attachmentIds = Array.from(new Set([...selectedDocumentIds, ...attachmentIds]))
 
-      const response = await fetch('/api/business/send-email', {
+      const response = await fetch('/api/business/inbox/message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
-          to: composeForm.to,
+          to: recipient.email,
           subject: composeForm.subject,
           body: composeForm.body,
           attachmentIds,
+          matterId: resolvedMatter?.id || undefined,
+          caseId: resolvedMatter?.caseId || undefined,
         }),
       })
       const payload = await response.json().catch(() => ({}))
@@ -349,10 +754,14 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
         attachmentInputRef.current.value = ''
       }
       void loadData()
-      setTimeout(() => { setShowCompose(false); setComposeNotice('') }, 1500)
+      setTimeout(() => { closeComposeModal() }, 1500)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to send'
-      setComposeNotice(msg.includes('does not exist') ? 'DB not set up yet — see code comment for SQL.' : msg)
+      if (/row-level security policy for table "documents"/i.test(msg) || /failed to upload attachments/i.test(msg)) {
+        setComposeNotice('Document uploads are blocked by database permissions right now. You can still send the message without attachments.')
+      } else {
+        setComposeNotice(msg.includes('does not exist') ? 'DB not set up yet — see code comment for SQL.' : msg)
+      }
     } finally { setComposeSending(false) }
   }
 
@@ -435,11 +844,13 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
 
   const activeMessages = messages.filter(m => !m.deletedAt)
   const activeClientMessages = clientMessages.filter(m => !m.deletedAt)
+  const activeSentMessages = sentMessages.filter(m => !m.deletedAt)
   const trashedMessages = [...messages, ...clientMessages].filter(m => Boolean(m.deletedAt))
 
   const listed = selectedFolder === 'clients' ? activeClientMessages
     : selectedFolder === 'invitations' ? invitations
     : selectedFolder === 'client-invites' ? clientInvites
+    : selectedFolder === 'sent' ? activeSentMessages
     : selectedFolder === 'starred' ? activeMessages.filter(m => m.isStarred)
     : selectedFolder === 'trash' ? trashedMessages
     : selectedFolder === 'archive' ? []
@@ -456,6 +867,7 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
     clients: activeClientMessages.filter(m => !m.isRead).length,
     invitations: invitations.filter(m => m.metadata?.status === 'pending').length,
     'client-invites': clientInvites.filter(m => m.metadata?.status === 'pending').length,
+    sent: activeSentMessages.length,
     starred: activeMessages.filter(m => m.isStarred).length,
     trash: trashedMessages.length,
     archive: 0,
@@ -543,8 +955,7 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
               className={styles.composeOverlay}
               onClick={e => {
                 if (e.target === e.currentTarget) {
-                  setShowCompose(false)
-                  resetComposeAttachments()
+                  closeComposeModal()
                 }
               }}
             >
@@ -555,8 +966,7 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
                 type="button"
                 className={styles.composeClose}
                 onClick={() => {
-                  setShowCompose(false)
-                  resetComposeAttachments()
+                  closeComposeModal()
                 }}
               >
                 <X size={16}/>
@@ -565,9 +975,158 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
             <form onSubmit={handleComposeSend} className={styles.composeForm}>
               <div className={styles.composeField}>
                 <label className={styles.composeLabel}>To:</label>
-                <input className={styles.composeInput} type="email" required placeholder="recipient@email.com"
-                  value={composeForm.to} onChange={e => setComposeForm(f => ({ ...f, to: e.target.value }))}/>
+                <div className={styles.clientPickerControls}>
+                  <input
+                    className={styles.composeInput}
+                    type="text"
+                    required
+                    placeholder="Search active clients by name or email"
+                    value={recipientQuery}
+                    role="combobox"
+                    aria-expanded={recipientPickerOpen}
+                    aria-controls="active-client-picker"
+                    aria-autocomplete="list"
+                    aria-activedescendant={
+                      recipientPickerOpen && visibleActiveClients[activeRecipientIndex]
+                        ? `recipient-option-${visibleActiveClients[activeRecipientIndex].id}`
+                        : undefined
+                    }
+                    onFocus={() => {
+                      setRecipientPickerOpen(true)
+                      setActiveRecipientIndex(0)
+                    }}
+                    onKeyDown={handleRecipientKeyDown}
+                    onChange={(event) => {
+                      const next = event.target.value
+                      setRecipientQuery(next)
+                      setRecipientPickerOpen(true)
+                      setSelectedRecipient(null)
+                      setActiveRecipientIndex(0)
+                      setComposeForm((prev) => ({ ...prev, to: '' }))
+                      if (!next.trim()) {
+                        setActiveClientsError('')
+                      }
+                    }}
+                    autoComplete="off"
+                  />
+                  {selectedRecipient && (
+                    <button type="button" className={styles.clientPickerClearBtn} onClick={clearRecipient}>
+                      Clear
+                    </button>
+                  )}
+                </div>
               </div>
+              {(recipientPickerOpen || (!selectedRecipient && recipientQuery.trim())) && (
+                <div className={styles.clientPickerPanel}>
+                  {activeClientsLoading ? (
+                    <WorkspaceLoadingState variant="inline" label="Loading active clients…" className={styles.documentPickerEmpty} />
+                  ) : activeClientsError ? (
+                    <div className={styles.documentPickerError}>{activeClientsError}</div>
+                  ) : visibleActiveClients.length === 0 ? (
+                    <div className={styles.documentPickerEmpty}>No active clients match this search.</div>
+                  ) : (
+                    <div className={styles.clientPickerList} id="active-client-picker" role="listbox" aria-label="Active clients">
+                      {visibleActiveClients.map((client, index) => {
+                        const active = selectedRecipient?.email === client.email
+                        const highlighted = index === activeRecipientIndex
+                        return (
+                          <button
+                            key={client.id}
+                            type="button"
+                            id={`recipient-option-${client.id}`}
+                            role="option"
+                            aria-selected={highlighted || active}
+                            className={
+                              active
+                                ? styles.clientPickerOptionActive
+                                : highlighted
+                                  ? styles.clientPickerOptionHighlighted
+                                  : styles.clientPickerOption
+                            }
+                            onClick={() => selectRecipient(client)}
+                          >
+                            <div className={styles.clientPickerOptionMain}>
+                              <span className={styles.clientPickerOptionName}>{client.name}</span>
+                              <span className={styles.clientPickerOptionEmail}>{client.email}</span>
+                            </div>
+                            <span className={styles.clientPickerOptionLabel}>{client.label}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+              {selectedRecipient && (
+                <div className={styles.clientPickerSelected}>
+                  Sending to <strong>{selectedRecipient.label}</strong>
+                </div>
+              )}
+              {selectedRecipient && (
+                <div className={styles.matterPickerPanel}>
+                  <div className={styles.matterPickerHeader}>
+                    <div className={styles.matterPickerHeaderCopy}>
+                      <span className={styles.matterPickerLabel}>Matter</span>
+                      <span className={styles.matterPickerMeta}>
+                        {mattersLoading
+                          ? 'Loading client matters…'
+                          : recipientMatters.length > 1
+                            ? `${recipientMatters.length} matters found`
+                            : recipientMatters.length === 1
+                              ? '1 matter linked'
+                              : 'No matter linked yet'}
+                      </span>
+                    </div>
+                  </div>
+                  {mattersLoading ? (
+                    <WorkspaceLoadingState variant="inline" label="Loading matters…" className={styles.documentPickerEmpty} />
+                  ) : mattersError ? (
+                    <div className={styles.documentPickerError}>{mattersError}</div>
+                  ) : recipientMatters.length === 0 ? (
+                    <div className={styles.documentPickerEmpty}>
+                      No saved matter is linked to this client yet. You can still send a general portal message.
+                    </div>
+                  ) : recipientMatters.length === 1 ? (
+                    <div className={styles.matterPickerSelected}>
+                      Using <strong>{recipientMatters[0].matterNumber || recipientMatters[0].issueType}</strong>
+                      {recipientMatters[0].matterNumber && recipientMatters[0].issueType ? ` • ${recipientMatters[0].issueType}` : ''}
+                    </div>
+                  ) : (
+                    <div className={styles.matterPickerList} role="listbox" aria-label="Client matters">
+                      {recipientMatters.map((matter) => {
+                        const active = selectedMatter?.id === matter.id
+                        return (
+                          <button
+                            key={matter.id}
+                            type="button"
+                            role="option"
+                            aria-selected={active}
+                            className={active ? styles.matterPickerOptionActive : styles.matterPickerOption}
+                            onClick={() => selectMatter(matter)}
+                          >
+                            <div className={styles.matterPickerOptionMain}>
+                              <span className={styles.matterPickerOptionTitle}>
+                                {matter.matterNumber || matter.issueType}
+                              </span>
+                              <span className={styles.matterPickerOptionSub}>
+                                {matter.matterNumber && matter.issueType ? matter.issueType : `Stage: ${matter.stage || 'Active'}`}
+                              </span>
+                            </div>
+                            <span className={matter.status === 'archived' ? styles.matterPickerBadgeArchived : styles.matterPickerBadge}>
+                              {matter.status === 'archived' ? 'Archived' : 'Active'}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                  {requiresMatterSelection && (
+                    <div className={styles.matterPickerRequired}>
+                      Choose the correct matter to load its saved documents and keep this message tied to the right case.
+                    </div>
+                  )}
+                </div>
+              )}
               <div className={styles.composeField}>
                 <label className={styles.composeLabel}>Subject:</label>
                 <input className={styles.composeInput} type="text" required placeholder="Subject"
@@ -577,99 +1136,141 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
                 <textarea className={styles.composeTextarea} rows={8} placeholder="Write your message…"
                   value={composeForm.body} onChange={e => setComposeForm(f => ({ ...f, body: e.target.value }))}/>
               </div>
-              <div className={styles.attachmentField}>
-                <div className={styles.attachmentHeader}>
-                  <span className={styles.attachmentLabel}>Attachments</span>
-                  <label className={styles.attachmentUploadBtn}>
-                    <UploadCloud size={14} />
-                    Add files
-                    <input
-                      ref={attachmentInputRef}
-                      type="file"
-                      multiple
-                      hidden
-                      onChange={(event) => {
-                        const files = Array.from(event.target.files || [])
-                        if (files.length === 0) return
-                        const validFiles = files.filter((file) => isAllowedEmailAttachment({ name: file.name, mimeType: file.type || null }))
-                        const rejectedCount = files.length - validFiles.length
-                        if (rejectedCount > 0) {
-                          setComposeNotice(`Only ${EMAIL_ATTACHMENT_LABEL} are allowed as email attachments.`)
-                        }
-                        if (validFiles.length > 0) {
-                          setAttachedFiles((prev) => [...prev, ...validFiles])
-                        }
-                        event.target.value = ''
-                      }}
-                      accept={EMAIL_ATTACHMENT_ACCEPT}
-                    />
-                  </label>
+              <div className={styles.composeResources}>
+                <div className={styles.composeResourcesHeader}>
+                  <span className={styles.composeResourcesEyebrow}>Portal delivery</span>
+                  <h3 className={styles.composeResourcesTitle}>Files and saved documents</h3>
+                  <p className={styles.composeResourcesText}>
+                    {composeCaseId
+                      ? `Add fresh attachments or pull from the saved documents linked to ${composeMatterLabel || 'this matter'} before the client is notified.`
+                      : selectedRecipient && recipientMatters.length > 1
+                        ? 'Choose the right matter first, then the saved-document list will switch to that case.'
+                        : 'Add fresh attachments here. Saved documents appear once a specific client matter is selected.'}
+                  </p>
                 </div>
-                {attachedFiles.length > 0 ? (
-                  <div className={styles.attachmentList}>
-                    {attachedFiles.map((file, index) => (
-                      <span key={`${file.name}-${file.size}-${index}`} className={styles.attachmentChip}>
-                        <Paperclip size={13} />
-                        <span className={styles.attachmentChipName}>{file.name}</span>
-                          <button
-                            type="button"
-                            className={styles.attachmentChipRemove}
-                            onClick={() => setAttachedFiles((prev) => prev.filter((_, idx) => idx !== index))}
-                            aria-label={`Remove ${file.name}`}
-                          >
-                            <X size={12} />
-                          </button>
+                <div className={styles.attachmentField}>
+                  <div className={styles.attachmentHeader}>
+                    <span className={styles.attachmentLabel}>Attachments</span>
+                    <label className={styles.attachmentUploadBtn}>
+                      <UploadCloud size={14} />
+                      Add files
+                      <input
+                        ref={attachmentInputRef}
+                        type="file"
+                        multiple
+                        hidden
+                        onChange={(event) => {
+                          const files = Array.from(event.target.files || [])
+                          if (files.length === 0) return
+                          const validFiles = files.filter((file) => isAllowedEmailAttachment({ name: file.name, mimeType: file.type || null }))
+                          const rejectedCount = files.length - validFiles.length
+                          if (rejectedCount > 0) {
+                            setComposeNotice(`Only ${EMAIL_ATTACHMENT_LABEL} are allowed as email attachments.`)
+                          }
+                          if (validFiles.length > 0) {
+                            setAttachedFiles((prev) => [...prev, ...validFiles])
+                          }
+                          event.target.value = ''
+                        }}
+                        accept={EMAIL_ATTACHMENT_ACCEPT}
+                      />
+                    </label>
+                  </div>
+                  {attachedFiles.length > 0 ? (
+                    <div className={styles.attachmentList}>
+                      {attachedFiles.map((file, index) => (
+                        <span key={`${file.name}-${file.size}-${index}`} className={styles.attachmentChip}>
+                          <Paperclip size={13} />
+                          <span className={styles.attachmentChipName}>{file.name}</span>
+                            <button
+                              type="button"
+                              className={styles.attachmentChipRemove}
+                              onClick={() => setAttachedFiles((prev) => prev.filter((_, idx) => idx !== index))}
+                              aria-label={`Remove ${file.name}`}
+                            >
+                              <X size={12} />
+                            </button>
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className={styles.attachmentHint}>Attach one or more documents. Allowed types: {EMAIL_ATTACHMENT_LABEL}.</p>
+                  )}
+                </div>
+                <div className={`${styles.documentPicker} ${!documentPickerOpen ? styles.documentPickerCollapsed : ''}`}>
+                  <div className={styles.documentPickerHeader}>
+                    <div className={styles.documentPickerHeaderCopy}>
+                      <span className={styles.documentPickerLabel}>Attach existing documents</span>
+                      <span className={styles.documentPickerMeta}>
+                        {composeCaseId
+                          ? availableDocuments.length > 0
+                            ? `${availableDocuments.length} in this matter`
+                            : 'No matter documents loaded'
+                          : 'Open from Client Work'}
                       </span>
-                    ))}
+                    </div>
+                    {composeCaseId && (
+                      <button
+                        type="button"
+                        className={styles.composeSectionToggle}
+                        onClick={() => setDocumentPickerOpen((open) => !open)}
+                        aria-expanded={documentPickerOpen}
+                      >
+                        <span>{documentPickerOpen ? 'Hide library' : 'Show library'}</span>
+                        {documentPickerOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      </button>
+                    )}
                   </div>
-                ) : (
-                  <p className={styles.attachmentHint}>Attach one or more documents. Allowed types: {EMAIL_ATTACHMENT_LABEL}.</p>
-                )}
-              </div>
-              <div className={styles.documentPicker}>
-                <div className={styles.documentPickerHeader}>
-                  <span className={styles.documentPickerLabel}>Attach existing documents</span>
-                  <span className={styles.documentPickerMeta}>
-                    {availableDocuments.length > 0 ? `${availableDocuments.length} available` : 'No documents loaded'}
-                  </span>
+                  {(documentPickerOpen || !composeCaseId) && (
+                    <>
+                      {!composeCaseId ? (
+                        <div className={styles.documentPickerEmpty}>
+                          {selectedRecipient
+                            ? recipientMatters.length > 1
+                              ? 'Choose a matter above to load its saved documents.'
+                              : 'No case-linked document library is available for this message yet.'
+                            : 'Choose a client first, then select the right matter to load saved documents.'}
+                        </div>
+                      ) : documentsLoading ? (
+                        <WorkspaceLoadingState variant="inline" label="Loading your documents…" className={styles.documentPickerEmpty} />
+                      ) : documentsError ? (
+                        <div className={styles.documentPickerError}>{documentsError}</div>
+                      ) : availableDocuments.length === 0 ? (
+                        <div className={styles.documentPickerEmpty}>You do not have any saved documents yet.</div>
+                      ) : (
+                        <div className={styles.documentPickerList}>
+                          {availableDocuments.map((doc) => {
+                            const checked = selectedDocumentIds.includes(doc.id)
+                            return (
+                              <label key={doc.id} className={checked ? styles.documentPickerItemActive : styles.documentPickerItem}>
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => {
+                                    setSelectedDocumentIds((prev) =>
+                                      checked ? prev.filter((id) => id !== doc.id) : [...prev, doc.id]
+                                    )
+                                  }}
+                                />
+                                <div className={styles.documentPickerInfo}>
+                                  <span className={styles.documentPickerName}>{doc.name}</span>
+                                  <span className={styles.documentPickerSub}>
+                                    {new Date(doc.createdAt).toLocaleDateString()} • {Math.max(1, Math.round(doc.size / 1024))} KB
+                                  </span>
+                                </div>
+                              </label>
+                            )
+                          })}
+                        </div>
+                      )}
+                      {selectedDocumentIds.length > 0 && (
+                        <div className={styles.documentPickerSelected}>
+                          {selectedDocumentIds.length} existing document{selectedDocumentIds.length === 1 ? '' : 's'} selected
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
-                {documentsLoading ? (
-                  <div className={styles.documentPickerEmpty}>Loading your documents…</div>
-                ) : documentsError ? (
-                  <div className={styles.documentPickerError}>{documentsError}</div>
-                ) : availableDocuments.length === 0 ? (
-                  <div className={styles.documentPickerEmpty}>You do not have any saved documents yet.</div>
-                ) : (
-                  <div className={styles.documentPickerList}>
-                    {availableDocuments.map((doc) => {
-                      const checked = selectedDocumentIds.includes(doc.id)
-                      return (
-                        <label key={doc.id} className={checked ? styles.documentPickerItemActive : styles.documentPickerItem}>
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => {
-                              setSelectedDocumentIds((prev) =>
-                                checked ? prev.filter((id) => id !== doc.id) : [...prev, doc.id]
-                              )
-                            }}
-                          />
-                          <div className={styles.documentPickerInfo}>
-                            <span className={styles.documentPickerName}>{doc.name}</span>
-                            <span className={styles.documentPickerSub}>
-                              {new Date(doc.createdAt).toLocaleDateString()} • {Math.max(1, Math.round(doc.size / 1024))} KB
-                            </span>
-                          </div>
-                        </label>
-                      )
-                    })}
-                  </div>
-                )}
-                {selectedDocumentIds.length > 0 && (
-                  <div className={styles.documentPickerSelected}>
-                    {selectedDocumentIds.length} existing document{selectedDocumentIds.length === 1 ? '' : 's'} selected
-                  </div>
-                )}
               </div>
               <p className={styles.composeHint} role="note">
                 Messages are delivered securely in the client portal. The recipient receives an email notification to sign in and reply.
@@ -688,8 +1289,7 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
                   type="button"
                   className={styles.composeCancelBtn}
                   onClick={() => {
-                    setShowCompose(false)
-                    resetComposeAttachments()
+                    closeComposeModal()
                   }}
                 >
                   Discard
@@ -763,7 +1363,16 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
         <div className={styles.inboxSidebarHeader}>
           <span className={styles.inboxSidebarTitle}>Mail</span>
           <div className={styles.composeButtons}>
-            <button className={styles.composeButton} onClick={() => setShowCompose(true)}>
+            <button
+              className={styles.composeButton}
+              onClick={() => {
+                setComposeCaseId('')
+                setComposeMatterLabel('')
+                resetComposeAttachments()
+                setDocumentPickerOpen(true)
+                setShowCompose(true)
+              }}
+            >
               <Mail size={15}/>Compose
             </button>
             <button className={styles.composeButton} onClick={() => setShowClientInvite(true)}>
@@ -797,7 +1406,7 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
           </div>
         </div>
         <div className={styles.emailListContent}>
-          {loading && <div className={styles.emptyState}><Loader2 size={24} className={styles.spin}/><p>Loading…</p></div>}
+          {loading && <WorkspaceLoadingState variant="panel" label="Loading…" className={styles.emptyState} />}
           {!loading && filtered.length === 0 && <div className={styles.emptyState}><Mail size={32}/><p>No messages here</p></div>}
           {filtered.map(msg => (
             <div key={msg.id} role="button" tabIndex={0}
@@ -808,16 +1417,17 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
                 <span className={styles.senderName}>{msg.sender}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <span className={styles.emailItemTimestamp}>{msg.timestamp}</span>
-                  {msg.type === 'email'
-                    ? <button type="button" className={`${styles.starButtonSmall} ${msg.isStarred ? styles.starActive : ''}`} onClick={e => handleStar(msg.id, e)} aria-label="Star"><Star size={13} fill={msg.isStarred ? 'currentColor' : 'none'}/></button>
-                    : (
-                      <span className={styles.inviteBadge}>
-                        {msg.type === 'invitation'
+                  {msg.type === 'email' && !msg.isSentByBusiness ? (
+                    <button type="button" className={`${styles.starButtonSmall} ${msg.isStarred ? styles.starActive : ''}`} onClick={e => handleStar(msg.id, e)} aria-label="Star"><Star size={13} fill={msg.isStarred ? 'currentColor' : 'none'}/></button>
+                  ) : (
+                    <span className={styles.inviteBadge}>
+                      {msg.isSentByBusiness
+                        ? 'Sent'
+                        : msg.type === 'invitation'
                           ? (msg.metadata?.status === 'accepted' ? '✓' : msg.metadata?.status === 'declined' ? '✗' : '·')
                           : (msg.metadata?.status === 'accepted' ? '✓' : '·')}
-                      </span>
-                    )
-                  }
+                    </span>
+                  )}
                 </div>
               </div>
               <p className={styles.emailItemSubject}>{msg.subject}</p>
@@ -834,7 +1444,7 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
             <div className={styles.previewHeader}>
               <div className={styles.previewTopRow}>
                 <h2 className={styles.previewSubject}>{selectedMsg.subject}</h2>
-                {selectedMsg.type === 'email' && (
+                {selectedMsg.type === 'email' && !selectedMsg.isSentByBusiness && (
                   <div className={styles.previewActions}>
                     <button type="button" className={`${styles.starActionBtn} ${selectedMsg.isStarred ? styles.starActionBtnActive : ''}`} onClick={e => handleStar(selectedMsg.id, e)} aria-label="Star">
                       <Star size={16} fill={selectedMsg.isStarred ? 'currentColor' : 'none'}/>
@@ -959,10 +1569,9 @@ export default function InboxPage({ composePreset }: { composePreset?: { to: str
               )}
             </div>
 
-            {selectedMsg.type === 'email' && (
+            {selectedMsg.type === 'email' && !selectedMsg.isSentByBusiness && (
               <div className={styles.previewFooter}>
                 <button type="button" className={styles.replyBtn} onClick={() => openReply(selectedMsg)}><Reply size={15}/>Reply</button>
-                <button type="button" className={styles.forwardBtn} onClick={() => openForward(selectedMsg)}><Forward size={15}/>Forward</button>
               </div>
             )}
           </>
