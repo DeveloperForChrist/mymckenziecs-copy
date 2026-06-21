@@ -102,7 +102,7 @@ export async function GET(_request: NextRequest) {
     const accessFlags = await loadWorkspaceAccessFlags(authUid)
     const { data: userRow, error: userError } = await supabaseAdmin
       .from('users')
-      .select('*')
+      .select('id, email, name, pending_email, country_code, jurisdiction_code, jurisdiction_label, email_verified_at, updated_at, created_at')
       .eq('id', authUid)
       .maybeSingle()
 
@@ -142,7 +142,7 @@ export async function GET(_request: NextRequest) {
     const accountType = resolveAccountType(data.user, userRow as any)
 
     return NextResponse.json({
-      fullName: (userRow as any).fullName || (userRow as any).full_name || userRow.name || '',
+      fullName: userRow.name || data.user.user_metadata?.full_name || data.user.user_metadata?.display_name || '',
       email: userRow.email || data.user.email || '',
       accountType,
       billingAudience: accountType,
@@ -150,9 +150,9 @@ export async function GET(_request: NextRequest) {
       countryCode: (userRow as any).country_code || null,
       jurisdictionCode: (userRow as any).jurisdiction_code || null,
       jurisdictionLabel: (userRow as any).jurisdiction_label || null,
-      address: (userRow as any).address || '',
+      address: '',
       createdAt: userRow.created_at || data.user.created_at || '',
-      lastActive: (userRow as any).last_active || null,
+      lastActive: (userRow as any).updated_at || null,
       emailVerifiedAt,
       emailVerified: Boolean(emailVerifiedAt),
       hasBusinessWorkspace: accessFlags.hasBusinessWorkspace,
@@ -180,7 +180,6 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const fullName = typeof body?.fullName === 'string' ? body.fullName.trim() : ''
     const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : ''
-    const rawAddress = typeof body?.address === 'string' ? body.address.trim() : null
     const countryCode = typeof body?.countryCode === 'string' ? body.countryCode.trim().toUpperCase() : null
     const jurisdictionCode = typeof body?.jurisdictionCode === 'string' ? body.jurisdictionCode.trim().toUpperCase() : null
     const requestedRedirect = typeof body?.redirect === 'string' ? body.redirect : undefined
@@ -221,30 +220,25 @@ export async function PUT(request: NextRequest) {
 
     const { data: existingUserRow } = await supabaseAdmin
       .from('users')
-      .select('fullName, full_name, name, address, pending_email, country_code, jurisdiction_code, jurisdiction_label')
+      .select('name, pending_email, country_code, jurisdiction_code, jurisdiction_label')
       .eq('id', authUid)
       .maybeSingle()
 
     const priorFullName = String(
-      (existingUserRow as any)?.fullName ||
-      (existingUserRow as any)?.full_name ||
       (existingUserRow as any)?.name ||
       data.user.user_metadata?.full_name ||
       data.user.user_metadata?.display_name ||
       ''
     ).trim()
-    const priorAddress = String((existingUserRow as any)?.address || '').trim()
     const persistedCountryCode = typeof (existingUserRow as any)?.country_code === 'string'
       ? (existingUserRow as any).country_code
       : null
     const persistedJurisdictionCode = typeof (existingUserRow as any)?.jurisdiction_code === 'string'
       ? (existingUserRow as any).jurisdiction_code
       : null
-    const address = rawAddress ?? priorAddress
     const nextCountryCode = countryCode ?? persistedCountryCode
     const nextJurisdictionCode = jurisdictionCode ?? persistedJurisdictionCode
-    const detailsChangeRequested =
-      fullName !== priorFullName || address !== priorAddress
+    const detailsChangeRequested = fullName !== priorFullName
     const billingMarket = getBillingMarketFromCountryCode(
       nextCountryCode || persistedCountryCode || (data.user.user_metadata as any)?.country_code || null
     )
@@ -332,16 +326,6 @@ export async function PUT(request: NextRequest) {
       basePayload.email_change_token_expires_at = emailChangeTokenExpiresAt
     }
 
-    const extendedPayload: Record<string, any> = {
-      ...basePayload,
-      fullName: fullName || null,
-      country_code: nextCountryCode,
-      jurisdiction_code: nextJurisdictionCode,
-      jurisdiction_label: getJurisdictionLabel(nextCountryCode, nextJurisdictionCode),
-      address: address || null,
-      last_active: nowIso
-    }
-
     const attemptUpsert = async (payload: Record<string, any>) => {
       return supabaseAdmin
         .from('users')
@@ -350,10 +334,7 @@ export async function PUT(request: NextRequest) {
         .maybeSingle()
     }
 
-    let upsertResult = await attemptUpsert(extendedPayload)
-    if (upsertResult.error) {
-      upsertResult = await attemptUpsert(basePayload)
-    }
+    const upsertResult = await attemptUpsert(basePayload)
 
     if (upsertResult.error) {
       console.error('Error updating user data:', upsertResult.error)
@@ -396,7 +377,6 @@ export async function PUT(request: NextRequest) {
         .split(/\s+/)[0] || 'there'
       const changedFields: string[] = []
       if (fullName !== priorFullName) changedFields.push('full name')
-      if (address !== priorAddress) changedFields.push('address')
 
       try {
         const htmlBody = renderTemplate('25-account-details-changed.html', {

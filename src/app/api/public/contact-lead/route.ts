@@ -66,69 +66,42 @@ export async function POST(request: NextRequest) {
     }
 
     if (!businesses || businesses.length === 0) {
-      // If no active businesses, still create the lead but without a business_id
-      // This allows businesses to see it later when they become active
-      console.log('No active businesses found, creating lead without business assignment')
+      return NextResponse.json(
+        { message: 'No active professionals are available to receive enquiries right now.' },
+        { status: 503 }
+      )
     }
 
     const traceId = toText(body.leadTraceId)
 
     // Create lead for each active business (or one lead if no businesses)
-    const leadsToCreate = businesses && businesses.length > 0 
-      ? businesses.map(business => ({
-          business_id: business.id,
-          name: `${toText(body.firstName)} ${toText(body.lastName)}`,
-          email: toText(body.email),
-          phone: toText(body.phone),
-          location: '',
-          issue_type: 'General Enquiry',
-          urgency: 'medium',
-          summary: toText(body.details).slice(0, 200),
-          full_details: [
-            traceId ? `Trace ID: ${traceId}` : null,
-            (() => {
-              const dob = dateOnly(body.dateOfBirth)
-              return dob ? `Date of Birth: ${dob}` : null
-            })(),
-            toText(body.details),
-          ].filter(Boolean).join('\n\n'),
-          court_date: null,
-          opposing: null,
-          documents: [],
-          tags: ['Contact Form', ...(traceId ? [`trace:${traceId}`] : [])],
-          status: 'new',
-          source: 'portal',
-          submitted_at: new Date().toISOString(),
-          accepted_at: null,
-          declined_at: null,
-        }))
-      : [{
-          business_id: null,
-          name: `${toText(body.firstName)} ${toText(body.lastName)}`,
-          email: toText(body.email),
-          phone: toText(body.phone),
-          location: '',
-          issue_type: 'General Enquiry',
-          urgency: 'medium',
-          summary: toText(body.details).slice(0, 200),
-          full_details: [
-            traceId ? `Trace ID: ${traceId}` : null,
-            (() => {
-              const dob = dateOnly(body.dateOfBirth)
-              return dob ? `Date of Birth: ${dob}` : null
-            })(),
-            toText(body.details),
-          ].filter(Boolean).join('\n\n'),
-          court_date: null,
-          opposing: null,
-          documents: [],
-          tags: ['Contact Form', ...(traceId ? [`trace:${traceId}`] : [])],
-          status: 'new',
-          source: 'portal',
-          submitted_at: new Date().toISOString(),
-          accepted_at: null,
-          declined_at: null,
-        }]
+    const leadsToCreate = businesses.map(business => ({
+      business_id: business.id,
+      name: `${toText(body.firstName)} ${toText(body.lastName)}`,
+      email: toText(body.email),
+      phone: toText(body.phone),
+      location: '',
+      issue_type: 'General Enquiry',
+      urgency: 'medium',
+      summary: toText(body.details).slice(0, 200),
+      full_details: [
+        traceId ? `Trace ID: ${traceId}` : null,
+        (() => {
+          const dob = dateOnly(body.dateOfBirth)
+          return dob ? `Date of Birth: ${dob}` : null
+        })(),
+        toText(body.details),
+      ].filter(Boolean).join('\n\n'),
+      court_date: null,
+      opposing: null,
+      documents: [],
+      tags: ['Contact Form', ...(traceId ? [`trace:${traceId}`] : [])],
+      status: 'new',
+      source: 'portal',
+      submitted_at: new Date().toISOString(),
+      accepted_at: null,
+      declined_at: null,
+    }))
 
     const { error: insertError } = await supabaseAdmin
       .from('business_leads')

@@ -194,7 +194,6 @@ export async function POST(request: NextRequest) {
           name: fullName,
           account_type: isBusinessSignup ? 'business' : 'litigant',
           billing_audience: isBusinessSignup ? 'business' : 'litigant',
-          selected_business_plan: isBusinessSignup ? (selectedBusinessPlan || 'Solo') : null,
           country_code: profileCountryCode,
           jurisdiction_code: profileJurisdictionCode,
           jurisdiction_label: jurisdictionLabel,

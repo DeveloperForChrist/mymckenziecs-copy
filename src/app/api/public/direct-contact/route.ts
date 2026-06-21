@@ -22,6 +22,10 @@ function toText(value: unknown, fallback = '') {
   return String(value).trim()
 }
 
+function normalizeEmail(value: string | null | undefined) {
+  return String(value || '').trim().toLowerCase()
+}
+
 function dateOnly(value: unknown) {
   const text = toText(value)
   if (!text) return null
@@ -55,8 +59,8 @@ export async function POST(request: NextRequest) {
     // Get the business ID from the professional's user ID
     const { data: businessData, error: businessError } = await supabaseAdmin
       .from('businesses')
-      .select('id, owner_id')
-      .eq('owner_id', body.professionalId)
+      .select('id, owner_user_id')
+      .eq('owner_user_id', body.professionalId)
       .single()
 
     if (businessError || !businessData) {
@@ -64,6 +68,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { message: 'Unable to find the professional. Please try again.' },
         { status: 404 }
+      )
+    }
+
+    const ownerUserId = String((businessData as any).owner_user_id || '')
+    if (!ownerUserId) {
+      return NextResponse.json(
+        { message: 'Unable to find the professional. Please try again.' },
+        { status: 404 }
+      )
+    }
+
+    const { data: ownerData, error: ownerError } = await supabaseAdmin.auth.admin.getUserById(ownerUserId)
+    const recipientEmail = normalizeEmail(ownerData?.user?.email)
+    if (ownerError || !recipientEmail) {
+      console.error('Failed to resolve professional email:', ownerError)
+      return NextResponse.json(
+        { message: 'Unable to contact the professional right now. Please try again.' },
+        { status: 500 }
       )
     }
 
@@ -111,9 +133,9 @@ export async function POST(request: NextRequest) {
     // Create inbox message for the business
     const inboxMessageData = {
       sender_id: null,
-      sender_email: toText(body.email),
+      sender_email: normalizeEmail(toText(body.email)),
       sender_name: `${toText(body.firstName)} ${toText(body.lastName)}`,
-      recipient_email: body.professionalId,
+      recipient_email: recipientEmail,
       subject: `New Direct Enquiry from ${toText(body.firstName)} ${toText(body.lastName)}`,
       content: `A new direct enquiry has been submitted via the directory.\n\n${traceId ? `Trace ID: ${traceId}\n` : ''}Name: ${toText(body.firstName)} ${toText(body.lastName)}\nEmail: ${toText(body.email)}\nPhone: ${toText(body.phone)}${toText(body.dateOfBirth) ? `\nDate of Birth: ${toText(body.dateOfBirth)}` : ''}\n\nDetails:\n${toText(body.details)}`,
       type: 'email',
