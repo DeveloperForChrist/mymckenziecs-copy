@@ -88,8 +88,8 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
-    const isEligible = wantsReminderChange ? await requireReminderPlan(userId) : false;
-    if (wantsReminderChange && !isEligible) {
+    const reminderEligible = wantsReminderChange ? await requireReminderPlan(userId) : false;
+    if (wantsReminderChange && !reminderEligible) {
       return NextResponse.json({ error: 'Premium plan required' }, { status: 403 });
     }
 
@@ -125,7 +125,7 @@ export async function PUT(request: Request) {
       deadline_reminders: typeof deadlineReminders === 'boolean' ? deadlineReminders : undefined,
       meeting_reminder_minutes: parsedReminderMinutes ?? undefined,
       theme: parsedTheme ?? undefined,
-      has_reminder_access: wantsReminderChange ? isEligible : undefined,
+      has_reminder_access: wantsReminderChange ? reminderEligible : undefined,
     });
   } catch (error: any) {
     console.error('Preferences PUT error:', error);
