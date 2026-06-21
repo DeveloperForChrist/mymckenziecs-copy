@@ -24,6 +24,10 @@ function asOptionalString(value: unknown) {
   return next || null
 }
 
+function normalizeEmail(value: unknown) {
+  return asString(value).toLowerCase()
+}
+
 function asPositiveNumber(value: unknown, fallback: number) {
   const numeric = Number(value)
   if (!Number.isFinite(numeric) || numeric <= 0) return fallback
@@ -46,6 +50,14 @@ function errorResponse(error: unknown, fallback: string) {
   return NextResponse.json({ message: fallback }, { status: 500 })
 }
 
+function isMissingMeetingPortalColumns(error: unknown) {
+  if (!error || typeof error !== 'object') return false
+  const code = (error as { code?: unknown }).code
+  const message = String((error as { message?: unknown }).message || '').toLowerCase()
+  if (code !== 'PGRST204' && code !== '42703') return false
+  return ['business_id', 'client_email', 'client_name', 'matter_id', 'case_id'].some((column) => message.includes(column))
+}
+
 export async function GET() {
   try {
     const context = await getContext()
@@ -60,12 +72,23 @@ export async function GET() {
       return NextResponse.json({ message: 'Unable to load meetings.' }, { status: 500 })
     }
 
-    const { data: meetings, error: meetingsError } = await supabaseAdmin
+    let meetingsResult: any = await supabaseAdmin
       .from('meetings')
-      .select('id,client_id,title,description,meeting_date,meeting_time,duration_minutes,room_name,status,created_at,updated_at')
+      .select('id,client_id,client_name,client_email,business_id,matter_id,case_id,title,description,meeting_date,meeting_time,duration_minutes,room_name,status,created_at,updated_at')
       .eq('user_id', context.userId)
       .order('meeting_date', { ascending: true })
       .order('meeting_time', { ascending: true })
+
+    if (meetingsResult.error && isMissingMeetingPortalColumns(meetingsResult.error)) {
+      meetingsResult = await supabaseAdmin
+        .from('meetings')
+        .select('id,client_id,title,description,meeting_date,meeting_time,duration_minutes,room_name,status,created_at,updated_at')
+        .eq('user_id', context.userId)
+        .order('meeting_date', { ascending: true })
+        .order('meeting_time', { ascending: true })
+    }
+
+    const { data: meetings, error: meetingsError } = meetingsResult
 
     if (meetingsError) {
       console.error('Unable to load meetings', meetingsError)
@@ -93,6 +116,8 @@ export async function POST(request: NextRequest) {
     const durationMinutes = asPositiveNumber(body.durationMinutes, 45)
     const roomName = asString(body.roomName)
     const status = (asString(body.status) || 'scheduled') as MeetingStatus
+    const matterId = asOptionalString(body.matterId)
+    const caseId = asOptionalString(body.caseId)
 
     if (!clientName || !title || !meetingDate || !meetingTime || !roomName) {
       return NextResponse.json({ message: 'Missing required meeting fields.' }, { status: 400 })
@@ -129,22 +154,48 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const { data: meeting, error: meetingError } = await supabaseAdmin
+    const insertPayload = {
+      user_id: context.userId,
+      client_id: clientId,
+      business_id: context.businessId,
+      client_name: clientName,
+      client_email: normalizeEmail(clientEmail) || null,
+      matter_id: matterId,
+      case_id: caseId,
+      title,
+      description,
+      meeting_date: meetingDate,
+      meeting_time: meetingTime,
+      duration_minutes: durationMinutes,
+      room_name: roomName,
+      status,
+      location_type: 'video',
+    }
+
+    let createResult: any = await supabaseAdmin
       .from('meetings')
-      .insert({
-        user_id: context.userId,
-        client_id: clientId,
-        title,
-        description,
-        meeting_date: meetingDate,
-        meeting_time: meetingTime,
-        duration_minutes: durationMinutes,
-        room_name: roomName,
-        status,
-        location_type: 'video',
-      })
-      .select('id,client_id,title,description,meeting_date,meeting_time,duration_minutes,room_name,status,created_at,updated_at')
+      .insert(insertPayload)
+      .select('id,client_id,client_name,client_email,business_id,matter_id,case_id,title,description,meeting_date,meeting_time,duration_minutes,room_name,status,created_at,updated_at')
       .single()
+
+    if (createResult.error && isMissingMeetingPortalColumns(createResult.error)) {
+      const {
+        business_id: _businessId,
+        client_name: _clientName,
+        client_email: _clientEmail,
+        matter_id: _matterId,
+        case_id: _caseId,
+        ...legacyInsertPayload
+      } = insertPayload
+
+      createResult = await supabaseAdmin
+        .from('meetings')
+        .insert(legacyInsertPayload)
+        .select('id,client_id,title,description,meeting_date,meeting_time,duration_minutes,room_name,status,created_at,updated_at')
+        .single()
+    }
+
+    const { data: meeting, error: meetingError } = createResult
 
     if (meetingError || !meeting) {
       console.error('Unable to create meeting', meetingError)
@@ -187,13 +238,25 @@ export async function PUT(request: NextRequest) {
       .eq('user_id', context.userId)
       .maybeSingle()
 
-    const { data: meeting, error } = await supabaseAdmin
+    let updateResult: any = await supabaseAdmin
       .from('meetings')
       .update({ status, updated_at: new Date().toISOString() })
       .eq('id', id)
       .eq('user_id', context.userId)
-      .select('id,client_id,title,description,meeting_date,meeting_time,duration_minutes,room_name,status,created_at,updated_at')
+      .select('id,client_id,client_name,client_email,business_id,matter_id,case_id,title,description,meeting_date,meeting_time,duration_minutes,room_name,status,created_at,updated_at')
       .single()
+
+    if (updateResult.error && isMissingMeetingPortalColumns(updateResult.error)) {
+      updateResult = await supabaseAdmin
+        .from('meetings')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .eq('user_id', context.userId)
+        .select('id,client_id,title,description,meeting_date,meeting_time,duration_minutes,room_name,status,created_at,updated_at')
+        .single()
+    }
+
+    const { data: meeting, error } = updateResult
 
     if (error || !meeting) {
       console.error('Unable to update meeting', error)

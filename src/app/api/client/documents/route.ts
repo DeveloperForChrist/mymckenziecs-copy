@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
+import { loadClientPortalMatters } from '@/lib/client-portal/portal-matters'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -16,45 +17,6 @@ type SharedDocumentRow = {
   uploaded_by?: string | null
 }
 
-function normalizeEmail(value: string | null | undefined) {
-  return String(value || '').trim().toLowerCase()
-}
-
-async function loadMatterCaseIds(userId: string, userEmail: string) {
-  const { data: links, error: linksError } = await supabaseAdmin
-    .from('client_business_links')
-    .select('business_id, businesses(name)')
-    .eq('client_id', userId)
-    .eq('status', 'active')
-
-  if (linksError || !Array.isArray(links)) return []
-
-  const email = normalizeEmail(userEmail)
-  if (!email) return []
-
-  const caseIds = new Set<string>()
-  for (const link of links) {
-    const businessId = String((link as Record<string, unknown>).business_id || '')
-    if (!businessId) continue
-
-    const { data: matter } = await supabaseAdmin
-      .from('client_matters')
-      .select('case_id')
-      .eq('business_id', businessId)
-      .eq('status', 'active')
-      .eq('email', email)
-      .not('case_id', 'is', null)
-      .limit(1)
-      .maybeSingle()
-
-    if (matter?.case_id) {
-      caseIds.add(String(matter.case_id))
-    }
-  }
-
-  return Array.from(caseIds)
-}
-
 export async function GET() {
   try {
     const supabase = await createSupabaseRouteClient()
@@ -64,7 +26,9 @@ export async function GET() {
       return NextResponse.json({ message: 'Unauthorized.' }, { status: 401 })
     }
 
-    const caseIds = await loadMatterCaseIds(user.id, user.email)
+    const { matters } = await loadClientPortalMatters(user.id, user.email)
+    const caseIds = Array.from(new Set(matters.map((matter) => matter.caseId).filter((value): value is string => Boolean(value))))
+    const matterByCaseId = new Map(matters.filter((matter) => matter.caseId).map((matter) => [String(matter.caseId), matter]))
 
     const [ownDocsResult, sharedDocsResult] = await Promise.all([
       supabaseAdmin
@@ -98,21 +62,45 @@ export async function GET() {
         createdAt: String(doc.created_at || new Date().toISOString()),
         size: Number(doc.file_size || 0),
         mimeType: String(doc.mime_type || ''),
+        businessId: null,
+        matterId: null,
+        caseId: null,
+        matterLabel: null,
         sourceLabel: 'Your upload',
       })),
-      ...((sharedDocsResult as { data?: SharedDocumentRow[] }).data || []).map((doc: SharedDocumentRow) => ({
-        id: String(doc.id),
-        name: String(doc.name || 'Document'),
-        createdAt: String(doc.created_at || new Date().toISOString()),
-        size: Number(doc.file_size || 0),
-        mimeType: String(doc.mime_type || ''),
-        sourceLabel: 'Shared by your professional',
-      })),
+      ...((sharedDocsResult as { data?: SharedDocumentRow[] }).data || []).map((doc: SharedDocumentRow) => {
+        const matter = doc.case_id ? matterByCaseId.get(String(doc.case_id)) : null
+        return {
+          id: String(doc.id),
+          name: String(doc.name || 'Document'),
+          createdAt: String(doc.created_at || new Date().toISOString()),
+          size: Number(doc.file_size || 0),
+          mimeType: String(doc.mime_type || ''),
+          businessId: matter?.businessId || null,
+          matterId: matter?.id || null,
+          caseId: doc.case_id ? String(doc.case_id) : null,
+          matterLabel: matter?.matterNumber || matter?.issueType || null,
+          sourceLabel: 'Shared by your professional',
+        }
+      }),
     ]
 
     const deduped = Array.from(new Map(docs.map((doc) => [doc.id, doc])).values())
 
-    return NextResponse.json({ documents: deduped, caseIds })
+    return NextResponse.json({
+      documents: deduped,
+      caseIds,
+      matters: matters.map((matter) => ({
+        id: matter.id,
+        businessId: matter.businessId,
+        businessName: matter.businessName,
+        caseId: matter.caseId,
+        matterNumber: matter.matterNumber,
+        issueType: matter.issueType,
+        status: matter.status,
+        stage: matter.stage,
+      })),
+    })
   } catch (error) {
     console.error('Client documents load error:', error)
     return NextResponse.json({ message: 'Unable to load documents.' }, { status: 500 })

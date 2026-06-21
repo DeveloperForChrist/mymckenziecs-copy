@@ -67,8 +67,8 @@ export default function WebRtcMeeting({
   footerAction,
   onLeave,
 }: WebRtcMeetingProps) {
-  const myPeerId = useRef<string>(
-    typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `peer-${Date.now()}`
+  const [myPeerId] = useState(
+    () => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `peer-${Date.now()}`)
   );
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -134,7 +134,7 @@ export default function WebRtcMeeting({
         /* ignore stale candidates */
       }
     }
-  }, []);
+  }, [myPeerId]);
 
   const teardownPc = useCallback(() => {
     iceBufRef.current = [];
@@ -150,7 +150,7 @@ export default function WebRtcMeeting({
       remoteVideoRef.current.srcObject = null;
     }
     setRemoteReady(false);
-  }, []);
+  }, [myPeerId]);
 
   const createPeerConnection = useCallback(() => {
     const pc = new RTCPeerConnection(ICE_SERVERS);
@@ -165,7 +165,7 @@ export default function WebRtcMeeting({
       if (!ev.candidate || !remote) return;
       signalingSendRef.current({
         kind: 'ice',
-        from: myPeerId.current,
+        from: myPeerId,
         to: remote,
         candidate: ev.candidate.toJSON(),
       });
@@ -190,7 +190,7 @@ export default function WebRtcMeeting({
     };
 
     return pc;
-  }, []);
+  }, [myPeerId]);
 
   const sendOfferTo = useCallback(
     async (remoteId: string) => {
@@ -208,13 +208,13 @@ export default function WebRtcMeeting({
       await pc.setLocalDescription(offer);
       signalingSendRef.current({
         kind: 'offer',
-        from: myPeerId.current,
+        from: myPeerId,
         to: remoteId,
         sdp: pc.localDescription!.toJSON(),
       });
       setStatus('Calling…');
     },
-    [createPeerConnection]
+    [createPeerConnection, myPeerId]
   );
 
   useEffect(() => {
@@ -281,11 +281,11 @@ export default function WebRtcMeeting({
 
         const handlePayload = async (msg: SignalPayload) => {
           if (msg.kind === 'hello') {
-            if (msg.peerId === myPeerId.current) return;
+            if (msg.peerId === myPeerId) return;
             if (remotePeerIdRef.current && remotePeerIdRef.current !== msg.peerId) {
               return;
             }
-            const cmp = myPeerId.current.localeCompare(msg.peerId);
+            const cmp = myPeerId.localeCompare(msg.peerId);
             if (cmp < 0) {
               await sendOfferTo(msg.peerId);
             } else {
@@ -303,7 +303,7 @@ export default function WebRtcMeeting({
             return;
           }
 
-          if ('to' in msg && msg.to !== myPeerId.current) return;
+          if ('to' in msg && msg.to !== myPeerId) return;
 
           if (msg.kind === 'offer') {
             remotePeerIdRef.current = msg.from;
@@ -315,7 +315,7 @@ export default function WebRtcMeeting({
             await pc.setLocalDescription(answer);
             signalingSendRef.current({
               kind: 'answer',
-              from: myPeerId.current,
+              from: myPeerId,
               to: msg.from,
               sdp: pc.localDescription!.toJSON(),
             });
@@ -364,7 +364,7 @@ export default function WebRtcMeeting({
         const sendHello = () => {
           signalingSendRef.current({
             kind: 'hello',
-            peerId: myPeerId.current,
+            peerId: myPeerId,
           });
         };
 
@@ -403,7 +403,7 @@ export default function WebRtcMeeting({
       try {
         signalingSendRef.current({
           kind: 'bye',
-          peerId: myPeerId.current,
+          peerId: myPeerId,
         });
       } catch {
         /* ignore */

@@ -14,7 +14,7 @@ export default async function DashboardPage() {
   let initialPlan = 'No plan';
   let initialPlanStatus = 'inactive';
   let initialNextBillingDate: string | null = null;
-  let initialEmailVerified = emailVerified;
+  const initialEmailVerified = emailVerified;
   let initialHasStripeCustomer = false;
   let initialCancelAtPeriodEnd = false;
   let initialCaseLawAvailable = false;

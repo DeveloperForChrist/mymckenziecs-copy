@@ -1,42 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
+import { loadClientPortalMatters } from '@/lib/client-portal/portal-matters'
 import mammoth from 'mammoth'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const fetchCache = 'force-no-store'
 
-function normalizeEmail(value: string | null | undefined) {
-  return String(value || '').trim().toLowerCase()
-}
-
 async function loadClientCaseIds(userId: string, userEmail: string) {
-  const { data: links } = await supabaseAdmin
-    .from('client_business_links')
-    .select('business_id')
-    .eq('client_id', userId)
-    .eq('status', 'active')
-
-  const email = normalizeEmail(userEmail)
-  if (!email || !Array.isArray(links)) return []
-
-  const caseIds: string[] = []
-  for (const link of links) {
-    const businessId = String((link as Record<string, unknown>).business_id || '')
-    if (!businessId) continue
-    const { data: matter } = await supabaseAdmin
-      .from('client_matters')
-      .select('case_id')
-      .eq('business_id', businessId)
-      .eq('status', 'active')
-      .eq('email', email)
-      .not('case_id', 'is', null)
-      .limit(1)
-      .maybeSingle()
-    if (matter?.case_id) caseIds.push(String(matter.case_id))
-  }
-  return Array.from(new Set(caseIds))
+  const { matters } = await loadClientPortalMatters(userId, userEmail)
+  return Array.from(new Set(matters.map((matter) => matter.caseId).filter((value): value is string => Boolean(value))))
 }
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {

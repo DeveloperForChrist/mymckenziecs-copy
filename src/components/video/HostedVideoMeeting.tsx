@@ -56,13 +56,16 @@ export default function HostedVideoMeeting({
   const containerRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<JitsiMeetApi | null>(null);
   const onLeaveRef = useRef(onLeave);
-  onLeaveRef.current = onLeave;
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [audioMuted, setAudioMuted] = useState(false);
   const [videoMuted, setVideoMuted] = useState(false);
 
   const safeRoom = sanitizeJitsiRoom(roomName);
+
+  useEffect(() => {
+    onLeaveRef.current = onLeave;
+  }, [onLeave]);
 
   useEffect(() => {
     let cancelled = false;

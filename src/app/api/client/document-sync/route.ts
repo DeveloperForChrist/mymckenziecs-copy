@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { createBusinessAlert } from '@/lib/business/alerts'
+import { loadClientPortalMatters } from '@/lib/client-portal/portal-matters'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -20,49 +21,16 @@ function normalizeEmail(value: string | null | undefined) {
 }
 
 async function loadTargets(userId: string, userEmail: string): Promise<SyncTarget[]> {
-  const { data: links, error: linksError } = await supabaseAdmin
-    .from('client_business_links')
-    .select('business_id, status, businesses(name)')
-    .eq('client_id', userId)
-    .eq('status', 'active')
-
-  if (linksError || !Array.isArray(links)) {
-    return []
-  }
-
-  const email = normalizeEmail(userEmail)
-  if (!email) return []
-
-  const targets: SyncTarget[] = []
-  for (const link of links) {
-    const businessId = String((link as any).business_id || '')
-    if (!businessId) continue
-
-    const { data: matter } = await supabaseAdmin
-      .from('client_matters')
-      .select('id, case_id, matter_number, client_name, status, last_activity_at')
-      .eq('business_id', businessId)
-      .eq('status', 'active')
-      .eq('email', email)
-      .not('case_id', 'is', null)
-      .order('last_activity_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    if (!matter?.case_id || !matter?.id) continue
-
-    const businessName = String((link as any).businesses?.name || 'Legal Professional')
-    const matterLabel = String(matter.matter_number || matter.client_name || 'Client matter')
-    targets.push({
-      businessId,
-      businessName,
-      caseId: String(matter.case_id),
-      matterId: String(matter.id),
-      matterLabel,
-    })
-  }
-
-  return targets
+  const { matters } = await loadClientPortalMatters(userId, normalizeEmail(userEmail))
+  return matters
+    .filter((matter) => matter.status === 'active' && matter.caseId)
+    .map((matter) => ({
+      businessId: matter.businessId,
+      businessName: matter.businessName,
+      caseId: String(matter.caseId),
+      matterId: matter.id,
+      matterLabel: matter.matterNumber || matter.issueType || matter.clientName || 'Client matter',
+    }))
 }
 
 export async function GET() {
@@ -93,6 +61,8 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json().catch(() => ({}))
     const businessId = typeof body?.businessId === 'string' ? body.businessId.trim() : ''
+    const matterId = typeof body?.matterId === 'string' ? body.matterId.trim() : ''
+    const caseId = typeof body?.caseId === 'string' ? body.caseId.trim() : ''
     const mode = body?.mode === 'remove' ? 'remove' : 'sync'
     const documentIdsRaw = Array.isArray(body?.documentIds) ? body.documentIds : []
     const documentIds = documentIdsRaw
@@ -104,7 +74,12 @@ export async function POST(request: NextRequest) {
     }
 
     const targets = await loadTargets(user.id, user.email || '')
-    const target = targets.find((item) => item.businessId === businessId)
+    const target = targets.find((item) => {
+      if (item.businessId !== businessId) return false
+      if (matterId) return item.matterId === matterId
+      if (caseId) return item.caseId === caseId
+      return true
+    })
     if (!target) {
       return NextResponse.json({ message: 'No active professional matter found for this account.' }, { status: 403 })
     }

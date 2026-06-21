@@ -141,6 +141,9 @@ const chatRequestSchema = z.object({
 }).passthrough()
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const basicGreetingPattern = /^(hi|hello|hey|hiya|yo|good\s+morning|good\s+afternoon|good\s+evening|greetings|howdy)([!.,\s]*)$/i
+const substantiveLegalSignalPattern =
+  /\b(case law|precedent|authority|citation|court|judge|hearing|deadline|notice|claim|defence|defense|appeal|application|witness|evidence|contract|tenant|landlord|employment|divorce|probate|immigration|custody|injunction|order|small claims|form|filing|procedure|process|document review|draft|rewrite|review)\b/i
 const readPositiveInteger = (value: string | undefined, fallback: number) => {
   const parsed = Number.parseInt(String(value || ''), 10)
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
@@ -162,6 +165,26 @@ const normalizeGuestUuid = (value?: string | null): string | null => {
   if (uuidRegex.test(raw)) return raw
   const anonMatch = raw.match(/^anon_([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i)
   return anonMatch?.[1] && uuidRegex.test(anonMatch[1]) ? anonMatch[1] : null
+}
+
+const isBasicGreeting = (rawInput: string): boolean => {
+  if (!rawInput) return false
+  const input = rawInput
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+  if (!input) return false
+  return basicGreetingPattern.test(input)
+}
+
+const isLikelySubstantiveLegalRequest = (rawInput: string, hasAttachments = false): boolean => {
+  if (hasAttachments) return true
+  const input = String(rawInput || '').trim().toLowerCase()
+  if (!input || isBasicGreeting(input)) return false
+  if (substantiveLegalSignalPattern.test(input)) return true
+  if (input.includes('?')) return true
+  const wordCount = input.split(/\s+/).filter(Boolean).length
+  return wordCount >= 4
 }
 
 const uuidFromStableKey = (key: string): string => {
@@ -1885,6 +1908,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Message is required' }, { status: 400 })
     }
 
+    if (isBasicGreeting(message)) {
+      return NextResponse.json(
+        buildAssistantResponsePayload("Hello! I'm MyMcKenzie Assistant. How can I help with your legal question?"),
+        { status: 200 }
+      )
+    }
+
     const requestCookieHeader = request.headers.get('cookie') || ''
     const authCacheKey = requestCookieHeader ? hashCacheKey(requestCookieHeader) : ''
     const supabase = await createSupabaseRouteClient()
@@ -2239,6 +2269,7 @@ export async function POST(request: NextRequest) {
     )
 
     const hasAttachments = Array.isArray(attachments) && attachments.length > 0
+    const shouldUseAugmentedContext = isLikelySubstantiveLegalRequest(message, hasAttachments)
     if (hasAttachments && (!authUserId || !hasPaidPlan)) {
       releaseChatCapacityOnce()
       return withCookie(
@@ -2383,8 +2414,8 @@ export async function POST(request: NextRequest) {
           )
         : ''
 
-    const caseContext = caseContextData ? buildCaseContext(caseContextData) : ''
-    const caseKeywords = caseContextData ? extractCaseKeywords(caseContextData) : ''
+    const caseContext = shouldUseAugmentedContext && caseContextData ? buildCaseContext(caseContextData) : ''
+    const caseKeywords = shouldUseAugmentedContext && caseContextData ? extractCaseKeywords(caseContextData) : ''
     const premiumOpenAiModel = getPremiumOpenAiModel()
     const premiumOpenAiFallbackModel = getPremiumOpenAiFallbackModel(premiumOpenAiModel)
     const premiumPlusAnthropicModel = premiumPlusActive ? getPremiumPlusAnthropicModel() : null
@@ -2470,8 +2501,9 @@ export async function POST(request: NextRequest) {
       premiumFlow: premiumPlusActive,
       suggestionDecision: caseLawSuggestionDecision,
     })
-    let shouldUsePremiumPlusCaseLawRetrieval =
+    const shouldUsePremiumPlusCaseLawRetrieval =
       premiumPlusActive &&
+      shouldUseAugmentedContext &&
       (
         premiumPlusCaseLawBaseDecision &&
         shouldUsePremiumPlusCaseLawHeuristically({
@@ -2502,10 +2534,12 @@ export async function POST(request: NextRequest) {
 
     const premiumPlusNeedsCaseLawSuggestions =
       premiumPlusActive &&
+      shouldUseAugmentedContext &&
       shouldUsePremiumPlusCaseLawRetrieval &&
       caseLawSuggestionDecision.shouldSuggest
     const premiumPlusNeedsCaseLawRag =
       premiumPlusActive &&
+      shouldUseAugmentedContext &&
       shouldUsePremiumPlusCaseLawRetrieval &&
       true
     premiumPlusTools = premiumPlusActive
@@ -2518,8 +2552,8 @@ export async function POST(request: NextRequest) {
           useCaseLawRag: premiumPlusNeedsCaseLawRag,
         })
       : premiumPlusTools
-    const retrievalRoutingSource: 'heuristic' = 'heuristic'
-    const premiumSearchRoutingSource: 'agent_auto' = 'agent_auto'
+    const retrievalRoutingSource = 'heuristic' as const
+    const premiumSearchRoutingSource = 'agent_auto' as const
     const premiumPlusNeedsWebRetrieval =
       premiumPlusActive &&
       hasPremiumPlusWebSearchTool(premiumPlusTools)
@@ -2527,14 +2561,19 @@ export async function POST(request: NextRequest) {
     const premiumShouldUseSearchRetrieval =
       premiumPlanActive
     let shouldUseSearchRetrieval =
-      premiumShouldUseSearchRetrieval ||
+      shouldUseAugmentedContext &&
+      (
+        premiumShouldUseSearchRetrieval ||
       premiumPlusNeedsWebRetrieval
-    let usePremiumPlusVectorRag =
+      )
+    const usePremiumPlusVectorRag =
       premiumPlusActive &&
+      shouldUseAugmentedContext &&
       premiumPlusNeedsCaseLawRag &&
       !hasAttachments
     const shouldLookupCaseLawSuggestions =
       premiumPlusActive &&
+      shouldUseAugmentedContext &&
       premiumPlusNeedsCaseLawSuggestions
 
     const caseLawSuggestions: CaseLawSuggestion[] = []
@@ -2548,8 +2587,8 @@ export async function POST(request: NextRequest) {
       shouldUseSearchRetrieval = true
     }
     const vectorCaseLawRagContext = buildVectorCaseLawRagContext(vectorCaseLawRagItems)
-    const caseLawSuggestionContext = buildCaseLawSuggestionContext(caseLawSuggestions)
-    const ownCaseFacts = retrievalFocusDecision.ownCaseNarrative
+    const caseLawSuggestionContext = shouldUseAugmentedContext ? buildCaseLawSuggestionContext(caseLawSuggestions) : ''
+    const ownCaseFacts = shouldUseAugmentedContext && retrievalFocusDecision.ownCaseNarrative
       ? extractKeyFactsFromMessage(message).slice(0, 6)
       : []
     const ownCaseFactsContext = ownCaseFacts.length > 0
@@ -2558,10 +2597,13 @@ export async function POST(request: NextRequest) {
 
     const rawMessageForAgent = attachmentContext
       ? `${message}${ownCaseFactsContext}\n\nThe user uploaded documents. Use the excerpts below in your analysis.${caseContext}${caseLawSuggestionContext}${vectorCaseLawRagContext}\n${attachmentContext}`
-      : `${message}${ownCaseFactsContext}${caseContext}${caseLawSuggestionContext}${vectorCaseLawRagContext}${attachmentMetadata}`
+      : shouldUseAugmentedContext
+        ? `${message}${ownCaseFactsContext}${caseContext}${caseLawSuggestionContext}${vectorCaseLawRagContext}${attachmentMetadata}`
+        : message
 
     const messageForAgent = truncateText(rawMessageForAgent, 12000)
     const threadId = `thread_${Date.now()}_${userId}`
+    const shouldAutoDecideSearch = shouldUseAugmentedContext
 
     const shouldUseBasicLegalAgent = basicPlanActive
     const shouldUsePremiumPlusLegalAgent = premiumPlusActive && !shouldUseBasicLegalAgent
@@ -2577,7 +2619,7 @@ export async function POST(request: NextRequest) {
           caseKeywords,
           {
             memoryContext: relatedThreadMemoryContext || undefined,
-            autoDecideSearch: true,
+            autoDecideSearch: shouldAutoDecideSearch,
             searchEngineOverride: 'perplexity',
             legalContext: userLegalContext,
             accountType: userAccountType,
@@ -2600,7 +2642,7 @@ export async function POST(request: NextRequest) {
           caseKeywords,
           {
             memoryContext: relatedThreadMemoryContext || undefined,
-            autoDecideSearch: true,
+            autoDecideSearch: shouldAutoDecideSearch,
             legalContext: userLegalContext,
             accountType: userAccountType,
             ...assistantPromptOption,
@@ -2621,7 +2663,7 @@ export async function POST(request: NextRequest) {
           caseKeywords,
           {
             memoryContext: relatedThreadMemoryContext || undefined,
-            autoDecideSearch: true,
+            autoDecideSearch: shouldAutoDecideSearch,
             searchEngineOverride: 'perplexity',
             legalContext: userLegalContext,
             accountType: userAccountType,
@@ -2652,7 +2694,7 @@ export async function POST(request: NextRequest) {
           caseKeywords,
           {
             memoryContext: relatedThreadMemoryContext || undefined,
-            autoDecideSearch: true,
+            autoDecideSearch: shouldAutoDecideSearch,
             searchEngineOverride: 'perplexity',
             legalContext: userLegalContext,
             accountType: userAccountType,
@@ -2679,7 +2721,7 @@ export async function POST(request: NextRequest) {
           caseKeywords,
           {
             memoryContext: relatedThreadMemoryContext || undefined,
-            autoDecideSearch: true,
+            autoDecideSearch: shouldAutoDecideSearch,
             searchEngineOverride: 'perplexity',
             legalContext: userLegalContext,
             accountType: userAccountType,
@@ -2708,7 +2750,7 @@ export async function POST(request: NextRequest) {
           caseKeywords,
           {
             memoryContext: relatedThreadMemoryContext || undefined,
-            autoDecideSearch: true,
+            autoDecideSearch: shouldAutoDecideSearch,
             searchEngineOverride: 'perplexity',
             legalContext: userLegalContext,
             accountType: userAccountType,
@@ -2922,7 +2964,7 @@ export async function POST(request: NextRequest) {
                   caseKeywords,
                   {
                     memoryContext: relatedThreadMemoryContext || undefined,
-                    autoDecideSearch: true,
+                    autoDecideSearch: shouldAutoDecideSearch,
                     searchEngineOverride: 'brave',
                     legalContext: userLegalContext,
                     accountType: userAccountType,
@@ -2976,8 +3018,8 @@ export async function POST(request: NextRequest) {
       : undefined
     const agentResponse: AgentResponse = shouldUseBasicLegalAgent
       ? await (userAccountType === 'business' ? invokeBasicProfessionalLegalAgent : invokeBasicLitigantLegalAgent)(messageForAgent, threadId, userId, effectiveConversationHistory, caseKeywords, {
-          useSearch: basicSearchQuotaUserId ? undefined : false,
-          autoDecideSearch: Boolean(basicSearchQuotaUserId),
+          useSearch: shouldAutoDecideSearch && basicSearchQuotaUserId ? undefined : false,
+          autoDecideSearch: shouldAutoDecideSearch && Boolean(basicSearchQuotaUserId),
           consumeSearchQuota: consumeBasicSearchQuota,
           memoryContext: relatedThreadMemoryContext || undefined,
           historyLimit: agentHistoryLimit,
@@ -2989,7 +3031,7 @@ export async function POST(request: NextRequest) {
         ? await invokePremiumPlusWithOpenAiFallback()
         : await (userAccountType === 'business' ? invokePremiumProfessionalLegalAgent : invokePremiumLitigantLegalAgent)(messageForAgent, threadId, userId, effectiveConversationHistory, caseKeywords, {
             memoryContext: relatedThreadMemoryContext || undefined,
-            autoDecideSearch: true,
+            autoDecideSearch: shouldAutoDecideSearch,
             searchEngineOverride: 'brave',
             legalContext: userLegalContext,
             accountType: userAccountType,

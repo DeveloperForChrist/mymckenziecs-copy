@@ -9,6 +9,8 @@ export const revalidate = 0
 
 interface ClientMessageFormData {
   businessId: string
+  matterId?: string
+  caseId?: string
   subject: string
   content: string
 }
@@ -48,6 +50,8 @@ export async function POST(request: NextRequest) {
     }
 
     const senderEmail = normalizeEmail(user.email)
+    const matterId = typeof body.matterId === 'string' ? body.matterId.trim() : ''
+    const caseId = typeof body.caseId === 'string' ? body.caseId.trim() : ''
 
     // Verify the client is linked to this business
     const { data: link } = await supabaseAdmin
@@ -63,6 +67,47 @@ export async function POST(request: NextRequest) {
         { message: 'You are not authorized to message this business.' },
         { status: 403 }
       )
+    }
+
+    let relatedMatter:
+      | {
+          id: string
+          case_id: string | null
+          matter_number: string | null
+          issue_type: string | null
+          status: string | null
+          stage: string | null
+        }
+      | null = null
+
+    if (matterId || caseId) {
+      let matterQuery = supabaseAdmin
+        .from('client_matters')
+        .select('id, case_id, matter_number, issue_type, status, stage, email')
+        .eq('business_id', body.businessId)
+
+      if (matterId) {
+        matterQuery = matterQuery.eq('id', matterId)
+      } else if (caseId) {
+        matterQuery = matterQuery.eq('case_id', caseId)
+      }
+
+      const { data: matter } = await matterQuery.maybeSingle()
+      if (!matter || normalizeEmail(matter.email) !== senderEmail) {
+        return NextResponse.json(
+          { message: 'The selected matter is not available for this portal account.' },
+          { status: 403 }
+        )
+      }
+
+      relatedMatter = {
+        id: String(matter.id),
+        case_id: typeof matter.case_id === 'string' ? matter.case_id : null,
+        matter_number: typeof matter.matter_number === 'string' ? matter.matter_number : null,
+        issue_type: typeof matter.issue_type === 'string' ? matter.issue_type : null,
+        status: typeof matter.status === 'string' ? matter.status : null,
+        stage: typeof matter.stage === 'string' ? matter.stage : null,
+      }
     }
 
     // Get business email
@@ -107,6 +152,12 @@ export async function POST(request: NextRequest) {
           clientId: user.id,
           clientName: link.client_name,
           businessId: body.businessId,
+          matterId: relatedMatter?.id || null,
+          caseId: relatedMatter?.case_id || null,
+          matterNumber: relatedMatter?.matter_number || null,
+          matterLabel: relatedMatter?.matter_number || relatedMatter?.issue_type || null,
+          matterStatus: relatedMatter?.status || null,
+          matterStage: relatedMatter?.stage || null,
         },
       })
 
@@ -145,6 +196,8 @@ export async function POST(request: NextRequest) {
         subject: body.subject,
         clientId: user.id,
         businessId: body.businessId,
+        matterId: relatedMatter?.id || null,
+        caseId: relatedMatter?.case_id || null,
       },
     })
 

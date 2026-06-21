@@ -786,6 +786,7 @@ export default function ChatMessageList({
   const [scrollMetrics, setScrollMetrics] = useState({ top: 0, height: 0 })
   const [layoutVersion, setLayoutVersion] = useState(0)
   const measuredHeightsRef = useRef<Map<string, number>>(new Map())
+  const [measuredHeightsSnapshot, setMeasuredHeightsSnapshot] = useState<Map<string, number>>(new Map())
   const refreshFrameRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -840,6 +841,7 @@ export default function ChatMessageList({
 
     refreshFrameRef.current = window.requestAnimationFrame(() => {
       refreshFrameRef.current = null
+      setMeasuredHeightsSnapshot(new Map(measuredHeightsRef.current))
       startTransition(() => {
         setLayoutVersion((current) => current + 1)
       })
@@ -857,18 +859,17 @@ export default function ChatMessageList({
   }
 
   const virtualizationEnabled =
-    Boolean(scrollContainerRef?.current) &&
     messages.length >= VIRTUALIZATION_MIN_MESSAGES &&
     scrollMetrics.height > 0
 
   const virtualWindow = useMemo(
     () => calculateVirtualMessageWindow({
       messages,
-      measuredHeights: measuredHeightsRef.current,
+      measuredHeights: measuredHeightsSnapshot,
       scrollTop: scrollMetrics.top,
       viewportHeight: scrollMetrics.height,
     }),
-    [layoutVersion, messages, scrollMetrics.height, scrollMetrics.top]
+    [layoutVersion, measuredHeightsSnapshot, messages, scrollMetrics.height, scrollMetrics.top]
   )
 
   const rows = virtualizationEnabled
@@ -877,7 +878,7 @@ export default function ChatMessageList({
         index,
         key: getMessageRenderKey(message, index),
         top: 0,
-        height: measuredHeightsRef.current.get(getMessageRenderKey(message, index)) ?? estimateMessageHeight(message),
+        height: measuredHeightsSnapshot.get(getMessageRenderKey(message, index)) ?? estimateMessageHeight(message),
       }))
 
   const hasVisibleAssistantTyping = messages.some(

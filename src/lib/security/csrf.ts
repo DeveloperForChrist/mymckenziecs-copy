@@ -32,7 +32,7 @@ export function verifyCsrfToken(token: string, secret: string): boolean {
  */
 export function getCsrfTokenFromRequest(request: NextRequest): string | null {
   // Check header first
-  let token = request.headers.get(CSRF_HEADER_NAME)
+  const token = request.headers.get(CSRF_HEADER_NAME)
   if (token) return token
 
   // Note: For body checking, you'd need to parse JSON/FormData

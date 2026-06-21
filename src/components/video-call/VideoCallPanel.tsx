@@ -7,6 +7,7 @@ import WebRtcMeeting from '@/components/video/WebRtcMeeting'
 import styles from './videocall.module.css'
 import { getAppMarketFromPathname, getAppRouteForMarket } from '@/lib/markets/app-routes'
 import { BUSINESS_MEETINGS_UPDATED_EVENT } from '@/lib/events/business-events'
+import WorkspaceLoadingState from '@/components/business/WorkspaceLoadingState'
 
 type MeetingStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'no_show'
 interface Meeting { id:string; clientId?: string | null; title:string; clientName:string; clientEmail:string; date:string; time:string; duration:number; roomName:string; status:MeetingStatus; agenda?:string; source?: 'database' | 'local' }
@@ -130,8 +131,8 @@ function mapRowsToMeetings(rows: any[], clients: ClientContact[]): Meeting[] {
       id: String(row.id),
       clientId: row.client_id ? String(row.client_id) : null,
       title: String(row.title || 'Client consultation'),
-      clientName: client?.name || 'Client',
-      clientEmail: client?.email || '',
+      clientName: String(row.client_name || client?.name || 'Client'),
+      clientEmail: String(row.client_email || client?.email || ''),
       date: String(row.meeting_date || ''),
       time: toTime(String(row.meeting_time || '')),
       duration: Number(row.duration_minutes || 45),
@@ -382,8 +383,8 @@ export function VideoCallPanel({
         id: String(meetingRow.id),
         clientId: meetingRow.client_id ? String(meetingRow.client_id) : null,
         title: String(meetingRow.title || form.title),
-        clientName: client.name,
-        clientEmail: client.email,
+        clientName: String(meetingRow.client_name || client.name),
+        clientEmail: String(meetingRow.client_email || client.email),
         date: String(meetingRow.meeting_date || form.date),
         time: toTime(String(meetingRow.meeting_time || form.time)),
         duration: Number(meetingRow.duration_minutes || Number(form.duration)),
@@ -530,7 +531,7 @@ export function VideoCallPanel({
               <button type="button" className={`${styles.sidebarTab} ${tab==='past'?styles.sidebarTabActive:''}`} onClick={()=>setTab('past')}>Past ({pastList.length})</button>
             </div>
             <div className={styles.meetingList}>
-              {loading&&<div className={styles.emptyList}><p>Loading meetings...</p></div>}
+              {loading&&<WorkspaceLoadingState variant="panel" label="Loading meetings..." className={styles.emptyList} />}
               {!loading&&listed.length===0&&<div className={styles.emptyList}><Video size={28}/><p>No meetings</p></div>}
               {listed.map(m=>(
                 <div key={m.id} role="button" tabIndex={0} className={`${styles.meetingItem} ${selected?.id===m.id?styles.meetingItemActive:''}`} onClick={()=>{setSelected(m);setInCall(false)}} onKeyDown={e=>{if(e.key==='Enter'){setSelected(m);setInCall(false)}}}>

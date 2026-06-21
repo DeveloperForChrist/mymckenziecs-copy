@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
-import { supabaseAdmin } from '@/lib/database/supabase-server'
+import { loadClientPortalMatters } from '@/lib/client-portal/portal-matters'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -15,46 +15,68 @@ export async function GET() {
       return NextResponse.json({ message: 'Unauthorized.' }, { status: 401 })
     }
 
-    const { data: links, error: linksError } = await supabaseAdmin
-      .from('client_business_links')
-      .select('business_id')
-      .eq('client_id', user.id)
-      .eq('status', 'active')
-
-    if (linksError) {
-      return NextResponse.json({ message: 'Unable to load relationships.' }, { status: 500 })
-    }
-
-    const businessIds = (links || []).map((row: any) => String(row.business_id || '')).filter(Boolean)
+    const { links, matters } = await loadClientPortalMatters(user.id, user.email)
+    const businessIds = links.map((row) => row.businessId).filter(Boolean)
     if (businessIds.length === 0) return NextResponse.json({ statuses: {} })
 
-    const normalizedEmail = user.email.trim().toLowerCase()
-    const { data: matters, error: mattersError } = await supabaseAdmin
-      .from('client_matters')
-      .select('id, business_id, status, stage, updated_at, accepted_at')
-      .in('business_id', businessIds)
-      .eq('email', normalizedEmail)
-      .order('updated_at', { ascending: false })
+    const statuses: Record<string, {
+      hasOpenMatter: boolean
+      isClosed: boolean
+      status: string
+      stage: string
+      latestMatterId: string | null
+      lastActivityAt: string | null
+      matters: Array<{
+        id: string
+        caseId: string | null
+        matterNumber: string
+        issueType: string
+        status: string
+        stage: string
+        nextAction: string
+        nextDeadline: string | null
+        acceptedAt: string | null
+        lastActivityAt: string | null
+      }>
+    }> = {}
 
-    if (mattersError) {
-      return NextResponse.json({ message: 'Unable to load matter statuses.' }, { status: 500 })
-    }
-
-    const statuses: Record<string, { hasOpenMatter: boolean; isClosed: boolean; status: string; stage: string }> = {}
     for (const businessId of businessIds) {
-      const row = (matters || []).find((m: any) => String(m.business_id || '') === businessId)
-      if (!row) {
-        statuses[businessId] = { hasOpenMatter: false, isClosed: false, status: 'none', stage: 'none' }
+      const businessMatters = matters.filter((matter) => matter.businessId === businessId)
+      if (businessMatters.length === 0) {
+        statuses[businessId] = {
+          hasOpenMatter: false,
+          isClosed: false,
+          status: 'none',
+          stage: 'none',
+          latestMatterId: null,
+          lastActivityAt: null,
+          matters: [],
+        }
         continue
       }
-      const status = String(row.status || '').toLowerCase()
-      const stage = String(row.stage || '').toLowerCase()
-      const isClosed = status === 'archived' || stage === 'closed'
+
+      const latestMatter = businessMatters[0]
+      const hasOpenMatter = businessMatters.some((matter) => matter.status !== 'archived' && matter.stage !== 'closed')
+      const isClosed = !hasOpenMatter && businessMatters.length > 0
       statuses[businessId] = {
-        hasOpenMatter: !isClosed,
+        hasOpenMatter,
         isClosed,
-        status: status || 'unknown',
-        stage: stage || 'unknown',
+        status: latestMatter.status || 'unknown',
+        stage: latestMatter.stage || 'unknown',
+        latestMatterId: latestMatter.id,
+        lastActivityAt: latestMatter.lastActivityAt,
+        matters: businessMatters.map((matter) => ({
+          id: matter.id,
+          caseId: matter.caseId,
+          matterNumber: matter.matterNumber,
+          issueType: matter.issueType,
+          status: matter.status,
+          stage: matter.stage,
+          nextAction: matter.nextAction,
+          nextDeadline: matter.nextDeadline,
+          acceptedAt: matter.acceptedAt,
+          lastActivityAt: matter.lastActivityAt,
+        })),
       }
     }
 
