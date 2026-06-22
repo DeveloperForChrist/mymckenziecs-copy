@@ -4,8 +4,11 @@ import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { BusinessWorkspaceError, ensureBusinessContext } from '@/lib/business/business-workspace'
 import { createBusinessAlert } from '@/lib/business/alerts'
 import { sendPlatformMessageNotification } from '@/lib/email/platform-notifications'
+import { sendResendEmail } from '@/lib/email/resend'
+import { renderPlainEmail } from '@/lib/email/plain-template'
 import { EMAIL_ATTACHMENT_LABEL, isAllowedEmailAttachment } from '@/lib/inbox/attachment-policy'
 import { isMissingDocumentSharesTable } from '@/lib/documents/client-document-access'
+import nodemailer from 'nodemailer'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -18,6 +21,7 @@ type SendPortalMessagePayload = {
   attachmentIds?: string[]
   matterId?: string
   caseId?: string
+  deliveryMode?: 'portal' | 'direct'
 }
 
 type StoredAttachment = {
@@ -58,6 +62,72 @@ function errorResponse(error: unknown, fallback: string) {
   return NextResponse.json({ message: fallback }, { status: 500 })
 }
 
+async function sendDirectEmailMessage(params: {
+  to: string
+  subject: string
+  textBody: string
+  htmlBody: string
+  replyTo?: string | null
+  attachments: DirectEmailAttachment[]
+}) {
+  const resendConfigured = Boolean(process.env.RESEND_API_KEY)
+  const gmailUser = process.env.GMAIL_USER
+  const gmailAppPassword = process.env.GMAIL_APP_PASSWORD
+  let delivered = false
+
+  if (resendConfigured) {
+    try {
+      await sendResendEmail({
+        to: params.to,
+        subject: params.subject,
+        textBody: params.textBody,
+        htmlBody: params.htmlBody,
+        tag: 'business-direct-message',
+        replyTo: params.replyTo || undefined,
+        attachments: params.attachments.map((attachment) => ({
+          filename: attachment.name,
+          content: attachment.content,
+          contentType: attachment.mimeType || undefined,
+        })),
+      })
+      delivered = true
+    } catch (error) {
+      if (!gmailUser || !gmailAppPassword) {
+        throw error
+      }
+    }
+  }
+
+  if (!delivered && gmailUser && gmailAppPassword) {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
+      auth: { user: gmailUser, pass: gmailAppPassword },
+    })
+
+    await transporter.sendMail({
+      from: gmailUser,
+      to: params.to,
+      subject: params.subject,
+      text: params.textBody,
+      html: params.htmlBody,
+      replyTo: params.replyTo || undefined,
+      attachments: params.attachments.map((attachment) => ({
+        filename: attachment.name,
+        content: attachment.content,
+        contentType: attachment.mimeType || undefined,
+      })),
+    })
+    delivered = true
+  }
+
+  if (!delivered) {
+    throw new Error('Direct email is not configured yet. Set up Resend or Gmail delivery first.')
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { user, workspace } = await getContext()
@@ -88,13 +158,23 @@ export async function POST(request: NextRequest) {
     if (linkedClientError) {
       return NextResponse.json({ message: 'Unable to verify the recipient.' }, { status: 500 })
     }
+    const requestedDeliveryMode = payload.deliveryMode === 'portal' ? 'portal' : 'direct'
+    const deliveryMode = linkedClient && requestedDeliveryMode === 'portal' ? 'portal' : 'direct'
 
-    if (!linkedClient) {
+    if (requestedDeliveryMode === 'portal' && !linkedClient) {
       return NextResponse.json(
         { message: 'That email is not linked to an active client portal connection.' },
         { status: 403 },
       )
     }
+
+    const attachmentIds = Array.from(
+      new Set(
+        Array.isArray(payload?.attachmentIds)
+          ? payload.attachmentIds.map((id) => asString(id)).filter(Boolean)
+          : [],
+      ),
+    )
 
     let relatedMatter:
       | {
@@ -131,7 +211,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: 'The selected matter does not belong to this client.' }, { status: 403 })
       }
 
-      if (matterRow.status !== 'active' || matterRow.stage === 'closed') {
+      if (deliveryMode === 'portal' && (matterRow.status !== 'active' || matterRow.stage === 'closed')) {
         return NextResponse.json({ message: 'Documents cannot be shared to a closed or archived matter.' }, { status: 409 })
       }
 
@@ -151,22 +231,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const attachmentIds = Array.from(
-      new Set(
-        Array.isArray(payload?.attachmentIds)
-          ? payload.attachmentIds.map((id) => asString(id)).filter(Boolean)
-          : [],
-      ),
-    )
-
-    if (attachmentIds.length > 0 && !relatedMatter) {
+    if (attachmentIds.length > 0 && !relatedMatter && deliveryMode === 'portal') {
       return NextResponse.json(
         { message: 'Select an active matter before sharing documents with a client.' },
         { status: 400 },
       )
     }
 
-    if (attachmentIds.length > 0 && !linkedClient.client_id) {
+    if (attachmentIds.length > 0 && deliveryMode === 'portal' && !linkedClient?.client_id) {
       return NextResponse.json({ message: 'The client portal account is not linked correctly.' }, { status: 409 })
     }
 
@@ -238,22 +310,144 @@ export async function POST(request: NextRequest) {
       user.email?.split('@')[0] ||
       'MyMcKenzieCS Professional'
 
-    const textBody = [
-      'Hello,',
+    const storedAttachments: StoredAttachment[] = attachments.map(({ content: _content, ...attachment }) => attachment)
+
+    if (deliveryMode === 'portal') {
+      const { data: insertedMessage, error: insertError } = await supabaseAdmin
+        .from('inbox_messages')
+        .insert({
+          sender_id: user.id,
+          sender_email: senderEmail || null,
+          sender_name: senderName,
+          recipient_email: recipientEmail,
+          subject,
+          content: body,
+          type: 'email',
+          metadata: {
+            sentByBusinessDashboard: true,
+            deliveryMode: 'portal',
+            deliveredToPortal: true,
+            mirroredToClientPortal: true,
+            attachmentIds,
+            attachments: storedAttachments,
+            businessId: workspace.businessId,
+            recipientName: linkedClient?.client_name || null,
+            matterId: relatedMatter?.id || null,
+            caseId: relatedMatter?.case_id || null,
+            matterNumber: relatedMatter?.matter_number || null,
+            matterLabel: relatedMatter?.matter_number || relatedMatter?.issue_type || null,
+            matterStatus: relatedMatter?.status || null,
+            matterStage: relatedMatter?.stage || null,
+          },
+        })
+        .select('id')
+        .single()
+
+      if (insertError) {
+        return NextResponse.json({ message: insertError.message || 'Failed to save message.' }, { status: 500 })
+      }
+
+      if (attachmentIds.length > 0 && relatedMatter && linkedClient?.client_id) {
+        const shareRows = attachmentIds.map((documentId) => ({
+          document_id: documentId,
+          business_id: workspace.businessId,
+          matter_id: relatedMatter.id,
+          client_id: linkedClient.client_id,
+          shared_by_user_id: user.id,
+          revoked_at: null,
+        }))
+        const { error: shareError } = await supabaseAdmin
+          .from('document_client_shares')
+          .upsert(shareRows, { onConflict: 'document_id,matter_id,client_id' })
+
+        if (shareError) {
+          if (insertedMessage?.id) {
+            await supabaseAdmin.from('inbox_messages').delete().eq('id', insertedMessage.id)
+          }
+          const message = isMissingDocumentSharesTable(shareError)
+            ? 'Document sharing is not ready. Apply the latest database migration first.'
+            : 'Unable to grant secure document access.'
+          return NextResponse.json({ message }, { status: 503 })
+        }
+      }
+
+      try {
+        await sendPlatformMessageNotification({
+          to: recipientEmail,
+          recipientName: linkedClient?.client_name || null,
+          senderName,
+          subjectLine: subject,
+          preview: body.slice(0, 180),
+        })
+      } catch (notificationError) {
+        console.error('Failed to send secure message notification:', notificationError)
+      }
+
+      await createBusinessAlert({
+        businessId: workspace.businessId,
+        type: 'message',
+        priority: 'medium',
+        title: 'Secure message sent',
+        body: `${senderName} sent a secure message to ${recipientEmail}.`,
+        clientName: linkedClient?.client_name || recipientEmail,
+        actionLabel: 'Open Inbox',
+        metadata: {
+          deliveryMode: 'portal',
+          recipientEmail,
+          attachmentCount: attachments.length,
+          matterId: relatedMatter?.id || null,
+          caseId: relatedMatter?.case_id || null,
+        },
+      })
+
+      return NextResponse.json({ message: 'Secure message sent successfully.' })
+    }
+
+    const directEmailText = [
+      `Hello${linkedClient?.client_name ? ` ${linkedClient.client_name}` : ''},`,
       '',
-      `${senderName} has sent you a secure message on MyMcKenzieCS.`,
+      `${senderName} has sent you a message from MyMcKenzieCS.`,
       '',
       body,
       '',
-      'Please sign in to MyMcKenzieCS to read and reply securely.',
+      relatedMatter?.matter_number || relatedMatter?.issue_type
+        ? `Matter reference: ${relatedMatter?.matter_number || relatedMatter?.issue_type}`
+        : '',
+      '',
+      `Reply to: ${senderEmail || 'the sender email shown in your mail app'}`,
       '',
       'Kind regards,',
       senderName,
-    ].join('\n')
+    ].filter(Boolean).join('\n')
 
-    const storedAttachments: StoredAttachment[] = attachments.map(({ content: _content, ...attachment }) => attachment)
+    const directEmailHtml = renderPlainEmail({
+      preheader: `${senderName} sent you a message from MyMcKenzieCS.`,
+      title: subject,
+      greeting: `Hello${linkedClient?.client_name ? ` ${linkedClient.client_name}` : ''},`,
+      intro: `${senderName} sent you a direct message from MyMcKenzieCS.`,
+      detailsTitle: 'Message details',
+      details: [
+        { label: 'From', value: senderName },
+        { label: 'Reply to', value: senderEmail || 'Use your email reply button' },
+        ...(relatedMatter?.matter_number || relatedMatter?.issue_type
+          ? [{ label: 'Matter', value: relatedMatter?.matter_number || relatedMatter?.issue_type || 'Client matter' }]
+          : []),
+      ],
+      bodyHtml: `<p style="margin:0;white-space:pre-wrap;">${body}</p>`,
+      note: 'This message was delivered directly by email. It is not a portal-only thread.',
+      closing: `Kind regards,\n${senderName}`,
+    })
 
-    const { data: insertedMessage, error: insertError } = await supabaseAdmin
+    await sendDirectEmailMessage({
+      to: recipientEmail,
+      subject,
+      textBody: directEmailText,
+      htmlBody: directEmailHtml,
+      replyTo: senderEmail || null,
+      attachments,
+    })
+
+    const { error: directInsertError } = await supabaseAdmin
       .from('inbox_messages')
       .insert({
         sender_id: user.id,
@@ -265,12 +459,13 @@ export async function POST(request: NextRequest) {
         type: 'email',
         metadata: {
           sentByBusinessDashboard: true,
-          deliveredToPortal: true,
-          mirroredToClientPortal: true,
+          deliveryMode: 'direct',
+          deliveredToPortal: false,
+          mirroredToClientPortal: false,
           attachmentIds,
           attachments: storedAttachments,
           businessId: workspace.businessId,
-          recipientName: linkedClient.client_name || null,
+          recipientName: linkedClient?.client_name || null,
           matterId: relatedMatter?.id || null,
           caseId: relatedMatter?.case_id || null,
           matterNumber: relatedMatter?.matter_number || null,
@@ -279,58 +474,21 @@ export async function POST(request: NextRequest) {
           matterStage: relatedMatter?.stage || null,
         },
       })
-      .select('id')
-      .single()
 
-    if (insertError) {
-      return NextResponse.json({ message: insertError.message || 'Failed to save message.' }, { status: 500 })
-    }
-
-    if (attachmentIds.length > 0 && relatedMatter && linkedClient.client_id) {
-      const shareRows = attachmentIds.map((documentId) => ({
-        document_id: documentId,
-        business_id: workspace.businessId,
-        matter_id: relatedMatter.id,
-        client_id: linkedClient.client_id,
-        shared_by_user_id: user.id,
-        revoked_at: null,
-      }))
-      const { error: shareError } = await supabaseAdmin
-        .from('document_client_shares')
-        .upsert(shareRows, { onConflict: 'document_id,matter_id,client_id' })
-
-      if (shareError) {
-        if (insertedMessage?.id) {
-          await supabaseAdmin.from('inbox_messages').delete().eq('id', insertedMessage.id)
-        }
-        const message = isMissingDocumentSharesTable(shareError)
-          ? 'Document sharing is not ready. Apply the latest database migration first.'
-          : 'Unable to grant secure document access.'
-        return NextResponse.json({ message }, { status: 503 })
-      }
-    }
-
-    try {
-      await sendPlatformMessageNotification({
-        to: recipientEmail,
-        recipientName: linkedClient.client_name || null,
-        senderName,
-        subjectLine: subject,
-        preview: body.slice(0, 180),
-      })
-    } catch (notificationError) {
-      console.error('Failed to send secure message notification:', notificationError)
+    if (directInsertError) {
+      console.error('Failed to save direct email to sent history:', directInsertError)
     }
 
     await createBusinessAlert({
       businessId: workspace.businessId,
       type: 'message',
       priority: 'medium',
-      title: 'Secure message sent',
-      body: `${senderName} sent a secure message to ${recipientEmail}.`,
-      clientName: linkedClient.client_name || recipientEmail,
+      title: 'Direct email sent',
+      body: `${senderName} sent a direct email to ${recipientEmail}.`,
+      clientName: linkedClient?.client_name || recipientEmail,
       actionLabel: 'Open Inbox',
       metadata: {
+        deliveryMode: 'direct',
         recipientEmail,
         attachmentCount: attachments.length,
         matterId: relatedMatter?.id || null,
@@ -338,7 +496,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ message: 'Secure message sent successfully.' })
+    return NextResponse.json({ message: 'Direct email sent successfully.' })
   } catch (error) {
     return errorResponse(error, 'Failed to send secure message.')
   }
