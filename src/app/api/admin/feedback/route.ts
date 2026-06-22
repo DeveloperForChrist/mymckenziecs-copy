@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 type FeedbackLogRow = {
   id: string
-  details?: any
+  details?: unknown
   created_at?: string | null
 }
 
@@ -18,7 +18,7 @@ type FeedbackItem = {
   id: string
   feedbackType?: string
   createdAt?: string | null
-  [key: string]: any
+  [key: string]: unknown
 }
 
 const feedbackPayloadSchema = z
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Feedback submitted successfully'
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error submitting feedback:', error);
     const details = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
@@ -202,7 +202,7 @@ export async function GET(request: NextRequest) {
       counts,
       total: feedback.length
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching feedback:', error);
     const details = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(

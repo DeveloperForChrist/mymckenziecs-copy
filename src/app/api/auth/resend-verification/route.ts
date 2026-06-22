@@ -8,6 +8,14 @@ import { getAppRouteForMarket } from '@/lib/markets/app-routes'
 import { emailDailyRateLimiter, emailRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit'
 import { htmlEscape } from '@/lib/utils/html-escape'
 
+type VerificationUserRow = {
+  id: string
+  email?: string | null
+  name?: string | null
+  email_verified_at?: string | null
+  country_code?: string | null
+}
+
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
@@ -46,19 +54,27 @@ export async function POST(request: NextRequest) {
       .ilike('email', email)
       .limit(1)
       .maybeSingle()
+    const typedUserRow = userRow as VerificationUserRow | null
 
     // Generic success to avoid account enumeration.
-    if (!userRow?.id || userRow.email_verified_at) {
+    if (!typedUserRow?.id || typedUserRow.email_verified_at) {
       return NextResponse.json({ success: true })
     }
 
-    const { data: authUserData, error: authUserError } = await supabaseAdmin.auth.admin.getUserById(userRow.id)
+    const { data: authUserData, error: authUserError } = await supabaseAdmin.auth.admin.getUserById(typedUserRow.id)
     if (authUserError || !authUserData.user?.email) {
       return NextResponse.json({ success: true })
     }
 
+    const authMetadata =
+      authUserData.user.user_metadata &&
+      typeof authUserData.user.user_metadata === 'object'
+        ? (authUserData.user.user_metadata as Record<string, unknown>)
+        : null
+    const metadataCountryCode =
+      typeof authMetadata?.country_code === 'string' ? authMetadata.country_code : undefined
     const billingMarket = getBillingMarketFromCountryCode(
-      (userRow as any)?.country_code || (authUserData.user.user_metadata as any)?.country_code
+      typedUserRow.country_code || metadataCountryCode
     )
     const redirect = safeRedirectPath(
       requestedRedirect,
@@ -75,12 +91,12 @@ export async function POST(request: NextRequest) {
         verification_token_hash: tokenHash,
         verification_token_expires_at: expiresAt,
       })
-      .eq('id', userRow.id)
+      .eq('id', typedUserRow.id)
 
     const appUrl = getAppUrl(request)
 
     const verifyUrl = `${appUrl}/api/email/verify?token=${encodeURIComponent(rawToken)}&redirect=${encodeURIComponent(redirect)}`
-    const firstName = htmlEscape((userRow.name || '').trim().split(/\s+/)[0] || email.split('@')[0] || 'there')
+    const firstName = htmlEscape((typedUserRow.name || '').trim().split(/\s+/)[0] || email.split('@')[0] || 'there')
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
         <h2 style="margin: 0 0 12px;">Verify your email</h2>
@@ -105,7 +121,7 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Resend verification failed', error)
     return NextResponse.json({ success: true })
   }

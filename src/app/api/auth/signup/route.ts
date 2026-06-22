@@ -246,9 +246,10 @@ export async function POST(request: NextRequest) {
       success: true,
       verificationEmailSent,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Sign up failed'
     return NextResponse.json(
-      { message: error.message || 'Sign up failed' },
+      { message },
       { status: 500 }
     )
   }
