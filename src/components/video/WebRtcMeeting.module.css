@@ -382,41 +382,6 @@
   line-height: 1.4;
 }
 
-.copyRow {
-  gap: 8px;
-  padding: 10px;
-  border: 1px solid rgba(226, 232, 240, 0.12);
-  border-radius: 8px;
-  background: rgba(2, 6, 23, 0.34);
-}
-
-.roomCode {
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  color: #e2e8f0;
-  font-size: 0.76rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.copyButton {
-  width: 34px;
-  height: 34px;
-  display: inline-grid;
-  place-items: center;
-  flex: 0 0 auto;
-  border: 1px solid rgba(153, 246, 228, 0.24);
-  border-radius: 8px;
-  background: rgba(20, 184, 166, 0.14);
-  color: #ccfbf1;
-  cursor: pointer;
-}
-
-.copyButton:hover {
-  background: rgba(20, 184, 166, 0.24);
-}
-
 .callControls {
   position: sticky;
   bottom: 0;
@@ -512,7 +477,6 @@
 
   .embeddedVideoGrid {
     min-height: 0;
-    grid-template-columns: 1fr;
     align-content: stretch;
   }
 

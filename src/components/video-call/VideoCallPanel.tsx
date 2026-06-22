@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { usePathname } from 'next/navigation'
-import { Video, Plus, Calendar, Clock, User, Mail, Copy, CheckCircle2, Play, XCircle, Maximize2, Minimize2 } from 'lucide-react'
+import { Video, Plus, Calendar, Clock, User, Mail, Copy, CheckCircle2, Play, XCircle, Maximize2, Minimize2, FileText } from 'lucide-react'
 import WebRtcMeeting from '@/components/video/WebRtcMeeting'
 import styles from './videocall.module.css'
 import { getAppMarketFromPathname, getAppRouteForMarket } from '@/lib/markets/app-routes'
@@ -161,6 +161,7 @@ export function VideoCallPanel({
   const [inCall,setInCall]=useState(false)
   const [session,setSession]=useState(0)
   const [callExpanded,setCallExpanded]=useState(true)
+  const [notesOpen,setNotesOpen]=useState(true)
   const [copied,setCopied]=useState(false)
   const [notice,setNotice]=useState('')
   const [err,setErr]=useState('')
@@ -470,6 +471,7 @@ export function VideoCallPanel({
     void updateStatus(m, 'in_progress')
     setInCall(true)
     setCallExpanded(true)
+    setNotesOpen(true)
   }
   const leave=()=>{setInCall(false);setSession(s=>s+1)}
   const endMeeting=(m:Meeting)=>{
@@ -491,6 +493,9 @@ export function VideoCallPanel({
           <p className={`${styles.dataModePill} ${dataMode === 'database' ? styles.dataModeDatabase : styles.dataModeLocal}`}>
             {dataMode === 'database' ? 'Database connected' : 'Local fallback mode'}
           </p>
+        </div>
+
+        <div className={styles.sidebarActions}>
           {dataMode === 'local' && (
             <button type="button" className={styles.retrySyncBtn} onClick={() => void retryDatabaseSync()}>
               Retry database sync
@@ -612,11 +617,21 @@ export function VideoCallPanel({
                   {callExpanded ? <Minimize2 size={14}/> : <Maximize2 size={14}/>}
                   {callExpanded ? 'Collapse' : 'Expand'}
                 </button>
+                <button
+                  type="button"
+                  className={styles.callModalToggleBtn}
+                  onClick={() => setNotesOpen((current) => !current)}
+                  aria-label={notesOpen ? 'Hide meeting notes' : 'Show meeting notes'}
+                  title={notesOpen ? 'Hide notes' : 'Show notes'}
+                >
+                  <FileText size={14}/>
+                  {notesOpen ? 'Hide notes' : 'Show notes'}
+                </button>
                 <button type="button" className={styles.callModalCloseBtn} onClick={leave}><XCircle size={14}/>Leave</button>
               </div>
             </div>
             <div className={styles.callModalBody}>
-              <div className={styles.callModalWorkspace}>
+              <div className={`${styles.callModalWorkspace} ${!notesOpen ? styles.callModalWorkspaceNotesHidden : ''}`}>
                 <WebRtcMeeting
                   key={`${selected.id}-${session}`}
                   className={styles.callModalMeetingShell}
@@ -634,7 +649,8 @@ export function VideoCallPanel({
                   )}
                 />
 
-                <aside className={styles.callNotesPanel} aria-label="Meeting notes">
+                {notesOpen && (
+                  <aside className={styles.callNotesPanel} aria-label="Meeting notes">
                   <div className={styles.callNotesHeader}>
                     <div>
                       <h3>Meeting Notes</h3>
@@ -667,7 +683,8 @@ export function VideoCallPanel({
                     </button>
                   </div>
                   {meetingNoteStatus && <p className={styles.callNotesStatus}>{meetingNoteStatus}</p>}
-                </aside>
+                  </aside>
+                )}
               </div>
             </div>
           </div>

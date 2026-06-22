@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Mail, Send, FileText, Trash2, Archive, Star, Search, Reply, X, UserPlus, CheckCircle2, XCircle, Loader2, Paperclip, UploadCloud, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react'
+import { Mail, Send, FileText, Trash2, Archive, Star, Search, Reply, X, UserPlus, CheckCircle2, XCircle, Loader2, Paperclip, UploadCloud, RotateCcw } from 'lucide-react'
 import styles from './inbox.module.css'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import { parseInboxAttachments, type InboxMessageAttachment } from '@/lib/inbox/attachments'
@@ -39,13 +39,6 @@ interface Message {
     attachments?: InboxMessageAttachment[]
   }
   deletedAt?: string | null
-}
-
-type DocumentOption = {
-  id: string
-  name: string
-  createdAt: string
-  size: number
 }
 
 type ActiveClientOption = {
@@ -151,14 +144,8 @@ export default function InboxPage({
   const [activeRecipientIndex, setActiveRecipientIndex] = useState(0)
   const [clientInviteForm, setClientInviteForm] = useState({ email: '', name: '' })
   const [attachedFiles, setAttachedFiles] = useState<File[]>([])
-  const [availableDocuments, setAvailableDocuments] = useState<DocumentOption[]>([])
-  const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
-  const [documentsLoading, setDocumentsLoading] = useState(false)
-  const [documentsError, setDocumentsError] = useState('')
-  const [documentPickerOpen, setDocumentPickerOpen] = useState(true)
   const [selectedMatter, setSelectedMatter] = useState<MatterOption | null>(null)
   const [composeCaseId, setComposeCaseId] = useState('')
-  const [composeMatterLabel, setComposeMatterLabel] = useState('')
   const [composeSending, setComposeSending] = useState(false)
   const [inviteSending, setInviteSending] = useState(false)
   const [composeNotice, setComposeNotice] = useState('')
@@ -167,9 +154,6 @@ export default function InboxPage({
 
   const resetComposeAttachments = () => {
     setAttachedFiles([])
-    setSelectedDocumentIds([])
-    setAvailableDocuments([])
-    setDocumentsError('')
     if (attachmentInputRef.current) attachmentInputRef.current.value = ''
   }
 
@@ -191,9 +175,7 @@ export default function InboxPage({
     setShowCompose(false)
     resetComposeAttachments()
     resetRecipientPicker()
-    setDocumentPickerOpen(true)
     setComposeCaseId('')
-    setComposeMatterLabel('')
     setComposeForm({ to: '', subject: '', body: '' })
     setComposeNotice('')
   }
@@ -214,9 +196,7 @@ export default function InboxPage({
     setSelectedMatter(null)
     setRecipientPickerOpen(true)
     setActiveRecipientIndex(0)
-    setDocumentPickerOpen(true)
     setComposeCaseId((context?.caseId || '').trim())
-    setComposeMatterLabel((context?.matterLabel || '').trim())
     resetComposeAttachments()
     setShowCompose(true)
   }
@@ -261,8 +241,6 @@ export default function InboxPage({
   const selectMatter = (matter: MatterOption | null) => {
     setSelectedMatter(matter)
     setComposeCaseId(matter?.caseId || '')
-    setComposeMatterLabel(matter?.matterNumber || matter?.issueType || matter?.clientName || '')
-    setSelectedDocumentIds([])
   }
 
   const selectRecipient = (client: ActiveClientOption) => {
@@ -338,61 +316,8 @@ export default function InboxPage({
       body: composePreset.body || '',
     })
     setComposeCaseId((composePreset.caseId || '').trim())
-    setComposeMatterLabel((composePreset.matterLabel || '').trim())
-    setDocumentPickerOpen(true)
     setShowCompose(true)
   }, [composePreset?.to, composePreset?.subject, composePreset?.body, composePreset?.caseId, composePreset?.matterLabel])
-
-  useEffect(() => {
-    if (!showCompose) return
-
-    let cancelled = false
-    const loadDocuments = async () => {
-      setSelectedDocumentIds([])
-      if (!composeCaseId) {
-        setAvailableDocuments([])
-        setDocumentsError('')
-        setDocumentsLoading(false)
-        return
-      }
-
-      setDocumentsLoading(true)
-      setDocumentsError('')
-      try {
-        const res = await fetch(`/api/documents?limit=100&offset=0&caseId=${encodeURIComponent(composeCaseId)}`, {
-          credentials: 'include',
-          cache: 'no-store',
-        })
-        const payload = await res.json().catch(() => ({}))
-        if (!res.ok) {
-          throw new Error(payload?.error || 'Unable to load documents.')
-        }
-
-        const docs = Array.isArray(payload?.documents) ? payload.documents : []
-        if (!cancelled) {
-          setAvailableDocuments(
-            docs.map((doc: Record<string, unknown>) => ({
-              id: String(doc.id || ''),
-              name: String(doc.name || 'Document'),
-              createdAt: String(doc.created_at || new Date().toISOString()),
-              size: typeof doc.file_size === 'number' ? doc.file_size : Number(doc.file_size || 0),
-            })).filter((doc: DocumentOption) => Boolean(doc.id)),
-          )
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setDocumentsError(err instanceof Error ? err.message : 'Unable to load documents.')
-        }
-      } finally {
-        if (!cancelled) setDocumentsLoading(false)
-      }
-    }
-
-    void loadDocuments()
-    return () => {
-      cancelled = true
-    }
-  }, [showCompose, composeCaseId])
 
   useEffect(() => {
     if (!showCompose) return
@@ -464,7 +389,6 @@ export default function InboxPage({
     if (presetMatter) {
       if (selectedMatter?.id !== presetMatter.id) {
         setSelectedMatter(presetMatter)
-        setComposeMatterLabel(presetMatter.matterNumber || presetMatter.issueType || presetMatter.clientName)
       }
       return
     }
@@ -723,7 +647,6 @@ export default function InboxPage({
         }
         attachmentIds = uploadedDocs.map((doc: Record<string, unknown>) => String(doc.id || '')).filter(Boolean)
       }
-      attachmentIds = Array.from(new Set([...selectedDocumentIds, ...attachmentIds]))
 
       const response = await fetch('/api/business/inbox/message', {
         method: 'POST',
@@ -747,9 +670,6 @@ export default function InboxPage({
       setComposeNotice('sent')
       setComposeForm({ to: '', subject: '', body: '' })
       setAttachedFiles([])
-      setSelectedDocumentIds([])
-      setAvailableDocuments([])
-      setDocumentsError('')
       if (attachmentInputRef.current) {
         attachmentInputRef.current.value = ''
       }
@@ -1139,13 +1059,9 @@ export default function InboxPage({
               <div className={styles.composeResources}>
                 <div className={styles.composeResourcesHeader}>
                   <span className={styles.composeResourcesEyebrow}>Portal delivery</span>
-                  <h3 className={styles.composeResourcesTitle}>Files and saved documents</h3>
+                  <h3 className={styles.composeResourcesTitle}>Attachments</h3>
                   <p className={styles.composeResourcesText}>
-                    {composeCaseId
-                      ? `Add fresh attachments or pull from the saved documents linked to ${composeMatterLabel || 'this matter'} before the client is notified.`
-                      : selectedRecipient && recipientMatters.length > 1
-                        ? 'Choose the right matter first, then the saved-document list will switch to that case.'
-                        : 'Add fresh attachments here. Saved documents appear once a specific client matter is selected.'}
+                    Add files directly to this message. The client will receive the note securely in the portal and see any uploaded attachments there.
                   </p>
                 </div>
                 <div className={styles.attachmentField}>
@@ -1182,93 +1098,19 @@ export default function InboxPage({
                         <span key={`${file.name}-${file.size}-${index}`} className={styles.attachmentChip}>
                           <Paperclip size={13} />
                           <span className={styles.attachmentChipName}>{file.name}</span>
-                            <button
-                              type="button"
-                              className={styles.attachmentChipRemove}
-                              onClick={() => setAttachedFiles((prev) => prev.filter((_, idx) => idx !== index))}
-                              aria-label={`Remove ${file.name}`}
-                            >
-                              <X size={12} />
-                            </button>
+                          <button
+                            type="button"
+                            className={styles.attachmentChipRemove}
+                            onClick={() => setAttachedFiles((prev) => prev.filter((_, idx) => idx !== index))}
+                            aria-label={`Remove ${file.name}`}
+                          >
+                            <X size={12} />
+                          </button>
                         </span>
                       ))}
                     </div>
                   ) : (
                     <p className={styles.attachmentHint}>Attach one or more documents. Allowed types: {EMAIL_ATTACHMENT_LABEL}.</p>
-                  )}
-                </div>
-                <div className={`${styles.documentPicker} ${!documentPickerOpen ? styles.documentPickerCollapsed : ''}`}>
-                  <div className={styles.documentPickerHeader}>
-                    <div className={styles.documentPickerHeaderCopy}>
-                      <span className={styles.documentPickerLabel}>Attach existing documents</span>
-                      <span className={styles.documentPickerMeta}>
-                        {composeCaseId
-                          ? availableDocuments.length > 0
-                            ? `${availableDocuments.length} in this matter`
-                            : 'No matter documents loaded'
-                          : 'Open from Client Work'}
-                      </span>
-                    </div>
-                    {composeCaseId && (
-                      <button
-                        type="button"
-                        className={styles.composeSectionToggle}
-                        onClick={() => setDocumentPickerOpen((open) => !open)}
-                        aria-expanded={documentPickerOpen}
-                      >
-                        <span>{documentPickerOpen ? 'Hide library' : 'Show library'}</span>
-                        {documentPickerOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                      </button>
-                    )}
-                  </div>
-                  {(documentPickerOpen || !composeCaseId) && (
-                    <>
-                      {!composeCaseId ? (
-                        <div className={styles.documentPickerEmpty}>
-                          {selectedRecipient
-                            ? recipientMatters.length > 1
-                              ? 'Choose a matter above to load its saved documents.'
-                              : 'No case-linked document library is available for this message yet.'
-                            : 'Choose a client first, then select the right matter to load saved documents.'}
-                        </div>
-                      ) : documentsLoading ? (
-                        <WorkspaceLoadingState variant="inline" label="Loading your documents…" className={styles.documentPickerEmpty} />
-                      ) : documentsError ? (
-                        <div className={styles.documentPickerError}>{documentsError}</div>
-                      ) : availableDocuments.length === 0 ? (
-                        <div className={styles.documentPickerEmpty}>You do not have any saved documents yet.</div>
-                      ) : (
-                        <div className={styles.documentPickerList}>
-                          {availableDocuments.map((doc) => {
-                            const checked = selectedDocumentIds.includes(doc.id)
-                            return (
-                              <label key={doc.id} className={checked ? styles.documentPickerItemActive : styles.documentPickerItem}>
-                                <input
-                                  type="checkbox"
-                                  checked={checked}
-                                  onChange={() => {
-                                    setSelectedDocumentIds((prev) =>
-                                      checked ? prev.filter((id) => id !== doc.id) : [...prev, doc.id]
-                                    )
-                                  }}
-                                />
-                                <div className={styles.documentPickerInfo}>
-                                  <span className={styles.documentPickerName}>{doc.name}</span>
-                                  <span className={styles.documentPickerSub}>
-                                    {new Date(doc.createdAt).toLocaleDateString()} • {Math.max(1, Math.round(doc.size / 1024))} KB
-                                  </span>
-                                </div>
-                              </label>
-                            )
-                          })}
-                        </div>
-                      )}
-                      {selectedDocumentIds.length > 0 && (
-                        <div className={styles.documentPickerSelected}>
-                          {selectedDocumentIds.length} existing document{selectedDocumentIds.length === 1 ? '' : 's'} selected
-                        </div>
-                      )}
-                    </>
                   )}
                 </div>
               </div>
@@ -1367,9 +1209,7 @@ export default function InboxPage({
               className={styles.composeButton}
               onClick={() => {
                 setComposeCaseId('')
-                setComposeMatterLabel('')
                 resetComposeAttachments()
-                setDocumentPickerOpen(true)
                 setShowCompose(true)
               }}
             >
