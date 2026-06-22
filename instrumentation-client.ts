@@ -4,6 +4,15 @@
 
 import * as Sentry from "@sentry/nextjs";
 
+type SentryEvent = {
+  user?: {
+    email?: string
+    ip_address?: string
+    [key: string]: unknown
+  }
+  [key: string]: unknown
+}
+
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
@@ -31,7 +40,7 @@ Sentry.init({
   environment: process.env.NODE_ENV,
 
   // Filter out sensitive data
-  beforeSend(event: any, _hint: any) {
+  beforeSend(event: SentryEvent) {
     // Remove sensitive user data
     if (event.user) {
       delete event.user.email;

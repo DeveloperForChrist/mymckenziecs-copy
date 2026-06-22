@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomBytes, createHmac } from 'node:crypto'
 
-const CSRF_TOKEN_NAME = 'csrf-token'
 const CSRF_COOKIE_NAME = '__Host-csrf-token'
 const CSRF_HEADER_NAME = 'x-csrf-token'
 

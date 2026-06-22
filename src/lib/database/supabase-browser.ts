@@ -6,8 +6,12 @@ declare global {
 }
 
 const isStaleRefreshTokenError = (error: unknown) => {
-  const code = String((error as any)?.code || '')
-  const message = String((error as any)?.message || '').toLowerCase()
+  const typedError = (typeof error === 'object' && error !== null ? error : {}) as {
+    code?: unknown
+    message?: unknown
+  }
+  const code = String(typedError.code || '')
+  const message = String(typedError.message || '').toLowerCase()
   return (
     code === 'refresh_token_not_found' ||
     message.includes('invalid refresh token') ||
@@ -40,38 +44,44 @@ const clearSupabaseBrowserState = () => {
 }
 
 const guardBrowserAuth = (client: SupabaseClient) => {
-  const auth = client.auth as any
+  const auth = client.auth
 
-  const getUser = auth.getUser.bind(auth)
-  auth.getUser = async (...args: any[]) => {
+  const getUser = auth.getUser.bind(auth) as (...args: Parameters<typeof auth.getUser>) => ReturnType<typeof auth.getUser>
+  auth.getUser = (async (...args: Parameters<typeof auth.getUser>) => {
     const result = await getUser(...args)
     if (result?.error && isStaleRefreshTokenError(result.error)) {
       clearSupabaseBrowserState()
       return { data: { user: null }, error: null }
     }
     return result
-  }
+  }) as typeof auth.getUser
 
-  const getSession = auth.getSession.bind(auth)
-  auth.getSession = async (...args: any[]) => {
+  const getSession = auth.getSession.bind(auth) as (...args: Parameters<typeof auth.getSession>) => ReturnType<typeof auth.getSession>
+  auth.getSession = (async (...args: Parameters<typeof auth.getSession>) => {
     const result = await getSession(...args)
     if (result?.error && isStaleRefreshTokenError(result.error)) {
       clearSupabaseBrowserState()
       return { data: { session: null }, error: null }
     }
     return result
-  }
+  }) as typeof auth.getSession
 
   if (typeof auth.refreshSession === 'function') {
-    const refreshSession = auth.refreshSession.bind(auth)
-    auth.refreshSession = async (...args: any[]) => {
+    const refreshSession = auth.refreshSession.bind(auth) as NonNullable<typeof auth.refreshSession>
+    auth.refreshSession = (async (...args: Parameters<NonNullable<typeof auth.refreshSession>>) => {
       const result = await refreshSession(...args)
-      if (result?.error && isStaleRefreshTokenError(result.error)) {
+      const typedResult = (typeof result === 'object' && result !== null ? result : {}) as {
+        error?: unknown
+      }
+      if (typedResult.error && isStaleRefreshTokenError(typedResult.error)) {
         clearSupabaseBrowserState()
-        return { data: { session: null, user: null }, error: null }
+        return {
+          data: { session: null, user: null },
+          error: null,
+        } as Awaited<ReturnType<NonNullable<typeof auth.refreshSession>>>
       }
       return result
-    }
+    }) as NonNullable<typeof auth.refreshSession>
   }
 
   return client

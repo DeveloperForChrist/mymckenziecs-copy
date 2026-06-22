@@ -3,6 +3,14 @@
 
 import * as Sentry from "@sentry/nextjs";
 
+type SanitizableRequestData = Record<string, unknown>
+
+type SentryServerEvent = {
+  request?: {
+    data?: unknown
+  }
+}
+
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
 
@@ -18,10 +26,10 @@ Sentry.init({
   environment: process.env.NODE_ENV,
 
   // Filter out sensitive data
-  beforeSend(event: any, _hint: any) {
+  beforeSend(event: SentryServerEvent) {
     // Filter out passwords and tokens
     if (event.request?.data) {
-      const data = event.request.data as Record<string, any>;
+      const data = event.request.data as SanitizableRequestData;
       if (typeof data === 'object') {
         ['password', 'token', 'apiKey', 'secret'].forEach(key => {
           if (key in data) {
