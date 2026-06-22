@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { usePathname } from 'next/navigation'
-import { Video, Plus, Calendar, Clock, User, Mail, Copy, CheckCircle2, Play, XCircle, Maximize2, Minimize2, FileText } from 'lucide-react'
+import { Video, Plus, Calendar, Clock, User, Mail, Copy, CheckCircle2, Play, XCircle, FileText } from 'lucide-react'
 import WebRtcMeeting from '@/components/video/WebRtcMeeting'
 import styles from './videocall.module.css'
 import { getAppMarketFromPathname, getAppRouteForMarket } from '@/lib/markets/app-routes'
@@ -145,7 +145,7 @@ function mapRowsToMeetings(rows: any[], clients: ClientContact[]): Meeting[] {
 }
 
 export function VideoCallPanel({
-  userId,
+  userId: _userId,
   meetingPreset,
   onMeetingPresetConsumed,
 }: {
@@ -160,7 +160,6 @@ export function VideoCallPanel({
   const [showForm,setShowForm]=useState(false)
   const [inCall,setInCall]=useState(false)
   const [session,setSession]=useState(0)
-  const [callExpanded,setCallExpanded]=useState(true)
   const [notesOpen,setNotesOpen]=useState(true)
   const [copied,setCopied]=useState(false)
   const [notice,setNotice]=useState('')
@@ -179,13 +178,13 @@ export function VideoCallPanel({
   )
 
   useEffect(() => {
-    if (!inCall || !callExpanded) return
+    if (!inCall) return
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
       document.body.style.overflow = previousOverflow
     }
-  }, [inCall, callExpanded])
+  }, [inCall])
 
   useEffect(() => {
     setMeetingNotes(loadRecordStore(LOCAL_MEETING_NOTES_KEY))
@@ -470,7 +469,6 @@ export function VideoCallPanel({
   const join=(m:Meeting)=>{
     void updateStatus(m, 'in_progress')
     setInCall(true)
-    setCallExpanded(true)
     setNotesOpen(true)
   }
   const leave=()=>{setInCall(false);setSession(s=>s+1)}
@@ -485,7 +483,7 @@ export function VideoCallPanel({
   }
 
   return (
-    <div className={`${styles.page} ${inCall && callExpanded ? styles.pageFullscreen : ''}`}>
+    <div className={`${styles.page} ${inCall ? styles.pageFullscreen : ''}`}>
       <div className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <h2 className={styles.sidebarTitle}>Client Meetings</h2>
@@ -596,27 +594,18 @@ export function VideoCallPanel({
         )}
       </div>
       {inCall&&selected&&(
-        <div
-          className={`${styles.callModalBackdrop} ${callExpanded ? styles.callModalBackdropExpanded : styles.callModalBackdropCompact}`}
-          onClick={(e)=>{if(e.target===e.currentTarget)leave()}}
-        >
-          <div className={`${styles.callModal} ${callExpanded ? styles.callModalExpanded : styles.callModalCompact}`}>
+        <div className={styles.callModalBackdrop}>
+          <div className={styles.callModal}>
             <div className={styles.callModalHeader}>
-              <div>
-                <p className={styles.callModalTitle}>{selected.title}</p>
-                <span className={styles.callModalMeta}>{selected.clientName} · {selected.roomName}</span>
+              <div className={styles.callModalBrandBlock}>
+                <span className={styles.callModalBrandMark}>M</span>
+                <div>
+                  <p className={styles.callModalEyebrow}>Professional video room</p>
+                  <p className={styles.callModalTitle}>{selected.title}</p>
+                  <span className={styles.callModalMeta}>{selected.clientName} · {selected.roomName}</span>
+                </div>
               </div>
               <div className={styles.callModalActions}>
-                <button
-                  type="button"
-                  className={styles.callModalToggleBtn}
-                  onClick={()=>setCallExpanded((current)=>!current)}
-                  aria-label={callExpanded ? 'Collapse call window' : 'Expand call window'}
-                  title={callExpanded ? 'Collapse' : 'Expand'}
-                >
-                  {callExpanded ? <Minimize2 size={14}/> : <Maximize2 size={14}/>}
-                  {callExpanded ? 'Collapse' : 'Expand'}
-                </button>
                 <button
                   type="button"
                   className={styles.callModalToggleBtn}
@@ -630,8 +619,8 @@ export function VideoCallPanel({
                 <button type="button" className={styles.callModalCloseBtn} onClick={leave}><XCircle size={14}/>Leave</button>
               </div>
             </div>
-            <div className={styles.callModalBody}>
-              <div className={`${styles.callModalWorkspace} ${!notesOpen ? styles.callModalWorkspaceNotesHidden : ''}`}>
+            <div className={`${styles.callModalBody} ${!notesOpen ? styles.callModalBodyNotesHidden : ''}`}>
+              <section className={styles.callMeetingStage}>
                 <WebRtcMeeting
                   key={`${selected.id}-${session}`}
                   className={styles.callModalMeetingShell}
@@ -648,44 +637,65 @@ export function VideoCallPanel({
                     </button>
                   )}
                 />
+              </section>
 
-                {notesOpen && (
+              {notesOpen && (
                   <aside className={styles.callNotesPanel} aria-label="Meeting notes">
-                  <div className={styles.callNotesHeader}>
-                    <div>
-                      <h3>Meeting Notes</h3>
-                      <p>Save running notes straight into My Notes.</p>
+                    <div className={styles.callNotesHeader}>
+                      <div>
+                        <h3>Session details</h3>
+                        <p>Run the consultation and save follow-up notes straight into My Notes.</p>
+                      </div>
+                      <span className={styles.callNotesIcon}>
+                        <FileText size={18} />
+                      </span>
                     </div>
-                  </div>
 
-                  <label className={styles.callNotesField}>
-                    <span className={styles.callNotesLabel}>Notes</span>
-                    <textarea
-                      className={styles.callNotesTextarea}
-                      value={activeNotes}
-                      onChange={(event) => updateMeetingNotes(event.target.value)}
-                      placeholder="Capture action items, key points, or follow-up tasks..."
-                    />
-                  </label>
+                    <div className={styles.callNotesContent}>
+                      <div className={styles.callNotesInfoList}>
+                        <div className={styles.callNotesInfoItem}>
+                          <span className={styles.callNotesLabel}>Client</span>
+                          <p>{selected.clientName}</p>
+                        </div>
+                        <div className={styles.callNotesInfoItem}>
+                          <span className={styles.callNotesLabel}>Meeting slot</span>
+                          <p>{formatMeetingStamp(selected)}</p>
+                        </div>
+                        <div className={styles.callNotesInfoItem}>
+                          <span className={styles.callNotesLabel}>Room name</span>
+                          <p className={styles.callNotesMono}>{selected.roomName}</p>
+                        </div>
+                      </div>
 
-                  <div className={styles.callNotesFooter}>
-                    <div className={styles.callNotesMeta}>
-                      <span className={styles.callNotesLabel}>Will save as</span>
-                      <p>{buildMeetingNoteTitle(selected)}</p>
+                      <label className={styles.callNotesField}>
+                        <span className={styles.callNotesLabel}>Meeting notes</span>
+                        <textarea
+                          className={styles.callNotesTextarea}
+                          value={activeNotes}
+                          onChange={(event) => updateMeetingNotes(event.target.value)}
+                          placeholder="Capture action items, key points, or follow-up tasks..."
+                        />
+                      </label>
+
+                      <div className={styles.callNotesFooter}>
+                        <div className={styles.callNotesMeta}>
+                          <span className={styles.callNotesLabel}>Will save as</span>
+                          <p>{buildMeetingNoteTitle(selected)}</p>
+                        </div>
+                        <button
+                          type="button"
+                          className={styles.callTranscriptButton}
+                          onClick={() => void saveMeetingNotesToNotesPage()}
+                          disabled={savingMeetingNote || !activeNotes.trim()}
+                        >
+                          {savingMeetingNote ? 'Saving...' : 'Save notes'}
+                        </button>
+                      </div>
+
+                      {meetingNoteStatus && <p className={styles.callNotesStatus}>{meetingNoteStatus}</p>}
                     </div>
-                    <button
-                      type="button"
-                      className={styles.callTranscriptButton}
-                      onClick={() => void saveMeetingNotesToNotesPage()}
-                      disabled={savingMeetingNote || !activeNotes.trim()}
-                    >
-                      {savingMeetingNote ? 'Saving...' : 'Save notes'}
-                    </button>
-                  </div>
-                  {meetingNoteStatus && <p className={styles.callNotesStatus}>{meetingNoteStatus}</p>}
                   </aside>
-                )}
-              </div>
+              )}
             </div>
           </div>
         </div>
