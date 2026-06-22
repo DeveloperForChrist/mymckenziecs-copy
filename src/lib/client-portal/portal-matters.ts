@@ -1,5 +1,45 @@
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 
+type ClientPortalLinkRow = {
+  id?: string | number | null
+  business_id?: string | number | null
+  client_name?: string | null
+  client_email?: string | null
+  status?: string | null
+  updated_at?: string | null
+  created_at?: string | null
+  businesses?: {
+    name?: string | null
+  } | null
+}
+
+type ClientPortalMatterRow = {
+  id?: string | number | null
+  business_id?: string | number | null
+  client_name?: string | null
+  email?: string | null
+  phone?: string | null
+  location?: string | null
+  case_id?: string | null
+  matter_number?: string | null
+  issue_type?: string | null
+  urgency?: string | null
+  summary?: string | null
+  full_details?: string | null
+  court_date?: string | null
+  opposing?: string | null
+  documents?: unknown
+  tags?: unknown
+  status?: string | null
+  stage?: string | null
+  owner?: string | null
+  next_action?: string | null
+  next_deadline?: string | null
+  accepted_at?: string | null
+  last_activity_at?: string | null
+  current_balance?: number | string | null
+}
+
 export type ClientPortalMatter = {
   id: string
   businessId: string
@@ -55,16 +95,19 @@ export async function loadClientPortalLinks(userId: string) {
   if (error || !Array.isArray(data)) return []
 
   return data
-    .map((row: any) => ({
-      id: String(row.id || ''),
-      businessId: String(row.business_id || ''),
-      businessName: String(row.businesses?.name || 'Legal Professional'),
-      clientName: String(row.client_name || '').trim() || 'Client',
-      clientEmail: normalizePortalEmail(row.client_email),
-      status: String(row.status || 'active'),
-      updatedAt: typeof row.updated_at === 'string' ? row.updated_at : null,
-      createdAt: typeof row.created_at === 'string' ? row.created_at : null,
-    }))
+    .map((row) => {
+      const typedRow = row as ClientPortalLinkRow
+      return {
+        id: String(typedRow.id || ''),
+        businessId: String(typedRow.business_id || ''),
+        businessName: String(typedRow.businesses?.name || 'Legal Professional'),
+        clientName: String(typedRow.client_name || '').trim() || 'Client',
+        clientEmail: normalizePortalEmail(typedRow.client_email),
+        status: String(typedRow.status || 'active'),
+        updatedAt: typeof typedRow.updated_at === 'string' ? typedRow.updated_at : null,
+        createdAt: typeof typedRow.created_at === 'string' ? typedRow.created_at : null,
+      }
+    })
     .filter((row) => row.id && row.businessId)
 }
 
@@ -95,32 +138,35 @@ export async function loadClientPortalMatters(userId: string, userEmail: string)
 
   return {
     links,
-    matters: matters.map((row: any) => ({
-      id: String(row.id || ''),
-      businessId: String(row.business_id || ''),
-      businessName: businessNames.get(String(row.business_id || '')) || 'Legal Professional',
-      clientName: String(row.client_name || '').trim() || 'Client',
-      email: normalizePortalEmail(row.email),
-      phone: String(row.phone || '').trim(),
-      location: String(row.location || '').trim(),
-      caseId: typeof row.case_id === 'string' ? row.case_id : null,
-      matterNumber: String(row.matter_number || '').trim(),
-      issueType: String(row.issue_type || 'Client matter').trim() || 'Client matter',
-      urgency: String(row.urgency || 'medium').trim().toLowerCase() || 'medium',
-      summary: String(row.summary || '').trim(),
-      fullDetails: String(row.full_details || '').trim(),
-      courtDate: typeof row.court_date === 'string' ? row.court_date : null,
-      opposing: String(row.opposing || '').trim(),
-      documents: Array.isArray(row.documents) ? row.documents.map((entry: unknown) => String(entry || '').trim()).filter(Boolean) : [],
-      tags: Array.isArray(row.tags) ? row.tags.map((entry: unknown) => String(entry || '').trim()).filter(Boolean) : [],
-      status: String(row.status || 'active').trim().toLowerCase() || 'active',
-      stage: String(row.stage || 'intake').trim().toLowerCase() || 'intake',
-      owner: String(row.owner || 'Unassigned').trim() || 'Unassigned',
-      nextAction: String(row.next_action || '').trim(),
-      nextDeadline: typeof row.next_deadline === 'string' ? row.next_deadline : null,
-      acceptedAt: typeof row.accepted_at === 'string' ? row.accepted_at : null,
-      lastActivityAt: typeof row.last_activity_at === 'string' ? row.last_activity_at : null,
-      currentBalance: typeof row.current_balance === 'number' ? row.current_balance : Number(row.current_balance || 0),
-    })).filter((row) => row.id && row.businessId),
+    matters: matters.map((row) => {
+      const typedRow = row as ClientPortalMatterRow
+      return {
+        id: String(typedRow.id || ''),
+        businessId: String(typedRow.business_id || ''),
+        businessName: businessNames.get(String(typedRow.business_id || '')) || 'Legal Professional',
+        clientName: String(typedRow.client_name || '').trim() || 'Client',
+        email: normalizePortalEmail(typedRow.email),
+        phone: String(typedRow.phone || '').trim(),
+        location: String(typedRow.location || '').trim(),
+        caseId: typeof typedRow.case_id === 'string' ? typedRow.case_id : null,
+        matterNumber: String(typedRow.matter_number || '').trim(),
+        issueType: String(typedRow.issue_type || 'Client matter').trim() || 'Client matter',
+        urgency: String(typedRow.urgency || 'medium').trim().toLowerCase() || 'medium',
+        summary: String(typedRow.summary || '').trim(),
+        fullDetails: String(typedRow.full_details || '').trim(),
+        courtDate: typeof typedRow.court_date === 'string' ? typedRow.court_date : null,
+        opposing: String(typedRow.opposing || '').trim(),
+        documents: Array.isArray(typedRow.documents) ? typedRow.documents.map((entry: unknown) => String(entry || '').trim()).filter(Boolean) : [],
+        tags: Array.isArray(typedRow.tags) ? typedRow.tags.map((entry: unknown) => String(entry || '').trim()).filter(Boolean) : [],
+        status: String(typedRow.status || 'active').trim().toLowerCase() || 'active',
+        stage: String(typedRow.stage || 'intake').trim().toLowerCase() || 'intake',
+        owner: String(typedRow.owner || 'Unassigned').trim() || 'Unassigned',
+        nextAction: String(typedRow.next_action || '').trim(),
+        nextDeadline: typeof typedRow.next_deadline === 'string' ? typedRow.next_deadline : null,
+        acceptedAt: typeof typedRow.accepted_at === 'string' ? typedRow.accepted_at : null,
+        lastActivityAt: typeof typedRow.last_activity_at === 'string' ? typedRow.last_activity_at : null,
+        currentBalance: typeof typedRow.current_balance === 'number' ? typedRow.current_balance : Number(typedRow.current_balance || 0),
+      }
+    }).filter((row) => row.id && row.businessId),
   }
 }

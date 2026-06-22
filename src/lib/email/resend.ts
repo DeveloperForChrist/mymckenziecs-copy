@@ -52,7 +52,7 @@ export async function sendResendEmail(params: ResendSendEmailParams) {
   const resend = new Resend(apiKey);
   const toList = Array.isArray(params.to) ? params.to : [params.to];
 
-  const response = await resend.emails.send({
+  const emailPayload = {
     from,
     to: toList,
     subject: params.subject,
@@ -67,7 +67,9 @@ export async function sendResendEmail(params: ResendSendEmailParams) {
       contentType: attachment.contentType,
     })),
     tags: params.tag ? [{ name: params.tag, value: params.tag }] : undefined,
-  } as any);
+  };
+
+  const response = await resend.emails.send(emailPayload as unknown as Parameters<typeof resend.emails.send>[0]);
 
   if (response.error) {
     throw new Error(response.error.message || 'Failed to send email via Resend');

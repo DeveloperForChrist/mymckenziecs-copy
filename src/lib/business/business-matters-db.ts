@@ -19,6 +19,7 @@ const MATTER_STAGES: MatterStage[] = ['intake', 'documents', 'advice', 'hearing'
 const MATTER_STATUSES: MatterStatus[] = ['active', 'archived']
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 let caseIdColumnSupported: boolean | null = null
+type BusinessMatterRow = Record<string, unknown>
 
 function toText(value: unknown, fallback = '') {
   if (typeof value === 'string') return value.trim()
@@ -62,7 +63,7 @@ function maybeUuid(value: unknown) {
   return UUID_PATTERN.test(text) ? text : null
 }
 
-export function rowToBusinessLead(row: any): BusinessLead {
+export function rowToBusinessLead(row: BusinessMatterRow): BusinessLead {
   return {
     id: toText(row?.id),
     name: toText(row?.name, 'Unnamed lead'),
@@ -85,7 +86,7 @@ export function rowToBusinessLead(row: any): BusinessLead {
   }
 }
 
-export function rowToClientMatter(row: any): ClientMatter {
+export function rowToClientMatter(row: BusinessMatterRow): ClientMatter {
   return {
     id: toText(row?.id),
     leadId: toText(row?.lead_id) || undefined,
@@ -141,7 +142,7 @@ export function businessLeadToRow(lead: Partial<BusinessLead>, businessId: strin
 }
 
 export function clientMatterToRow(matter: Partial<ClientMatter>, businessId: string) {
-  const row: Record<string, any> = {
+  const row: Record<string, unknown> = {
     business_id: businessId,
     lead_id: maybeUuid(matter.leadId),
     case_id: maybeUuid(matter.caseId),
@@ -175,7 +176,7 @@ export function clientMatterToRow(matter: Partial<ClientMatter>, businessId: str
 }
 
 export function leadUpdateToRow(body: Record<string, unknown>) {
-  const update: Record<string, any> = {}
+  const update: Record<string, unknown> = {}
   if ('status' in body) {
     const status = oneOf(body.status, LEAD_STATUSES, 'new')
     update.status = status
@@ -199,7 +200,7 @@ export function leadUpdateToRow(body: Record<string, unknown>) {
 }
 
 export function matterUpdateToRow(body: Record<string, unknown>) {
-  const update: Record<string, any> = {}
+  const update: Record<string, unknown> = {}
   if ('clientName' in body) update.client_name = toText(body.clientName, 'New client').slice(0, 180)
   if ('email' in body) update.email = toText(body.email).slice(0, 240)
   if ('phone' in body) update.phone = toText(body.phone).slice(0, 80)
@@ -244,7 +245,7 @@ async function supportsClientMattersCaseIdColumn() {
   throw error
 }
 
-async function normalizeClientMatterPayloadForSchema(payload: Record<string, any>) {
+async function normalizeClientMatterPayloadForSchema(payload: Record<string, unknown>) {
   if (Object.prototype.hasOwnProperty.call(payload, 'case_id')) {
     const supportsCaseId = await supportsClientMattersCaseIdColumn()
     if (!supportsCaseId) {
@@ -277,7 +278,7 @@ export async function loadClientMatterRows(businessId: string) {
   return data || []
 }
 
-export async function syncAcceptedLeadMatterRow(businessId: string, leadRow: any) {
+export async function syncAcceptedLeadMatterRow(businessId: string, leadRow: BusinessMatterRow) {
   if (leadRow?.status !== 'accepted') return null
 
   const lead = rowToBusinessLead(leadRow)
@@ -302,7 +303,7 @@ export async function syncAcceptedLeadMatterRow(businessId: string, leadRow: any
   return data
 }
 
-export async function syncAcceptedLeadMatterRows(businessId: string, leadRows: any[]) {
+export async function syncAcceptedLeadMatterRows(businessId: string, leadRows: BusinessMatterRow[]) {
   const synced = []
   for (const leadRow of leadRows) {
     const matter = await syncAcceptedLeadMatterRow(businessId, leadRow)

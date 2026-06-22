@@ -12,6 +12,13 @@ type UserMetadataContext = {
   jurisdiction_label?: string | null
 } | null | undefined
 
+type UserContextRow = {
+  email?: string | null
+  country_code?: SupportedCountryCode | null
+  jurisdiction_code?: string | null
+  jurisdiction_label?: string | null
+}
+
 export async function getUserLegalContext(
   userId: string,
   fallbackMetadata?: UserMetadataContext
@@ -34,17 +41,18 @@ export async function getUserLegalContext(
     console.error('Failed to load user legal context', error)
   }
 
-  const email = String((data as any)?.email || '').toLowerCase()
+  const typedData = (data || {}) as UserContextRow
+  const email = String(typedData.email || '').toLowerCase()
   const isDemoAccount = email.endsWith('@demo.com')
 
   return {
-    countryCode: (isDemoAccount ? 'GB' : ((data as any)?.country_code || fallbackMetadata?.country_code || null)) as SupportedCountryCode | null,
+    countryCode: (isDemoAccount ? 'GB' : (typedData.country_code || fallbackMetadata?.country_code || null)) as SupportedCountryCode | null,
     jurisdictionCode: isDemoAccount
-      ? ((data as any)?.jurisdiction_code || fallbackMetadata?.jurisdiction_code || 'GB-ENG-WLS')
-      : ((data as any)?.jurisdiction_code || fallbackMetadata?.jurisdiction_code || null),
+      ? (typedData.jurisdiction_code || fallbackMetadata?.jurisdiction_code || 'GB-ENG-WLS')
+      : (typedData.jurisdiction_code || fallbackMetadata?.jurisdiction_code || null),
     jurisdictionLabel: isDemoAccount
-      ? ((data as any)?.jurisdiction_label || fallbackMetadata?.jurisdiction_label || 'England and Wales')
-      : ((data as any)?.jurisdiction_label || fallbackMetadata?.jurisdiction_label || null),
+      ? (typedData.jurisdiction_label || fallbackMetadata?.jurisdiction_label || 'England and Wales')
+      : (typedData.jurisdiction_label || fallbackMetadata?.jurisdiction_label || null),
   }
 }
 
