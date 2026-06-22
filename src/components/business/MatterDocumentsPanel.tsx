@@ -5,6 +5,7 @@ import { ExternalLink, FolderOpen, Loader2, UploadCloud } from 'lucide-react'
 import type { ClientMatter } from '@/lib/business/client-matters'
 import { BUSINESS_OPEN_DOCUMENTS_EVENT } from '@/lib/events/business-events'
 import styles from './clientMatters.module.css'
+import WorkspaceLoadingState from './WorkspaceLoadingState'
 
 type MatterDocumentsPanelProps = {
   matter: ClientMatter
@@ -210,10 +211,7 @@ export default function MatterDocumentsPanel({ matter }: MatterDocumentsPanelPro
 
       <div className={styles.matterDocsBody}>
         {loading ? (
-          <div className={styles.matterDocsEmpty}>
-            <Loader2 size={18} className={styles.spin} />
-            <p>Loading documents…</p>
-          </div>
+          <WorkspaceLoadingState variant="panel" label="Loading documents…" className={styles.matterDocsEmpty} />
         ) : rows.length === 0 ? (
           <div className={styles.matterDocsEmpty}>
             <p>No documents uploaded yet.</p>

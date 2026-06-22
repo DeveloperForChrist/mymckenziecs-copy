@@ -23,6 +23,7 @@ import {
   type ProfessionalProfile,
 } from '@/lib/directory/profiles'
 import styles from './profile.module.css'
+import WorkspaceLoadingState from './WorkspaceLoadingState'
 
 const DEFAULT_PROFILE: ProfessionalProfile = {
   ...EMPTY_PROFESSIONAL_PROFILE,
@@ -201,7 +202,7 @@ export default function BusinessProfilePage() {
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
               <h2>Listing media</h2>
-              <span>{loading ? 'Loading...' : 'JPG, PNG, WebP or GIF'}</span>
+              {loading ? <WorkspaceLoadingState variant="inline" label="Loading..." /> : <span>JPG, PNG, WebP or GIF</span>}
             </div>
 
             <div className={styles.mediaGrid}>

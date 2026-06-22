@@ -18,6 +18,7 @@ import {
   type ProfessionalProfile,
 } from '@/lib/directory/profiles'
 import styles from './directory.module.css'
+import WorkspaceLoadingState from '@/components/business/WorkspaceLoadingState'
 
 interface Props {
   mode?: 'business' | 'litigant'
@@ -397,7 +398,7 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
 
         <div className={styles.resultMeta}>
           <span>Showing <strong>{filtered.length}</strong> professional{filtered.length === 1 ? '' : 's'}</span>
-          {loading && <span>Loading live directory...</span>}
+          {loading && <WorkspaceLoadingState variant="inline" label="Loading live directory..." />}
           {!loading && loadError && <span>{loadError}</span>}
         </div>
       </header>

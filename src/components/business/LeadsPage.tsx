@@ -28,6 +28,7 @@ import {
 } from '@/lib/business/client-matters'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import styles from './leads.module.css'
+import WorkspaceLoadingState from './WorkspaceLoadingState'
 
 const STATUS_LABELS: Record<LeadStatus, string> = {
   new: 'New',
@@ -274,9 +275,11 @@ export default function LeadsPage() {
               Declined {counts.declined > 0 && `(${counts.declined})`}
             </button>
           </div>
-          {(loading || syncNotice) && (
-            <p className={styles.syncNotice}>{loading ? 'Loading saved leads...' : syncNotice}</p>
-          )}
+          {loading ? (
+            <WorkspaceLoadingState variant="inline" label="Loading saved leads..." className={styles.syncNotice} />
+          ) : syncNotice ? (
+            <p className={styles.syncNotice}>{syncNotice}</p>
+          ) : null}
         </div>
 
         <div className={styles.enquiryList}>

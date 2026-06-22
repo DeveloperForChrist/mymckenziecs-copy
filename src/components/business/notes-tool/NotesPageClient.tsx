@@ -6,6 +6,7 @@ import { getSupabaseBrowserClient } from "@/lib/database/supabase-browser";
 import { getPlanTier } from "@/lib/plans/access";
 import { getAppMarketFromPathname, getAppRouteForMarket } from "@/lib/markets/app-routes";
 import styles from "./notes-page.module.css";
+import WorkspaceLoadingState from "@/components/business/WorkspaceLoadingState";
 
 interface NotePage {
   id: string;
@@ -737,10 +738,7 @@ export default function NotesPageClient({
 
         <div className={styles.notesListContent}>
           {loadingNotes ? (
-            <div className={styles.emptyState}>
-              <i className="bx bx-loader-alt bx-spin" />
-              <p>Loading notes...</p>
-            </div>
+            <WorkspaceLoadingState variant="panel" label="Loading notes..." className={styles.emptyState} />
           ) : filteredNotes.length === 0 ? (
             <div className={styles.emptyState}>
               <i className="bx bx-note" />

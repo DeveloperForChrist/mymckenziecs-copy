@@ -251,6 +251,14 @@ export default function ChatbotNavbar({
     window.location.href = `${next.pathname}${next.search}${next.hash}`
   }
 
+  const startFreshConversation = () => {
+    const next = new URL(chatbotHref, 'https://app.local')
+    next.searchParams.set('new', 'true')
+    next.searchParams.set('fresh', 'true')
+    localStorage.removeItem('currentConversationId')
+    window.location.href = `${next.pathname}${next.search}${next.hash}`
+  }
+
   const closeDeleteModal = () => {
     if (isDeletingConversation) return
     setIsDeleteModalOpen(false)
@@ -666,11 +674,7 @@ export default function ChatbotNavbar({
             </div>
 
             <button
-              onClick={() => {
-                const next = new URL(chatbotHref, 'https://app.local')
-                next.searchParams.set('new', 'true')
-                window.location.href = `${next.pathname}${next.search}${next.hash}`
-              }}
+              onClick={startFreshConversation}
               style={{
                 display: 'flex',
                 alignItems: 'center',

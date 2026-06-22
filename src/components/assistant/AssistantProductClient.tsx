@@ -120,7 +120,8 @@ export default function AssistantProductClient({ initialChatPlan = null }: Assis
 
   const startNewChat = () => {
     setActiveView('chat')
-    window.location.href = '/assistant?new=true'
+    localStorage.removeItem('currentConversationId')
+    window.location.href = '/assistant?new=true&fresh=true'
   }
 
   const deleteConversation = async (conversationId: string) => {

@@ -103,6 +103,7 @@ export function useConversationBootstrap({
       const urlParams = new URLSearchParams(window.location.search)
       const conversationId = urlParams.get('conversationId')
       const isNew = urlParams.get('new') === 'true'
+      const isFreshConversation = isNew || urlParams.get('fresh') === 'true'
       const supabase = getSupabaseBrowserClient()
       const { data: authData } = await supabase.auth.getUser()
       const authUserId = authData?.user?.id || null
@@ -134,7 +135,7 @@ export function useConversationBootstrap({
           currentSignInAt &&
           previousSignInAt !== currentSignInAt
         )
-        if (!conversationId && !isNew && (switchedAccounts || signedInAgain || (switchedFromGuest && !claimedAnonymousConversation))) {
+        if (!conversationId && !isFreshConversation && (switchedAccounts || signedInAgain || (switchedFromGuest && !claimedAnonymousConversation))) {
           setMessages([])
           setHistoryCursor(null)
           setHasMoreHistory(false)
@@ -165,6 +166,7 @@ export function useConversationBootstrap({
         setMessages([])
         setHistoryCursor(null)
         setHasMoreHistory(false)
+        localStorage.removeItem(conversationStorageKey)
         const newConversationId = generateUUID()
         setConversationId(newConversationId)
         localStorage.setItem(conversationStorageKey, newConversationId)
@@ -172,7 +174,7 @@ export function useConversationBootstrap({
         return newConversationId
       }
 
-      if (isNew) {
+      if (isFreshConversation) {
         startFreshConversation()
         return
       }
