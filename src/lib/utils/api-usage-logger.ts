@@ -13,15 +13,25 @@ type ApiUsageEntry = {
   latencyMs?: number
   userId?: string | null
   error?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   createdAt?: string
 }
 
+export type AnthropicUsageLike = {
+  input_tokens?: number
+  inputTokens?: number
+  output_tokens?: number
+  outputTokens?: number
+}
 
-export const estimateAnthropicCost = (model: string, usage: any) => {
+const toUsageValue = (value: unknown): number => {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0
+}
+
+export const estimateAnthropicCost = (model: string, usage?: AnthropicUsageLike | null) => {
   if (!usage) return null
-  const input = usage.input_tokens ?? usage.inputTokens ?? 0
-  const output = usage.output_tokens ?? usage.outputTokens ?? 0
+  const input = toUsageValue(usage.input_tokens ?? usage.inputTokens)
+  const output = toUsageValue(usage.output_tokens ?? usage.outputTokens)
 
   let inputRate = Number(process.env.ANTHROPIC_COST_PER_1K_INPUT_TOKENS || 0)
   let outputRate = Number(process.env.ANTHROPIC_COST_PER_1K_OUTPUT_TOKENS || 0)
@@ -29,7 +39,10 @@ export const estimateAnthropicCost = (model: string, usage: any) => {
   const overridesRaw = process.env.ANTHROPIC_COST_OVERRIDES
   if (overridesRaw) {
     try {
-      const overrides = JSON.parse(overridesRaw)
+      const overrides = JSON.parse(overridesRaw) as Record<
+        string,
+        { input?: number; output?: number }
+      >
       const modelOverride = overrides?.[model]
       if (modelOverride?.input) inputRate = Number(modelOverride.input)
       if (modelOverride?.output) outputRate = Number(modelOverride.output)

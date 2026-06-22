@@ -38,7 +38,7 @@ export function buildLifecycleSchedule(lapsedAt: Date | string | number | null |
   };
 }
 
-export function parseReminderDaysSet(value: any): Set<number> {
+export function parseReminderDaysSet(value: unknown): Set<number> {
   const sent = new Set<number>();
   if (Array.isArray(value)) {
     for (const entry of value) {

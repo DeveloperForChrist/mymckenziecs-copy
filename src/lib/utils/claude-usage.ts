@@ -1,8 +1,12 @@
-import { estimateAnthropicCost, logApiUsage } from './api-usage-logger'
+import {
+  type AnthropicUsageLike,
+  estimateAnthropicCost,
+  logApiUsage,
+} from './api-usage-logger'
 
 type ClaudeUsageInput = {
   model: string
-  usage?: any
+  usage?: AnthropicUsageLike
   success: boolean
   latencyMs?: number
   error?: string

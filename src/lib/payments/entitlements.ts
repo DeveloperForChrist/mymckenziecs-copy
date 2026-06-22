@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '@/lib/database/supabase-server'
-import { BILLING_ACTIVE_STATUSES } from '@/lib/payments/subscription-status'
+import { isBillingActiveStripeStatus } from '@/lib/payments/subscription-status'
 import { isPaidPlan, planPriceForLabel } from '@/lib/plans/access'
 
 export type UserEntitlementSnapshot = {
@@ -29,10 +29,9 @@ export async function buildEntitlementSnapshot(userId: string): Promise<UserEnti
     .limit(1)
     .maybeSingle()
 
-  const activeStatusSet = new Set(BILLING_ACTIVE_STATUSES)
   const status = String(latestSub?.status || 'inactive').toLowerCase()
   const planType = String(latestSub?.plan_type || 'No plan')
-  const paidAccess = isPaidPlan(planType) && activeStatusSet.has(status as any)
+  const paidAccess = isPaidPlan(planType) && isBillingActiveStripeStatus(status)
   const hasStripeCustomer = Boolean(latestSub?.stripe_customer_id || latestSub?.stripe_subscription_id)
 
   return {

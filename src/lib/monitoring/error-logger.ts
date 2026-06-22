@@ -4,12 +4,12 @@ type ErrorContext = {
   userId?: string | null
   method?: string
   status?: number
-  [key: string]: any
+  [key: string]: unknown
 }
 
 const DEFAULT_INGEST_URL = 'https://in.logs.betterstack.com'
 
-const asError = (value: any): Error => {
+const asError = (value: unknown): Error => {
   if (value instanceof Error) return value
   return new Error(typeof value === 'string' ? value : 'Unknown error')
 }
@@ -27,7 +27,7 @@ const getIngestConfig = () => {
 }
 
 export async function captureServerException(
-  errorInput: any,
+  errorInput: unknown,
   context: ErrorContext = {}
 ) {
   const error = asError(errorInput)
