@@ -7,6 +7,46 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+type PersistedAlertRow = {
+  id: string | number | null
+  type: string | null
+  priority: string | null
+  title: string | null
+  body: string | null
+  client_name: string | null
+  action_label: string | null
+  metadata: Record<string, unknown> | null
+  is_read: boolean | null
+  created_at: string | null
+}
+
+type MatterDeadlineRow = {
+  id: string | number | null
+  client_name: string | null
+  matter_number: string | null
+  next_deadline: string | null
+}
+
+type StaleMessageRow = {
+  id: string | number | null
+  sender_name: string | null
+  created_at: string | null
+  subject: string | null
+}
+
+type AlertResponseItem = {
+  id: string
+  type: string
+  priority: string
+  title: string
+  body: string
+  time: string
+  read: boolean
+  clientName?: string
+  actionLabel?: string
+  metadata?: Record<string, unknown>
+}
+
 function toRelativeTime(value: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return 'Recently'
@@ -57,20 +97,23 @@ export async function GET() {
       return NextResponse.json({ message: 'Unable to load alerts.' }, { status: 500 })
     }
 
-    const persistedAlerts = (data || []).map((row: any) => ({
-        id: String(row.id),
-        type: String(row.type || 'system'),
-        priority: String(row.priority || 'medium'),
-        title: String(row.title || 'Alert'),
-        body: String(row.body || ''),
-        time: toRelativeTime(String(row.created_at || new Date().toISOString())),
-        read: Boolean(row.is_read),
-        clientName: row.client_name ? String(row.client_name) : undefined,
-        actionLabel: row.action_label ? String(row.action_label) : undefined,
-        metadata: row.metadata || {},
-      }))
+    const persistedAlerts: AlertResponseItem[] = (data || []).map((row) => {
+      const typedRow = row as PersistedAlertRow
+      return {
+        id: String(typedRow.id),
+        type: String(typedRow.type || 'system'),
+        priority: String(typedRow.priority || 'medium'),
+        title: String(typedRow.title || 'Alert'),
+        body: String(typedRow.body || ''),
+        time: toRelativeTime(String(typedRow.created_at || new Date().toISOString())),
+        read: Boolean(typedRow.is_read),
+        clientName: typedRow.client_name ? String(typedRow.client_name) : undefined,
+        actionLabel: typedRow.action_label ? String(typedRow.action_label) : undefined,
+        metadata: typedRow.metadata || {},
+      }
+    })
 
-    const derivedAlerts: any[] = []
+    const derivedAlerts: AlertResponseItem[] = []
 
     const todayIso = new Date().toISOString().slice(0, 10)
     const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
@@ -84,18 +127,19 @@ export async function GET() {
       .limit(30)
 
     for (const row of deadlineRows || []) {
-      const deadline = String((row as any).next_deadline || '')
+      const typedRow = row as MatterDeadlineRow
+      const deadline = String(typedRow.next_deadline || '')
       if (!deadline) continue
       const overdue = deadline < todayIso
       derivedAlerts.push({
-        id: `derived-deadline-${row.id}-${deadline}`,
+        id: `derived-deadline-${typedRow.id}-${deadline}`,
         type: 'deadline',
         priority: overdue ? 'urgent' : 'high',
         title: overdue ? 'Deadline overdue' : 'Deadline approaching',
-        body: `${String((row as any).client_name || 'Client')} matter ${String((row as any).matter_number || '')} deadline ${overdue ? `was ${deadline}` : `is ${deadline}`}.`,
+        body: `${String(typedRow.client_name || 'Client')} matter ${String(typedRow.matter_number || '')} deadline ${overdue ? `was ${deadline}` : `is ${deadline}`}.`,
         time: 'Live',
         read: false,
-        clientName: String((row as any).client_name || ''),
+        clientName: String(typedRow.client_name || ''),
         actionLabel: 'Open Calendar',
       })
     }
@@ -114,15 +158,16 @@ export async function GET() {
         .limit(10)
 
       for (const msg of staleMessages || []) {
+        const typedMessage = msg as StaleMessageRow
         derivedAlerts.push({
-          id: `derived-sla-${msg.id}`,
+          id: `derived-sla-${typedMessage.id}`,
           type: 'message',
           priority: 'high',
           title: 'Client reply pending over 24h',
-          body: `${String(msg.sender_name || 'Client')} is awaiting response: ${String(msg.subject || 'Message')}.`,
-          time: toRelativeTime(String(msg.created_at || new Date().toISOString())),
+          body: `${String(typedMessage.sender_name || 'Client')} is awaiting response: ${String(typedMessage.subject || 'Message')}.`,
+          time: toRelativeTime(String(typedMessage.created_at || new Date().toISOString())),
           read: false,
-          clientName: String(msg.sender_name || ''),
+          clientName: String(typedMessage.sender_name || ''),
           actionLabel: 'Reply',
         })
       }

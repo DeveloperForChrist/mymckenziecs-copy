@@ -12,18 +12,41 @@ export type AccessibleDocument = {
   case_id: string | null
 }
 
+type AttachmentLike = {
+  documentId?: unknown
+  id?: unknown
+}
+
+type MetadataWithAttachments = {
+  attachments?: unknown
+}
+
+type ShareRow = {
+  matter_id?: unknown
+}
+
+type LegacyMessageRow = {
+  sender_id?: unknown
+  metadata?: unknown
+}
+
 export function extractAttachmentDocumentIds(metadata: unknown): string[] {
   if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return []
-  const attachments = Array.isArray((metadata as any).attachments) ? (metadata as any).attachments : []
+  const typedMetadata = metadata as MetadataWithAttachments
+  const attachments = Array.isArray(typedMetadata.attachments) ? typedMetadata.attachments : []
   return attachments
-    .map((attachment: any) => String(attachment?.documentId || attachment?.id || '').trim())
+    .map((attachment) => {
+      const typedAttachment = (typeof attachment === 'object' && attachment !== null ? attachment : {}) as AttachmentLike
+      return String(typedAttachment.documentId || typedAttachment.id || '').trim()
+    })
     .filter(Boolean)
 }
 
 export function isMissingDocumentSharesTable(error: unknown) {
   if (!error || typeof error !== 'object') return false
-  const code = String((error as any).code || '')
-  const message = String((error as any).message || '').toLowerCase()
+  const typedError = error as { code?: unknown; message?: unknown }
+  const code = String(typedError.code || '')
+  const message = String(typedError.message || '').toLowerCase()
   return code === '42P01' || code === 'PGRST205' || message.includes('document_client_shares')
 }
 
@@ -40,7 +63,10 @@ async function hasActiveShare(userId: string, documentId: string, activeMatterId
     throw error
   }
 
-  return (data || []).some((share: any) => activeMatterIds.has(String(share.matter_id || '')))
+  return (data || []).some((share) => {
+    const typedShare = share as ShareRow
+    return activeMatterIds.has(String(typedShare.matter_id || ''))
+  })
 }
 
 async function hasLegacyMessageShare(
@@ -63,9 +89,13 @@ async function hasLegacyMessageShare(
 
   if (error) throw error
 
-  return (data || []).some((message: any) => {
-    if (!documentOwnerId || String(message?.sender_id || '') !== documentOwnerId) return false
-    const metadata = message?.metadata
+  return (data || []).some((message) => {
+    const typedMessage = message as LegacyMessageRow
+    if (!documentOwnerId || String(typedMessage.sender_id || '') !== documentOwnerId) return false
+    const metadata =
+      typedMessage.metadata && typeof typedMessage.metadata === 'object' && !Array.isArray(typedMessage.metadata)
+        ? (typedMessage.metadata as Record<string, unknown>)
+        : {}
     const matterId = typeof metadata?.matterId === 'string' ? metadata.matterId : ''
     const businessId = typeof metadata?.businessId === 'string' ? metadata.businessId : ''
     if (matterId && !activeMatterIds.has(matterId)) return false

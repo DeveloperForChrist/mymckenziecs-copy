@@ -1,13 +1,13 @@
 import type { BillingMarket } from '@/constants';
 
-export function normalizePlanLabel(value: any): string {
+export function normalizePlanLabel(value: unknown): string {
   if (!value) return '';
   return value.toString().trim().toLowerCase().replace(/_/g, ' ');
 }
 
 export type PlanTier = 'none' | 'basic' | 'premium' | 'premium_plus' | 'assistant_plus' | 'assistant_pro';
 
-export function getPlanTier(plan: any): PlanTier {
+export function getPlanTier(plan: unknown): PlanTier {
   const label = normalizePlanLabel(plan);
   if (!label) return 'none';
 
@@ -47,31 +47,31 @@ export function getPlanTier(plan: any): PlanTier {
   return 'none';
 }
 
-export function isBasicPlan(plan: any): boolean {
+export function isBasicPlan(plan: unknown): boolean {
   return getPlanTier(plan) === 'basic';
 }
 
-export function isPremiumPlan(plan: any): boolean {
+export function isPremiumPlan(plan: unknown): boolean {
   const tier = getPlanTier(plan);
   return tier === 'premium' || tier === 'assistant_plus';
 }
 
-export function isPaidPlan(plan: any): boolean {
+export function isPaidPlan(plan: unknown): boolean {
   const tier = getPlanTier(plan);
   return tier === 'basic' || tier === 'premium' || tier === 'premium_plus' || tier === 'assistant_plus' || tier === 'assistant_pro';
 }
 
-export function isPremiumPlusPlan(plan: any): boolean {
+export function isPremiumPlusPlan(plan: unknown): boolean {
   const tier = getPlanTier(plan);
   return tier === 'premium_plus' || tier === 'assistant_pro';
 }
 
-export function isAssistantPlan(plan: any): boolean {
+export function isAssistantPlan(plan: unknown): boolean {
   const tier = getPlanTier(plan);
   return tier === 'assistant_plus' || tier === 'assistant_pro';
 }
 
-export function hasCaseLawAccess(plan: any): boolean {
+export function hasCaseLawAccess(plan: unknown): boolean {
   const label = normalizePlanLabel(plan);
   // Business/professional plans should always have case-law access.
   if (
@@ -85,15 +85,15 @@ export function hasCaseLawAccess(plan: any): boolean {
   return isPremiumPlusPlan(plan);
 }
 
-export function hasCaseProfileAccess(plan: any): boolean {
+export function hasCaseProfileAccess(plan: unknown): boolean {
   return isPaidPlan(plan) && !isBasicPlan(plan) && !isAssistantPlan(plan);
 }
 
-export function hasReminderAccess(plan: any): boolean {
+export function hasReminderAccess(plan: unknown): boolean {
   return isAssistantPlan(plan) ? false : isPaidPlan(plan) && !isBasicPlan(plan);
 }
 
-export function planPriceForLabel(plan: any, market: BillingMarket = 'GB'): string {
+export function planPriceForLabel(plan: unknown, market: BillingMarket = 'GB'): string {
   const tier = getPlanTier(plan);
   if (tier === 'basic') return market === 'US' ? '32' : '18';
   if (tier === 'premium') return market === 'US' ? '58' : '32';
@@ -112,12 +112,12 @@ const DOCUMENT_LIMITS: Record<PlanTier, number> = {
   assistant_pro: 150,
 };
 
-export function documentLimitForPlan(plan: any): number {
+export function documentLimitForPlan(plan: unknown): number {
   const tier = getPlanTier(plan);
   return DOCUMENT_LIMITS[tier] ?? 0;
 }
 
-export function planDisplayName(plan: any): string {
+export function planDisplayName(plan: unknown): string {
   const tier = getPlanTier(plan);
   if (tier === 'basic') return 'Basic';
   if (tier === 'premium') return 'Premium';

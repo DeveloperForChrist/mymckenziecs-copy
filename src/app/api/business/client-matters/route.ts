@@ -18,6 +18,32 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+type WorkspaceUserLike = {
+  email?: string | null
+  user_metadata?: Record<string, unknown> | null
+}
+
+type MatterCaseBackfillRow = Record<string, unknown> & {
+  id?: string | number | null
+  client_name?: string | null
+  matter_number?: string | null
+  summary?: string | null
+  case_id?: string | null
+}
+
+type MatterUpdateSourceRow = Record<string, unknown> & {
+  id?: string | number | null
+  client_name?: string | null
+  matter_number?: string | null
+  summary?: string | null
+  case_id?: string | null
+  email?: string | null
+  issue_type?: string | null
+  status?: string | null
+  stage?: string | null
+  next_deadline?: string | null
+}
+
 function asRecord(input: unknown): Record<string, unknown> | null {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return null
   return input as Record<string, unknown>
@@ -48,12 +74,12 @@ function isMissingCaseIdColumnError(error: unknown) {
   return (code === 'PGRST204' || code === '42703') && message.toLowerCase().includes('case_id')
 }
 
-function getProfessionalSenderName(user: { email?: string | null; user_metadata?: Record<string, any> | null }) {
+function getProfessionalSenderName(user: WorkspaceUserLike) {
   return String(user.user_metadata?.full_name || user.user_metadata?.display_name || user.email?.split('@')[0] || 'Your professional')
 }
 
 async function notifyClientPortalUpdate(options: {
-  user: { email?: string | null; user_metadata?: Record<string, any> | null }
+  user: WorkspaceUserLike
   workspace: { businessId: string; userId: string }
   matterId: string
   recipientEmail: string | null | undefined
@@ -93,12 +119,15 @@ export async function GET() {
         ? true
         : Object.prototype.hasOwnProperty.call(matterRows[0] as Record<string, unknown>, 'case_id')
 
-    const mattersMissingCases = supportsCaseId ? matterRows.filter((row: any) => !row?.case_id) : []
+    const mattersMissingCases = supportsCaseId
+      ? matterRows.filter((row) => !(row as MatterCaseBackfillRow).case_id)
+      : []
     if (supportsCaseId && mattersMissingCases.length > 0) {
       const batch = mattersMissingCases.slice(0, 25)
       await Promise.allSettled(
-        batch.map(async (row: any) => {
-          const titleParts = [row?.client_name, row?.matter_number].filter(Boolean)
+        batch.map(async (row) => {
+          const typedRow = row as MatterCaseBackfillRow
+          const titleParts = [typedRow.client_name, typedRow.matter_number].filter(Boolean)
           const title = titleParts.join(' — ') || 'Client matter'
 
           const { data: createdCase, error: caseError } = await supabaseAdmin
@@ -106,7 +135,7 @@ export async function GET() {
             .insert({
               user_id: workspace.userId,
               title,
-              description: typeof row?.summary === 'string' ? row.summary : null,
+              description: typeof typedRow.summary === 'string' ? typedRow.summary : null,
               status: 'active',
             })
             .select('id')
@@ -121,7 +150,7 @@ export async function GET() {
             .from('client_matters')
             .update({ case_id: createdCase.id })
             .eq('business_id', workspace.businessId)
-            .eq('id', row.id)
+            .eq('id', typedRow.id)
             .is('case_id', null)
 
           if (updateError) {
@@ -129,7 +158,7 @@ export async function GET() {
             return
           }
 
-          row.case_id = createdCase.id
+          typedRow.case_id = createdCase.id
         }),
       )
     }
@@ -152,8 +181,8 @@ export async function POST(request: NextRequest) {
     }
 
     const insertPayload = clientMatterToRow(matter, workspace.businessId)
-    let data: any = null
-    let error: any = null
+    let data: MatterUpdateSourceRow | null = null
+    let error: unknown = null
     {
       const result = await supabaseAdmin
         .from('client_matters')
@@ -171,7 +200,7 @@ export async function POST(request: NextRequest) {
         .insert(fallbackPayload)
         .select('*')
         .single()
-      data = fallbackResult.data
+      data = (fallbackResult.data as MatterUpdateSourceRow | null)
       error = fallbackResult.error
     }
 
@@ -237,8 +266,8 @@ export async function PUT(request: NextRequest) {
       .eq('business_id', workspace.businessId)
       .eq('id', id)
       .maybeSingle()
-    let data: any = null
-    let error: any = null
+    let data: MatterUpdateSourceRow | null = null
+    let error: unknown = null
     {
       const result = await supabaseAdmin
         .from('client_matters')
@@ -260,7 +289,7 @@ export async function PUT(request: NextRequest) {
         .eq('id', id)
         .select('*')
         .single()
-      data = fallbackResult.data
+      data = (fallbackResult.data as MatterUpdateSourceRow | null)
       error = fallbackResult.error
     }
 
