@@ -985,6 +985,54 @@
   gap: 10px;
 }
 
+.matterGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.matterFact {
+  border: 1px solid #e3e8f3;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 10px 12px;
+}
+
+.matterFactLabel {
+  display: block;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.matterFact strong {
+  display: block;
+  margin-top: 6px;
+  color: #182033;
+  font-size: 0.9rem;
+}
+
+.tokenRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.tokenPill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  padding: 6px 10px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
 .timelineCard {
   border: 1px solid #e3e8f3;
   border-radius: 8px;
@@ -1084,6 +1132,10 @@
   .uploadPanel {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .matterGrid {
+    grid-template-columns: 1fr;
   }
 
   .syncPanel,

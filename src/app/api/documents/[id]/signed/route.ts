@@ -1,16 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
-import { loadClientPortalMatters, normalizePortalEmail } from '@/lib/client-portal/portal-matters'
+import { getClientAccessibleDocument } from '@/lib/documents/client-document-access'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const fetchCache = 'force-no-store'
-
-async function loadClientCaseIds(userId: string, userEmail: string) {
-  const { matters } = await loadClientPortalMatters(userId, userEmail)
-  return Array.from(new Set(matters.map((matter) => matter.caseId).filter((value): value is string => Boolean(value))))
-}
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   void request
@@ -22,55 +17,16 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
   }
 
   const { id } = await context.params
-  const { data: document, error } = await supabase
-    .from('documents')
-    .select('id, storage_path, mime_type, name, uploaded_by, case_id')
-    .eq('id', id)
-    .is('deleted_at', null)
-    .maybeSingle()
+  const document = user.email
+    ? await getClientAccessibleDocument({ userId: user.id, userEmail: user.email, documentId: id })
+    : null
 
-  if (error || !document) {
+  if (!document) {
     return NextResponse.json({ error: 'Document not found' }, { status: 404 })
   }
 
   if (!document.storage_path) {
     return NextResponse.json({ error: 'No storage path' }, { status: 400 })
-  }
-
-  const isOwner = document.uploaded_by === user.id
-  let isSharedAttachment = false
-  let isSharedCaseDoc = false
-  if (!isOwner && user.email) {
-    const userEmail = normalizePortalEmail(user.email)
-    const clientCaseIds = await loadClientCaseIds(user.id, user.email)
-    const [receivedMessagesResult, sentMessagesResult] = await Promise.all([
-      supabaseAdmin
-        .from('inbox_messages')
-        .select('metadata')
-        .eq('recipient_email', userEmail)
-        .limit(200),
-      supabaseAdmin
-        .from('inbox_messages')
-        .select('metadata')
-        .eq('sender_id', user.id)
-        .limit(200),
-    ])
-
-    const candidateMessages = [
-      ...(receivedMessagesResult.data || []),
-      ...(sentMessagesResult.data || []),
-    ]
-
-    isSharedAttachment = candidateMessages.some((message: any) => {
-      const attachments = Array.isArray(message?.metadata?.attachments) ? message.metadata.attachments : []
-      return attachments.some((attachment: any) => String(attachment?.documentId || attachment?.id || '').trim() === id)
-    })
-
-    isSharedCaseDoc = Boolean(document.case_id && clientCaseIds.includes(String(document.case_id)))
-  }
-
-  if (!isOwner && !isSharedAttachment && !isSharedCaseDoc) {
-    return NextResponse.json({ error: 'Document not found' }, { status: 404 })
   }
 
   const { data: signed, error: signedError } = await supabaseAdmin

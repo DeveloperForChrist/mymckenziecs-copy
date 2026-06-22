@@ -135,7 +135,6 @@ function statusLabel(event: CalendarEvent) {
 
 type EnhancedCalendarClientProps = {
   initialAuthUid?: string | null
-  initialUserEmail?: string | null
   initialHasPaidAccess?: boolean
   initialPlanChecked?: boolean
   initialHasReminderAccess?: boolean
@@ -145,7 +144,6 @@ type EnhancedCalendarClientProps = {
 
 export default function EnhancedCalendarClient({
   initialAuthUid = null,
-  initialUserEmail = null,
   initialHasPaidAccess = false,
   initialPlanChecked = false,
   initialHasReminderAccess = false,
@@ -161,7 +159,6 @@ export default function EnhancedCalendarClient({
   const [newCategory, setNewCategory] = useState<CalendarEvent['category']>('deadline')
   const [newPriority, setNewPriority] = useState<CalendarEvent['priority']>('medium')
   const [uid, setUid] = useState<string | null>(initialAuthUid)
-  const [userEmail, setUserEmail] = useState<string | null>(initialUserEmail)
   const [authChecked, setAuthChecked] = useState(Boolean(initialAuthUid))
   const [hasPaidAccess, setHasPaidAccess] = useState(Boolean(initialHasPaidAccess))
   const [planChecked, setPlanChecked] = useState(Boolean(initialPlanChecked))
@@ -204,14 +201,12 @@ export default function EnhancedCalendarClient({
     const supabase = getSupabaseBrowserClient()
     supabase.auth.getUser().then(({ data }) => {
       setUid(data?.user?.id || null)
-      setUserEmail(data?.user?.email || null)
       setAuthChecked(true)
     })
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUid(session?.user?.id || null)
-      setUserEmail(session?.user?.email || null)
       setAuthChecked(true)
     })
     return () => subscription.unsubscribe()
@@ -747,11 +742,6 @@ export default function EnhancedCalendarClient({
                   <div style={{ fontSize: '1.1rem', fontWeight: 700, marginTop: 6 }}>
                     {allEventsList.length} total
                   </div>
-                  {userEmail && (
-                    <div className={styles.eventMeta} style={{ marginTop: 4 }}>
-                      Signed in as {userEmail}
-                    </div>
-                  )}
                 </div>
 
                 <div>

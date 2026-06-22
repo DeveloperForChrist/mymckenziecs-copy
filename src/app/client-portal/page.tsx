@@ -30,12 +30,23 @@ interface MatterSummary {
   caseId: string | null
   matterNumber: string
   issueType: string
+  urgency: string
+  summary: string
+  fullDetails: string
+  phone: string
+  location: string
+  courtDate: string | null
+  opposing: string
+  documents: string[]
+  tags: string[]
   status: string
   stage: string
+  owner: string
   nextAction: string
   nextDeadline: string | null
   acceptedAt: string | null
   lastActivityAt: string | null
+  currentBalance: number
 }
 
 interface BusinessLink {
@@ -139,6 +150,34 @@ function formatMatterLabel(matter: MatterSummary | null | undefined) {
   return matter.matterNumber || matter.issueType || 'Client matter'
 }
 
+function formatStageLabel(value: string | null | undefined) {
+  const normalized = String(value || '').trim()
+  if (!normalized) return 'Not set'
+  return normalized
+    .split(/[_\s-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+function formatStatusLabel(value: string | null | undefined) {
+  return formatStageLabel(value)
+}
+
+function formatUrgencyLabel(value: string | null | undefined) {
+  return formatStageLabel(value)
+}
+
+function formatCurrency(value: number | null | undefined) {
+  const amount = typeof value === 'number' ? value : Number(value || 0)
+  if (!Number.isFinite(amount)) return 'Not recorded'
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency: 'GBP',
+    maximumFractionDigits: 2,
+  }).format(amount)
+}
+
 export default function ClientPortalPage() {
   const [businessLinks, setBusinessLinks] = useState<BusinessLink[]>([])
   const [messages, setMessages] = useState<Message[]>([])
@@ -147,7 +186,7 @@ export default function ClientPortalPage() {
   const [meetings, setMeetings] = useState<ClientMeeting[]>([])
   const [syncTargets, setSyncTargets] = useState<SyncTarget[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedTab, setSelectedTab] = useState<'messages' | 'meetings' | 'documents' | 'profile'>('messages')
+  const [selectedTab, setSelectedTab] = useState<'messages' | 'meetings' | 'documents' | 'matter'>('messages')
   const [showCompose, setShowCompose] = useState(false)
   const [composeForm, setComposeForm] = useState({ subject: '', content: '' })
   const [selectedBusinessId, setSelectedBusinessId] = useState<string>('')
@@ -334,12 +373,23 @@ export default function ClientPortalPage() {
               caseId: typeof matter.caseId === 'string' ? matter.caseId : null,
               matterNumber: String(matter.matterNumber || '').trim(),
               issueType: String(matter.issueType || 'Client matter').trim() || 'Client matter',
+              urgency: String(matter.urgency || 'medium').trim().toLowerCase(),
+              summary: String(matter.summary || '').trim(),
+              fullDetails: String(matter.fullDetails || '').trim(),
+              phone: String(matter.phone || '').trim(),
+              location: String(matter.location || '').trim(),
+              courtDate: typeof matter.courtDate === 'string' ? matter.courtDate : null,
+              opposing: String(matter.opposing || '').trim(),
+              documents: Array.isArray(matter.documents) ? matter.documents.map((entry: unknown) => String(entry || '').trim()).filter(Boolean) : [],
+              tags: Array.isArray(matter.tags) ? matter.tags.map((entry: unknown) => String(entry || '').trim()).filter(Boolean) : [],
               status: String(matter.status || 'active').toLowerCase(),
               stage: String(matter.stage || 'intake').toLowerCase(),
+              owner: String(matter.owner || 'Unassigned').trim() || 'Unassigned',
               nextAction: String(matter.nextAction || '').trim(),
               nextDeadline: typeof matter.nextDeadline === 'string' ? matter.nextDeadline : null,
               acceptedAt: typeof matter.acceptedAt === 'string' ? matter.acceptedAt : null,
               lastActivityAt: typeof matter.lastActivityAt === 'string' ? matter.lastActivityAt : null,
+              currentBalance: typeof matter.currentBalance === 'number' ? matter.currentBalance : Number(matter.currentBalance || 0),
             })).filter((matter: MatterSummary) => matter.id),
           } satisfies BusinessLink
         })
@@ -754,8 +804,8 @@ export default function ClientPortalPage() {
             <button type="button" className={selectedTab === 'documents' ? styles.sectionButtonActive : styles.sectionButton} onClick={() => setSelectedTab('documents')}>
               <span className={styles.sectionLabel}><FileText size={16} />Documents</span>
             </button>
-            <button type="button" className={selectedTab === 'profile' ? styles.sectionButtonActive : styles.sectionButton} onClick={() => setSelectedTab('profile')}>
-              <span className={styles.sectionLabel}><User size={16} />Profile</span>
+            <button type="button" className={selectedTab === 'matter' ? styles.sectionButtonActive : styles.sectionButton} onClick={() => setSelectedTab('matter')}>
+              <span className={styles.sectionLabel}><User size={16} />My matter</span>
             </button>
           </div>
 
@@ -814,13 +864,13 @@ export default function ClientPortalPage() {
               {selectedTab === 'messages' && 'Messages'}
               {selectedTab === 'meetings' && 'Video meetings'}
               {selectedTab === 'documents' && 'Documents'}
-              {selectedTab === 'profile' && 'Profile'}
+              {selectedTab === 'matter' && 'My matter'}
             </h2>
             <p className={styles.listSub}>
               {selectedTab === 'messages' && `${filteredMessages.length} message${filteredMessages.length === 1 ? '' : 's'} in this view`}
               {selectedTab === 'meetings' && `${filteredMeetings.length} meeting${filteredMeetings.length === 1 ? '' : 's'} in this view`}
               {selectedTab === 'documents' && `${filteredSharedDocuments.length + documents.length} document${filteredSharedDocuments.length + documents.length === 1 ? '' : 's'} available`}
-              {selectedTab === 'profile' && 'Your client portal details'}
+              {selectedTab === 'matter' && 'Matter details shared with you by your professional'}
             </p>
             {selectedBusiness && (
               <div className={styles.filterBar}>
@@ -1093,44 +1143,127 @@ export default function ClientPortalPage() {
               </>
             )}
 
-            {selectedTab === 'profile' && (
+            {selectedTab === 'matter' && (
               <div className={styles.profileStack}>
-                <div className={styles.listItem}>
-                  <p className={styles.itemPreview}>This profile is used for your client portal connection and secure notifications.</p>
-                  <div className={styles.field}>
-                    <label>Name</label>
-                    <input
-                      type="text"
-                      value={selectedBusiness?.client_name || businessLinks[0]?.client_name || ''}
-                      readOnly
-                      className={styles.input}
-                    />
-                  </div>
-                  <div className={styles.field}>
-                    <label>Connection</label>
-                    <input
-                      type="text"
-                      value={selectedBusiness?.business_name || 'No professional connected'}
-                      readOnly
-                      className={styles.input}
-                    />
-                  </div>
-                </div>
-                {selectedBusiness?.matters.map((matter) => (
-                  <div key={matter.id} className={styles.listItem}>
-                    <div className={styles.itemTop}>
-                      <div>
-                        <h4 className={styles.itemTitle}>{formatMatterLabel(matter)}</h4>
-                        <p className={styles.itemMeta}>{selectedBusiness.business_name}</p>
+                {selectedMatter ? (
+                  <>
+                    <div className={styles.listItem}>
+                      <div className={styles.itemTop}>
+                        <div>
+                          <h4 className={styles.itemTitle}>{formatMatterLabel(selectedMatter)}</h4>
+                          <p className={styles.itemMeta}>{selectedBusiness?.business_name || 'Legal Professional'}</p>
+                        </div>
+                        <span className={styles.statusPill}>
+                          {selectedMatter.status === 'archived' || selectedMatter.stage === 'closed' ? 'Archived' : 'Active'}
+                        </span>
                       </div>
-                      <span className={styles.statusPill}>{matter.status === 'archived' || matter.stage === 'closed' ? 'Archived' : 'Active'}</span>
+                      <div className={styles.matterGrid}>
+                        <div className={styles.matterFact}>
+                          <span className={styles.matterFactLabel}>Stage</span>
+                          <strong>{formatStageLabel(selectedMatter.stage)}</strong>
+                        </div>
+                        <div className={styles.matterFact}>
+                          <span className={styles.matterFactLabel}>Status</span>
+                          <strong>{formatStatusLabel(selectedMatter.status)}</strong>
+                        </div>
+                        <div className={styles.matterFact}>
+                          <span className={styles.matterFactLabel}>Urgency</span>
+                          <strong>{formatUrgencyLabel(selectedMatter.urgency)}</strong>
+                        </div>
+                        <div className={styles.matterFact}>
+                          <span className={styles.matterFactLabel}>Balance</span>
+                          <strong>{formatCurrency(selectedMatter.currentBalance)}</strong>
+                        </div>
+                      </div>
                     </div>
-                    <p className={styles.itemPreview}>
-                      Stage: {matter.stage || 'Not set'}
-                      {matter.nextAction ? ` • Next action: ${matter.nextAction}` : ''}
-                    </p>
+
+                    <div className={styles.listItem}>
+                      <h4 className={styles.itemTitle}>Next steps</h4>
+                      <div className={styles.timelineList}>
+                        <div className={styles.timelineRow}>
+                          <span className={styles.timelineLabel}>Next action</span>
+                          <strong>{selectedMatter.nextAction || 'No action published yet'}</strong>
+                        </div>
+                        <div className={styles.timelineRow}>
+                          <span className={styles.timelineLabel}>Next deadline</span>
+                          <strong>{formatDate(selectedMatter.nextDeadline)}</strong>
+                        </div>
+                        <div className={styles.timelineRow}>
+                          <span className={styles.timelineLabel}>Court date</span>
+                          <strong>{formatDate(selectedMatter.courtDate)}</strong>
+                        </div>
+                        <div className={styles.timelineRow}>
+                          <span className={styles.timelineLabel}>Matter owner</span>
+                          <strong>{selectedMatter.owner || 'Unassigned'}</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.listItem}>
+                      <h4 className={styles.itemTitle}>Matter summary</h4>
+                      <p className={styles.detailText}>{selectedMatter.summary || 'No summary has been shared yet.'}</p>
+                      {selectedMatter.fullDetails && (
+                        <>
+                          <h4 className={styles.itemTitle}>Full details</h4>
+                          <p className={styles.detailText}>{selectedMatter.fullDetails}</p>
+                        </>
+                      )}
+                    </div>
+
+                    <div className={styles.listItem}>
+                      <h4 className={styles.itemTitle}>Contacts and parties</h4>
+                      <div className={styles.timelineList}>
+                        <div className={styles.timelineRow}>
+                          <span className={styles.timelineLabel}>Client name</span>
+                          <strong>{selectedBusiness?.client_name || 'Client'}</strong>
+                        </div>
+                        <div className={styles.timelineRow}>
+                          <span className={styles.timelineLabel}>Phone</span>
+                          <strong>{selectedMatter.phone || 'Not recorded'}</strong>
+                        </div>
+                        <div className={styles.timelineRow}>
+                          <span className={styles.timelineLabel}>Location</span>
+                          <strong>{selectedMatter.location || 'Not recorded'}</strong>
+                        </div>
+                        <div className={styles.timelineRow}>
+                          <span className={styles.timelineLabel}>Opposing party</span>
+                          <strong>{selectedMatter.opposing || 'Not recorded'}</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.listItem}>
+                      <h4 className={styles.itemTitle}>Documents and tags</h4>
+                      {selectedMatter.documents.length > 0 ? (
+                        <div className={styles.tokenRow}>
+                          {selectedMatter.documents.map((documentName) => (
+                            <span key={documentName} className={styles.tokenPill}>{documentName}</span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className={styles.itemPreview}>No matter-level document names have been shared yet.</p>
+                      )}
+                      {selectedMatter.tags.length > 0 && (
+                        <>
+                          <h4 className={styles.itemTitle}>Tags</h4>
+                          <div className={styles.tokenRow}>
+                            {selectedMatter.tags.map((tag) => (
+                              <span key={tag} className={styles.tokenPill}>{tag}</span>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className={styles.emptyState}>
+                    <div>
+                      <User size={44} />
+                      <strong>No matter selected</strong>
+                      <span>Select a professional or matter chip to view the shared case details here.</span>
+                    </div>
                   </div>
-                ))}
+                )}
               </div>
             )}
           </div>
@@ -1160,11 +1293,11 @@ export default function ClientPortalPage() {
                     <div className={styles.timelineList}>
                       <div className={styles.timelineRow}>
                         <span className={styles.timelineLabel}>Stage</span>
-                        <strong>{selectedMatter.stage || 'Not set'}</strong>
+                        <strong>{formatStageLabel(selectedMatter.stage)}</strong>
                       </div>
                       <div className={styles.timelineRow}>
                         <span className={styles.timelineLabel}>Status</span>
-                        <strong>{selectedMatter.status}</strong>
+                        <strong>{formatStatusLabel(selectedMatter.status)}</strong>
                       </div>
                       <div className={styles.timelineRow}>
                         <span className={styles.timelineLabel}>Last activity</span>

@@ -5,6 +5,7 @@ import { BusinessWorkspaceError, ensureBusinessContext } from '@/lib/business/bu
 import { createBusinessAlert } from '@/lib/business/alerts'
 import { sendPlatformMessageNotification } from '@/lib/email/platform-notifications'
 import { EMAIL_ATTACHMENT_LABEL, isAllowedEmailAttachment } from '@/lib/inbox/attachment-policy'
+import { isMissingDocumentSharesTable } from '@/lib/documents/client-document-access'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     const { data: linkedClient, error: linkedClientError } = await supabaseAdmin
       .from('client_business_links')
-      .select('client_name, client_email')
+      .select('client_id, client_name, client_email')
       .eq('business_id', workspace.businessId)
       .eq('status', 'active')
       .eq('client_email', recipientEmail)
@@ -130,6 +131,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: 'The selected matter does not belong to this client.' }, { status: 403 })
       }
 
+      if (matterRow.status !== 'active' || matterRow.stage === 'closed') {
+        return NextResponse.json({ message: 'Documents cannot be shared to a closed or archived matter.' }, { status: 409 })
+      }
+
       if (caseId && matterRow.case_id && asString(matterRow.case_id) !== caseId) {
         return NextResponse.json({ message: 'The selected matter context does not match.' }, { status: 400 })
       }
@@ -153,6 +158,17 @@ export async function POST(request: NextRequest) {
           : [],
       ),
     )
+
+    if (attachmentIds.length > 0 && !relatedMatter) {
+      return NextResponse.json(
+        { message: 'Select an active matter before sharing documents with a client.' },
+        { status: 400 },
+      )
+    }
+
+    if (attachmentIds.length > 0 && !linkedClient.client_id) {
+      return NextResponse.json({ message: 'The client portal account is not linked correctly.' }, { status: 409 })
+    }
 
     const attachments =
       attachmentIds.length > 0
@@ -237,7 +253,7 @@ export async function POST(request: NextRequest) {
 
     const storedAttachments: StoredAttachment[] = attachments.map(({ content: _content, ...attachment }) => attachment)
 
-    const { error: insertError } = await supabaseAdmin
+    const { data: insertedMessage, error: insertError } = await supabaseAdmin
       .from('inbox_messages')
       .insert({
         sender_id: user.id,
@@ -253,6 +269,7 @@ export async function POST(request: NextRequest) {
           mirroredToClientPortal: true,
           attachmentIds,
           attachments: storedAttachments,
+          businessId: workspace.businessId,
           recipientName: linkedClient.client_name || null,
           matterId: relatedMatter?.id || null,
           caseId: relatedMatter?.case_id || null,
@@ -262,9 +279,35 @@ export async function POST(request: NextRequest) {
           matterStage: relatedMatter?.stage || null,
         },
       })
+      .select('id')
+      .single()
 
     if (insertError) {
       return NextResponse.json({ message: insertError.message || 'Failed to save message.' }, { status: 500 })
+    }
+
+    if (attachmentIds.length > 0 && relatedMatter && linkedClient.client_id) {
+      const shareRows = attachmentIds.map((documentId) => ({
+        document_id: documentId,
+        business_id: workspace.businessId,
+        matter_id: relatedMatter.id,
+        client_id: linkedClient.client_id,
+        shared_by_user_id: user.id,
+        revoked_at: null,
+      }))
+      const { error: shareError } = await supabaseAdmin
+        .from('document_client_shares')
+        .upsert(shareRows, { onConflict: 'document_id,matter_id,client_id' })
+
+      if (shareError) {
+        if (insertedMessage?.id) {
+          await supabaseAdmin.from('inbox_messages').delete().eq('id', insertedMessage.id)
+        }
+        const message = isMissingDocumentSharesTable(shareError)
+          ? 'Document sharing is not ready. Apply the latest database migration first.'
+          : 'Unable to grant secure document access.'
+        return NextResponse.json({ message }, { status: 503 })
+      }
     }
 
     try {

@@ -12,6 +12,7 @@ import {
   syncAcceptedLeadMatterRows,
 } from '@/lib/business/business-matters-db'
 import { createBusinessAlert } from '@/lib/business/alerts'
+import { normalizePortalEmail } from '@/lib/client-portal/portal-matters'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -27,7 +28,8 @@ async function getContext() {
   const { data: authData } = await supabase.auth.getUser()
   const user = authData?.user
   if (!user) throw new BusinessWorkspaceError('Unauthorized', 401)
-  return ensureBusinessContext(user)
+  const workspace = await ensureBusinessContext(user)
+  return { user, workspace }
 }
 
 function errorResponse(error: unknown, fallback: string) {
@@ -46,12 +48,45 @@ function isMissingCaseIdColumnError(error: unknown) {
   return (code === 'PGRST204' || code === '42703') && message.toLowerCase().includes('case_id')
 }
 
+function getProfessionalSenderName(user: { email?: string | null; user_metadata?: Record<string, any> | null }) {
+  return String(user.user_metadata?.full_name || user.user_metadata?.display_name || user.email?.split('@')[0] || 'Your professional')
+}
+
+async function notifyClientPortalUpdate(options: {
+  user: { email?: string | null; user_metadata?: Record<string, any> | null }
+  workspace: { businessId: string; userId: string }
+  matterId: string
+  recipientEmail: string | null | undefined
+  subject: string
+  content: string
+  metadata: Record<string, unknown>
+}) {
+  const clientEmail = normalizePortalEmail(options.recipientEmail)
+  if (!clientEmail) return
+
+  await supabaseAdmin.from('inbox_messages').insert({
+    sender_id: options.workspace.userId,
+    sender_email: options.user.email || null,
+    sender_name: getProfessionalSenderName(options.user),
+    recipient_email: clientEmail,
+    subject: options.subject,
+    content: options.content,
+    type: 'email',
+    metadata: {
+      fromBusinessUpdate: true,
+      businessId: options.workspace.businessId,
+      matterId: options.matterId,
+      ...options.metadata,
+    },
+  })
+}
+
 export async function GET() {
   try {
-    const context = await getContext()
-    const leadRows = await loadBusinessLeadRows(context.businessId)
-    await syncAcceptedLeadMatterRows(context.businessId, leadRows)
-    const matterRows = await loadClientMatterRows(context.businessId)
+    const { workspace } = await getContext()
+    const leadRows = await loadBusinessLeadRows(workspace.businessId)
+    await syncAcceptedLeadMatterRows(workspace.businessId, leadRows)
+    const matterRows = await loadClientMatterRows(workspace.businessId)
 
     const supportsCaseId =
       matterRows.length === 0
@@ -69,7 +104,7 @@ export async function GET() {
           const { data: createdCase, error: caseError } = await supabaseAdmin
             .from('cases')
             .insert({
-              user_id: context.userId,
+              user_id: workspace.userId,
               title,
               description: typeof row?.summary === 'string' ? row.summary : null,
               status: 'active',
@@ -85,7 +120,7 @@ export async function GET() {
           const { error: updateError } = await supabaseAdmin
             .from('client_matters')
             .update({ case_id: createdCase.id })
-            .eq('business_id', context.businessId)
+            .eq('business_id', workspace.businessId)
             .eq('id', row.id)
             .is('case_id', null)
 
@@ -109,14 +144,14 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const context = await getContext()
+    const { workspace } = await getContext()
     const body = asRecord(await request.json().catch(() => ({}))) || {}
     const matter: Partial<ClientMatter> = {
       ...createBlankMatter(),
       ...(body as Partial<ClientMatter>),
     }
 
-    const insertPayload = clientMatterToRow(matter, context.businessId)
+    const insertPayload = clientMatterToRow(matter, workspace.businessId)
     let data: any = null
     let error: any = null
     {
@@ -152,7 +187,7 @@ export async function POST(request: NextRequest) {
       const { data: createdCase } = await supabaseAdmin
         .from('cases')
         .insert({
-          user_id: context.userId,
+          user_id: workspace.userId,
           title,
           description: typeof data?.summary === 'string' ? data.summary : null,
           status: 'active',
@@ -164,7 +199,7 @@ export async function POST(request: NextRequest) {
         const { data: updatedRow } = await supabaseAdmin
           .from('client_matters')
           .update({ case_id: createdCase.id })
-          .eq('business_id', context.businessId)
+          .eq('business_id', workspace.businessId)
           .eq('id', data.id)
           .select('*')
           .single()
@@ -184,7 +219,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const context = await getContext()
+    const { user, workspace } = await getContext()
     const body = asRecord(await request.json())
     if (!body) {
       return NextResponse.json({ message: 'Invalid matter payload.' }, { status: 400 })
@@ -198,8 +233,8 @@ export async function PUT(request: NextRequest) {
     const update = matterUpdateToRow(body)
     const { data: previousMatter } = await supabaseAdmin
       .from('client_matters')
-      .select('id, client_name, matter_number, status, stage, next_deadline')
-      .eq('business_id', context.businessId)
+      .select('id, client_name, matter_number, status, stage, next_deadline, email')
+      .eq('business_id', workspace.businessId)
       .eq('id', id)
       .maybeSingle()
     let data: any = null
@@ -208,7 +243,7 @@ export async function PUT(request: NextRequest) {
       const result = await supabaseAdmin
         .from('client_matters')
         .update(update)
-        .eq('business_id', context.businessId)
+        .eq('business_id', workspace.businessId)
         .eq('id', id)
         .select('*')
         .single()
@@ -221,7 +256,7 @@ export async function PUT(request: NextRequest) {
       const fallbackResult = await supabaseAdmin
         .from('client_matters')
         .update(fallbackUpdate)
-        .eq('business_id', context.businessId)
+        .eq('business_id', workspace.businessId)
         .eq('id', id)
         .select('*')
         .single()
@@ -234,11 +269,23 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ message: 'Unable to update matter.' }, { status: 500 })
     }
 
+    if (data.status === 'archived' || data.stage === 'closed') {
+      const { error: revokeError } = await supabaseAdmin
+        .from('document_client_shares')
+        .update({ revoked_at: new Date().toISOString() })
+        .eq('matter_id', id)
+        .is('revoked_at', null)
+
+      if (revokeError && !String(revokeError.message || '').includes('document_client_shares')) {
+        console.error('Failed to revoke archived matter document shares', revokeError)
+      }
+    }
+
     const previousStatus = String(previousMatter?.status || '')
     const nextStatus = String(data?.status || '')
     if (previousStatus && nextStatus && previousStatus !== nextStatus) {
       await createBusinessAlert({
-        businessId: context.businessId,
+        businessId: workspace.businessId,
         type: 'system',
         priority: nextStatus === 'archived' ? 'low' : 'medium',
         title: 'Matter status changed',
@@ -247,13 +294,31 @@ export async function PUT(request: NextRequest) {
         actionLabel: 'Open Work Item',
         metadata: { matterId: id, from: previousStatus, to: nextStatus },
       })
+
+      await notifyClientPortalUpdate({
+        user,
+        workspace,
+        matterId: id,
+        recipientEmail: data?.email || previousMatter?.email,
+        subject: `Matter status update: ${data?.matter_number || data?.client_name || 'Your case'}`,
+        content: `Your matter status is now ${nextStatus}.`,
+        metadata: {
+          caseId: data?.case_id || null,
+          matterNumber: data?.matter_number || null,
+          matterLabel: data?.matter_number || data?.issue_type || null,
+          matterStatus: nextStatus,
+          matterStage: data?.stage || null,
+          updateType: 'status',
+          previousStatus,
+        },
+      })
     }
 
     const previousStage = String(previousMatter?.stage || '')
     const nextStage = String(data?.stage || '')
     if (previousStage && nextStage && previousStage !== nextStage) {
       await createBusinessAlert({
-        businessId: context.businessId,
+        businessId: workspace.businessId,
         type: 'system',
         priority: 'low',
         title: 'Matter stage updated',
@@ -262,13 +327,31 @@ export async function PUT(request: NextRequest) {
         actionLabel: 'Open Work Item',
         metadata: { matterId: id, from: previousStage, to: nextStage },
       })
+
+      await notifyClientPortalUpdate({
+        user,
+        workspace,
+        matterId: id,
+        recipientEmail: data?.email || previousMatter?.email,
+        subject: `Matter update: ${data?.matter_number || data?.client_name || 'Your case'}`,
+        content: `We have moved your matter to the ${nextStage} stage.`,
+        metadata: {
+          caseId: data?.case_id || null,
+          matterNumber: data?.matter_number || null,
+          matterLabel: data?.matter_number || data?.issue_type || null,
+          matterStatus: data?.status || null,
+          matterStage: nextStage,
+          updateType: 'stage',
+          previousStage,
+        },
+      })
     }
 
     const prevDeadline = previousMatter?.next_deadline ? String(previousMatter.next_deadline) : ''
     const nextDeadline = data?.next_deadline ? String(data.next_deadline) : ''
     if (prevDeadline !== nextDeadline && nextDeadline) {
       await createBusinessAlert({
-        businessId: context.businessId,
+        businessId: workspace.businessId,
         type: 'deadline',
         priority: 'high',
         title: 'Matter deadline updated',
@@ -276,6 +359,24 @@ export async function PUT(request: NextRequest) {
         clientName: data?.client_name || null,
         actionLabel: 'Open Calendar',
         metadata: { matterId: id, nextDeadline },
+      })
+
+      await notifyClientPortalUpdate({
+        user,
+        workspace,
+        matterId: id,
+        recipientEmail: data?.email || previousMatter?.email,
+        subject: `Deadline update: ${data?.matter_number || data?.client_name || 'Your case'}`,
+        content: `Your matter deadline is now set for ${nextDeadline}.`,
+        metadata: {
+          caseId: data?.case_id || null,
+          matterNumber: data?.matter_number || null,
+          matterLabel: data?.matter_number || data?.issue_type || null,
+          matterStatus: data?.status || null,
+          matterStage: data?.stage || null,
+          updateType: 'deadline',
+          nextDeadline,
+        },
       })
     }
 

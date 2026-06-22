@@ -6,15 +6,26 @@ export type ClientPortalMatter = {
   businessName: string
   clientName: string
   email: string
+  phone: string
+  location: string
   caseId: string | null
   matterNumber: string
   issueType: string
+  urgency: string
+  summary: string
+  fullDetails: string
+  courtDate: string | null
+  opposing: string
+  documents: string[]
+  tags: string[]
   status: string
   stage: string
+  owner: string
   nextAction: string
   nextDeadline: string | null
   acceptedAt: string | null
   lastActivityAt: string | null
+  currentBalance: number
 }
 
 export type ClientPortalLink = {
@@ -68,9 +79,11 @@ export async function loadClientPortalMatters(userId: string, userEmail: string)
 
   const { data: matters, error } = await supabaseAdmin
     .from('client_matters')
-    .select('id, business_id, client_name, email, case_id, matter_number, issue_type, status, stage, next_action, next_deadline, accepted_at, last_activity_at')
+    .select('id, business_id, client_name, email, phone, location, case_id, matter_number, issue_type, urgency, summary, full_details, court_date, opposing, documents, tags, status, stage, owner, next_action, next_deadline, accepted_at, last_activity_at, current_balance')
     .in('business_id', businessIds)
     .eq('email', email)
+    .eq('status', 'active')
+    .neq('stage', 'closed')
     .order('last_activity_at', { ascending: false, nullsFirst: false })
     .order('accepted_at', { ascending: false, nullsFirst: false })
 
@@ -88,15 +101,26 @@ export async function loadClientPortalMatters(userId: string, userEmail: string)
       businessName: businessNames.get(String(row.business_id || '')) || 'Legal Professional',
       clientName: String(row.client_name || '').trim() || 'Client',
       email: normalizePortalEmail(row.email),
+      phone: String(row.phone || '').trim(),
+      location: String(row.location || '').trim(),
       caseId: typeof row.case_id === 'string' ? row.case_id : null,
       matterNumber: String(row.matter_number || '').trim(),
       issueType: String(row.issue_type || 'Client matter').trim() || 'Client matter',
+      urgency: String(row.urgency || 'medium').trim().toLowerCase() || 'medium',
+      summary: String(row.summary || '').trim(),
+      fullDetails: String(row.full_details || '').trim(),
+      courtDate: typeof row.court_date === 'string' ? row.court_date : null,
+      opposing: String(row.opposing || '').trim(),
+      documents: Array.isArray(row.documents) ? row.documents.map((entry: unknown) => String(entry || '').trim()).filter(Boolean) : [],
+      tags: Array.isArray(row.tags) ? row.tags.map((entry: unknown) => String(entry || '').trim()).filter(Boolean) : [],
       status: String(row.status || 'active').trim().toLowerCase() || 'active',
       stage: String(row.stage || 'intake').trim().toLowerCase() || 'intake',
+      owner: String(row.owner || 'Unassigned').trim() || 'Unassigned',
       nextAction: String(row.next_action || '').trim(),
       nextDeadline: typeof row.next_deadline === 'string' ? row.next_deadline : null,
       acceptedAt: typeof row.accepted_at === 'string' ? row.accepted_at : null,
       lastActivityAt: typeof row.last_activity_at === 'string' ? row.last_activity_at : null,
+      currentBalance: typeof row.current_balance === 'number' ? row.current_balance : Number(row.current_balance || 0),
     })).filter((row) => row.id && row.businessId),
   }
 }

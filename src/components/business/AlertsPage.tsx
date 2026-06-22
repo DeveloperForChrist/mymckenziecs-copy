@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Bell, CheckCircle2, XCircle, AlertTriangle, Info, Calendar, User, FileText, MessageSquare, Trash2, CheckCheck, Filter } from 'lucide-react'
+import { Bell, CheckCircle2, XCircle, AlertTriangle, Info, Calendar, User, FileText, MessageSquare, Trash2, CheckCheck, Filter, Loader2 } from 'lucide-react'
 import styles from './alerts.module.css'
 
 type AlertType = 'deadline' | 'message' | 'lead' | 'system' | 'document' | 'meeting'
@@ -188,7 +188,11 @@ export default function AlertsPage() {
           ))}
         </div>
         <div className={styles.alertList}>
-          {loading && !hasLoaded && <div className={styles.emptyList}><Bell size={28}/><p>Loading alerts...</p></div>}
+          {loading && !hasLoaded && (
+            <div className={styles.emptyList} aria-live="polite" aria-busy="true">
+              <Loader2 size={22} className={styles.spinner} />
+            </div>
+          )}
           {filtered.length === 0 && <div className={styles.emptyList}><Bell size={28}/><p>No alerts</p></div>}
           {filtered.map(a => {
             const Icon = TYPE_ICON[a.type]

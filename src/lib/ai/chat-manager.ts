@@ -200,6 +200,7 @@ export class ChatManager {
         .select('id, title, external_id, case_type, description')
         .eq('id', resolvedActiveCaseId)
         .eq('user_id', supabaseUserId)
+        .eq('status', 'active')
         .is('deleted_at', null)
         .maybeSingle();
 
@@ -213,6 +214,7 @@ export class ChatManager {
         .from('cases')
         .select('id, title, external_id, case_type, description, last_accessed, created_at')
         .eq('user_id', supabaseUserId)
+        .eq('status', 'active')
         .is('deleted_at', null)
         .order('last_accessed', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
@@ -479,6 +481,9 @@ export class ChatManager {
       .from('cases')
       .select('*')
       .eq('id', targetCaseId)
+      .eq('user_id', this.userId)
+      .eq('status', 'active')
+      .is('deleted_at', null)
       .maybeSingle();
 
     return caseData || null;

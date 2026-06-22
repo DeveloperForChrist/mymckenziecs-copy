@@ -41,7 +41,6 @@ export default async function CalendarPage() {
         </div>
         <EnhancedCalendarClient
           initialAuthUid={authUser?.id ?? null}
-          initialUserEmail={authUser?.email ?? null}
           initialHasPaidAccess={initialHasPaidAccess}
           initialPlanChecked={Boolean(authUser)}
           initialHasReminderAccess={initialHasReminderAccess}

@@ -18,6 +18,11 @@ dist
 # Misc
 .DS_Store
 *.pem
+*.key
+id_rsa
+id_ed25519
+jojo
+jojo.pub
 
 # Debug
 npm-debug.log*

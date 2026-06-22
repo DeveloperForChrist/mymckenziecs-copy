@@ -31,12 +31,23 @@ export async function GET() {
         caseId: string | null
         matterNumber: string
         issueType: string
+        urgency: string
+        summary: string
+        fullDetails: string
+        phone: string
+        location: string
+        courtDate: string | null
+        opposing: string
+        documents: string[]
+        tags: string[]
         status: string
         stage: string
+        owner: string
         nextAction: string
         nextDeadline: string | null
         acceptedAt: string | null
         lastActivityAt: string | null
+        currentBalance: number
       }>
     }> = {}
 
@@ -70,12 +81,23 @@ export async function GET() {
           caseId: matter.caseId,
           matterNumber: matter.matterNumber,
           issueType: matter.issueType,
+          urgency: matter.urgency,
+          summary: matter.summary,
+          fullDetails: matter.fullDetails,
+          phone: matter.phone,
+          location: matter.location,
+          courtDate: matter.courtDate,
+          opposing: matter.opposing,
+          documents: matter.documents,
+          tags: matter.tags,
           status: matter.status,
           stage: matter.stage,
+          owner: matter.owner,
           nextAction: matter.nextAction,
           nextDeadline: matter.nextDeadline,
           acceptedAt: matter.acceptedAt,
           lastActivityAt: matter.lastActivityAt,
+          currentBalance: matter.currentBalance,
         })),
       }
     }

@@ -1793,6 +1793,8 @@ const loadRelatedThreadMemory = async ({
     query = query.eq('guest_id', guestId)
   }
 
+  query = caseId ? query.eq('case_id', caseId) : query.is('case_id', null)
+
   const { data, error } = await query
   if (error) {
     console.warn('Related thread memory lookup failed:', error)
@@ -1806,11 +1808,8 @@ const loadRelatedThreadMemory = async ({
   })
   if (rows.length === 0) return null
 
-  const sameCaseRows = caseId
-    ? rows.filter((row: any) => row?.case_id === caseId)
-    : []
-  const selectedRows = (sameCaseRows.length > 0 ? sameCaseRows : rows).slice(0, 4)
-  const sameCaseMatch = sameCaseRows.length > 0
+  const selectedRows = rows.slice(0, 4)
+  const sameCaseMatch = Boolean(caseId && selectedRows.length > 0)
 
   const summaryCandidates = selectedRows
     .map((row: any) => truncateText(String(row?.memory_summary || '').trim(), 220))
