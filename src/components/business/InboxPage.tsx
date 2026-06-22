@@ -18,7 +18,7 @@ interface Message {
   timestamp: string
   isRead: boolean
   isStarred: boolean
-  type: 'email' | 'invitation' | 'client_invite'
+  type: 'email' | 'invitation' | 'client_invite' | 'draft'
   isSentByBusiness?: boolean
   metadata?: {
     invitation_id?: string
@@ -35,10 +35,18 @@ interface Message {
     matterLabel?: string | null
     matterStage?: string | null
     matterStatus?: string | null
+    deliveryMode?: 'portal' | 'direct'
     attachmentIds?: string[]
     attachments?: InboxMessageAttachment[]
   }
   deletedAt?: string | null
+}
+
+type SavedComposeDraft = {
+  to: string
+  subject: string
+  body: string
+  updatedAt: string
 }
 
 type ActiveClientOption = {
@@ -81,6 +89,8 @@ type PendingComposeSend = {
   attachedFiles: File[]
   selectedDocumentIds: string[]
 }
+
+const COMPOSE_DRAFT_STORAGE_KEY = 'business-inbox-compose-draft-v1'
 
 const ROLE_LABEL: Record<string, string> = {
   owner: 'Owner', solicitor: 'Solicitor/McKenzie Friend',
@@ -135,6 +145,29 @@ function normalizeRecipient(value: string) {
   return value.trim().toLowerCase()
 }
 
+function hasMeaningfulComposeDraft(draft: { to: string; subject: string; body: string } | null | undefined) {
+  if (!draft) return false
+  return [draft.to, draft.subject, draft.body].some((value) => String(value || '').trim().length > 0)
+}
+
+function buildDraftMessage(draft: SavedComposeDraft): Message {
+  return {
+    id: 'local-compose-draft',
+    sender: 'Saved draft',
+    senderEmail: '',
+    subject: draft.subject.trim() || '(No subject)',
+    preview: draft.body.trim().slice(0, 100) || draft.to.trim() || 'Continue writing this draft.',
+    content: draft.body,
+    timestamp: fmtTime(draft.updatedAt),
+    isRead: true,
+    isStarred: false,
+    type: 'draft',
+    metadata: {
+      invited_email: draft.to,
+    },
+  }
+}
+
 export default function InboxPage({
   composePreset,
 }: {
@@ -172,11 +205,13 @@ export default function InboxPage({
   const [inviteSending, setInviteSending] = useState(false)
   const [composeNotice, setComposeNotice] = useState('')
   const [inviteNotice, setInviteNotice] = useState('')
+  const [savedDraft, setSavedDraft] = useState<SavedComposeDraft | null>(null)
   const [existingDocuments, setExistingDocuments] = useState<StoredDocumentOption[]>([])
   const [existingDocumentsLoading, setExistingDocumentsLoading] = useState(false)
   const [existingDocumentsError, setExistingDocumentsError] = useState('')
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
   const [documentPickerOpen, setDocumentPickerOpen] = useState(false)
+  const [documentSearchQuery, setDocumentSearchQuery] = useState('')
   const attachmentInputRef = useRef<HTMLInputElement>(null)
   const queuedSendTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -187,6 +222,7 @@ export default function InboxPage({
     setExistingDocumentsError('')
     setExistingDocumentsLoading(false)
     setDocumentPickerOpen(false)
+    setDocumentSearchQuery('')
     if (attachmentInputRef.current) attachmentInputRef.current.value = ''
   }
 
@@ -196,6 +232,25 @@ export default function InboxPage({
       queuedSendTimeoutRef.current = null
     }
     setQueuedSend(null)
+  }
+
+  const persistComposeDraft = (draft: { to: string; subject: string; body: string } | null) => {
+    if (typeof window === 'undefined') return
+    if (!hasMeaningfulComposeDraft(draft)) {
+      window.localStorage.removeItem(COMPOSE_DRAFT_STORAGE_KEY)
+      setSavedDraft(null)
+      return
+    }
+
+    const nextDraft = {
+      to: draft?.to || '',
+      subject: draft?.subject || '',
+      body: draft?.body || '',
+      updatedAt: new Date().toISOString(),
+    } satisfies SavedComposeDraft
+
+    window.localStorage.setItem(COMPOSE_DRAFT_STORAGE_KEY, JSON.stringify(nextDraft))
+    setSavedDraft(nextDraft)
   }
 
   const resetRecipientPicker = () => {
@@ -213,6 +268,9 @@ export default function InboxPage({
   }
 
   const closeComposeModal = () => {
+    if (hasMeaningfulComposeDraft(composeForm)) {
+      persistComposeDraft(composeForm)
+    }
     clearQueuedSend()
     setShowCompose(false)
     resetComposeAttachments()
@@ -262,6 +320,21 @@ export default function InboxPage({
     )
   }
 
+  const openSavedDraft = () => {
+    if (!savedDraft) return
+    setComposeNotice('')
+    setComposeForm({
+      to: savedDraft.to,
+      subject: savedDraft.subject,
+      body: savedDraft.body,
+    })
+    setRecipientQuery(savedDraft.to)
+    setSelectedRecipient(null)
+    setSelectedMatter(null)
+    setRecipientPickerOpen(Boolean(savedDraft.to.trim()))
+    setShowCompose(true)
+  }
+
   const filteredActiveClients = useMemo(() => {
     const term = normalizeRecipient(recipientQuery)
     if (!term) return activeClients
@@ -283,7 +356,16 @@ export default function InboxPage({
     () => existingDocuments.filter((document) => selectedDocumentIds.includes(document.id)),
     [existingDocuments, selectedDocumentIds],
   )
+  const filteredExistingDocuments = useMemo(() => {
+    const term = documentSearchQuery.trim().toLowerCase()
+    if (!term) return existingDocuments
+    return existingDocuments.filter((document) =>
+      [document.name, document.mimeType || '']
+        .some((value) => value.toLowerCase().includes(term))
+    )
+  }, [documentSearchQuery, existingDocuments])
   const composeBusy = composeSending || Boolean(queuedSend)
+  const draftMessage = savedDraft ? buildDraftMessage(savedDraft) : null
 
   const selectMatter = (matter: MatterOption | null) => {
     setSelectedMatter(matter)
@@ -312,12 +394,42 @@ export default function InboxPage({
   useEffect(() => { loadData() }, [])
 
   useEffect(() => {
+    try {
+      const rawDraft = window.localStorage.getItem(COMPOSE_DRAFT_STORAGE_KEY)
+      if (!rawDraft) return
+      const parsed = JSON.parse(rawDraft) as Partial<SavedComposeDraft>
+      if (!hasMeaningfulComposeDraft(parsed as SavedComposeDraft)) return
+      setSavedDraft({
+        to: String(parsed.to || ''),
+        subject: String(parsed.subject || ''),
+        body: String(parsed.body || ''),
+        updatedAt: typeof parsed.updatedAt === 'string' ? parsed.updatedAt : new Date().toISOString(),
+      })
+    } catch {
+      window.localStorage.removeItem(COMPOSE_DRAFT_STORAGE_KEY)
+    }
+  }, [])
+
+  useEffect(() => {
     return () => {
       if (queuedSendTimeoutRef.current) {
         clearTimeout(queuedSendTimeoutRef.current)
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (!showCompose || composeSending || queuedSend) return
+    if (!hasMeaningfulComposeDraft(composeForm)) return
+
+    const timeout = window.setTimeout(() => {
+      persistComposeDraft(composeForm)
+    }, 500)
+
+    return () => {
+      window.clearTimeout(timeout)
+    }
+  }, [composeForm, composeSending, queuedSend, showCompose])
 
   useEffect(() => {
     if (!composePreset?.to) return
@@ -578,6 +690,13 @@ export default function InboxPage({
     setAttachedFiles((prev) => prev.filter((_, idx) => idx !== index))
   }
 
+  const getDeliveryLabel = (message: Message) => {
+    const mode = message.metadata?.deliveryMode
+    if (mode === 'portal') return 'Portal'
+    if (mode === 'direct') return 'Direct'
+    return null
+  }
+
   async function loadData() {
     setLoading(true)
     try {
@@ -765,6 +884,7 @@ export default function InboxPage({
       }
 
       setComposeNotice('sent')
+      persistComposeDraft(null)
       setComposeForm({ to: '', subject: '', body: '' })
       resetComposeAttachments()
       void loadData()
@@ -924,6 +1044,7 @@ export default function InboxPage({
     : selectedFolder === 'invitations' ? invitations
     : selectedFolder === 'client-invites' ? clientInvites
     : selectedFolder === 'sent' ? activeSentMessages
+    : selectedFolder === 'drafts' ? (draftMessage ? [draftMessage] : [])
     : selectedFolder === 'starred' ? activeMessages.filter(m => m.isStarred)
     : selectedFolder === 'trash' ? trashedMessages
     : selectedFolder === 'archive' ? []
@@ -941,6 +1062,7 @@ export default function InboxPage({
     invitations: invitations.filter(m => m.metadata?.status === 'pending').length,
     'client-invites': clientInvites.filter(m => m.metadata?.status === 'pending').length,
     sent: activeSentMessages.length,
+    drafts: draftMessage ? 1 : 0,
     starred: activeMessages.filter(m => m.isStarred).length,
     trash: trashedMessages.length,
     archive: 0,
@@ -1257,15 +1379,28 @@ export default function InboxPage({
                           Close
                         </button>
                       </div>
+                      <div className={styles.documentPickerSearch}>
+                        <Search size={14} className={styles.searchIcon} />
+                        <input
+                          type="text"
+                          value={documentSearchQuery}
+                          onChange={(event) => setDocumentSearchQuery(event.target.value)}
+                          placeholder="Search client documents"
+                          className={styles.documentPickerSearchInput}
+                          disabled={composeBusy || existingDocumentsLoading}
+                        />
+                      </div>
                       {existingDocumentsLoading ? (
                         <WorkspaceLoadingState variant="inline" label="Loading documents..." className={styles.documentPickerEmpty} />
                       ) : existingDocumentsError ? (
                         <div className={styles.documentPickerError}>{existingDocumentsError}</div>
                       ) : existingDocuments.length === 0 ? (
                         <div className={styles.documentPickerEmpty}>No saved documents are linked to this matter yet.</div>
+                      ) : filteredExistingDocuments.length === 0 ? (
+                        <div className={styles.documentPickerEmpty}>No client documents match this search.</div>
                       ) : (
                         <div className={styles.documentPickerList}>
-                          {existingDocuments.map((document) => {
+                          {filteredExistingDocuments.map((document) => {
                             const selected = selectedDocumentIds.includes(document.id)
                             return (
                               <button
@@ -1449,7 +1584,11 @@ export default function InboxPage({
               onClick={() => {
                 setComposeCaseId('')
                 resetComposeAttachments()
-                setShowCompose(true)
+                if (savedDraft) {
+                  openSavedDraft()
+                } else {
+                  setShowCompose(true)
+                }
               }}
             >
               <Mail size={15}/>Compose
@@ -1490,18 +1629,37 @@ export default function InboxPage({
           {filtered.map(msg => (
             <div key={msg.id} role="button" tabIndex={0}
               className={`${styles.emailItem} ${selectedMsg?.id === msg.id ? styles.emailItemSelected : ''} ${!msg.isRead ? styles.emailItemUnread : ''} ${msg.type === 'invitation' ? styles.emailItemInvitation : ''} ${msg.type === 'client_invite' ? styles.emailItemClientInvite : ''}`}
-              onClick={() => { setSelectedMsg(msg); if (!msg.isRead && msg.type === 'email') handleMarkAsRead(msg.id) }}
-              onKeyDown={e => { if (e.key === 'Enter') setSelectedMsg(msg) }}>
+              onClick={() => {
+                if (msg.type === 'draft') {
+                  openSavedDraft()
+                  return
+                }
+                setSelectedMsg(msg)
+                if (!msg.isRead && msg.type === 'email') handleMarkAsRead(msg.id)
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  if (msg.type === 'draft') {
+                    openSavedDraft()
+                    return
+                  }
+                  setSelectedMsg(msg)
+                }
+              }}>
               <div className={styles.emailItemRow}>
                 <span className={styles.senderName}>{msg.sender}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <span className={styles.emailItemTimestamp}>{msg.timestamp}</span>
                   {msg.type === 'email' && !msg.isSentByBusiness ? (
                     <button type="button" className={`${styles.starButtonSmall} ${msg.isStarred ? styles.starActive : ''}`} onClick={e => handleStar(msg.id, e)} aria-label="Star"><Star size={13} fill={msg.isStarred ? 'currentColor' : 'none'}/></button>
+                  ) : msg.type === 'draft' ? (
+                    <span className={styles.deliveryBadgeDraft}>Draft</span>
                   ) : (
-                    <span className={styles.inviteBadge}>
+                    <span className={msg.isSentByBusiness && getDeliveryLabel(msg)
+                      ? (getDeliveryLabel(msg) === 'Portal' ? styles.deliveryBadgePortal : styles.deliveryBadgeDirect)
+                      : styles.inviteBadge}>
                       {msg.isSentByBusiness
-                        ? 'Sent'
+                        ? getDeliveryLabel(msg) || 'Sent'
                         : msg.type === 'invitation'
                           ? (msg.metadata?.status === 'accepted' ? '✓' : msg.metadata?.status === 'declined' ? '✗' : '·')
                           : (msg.metadata?.status === 'accepted' ? '✓' : '·')}
@@ -1568,7 +1726,11 @@ export default function InboxPage({
                   <div className={styles.senderAvatar}>{selectedMsg.sender.slice(0, 2).toUpperCase()}</div>
                   <div className={styles.senderInfo}>
                     <span className={styles.previewSenderName}>{selectedMsg.sender}</span>
-                    <span className={styles.previewSenderEmail}>{selectedMsg.senderEmail}</span>
+                    <span className={styles.previewSenderEmail}>
+                      {selectedMsg.type === 'draft'
+                        ? savedDraft?.to || 'No recipient yet'
+                        : selectedMsg.senderEmail}
+                    </span>
                   </div>
                 </div>
                 <span className={styles.previewTimestamp}>{selectedMsg.timestamp}</span>
@@ -1644,6 +1806,29 @@ export default function InboxPage({
                     Status: <strong>{selectedMsg.metadata?.status || 'pending'}</strong>
                     {selectedMsg.metadata?.accepted_at ? ` • Accepted ${fmtTime(String(selectedMsg.metadata.accepted_at))}` : ''}
                   </p>
+                </div>
+              )}
+
+              {selectedMsg.type === 'draft' && (
+                <div className={styles.invitationActions}>
+                  <p className={styles.invitationPrompt}>This draft is saved locally and has not been sent yet.</p>
+                  <div className={styles.invitationButtons}>
+                    <button type="button" className={styles.replyBtn} onClick={openSavedDraft}>
+                      <FileText size={15} />
+                      Resume draft
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.declineBtn}
+                      onClick={() => {
+                        persistComposeDraft(null)
+                        if (selectedMsg?.type === 'draft') setSelectedMsg(null)
+                      }}
+                    >
+                      <Trash2 size={14} />
+                      Delete draft
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

@@ -135,6 +135,9 @@
 .documentPickerHeaderCopy{display:flex;flex-direction:column;gap:3px;min-width:0}
 .documentPickerLabel{font-size:.7rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.04em}
 .documentPickerMeta{font-size:.72rem;color:#94a3b8;font-weight:700}
+.documentPickerSearch{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
+.documentPickerSearchInput{flex:1;border:none;outline:none;background:transparent;color:#111827;font-size:.8rem}
+.documentPickerSearchInput::placeholder{color:#9ca3af}
 .composeSectionToggle{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;padding:7px 10px;border:1px solid #e5e7eb;border-radius:999px;background:#fff;color:#4b5563;font-size:.75rem;font-weight:800;cursor:pointer;transition:all .12s}
 .composeSectionToggle:hover{background:#f9fafb;border-color:#d1d5db;color:#111827}
 .documentPickerList{display:flex;flex-direction:column;gap:8px;overflow:auto;padding-right:2px}
@@ -182,6 +185,12 @@
 .emailItemInvitation{border-left:3px solid #c4b5fd}
 .emailItemClientInvite{border-left:3px solid #93c5fd}
 .inviteBadge{font-size:.7rem;flex-shrink:0;color:#9ca3af}
+.deliveryBadgePortal,
+.deliveryBadgeDirect,
+.deliveryBadgeDraft{display:inline-flex;align-items:center;justify-content:center;padding:2px 8px;border-radius:999px;font-size:.65rem;font-weight:800;letter-spacing:.03em;flex-shrink:0}
+.deliveryBadgePortal{background:#ecfdf5;color:#166534;border:1px solid #bbf7d0}
+.deliveryBadgeDirect{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+.deliveryBadgeDraft{background:#f3f4f6;color:#4b5563;border:1px solid #e5e7eb}
 .invitationActions{margin-top:24px;padding:18px;background:#f5f3ff;border:1px solid #e9d5ff;border-radius:10px}
 .invitationPrompt{font-size:.875rem;color:#5b21b6;font-weight:600;margin:0 0 12px}
 .invitationButtons{display:flex;gap:10px}
@@ -279,6 +288,8 @@
 :global([data-theme="dark"]) .documentPickerItemActive{background:#312450;border-color:#7c3aed}
 :global([data-theme="dark"]) .documentPickerName{color:#e5e7eb}
 :global([data-theme="dark"]) .documentPickerSub{color:#9ca3af}
+:global([data-theme="dark"]) .documentPickerSearch{background:#1f1f1f;border-color:#333}
+:global([data-theme="dark"]) .documentPickerSearchInput{color:#e5e7eb}
 :global([data-theme="dark"]) .documentPickerEmpty,
 :global([data-theme="dark"]) .documentPickerError{background:#232323;border-color:#333;color:#9ca3af}
 :global([data-theme="dark"]) .documentPickerError{border-color:#7f1d1d;background:#2a1b1b;color:#fca5a5}
@@ -299,6 +310,9 @@
 :global([data-theme="dark"]) .composeSecondaryBtn:hover:not(:disabled){background:#383838;border-color:#555;color:#fff}
 :global([data-theme="dark"]) .composeCancelBtn{background:#2d2d2d;color:#9ca3af;border-color:#444}
 :global([data-theme="dark"]) .composeHint{background:#2d2d2d;color:#9ca3af}
+:global([data-theme="dark"]) .deliveryBadgePortal{background:#17352d;border-color:#1f5c4d;color:#a7f3d0}
+:global([data-theme="dark"]) .deliveryBadgeDirect{background:#13253f;border-color:#1d4ed8;color:#bfdbfe}
+:global([data-theme="dark"]) .deliveryBadgeDraft{background:#2d2d2d;border-color:#444;color:#d1d5db}
 :global([data-theme="dark"]) .invitationActions{background:#2a1f40;border-color:#4c1d95}
 :global([data-theme="dark"]) .previewAttachments{border-color:#333}
 :global([data-theme="dark"]) .previewAttachmentsTitle{color:#9ca3af}
