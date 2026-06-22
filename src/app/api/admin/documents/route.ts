@@ -88,7 +88,7 @@ export async function GET(request: Request) {
         hasMore: (docsData || []).length === limit,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching documents:', error);
     const message = error instanceof Error ? error.message : 'Failed to fetch documents';
     return NextResponse.json({ error: message }, { status: 500 });

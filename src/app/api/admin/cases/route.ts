@@ -96,7 +96,7 @@ export async function GET(request: Request) {
         hasMore: (casesData || []).length === limit,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching cases:', error);
     const message = error instanceof Error ? error.message : 'Failed to fetch cases';
     return NextResponse.json({ error: message }, { status: 500 });
@@ -127,7 +127,7 @@ export async function DELETE(request: Request) {
     }
 
     return NextResponse.json({ success: true, message: 'Case deleted' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting case:', error);
     const message = error instanceof Error ? error.message : 'Failed to delete case';
     return NextResponse.json({ error: message }, { status: 500 });

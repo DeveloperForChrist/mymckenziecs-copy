@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
         hasMore: usage.length === limit,
       },
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching api usage:', error)
     const message = error instanceof Error ? error.message : 'Failed to fetch api usage'
     return NextResponse.json({ error: message }, { status: 500 })

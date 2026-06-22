@@ -13,6 +13,11 @@ type UserRow = {
   updated_at?: string | null
 }
 
+type SubscriptionRow = {
+  user_id?: string | null
+  plan_type?: string | null
+}
+
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 200;
 
@@ -94,10 +99,10 @@ export async function GET(request: Request) {
       if (subscriptionsError) {
         console.error('Error fetching subscriptions:', subscriptionsError);
       } else {
-        for (const row of subscriptionsData || []) {
-          const userId = String((row as any).user_id || '');
+        for (const row of (subscriptionsData || []) as SubscriptionRow[]) {
+          const userId = String(row.user_id || '');
           if (!userId || latestPlanByUser.has(userId)) continue;
-          latestPlanByUser.set(userId, formatPlanLabel((row as any).plan_type));
+          latestPlanByUser.set(userId, formatPlanLabel(row.plan_type));
         }
       }
     }
@@ -133,7 +138,7 @@ export async function GET(request: Request) {
         hasMore: typedUsersData.length === limit,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching users:', error);
     const message = error instanceof Error ? error.message : 'Failed to fetch users';
     return NextResponse.json({ error: message }, { status: 500 });
@@ -284,7 +289,7 @@ export async function POST(request: Request) {
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error performing user action:', error);
     const message = error instanceof Error ? error.message : 'Failed to perform user action';
     return NextResponse.json({ error: message }, { status: 500 });

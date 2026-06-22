@@ -112,7 +112,7 @@ export async function GET(request: Request) {
       },
       period
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching analytics:', error);
     const message = error instanceof Error ? error.message : 'Failed to fetch analytics';
     return NextResponse.json({ error: message }, { status: 500 });
