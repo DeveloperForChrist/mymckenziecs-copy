@@ -4,16 +4,16 @@
 .pageFullscreen .sidebar,
 .pageFullscreen .main{visibility:hidden;pointer-events:none}
 .sidebar{width:320px;flex:0 0 320px;border:1px solid #e5e7eb;border-radius:10px;display:flex;flex-direction:column;background:#fff;overflow:hidden}
-.sidebarHeader{padding:20px 18px 14px;border-bottom:1px solid #e5e7eb}
+.sidebarHeader{display:flex;flex-direction:column;gap:10px;padding:20px 18px 10px;border-bottom:none}
 .sidebarTitle{font-size:1rem;font-weight:700;color:#111827;margin:0 0 3px}
-.sidebarSub{font-size:.75rem;color:#6b7280;margin:0 0 12px}
-.dataModePill{display:inline-flex;align-items:center;width:max-content;font-size:.68rem;font-weight:700;letter-spacing:.02em;padding:4px 9px;border-radius:999px;margin:0 0 12px}
+.sidebarSub{font-size:.75rem;line-height:1.45;color:#6b7280;margin:0}
+.dataModePill{display:inline-flex;align-items:center;align-self:flex-start;width:max-content;font-size:.68rem;font-weight:700;letter-spacing:.02em;padding:4px 9px;border-radius:999px;margin:0}
 .dataModeDatabase{background:#dcfce7;color:#166534;border:1px solid #86efac}
 .dataModeLocal{background:#fff7ed;color:#9a3412;border:1px solid #fdba74}
-.sidebarActions{padding:0 18px 14px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid #e5e7eb}
+.sidebarActions{padding:0 18px 16px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid #e5e7eb;background:#fff}
 .retrySyncBtn{flex:1 1 132px;display:flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:10px 14px;background:#fff;border:1px solid #d0d5dd;border-radius:8px;color:#344054;font-size:.78rem;font-weight:600;line-height:1.2;cursor:pointer;transition:all .15s}
 .retrySyncBtn:hover{background:#f9fafb;border-color:#98a2b3;color:#111827}
-.newMeetingBtn{flex:1 1 132px;display:flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:10px 16px;background:#5b21b6;border:none;border-radius:8px;color:#fff;font-size:.875rem;font-weight:600;line-height:1.2;cursor:pointer;transition:background .15s}
+.newMeetingBtn{flex:1 1 132px;display:flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:10px 16px;background:#5b21b6;border:none;border-radius:10px;color:#fff;font-size:.875rem;font-weight:700;line-height:1.2;cursor:pointer;transition:background .15s}
 .newMeetingBtn:hover{background:#4c1d95}
 .sidebarTabs{display:flex;border-bottom:1px solid #e5e7eb}
 .sidebarTab{flex:1;padding:12px 8px 11px;background:none;border:none;border-bottom:2px solid transparent;font-size:.78rem;font-weight:600;line-height:1.2;color:#6b7280;cursor:pointer;transition:all .15s}
@@ -134,7 +134,7 @@
 /* ── Dark mode ── */
 :global([data-theme="dark"]) .page{background:#1a1a1a;color:#e5e7eb}
 :global([data-theme="dark"]) .sidebar,:global([data-theme="dark"]) .main,:global([data-theme="dark"]) .detailHeader,:global([data-theme="dark"]) .detailBody{background:#242424;border-color:#333}
-:global([data-theme="dark"]) .sidebarHeader,:global([data-theme="dark"]) .sidebarTabs,:global([data-theme="dark"]) .formPanel,:global([data-theme="dark"]) .callToolbar{background:#2a2a2a;border-color:#333}
+:global([data-theme="dark"]) .sidebarHeader,:global([data-theme="dark"]) .sidebarActions,:global([data-theme="dark"]) .sidebarTabs,:global([data-theme="dark"]) .formPanel,:global([data-theme="dark"]) .callToolbar{background:#2a2a2a;border-color:#333}
 :global([data-theme="dark"]) .sidebarTitle,:global([data-theme="dark"]) .meetingItemClient,:global([data-theme="dark"]) .formTitle,:global([data-theme="dark"]) .detailTitle{color:#e5e7eb}
 :global([data-theme="dark"]) .sidebarSub,:global([data-theme="dark"]) .meetingItemTitle,:global([data-theme="dark"]) .meetingItemMeta,:global([data-theme="dark"]) .formLabel,:global([data-theme="dark"]) .detailMetaItem,:global([data-theme="dark"]) .detailSectionLabel,:global([data-theme="dark"]) .emptyRoomTitle,:global([data-theme="dark"]) .emptyRoomSub{color:#9ca3af}
 :global([data-theme="dark"]) .dataModeDatabase{background:rgba(34,197,94,0.16);border-color:rgba(34,197,94,0.35);color:#86efac}
