@@ -99,13 +99,49 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ message: 'No lead changes provided.' }, { status: 400 })
     }
 
-    const { data, error } = await supabaseAdmin
+    const { data: existingLead, error: existingLeadError } = await supabaseAdmin
       .from('business_leads')
-      .update(update)
+      .select('id, marketplace_enquiry_id')
       .eq('business_id', context.businessId)
       .eq('id', id)
-      .select('*')
-      .single()
+      .maybeSingle()
+
+    if (existingLeadError || !existingLead) {
+      return NextResponse.json({ message: 'Lead not found.' }, { status: 404 })
+    }
+
+    let data: any = null
+    let error: any = null
+
+    if (existingLead.marketplace_enquiry_id && update.status === 'accepted') {
+      const claimResult = await supabaseAdmin.rpc('claim_marketplace_enquiry', {
+        p_lead_id: id,
+        p_business_id: context.businessId,
+        p_user_id: context.userId,
+      })
+
+      error = claimResult.error
+      const claim = claimResult.data as { claimed?: boolean; reason?: string; lead?: any } | null
+      if (!error && claim?.claimed === false) {
+        return NextResponse.json(
+          { message: claim.reason === 'already_claimed'
+            ? 'This enquiry has already been accepted by another professional.'
+            : 'This enquiry is no longer available.' },
+          { status: 409 },
+        )
+      }
+      data = claim?.lead || null
+    } else {
+      const updateResult = await supabaseAdmin
+        .from('business_leads')
+        .update(update)
+        .eq('business_id', context.businessId)
+        .eq('id', id)
+        .select('*')
+        .single()
+      data = updateResult.data
+      error = updateResult.error
+    }
 
     if (error || !data) {
       console.error('Business lead update failed', error)

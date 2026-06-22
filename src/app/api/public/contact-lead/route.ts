@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
+import {
+  emailDailyRateLimiter,
+  emailRateLimiter,
+  getClientIp,
+  rateLimit,
+  rateLimitExceededResponse,
+} from '@/lib/utils/rate-limit'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -33,9 +40,14 @@ function dateOnly(value: unknown) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as ContactFormData
+    const firstName = toText(body.firstName)
+    const lastName = toText(body.lastName)
+    const phone = toText(body.phone)
+    const email = toText(body.email).toLowerCase()
+    const details = toText(body.details)
 
     // Validate required fields
-    if (!body.firstName || !body.lastName || !body.phone || !body.email || !body.details) {
+    if (!firstName || !lastName || !phone || !email || !details) {
       return NextResponse.json(
         { message: 'All fields are required.' },
         { status: 400 }
@@ -44,80 +56,54 @@ export async function POST(request: NextRequest) {
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(body.email)) {
+    if (!emailRegex.test(email)) {
       return NextResponse.json(
         { message: 'Invalid email address.' },
         { status: 400 }
       )
     }
 
-    // Get all businesses to distribute the lead to
-    const { data: businesses, error: businessesError } = await supabaseAdmin
-      .from('businesses')
-      .select('id')
-      .eq('status', 'active')
-
-    if (businessesError) {
-      console.error('Failed to fetch businesses:', businessesError)
-      return NextResponse.json(
-        { message: 'Unable to process your enquiry at this time.' },
-        { status: 500 }
-      )
+    if (firstName.length > 100 || lastName.length > 100 || phone.length > 80 || email.length > 240 || details.length > 8000) {
+      return NextResponse.json({ message: 'One or more fields are too long.' }, { status: 400 })
     }
 
-    if (!businesses || businesses.length === 0) {
-      return NextResponse.json(
-        { message: 'No active professionals are available to receive enquiries right now.' },
-        { status: 503 }
-      )
+    const ip = getClientIp(request.headers) || 'unknown'
+    const shortLimit = await rateLimit(emailRateLimiter, `marketplace:${ip}`, 3, 10 * 60 * 1000)
+    if (!shortLimit.success) {
+      return rateLimitExceededResponse(shortLimit, 'Too many enquiries. Please try again later.')
+    }
+    const dailyLimit = await rateLimit(emailDailyRateLimiter, `marketplace-daily:${ip}`, 10, 24 * 60 * 60 * 1000)
+    if (!dailyLimit.success) {
+      return rateLimitExceededResponse(dailyLimit, 'Daily enquiry limit reached. Please try again tomorrow.')
     }
 
     const traceId = toText(body.leadTraceId)
+    const { data, error: submitError } = await supabaseAdmin.rpc('submit_marketplace_enquiry', {
+      p_client_name: `${firstName} ${lastName}`,
+      p_email: email,
+      p_phone: phone,
+      p_date_of_birth: dateOnly(body.dateOfBirth),
+      p_full_details: details,
+      p_trace_id: traceId || null,
+      p_location: '',
+      p_issue_type: 'General Enquiry',
+      p_urgency: 'medium',
+    })
 
-    // Create lead for each active business (or one lead if no businesses)
-    const leadsToCreate = businesses.map(business => ({
-      business_id: business.id,
-      name: `${toText(body.firstName)} ${toText(body.lastName)}`,
-      email: toText(body.email),
-      phone: toText(body.phone),
-      location: '',
-      issue_type: 'General Enquiry',
-      urgency: 'medium',
-      summary: toText(body.details).slice(0, 200),
-      full_details: [
-        traceId ? `Trace ID: ${traceId}` : null,
-        (() => {
-          const dob = dateOnly(body.dateOfBirth)
-          return dob ? `Date of Birth: ${dob}` : null
-        })(),
-        toText(body.details),
-      ].filter(Boolean).join('\n\n'),
-      court_date: null,
-      opposing: null,
-      documents: [],
-      tags: ['Contact Form', ...(traceId ? [`trace:${traceId}`] : [])],
-      status: 'new',
-      source: 'portal',
-      submitted_at: new Date().toISOString(),
-      accepted_at: null,
-      declined_at: null,
-    }))
-
-    const { error: insertError } = await supabaseAdmin
-      .from('business_leads')
-      .insert(leadsToCreate)
-
-    if (insertError) {
-      console.error('Failed to create lead:', insertError)
+    if (submitError) {
+      console.error('Failed to create private marketplace enquiry:', submitError)
+      const noProfessionals = submitError.message?.includes('No active professionals')
       return NextResponse.json(
-        { message: 'Unable to submit your enquiry. Please try again.' },
-        { status: 500 }
+        { message: noProfessionals
+          ? 'No active professionals are available to receive enquiries right now.'
+          : 'Unable to submit your enquiry. Please try again.' },
+        { status: noProfessionals ? 503 : 500 }
       )
     }
 
     return NextResponse.json({
       message: 'Enquiry submitted successfully',
-      leadCount: leadsToCreate.length,
+      leadCount: typeof data?.leadCount === 'number' ? data.leadCount : 0,
       leadTraceId: traceId || null,
     })
   } catch (error) {

@@ -80,6 +80,8 @@ export function rowToBusinessLead(row: any): BusinessLead {
     submittedAt: toText(row?.submitted_at || row?.created_at),
     status: oneOf(row?.status, LEAD_STATUSES, 'new'),
     source: oneOf(row?.source, LEAD_SOURCES, 'portal'),
+    marketplaceOffer: Boolean(row?.marketplace_enquiry_id),
+    detailsRevealed: Boolean(row?.marketplace_enquiry_id) && row?.status === 'accepted',
   }
 }
 

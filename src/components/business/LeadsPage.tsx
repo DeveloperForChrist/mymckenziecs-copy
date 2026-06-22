@@ -61,6 +61,7 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(true)
   const [syncNotice, setSyncNotice] = useState<string | null>(null)
   const [quickLinkNotice, setQuickLinkNotice] = useState<string | null>(null)
+  const [updatingLeadId, setUpdatingLeadId] = useState<string | null>(null)
 
   useEffect(() => {
     let mounted = true
@@ -118,11 +119,17 @@ export default function LeadsPage() {
   const filteredLeads = leads.filter((lead) => activeTab === 'all' || lead.status === activeTab)
 
   const updateStatus = async (id: string, status: LeadStatus) => {
+    const originalLead = leads.find((lead) => lead.id === id)
+    if (!originalLead || updatingLeadId === id) return null
+    const isPrivateClaim = Boolean(originalLead.marketplaceOffer && status === 'accepted')
     const next = leads.map((lead) => (lead.id === id ? { ...lead, status } : lead))
     const updatedLead = next.find((lead) => lead.id === id)
-    setLeads(next)
-    cacheBusinessLeads(next)
+    if (!isPrivateClaim) {
+      setLeads(next)
+      cacheBusinessLeads(next)
+    }
     setSyncNotice(null)
+    setUpdatingLeadId(id)
 
     try {
       const result = await updateBusinessLeadStatus(id, status)
@@ -133,7 +140,19 @@ export default function LeadsPage() {
         cacheClientMatters(result.matters)
         window.dispatchEvent(new CustomEvent(CLIENT_MATTERS_UPDATED_EVENT))
       }
-    } catch {
+      return result.lead
+    } catch (error) {
+      if (isPrivateClaim) {
+        setSyncNotice(error instanceof Error ? error.message : 'Unable to accept this marketplace enquiry.')
+        try {
+          const remoteLeads = await fetchBusinessLeads()
+          setLeads(remoteLeads)
+          cacheBusinessLeads(remoteLeads)
+        } catch {
+          // Keep the original private teaser when refreshing is unavailable.
+        }
+        return null
+      }
       writeBusinessLeads(next)
       if (status === 'accepted' && updatedLead) upsertMatterFromLead(updatedLead)
       if (status === 'declined') {
@@ -146,6 +165,9 @@ export default function LeadsPage() {
         )
       }
       setSyncNotice('Saved locally. It will sync when the business database is available.')
+      return updatedLead || null
+    } finally {
+      setUpdatingLeadId(null)
     }
   }
 
@@ -161,14 +183,17 @@ export default function LeadsPage() {
   }
 
   const scheduleMeetingForLead = async (lead: BusinessLead) => {
+    let availableLead = lead
     if (lead.status !== 'accepted') {
-      await updateStatus(lead.id, 'accepted')
+      const acceptedLead = await updateStatus(lead.id, 'accepted')
+      if (!acceptedLead) return
+      availableLead = acceptedLead
     }
     window.dispatchEvent(new CustomEvent('mymckenzie-schedule-meeting', {
       detail: {
-        clientName: lead.name,
-        clientEmail: lead.email,
-        context: lead.summary,
+        clientName: availableLead.name,
+        clientEmail: availableLead.email,
+        context: availableLead.summary,
       },
     }))
   }
@@ -306,6 +331,7 @@ export default function LeadsPage() {
                         type="button"
                         className={styles.acceptBtn}
                         onClick={() => updateStatus(selectedLead.id, 'accepted')}
+                        disabled={updatingLeadId === selectedLead.id}
                       >
                         <CheckCircle2 size={15} />
                         Accept
@@ -316,6 +342,7 @@ export default function LeadsPage() {
                         type="button"
                         className={styles.createMatterBtn}
                         onClick={() => updateStatus(selectedLead.id, 'accepted')}
+                        disabled={updatingLeadId === selectedLead.id}
                       >
                         <CheckCircle2 size={15} />
                         Create work item
@@ -326,6 +353,7 @@ export default function LeadsPage() {
                         type="button"
                         className={styles.declineBtn}
                         onClick={() => updateStatus(selectedLead.id, 'declined')}
+                        disabled={updatingLeadId === selectedLead.id}
                       >
                         <XCircle size={15} />
                         Decline
@@ -333,7 +361,7 @@ export default function LeadsPage() {
                     )}
                   </div>
                   <div className={styles.detailActionSecondary}>
-                    {selectedLead.status !== 'declined' && (
+                    {selectedLead.status === 'accepted' && (
                       <button
                         type="button"
                         className={styles.secondaryActionBtn}
@@ -366,14 +394,18 @@ export default function LeadsPage() {
               {quickLinkNotice && <p className={styles.syncNotice}>{quickLinkNotice}</p>}
 
               <div className={styles.detailMetaRow}>
-                <span className={styles.detailMetaItem}>
-                  <Mail size={13} />
-                  <strong>{selectedLead.email}</strong>
-                </span>
-                <span className={styles.detailMetaItem}>
-                  <Phone size={13} />
-                  <strong>{selectedLead.phone}</strong>
-                </span>
+                {selectedLead.email && (
+                  <span className={styles.detailMetaItem}>
+                    <Mail size={13} />
+                    <strong>{selectedLead.email}</strong>
+                  </span>
+                )}
+                {selectedLead.phone && (
+                  <span className={styles.detailMetaItem}>
+                    <Phone size={13} />
+                    <strong>{selectedLead.phone}</strong>
+                  </span>
+                )}
                 <span className={styles.detailMetaItem}>
                   <Clock size={13} />
                   Submitted {formatSubmittedAt(selectedLead.submittedAt)}
@@ -402,6 +434,11 @@ export default function LeadsPage() {
               <div className={`${styles.detailSection} ${styles.detailSectionCard}`}>
                 <span className={styles.detailSectionLabel}>Enquiry details</span>
                 <p className={styles.detailSectionText}>{selectedLead.fullDetails}</p>
+                {selectedLead.marketplaceOffer && !selectedLead.detailsRevealed && selectedLead.status !== 'declined' && (
+                  <p className={styles.privacyNotice}>
+                    This is a marketplace offer. Client identity and case details are revealed only to the first professional who accepts it.
+                  </p>
+                )}
               </div>
             </div>
           </>

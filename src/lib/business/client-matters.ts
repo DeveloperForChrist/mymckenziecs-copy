@@ -21,6 +21,8 @@ export interface BusinessLead {
   submittedAt: string
   status: LeadStatus
   source: LeadSource
+  marketplaceOffer?: boolean
+  detailsRevealed?: boolean
 }
 
 export interface ClientMatter {
