@@ -1,11 +1,10 @@
 /* ── Inbox Page – Professional light theme ── */
 .inboxContainer{display:flex;gap:12px;height:100%;background:#f8f9fa;color:#111827;overflow:hidden;font-family:inherit;padding:14px 16px 16px;box-sizing:border-box}
 .inboxSidebar{width:200px;flex:0 0 200px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;display:flex;flex-direction:column;overflow:hidden}
-.inboxSidebarHeader{padding:18px 14px 12px;border-bottom:1px solid #e5e7eb}
-.inboxSidebarTitle{display:block;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;margin-bottom:10px}
-.composeButtons{display:flex;flex-direction:column;border-radius:10px;overflow:hidden}
-.composeButton{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 12px;background:#5b21b6;color:#fff;border:none;border-radius:0;font-size:.813rem;font-weight:600;cursor:pointer;transition:background .15s}
-.composeButton + .composeButton{border-top:1px solid rgba(255,255,255,.14)}
+.inboxSidebarHeader{display:flex;flex-direction:column;gap:10px;padding:18px 14px 16px;border-bottom:1px solid #e5e7eb}
+.inboxSidebarTitle{display:block;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;margin:0}
+.composeButtons{display:flex;flex-direction:column;gap:8px}
+.composeButton{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;min-height:42px;padding:9px 12px;background:#5b21b6;color:#fff;border:none;border-radius:10px;font-size:.813rem;font-weight:700;cursor:pointer;transition:background .15s}
 .composeButton:hover{background:#4c1d95}
 .inboxFolders{flex:1;padding:10px 8px;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
 .folderButton{width:100%;display:flex;align-items:center;gap:9px;padding:8px 10px;border:none;border-radius:7px;background:transparent;color:#4b5563;cursor:pointer;transition:all .12s;font-size:.813rem;text-align:left;font-weight:500}

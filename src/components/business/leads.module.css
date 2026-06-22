@@ -1,14 +1,14 @@
 /* ── Leads Page – Professional light theme ── */
 .leadsPage{display:flex;gap:12px;height:100%;background:#f8f9fa;color:#111827;overflow:hidden;font-family:inherit;padding:14px 16px 16px;box-sizing:border-box}
 .leadsPanel{width:350px;flex:0 0 350px;border:1px solid #e5e7eb;border-radius:10px;display:flex;flex-direction:column;background:#fff;overflow:hidden}
-.leadsPanelHeader{padding:20px 18px 14px;border-bottom:1px solid #e5e7eb}
+.leadsPanelHeader{display:flex;flex-direction:column;gap:10px;padding:20px 18px 16px;border-bottom:1px solid #e5e7eb}
 .leadsPanelTitle{font-size:1rem;font-weight:700;color:#111827;margin:0 0 3px}
-.leadsPanelSub{font-size:.75rem;color:#6b7280;margin:0 0 12px}
-.tabRow{display:flex;gap:5px}
-.syncNotice{margin:10px 0 0;color:#667085;font-size:.72rem;line-height:1.35}
-.tab{padding:6px 14px;border-radius:6px;border:1px solid #e5e7eb;background:#fff;color:#6b7280;font-size:.78rem;font-weight:500;cursor:pointer;transition:all .12s}
+.leadsPanelSub{font-size:.75rem;line-height:1.45;color:#6b7280;margin:0}
+.tabRow{display:flex;flex-wrap:wrap;gap:6px}
+.syncNotice{margin:0;color:#667085;font-size:.72rem;line-height:1.35}
+.tab{padding:7px 14px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;color:#6b7280;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .12s}
 .tab:hover{background:#f3f4f6;color:#111827}
-.tabActive{background:#ede9fe;border-color:#c4b5fd;color:#5b21b6;font-weight:600}
+.tabActive{background:#ede9fe;border-color:#c4b5fd;color:#5b21b6}
 .tabSecondary{background:#f9fafb;color:#667085}
 .enquiryList{flex:1;overflow-y:auto}
 .enquiryCard{padding:11px 16px;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .12s;position:relative}

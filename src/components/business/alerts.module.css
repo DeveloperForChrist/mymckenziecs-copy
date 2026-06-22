@@ -1,17 +1,17 @@
 /* ── Alerts Page – Professional light theme ── */
 .page{display:flex;gap:12px;height:100%;background:#f8f9fa;color:#111827;overflow:hidden;font-family:inherit;padding:14px 16px 16px;box-sizing:border-box}
 .sidebar{width:340px;flex:0 0 340px;border:1px solid #e5e7eb;border-radius:10px;display:flex;flex-direction:column;background:#fff;overflow:hidden}
-.sidebarHeader{padding:20px 18px 14px;border-bottom:1px solid #e5e7eb}
-.sidebarTop{display:flex;align-items:center;gap:10px;margin-bottom:3px}
+.sidebarHeader{display:flex;flex-direction:column;gap:10px;padding:20px 18px 10px;border-bottom:none}
+.sidebarTop{display:flex;align-items:center;gap:10px;margin:0}
 .sidebarTitle{font-size:1rem;font-weight:700;color:#111827;margin:0}
 .unreadPill{background:#fee2e2;border:1px solid #fecaca;color:#dc2626;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:10px}
-.sidebarSub{font-size:.75rem;color:#6b7280;margin:0 0 12px}
-.markAllBtn{display:flex;align-items:center;gap:6px;padding:7px 12px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:7px;color:#374151;font-size:.75rem;cursor:pointer;width:100%;justify-content:center;transition:all .15s}
+.sidebarSub{font-size:.75rem;line-height:1.45;color:#6b7280;margin:0}
+.markAllBtn{display:flex;align-items:center;gap:6px;min-height:40px;padding:7px 12px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:10px;color:#374151;font-size:.75rem;font-weight:700;cursor:pointer;width:100%;justify-content:center;transition:all .15s}
 .markAllBtn:hover{background:#e9ebee;color:#111827}
-.tabRow{display:flex;flex-wrap:wrap;gap:4px;padding:10px 12px;border-bottom:1px solid #e5e7eb}
-.tab{padding:5px 10px;border-radius:6px;border:none;background:transparent;color:#6b7280;font-size:.75rem;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}
+.tabRow{display:flex;flex-wrap:wrap;gap:6px;padding:0 18px 16px;border-bottom:1px solid #e5e7eb;background:#fff}
+.tab{padding:7px 12px;border-radius:999px;border:none;background:transparent;color:#6b7280;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap}
 .tab:hover{background:#f3f4f6;color:#111827}
-.tabActive{background:#ede9fe;color:#5b21b6;font-weight:600}
+.tabActive{background:#ede9fe;color:#5b21b6}
 .alertList{flex:1;overflow-y:auto}
 .emptyList{display:flex;flex-direction:column;align-items:center;justify-content:center;height:160px;gap:8px;color:#9ca3af;font-size:.813rem}
 .spinner{animation:alertsSpin 1s linear infinite;color:#7c3aed}
@@ -64,7 +64,7 @@
 :global([data-theme="dark"]) .sidebarSub{color:#9ca3af}
 :global([data-theme="dark"]) .markAllBtn{background:#2d2d2d;border-color:#444;color:#d1d5db}
 :global([data-theme="dark"]) .markAllBtn:hover{background:#383838;color:#fff}
-:global([data-theme="dark"]) .tabRow{border-color:#333}
+:global([data-theme="dark"]) .tabRow{background:#242424;border-color:#333}
 :global([data-theme="dark"]) .tab{color:#9ca3af}
 :global([data-theme="dark"]) .tab:hover{background:#2d2d2d;color:#e5e7eb}
 :global([data-theme="dark"]) .tabActive{background:#312450;color:#c4b5fd}
