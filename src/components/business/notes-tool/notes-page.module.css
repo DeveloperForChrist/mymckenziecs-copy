@@ -97,20 +97,6 @@
   font-size: 1rem;
 }
 
-.notesListTitle {
-  padding: 10px 14px 8px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.notesListTitle h2 {
-  margin: 0;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #6b7280;
-}
-
 .notesCount {
   display: inline-flex;
   align-items: center;
@@ -226,34 +212,6 @@
 
 .noteCardDate {
   color: #9ca3af;
-}
-
-.sidebarFooter {
-  padding: 12px;
-  border-top: 1px solid #e5e7eb;
-}
-
-.dashboardLink {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 9px 12px;
-  border-radius: 8px;
-  color: #374151;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.85rem;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-.dashboardLink:hover {
-  background: #f5f3ff;
-  border-color: #c4b5fd;
-  color: #5b21b6;
 }
 
 /* Editor */
@@ -772,8 +730,7 @@
     padding: 0;
   }
 
-  .sidebarHeader,
-  .sidebarFooter {
+  .sidebarHeader {
     padding: 10px;
   }
 
@@ -861,11 +818,11 @@
 /* ── Business dashboard dark mode ── */
 :global([data-theme="dark"]) .notesApp{background:#1a1a1a;color:#e5e7eb}
 :global([data-theme="dark"]) .sidebar{background:#242424;border-color:#333}
-:global([data-theme="dark"]) .sidebarHeader,:global([data-theme="dark"]) .notesListTitle,:global([data-theme="dark"]) .sidebarFooter,:global([data-theme="dark"]) .editorFooter{border-color:#333}
-:global([data-theme="dark"]) .searchBox,:global([data-theme="dark"]) .dashboardLink,:global([data-theme="dark"]) .noteTitle,:global([data-theme="dark"]) .noteBody,:global([data-theme="dark"]) .micButton,:global([data-theme="dark"]) .actionButton,:global([data-theme="dark"]) .secondaryButton,:global([data-theme="dark"]) .helperCloseButton,:global([data-theme="dark"]) .eventListItem,:global([data-theme="dark"]) .modalCard{background:#2d2d2d;border-color:#444;color:#e5e7eb}
+:global([data-theme="dark"]) .sidebarHeader,:global([data-theme="dark"]) .editorFooter{border-color:#333}
+:global([data-theme="dark"]) .searchBox,:global([data-theme="dark"]) .noteTitle,:global([data-theme="dark"]) .noteBody,:global([data-theme="dark"]) .micButton,:global([data-theme="dark"]) .actionButton,:global([data-theme="dark"]) .secondaryButton,:global([data-theme="dark"]) .helperCloseButton,:global([data-theme="dark"]) .eventListItem,:global([data-theme="dark"]) .modalCard{background:#2d2d2d;border-color:#444;color:#e5e7eb}
 :global([data-theme="dark"]) .searchInput{color:#e5e7eb}
 :global([data-theme="dark"]) .searchInput::placeholder,:global([data-theme="dark"]) .noteTitle::placeholder,:global([data-theme="dark"]) .noteBody::placeholder{color:#6b7280}
-:global([data-theme="dark"]) .notesListTitle h2,:global([data-theme="dark"]) .editorContext,:global([data-theme="dark"]) .noteCardPreview,:global([data-theme="dark"]) .noteCardMeta,:global([data-theme="dark"]) .noteCardDate,:global([data-theme="dark"]) .helperSubheading,:global([data-theme="dark"]) .eventMeta,:global([data-theme="dark"]) .saveStatus,:global([data-theme="dark"]) .emptyState,:global([data-theme="dark"]) .emptyState p,:global([data-theme="dark"]) .modalBody{color:#9ca3af}
+:global([data-theme="dark"]) .editorContext,:global([data-theme="dark"]) .noteCardPreview,:global([data-theme="dark"]) .noteCardMeta,:global([data-theme="dark"]) .noteCardDate,:global([data-theme="dark"]) .helperSubheading,:global([data-theme="dark"]) .eventMeta,:global([data-theme="dark"]) .saveStatus,:global([data-theme="dark"]) .emptyState,:global([data-theme="dark"]) .emptyState p,:global([data-theme="dark"]) .modalBody{color:#9ca3af}
 :global([data-theme="dark"]) .noteCard{background:#25233a;border-color:#3d335c}
 :global([data-theme="dark"]) .noteCard:hover,:global([data-theme="dark"]) .noteCard.active{background:#312450;border-color:#7c3aed}
 :global([data-theme="dark"]) .noteCardTitle,:global([data-theme="dark"]) .editorTitle,:global([data-theme="dark"]) .helperCardTitle,:global([data-theme="dark"]) .eventTitle,:global([data-theme="dark"]) .emptyState h3,:global([data-theme="dark"]) .modalTitle{color:#e5e7eb}
@@ -875,4 +832,4 @@
 :global([data-theme="dark"]) .helperCardText,:global([data-theme="dark"]) .helperList{color:#d1d5db}
 :global([data-theme="dark"]) .noteDeleteBtn{border-color:#444;color:#9ca3af}
 :global([data-theme="dark"]) .modalButtonSecondary{background:#2d2d2d;border-color:#444;color:#d1d5db}
-:global([data-theme="dark"]) .modalButtonSecondary:hover,:global([data-theme="dark"]) .dashboardLink:hover,:global([data-theme="dark"]) .actionButton:hover:not(:disabled),:global([data-theme="dark"]) .secondaryButton:hover:not(:disabled){background:#312450;border-color:#7c3aed;color:#c4b5fd}
+:global([data-theme="dark"]) .modalButtonSecondary:hover,:global([data-theme="dark"]) .actionButton:hover:not(:disabled),:global([data-theme="dark"]) .secondaryButton:hover:not(:disabled){background:#312450;border-color:#7c3aed;color:#c4b5fd}

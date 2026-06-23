@@ -1712,7 +1712,7 @@ export default function InboxPage({
                 className={`${styles.folderButton} ${selectedFolder === f.id ? styles.folderActive : ''}`}
                 onClick={() => { setSelectedFolder(f.id); setSelectedMsg(null) }}>
                 <Icon size={17}/><span className={styles.folderLabel}>{f.name}</span>
-                {cnt > 0 && <span className={styles.folderCount}>{cnt}</span>}
+                {f.id === 'inbox' && cnt > 0 && <span className={styles.folderCount}>{cnt}</span>}
               </button>
             )
           })}

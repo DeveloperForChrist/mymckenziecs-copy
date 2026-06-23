@@ -24,6 +24,10 @@ function asOptionalString(value: unknown) {
   return next || null
 }
 
+function asBoolean(value: unknown) {
+  return value === true || value === 'true'
+}
+
 function normalizeEmail(value: unknown) {
   return asString(value).toLowerCase()
 }
@@ -56,6 +60,60 @@ function isMissingMeetingPortalColumns(error: unknown) {
   const message = String((error as { message?: unknown }).message || '').toLowerCase()
   if (code !== 'PGRST204' && code !== '42703') return false
   return ['business_id', 'client_email', 'client_name', 'matter_id', 'case_id'].some((column) => message.includes(column))
+}
+
+function isMeetingStatus(value: string): value is MeetingStatus {
+  return value === 'scheduled' || value === 'in_progress' || value === 'completed' || value === 'cancelled' || value === 'no_show'
+}
+
+type MeetingContext = Awaited<ReturnType<typeof getContext>>
+
+async function updateMeetingStatus(context: MeetingContext, id: string, status: MeetingStatus, skipAlert = false) {
+  const { data: previousMeeting } = await supabaseAdmin
+    .from('meetings')
+    .select('id,status,title,meeting_date,meeting_time,client_id')
+    .eq('id', id)
+    .eq('user_id', context.userId)
+    .maybeSingle()
+
+  let updateResult: any = await supabaseAdmin
+    .from('meetings')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('user_id', context.userId)
+    .select('id,client_id,client_name,client_email,business_id,matter_id,case_id,title,description,meeting_date,meeting_time,duration_minutes,room_name,status,created_at,updated_at')
+    .single()
+
+  if (updateResult.error && isMissingMeetingPortalColumns(updateResult.error)) {
+    updateResult = await supabaseAdmin
+      .from('meetings')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('user_id', context.userId)
+      .select('id,client_id,title,description,meeting_date,meeting_time,duration_minutes,room_name,status,created_at,updated_at')
+      .single()
+  }
+
+  const { data: meeting, error } = updateResult
+
+  if (error || !meeting) {
+    console.error('Unable to update meeting', error)
+    return NextResponse.json({ message: 'Unable to update meeting.' }, { status: 500 })
+  }
+
+  if (!skipAlert && String(previousMeeting?.status || '') !== String(meeting.status || '')) {
+    await createBusinessAlert({
+      businessId: context.businessId,
+      type: 'meeting',
+      priority: status === 'cancelled' ? 'low' : 'medium',
+      title: 'Meeting status updated',
+      body: `"${meeting.title}" is now ${meeting.status}.`,
+      actionLabel: 'Open Meetings',
+      metadata: { meetingId: meeting.id, from: previousMeeting?.status || null, to: meeting.status },
+    })
+  }
+
+  return NextResponse.json({ meeting })
 }
 
 export async function GET() {
@@ -107,6 +165,7 @@ export async function POST(request: NextRequest) {
     const body = asRecord(await request.json())
     if (!body) return NextResponse.json({ message: 'Invalid meeting payload.' }, { status: 400 })
 
+    const id = asString(body.id)
     const clientName = asString(body.clientName)
     const clientEmail = asString(body.clientEmail)
     const title = asString(body.title)
@@ -115,9 +174,15 @@ export async function POST(request: NextRequest) {
     const description = asOptionalString(body.description)
     const durationMinutes = asPositiveNumber(body.durationMinutes, 45)
     const roomName = asString(body.roomName)
-    const status = (asString(body.status) || 'scheduled') as MeetingStatus
+    const statusValue = asString(body.status)
+    const status = (statusValue || 'scheduled') as MeetingStatus
     const matterId = asOptionalString(body.matterId)
     const caseId = asOptionalString(body.caseId)
+    const skipAlert = asBoolean(body.skipAlert)
+
+    if (id && isMeetingStatus(statusValue) && !clientName && !clientEmail && !title && !meetingDate && !meetingTime && !roomName) {
+      return updateMeetingStatus(context, id, statusValue, skipAlert)
+    }
 
     if (!clientName || !title || !meetingDate || !meetingTime || !roomName) {
       return NextResponse.json({ message: 'Missing required meeting fields.' }, { status: 400 })
@@ -226,56 +291,11 @@ export async function PUT(request: NextRequest) {
     if (!body) return NextResponse.json({ message: 'Invalid meeting payload.' }, { status: 400 })
 
     const id = asString(body.id)
-    const status = asString(body.status) as MeetingStatus
-    if (!id || !status) {
+    const statusValue = asString(body.status)
+    if (!id || !isMeetingStatus(statusValue)) {
       return NextResponse.json({ message: 'Meeting id and status are required.' }, { status: 400 })
     }
-
-    const { data: previousMeeting } = await supabaseAdmin
-      .from('meetings')
-      .select('id,status,title,meeting_date,meeting_time,client_id')
-      .eq('id', id)
-      .eq('user_id', context.userId)
-      .maybeSingle()
-
-    let updateResult: any = await supabaseAdmin
-      .from('meetings')
-      .update({ status, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .eq('user_id', context.userId)
-      .select('id,client_id,client_name,client_email,business_id,matter_id,case_id,title,description,meeting_date,meeting_time,duration_minutes,room_name,status,created_at,updated_at')
-      .single()
-
-    if (updateResult.error && isMissingMeetingPortalColumns(updateResult.error)) {
-      updateResult = await supabaseAdmin
-        .from('meetings')
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq('id', id)
-        .eq('user_id', context.userId)
-        .select('id,client_id,title,description,meeting_date,meeting_time,duration_minutes,room_name,status,created_at,updated_at')
-        .single()
-    }
-
-    const { data: meeting, error } = updateResult
-
-    if (error || !meeting) {
-      console.error('Unable to update meeting', error)
-      return NextResponse.json({ message: 'Unable to update meeting.' }, { status: 500 })
-    }
-
-    if (String(previousMeeting?.status || '') !== String(meeting.status || '')) {
-      await createBusinessAlert({
-        businessId: context.businessId,
-        type: 'meeting',
-        priority: status === 'cancelled' ? 'low' : 'medium',
-        title: 'Meeting status updated',
-        body: `"${meeting.title}" is now ${meeting.status}.`,
-        actionLabel: 'Open Meetings',
-        metadata: { meetingId: meeting.id, from: previousMeeting?.status || null, to: meeting.status },
-      })
-    }
-
-    return NextResponse.json({ meeting })
+    return updateMeetingStatus(context, id, statusValue, asBoolean(body.skipAlert))
   } catch (error) {
     return errorResponse(error, 'Unable to update meeting.')
   }

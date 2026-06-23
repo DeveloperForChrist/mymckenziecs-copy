@@ -96,20 +96,6 @@
   font-size: 1.1rem;
 }
 
-.notesListTitle {
-  padding: 12px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.notesListTitle h2 {
-  margin: 0;
-  font-size: 0.92rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(226, 232, 240, 0.82);
-}
-
 .notesCount {
   display: inline-flex;
   align-items: center;
@@ -223,30 +209,6 @@
 
 .noteCardDate {
   color: rgba(226, 232, 240, 0.6);
-}
-
-.sidebarFooter {
-  padding: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.dashboardLink {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 12px;
-  color: rgba(248, 250, 252, 0.94);
-  text-decoration: none;
-  font-weight: 650;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.dashboardLink:hover {
-  background: rgba(255, 255, 255, 0.14);
 }
 
 /* Editor */
@@ -736,8 +698,7 @@
     border-radius: 16px;
   }
 
-  .sidebarHeader,
-  .sidebarFooter {
+  .sidebarHeader {
     padding: 12px;
   }
 

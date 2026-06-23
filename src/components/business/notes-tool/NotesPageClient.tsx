@@ -1,10 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/database/supabase-browser";
 import { getPlanTier } from "@/lib/plans/access";
-import { getAppMarketFromPathname, getAppRouteForMarket } from "@/lib/markets/app-routes";
 import styles from "./notes-page.module.css";
 import WorkspaceLoadingState from "@/components/business/WorkspaceLoadingState";
 
@@ -54,16 +52,13 @@ type NotesPageClientProps = {
   initialAuthUid?: string | null;
   initialReadOnlyMode?: boolean;
   initialReadOnlyMessage?: string | null;
-  dashboardHrefOverride?: string;
 };
 
 export default function NotesPageClient({
   initialAuthUid = null,
   initialReadOnlyMode = false,
   initialReadOnlyMessage = null,
-  dashboardHrefOverride,
 }: NotesPageClientProps = {}) {
-  const pathname = usePathname();
   const [authUid, setAuthUid] = useState<string | null>(initialAuthUid);
   const [loadingNotes, setLoadingNotes] = useState(true);
   const [notesHydrated, setNotesHydrated] = useState(false);
@@ -99,7 +94,6 @@ export default function NotesPageClient({
   const [extractedEvents, setExtractedEvents] = useState<ExtractedCalendarEvent[]>([]);
   const [isSavingExtractedEvents, setIsSavingExtractedEvents] = useState(false);
   const [canUseAiActions, setCanUseAiActions] = useState(false);
-  const dashboardHref = dashboardHrefOverride || getAppRouteForMarket('/dashboard', getAppMarketFromPathname(pathname));
 
   const globalDraftStorageKey = useCallback((uid: string) => `mynotes-draft:${uid}:local`, []);
   const normalizeDraftPages = useCallback(
@@ -455,19 +449,23 @@ export default function NotesPageClient({
     }));
   }, [activePageId, readOnlyMode]);
 
-  const addPage = () => {
-    if (readOnlyMode) return;
+  const createBlankPage = (): NotePage => {
     const id = `p${Date.now()}`;
     const now = new Date().toISOString();
-    const page: NotePage = { 
-      id, 
-      title: "Untitled note", 
-      content: "", 
-      createdAt: now, 
-      updatedAt: now 
+    return {
+      id,
+      title: "Untitled note",
+      content: "",
+      createdAt: now,
+      updatedAt: now,
     };
+  };
+
+  const addPage = () => {
+    if (readOnlyMode) return;
+    const page = createBlankPage();
     setNotesPages(prev => [page, ...prev]);
-    setActivePageId(id);
+    setActivePageId(page.id);
   };
 
   const confirmDeletePage = () => {
@@ -476,8 +474,13 @@ export default function NotesPageClient({
     setNotesPages(prev => {
       const idx = prev.findIndex(p => p.id === pendingDeleteNoteId);
       const next = prev.filter(p => p.id !== pendingDeleteNoteId);
-      const newActive = next[Math.max(0, idx - 1)]?.id || next[0]?.id;
-      setActivePageId(newActive || "");
+      if (next.length === 0) {
+        const replacement = createBlankPage();
+        setActivePageId(replacement.id);
+        return [replacement];
+      }
+      const nextActiveId = next[Math.max(0, idx - 1)]?.id || next[0]?.id || "";
+      setActivePageId(nextActiveId);
       return next;
     });
     setDeleteModalOpen(false);
@@ -732,10 +735,6 @@ export default function NotesPageClient({
           </button>
         </div>
 
-        <div className={styles.notesListTitle}>
-          <h2>My Notes</h2>
-        </div>
-
         <div className={styles.notesListContent}>
           {loadingNotes ? (
             <WorkspaceLoadingState variant="panel" label="Loading notes..." className={styles.emptyState} />
@@ -762,7 +761,6 @@ export default function NotesPageClient({
                     onClick={(e) => {
                       e.stopPropagation();
                       if (readOnlyMode) return;
-                      if (notesPages.length <= 1) return;
                       setPendingDeleteNoteId(note.id);
                       setDeleteModalOpen(true);
                     }}
@@ -784,11 +782,6 @@ export default function NotesPageClient({
           )}
         </div>
 
-        <div className={styles.sidebarFooter}>
-          <a href={dashboardHref} className={styles.dashboardLink}>
-            <span>Go to Dashboard</span>
-          </a>
-        </div>
       </aside>
 
       {/* Note Editor Panel */}

@@ -622,7 +622,6 @@ function BusinessWorkspacePage({
         <NotesPageClient
           initialAuthUid={initialChatPlan.userId}
           initialReadOnlyMode={false}
-          dashboardHrefOverride={businessDashboardHref}
         />
       </EmbeddedToolShell>
     );

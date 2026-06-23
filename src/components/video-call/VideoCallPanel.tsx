@@ -2,6 +2,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Video, Plus, Calendar, Clock, User, Mail, Copy, CheckCircle2, Play, XCircle } from 'lucide-react'
 import WebRtcMeeting from '@/components/video/WebRtcMeeting'
+import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import styles from './videocall.module.css'
 import { BUSINESS_MEETINGS_UPDATED_EVENT } from '@/lib/events/business-events'
 import WorkspaceLoadingState from '@/components/business/WorkspaceLoadingState'
@@ -61,6 +62,18 @@ function saveLocal(meetings: Meeting[], clients: ClientContact[]) {
 function notifyMeetingsUpdated() {
   if (typeof window === 'undefined') return
   window.dispatchEvent(new CustomEvent(BUSINESS_MEETINGS_UPDATED_EVENT))
+}
+
+function sendMeetingStatusBeacon(meeting: Meeting, status: MeetingStatus) {
+  if (typeof navigator === 'undefined' || typeof navigator.sendBeacon !== 'function') return false
+  try {
+    const payload = new Blob([JSON.stringify({ id: meeting.id, status, skipAlert: true })], {
+      type: 'application/json',
+    })
+    return navigator.sendBeacon('/api/business/meetings', payload)
+  } catch {
+    return false
+  }
 }
 
 function looksLikeLegacyMockMeetings(meetings: Meeting[]) {
@@ -343,6 +356,10 @@ export function VideoCallPanel({
     setSelected((current) => current?.id === meeting.id ? { ...current, status } : current)
 
     if (meeting.source === 'local') return
+    if (options?.keepalive && sendMeetingStatusBeacon(meeting, status)) {
+      notifyMeetingsUpdated()
+      return
+    }
     try {
       await fetch('/api/business/meetings', {
         method: 'PUT',
@@ -350,7 +367,7 @@ export function VideoCallPanel({
         credentials: 'include',
         keepalive: Boolean(options?.keepalive),
         signal: options?.signal,
-        body: JSON.stringify({ id: meeting.id, status }),
+        body: JSON.stringify({ id: meeting.id, status, skipAlert: Boolean(options?.keepalive) }),
       })
       notifyMeetingsUpdated()
     } catch (error) {
@@ -386,6 +403,19 @@ export function VideoCallPanel({
     if (!meeting || meeting.status !== 'in_progress') return
     await updateStatus(meeting, 'completed', { keepalive: Boolean(options?.keepalive), quiet: true })
   }, [updateStatus])
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient()
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === 'SIGNED_OUT' || !session) && inCallRef.current && selectedRef.current?.status === 'in_progress' && !exitCallRef.current) {
+        void closeCall({ keepalive: true })
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [closeCall])
+
   const endMeeting=(m:Meeting)=>{
     if (inCallRef.current && selectedRef.current?.id === m.id) {
       void closeCall()
