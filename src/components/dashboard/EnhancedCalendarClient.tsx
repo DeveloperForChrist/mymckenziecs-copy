@@ -684,7 +684,7 @@ export default function EnhancedCalendarClient({
         </div>
 
         <div className={styles.sidebarColumn}>
-          {hasReminderAccess && (
+          {planChecked && hasReminderAccess && (
             <div className={`${styles.card} ${styles.preferenceCard}`}>
               <div className={styles.sidebarTitle}>Email Reminders</div>
               <div className={styles.preferenceRow}>

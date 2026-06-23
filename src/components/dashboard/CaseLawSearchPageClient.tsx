@@ -836,12 +836,14 @@ export default function CaseLawSearchPageClient({
                 <Scale className="w-8 h-8 text-indigo-200" />
                 Case Law Search
               </h1>
-            <Link
-                href={dashboardHref}
-                className="app-button-secondary"
-              >
-                Go to Dashboard
-              </Link>
+            {!embedded && (
+              <Link
+                  href={dashboardHref}
+                  className="app-button-secondary"
+                >
+                  Go to Dashboard
+                </Link>
+            )}
             </div>
           </div>
 
@@ -888,12 +890,14 @@ export default function CaseLawSearchPageClient({
               <Scale className="w-8 h-8 text-indigo-200" />
               Case Law Search
             </h1>
-            <Link
-              href={dashboardHref}
-              className="app-button-secondary"
-            >
-              Go to Dashboard
-            </Link>
+            {!embedded && (
+              <Link
+                href={dashboardHref}
+                className="app-button-secondary"
+              >
+                Go to Dashboard
+              </Link>
+            )}
           </div>
           <p className="text-indigo-100/90">
             Explore 760 UK Supreme Court cases for study and legal understanding.

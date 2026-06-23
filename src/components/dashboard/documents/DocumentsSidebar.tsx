@@ -9,6 +9,7 @@ type DocumentsSidebarProps = {
   onDeleteFolder: (id: string) => void;
   onCreateFolder: () => void;
   dashboardHref: string;
+  embedded?: boolean;
 };
 
 export default function DocumentsSidebar({
@@ -67,11 +68,13 @@ export default function DocumentsSidebar({
         </div>
       </div>
 
-      <div className={styles.sidebarFooter}>
-        <a href={dashboardHref} className={styles.dashboardLink}>
-          Go to Dashboard
-        </a>
-      </div>
+      {!embedded && (
+        <div className={styles.sidebarFooter}>
+          <a href={dashboardHref} className={styles.dashboardLink}>
+            Go to Dashboard
+          </a>
+        </div>
+      )}
     </aside>
   );
 }

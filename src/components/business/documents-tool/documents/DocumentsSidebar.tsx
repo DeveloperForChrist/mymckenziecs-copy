@@ -66,12 +66,6 @@ export default function DocumentsSidebar({
           </div>
         </div>
       </div>
-
-      <div className={styles.sidebarFooter}>
-        <a href={dashboardHref} className={styles.dashboardLink}>
-          Go to Dashboard
-        </a>
-      </div>
     </aside>
   );
 }

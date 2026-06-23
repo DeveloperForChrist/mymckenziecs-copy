@@ -18,6 +18,7 @@ type DocumentsClientProps = {
   dashboardHrefOverride?: string;
   documentsHrefOverride?: string;
   caseIdOverride?: string | null;
+  embedded?: boolean;
 };
 
 const DOCUMENTS_PAGE_SIZE = 100;
@@ -41,6 +42,7 @@ export default function DocumentsClient({
   initialPlanLoaded = false,
   dashboardHrefOverride,
   documentsHrefOverride,
+  embedded = false,
   caseIdOverride = null,
 }: DocumentsClientProps) {
   const [activeFolder, setActiveFolder] = useState<string|null>(null);
@@ -663,6 +665,7 @@ export default function DocumentsClient({
         onDeleteFolder={deleteFolder}
         onCreateFolder={createFolder}
         dashboardHref={dashboardHref}
+        embedded={embedded}
       />
 
       {/* Main Content */}

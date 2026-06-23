@@ -611,6 +611,7 @@ function BusinessWorkspacePage({
           initialPlanLoaded
           dashboardHrefOverride={businessDashboardHref}
           caseIdOverride={documentsCaseIdOverride}
+          embedded
         />
       </EmbeddedToolShell>
     );
