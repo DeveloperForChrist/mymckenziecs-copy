@@ -43,30 +43,26 @@ export default function DocumentsSidebar({
               <i className="bx bx-folder"></i>
               <span className={styles.folderName}>All files</span>
             </div>
-            {folders.length === 0 ? (
-              <div className={styles.folderHint}>No folders yet</div>
-            ) : (
-              folders.map((folder) => (
-                <div
-                  key={folder.id}
-                  className={`${styles.folderItem} ${activeFolderId === folder.id ? styles.folderItemActive : ""}`}
-                  onClick={() => onSelectFolder(folder.id)}
+            {folders.map((folder) => (
+              <div
+                key={folder.id}
+                className={`${styles.folderItem} ${activeFolderId === folder.id ? styles.folderItemActive : ""}`}
+                onClick={() => onSelectFolder(folder.id)}
+              >
+                <i className="bx bx-folder"></i>
+                <span className={styles.folderName}>{folder.name}</span>
+                <button
+                  className={styles.folderDelete}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onDeleteFolder(folder.id);
+                  }}
+                  type="button"
                 >
-                  <i className="bx bx-folder"></i>
-                  <span className={styles.folderName}>{folder.name}</span>
-                  <button
-                    className={styles.folderDelete}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onDeleteFolder(folder.id);
-                    }}
-                    type="button"
-                  >
-                    <i className="bx bx-x"></i>
-                  </button>
-                </div>
-              ))
-            )}
+                  <i className="bx bx-x"></i>
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       </div>

@@ -37,7 +37,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 10px;
-  color: rgba(226, 232, 240, 0.78);
+  color: rgba(248, 250, 252, 0.92);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.13em;
@@ -67,15 +67,6 @@
   gap: 8px;
 }
 
-.folderHint {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 12px;
-  text-align: center;
-  color: rgba(226, 232, 240, 0.72);
-  font-size: 0.84rem;
-}
-
 .folderItem {
   display: flex;
   align-items: center;
@@ -83,7 +74,7 @@
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid transparent;
-  color: rgba(226, 232, 240, 0.9);
+  color: rgba(248, 250, 252, 0.96);
   background: rgba(255, 255, 255, 0.03);
   cursor: pointer;
   transition: all 0.18s ease;
@@ -113,7 +104,7 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: rgba(226, 232, 240, 0.6);
+  color: rgba(248, 250, 252, 0.72);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -138,7 +129,7 @@
   justify-content: center;
   padding: 10px 12px;
   border-radius: 10px;
-  color: rgba(248, 250, 252, 0.94);
+  color: rgba(248, 250, 252, 0.98);
   text-decoration: none;
   font-weight: 600;
   border: 1px solid rgba(255, 255, 255, 0.18);

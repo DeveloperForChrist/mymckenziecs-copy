@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Bell, CheckCircle2, AlertTriangle, Info, Calendar, User, FileText, MessageSquare, Trash2, CheckCheck, Loader2 } from 'lucide-react'
+import { Bell, CheckCircle2, AlertTriangle, Info, Calendar, User, FileText, MessageSquare, Trash2, CheckCheck } from 'lucide-react'
 import styles from './alerts.module.css'
 import {
   BUSINESS_ALERTS_REFRESH_EVENT,
@@ -13,6 +13,7 @@ import {
   type BusinessAlert,
   type BusinessAlertsRefreshDetail,
 } from '@/lib/business/alerts-cache'
+import WorkspaceLoadingState from './WorkspaceLoadingState'
 
 const TYPE_ICON: Record<BusinessAlert['type'], React.ElementType> = { deadline: AlertTriangle, message: MessageSquare, lead: User, system: Info, document: FileText, meeting: Calendar }
 const TYPE_LABEL: Record<BusinessAlert['type'], string> = { deadline: 'Deadline', message: 'Message', lead: 'New Lead', system: 'System', document: 'Document', meeting: 'Meeting' }
@@ -200,12 +201,10 @@ export default function AlertsPage() {
           ))}
         </div>
         <div className={styles.alertList}>
-          {loading && !hasLoaded && (
-            <div className={styles.emptyList} aria-live="polite" aria-busy="true">
-              <Loader2 size={22} className={styles.spinner} />
-            </div>
-          )}
-          {filtered.length === 0 && <div className={styles.emptyList}><Bell size={28}/><p>No alerts</p></div>}
+          {loading && !hasLoaded ? (
+            <WorkspaceLoadingState variant="panel" label="Loading alerts" className={styles.emptyList} />
+          ) : null}
+          {hasLoaded && filtered.length === 0 && <div className={styles.emptyList}><Bell size={28}/><p>No alerts</p></div>}
           {filtered.map(a => {
             const Icon = TYPE_ICON[a.type]
             return (

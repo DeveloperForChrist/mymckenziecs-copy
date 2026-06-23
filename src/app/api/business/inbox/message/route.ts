@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { BusinessWorkspaceError, ensureBusinessContext } from '@/lib/business/business-workspace'
-import { createBusinessAlert } from '@/lib/business/alerts'
 import { sendPlatformMessageNotification } from '@/lib/email/platform-notifications'
 import { sendResendEmail } from '@/lib/email/resend'
 import { renderPlainEmail } from '@/lib/email/plain-template'
@@ -383,23 +382,6 @@ export async function POST(request: NextRequest) {
         console.error('Failed to send secure message notification:', notificationError)
       }
 
-      await createBusinessAlert({
-        businessId: workspace.businessId,
-        type: 'message',
-        priority: 'medium',
-        title: 'Secure message sent',
-        body: `${senderName} sent a secure message to ${recipientEmail}.`,
-        clientName: linkedClient?.client_name || recipientEmail,
-        actionLabel: 'Open Inbox',
-        metadata: {
-          deliveryMode: 'portal',
-          recipientEmail,
-          attachmentCount: attachments.length,
-          matterId: relatedMatter?.id || null,
-          caseId: relatedMatter?.case_id || null,
-        },
-      })
-
       return NextResponse.json({ message: 'Secure message sent successfully.' })
     }
 
@@ -478,23 +460,6 @@ export async function POST(request: NextRequest) {
     if (directInsertError) {
       console.error('Failed to save direct email to sent history:', directInsertError)
     }
-
-    await createBusinessAlert({
-      businessId: workspace.businessId,
-      type: 'message',
-      priority: 'medium',
-      title: 'Direct email sent',
-      body: `${senderName} sent a direct email to ${recipientEmail}.`,
-      clientName: linkedClient?.client_name || recipientEmail,
-      actionLabel: 'Open Inbox',
-      metadata: {
-        deliveryMode: 'direct',
-        recipientEmail,
-        attachmentCount: attachments.length,
-        matterId: relatedMatter?.id || null,
-        caseId: relatedMatter?.case_id || null,
-      },
-    })
 
     return NextResponse.json({ message: 'Direct email sent successfully.' })
   } catch (error) {

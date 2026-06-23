@@ -28,7 +28,6 @@ import {
 } from '@/lib/business/client-matters'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import styles from './leads.module.css'
-import WorkspaceLoadingState from './WorkspaceLoadingState'
 
 const STATUS_LABELS: Record<LeadStatus, string> = {
   new: 'New',
@@ -59,7 +58,7 @@ export default function LeadsPage() {
   const [leads, setLeads] = useState<BusinessLead[]>([])
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'all' | 'new' | 'accepted' | 'declined'>('all')
-  const [loading, setLoading] = useState(true)
+  const [hasLoaded, setHasLoaded] = useState(false)
   const [syncNotice, setSyncNotice] = useState<string | null>(null)
   const [quickLinkNotice, setQuickLinkNotice] = useState<string | null>(null)
   const [updatingLeadId, setUpdatingLeadId] = useState<string | null>(null)
@@ -84,7 +83,6 @@ export default function LeadsPage() {
     }
 
     const loadRemoteLeads = async () => {
-      setLoading(true)
       try {
         const remoteLeads = await fetchBusinessLeads()
         cacheBusinessLeads(remoteLeads)
@@ -94,7 +92,7 @@ export default function LeadsPage() {
         loadLocalLeads()
         setSyncNotice('Using local leads until the business database is available.')
       } finally {
-        if (mounted) setLoading(false)
+        if (mounted) setHasLoaded(true)
       }
     }
 
@@ -275,15 +273,13 @@ export default function LeadsPage() {
               Declined {counts.declined > 0 && `(${counts.declined})`}
             </button>
           </div>
-          {loading ? (
-            <WorkspaceLoadingState variant="inline" label="Loading saved leads..." className={styles.syncNotice} />
-          ) : syncNotice ? (
+          {syncNotice ? (
             <p className={styles.syncNotice}>{syncNotice}</p>
           ) : null}
         </div>
 
         <div className={styles.enquiryList}>
-          {filteredLeads.length === 0 && (
+          {hasLoaded && filteredLeads.length === 0 && (
             <div className={styles.emptyList}>
               <UserRound size={32} />
               <p>No enquiries here</p>

@@ -76,46 +76,11 @@
 .callModalTitle{font-size:clamp(1.02rem,1.4vw,1.25rem);font-weight:700;line-height:1.2;color:#fff;margin:0}
 .callModalMeta{display:block;max-width:100%;margin-top:4px;font-size:.8rem;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .callModalActions{display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
-.callModalToggleBtn{display:flex;align-items:center;gap:6px;min-height:40px;padding:9px 14px;background:rgba(248,250,252,.1);border:1px solid rgba(226,232,240,.14);border-radius:10px;color:#f8fafc;font-size:.82rem;font-weight:800;line-height:1.2;cursor:pointer;transition:transform .14s ease,background .14s ease,border-color .14s ease}
-.callModalToggleBtn:hover{transform:translateY(-1px);background:rgba(248,250,252,.16);border-color:rgba(226,232,240,.28)}
 .callModalCloseBtn{display:flex;align-items:center;gap:6px;min-height:40px;padding:9px 15px;background:rgba(220,38,38,.16);border:1px solid rgba(248,113,113,.38);border-radius:10px;color:#fecaca;font-size:.82rem;font-weight:800;line-height:1.2;cursor:pointer;transition:transform .14s ease,background .14s ease,border-color .14s ease}
 .callModalCloseBtn:hover{transform:translateY(-1px);background:rgba(220,38,38,.26);border-color:rgba(248,113,113,.56);color:#fff}
-.callModalBody{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,340px);align-items:stretch;gap:14px}
-.callModalBodyNotesHidden{grid-template-columns:minmax(0,1fr)}
+.callModalBody{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch;gap:14px}
 .callMeetingStage{min-width:0;min-height:0;display:flex;padding:12px;border:1px solid rgba(226,232,240,.14);border-radius:16px;background:rgba(15,23,42,.68);box-shadow:0 24px 70px rgba(2,6,23,.3);overflow:hidden}
 .callMeetingStage>*{flex:1 1 auto;min-width:0;min-height:0}
-.callNotesPanel{min-width:0;min-height:0;display:flex;flex-direction:column;gap:14px;padding:16px;border:1px solid rgba(226,232,240,.14);border-radius:16px;background:rgba(15,23,42,.68);box-shadow:0 24px 70px rgba(2,6,23,.3);overflow:hidden}
-.callNotesHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid rgba(226,232,240,.12)}
-.callNotesHeader h3{margin:0;color:#fff;font-size:1rem;line-height:1.25}
-.callNotesHeader p{margin:4px 0 0;color:#94a3b8;font-size:.82rem;line-height:1.4}
-.callNotesIcon{width:36px;height:36px;display:inline-grid;place-items:center;flex:0 0 auto;border-radius:10px;background:rgba(20,184,166,.16);color:#99f6e4}
-.callNotesContent{min-height:0;flex:1;display:flex;flex-direction:column;gap:14px;overflow:auto;padding-right:2px}
-.callNotesInfoList{display:grid;gap:10px}
-.callNotesInfoItem{padding:12px;border:1px solid rgba(226,232,240,.1);border-radius:12px;background:rgba(15,23,42,.62)}
-.callNotesInfoItem p{margin:4px 0 0;color:#f8fafc;font-size:.84rem;line-height:1.45}
-.callNotesMono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;word-break:break-word}
-.callNotesField{min-height:0;flex:1;display:flex;flex-direction:column;gap:8px}
-.callNotesLabel{color:#cbd5e1;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
-.callNotesTextarea{width:100%;min-height:220px;flex:1;resize:none;padding:12px;border:1px solid rgba(226,232,240,.12);border-radius:12px;background:rgba(2,6,23,.5);color:#f8fafc;font:inherit;font-size:.84rem;line-height:1.5;outline:none;box-sizing:border-box}
-.callNotesTextarea::placeholder{color:#64748b}
-.callNotesTextarea:focus{border-color:rgba(45,212,191,.45);box-shadow:0 0 0 3px rgba(45,212,191,.12)}
-.callNotesFooter{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.callNotesMeta{display:flex;flex-direction:column;gap:4px;min-width:0}
-.callNotesMeta p{margin:0;color:#f8fafc;font-size:.84rem;line-height:1.45}
-.callNotesStatus{margin:0;color:#94a3b8;font-size:.78rem;line-height:1.45}
-.callTranscriptButton{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:9px 14px;border:1px solid rgba(45,212,191,.28);border-radius:10px;background:rgba(20,184,166,.14);color:#ccfbf1;font-size:.8rem;font-weight:700;line-height:1.2;cursor:pointer;transition:transform .14s ease,background .14s ease,border-color .14s ease}
-.callTranscriptButton:hover:not(:disabled){transform:translateY(-1px);background:rgba(20,184,166,.22);border-color:rgba(45,212,191,.42)}
-.callTranscriptButton:disabled{opacity:.5;cursor:not-allowed}
-.callNotePopupBackdrop{position:fixed;inset:0;z-index:2100;display:grid;place-items:center;padding:20px;background:rgba(2,6,23,0.42);backdrop-filter:blur(8px)}
-.callNotePopup{width:min(92vw,420px);padding:18px 18px 16px;border:1px solid rgba(153,246,228,0.24);border-radius:16px;background:rgba(15,23,42,0.96);box-shadow:0 28px 80px rgba(2,6,23,0.5);color:#e2e8f0}
-.callNotePopupTitle{margin:0 0 8px;color:#99f6e4;font-size:1rem;font-weight:800;letter-spacing:.02em}
-.callNotePopupBody{margin:0;color:#e2e8f0;font-size:.88rem;line-height:1.55}
-.callNotePopupActions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
-.callNotePopupButton{margin-top:16px;display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 16px;border:1px solid rgba(153,246,228,0.22);border-radius:8px;background:rgba(20,184,166,0.16);color:#ccfbf1;font-size:.82rem;font-weight:700;line-height:1.2;cursor:pointer;transition:all .15s}
-.callNotePopupActions .callNotePopupButton{margin-top:0;text-decoration:none}
-.callNotePopupButton:hover{background:rgba(20,184,166,0.24);border-color:rgba(153,246,228,0.35)}
-.callNotePopupSecondaryButton{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 16px;border:1px solid rgba(148,163,184,0.26);border-radius:8px;background:rgba(148,163,184,0.1);color:#e2e8f0;font-size:.82rem;font-weight:700;line-height:1.2;cursor:pointer;transition:all .15s}
-.callNotePopupSecondaryButton:hover{background:rgba(148,163,184,0.16);border-color:rgba(148,163,184,0.38)}
 .callModalGhostBtn{display:flex;align-items:center;gap:6px;min-height:40px;padding:9px 16px;background:rgba(248,250,252,.1);border:1px solid rgba(226,232,240,.14);border-radius:10px;color:#f8fafc;font-size:.82rem;line-height:1.2;cursor:pointer;font-weight:800;transition:transform .14s ease,background .14s ease,border-color .14s ease}
 .callModalGhostBtn:hover{transform:translateY(-1px);background:rgba(248,250,252,.16);border-color:rgba(226,232,240,.28);color:#fff}
 .callModalEndBtn{display:flex;align-items:center;gap:6px;min-height:40px;padding:9px 16px;background:rgba(220,38,38,.16);border:1px solid rgba(248,113,113,.38);border-radius:10px;color:#fecaca;font-size:.82rem;font-weight:800;line-height:1.2;cursor:pointer;transition:transform .14s ease,background .14s ease,border-color .14s ease;margin-left:auto}
@@ -136,38 +101,27 @@
 :global([data-theme="dark"]) .sidebar,:global([data-theme="dark"]) .main,:global([data-theme="dark"]) .detailHeader,:global([data-theme="dark"]) .detailBody{background:#242424;border-color:#333}
 :global([data-theme="dark"]) .sidebarHeader,:global([data-theme="dark"]) .sidebarActions,:global([data-theme="dark"]) .sidebarTabs,:global([data-theme="dark"]) .formPanel,:global([data-theme="dark"]) .callToolbar{background:#2a2a2a;border-color:#333}
 :global([data-theme="dark"]) .sidebarTitle,:global([data-theme="dark"]) .meetingItemClient,:global([data-theme="dark"]) .formTitle,:global([data-theme="dark"]) .detailTitle{color:#e5e7eb}
-:global([data-theme="dark"]) .sidebarSub,:global([data-theme="dark"]) .meetingItemTitle,:global([data-theme="dark"]) .meetingItemMeta,:global([data-theme="dark"]) .formLabel,:global([data-theme="dark"]) .detailMetaItem,:global([data-theme="dark"]) .detailSectionLabel,:global([data-theme="dark"]) .emptyRoomTitle,:global([data-theme="dark"]) .emptyRoomSub{color:#9ca3af}
+:global([data-theme="dark"]) .sidebarSub,:global([data-theme="dark"]) .meetingItemTitle,:global([data-theme="dark"]) .meetingItemMeta,:global([data-theme="dark"]) .formLabel,:global([data-theme="dark"]) .detailMetaItem,:global([data-theme="dark"]) .detailSectionLabel,:global([data-theme="dark"]) .emptyRoomTitle,:global([data-theme="dark"]) .emptyRoomSub{color:#e5e7eb}
 :global([data-theme="dark"]) .dataModeDatabase{background:rgba(34,197,94,0.16);border-color:rgba(34,197,94,0.35);color:#86efac}
 :global([data-theme="dark"]) .dataModeLocal{background:rgba(249,115,22,0.18);border-color:rgba(249,115,22,0.35);color:#fdba74}
-:global([data-theme="dark"]) .retrySyncBtn{background:#2d2d2d;border-color:#444;color:#d1d5db}
+:global([data-theme="dark"]) .retrySyncBtn{background:#2d2d2d;border-color:#444;color:#f8fafc}
 :global([data-theme="dark"]) .retrySyncBtn:hover{background:#333;border-color:#666;color:#e5e7eb}
 :global([data-theme="dark"]) .meetingItem{border-color:#333}
 :global([data-theme="dark"]) .meetingItem:hover{background:#2d2d2d}
 :global([data-theme="dark"]) .meetingItemActive{background:#312450;border-left-color:#7c3aed}
 :global([data-theme="dark"]) .formInput,:global([data-theme="dark"]) .formSelect,:global([data-theme="dark"]) .formTextarea{background:#2d2d2d;border-color:#444;color:#e5e7eb}
-:global([data-theme="dark"]) .formInput::placeholder,:global([data-theme="dark"]) .formTextarea::placeholder{color:#6b7280}
+:global([data-theme="dark"]) .formInput::placeholder,:global([data-theme="dark"]) .formTextarea::placeholder{color:#cbd5e1}
 :global([data-theme="dark"]) .formSelect option{background:#2d2d2d;color:#e5e7eb}
-:global([data-theme="dark"]) .detailMetaItem strong,:global([data-theme="dark"]) .detailSectionText{color:#d1d5db}
-:global([data-theme="dark"]) .ghostBtn{background:#2d2d2d;border-color:#444;color:#d1d5db}
+:global([data-theme="dark"]) .detailMetaItem strong,:global([data-theme="dark"]) .detailSectionText{color:#f8fafc}
+:global([data-theme="dark"]) .ghostBtn{background:#2d2d2d;border-color:#444;color:#f8fafc}
 :global([data-theme="dark"]) .ghostBtn:hover{background:#383838;border-color:#555;color:#fff}
-:global([data-theme="dark"]) .copyBtn,:global([data-theme="dark"]) .tag{background:#312450;border-color:#7c3aed;color:#c4b5fd}
-:global([data-theme="dark"]) .inviteStrip{background:#2d2d2d;border-color:#444;color:#d1d5db}
-:global([data-theme="dark"]) .emptyRoom{color:#4b5563}
+:global([data-theme="dark"]) .copyBtn,:global([data-theme="dark"]) .tag{background:#312450;border-color:#7c3aed;color:#fff}
+:global([data-theme="dark"]) .inviteStrip{background:#2d2d2d;border-color:#444;color:#f8fafc}
+:global([data-theme="dark"]) .emptyRoom{color:#e5e7eb}
 
 @media (max-width: 1220px) {
   .callModalBody {
-    grid-template-columns: minmax(0,1fr) minmax(260px,300px);
-  }
-}
-
-@media (max-width: 1024px) {
-  .callModalBody,
-  .callModalBodyNotesHidden {
     grid-template-columns: 1fr;
-  }
-
-  .callNotesPanel {
-    max-height: 38vh;
   }
 }
 
@@ -211,7 +165,6 @@
     justify-content: flex-start;
   }
 
-  .callModalToggleBtn,
   .callModalCloseBtn {
     flex: 1 1 150px;
     justify-content: center;
@@ -221,31 +174,8 @@
     gap: 10px;
   }
 
-  .callMeetingStage,
-  .callNotesPanel {
+  .callMeetingStage {
     padding: 10px;
     border-radius: 14px;
-  }
-
-  .callNotesPanel {
-    max-height: 40vh;
-  }
-
-  .callNotePopupBackdrop {
-    padding: 14px;
-  }
-
-  .callNotePopup {
-    width: 100%;
-  }
-
-  .callNotePopupActions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .callNotePopupActions .callNotePopupButton,
-  .callNotePopupSecondaryButton {
-    width: 100%;
   }
 }
