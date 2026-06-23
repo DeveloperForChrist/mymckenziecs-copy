@@ -323,8 +323,10 @@ export default function CaseLawSearchPageClient({
   embedded = false,
 }: CaseLawSearchPageClientProps = {}) {
   const workspaceMaxWidth = 'var(--app-shell-max-width, 1720px)';
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const isDarkMode = theme === 'dark';
   const pageShellStyle: CSSProperties = {
-    background: '#270427',
+    background: isDarkMode ? '#111111' : '#270427',
     height: embedded ? '100%' : '100vh',
     minHeight: 0,
     width: '100%',
@@ -348,6 +350,21 @@ export default function CaseLawSearchPageClient({
   });
   const [userPlan, setUserPlan] = useState<string>(initialUserPlan);
   const [hasPaidAccess, setHasPaidAccess] = useState(Boolean(initialHasPaidAccess));
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const readTheme = () => {
+      const nextTheme = document.body.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      setTheme((current) => (current === nextTheme ? current : nextTheme));
+    };
+
+    readTheme();
+
+    const observer = new MutationObserver(readTheme);
+    observer.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
   const [planChecked, setPlanChecked] = useState(Boolean(initialPlanChecked));
   const [publicMarket, setPublicMarket] = useState<PublicMarket>(initialPublicMarket);
   const [studyingCase, setStudyingCase] = useState<string | null>(null);
@@ -892,10 +909,10 @@ export default function CaseLawSearchPageClient({
         </div>
 
         {/* Search Bar */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className={isDarkMode ? "mb-6 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] p-6 shadow-sm" : "mb-6 rounded-lg bg-white p-6 shadow-sm"}>
           <div className="mb-4 flex flex-col gap-3 lg:flex-row">
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className={isDarkMode ? "absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" : "absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"} />
               <input
                 type="text"
                 value={query}
@@ -903,17 +920,21 @@ export default function CaseLawSearchPageClient({
                 onKeyPress={handleKeyPress}
                 placeholder={canUseCaseLawActions ? "Search by case name, citation, or study topic." : "Resume plan to search case law"}
                 disabled={!canUseCaseLawActions}
-                className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={isDarkMode
+                  ? "w-full rounded-lg border border-[#343434] bg-[#111111] py-3 pl-12 pr-12 text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 disabled:cursor-not-allowed disabled:bg-[#161616] disabled:text-slate-500"
+                  : "w-full rounded-lg border border-gray-300 py-3 pl-12 pr-12 focus:border-transparent focus:ring-2 focus:ring-blue-500"}
               />
               {loading && (
                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                  <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                  <div className={isDarkMode ? "h-5 w-5 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" : "h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"} />
                 </div>
               )}
             </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-3 hover:bg-gray-50 sm:w-auto"
+              className={isDarkMode
+                ? "flex w-full items-center justify-center gap-2 rounded-lg border border-[#343434] bg-[#1f1f1f] px-4 py-3 text-slate-200 hover:bg-[#262626] sm:w-auto"
+                : "flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-3 hover:bg-gray-50 sm:w-auto"}
             >
               <Filter className="w-5 h-5" />
               Filters
@@ -921,11 +942,13 @@ export default function CaseLawSearchPageClient({
             <button
               onClick={() => handleSearch(query)}
               disabled={loading || !query.trim() || !canUseCaseLawActions}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 sm:w-auto"
+              className={isDarkMode
+                ? "flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-[#3a3a3a] sm:w-auto"
+                : "flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 sm:w-auto"}
             >
               {loading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   Searching...
                 </>
               ) : (
@@ -934,7 +957,9 @@ export default function CaseLawSearchPageClient({
             </button>
             <button
               onClick={() => setShowHistoryPanel((value) => !value)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:w-auto"
+              className={isDarkMode
+                ? "w-full rounded-lg border border-[#343434] bg-[#1f1f1f] px-4 py-3 text-sm font-medium text-slate-200 hover:bg-[#262626] sm:w-auto"
+                : "w-full rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:w-auto"}
             >
               {showHistoryPanel ? 'Hide history' : 'View history'}
             </button>
@@ -942,15 +967,17 @@ export default function CaseLawSearchPageClient({
 
           {/* Filters */}
           {showFilters && (
-            <div className="border-t pt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className={isDarkMode ? "grid grid-cols-1 gap-4 border-t border-[#2f2f2f] pt-4 md:grid-cols-4" : "grid grid-cols-1 gap-4 border-t pt-4 md:grid-cols-4"}>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={isDarkMode ? "mb-2 block text-sm font-medium text-slate-200" : "mb-2 block text-sm font-medium text-gray-700"}>
                   Case Type
                 </label>
                 <select
                   value={filters.case_type}
                   onChange={(e) => setFilters({ ...filters, case_type: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className={isDarkMode
+                    ? "w-full rounded-lg border border-[#343434] bg-[#111111] px-3 py-2 text-slate-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
+                    : "w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"}
                 >
                   <option value="all">All Types</option>
                   <option value="employment">Employment</option>
@@ -964,7 +991,7 @@ export default function CaseLawSearchPageClient({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={isDarkMode ? "mb-2 block text-sm font-medium text-slate-200" : "mb-2 block text-sm font-medium text-gray-700"}>
                   Year From
                 </label>
                 <input
@@ -974,12 +1001,14 @@ export default function CaseLawSearchPageClient({
                   placeholder="2009"
                   min="2009"
                   max="2024"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className={isDarkMode
+                    ? "w-full rounded-lg border border-[#343434] bg-[#111111] px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
+                    : "w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={isDarkMode ? "mb-2 block text-sm font-medium text-slate-200" : "mb-2 block text-sm font-medium text-gray-700"}>
                   Year To
                 </label>
                 <input
@@ -989,14 +1018,18 @@ export default function CaseLawSearchPageClient({
                   placeholder="2024"
                   min="2009"
                   max="2024"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className={isDarkMode
+                    ? "w-full rounded-lg border border-[#343434] bg-[#111111] px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
+                    : "w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"}
                 />
               </div>
 
               <div className="flex items-end">
                 <button
                   onClick={() => setFilters({ case_type: 'all' })}
-                  className="w-full px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className={isDarkMode
+                    ? "w-full rounded-lg border border-[#343434] px-4 py-2 text-sm text-slate-300 hover:bg-[#262626]"
+                    : "w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"}
                 >
                   Clear Filters
                 </button>

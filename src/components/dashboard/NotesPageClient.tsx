@@ -733,7 +733,7 @@ export default function NotesPageClient({
         </div>
 
         <div className={styles.notesListTitle}>
-          <h2>My Notes <span className={styles.notesCount}>{filteredNotes.length}</span></h2>
+          <h2>My Notes</h2>
         </div>
 
         <div className={styles.notesListContent}>

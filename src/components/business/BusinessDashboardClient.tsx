@@ -43,7 +43,6 @@ import { VideoCallPanel } from '@/components/video-call/VideoCallPanel';
 import InboxPage from './InboxPage';
 import LeadsPage from './LeadsPage';
 import AlertsPage from './AlertsPage';
-import { BUSINESS_ALERTS_REFRESH_EVENT, BUSINESS_ALERTS_UPDATED_EVENT } from './AlertsPage';
 import ClientMattersPage from './ClientMattersPage';
 import BusinessProfilePage from './BusinessProfilePage';
 import DirectoryClient from '@/components/directory/DirectoryClient';
@@ -62,6 +61,13 @@ import {
   BUSINESS_MEETINGS_UPDATED_EVENT,
   BUSINESS_OPEN_DOCUMENTS_EVENT,
 } from '@/lib/events/business-events';
+import {
+  BUSINESS_ALERTS_STORAGE_KEY,
+  BUSINESS_ALERTS_UPDATED_EVENT,
+  countUnreadAlerts,
+  dispatchBusinessAlertsRefresh,
+  loadStoredAlerts,
+} from '@/lib/business/alerts-cache';
 import BusinessFeedbackPage from './BusinessFeedbackPage';
 import styles from './businessDashboard.module.css';
 
@@ -807,6 +813,13 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
   }, [theme]);
 
   useEffect(() => {
+    const syncAlertsFromStorage = () => {
+      const cachedAlerts = loadStoredAlerts()
+      setAlertsCount(countUnreadAlerts(cachedAlerts))
+    }
+
+    syncAlertsFromStorage()
+
     const fetchCounts = async () => {
       try {
         const [leadsResponse, calendarResponse, alertsResponse, meetingsResponse] = await Promise.all([
@@ -882,12 +895,22 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
         })
         .catch(() => {});
     };
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== BUSINESS_ALERTS_STORAGE_KEY) return;
+      syncAlertsFromStorage();
+    };
     const onMeetingsUpdated = () => { void fetchCounts(); };
     window.addEventListener(BUSINESS_ALERTS_UPDATED_EVENT, onAlertsUpdated as EventListener);
+    window.addEventListener('storage', onStorage);
     window.addEventListener(BUSINESS_MEETINGS_UPDATED_EVENT, onMeetingsUpdated as EventListener);
+    const refreshTimer = window.setInterval(() => {
+      void fetchCounts();
+    }, 60000);
     return () => {
       window.removeEventListener(BUSINESS_ALERTS_UPDATED_EVENT, onAlertsUpdated as EventListener);
+      window.removeEventListener('storage', onStorage);
       window.removeEventListener(BUSINESS_MEETINGS_UPDATED_EVENT, onMeetingsUpdated as EventListener);
+      window.clearInterval(refreshTimer);
     };
   }, []);
 
@@ -907,9 +930,7 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
         const alerts = Array.isArray(data?.alerts) ? data.alerts : [];
         const unreadCount = alerts.filter((alert: any) => !alert?.read).length;
         setAlertsCount(unreadCount);
-        window.dispatchEvent(new CustomEvent(BUSINESS_ALERTS_REFRESH_EVENT, {
-          detail: { alerts, unreadCount },
-        }));
+        dispatchBusinessAlertsRefresh({ alerts, unreadCount });
       } catch {
         // ignore live refresh failures; the dashboard still has the last known state
       }

@@ -36,6 +36,7 @@ interface Message {
     matterStage?: string | null
     matterStatus?: string | null
     deliveryMode?: 'portal' | 'direct'
+    sentByBusinessDashboard?: boolean
     attachmentIds?: string[]
     attachments?: InboxMessageAttachment[]
   }
@@ -91,6 +92,7 @@ type PendingComposeSend = {
 }
 
 const COMPOSE_DRAFT_STORAGE_KEY = 'business-inbox-compose-draft-v1'
+const SENT_MESSAGES_STORAGE_KEY = 'business-inbox-sent-messages-v1'
 
 const ROLE_LABEL: Record<string, string> = {
   owner: 'Owner', solicitor: 'Solicitor/McKenzie Friend',
@@ -145,6 +147,10 @@ function normalizeRecipient(value: string) {
   return value.trim().toLowerCase()
 }
 
+function normalizeEmail(value: string | null | undefined) {
+  return String(value || '').trim().toLowerCase()
+}
+
 function hasMeaningfulComposeDraft(draft: { to: string; subject: string; body: string } | null | undefined) {
   if (!draft) return false
   return [draft.to, draft.subject, draft.body].some((value) => String(value || '').trim().length > 0)
@@ -158,7 +164,7 @@ function buildDraftMessage(draft: SavedComposeDraft): Message {
     subject: draft.subject.trim() || '(No subject)',
     preview: draft.body.trim().slice(0, 100) || draft.to.trim() || 'Continue writing this draft.',
     content: draft.body,
-    timestamp: fmtTime(draft.updatedAt),
+    timestamp: '',
     isRead: true,
     isStarred: false,
     type: 'draft',
@@ -166,6 +172,53 @@ function buildDraftMessage(draft: SavedComposeDraft): Message {
       invited_email: draft.to,
     },
   }
+}
+
+function loadStoredMessages(key: string): Message[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = window.localStorage.getItem(key)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed
+      .filter((entry): entry is Message => Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry) && typeof (entry as Message).id === 'string')
+      .map((entry) => ({
+        ...entry,
+        sender: String(entry.sender || 'Unknown'),
+        senderEmail: String(entry.senderEmail || ''),
+        subject: String(entry.subject || ''),
+        preview: String(entry.preview || '').slice(0, 100),
+        content: String(entry.content || ''),
+        timestamp: String(entry.timestamp || fmtTime(new Date().toISOString())),
+        isRead: Boolean(entry.isRead),
+        isStarred: Boolean(entry.isStarred),
+        type: entry.type === 'draft' ? 'draft' : 'email',
+        isSentByBusiness: Boolean(entry.isSentByBusiness),
+        metadata: entry.metadata && typeof entry.metadata === 'object' ? entry.metadata : undefined,
+        deletedAt: typeof entry.deletedAt === 'string' ? entry.deletedAt : null,
+      }))
+  } catch {
+    return []
+  }
+}
+
+function saveStoredMessages(key: string, messages: Message[]) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(key, JSON.stringify(messages))
+  } catch {
+    // ignore localStorage failures
+  }
+}
+
+function dedupeMessages(messages: Message[]) {
+  const seen = new Set<string>()
+  return messages.filter((message) => {
+    if (seen.has(message.id)) return false
+    seen.add(message.id)
+    return true
+  })
 }
 
 export default function InboxPage({
@@ -183,7 +236,7 @@ export default function InboxPage({
   const [activeClientsError, setActiveClientsError] = useState('')
   const [matterOptions, setMatterOptions] = useState<MatterOption[]>([])
   const [mattersLoading, setMattersLoading] = useState(false)
-  const [mattersError, setMattersError] = useState('')
+  const [_mattersError, setMattersError] = useState('')
   const [selectedMsg, setSelectedMsg] = useState<Message | null>(null)
   const [selectedFolder, setSelectedFolder] = useState('inbox')
   const [searchQuery, setSearchQuery] = useState('')
@@ -394,6 +447,24 @@ export default function InboxPage({
   useEffect(() => { loadData() }, [])
 
   useEffect(() => {
+    const refreshTimer = window.setInterval(() => {
+      void loadData()
+    }, 60000)
+
+    const onVisible = () => {
+      if (!document.hidden) {
+        void loadData()
+      }
+    }
+
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      window.clearInterval(refreshTimer)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [])
+
+  useEffect(() => {
     try {
       const rawDraft = window.localStorage.getItem(COMPOSE_DRAFT_STORAGE_KEY)
       if (!rawDraft) return
@@ -505,7 +576,7 @@ export default function InboxPage({
     return () => {
       cancelled = true
     }
-  }, [showCompose])
+  }, [composeForm.to, showCompose])
 
   useEffect(() => {
     if (!showCompose || !selectedRecipient) return
@@ -644,7 +715,7 @@ export default function InboxPage({
     return () => {
       cancelled = true
     }
-  }, [showCompose])
+  }, [composeForm.to, showCompose])
 
   const loadExistingDocuments = async (caseId: string) => {
     setExistingDocumentsLoading(true)
@@ -732,12 +803,19 @@ export default function InboxPage({
       const allSentMessages: Message[] = Array.isArray(inboxPayload?.sentMessages)
         ? inboxPayload.sentMessages
             .map((row: Record<string, unknown>) => mapInboxMessageRow(row, { sentByBusiness: true }))
-            .filter((message: Message) => message.senderEmail === user.email)
+            .filter((message: Message) => {
+              const sentSenderEmail = normalizeEmail(message.senderEmail)
+              const currentUserEmail = normalizeEmail(user.email)
+              return sentSenderEmail === currentUserEmail || Boolean(message.isSentByBusiness)
+            })
         : []
+      const storedSentMessages = loadStoredMessages(SENT_MESSAGES_STORAGE_KEY)
+      const mergedSentMessages = dedupeMessages([...allSentMessages, ...storedSentMessages])
 
       setMessages(allMessages.filter((m: Message) => !m.metadata?.fromClient))
       setClientMessages(allMessages.filter((m: Message) => m.metadata?.fromClient))
-      setSentMessages(allSentMessages)
+      setSentMessages(mergedSentMessages)
+      saveStoredMessages(SENT_MESSAGES_STORAGE_KEY, mergedSentMessages)
 
       const { data: invs } = await supabase
         .from('team_invitations').select('*')
@@ -769,7 +847,7 @@ export default function InboxPage({
           const data = await res.json().catch(() => ({}))
           if (res.ok && Array.isArray(data?.invitations)) {
             setClientInvites(
-              data.invitations.map((inv: any) => {
+              data.invitations.map((inv: Record<string, unknown>) => {
                 const invitedEmail = String(inv.invited_email || '')
                 const clientName = typeof inv.client_name === 'string' ? inv.client_name : ''
                 const status = String(inv.status || 'pending')
@@ -882,6 +960,34 @@ export default function InboxPage({
       if (!response.ok) {
         throw new Error(payload?.message || 'Failed to send')
       }
+
+      const sentMessage: Message = {
+        id: `sent-${Date.now()}`,
+        sender: 'Me',
+        senderEmail: recipientEmail,
+        subject: pending.subject,
+        preview: pending.body.slice(0, 100),
+        content: pending.body,
+        timestamp: fmtTime(new Date().toISOString()),
+        isRead: true,
+        isStarred: false,
+        type: 'email',
+        isSentByBusiness: true,
+        metadata: {
+          sentByBusinessDashboard: true,
+          deliveryMode: pending.deliveryMode,
+          invited_email: recipientEmail,
+          matterId: pending.matter?.id || null,
+          caseId: pending.matter?.caseId || null,
+          matterNumber: pending.matter?.matterNumber || null,
+          matterLabel: pending.matter?.matterNumber || pending.matter?.issueType || null,
+        },
+      }
+      setSentMessages((prev) => {
+        const next = dedupeMessages([sentMessage, ...prev])
+        saveStoredMessages(SENT_MESSAGES_STORAGE_KEY, next)
+        return next
+      })
 
       setComposeNotice('sent')
       persistComposeDraft(null)
@@ -1649,7 +1755,9 @@ export default function InboxPage({
               <div className={styles.emailItemRow}>
                 <span className={styles.senderName}>{msg.sender}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span className={styles.emailItemTimestamp}>{msg.timestamp}</span>
+                  {msg.type !== 'draft' && (
+                    <span className={styles.emailItemTimestamp}>{msg.timestamp}</span>
+                  )}
                   {msg.type === 'email' && !msg.isSentByBusiness ? (
                     <button type="button" className={`${styles.starButtonSmall} ${msg.isStarred ? styles.starActive : ''}`} onClick={e => handleStar(msg.id, e)} aria-label="Star"><Star size={13} fill={msg.isStarred ? 'currentColor' : 'none'}/></button>
                   ) : msg.type === 'draft' ? (
@@ -1733,7 +1841,9 @@ export default function InboxPage({
                     </span>
                   </div>
                 </div>
-                <span className={styles.previewTimestamp}>{selectedMsg.timestamp}</span>
+                {selectedMsg.type !== 'draft' && (
+                  <span className={styles.previewTimestamp}>{selectedMsg.timestamp}</span>
+                )}
               </div>
             </div>
 

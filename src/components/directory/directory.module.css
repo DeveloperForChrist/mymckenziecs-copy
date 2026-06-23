@@ -225,11 +225,16 @@
 /* ── Dark mode ── */
 :global([data-theme="dark"]) .page{background:#1a1a1a;color:#e5e7eb}
 :global([data-theme="dark"]) .pageBusiness{background:transparent}
+:global([data-theme="dark"]) .header{background:#1a1a1a}
 :global([data-theme="dark"]) .pageBusiness .header{background:#242424;border-color:#333}
+:global([data-theme="dark"]) .pageTitle{color:#f3f4f6}
+:global([data-theme="dark"]) .pageSubtitle{color:#a1a1aa}
 :global([data-theme="dark"]) .filterCard,:global([data-theme="dark"]) .portalCallout,:global([data-theme="dark"]) .businessCallout{background:#242424;border-color:#333;box-shadow:0 12px 42px rgba(0,0,0,.38)}
 :global([data-theme="dark"]) .pageBusiness .filterCard,:global([data-theme="dark"]) .pageBusiness .portalCallout,:global([data-theme="dark"]) .pageBusiness .businessCallout{box-shadow:none}
 :global([data-theme="dark"]) .portalCallout strong,:global([data-theme="dark"]) .businessCallout strong{color:#e5e7eb}
 :global([data-theme="dark"]) .portalCallout span,:global([data-theme="dark"]) .businessCallout span{color:#9ca3af}
+:global([data-theme="dark"]) .resultMeta{color:#9ca3af}
+:global([data-theme="dark"]) .resultMeta strong{color:#e5e7eb}
 :global([data-theme="dark"]) .pageBusiness .proCard{box-shadow:0 10px 34px rgba(0,0,0,.35)}
 :global([data-theme="dark"]) .marketHeader,:global([data-theme="dark"]) .filterBar,:global([data-theme="dark"]) .detailPanel{background:#242424;border-color:#333}
 :global([data-theme="dark"]) .titleBlock h1,:global([data-theme="dark"]) .sellerCopy span,:global([data-theme="dark"]) .ratingLine strong,:global([data-theme="dark"]) .cardFooter strong,:global([data-theme="dark"]) .detailIdentity h2,:global([data-theme="dark"]) .detailSection h3{color:#e5e7eb}
@@ -239,6 +244,13 @@
 :global([data-theme="dark"]) .searchWrap input::placeholder{color:#6b7280}
 :global([data-theme="dark"]) .filterButton svg,:global([data-theme="dark"]) .pillToggle{color:#9ca3af}
 :global([data-theme="dark"]) .marketBody{background:#1a1a1a}
+:global([data-theme="dark"]) .searchWrap{background:#111827;border-color:#374151;color:#d1d5db}
+:global([data-theme="dark"]) .searchWrap:focus-within{border-color:#34d399;box-shadow:0 0 0 3px rgba(52,211,153,.12)}
+:global([data-theme="dark"]) .searchWrap input{color:#e5e7eb}
+:global([data-theme="dark"]) .searchWrap input::placeholder{color:#6b7280}
+:global([data-theme="dark"]) .selectWrap{background:#111827;border-color:#374151;color:#d1d5db}
+:global([data-theme="dark"]) .selectWrap select{color:#e5e7eb}
+:global([data-theme="dark"]) .selectWrap svg{color:#9ca3af}
 :global([data-theme="dark"]) .proCard:hover{box-shadow:0 8px 28px rgba(0,0,0,.36)}
 :global([data-theme="dark"]) .favoriteButton,:global([data-theme="dark"]) .favoriteButtonOn{background:rgba(36,36,36,.92);color:#d1d5db}
 :global([data-theme="dark"]) .favoriteButton:hover{background:#242424;color:#f87171}

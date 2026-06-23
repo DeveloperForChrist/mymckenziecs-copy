@@ -68,7 +68,7 @@
 }
 
 .folderHint {
-  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 12px;
   text-align: center;
@@ -90,13 +90,11 @@
 }
 
 .folderItem:hover {
-  border-color: rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.08);
 }
 
 .folderItemActive {
   background: rgba(167, 139, 250, 0.22);
-  border-color: rgba(255, 255, 255, 0.2);
   color: rgba(248, 250, 252, 0.98);
 }
 
@@ -1134,7 +1132,7 @@
 .addFolderBtn:hover { background: #2a2a2a; color: #d4d4d4; }
 
 .foldersList { display: flex; flex-direction: column; gap: 1px; }
-.folderHint { padding: 7px 12px; color: #666; font-size: .82rem; }
+.folderHint { padding: 7px 12px; color: #666; font-size: .82rem; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 5px; }
 
 .folderItem {
   display: flex;
@@ -1149,7 +1147,7 @@
   min-height: 34px;
 }
 .folderItem:hover { background: #2a2a2a; color: #fff; }
-.folderItemActive { background: #2d2d2d; color: #fff; border-left: 3px solid #0067b8; padding-left: 9px; }
+.folderItemActive { background: #2d2d2d; color: #fff; padding-left: 12px; }
 
 .folderName {
   flex: 1; min-width: 0;

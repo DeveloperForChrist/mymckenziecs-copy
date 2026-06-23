@@ -396,11 +396,8 @@ export default function DirectoryClient({ mode = 'litigant', ownId }: Props) {
           </div>
         )}
 
-        <div className={styles.resultMeta}>
-          <span>Showing <strong>{filtered.length}</strong> professional{filtered.length === 1 ? '' : 's'}</span>
-          {loading && <WorkspaceLoadingState variant="inline" label="Loading live directory..." />}
-          {!loading && loadError && <span>{loadError}</span>}
-        </div>
+        {loading && <WorkspaceLoadingState variant="inline" label="Loading live directory..." />}
+        {!loading && loadError && <div className={styles.resultMeta}>{loadError}</div>}
       </header>
 
       <div className={styles.marketBody}>

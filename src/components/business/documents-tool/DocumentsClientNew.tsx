@@ -5,7 +5,6 @@ import { getSupabaseBrowserClient } from "@/lib/database/supabase-browser";
 import { getAppMarketFromPathname, getAppRouteForMarket } from "@/lib/markets/app-routes";
 import styles from "./documents-page-new.module.css";
 import DocumentsActionBar from "./documents/DocumentsActionBar";
-import DocumentsFilters from "./documents/DocumentsFilters";
 import DocumentsFolderModal from "./documents/DocumentsFolderModal";
 import DocumentsHeader from "./documents/DocumentsHeader";
 import DocumentsSidebar from "./documents/DocumentsSidebar";
@@ -42,7 +41,6 @@ export default function DocumentsClient({
   dashboardHrefOverride,
   caseIdOverride = null,
 }: DocumentsClientProps) {
-  const [activeFilter, setActiveFilter] = useState<'recents'|'starred'>('recents');
   const [activeFolder, setActiveFolder] = useState<string|null>(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -607,11 +605,10 @@ export default function DocumentsClient({
 
   const items = useMemo(() => {
     let arr = [...documents];
-    if (activeFilter === 'starred') arr = arr.filter(d => d.starred);
     if (activeFolder) arr = arr.filter(d => d.folderId === activeFolder);
     if (searchQuery) arr = arr.filter(i => i.title.toLowerCase().includes(searchQuery.toLowerCase()));
     return arr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [documents, activeFilter, activeFolder, searchQuery]);
+  }, [documents, activeFolder, searchQuery]);
 
   const totalDocs = documents.length;
   const starredDocs = documents.filter(d => d.starred).length;
@@ -694,14 +691,12 @@ export default function DocumentsClient({
           <p style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '-8px' }}>{uploadError}</p>
         )}
 
-        <DocumentsFilters activeFilter={activeFilter} onFilterChange={setActiveFilter} />
-
         {/* File List */}
         <div className={styles.fileListContainer}>
           {items.length === 0 ? (
             <div className={styles.emptyState}>
               <i className="bx bx-folder-open"></i>
-              <h3>{activeFilter === 'starred' ? 'No starred files' : activeFolder ? 'No files in this folder' : 'No files yet'}</h3>
+              <h3>{activeFolder ? 'No files in this folder' : 'No files yet'}</h3>
               <p>Upload documents to get started</p>
             </div>
           ) : (
