@@ -13,7 +13,29 @@ export const metadata: Metadata = {
   title: 'Business Dashboard',
 };
 
-export default async function BusinessDashboardPage() {
+type BusinessDashboardPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function BusinessDashboardPage({ searchParams }: BusinessDashboardPageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const section = typeof resolvedSearchParams.section === 'string' ? resolvedSearchParams.section : '';
+  const initialActiveId = section === 'clients'
+    || section === 'documents'
+    || section === 'notes'
+    || section === 'calendar'
+    || section === 'leads'
+    || section === 'video'
+    || section === 'messages'
+    || section === 'notifications'
+    || section === 'settings'
+    || section === 'feedback'
+    || section === 'profile'
+    || section === 'directory'
+    || section === 'case-law'
+    ? section
+    : 'home';
+
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -49,5 +71,5 @@ export default async function BusinessDashboardPage() {
     platformAccess: true,
   };
 
-  return <BusinessDashboardClient initialChatPlan={initialAuthPlan} />;
+  return <BusinessDashboardClient initialChatPlan={initialAuthPlan} initialActiveId={initialActiveId} />;
 }

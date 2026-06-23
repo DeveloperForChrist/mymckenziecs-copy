@@ -685,6 +685,7 @@ function BusinessWorkspacePage({
 }
 
 const THEME_KEY = 'mymckenzie-dash-theme';
+const DASHBOARD_ACTIVE_ID_KEY = 'mymckenzie-business-dashboard-active-id';
 
 export default function BusinessDashboardClient({ initialChatPlan, initialActiveId = 'home' }: BusinessDashboardClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -715,6 +716,41 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
       // ignore
     }
   }, []);
+
+  useEffect(() => {
+    try {
+      const urlSection = new URLSearchParams(window.location.search).get('section');
+      if (urlSection && navItems.some((item) => item.id === urlSection)) return;
+      const storedActiveId = localStorage.getItem(DASHBOARD_ACTIVE_ID_KEY);
+      if (!storedActiveId) return;
+      if (!navItems.some((item) => item.id === storedActiveId)) return;
+      setActiveId(storedActiveId as NavItem['id']);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(DASHBOARD_ACTIVE_ID_KEY, activeId);
+    } catch {
+      // ignore
+    }
+  }, [activeId]);
+
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      if (activeId === 'home') {
+        url.searchParams.delete('section');
+      } else {
+        url.searchParams.set('section', activeId);
+      }
+      window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+    } catch {
+      // ignore
+    }
+  }, [activeId]);
 
   useEffect(() => {
     let cancelled = false;
