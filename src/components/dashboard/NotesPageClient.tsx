@@ -166,13 +166,13 @@ export default function NotesPageClient({
         return null;
       }
       const data = (await response.json()) as Partial<ServerNotesPayload>;
-      if (!Array.isArray(data?.notesPages) || data.notesPages.length === 0 || typeof data.activePageId !== "string") {
+      if (!Array.isArray(data?.notesPages) || typeof data.activePageId !== "string") {
         return null;
       }
       const normalizedPages = normalizeDraftPages(data.notesPages);
       const normalizedActivePageId = normalizedPages.some((page) => page.id === data.activePageId)
         ? data.activePageId
-        : normalizedPages[0].id;
+        : normalizedPages[0]?.id || "";
       return {
         notesPages: normalizedPages,
         activePageId: normalizedActivePageId,
@@ -227,7 +227,7 @@ export default function NotesPageClient({
 
         if (ownDraftRaw) {
           const parsed = JSON.parse(ownDraftRaw) as GlobalLocalDraftPayload;
-          if (Array.isArray(parsed?.notesPages) && parsed.notesPages.length > 0 && typeof parsed.activePageId === "string") {
+          if (Array.isArray(parsed?.notesPages) && typeof parsed.activePageId === "string") {
             draftCandidates.push(parsed);
           }
         }
@@ -236,7 +236,6 @@ export default function NotesPageClient({
           const parsed = JSON.parse(fallbackDraftRaw) as GlobalLocalDraftPayload;
           if (
             Array.isArray(parsed?.notesPages) &&
-            parsed.notesPages.length > 0 &&
             typeof parsed.activePageId === "string" &&
             (!parsed.ownerUid || parsed.ownerUid === authUid)
           ) {
@@ -263,11 +262,11 @@ export default function NotesPageClient({
       const shouldUseLocal = Boolean(localDraft) && (!serverDraft || localSavedAt >= serverSavedAt);
       const sourceDraft = shouldUseLocal ? localDraft : serverDraft;
 
-      if (sourceDraft && Array.isArray(sourceDraft.notesPages) && sourceDraft.notesPages.length > 0) {
+      if (sourceDraft && Array.isArray(sourceDraft.notesPages)) {
         const normalizedDraftNotes = normalizeDraftPages(sourceDraft.notesPages);
         const normalizedActivePageId = normalizedDraftNotes.some((page: any) => page.id === sourceDraft.activePageId)
           ? sourceDraft.activePageId
-          : normalizedDraftNotes[0].id;
+          : normalizedDraftNotes[0]?.id || "";
 
         setNotesPages(normalizedDraftNotes);
         setActivePageId(normalizedActivePageId);
@@ -290,7 +289,7 @@ export default function NotesPageClient({
   }, [authUid, globalDraftStorageKey, loadNotesFromServer, normalizeDraftPages]);
 
   useEffect(() => {
-    if (!notesHydrated || !authUid || !notesPages.length || !activePageId || typeof window === "undefined") return;
+    if (!notesHydrated || !authUid || typeof window === "undefined") return;
     try {
       const localDraft: GlobalLocalDraftPayload = {
         notesPages,
@@ -344,7 +343,7 @@ export default function NotesPageClient({
       saveTimeoutRef.current = null;
     }
 
-    if (!notesHydrated || !authUid || !notesPages.length || !activePageId) return;
+    if (!notesHydrated || !authUid) return;
     if (readOnlyMode) {
       if (saving !== "saved") {
         setSaving("saved");
@@ -382,7 +381,7 @@ export default function NotesPageClient({
       saveTimeoutRef.current = null;
 
       const snapshot = latestDraftRef.current;
-      if (!snapshot.authUid || !snapshot.notesPages.length || !snapshot.activePageId || readOnlyMode) {
+      if (!snapshot.authUid || readOnlyMode) {
         return;
       }
 
@@ -471,18 +470,11 @@ export default function NotesPageClient({
   const confirmDeletePage = () => {
     if (readOnlyMode) return;
     if (!pendingDeleteNoteId) return;
-    setNotesPages(prev => {
-      const idx = prev.findIndex(p => p.id === pendingDeleteNoteId);
-      const next = prev.filter(p => p.id !== pendingDeleteNoteId);
-      if (next.length === 0) {
-        const replacement = createBlankPage();
-        setActivePageId(replacement.id);
-        return [replacement];
-      }
-      const nextActiveId = next[Math.max(0, idx - 1)]?.id || next[0]?.id || "";
-      setActivePageId(nextActiveId);
-      return next;
-    });
+    const idx = notesPages.findIndex(p => p.id === pendingDeleteNoteId);
+    const next = notesPages.filter(p => p.id !== pendingDeleteNoteId);
+    const nextActiveId = next[Math.max(0, idx - 1)]?.id || next[0]?.id || "";
+    setNotesPages(next);
+    setActivePageId(nextActiveId);
     setDeleteModalOpen(false);
     setPendingDeleteNoteId(null);
   };
