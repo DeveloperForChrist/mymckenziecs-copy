@@ -226,8 +226,8 @@ function ClientPortalContent() {
   const businessById = useMemo(() => new Map(businessLinks.map((link) => [link.business_id, link])), [businessLinks])
 
   const selectedBusiness = useMemo(() => {
-    if (!selectedBusinessId) return businessLinks[0] || null
-    return businessLinks.find((link) => link.business_id === selectedBusinessId) || businessLinks[0] || null
+    if (!selectedBusinessId) return null
+    return businessLinks.find((link) => link.business_id === selectedBusinessId) || null
   }, [businessLinks, selectedBusinessId])
 
   const visibleMatterOptions = useMemo(() => {
@@ -242,7 +242,7 @@ function ClientPortalContent() {
     if (selectedMatterId) {
       return matters.find((matter) => matter.id === selectedMatterId) || null
     }
-    return matters.find((matter) => matter.status !== 'archived' && matter.stage !== 'closed') || matters[0] || null
+    return null
   }, [selectedBusiness, selectedMatterId])
 
   const activeSyncTarget = useMemo(() => {
@@ -363,26 +363,21 @@ function ClientPortalContent() {
   }, [])
 
   useEffect(() => {
-    if (!selectedBusinessId && businessLinks[0]?.business_id) {
-      setSelectedBusinessId(businessLinks[0].business_id)
+    if (selectedBusinessId && !businessLinks.some((link) => link.business_id === selectedBusinessId)) {
+      setSelectedBusinessId('')
+      setSelectedMatterId('')
+      return
     }
-  }, [businessLinks, selectedBusinessId])
 
-  useEffect(() => {
     if (!selectedBusiness) {
       if (selectedMatterId) setSelectedMatterId('')
       return
     }
 
-    const hasSelectedMatter = selectedBusiness.matters.some((matter) => matter.id === selectedMatterId)
-    if (hasSelectedMatter) return
-
-    const defaultMatter =
-      selectedBusiness.matters.find((matter) => matter.status !== 'archived' && matter.stage !== 'closed') ||
-      selectedBusiness.matters[0] ||
-      null
-    setSelectedMatterId(defaultMatter?.id || '')
-  }, [selectedBusiness, selectedMatterId])
+    if (selectedMatterId && !selectedBusiness.matters.some((matter) => matter.id === selectedMatterId)) {
+      setSelectedMatterId('')
+    }
+  }, [businessLinks, selectedBusiness, selectedBusinessId, selectedMatterId])
 
   useEffect(() => {
     if (!showCompose) return
@@ -582,6 +577,7 @@ function ClientPortalContent() {
 
   const handleCompose = (businessId: string, subject = '', matterId = '') => {
     setSelectedBusinessId(businessId)
+    setSelectedMatterId(matterId)
     setComposeMatterId(matterId)
     setComposeForm((prev) => ({ ...prev, subject }))
     setComposeNotice('')
@@ -844,7 +840,14 @@ function ClientPortalContent() {
                         <span className={styles.inlinePill}><Archive size={12} />{closedMatterCount} archived</span>
                       </div>
                       <div className={styles.cardActions}>
-                        <button type="button" className={styles.secondaryButton} onClick={() => setSelectedBusinessId(link.business_id)}>
+                        <button
+                          type="button"
+                          className={styles.secondaryButton}
+                          onClick={() => {
+                            setSelectedBusinessId(link.business_id)
+                            setSelectedMatterId('')
+                          }}
+                        >
                           {isActiveSelection ? 'Focused' : 'Focus'}
                         </button>
                         <button

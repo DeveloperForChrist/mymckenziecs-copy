@@ -46,7 +46,6 @@ export default function AlertsPage() {
     const cachedAlerts = loadStoredAlerts()
     if (cachedAlerts.length > 0) {
       setAlerts(cachedAlerts)
-      setSelected(cachedAlerts[0] || null)
       setHasLoaded(true)
       setLoading(false)
     }
@@ -64,8 +63,8 @@ export default function AlertsPage() {
       saveStoredAlerts(nextAlerts)
       setSelected((prev) => {
         if (!nextAlerts.length) return null
-        if (!prev) return nextAlerts[0]
-        return nextAlerts.find((alert) => alert.id === prev.id) || nextAlerts[0]
+        if (!prev) return null
+        return nextAlerts.find((alert) => alert.id === prev.id) || null
       })
     }
 
@@ -190,7 +189,7 @@ export default function AlertsPage() {
         </div>
         <div className={styles.tabRow}>
           {TABS.map(t => (
-            <button key={t.id} type="button" className={`${styles.tab} ${tab === t.id ? styles.tabActive : ''}`} onClick={() => setTab(t.id)}>
+            <button key={t.id} type="button" className={`${styles.tab} ${tab === t.id ? styles.tabActive : ''}`} onClick={() => { setTab(t.id); setSelected(null) }}>
               {t.label}
               {t.id === 'unread' && unreadCount > 0 && ` (${unreadCount})`}
             </button>

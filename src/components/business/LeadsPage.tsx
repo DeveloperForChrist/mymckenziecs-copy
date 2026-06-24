@@ -72,7 +72,7 @@ export default function LeadsPage() {
       setLeads(nextLeads)
       setSelectedLeadId((current) => {
         if (current && nextLeads.some((lead) => lead.id === current)) return current
-        return nextLeads[0]?.id ?? null
+        return null
       })
     }
 
@@ -259,7 +259,7 @@ export default function LeadsPage() {
                 key={tab}
                 type="button"
                 className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ''}`}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => { setActiveTab(tab); setSelectedLeadId(null) }}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)} {counts[tab] > 0 && `(${counts[tab]})`}
               </button>
@@ -267,7 +267,7 @@ export default function LeadsPage() {
             <button
               type="button"
               className={`${styles.tab} ${activeTab === 'declined' ? styles.tabActive : styles.tabSecondary}`}
-              onClick={() => setActiveTab((current) => (current === 'declined' ? 'all' : 'declined'))}
+              onClick={() => { setActiveTab((current) => (current === 'declined' ? 'all' : 'declined')); setSelectedLeadId(null) }}
               aria-pressed={activeTab === 'declined'}
             >
               Declined {counts.declined > 0 && `(${counts.declined})`}

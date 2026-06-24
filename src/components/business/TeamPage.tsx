@@ -78,7 +78,10 @@ export default function TeamPage() {
       }))
       const all = [self, ...mapped]
       setMembers(all)
-      setSelected(all[0])
+      setSelected((current) => {
+        if (!current) return null
+        return all.find((member) => member.id === current.id) || null
+      })
     } catch { setMembers([]) } finally { setLoading(false) }
   }
 
@@ -174,7 +177,7 @@ export default function TeamPage() {
           <>
             <div className={styles.filterRow}>
               {(['all','active','invited','suspended'] as const).map(f=>(
-                <button key={f} type="button" className={`${styles.filterTab} ${filter===f?styles.filterTabActive:''}`} onClick={()=>setFilter(f)}>
+                <button key={f} type="button" className={`${styles.filterTab} ${filter===f?styles.filterTabActive:''}`} onClick={()=>{setFilter(f);setSelected(null)}}>
                   {f.charAt(0).toUpperCase()+f.slice(1)}
                 </button>
               ))}
