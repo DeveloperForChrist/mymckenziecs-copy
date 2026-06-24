@@ -81,10 +81,8 @@
 .callModalBody{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch;gap:14px}
 .callMeetingStage{min-width:0;min-height:0;flex:1 1 auto;display:flex;padding:12px;border:1px solid rgba(226,232,240,.14);border-radius:16px;background:rgba(15,23,42,.68);box-shadow:0 24px 70px rgba(2,6,23,.3);overflow:hidden}
 .callMeetingStage>*{flex:1 1 auto;min-width:0;min-height:0}
-.callModalGhostBtn{display:flex;align-items:center;gap:6px;min-height:40px;padding:9px 16px;background:rgba(248,250,252,.1);border:1px solid rgba(226,232,240,.14);border-radius:10px;color:#f8fafc;font-size:.82rem;line-height:1.2;cursor:pointer;font-weight:800;transition:transform .14s ease,background .14s ease,border-color .14s ease}
+.callModalGhostBtn{display:flex;align-items:center;gap:6px;min-height:42px;padding:11px 18px;background:rgba(248,250,252,.1);border:1px solid rgba(226,232,240,.14);border-radius:10px;color:#f8fafc;font-size:.82rem;line-height:1.2;cursor:pointer;font-weight:800;transition:transform .14s ease,background .14s ease,border-color .14s ease}
 .callModalGhostBtn:hover{transform:translateY(-1px);background:rgba(248,250,252,.16);border-color:rgba(226,232,240,.28);color:#fff}
-.callModalEndBtn{display:flex;align-items:center;gap:6px;min-height:40px;padding:9px 16px;background:rgba(220,38,38,.16);border:1px solid rgba(248,113,113,.38);border-radius:10px;color:#fecaca;font-size:.82rem;font-weight:800;line-height:1.2;cursor:pointer;transition:transform .14s ease,background .14s ease,border-color .14s ease;margin-left:auto}
-.callModalEndBtn:hover{transform:translateY(-1px);background:rgba(220,38,38,.26);border-color:rgba(248,113,113,.56);color:#fff}
 .callModalMeetingShell{height:100%;min-width:0;min-height:0;flex:1 1 auto;display:flex;flex-direction:column}
 .callModalMeetingShell>main{height:100%;min-height:0}
 .callModalJitsiWrap{flex:1;overflow:hidden;background:#0a0a0a;border-radius:12px;min-height:0}

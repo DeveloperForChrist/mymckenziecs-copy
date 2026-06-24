@@ -388,7 +388,7 @@
   justify-content: center;
   gap: 10px;
   margin-top: 0;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border: 1px solid rgba(226, 232, 240, 0.14);
   border-radius: 8px;
   background: rgba(15, 23, 42, 0.82);
@@ -402,7 +402,7 @@
 
 .controlButton {
   min-width: 106px;
-  min-height: 38px;
+  min-height: 42px;
   justify-content: center;
   gap: 8px;
   border: 1px solid rgba(226, 232, 240, 0.14);
@@ -413,6 +413,7 @@
   font: inherit;
   font-size: 0.82rem;
   font-weight: 800;
+  padding: 10px 16px;
   transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
 }
 

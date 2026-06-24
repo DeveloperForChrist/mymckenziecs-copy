@@ -395,15 +395,16 @@ export function VideoCallPanel({
     selectedRef.current = { ...m, status: 'in_progress' }
     setInCall(true)
   }
-  const closeCall = useCallback(async (options?: { keepalive?: boolean }) => {
+  const closeCall = useCallback(() => {
     if (exitCallRef.current) return
     exitCallRef.current = true
     statusUpdateAbortRef.current?.abort()
     statusUpdateAbortRef.current = null
-    const meeting = selectedRef.current
     setInCall(false)
     setSession((s) => s + 1)
-    if (!meeting || meeting.status !== 'in_progress') return
+  }, [])
+
+  const completeMeeting = useCallback(async (meeting: Meeting, options?: { keepalive?: boolean }) => {
     await updateStatus(meeting, 'completed', { keepalive: Boolean(options?.keepalive), quiet: true })
   }, [updateStatus])
 
@@ -412,19 +413,15 @@ export function VideoCallPanel({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if ((event === 'SIGNED_OUT' || !session) && inCallRef.current && selectedRef.current?.status === 'in_progress' && !exitCallRef.current) {
-        void closeCall({ keepalive: true })
+      if ((event === 'SIGNED_OUT' || !session) && inCallRef.current && !exitCallRef.current) {
+        closeCall()
       }
     })
     return () => subscription.unsubscribe()
   }, [closeCall])
 
   const endMeeting=(m:Meeting)=>{
-    if (inCallRef.current && selectedRef.current?.id === m.id) {
-      void closeCall()
-      return
-    }
-    void updateStatus(m, 'completed')
+    void completeMeeting(m)
   }
   const copyLink=async(m:Meeting)=>{
     const link=meetingLink(m.roomName)
@@ -435,7 +432,7 @@ export function VideoCallPanel({
   useEffect(() => {
     const handlePageExit = () => {
       if (!inCallRef.current || exitCallRef.current) return
-      void closeCall({ keepalive: true })
+      closeCall()
     }
     window.addEventListener('pagehide', handlePageExit)
     window.addEventListener('beforeunload', handlePageExit)
@@ -447,13 +444,12 @@ export function VideoCallPanel({
 
   useEffect(() => {
     return () => {
-      const meeting = selectedRef.current
-      if (!inCallRef.current || exitCallRef.current || !meeting || meeting.status !== 'in_progress') return
+      if (!inCallRef.current || exitCallRef.current) return
       statusUpdateAbortRef.current?.abort()
       statusUpdateAbortRef.current = null
-      void updateStatus(meeting, 'completed', { keepalive: true, quiet: true })
+      closeCall()
     }
-  }, [updateStatus])
+  }, [closeCall])
 
   return (
     <div className={`${styles.page} ${inCall ? styles.pageFullscreen : ''}`}>
@@ -579,7 +575,7 @@ export function VideoCallPanel({
                 </div>
               </div>
               <div className={styles.callModalActions}>
-                <button type="button" className={styles.callModalCloseBtn} onClick={() => void closeCall()}><XCircle size={14}/>Leave</button>
+                <button type="button" className={styles.callModalCloseBtn} onClick={closeCall}><XCircle size={14}/>Leave</button>
               </div>
             </div>
             <div className={styles.callModalBody}>
@@ -589,16 +585,10 @@ export function VideoCallPanel({
                   className={styles.callModalMeetingShell}
                   roomName={selected.roomName}
                   displayName="Business User"
-                  onLeave={() => void closeCall()}
+                  onLeave={closeCall}
                   videoGridClassName={styles.callModalJitsiWrap}
                   primaryButtonClassName={styles.callModalGhostBtn}
                   secondaryButtonClassName={styles.callModalGhostBtn}
-                  footerAction={(
-                    <button type="button" className={styles.callModalEndBtn} onClick={() => void closeCall()}>
-                      <CheckCircle2 size={14} />
-                      End &amp; Mark Done
-                    </button>
-                  )}
                 />
               </section>
             </div>
