@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import {
@@ -187,7 +187,7 @@ function formatCurrency(value: number | null | undefined) {
   }).format(amount)
 }
 
-export default function ClientPortalPage() {
+function ClientPortalContent() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -1601,5 +1601,13 @@ export default function ClientPortalPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function ClientPortalPage() {
+  return (
+    <Suspense fallback={null}>
+      <ClientPortalContent />
+    </Suspense>
   )
 }

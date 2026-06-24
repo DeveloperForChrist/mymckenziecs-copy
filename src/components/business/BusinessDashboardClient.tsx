@@ -373,7 +373,13 @@ function formatChatHistoryDate(isoDate: string) {
   return `${day} ${time}`;
 }
 
-function BusinessChatWorkspace({ initialChatPlan }: { initialChatPlan: InitialChatPlanState }) {
+function BusinessChatWorkspace({
+  initialChatPlan,
+  mainSidebarExpanded,
+}: {
+  initialChatPlan: InitialChatPlanState;
+  mainSidebarExpanded: boolean;
+}) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
@@ -411,10 +417,15 @@ function BusinessChatWorkspace({ initialChatPlan }: { initialChatPlan: InitialCh
 
   const startNewChat = () => {
     const next = new URL(businessChatHref, window.location.origin);
-    next.searchParams.set('new', 'true');
-    next.searchParams.set('fresh', 'true');
+    const nextHref = `${next.pathname}${next.search}${next.hash}`;
     localStorage.removeItem('currentConversationId');
-    router.push(`${next.pathname}${next.search}${next.hash}`);
+    window.dispatchEvent(
+      new CustomEvent('chatFreshConversationRequested', {
+        detail: { homeHref: nextHref },
+      }),
+    );
+    window.history.replaceState({}, '', nextHref);
+    setSidebarOpen(false);
   };
 
   const handleDeleteConversation = (conversationId: string, event: MouseEvent) => {
@@ -480,7 +491,7 @@ function BusinessChatWorkspace({ initialChatPlan }: { initialChatPlan: InitialCh
         </div>
       </div>
 
-      <div className={styles.chatWorkspace}>
+      <div className={`${styles.chatWorkspace} ${mainSidebarExpanded ? styles.chatWorkspaceWithMainSidebar : styles.chatWorkspaceWithoutMainSidebar}`}>
         <div className={styles.chatbotFrame}>
           <ChatInterface
             initialAuthPlan={initialChatPlan}
@@ -1115,7 +1126,7 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
 
       <section className={styles.workspace}>
         {activeId === 'home' ? (
-          <BusinessChatWorkspace initialChatPlan={initialChatPlan} />
+          <BusinessChatWorkspace initialChatPlan={initialChatPlan} mainSidebarExpanded={sidebarOpen} />
         ) : (
           <div className={styles.pageWorkspace}>
               <BusinessWorkspacePage
