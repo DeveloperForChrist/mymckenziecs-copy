@@ -164,11 +164,12 @@ export default function EnhancedCalendarClient({
   const [planChecked, setPlanChecked] = useState(Boolean(initialPlanChecked))
   const [hasReminderAccess, setHasReminderAccess] = useState(Boolean(initialHasReminderAccess))
   const [remindersEnabled, setRemindersEnabled] = useState(Boolean(initialRemindersEnabled))
-  const [prefsLoading, setPrefsLoading] = useState(false)
+  const [prefsLoading, setPrefsLoading] = useState(Boolean(initialAuthUid))
   const [prefsSaving, setPrefsSaving] = useState(false)
   const [prefsError, setPrefsError] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
   const [isSavingEvent, setIsSavingEvent] = useState(false)
+  const [eventsLoading, setEventsLoading] = useState(true)
   const [calendarLoadError, setCalendarLoadError] = useState<string | null>(null)
   const [eventsPanelMode, setEventsPanelMode] = useState<'view' | 'add'>('view')
 
@@ -220,6 +221,7 @@ export default function EnhancedCalendarClient({
         setEventsByDate(JSON.parse(raw))
       }
     } catch (_) {}
+    setEventsLoading(false)
   }, [authChecked, uid])
 
   useEffect(() => {
@@ -232,9 +234,11 @@ export default function EnhancedCalendarClient({
   useEffect(() => {
     if (!authChecked) return
     const fetchEvents = async () => {
+      setEventsLoading(true)
       try {
         if (!uid) {
           setCalendarLoadError(null)
+          setEventsLoading(false)
           return
         }
 
@@ -261,6 +265,8 @@ export default function EnhancedCalendarClient({
       } catch (error: any) {
         console.error('Failed to fetch calendar events:', error)
         setCalendarLoadError('Unable to load calendar events. Please refresh and try again.')
+      } finally {
+        setEventsLoading(false)
       }
     }
     fetchEvents()
@@ -272,6 +278,7 @@ export default function EnhancedCalendarClient({
       setHasPaidAccess(false)
       setPlanChecked(true)
       setHasReminderAccess(false)
+      setPrefsLoading(false)
       return
     }
     const loadPlanAndPrefs = async () => {
@@ -684,7 +691,7 @@ export default function EnhancedCalendarClient({
         </div>
 
         <div className={styles.sidebarColumn}>
-          {planChecked && hasReminderAccess ? (
+          {planChecked && !prefsLoading && hasReminderAccess ? (
             <div className={`${styles.card} ${styles.preferenceCard}`}>
               <div className={styles.sidebarTitle}>Email Reminders</div>
               <div className={styles.preferenceRow}>
@@ -740,17 +747,20 @@ export default function EnhancedCalendarClient({
               <>
                 <div>
                   <div style={{ fontSize: '1.1rem', fontWeight: 700, marginTop: 6 }}>
-                    {allEventsList.length} total
+                    {eventsLoading ? 'Loading...' : `${allEventsList.length} total`}
                   </div>
                 </div>
 
                 <div>
                   <div className={styles.sidebarTitle}>Events</div>
                   <div className={styles.eventList}>
-                    {allEventsList.length === 0 && (
+                    {eventsLoading && (
+                      <div className={styles.emptyState}>Loading events...</div>
+                    )}
+                    {!eventsLoading && allEventsList.length === 0 && (
                       <div className={styles.emptyState}>No events set yet. Add an event to get started.</div>
                     )}
-                    {allEventsList.map((event) => {
+                    {!eventsLoading && allEventsList.map((event) => {
                       const status = getEventStatus(event)
                       const dueDate = event.dateValue
                         ? parseEventDate(event.dateValue)
