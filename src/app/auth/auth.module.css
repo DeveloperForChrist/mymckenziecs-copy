@@ -148,6 +148,11 @@
   display: inline-block;
 }
 
+.optionalLabel {
+  font-weight: 500;
+  color: #64748b;
+}
+
 .fieldHeader {
   display: flex;
   justify-content: space-between;

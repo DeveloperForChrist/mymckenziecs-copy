@@ -28,6 +28,12 @@ function userDisplayName(user: User) {
   return fullName || displayName || emailName || 'Business workspace'
 }
 
+function userBusinessName(user: User) {
+  const metadata = user.user_metadata || {}
+  const businessName = typeof metadata.business_name === 'string' ? metadata.business_name.trim() : ''
+  return businessName
+}
+
 function selectedBusinessPlan(_user: User): 'Solo' {
   return 'Solo'
 }
@@ -99,7 +105,7 @@ export async function ensureBusinessContext(user: User): Promise<BusinessContext
       .from('businesses')
       .insert({
         owner_user_id: user.id,
-        name: `${userDisplayName(user)} Workspace`,
+        name: userBusinessName(user) || `${userDisplayName(user)} Workspace`,
         billing_email: user.email || null,
         plan_type: selectedBusinessPlan(user),
         status: 'active',

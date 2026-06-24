@@ -43,7 +43,6 @@ export default function DocumentsClient({
   dashboardHrefOverride,
   documentsHrefOverride,
   embedded = false,
-  caseIdOverride = null,
 }: DocumentsClientProps) {
   const [activeFolder, setActiveFolder] = useState<string|null>(null);
   const router = useRouter();
@@ -74,7 +73,6 @@ export default function DocumentsClient({
   const appMarket = getAppMarketFromPathname(pathname);
   const dashboardHref = dashboardHrefOverride || getAppRouteForMarket('/dashboard', appMarket);
   const documentsHref = documentsHrefOverride || getAppRouteForMarket('/dashboard/documents', appMarket);
-  const caseIdFromOverride = typeof caseIdOverride === 'string' ? caseIdOverride.trim() : '';
 
   const readApiJson = async (res: Response) => {
     const contentType = res.headers.get('content-type') || '';
@@ -87,8 +85,6 @@ export default function DocumentsClient({
     return { error: trimmed || 'Request failed' };
   };
 
-  // Intentionally keyed by uid only; folder reassignment is handled in a separate effect.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
     supabase.auth.getUser().then(({ data }) => {
@@ -156,6 +152,8 @@ export default function DocumentsClient({
     if (activeFolder) setUploadFolderId(activeFolder);
   }, [activeFolder]);
 
+  // Intentionally keyed by uid only; folder reassignment is handled in a separate effect.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const controller = new AbortController();
     const fetchDocuments = async () => {

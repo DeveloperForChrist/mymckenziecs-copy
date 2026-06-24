@@ -253,10 +253,15 @@ export default function ChatbotNavbar({
 
   const startFreshConversation = () => {
     const next = new URL(chatbotHref, 'https://app.local')
-    next.searchParams.set('new', 'true')
-    next.searchParams.set('fresh', 'true')
+    const nextHref = `${next.pathname}${next.search}${next.hash}`
     localStorage.removeItem('currentConversationId')
-    window.location.href = `${next.pathname}${next.search}${next.hash}`
+    window.dispatchEvent(
+      new CustomEvent('chatFreshConversationRequested', {
+        detail: { homeHref: nextHref },
+      })
+    )
+    window.history.replaceState({}, '', nextHref)
+    setIsSidebarOpen(false)
   }
 
   const closeDeleteModal = () => {
@@ -288,8 +293,10 @@ export default function ChatbotNavbar({
         const deletedConversationId = deleteTargetConversationId
         const activeConversationId = new URLSearchParams(window.location.search).get('conversationId')
         const storedConversationId = localStorage.getItem('currentConversationId')
+        const deletedActiveConversation =
+          activeConversationId === deletedConversationId || storedConversationId === deletedConversationId
 
-        if (activeConversationId === deletedConversationId || storedConversationId === deletedConversationId) {
+        if (deletedActiveConversation) {
           localStorage.removeItem('currentConversationId')
           const next = new URL(chatbotHref, 'https://app.local')
           window.history.replaceState({}, '', `${next.pathname}${next.search}${next.hash}`)
@@ -297,7 +304,10 @@ export default function ChatbotNavbar({
 
         window.dispatchEvent(
           new CustomEvent('chatConversationDeleted', {
-            detail: { conversationId: deletedConversationId },
+            detail: {
+              conversationId: deletedConversationId,
+              wasActive: deletedActiveConversation,
+            },
           })
         )
 

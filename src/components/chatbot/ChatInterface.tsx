@@ -1453,22 +1453,7 @@ export default function ChatInterface({
   })
 
   useEffect(() => {
-    const handleConversationDeleted = (event: Event) => {
-      const deletedConversationId = (event as CustomEvent<{ conversationId?: string }>).detail?.conversationId?.trim()
-      if (!deletedConversationId) return
-
-      const activeConversationId =
-        conversationIdRef.current ||
-        (typeof window !== 'undefined' ? localStorage.getItem('currentConversationId') || '' : '')
-      const urlConversationId =
-        typeof window !== 'undefined'
-          ? new URLSearchParams(window.location.search).get('conversationId') || ''
-          : ''
-
-      if (activeConversationId !== deletedConversationId && urlConversationId !== deletedConversationId) {
-        return
-      }
-
+    const resetToFreshConversation = (nextHref?: string) => {
       chatRequestAbortRef.current?.abort()
       chatRequestAbortRef.current = null
       streamRawTextRef.current = ''
@@ -1477,6 +1462,16 @@ export default function ChatInterface({
       pendingStreamFinalizeRef.current = null
       setActiveInlineStreamMessageId(null)
       setMessages([])
+      setInput('')
+      setAttachedFiles([])
+      setGuestUploadWarning(null)
+      setFeedbackState({})
+      setShowReportModal(false)
+      setReportingMessageIndex(null)
+      setReportingMessageContent('')
+      setReportIssue('')
+      setReportProblem('')
+      setNoticeModal(null)
       setHistoryCursor(null)
       setHasMoreHistory(false)
       setLoadingOlderHistory(false)
@@ -1489,12 +1484,42 @@ export default function ChatInterface({
       conversationIdRef.current = nextConversationId
       localStorage.setItem('currentConversationId', nextConversationId)
 
-      const nextHref = conversationHomeHref || window.location.pathname
-      window.history.replaceState({}, '', nextHref)
+      const destinationHref = nextHref || conversationHomeHref || window.location.pathname
+      window.history.replaceState({}, '', destinationHref)
+    }
+
+    const handleConversationDeleted = (event: Event) => {
+      const detail = (event as CustomEvent<{ conversationId?: string; wasActive?: boolean }>).detail
+      const deletedConversationId = detail?.conversationId?.trim()
+      if (!deletedConversationId) return
+
+      const activeConversationId =
+        conversationIdRef.current ||
+        (typeof window !== 'undefined' ? localStorage.getItem('currentConversationId') || '' : '')
+      const urlConversationId =
+        typeof window !== 'undefined'
+          ? new URLSearchParams(window.location.search).get('conversationId') || ''
+          : ''
+      const deletedActiveConversation = Boolean(detail?.wasActive)
+
+      if (!deletedActiveConversation && activeConversationId !== deletedConversationId && urlConversationId !== deletedConversationId) {
+        return
+      }
+
+      resetToFreshConversation()
+    }
+
+    const handleFreshConversationRequested = (event: Event) => {
+      const detail = (event as CustomEvent<{ homeHref?: string }>).detail
+      resetToFreshConversation(detail?.homeHref)
     }
 
     window.addEventListener('chatConversationDeleted', handleConversationDeleted as EventListener)
-    return () => window.removeEventListener('chatConversationDeleted', handleConversationDeleted as EventListener)
+    window.addEventListener('chatFreshConversationRequested', handleFreshConversationRequested as EventListener)
+    return () => {
+      window.removeEventListener('chatConversationDeleted', handleConversationDeleted as EventListener)
+      window.removeEventListener('chatFreshConversationRequested', handleFreshConversationRequested as EventListener)
+    }
   }, [conversationHomeHref])
 
   // Reset textarea height when input is cleared

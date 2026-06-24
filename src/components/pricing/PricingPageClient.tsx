@@ -327,8 +327,6 @@ export default function PricingPageClient({
   const basicPriceId = getPlanPriceId('Basic', billingMarket);
   const premiumPriceId = getPlanPriceId('Premium', billingMarket);
   const premiumPlusPriceId = getPlanPriceId('Premium +', billingMarket);
-  const assistantPlusPriceId = getPlanPriceId('Assistant Plus', billingMarket);
-  const assistantProPriceId = getPlanPriceId('Assistant Pro', billingMarket);
   const businessSoloPriceId = getBusinessSoloIntroPriceId(billingMarket);
   const businessPrice = billingMarket === 'US' ? '54' : '29.99';
 
@@ -429,46 +427,6 @@ export default function PricingPageClient({
     };
   }, [authChecked, isSignedIn]);
 
-  const assistantCards: PricingCard[] = [
-    {
-      key: 'assistant-free',
-      name: 'Free',
-      description: 'Basic question answering assistant.',
-      price: 'Free',
-      cta: 'Start free',
-      href: '/assistant',
-      features: [
-        'Saved chats',
-        'Limited web searches',
-        'Limited messages',
-        'No document uploads',
-      ],
-    },
-    {
-      key: 'assistant-plus',
-      name: 'Assistant Plus',
-      description: 'More capable help with document uploads.',
-      price: `${currencySymbol}${billingMarket === 'US' ? '15' : '12'}`,
-      period: '/month',
-      cta: assistantPlusPriceId ? getPlanButtonLabel(assistantPlusPriceId, 'Assistant Plus') : 'Pricing pending',
-      highlighted: true,
-      priceId: assistantPlusPriceId,
-      planName: 'Assistant Plus',
-      features: assistantPlusPlanFeatures,
-    },
-    {
-      key: 'assistant-pro',
-      name: 'Assistant Pro',
-      description: 'Deeper assistant support with saved documents.',
-      price: `${currencySymbol}${billingMarket === 'US' ? '59.99' : '49.99'}`,
-      period: '/month',
-      cta: assistantProPriceId ? getPlanButtonLabel(assistantProPriceId, 'Assistant Pro') : 'Pricing pending',
-      priceId: assistantProPriceId,
-      planName: 'Assistant Pro',
-      features: assistantProPlanFeatures,
-    },
-  ];
-
   const workspaceCards: PricingCard[] = [
     {
       key: 'basic',
@@ -525,8 +483,7 @@ export default function PricingPageClient({
     },
   ];
 
-  const activeIndividualCards = individualProduct === 'assistant' ? assistantCards : workspaceCards;
-  const activeCards = pricingAudience === 'individual' ? activeIndividualCards : professionalCards;
+  const activeCards = pricingAudience === 'individual' ? workspaceCards : professionalCards;
 
   const renderCard = (card: PricingCard) => {
     const disabled = Boolean(

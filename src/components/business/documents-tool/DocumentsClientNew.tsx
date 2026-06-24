@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/database/supabase-browser";
 import { getAppMarketFromPathname, getAppRouteForMarket } from "@/lib/markets/app-routes";
 import styles from "./documents-page-new.module.css";
@@ -39,12 +39,9 @@ export default function DocumentsClient({
   initialCanUpload = false,
   initialPlanLoaded = false,
   dashboardHrefOverride,
-  caseIdOverride = null,
 }: DocumentsClientProps) {
   const [activeFolder, setActiveFolder] = useState<string|null>(null);
-  const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [documents, setDocuments] = useState<Document[]>([]);
   const [customFolders, setCustomFolders] = useState<Folder[]>([]);
@@ -69,8 +66,6 @@ export default function DocumentsClient({
   const [planLoaded, setPlanLoaded] = useState(Boolean(initialPlanLoaded));
   const appMarket = getAppMarketFromPathname(pathname);
   const dashboardHref = dashboardHrefOverride || getAppRouteForMarket('/dashboard', appMarket);
-  const documentsHref = getAppRouteForMarket('/dashboard/documents', appMarket);
-  const caseIdFromOverride = typeof caseIdOverride === 'string' ? caseIdOverride.trim() : '';
 
   const readApiJson = async (res: Response) => {
     const contentType = res.headers.get('content-type') || '';
@@ -83,8 +78,6 @@ export default function DocumentsClient({
     return { error: trimmed || 'Request failed' };
   };
 
-  // Intentionally keyed by uid only; folder reassignment is handled in a separate effect.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
     supabase.auth.getUser().then(({ data }) => {
@@ -152,6 +145,8 @@ export default function DocumentsClient({
     if (activeFolder) setUploadFolderId(activeFolder);
   }, [activeFolder]);
 
+  // Intentionally keyed by uid only; folder reassignment is handled in a separate effect.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const controller = new AbortController();
     const fetchDocuments = async () => {
@@ -225,11 +220,6 @@ export default function DocumentsClient({
       return changed ? next : prev;
     });
   }, [folderMap, documents.length]);
-
-  useEffect(() => {
-    const param = searchParams?.get?.('folder');
-    if (param) setActiveFolder(param);
-  }, [searchParams]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!canUpload) {
@@ -329,7 +319,6 @@ export default function DocumentsClient({
     setCustomFolders(p => p.filter(f => f.id !== folderId));
     if (activeFolder === folderId) {
       setActiveFolder(null);
-      try { router.replace(documentsHref); } catch(e){}
     }
   };
 
@@ -618,12 +607,10 @@ export default function DocumentsClient({
 
   const handleSelectAllFolders = () => {
     setActiveFolder(null);
-    try { router.replace(documentsHref); } catch (_) {}
   };
 
   const handleSelectFolder = (folderId: string) => {
     setActiveFolder(folderId);
-    try { router.replace(getAppRouteForMarket(`/dashboard/documents?folder=${encodeURIComponent(folderId)}`, appMarket)); } catch (_) {}
   };
 
   const handleViewDocument = (doc: Document) => {

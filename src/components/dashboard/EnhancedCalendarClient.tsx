@@ -684,7 +684,7 @@ export default function EnhancedCalendarClient({
         </div>
 
         <div className={styles.sidebarColumn}>
-          {planChecked && hasReminderAccess && (
+          {planChecked && hasReminderAccess ? (
             <div className={`${styles.card} ${styles.preferenceCard}`}>
               <div className={styles.sidebarTitle}>Email Reminders</div>
               <div className={styles.preferenceRow}>
@@ -703,9 +703,9 @@ export default function EnhancedCalendarClient({
               </div>
               {prefsError && <div className={styles.preferenceError}>{prefsError}</div>}
             </div>
-          )}
+          ) : null}
 
-          <div className={`${styles.card} ${styles.sidebar}`}>
+          <div className={`${styles.card} ${styles.sidebar} ${eventsPanelMode === 'add' ? styles.sidebarAddMode : ''}`}>
             <div className={styles.eventsPanelHeader}>
               <div className={styles.sidebarTitle}>Events</div>
               <div className={styles.eventsModeSwitch}>

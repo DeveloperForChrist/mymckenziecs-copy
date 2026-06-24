@@ -121,12 +121,12 @@
 .composeBodyField{flex:1;overflow:hidden;display:flex}
 .composeTextarea{flex:1;border:none;outline:none;resize:none;font-size:.875rem;color:#111827;padding:14px 16px;font-family:inherit;line-height:1.6;background:#fff;width:100%}
 .composeTextarea::placeholder{color:#d1d5db}
-.composeAttachmentsPanel{display:flex;flex-direction:column;gap:10px;padding:10px 16px 0;margin-bottom:10px;flex-shrink:0}
+.composeAttachmentsPanel{display:flex;flex-direction:column;gap:10px;padding:10px 16px 0;margin-bottom:16px;flex-shrink:0}
 .attachmentUploadBtn{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#4b5563;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .12s}
 .attachmentUploadBtn:hover{background:#f9fafb;border-color:#d1d5db;color:#111827}
-.attachmentList{display:flex;flex-wrap:wrap;gap:8px}
-.attachmentChip{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:7px 9px;border-radius:999px;border:1px solid #ddd6fe;background:#f5f3ff;color:#5b21b6;font-size:.78rem;font-weight:700}
-.attachmentChipName{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.attachmentList{display:flex;flex-wrap:nowrap;align-items:center;gap:8px;overflow-x:auto;overflow-y:hidden;padding:2px 0 6px;scrollbar-width:thin}
+.attachmentChip{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;max-width:min(220px,72vw);padding:7px 9px;border-radius:999px;border:1px solid #ddd6fe;background:#f5f3ff;color:#5b21b6;font-size:.78rem;font-weight:700}
+.attachmentChipName{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .attachmentChipRemove{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:none;border-radius:999px;background:rgba(91,33,182,.12);color:#5b21b6;cursor:pointer;transition:background .12s}
 .attachmentChipRemove:hover{background:rgba(91,33,182,.22)}
 .documentPicker{display:flex;flex-direction:column;gap:10px;margin:0;padding:10px 12px 12px;flex-shrink:0;max-height:220px;overflow:hidden;border:1px solid #e5e7eb;border-radius:12px;background:#fafafa;box-shadow:0 1px 2px rgba(15,23,42,.03)}

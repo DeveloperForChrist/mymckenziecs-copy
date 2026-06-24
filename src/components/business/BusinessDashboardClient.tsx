@@ -69,6 +69,7 @@ import {
   loadStoredAlerts,
 } from '@/lib/business/alerts-cache';
 import BusinessFeedbackPage from './BusinessFeedbackPage';
+import { hasReminderAccess as planHasReminderAccess } from '@/lib/plans/access';
 import styles from './businessDashboard.module.css';
 
 type NavItem = {
@@ -611,7 +612,6 @@ function BusinessWorkspacePage({
           initialPlanLoaded
           dashboardHrefOverride={businessDashboardHref}
           caseIdOverride={documentsCaseIdOverride}
-          embedded
         />
       </EmbeddedToolShell>
     );
@@ -647,7 +647,7 @@ function BusinessWorkspacePage({
           initialAuthUid={initialChatPlan.userId}
           initialHasPaidAccess={Boolean(initialChatPlan.platformAccess ?? initialChatPlan.paidAccess)}
           initialPlanChecked
-          initialHasReminderAccess={initialChatPlan.paidAccess}
+          initialHasReminderAccess={Boolean(initialChatPlan.paidAccess) && planHasReminderAccess(initialChatPlan.plan)}
           initialRemindersEnabled={false}
           lessRounded
         />

@@ -36,7 +36,7 @@ import {
 import { chatMessageSchema } from '@/validators/index'
 import { z } from 'zod'
 import { captureServerException } from '@/lib/monitoring/error-logger'
-import { getPlanTier, isBasicPlan, isPremiumPlan, isPremiumPlusPlan } from '@/lib/plans/access'
+import { isBasicPlan, isPremiumPlan, isPremiumPlusPlan } from '@/lib/plans/access'
 import { getUserPlanData } from '@/lib/payments/user-plan'
 import {
   consumeAssistantFreeDailyWebSearchQuota,
@@ -2034,9 +2034,10 @@ export async function POST(request: NextRequest) {
       premiumPlusActive = true
       chatManagerPlanSeed = 'Guest'
     }
-    const activePlanTier = getPlanTier(activePlanLabel)
-    const assistantPlusActive = activePlanTier === 'assistant_plus'
-    const assistantProActive = activePlanTier === 'assistant_pro'
+    const assistantPlusActive =
+      activePlanLabel === 'assistant plus' || activePlanLabel.includes('mymckenziecs assistant plus')
+    const assistantProActive =
+      activePlanLabel === 'assistant pro' || activePlanLabel.includes('mymckenziecs assistant pro')
     const assistantProductActive =
       activePlanLabel === 'guest' ||
       assistantFreeActive ||

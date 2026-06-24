@@ -9,7 +9,7 @@ import {
 import { searchCaseLawWithFallback } from '@/lib/case-law/runtime-search';
 import { captureServerException } from '@/lib/monitoring/error-logger';
 import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
-import { getPlanTier, hasCaseLawAccess } from '@/lib/plans/access';
+import { hasCaseLawAccess, normalizePlanLabel } from '@/lib/plans/access';
 import { getUserLegalContext, isCaseLawAvailableForLegalContext } from '@/lib/legal/user-context';
 import {
   consumeAssistantProCaseLawRetrievalQuota,
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
-    const planTier = getPlanTier(snapshot?.plan_type || '');
+    const normalizedPlanLabel = normalizePlanLabel(snapshot?.plan_type || '');
 
     // Rate limiting
     const identifier = getIdentifier(userId ?? undefined, safeIp);
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
-    if (planTier === 'assistant_pro') {
+    if (normalizedPlanLabel === 'assistant pro' || normalizedPlanLabel.includes('mymckenziecs assistant pro')) {
       const quota = await consumeAssistantProCaseLawRetrievalQuota(userId);
       if (!quota.allowed) {
         return NextResponse.json(

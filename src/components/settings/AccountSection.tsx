@@ -30,9 +30,11 @@ export default function AccountSection({ publicMarket }: { publicMarket?: 'GB' |
   // User data
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [businessName, setBusinessName] = useState('');
   const [email, setEmail] = useState('');
+  const [isBusinessAccount, setIsBusinessAccount] = useState(false);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
-  const [initialProfile, setInitialProfile] = useState({ firstName: '', lastName: '', email: '' });
+  const [initialProfile, setInitialProfile] = useState({ firstName: '', lastName: '', businessName: '', email: '' });
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [privacyRequestType, setPrivacyRequestType] = useState<'access' | 'erasure' | 'correction' | 'restriction'>('access');
@@ -50,7 +52,9 @@ export default function AccountSection({ publicMarket }: { publicMarket?: 'GB' |
         setUserId(null);
         setFirstName('');
         setLastName('');
+        setBusinessName('');
         setEmail('');
+        setIsBusinessAccount(false);
         setPendingEmail(null);
         setLoading(false);
         return;
@@ -73,9 +77,18 @@ export default function AccountSection({ publicMarket }: { publicMarket?: 'GB' |
       }
 
       let resolvedEmail = user.email || '';
+      let resolvedBusinessName = '';
+      const metaAccountType = String((user.user_metadata || {}).account_type || '').trim().toLowerCase();
+      const metaBillingAudience = String((user.user_metadata || {}).billing_audience || '').trim().toLowerCase();
+      const metadataBusinessName = String((user.user_metadata || {}).business_name || '').trim();
+      const derivedBusinessAccount = metaAccountType === 'business' || metaBillingAudience === 'business';
       if (user.email) {
         resolvedEmail = user.email;
       }
+      if (metadataBusinessName) {
+        resolvedBusinessName = metadataBusinessName;
+      }
+      setIsBusinessAccount(derivedBusinessAccount);
 
       // Fetch additional profile data from /api/user
       try {
@@ -91,6 +104,10 @@ export default function AccountSection({ publicMarket }: { publicMarket?: 'GB' |
           if (data.email) {
             resolvedEmail = data.email;
           }
+          if (typeof data.businessName === 'string') {
+            resolvedBusinessName = data.businessName;
+          }
+          setIsBusinessAccount(data.accountType === 'business' || data.billingAudience === 'business');
           setPendingEmail(typeof data.pendingEmail === 'string' && data.pendingEmail ? data.pendingEmail : null);
         }
       } catch (error) {
@@ -98,10 +115,12 @@ export default function AccountSection({ publicMarket }: { publicMarket?: 'GB' |
       } finally {
         setFirstName(resolvedFirstName);
         setLastName(resolvedLastName);
+        setBusinessName(resolvedBusinessName);
         setEmail(resolvedEmail);
         setInitialProfile({
           firstName: resolvedFirstName,
           lastName: resolvedLastName,
+          businessName: resolvedBusinessName,
           email: resolvedEmail,
         });
         setLoading(false);
@@ -225,9 +244,11 @@ export default function AccountSection({ publicMarket }: { publicMarket?: 'GB' |
     const changes: string[] = [];
     const nextFirst = firstName.trim();
     const nextLast = lastName.trim();
+    const nextBusinessName = businessName.trim();
     const nextEmail = email.trim();
     if (nextFirst !== initialProfile.firstName.trim()) changes.push('First name');
     if (nextLast !== initialProfile.lastName.trim()) changes.push('Last name');
+    if (isBusinessAccount && nextBusinessName !== initialProfile.businessName.trim()) changes.push('Business name');
     if (nextEmail.toLowerCase() !== initialProfile.email.trim().toLowerCase()) changes.push('Email address');
     return changes;
   };
@@ -260,6 +281,7 @@ export default function AccountSection({ publicMarket }: { publicMarket?: 'GB' |
         credentials: 'include',
         body: JSON.stringify({
           fullName,
+          businessName: isBusinessAccount ? businessName.trim() : undefined,
           email,
           redirect: getAppRouteForMarket('/settings?tab=account', publicMarket === 'US' ? 'US' : 'GB'),
         })
@@ -291,8 +313,12 @@ export default function AccountSection({ publicMarket }: { publicMarket?: 'GB' |
       setInitialProfile({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
+        businessName: typeof payload?.businessName === 'string' ? payload.businessName : businessName.trim(),
         email: persistedEmail,
       });
+      if (typeof payload?.businessName === 'string') {
+        setBusinessName(payload.businessName);
+      }
     } catch (error) {
       console.error('Unexpected error saving changes:', error);
       const message = error instanceof Error && error.message
@@ -436,6 +462,21 @@ export default function AccountSection({ publicMarket }: { publicMarket?: 'GB' |
                 />
               </div>
             </div>
+            {isBusinessAccount && (
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Business Name</label>
+                <input
+                  className={styles.textInput}
+                  type="text"
+                  placeholder="Enter your business name"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                />
+                <p className={styles.helpText} style={{ marginTop: '8px' }}>
+                  Optional. This is the name shown for your business workspace.
+                </p>
+              </div>
+            )}
             <div className={styles.formGroup}> 
               <label className={styles.formLabel}>Email Address</label>
               <input 

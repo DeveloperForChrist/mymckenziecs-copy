@@ -90,6 +90,43 @@ async function loadWorkspaceAccessFlags(userId: string) {
   }
 }
 
+async function loadPrimaryBusinessWorkspace(userId: string) {
+  const { data: membership } = await supabaseAdmin
+    .from('business_members')
+    .select('business_id')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .limit(1)
+    .maybeSingle()
+
+  const businessIdFromMembership = typeof membership?.business_id === 'string' ? membership.business_id : ''
+
+  if (businessIdFromMembership) {
+    const { data: business } = await supabaseAdmin
+      .from('businesses')
+      .select('id, name')
+      .eq('id', businessIdFromMembership)
+      .maybeSingle()
+
+    return {
+      businessId: typeof business?.id === 'string' ? business.id : businessIdFromMembership,
+      businessName: typeof business?.name === 'string' ? business.name : '',
+    }
+  }
+
+  const { data: ownedBusiness } = await supabaseAdmin
+    .from('businesses')
+    .select('id, name')
+    .eq('owner_user_id', userId)
+    .limit(1)
+    .maybeSingle()
+
+  return {
+    businessId: typeof ownedBusiness?.id === 'string' ? ownedBusiness.id : '',
+    businessName: typeof ownedBusiness?.name === 'string' ? ownedBusiness.name : '',
+  }
+}
+
 export async function GET(_request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteClient()
@@ -100,9 +137,10 @@ export async function GET(_request: NextRequest) {
 
     const authUid = data.user.id
     const accessFlags = await loadWorkspaceAccessFlags(authUid)
+    const workspace = await loadPrimaryBusinessWorkspace(authUid)
     const { data: userRow, error: userError } = await supabaseAdmin
       .from('users')
-      .select('id, email, name, pending_email, country_code, jurisdiction_code, jurisdiction_label, email_verified_at, updated_at, created_at')
+      .select('id, email, name, pending_email, country_code, jurisdiction_code, jurisdiction_label, email_verified_at, updated_at, created_at, account_type, billing_audience')
       .eq('id', authUid)
       .maybeSingle()
 
@@ -119,6 +157,7 @@ export async function GET(_request: NextRequest) {
         email: data.user.email || '',
         accountType,
         billingAudience: accountType,
+        businessName: workspace.businessName || (data.user.user_metadata as any)?.business_name || '',
         pendingEmail: null,
         countryCode: (data.user.user_metadata as any)?.country_code || null,
         jurisdictionCode: (data.user.user_metadata as any)?.jurisdiction_code || null,
@@ -146,6 +185,7 @@ export async function GET(_request: NextRequest) {
       email: userRow.email || data.user.email || '',
       accountType,
       billingAudience: accountType,
+      businessName: workspace.businessName || (data.user.user_metadata as any)?.business_name || '',
       pendingEmail: (userRow as any).pending_email || null,
       countryCode: (userRow as any).country_code || null,
       jurisdictionCode: (userRow as any).jurisdiction_code || null,
@@ -180,6 +220,8 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const fullName = typeof body?.fullName === 'string' ? body.fullName.trim() : ''
     const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : ''
+    const hasBusinessNameField = Object.prototype.hasOwnProperty.call(body ?? {}, 'businessName')
+    const requestedBusinessName = typeof body?.businessName === 'string' ? body.businessName.trim().slice(0, 160) : ''
     const countryCode = typeof body?.countryCode === 'string' ? body.countryCode.trim().toUpperCase() : null
     const jurisdictionCode = typeof body?.jurisdictionCode === 'string' ? body.jurisdictionCode.trim().toUpperCase() : null
     const requestedRedirect = typeof body?.redirect === 'string' ? body.redirect : undefined
@@ -220,16 +262,22 @@ export async function PUT(request: NextRequest) {
 
     const { data: existingUserRow } = await supabaseAdmin
       .from('users')
-      .select('name, pending_email, country_code, jurisdiction_code, jurisdiction_label')
+      .select('name, pending_email, country_code, jurisdiction_code, jurisdiction_label, account_type, billing_audience')
       .eq('id', authUid)
       .maybeSingle()
 
+    const accountType = resolveAccountType(data.user, existingUserRow as any)
+    const isBusinessAccount = accountType === 'business'
+    const existingMeta = ((data.user.user_metadata as Record<string, any>) || {})
+    const storedMetadataBusinessName = String(existingMeta.business_name || '').trim()
+    const workspace = isBusinessAccount ? await loadPrimaryBusinessWorkspace(authUid) : { businessId: '', businessName: '' }
     const priorFullName = String(
       (existingUserRow as any)?.name ||
       data.user.user_metadata?.full_name ||
       data.user.user_metadata?.display_name ||
       ''
     ).trim()
+    const priorBusinessName = String(workspace.businessName || storedMetadataBusinessName).trim()
     const persistedCountryCode = typeof (existingUserRow as any)?.country_code === 'string'
       ? (existingUserRow as any).country_code
       : null
@@ -238,7 +286,15 @@ export async function PUT(request: NextRequest) {
       : null
     const nextCountryCode = countryCode ?? persistedCountryCode
     const nextJurisdictionCode = jurisdictionCode ?? persistedJurisdictionCode
-    const detailsChangeRequested = fullName !== priorFullName
+    const finalCustomBusinessName = isBusinessAccount
+      ? (hasBusinessNameField ? requestedBusinessName : storedMetadataBusinessName)
+      : ''
+    const workspaceNameBase = fullName || priorFullName || String(existingMeta.full_name || existingMeta.display_name || '').trim()
+    const nextWorkspaceBusinessName = isBusinessAccount
+      ? (finalCustomBusinessName || (workspaceNameBase ? `${workspaceNameBase} Workspace` : 'Business Workspace'))
+      : ''
+    const businessNameChanged = isBusinessAccount && nextWorkspaceBusinessName !== priorBusinessName
+    const detailsChangeRequested = fullName !== priorFullName || businessNameChanged
     const billingMarket = getBillingMarketFromCountryCode(
       nextCountryCode || persistedCountryCode || (data.user.user_metadata as any)?.country_code || null
     )
@@ -276,9 +332,11 @@ export async function PUT(request: NextRequest) {
       emailChangeVerifyUrl = `${appUrl}/api/email/verify?mode=email-change&token=${encodeURIComponent(rawToken)}&redirect=${encodeURIComponent(redirect)}`
     }
 
-    const metadataUpdateNeeded = Boolean(fullName) || Boolean(countryCode && jurisdictionCode)
+    const metadataUpdateNeeded =
+      Boolean(fullName) ||
+      Boolean(countryCode && jurisdictionCode) ||
+      (isBusinessAccount && hasBusinessNameField)
     if (metadataUpdateNeeded) {
-      const existingMeta = ((data.user.user_metadata as Record<string, any>) || {})
       const authUpdatePayload: { email?: string; data?: Record<string, any> } = {}
 
       if (metadataUpdateNeeded) {
@@ -294,6 +352,7 @@ export async function PUT(request: NextRequest) {
           display_name: resolvedFullName,
           first_name: first,
           last_name: last,
+          business_name: isBusinessAccount ? (finalCustomBusinessName || null) : existingMeta.business_name ?? null,
           country_code: nextCountryCode,
           jurisdiction_code: nextJurisdictionCode,
           jurisdiction_label: getJurisdictionLabel(nextCountryCode, nextJurisdictionCode),
@@ -304,6 +363,21 @@ export async function PUT(request: NextRequest) {
       if (authUpdateError) {
         console.error('Error updating auth profile:', authUpdateError)
         return NextResponse.json({ error: authUpdateError.message || 'Failed to update auth profile' }, { status: 400 })
+      }
+    }
+
+    if (isBusinessAccount && workspace.businessId && (businessNameChanged || (fullName !== priorFullName && !finalCustomBusinessName))) {
+      const { error: businessUpdateError } = await supabaseAdmin
+        .from('businesses')
+        .update({
+          name: nextWorkspaceBusinessName,
+          updated_at: nowIso,
+        })
+        .eq('id', workspace.businessId)
+
+      if (businessUpdateError) {
+        console.error('Error updating business workspace name:', businessUpdateError)
+        return NextResponse.json({ error: 'Failed to update business workspace name' }, { status: 500 })
       }
     }
 
@@ -377,6 +451,7 @@ export async function PUT(request: NextRequest) {
         .split(/\s+/)[0] || 'there'
       const changedFields: string[] = []
       if (fullName !== priorFullName) changedFields.push('full name')
+      if (businessNameChanged) changedFields.push('business name')
 
       try {
         const htmlBody = renderTemplate('25-account-details-changed.html', {
@@ -406,6 +481,7 @@ export async function PUT(request: NextRequest) {
       jurisdictionCode: nextJurisdictionCode,
       jurisdictionLabel: getJurisdictionLabel(nextCountryCode, nextJurisdictionCode),
       emailChangeRequested,
+      businessName: isBusinessAccount ? nextWorkspaceBusinessName : '',
     });
   } catch (error: any) {
     console.error('Error updating user data:', error);

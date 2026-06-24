@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
     const fullName = typeof body?.fullName === 'string' ? body.fullName.trim() : ''
     const firstName = typeof body?.firstName === 'string' ? body.firstName.trim() : ''
     const lastName = typeof body?.lastName === 'string' ? body.lastName.trim() : ''
+    const businessName = typeof body?.businessName === 'string' ? body.businessName.trim().slice(0, 160) : ''
     const countryCode = typeof body?.countryCode === 'string' ? body.countryCode.trim().toUpperCase() : ''
     const jurisdictionCode = typeof body?.jurisdictionCode === 'string' ? body.jurisdictionCode.trim().toUpperCase() : ''
     const requestedRedirect = typeof body?.redirect === 'string' ? body.redirect : undefined
@@ -155,6 +156,7 @@ export async function POST(request: NextRequest) {
       first_name: firstName || fullName.split(' ')[0] || '',
       last_name: lastName,
       display_name: fullName,
+      business_name: isBusinessSignup ? businessName : null,
       account_type: isBusinessSignup ? 'business' : 'litigant',
       billing_audience: isBusinessSignup ? 'business' : 'litigant',
       selected_business_plan: isBusinessSignup ? (selectedBusinessPlan || 'Solo') : null,

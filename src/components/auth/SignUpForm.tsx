@@ -63,6 +63,7 @@ export default function SignUpForm() {
     password: '',
     confirmPassword: '',
     fullName: '',
+    businessName: '',
     countryCode: '',
     jurisdictionCode: '',
   })
@@ -250,6 +251,7 @@ export default function SignUpForm() {
           fullName: normalized,
           firstName,
           lastName,
+          businessName: isBusinessSignup ? formData.businessName.trim() : undefined,
           countryCode: isBusinessSignup || isAssistantSignup ? null : formData.countryCode,
           jurisdictionCode: isBusinessSignup || isAssistantSignup ? null : formData.jurisdictionCode,
           audience: isBusinessSignup ? 'business' : 'litigant',
@@ -320,6 +322,22 @@ export default function SignUpForm() {
           onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
         />
       </div>
+
+      {isBusinessSignup && (
+        <div>
+          <label htmlFor="businessName" className={styles.label}>
+            Business Name <span className={styles.optionalLabel}>(Optional)</span>
+          </label>
+          <input
+            type="text"
+            id="businessName"
+            className={styles.input}
+            value={formData.businessName}
+            onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+            placeholder="McKenzieCS Legal Support"
+          />
+        </div>
+      )}
 
       <div>
         <label htmlFor="email" className={styles.label}>
