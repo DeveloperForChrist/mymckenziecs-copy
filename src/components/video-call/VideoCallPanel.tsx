@@ -190,8 +190,8 @@ export function VideoCallPanel({
         setMeetings(nextMeetings)
         setDataMode('database')
         setSelected((current) => {
-          if (current && nextMeetings.some((meeting) => meeting.id === current.id)) return nextMeetings.find((meeting) => meeting.id === current.id) || null
-          return nextMeetings[0] || null
+          if (!current) return null
+          return nextMeetings.find((meeting) => meeting.id === current.id) || null
         })
         saveLocal(nextMeetings, nextClients)
       } catch {
@@ -199,7 +199,10 @@ export function VideoCallPanel({
         if (!mounted) return
         setClients(local.clients)
         setMeetings(local.meetings)
-        setSelected(local.meetings[0] || null)
+        setSelected((current) => {
+          if (!current) return null
+          return local.meetings.find((meeting) => meeting.id === current.id) || null
+        })
         setDataMode('local')
         setNotice('Using local meetings until the database is available.')
       } finally {
@@ -500,8 +503,8 @@ export function VideoCallPanel({
         {!showForm&&(
           <>
             <div className={styles.sidebarTabs}>
-              <button type="button" className={`${styles.sidebarTab} ${tab==='upcoming'?styles.sidebarTabActive:''}`} onClick={()=>setTab('upcoming')}>Upcoming ({upcomingList.length})</button>
-              <button type="button" className={`${styles.sidebarTab} ${tab==='past'?styles.sidebarTabActive:''}`} onClick={()=>setTab('past')}>Past ({pastList.length})</button>
+              <button type="button" className={`${styles.sidebarTab} ${tab==='upcoming'?styles.sidebarTabActive:''}`} onClick={()=>{setTab('upcoming');setSelected(null);setInCall(false)}}>Upcoming ({upcomingList.length})</button>
+              <button type="button" className={`${styles.sidebarTab} ${tab==='past'?styles.sidebarTabActive:''}`} onClick={()=>{setTab('past');setSelected(null);setInCall(false)}}>Past ({pastList.length})</button>
             </div>
             <div className={styles.meetingList}>
               {loading&&<WorkspaceLoadingState variant="panel" label="Loading meetings..." className={styles.emptyList} />}
