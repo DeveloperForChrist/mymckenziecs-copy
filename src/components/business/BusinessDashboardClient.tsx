@@ -701,6 +701,7 @@ const DASHBOARD_ACTIVE_ID_KEY = 'mymckenzie-business-dashboard-active-id';
 export default function BusinessDashboardClient({ initialChatPlan, initialActiveId = 'home' }: BusinessDashboardClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeId, setActiveId] = useState(initialActiveId);
+  const [visitedWorkspaceIds, setVisitedWorkspaceIds] = useState<NavItem['id'][]>([initialActiveId]);
   const [leadsCount, setLeadsCount] = useState(0);
   const [inboxCount, setInboxCount] = useState(0);
   const [alertsCount, setAlertsCount] = useState(0);
@@ -747,6 +748,12 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
     } catch {
       // ignore
     }
+  }, [activeId]);
+
+  useEffect(() => {
+    setVisitedWorkspaceIds((current) => (
+      current.includes(activeId) ? current : [...current, activeId]
+    ));
   }, [activeId]);
 
   useEffect(() => {
@@ -1032,6 +1039,10 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
     });
   };
 
+  const renderedWorkspaceIds = visitedWorkspaceIds.includes(activeId)
+    ? visitedWorkspaceIds
+    : [...visitedWorkspaceIds, activeId];
+
   return (
     <main className={`${styles.shell} ${theme === 'dark' ? styles.darkShell : ''}`} data-theme={theme}>
       <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : styles.sidebarCollapsed}`}>
@@ -1125,20 +1136,33 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
       )}
 
       <section className={styles.workspace}>
-        {activeId === 'home' ? (
-          <BusinessChatWorkspace initialChatPlan={initialChatPlan} mainSidebarExpanded={sidebarOpen} />
-        ) : (
-          <div className={styles.pageWorkspace}>
+        {renderedWorkspaceIds.includes('home') && (
+          <div
+            className={`${styles.workspacePanel} ${activeId === 'home' ? styles.workspacePanelActive : styles.workspacePanelHidden}`}
+            aria-hidden={activeId !== 'home'}
+          >
+            <BusinessChatWorkspace initialChatPlan={initialChatPlan} mainSidebarExpanded={sidebarOpen} />
+          </div>
+        )}
+
+        {renderedWorkspaceIds.filter((id) => id !== 'home').map((workspaceId) => (
+          <div
+            key={workspaceId}
+            className={`${styles.workspacePanel} ${activeId === workspaceId ? styles.workspacePanelActive : styles.workspacePanelHidden}`}
+            aria-hidden={activeId !== workspaceId}
+          >
+            <div className={styles.pageWorkspace}>
               <BusinessWorkspacePage
-                activeId={activeId}
+                activeId={workspaceId}
                 initialChatPlan={initialChatPlan}
                 inboxComposePreset={inboxComposePreset}
                 documentsCaseIdOverride={documentsCaseIdOverride}
                 meetingPreset={meetingPreset}
                 onMeetingPresetConsumed={() => setMeetingPreset(null)}
               />
+            </div>
           </div>
-        )}
+        ))}
       </section>
     </main>
   );

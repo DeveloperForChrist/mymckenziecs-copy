@@ -341,6 +341,10 @@
   background: #1e1e1e;
 }
 
+.darkShell .workspacePanel {
+  background: #1e1e1e;
+}
+
 .darkShell .pageWorkspace {
   background: #1e1e1e;
 }
@@ -1148,6 +1152,22 @@
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   background: #ffffff;
+}
+
+.workspacePanel {
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  width: 100%;
+  background: #ffffff;
+}
+
+.workspacePanelActive {
+  display: flex;
+}
+
+.workspacePanelHidden {
+  display: none;
 }
 
 .placeholderShell {
