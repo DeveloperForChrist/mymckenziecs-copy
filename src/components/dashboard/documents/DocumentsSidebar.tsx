@@ -20,6 +20,7 @@ export default function DocumentsSidebar({
   onDeleteFolder,
   onCreateFolder,
   dashboardHref,
+  embedded = false,
 }: DocumentsSidebarProps) {
   return (
     <aside className={styles.sidebar}>
