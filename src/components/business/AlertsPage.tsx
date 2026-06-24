@@ -1,11 +1,10 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Bell, CheckCircle2, AlertTriangle, Info, Calendar, User, FileText, MessageSquare, Trash2, CheckCheck } from 'lucide-react'
+import { Bell, CheckCircle2, AlertTriangle, Calendar, User, MessageSquare, Trash2, CheckCheck } from 'lucide-react'
 import styles from './alerts.module.css'
 import {
   BUSINESS_ALERTS_REFRESH_EVENT,
   BUSINESS_ALERTS_STORAGE_KEY,
-  BUSINESS_ALERTS_UPDATED_EVENT,
   countUnreadAlerts,
   dispatchBusinessAlertsUpdated,
   loadStoredAlerts,
@@ -15,8 +14,8 @@ import {
 } from '@/lib/business/alerts-cache'
 import WorkspaceLoadingState from './WorkspaceLoadingState'
 
-const TYPE_ICON: Record<BusinessAlert['type'], React.ElementType> = { deadline: AlertTriangle, message: MessageSquare, lead: User, system: Info, document: FileText, meeting: Calendar }
-const TYPE_LABEL: Record<BusinessAlert['type'], string> = { deadline: 'Deadline', message: 'Message', lead: 'New Lead', system: 'System', document: 'Document', meeting: 'Meeting' }
+const TYPE_ICON: Record<BusinessAlert['type'], React.ElementType> = { deadline: AlertTriangle, message: MessageSquare, lead: User, system: Bell, document: Bell, meeting: Calendar }
+const TYPE_LABEL: Record<BusinessAlert['type'], string> = { deadline: 'Deadline', message: 'Message', lead: 'Lead', system: 'System', document: 'Document', meeting: 'Meeting' }
 const PRIORITY_CLS: Record<BusinessAlert['priority'], string> = { urgent: 'priorityUrgent', high: 'priorityHigh', medium: 'priorityMedium', low: 'priorityLow' }
 
 type FilterTab = 'all' | 'unread' | BusinessAlert['type']
@@ -24,11 +23,8 @@ const TABS: { id: FilterTab; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'unread', label: 'Unread' },
   { id: 'deadline', label: 'Deadlines' },
-  { id: 'lead', label: 'Leads' },
-  { id: 'meeting', label: 'Meetings' },
   { id: 'message', label: 'Messages' },
-  { id: 'document', label: 'Documents' },
-  { id: 'system', label: 'System' },
+  { id: 'meeting', label: 'Meetings' },
 ]
 
 export default function AlertsPage() {
@@ -185,7 +181,7 @@ export default function AlertsPage() {
             <h2 className={styles.sidebarTitle}>Alerts</h2>
             {unreadCount > 0 && <span className={styles.unreadPill}>{unreadCount}</span>}
           </div>
-          <p className={styles.sidebarSub}>Deadlines, messages, and system notifications</p>
+          <p className={styles.sidebarSub}>Only key alerts: deadlines, client messages, and meetings</p>
           {unreadCount > 0 && (
             <button type="button" className={styles.markAllBtn} onClick={markAllRead}>
               <CheckCheck size={13}/>Mark all as read

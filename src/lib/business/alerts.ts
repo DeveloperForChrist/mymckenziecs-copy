@@ -3,6 +3,13 @@ import { supabaseAdmin } from '@/lib/database/supabase-server'
 export type BusinessAlertType = 'deadline' | 'message' | 'lead' | 'system' | 'document' | 'meeting'
 export type BusinessAlertPriority = 'urgent' | 'high' | 'medium' | 'low'
 
+export const IMPORTANT_BUSINESS_ALERT_TYPES = ['deadline', 'message', 'meeting'] as const
+export type ImportantBusinessAlertType = (typeof IMPORTANT_BUSINESS_ALERT_TYPES)[number]
+
+export function isImportantBusinessAlertType(value: string | null | undefined): value is ImportantBusinessAlertType {
+  return IMPORTANT_BUSINESS_ALERT_TYPES.includes(String(value || '').trim() as ImportantBusinessAlertType)
+}
+
 type CreateBusinessAlertInput = {
   businessId: string
   type: BusinessAlertType
@@ -17,6 +24,10 @@ type CreateBusinessAlertInput = {
 }
 
 export async function createBusinessAlert(input: CreateBusinessAlertInput) {
+  if (!isImportantBusinessAlertType(input.type)) {
+    return
+  }
+
   const dedupeKey = String(input.dedupeKey || '').trim()
   const dedupeWindowMinutes = Number.isFinite(input.dedupeWindowMinutes)
     ? Math.max(1, Number(input.dedupeWindowMinutes))

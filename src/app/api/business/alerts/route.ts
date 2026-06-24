@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { BusinessWorkspaceError, ensureBusinessContext } from '@/lib/business/business-workspace'
+import { isImportantBusinessAlertType } from '@/lib/business/alerts'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -97,21 +98,25 @@ export async function GET() {
       return NextResponse.json({ message: 'Unable to load alerts.' }, { status: 500 })
     }
 
-    const persistedAlerts: AlertResponseItem[] = (data || []).map((row) => {
-      const typedRow = row as PersistedAlertRow
-      return {
-        id: String(typedRow.id),
-        type: String(typedRow.type || 'system'),
-        priority: String(typedRow.priority || 'medium'),
-        title: String(typedRow.title || 'Alert'),
-        body: String(typedRow.body || ''),
-        time: toRelativeTime(String(typedRow.created_at || new Date().toISOString())),
-        read: Boolean(typedRow.is_read),
-        clientName: typedRow.client_name ? String(typedRow.client_name) : undefined,
-        actionLabel: typedRow.action_label ? String(typedRow.action_label) : undefined,
-        metadata: typedRow.metadata || {},
-      }
-    })
+    const persistedAlerts: AlertResponseItem[] = (data || [])
+      .map((row) => {
+        const typedRow = row as PersistedAlertRow
+        const type = String(typedRow.type || 'system')
+        if (!isImportantBusinessAlertType(type)) return null
+        return {
+          id: String(typedRow.id),
+          type,
+          priority: String(typedRow.priority || 'medium'),
+          title: String(typedRow.title || 'Alert'),
+          body: String(typedRow.body || ''),
+          time: toRelativeTime(String(typedRow.created_at || new Date().toISOString())),
+          read: Boolean(typedRow.is_read),
+          clientName: typedRow.client_name ? String(typedRow.client_name) : undefined,
+          actionLabel: typedRow.action_label ? String(typedRow.action_label) : undefined,
+          metadata: typedRow.metadata || {},
+        }
+      })
+      .filter((alert): alert is AlertResponseItem => Boolean(alert))
 
     const derivedAlerts: AlertResponseItem[] = []
 
