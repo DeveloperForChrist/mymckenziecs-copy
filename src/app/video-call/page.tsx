@@ -18,6 +18,7 @@ function VideoCallContent() {
   const searchParams = useSearchParams();
   const roomParam = searchParams.get('room');
   const nameParam = searchParams.get('name');
+  const viewerParam = searchParams.get('viewer');
   const [roomName, setRoomName] = useState<string>('');
 
   useEffect(() => {
@@ -41,6 +42,7 @@ function VideoCallContent() {
     <WebRtcMeeting
       roomName={roomName}
       displayName={nameParam || `Guest ${roomName.slice(-8)}`}
+      hideRoomChrome={viewerParam === 'client'}
     />
   );
 }

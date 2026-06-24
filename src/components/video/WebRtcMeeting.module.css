@@ -121,11 +121,11 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 14px;
 }
 
 .videoGrid {
-  min-height: min(74vh, 820px);
+  min-height: min(80vh, 920px);
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
@@ -150,7 +150,8 @@
 
 .videoTile {
   position: relative;
-  min-height: 360px;
+  min-height: 0;
+  height: 100%;
   container-type: inline-size;
   overflow: hidden;
   border: 1px solid rgba(226, 232, 240, 0.12);
@@ -383,8 +384,6 @@
 }
 
 .callControls {
-  position: sticky;
-  bottom: 0;
   z-index: 2;
   justify-content: center;
   gap: 10px;
@@ -398,7 +397,7 @@
 }
 
 .embeddedStage .callControls {
-  margin-top: auto;
+  margin-top: 2px;
 }
 
 .controlButton {
@@ -480,10 +479,6 @@
     align-content: stretch;
   }
 
-  .videoTile {
-    min-height: min(42vh, 420px);
-  }
-
   .callControls {
     justify-content: flex-start;
   }
@@ -523,5 +518,9 @@
   .controlButton {
     flex: 1 1 120px;
     min-width: 0;
+  }
+
+  .videoTile {
+    min-height: 42vh;
   }
 }

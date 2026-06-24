@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ExternalLink, FolderOpen, Loader2, UploadCloud } from 'lucide-react'
 import type { ClientMatter } from '@/lib/business/client-matters'
+import { createUploadBatches } from '@/lib/documents/upload-batching'
 import { BUSINESS_OPEN_DOCUMENTS_EVENT } from '@/lib/events/business-events'
 import styles from './clientMatters.module.css'
 import WorkspaceLoadingState from './WorkspaceLoadingState'
@@ -126,21 +127,26 @@ export default function MatterDocumentsPanel({ matter }: MatterDocumentsPanelPro
     setUploadError(null)
     setUploadDone(null)
     try {
-      const formData = new FormData()
-      formData.set('caseId', caseId)
-      for (const file of Array.from(files)) {
-        formData.append('files', file)
+      const uploadBatches = createUploadBatches(Array.from(files))
+      let uploadedCount = 0
+
+      for (const batch of uploadBatches) {
+        const formData = new FormData()
+        formData.set('caseId', caseId)
+        for (const file of batch) {
+          formData.append('files', file)
+        }
+
+        const res = await fetch('/api/documents', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(data?.error || 'Upload failed.')
+        uploadedCount += Array.isArray(data?.documents) ? data.documents.length : batch.length
       }
 
-      const res = await fetch('/api/documents', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data?.error || 'Upload failed.')
-
-      const uploadedCount = Array.isArray(data?.documents) ? data.documents.length : files.length
       setUploadDone(`${uploadedCount} document${uploadedCount === 1 ? '' : 's'} uploaded.`)
       if (uploadInputRef.current) uploadInputRef.current.value = ''
       await load()

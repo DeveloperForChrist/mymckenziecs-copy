@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
+import { BusinessWorkspaceError, ensureBusinessContext } from '@/lib/business/business-workspace'
 import { createBusinessAlert } from '@/lib/business/alerts'
 import { documentLimitForPlan, planDisplayName } from '@/lib/plans/access'
 import { getUserPlanData } from '@/lib/payments/user-plan'
 import { getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse, uploadIpRateLimiter, uploadRateLimiter } from '@/lib/utils/rate-limit'
 import { EMAIL_ATTACHMENT_LABEL, isAllowedEmailAttachment } from '@/lib/inbox/attachment-policy'
+import type { User } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -37,6 +39,49 @@ const parseBoundedPositiveInt = (value: string | null, fallback: number, max: nu
   return Math.min(parsed, max)
 }
 
+async function resolveCaseAccess(options: {
+  supabase: Awaited<ReturnType<typeof createSupabaseRouteClient>>
+  user: User
+  caseId: string
+}): Promise<'personal' | 'business' | null> {
+  const { supabase, user, caseId } = options
+
+  const { data: ownedCase, error: ownedErr } = await supabase
+    .from('cases')
+    .select('id')
+    .eq('id', caseId)
+    .eq('user_id', user.id)
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  if (ownedErr) {
+    throw new Error(ownedErr.message)
+  }
+  if (ownedCase) {
+    return 'personal'
+  }
+
+  try {
+    const workspace = await ensureBusinessContext(user)
+    const { data: matterRow, error: matterError } = await supabaseAdmin
+      .from('client_matters')
+      .select('id')
+      .eq('business_id', workspace.businessId)
+      .eq('case_id', caseId)
+      .maybeSingle()
+
+    if (matterError) {
+      throw new Error(matterError.message)
+    }
+    return matterRow ? 'business' : null
+  } catch (error) {
+    if (error instanceof BusinessWorkspaceError && error.status === 403) {
+      return null
+    }
+    throw error
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteClient()
@@ -58,20 +103,16 @@ export async function GET(request: NextRequest) {
     const offset = parseBoundedPositiveInt(searchParams.get('offset'), 0, Number.MAX_SAFE_INTEGER)
     const caseIdFilter = (searchParams.get('caseId') || '').trim() || null
     const rangeEnd = offset + limit
+    let caseAccess: 'personal' | 'business' | null = null
 
     if (caseIdFilter) {
-      const { data: ownedCase, error: ownedErr } = await supabase
-        .from('cases')
-        .select('id')
-        .eq('id', caseIdFilter)
-        .eq('user_id', user.id)
-        .is('deleted_at', null)
-        .maybeSingle()
-
-      if (ownedErr) {
-        return NextResponse.json({ error: ownedErr.message }, { status: 500 })
+      try {
+        caseAccess = await resolveCaseAccess({ supabase, user, caseId: caseIdFilter })
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unable to verify case access.'
+        return NextResponse.json({ error: message }, { status: 500 })
       }
-      if (!ownedCase) {
+      if (!caseAccess) {
         return NextResponse.json({ error: 'Forbidden caseId' }, { status: 403 })
       }
     }
@@ -79,7 +120,7 @@ export async function GET(request: NextRequest) {
     const preferredSelect = 'id, name, type, created_at, file_size, mime_type, storage_path, storage_url, case_id, starred'
     const fallbackSelect = 'id, name, type, created_at, file_size, mime_type, storage_path, storage_url, case_id'
 
-    let preferredQuery = supabase
+    let preferredQuery = (caseAccess === 'business' ? supabaseAdmin : supabase)
       .from('documents')
       .select(preferredSelect)
       .is('deleted_at', null)
@@ -88,6 +129,9 @@ export async function GET(request: NextRequest) {
     }
     if (caseIdFilter) {
       preferredQuery = preferredQuery.eq('case_id', caseIdFilter)
+      if (caseAccess === 'business') {
+        preferredQuery = preferredQuery.eq('uploaded_by', user.id)
+      }
     }
     const preferredResult = await preferredQuery
       .order('created_at', { ascending: false })
@@ -97,7 +141,7 @@ export async function GET(request: NextRequest) {
 
     // Backward-compatible fallback while starred migration rolls out.
     if (error && /starred/i.test(error.message || '')) {
-      let fallbackQuery = supabase
+      let fallbackQuery = (caseAccess === 'business' ? supabaseAdmin : supabase)
         .from('documents')
         .select(fallbackSelect)
         .is('deleted_at', null)
@@ -106,6 +150,9 @@ export async function GET(request: NextRequest) {
       }
       if (caseIdFilter) {
         fallbackQuery = fallbackQuery.eq('case_id', caseIdFilter)
+        if (caseAccess === 'business') {
+          fallbackQuery = fallbackQuery.eq('uploaded_by', user.id)
+        }
       }
       const fallbackResult = await fallbackQuery
         .order('created_at', { ascending: false })
@@ -181,12 +228,14 @@ export async function POST(request: NextRequest) {
     const files = formData.getAll('files').filter(Boolean) as File[]
     const caseIdFromForm = formData.get('caseId') as string | null
     const source = String(formData.get('source') || '').trim().toLowerCase()
+    const caseId = caseIdFromForm || null
 
     if (!files.length) {
       return NextResponse.json({ error: 'No files provided' }, { status: 400 })
     }
 
-    const { count: existingDocumentsCount, error: countError } = await supabase
+    const countClient = source === 'business-inbox-attachment' ? supabaseAdmin : supabase
+    const { count: existingDocumentsCount, error: countError } = await countClient
       .from('documents')
       .select('id', { count: 'exact', head: true })
       .eq('uploaded_by', user.id)
@@ -213,22 +262,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const caseId = caseIdFromForm || null
     if (caseId) {
-      // Prevent orphaned storage uploads: validate ownership before uploading anything.
-      const { data: ownedCase, error: ownedErr } = await supabase
-        .from('cases')
-        .select('id')
-        .eq('id', caseId)
-        .eq('user_id', user.id)
-        .is('deleted_at', null)
-        .maybeSingle()
-
-      if (ownedErr) {
-        return NextResponse.json({ error: ownedErr.message }, { status: 500 })
-      }
-      if (!ownedCase) {
-        return NextResponse.json({ error: 'Forbidden caseId' }, { status: 403 })
+      // Prevent orphaned storage uploads: validate access before uploading anything.
+      try {
+        const caseAccess = await resolveCaseAccess({ supabase, user, caseId })
+        if (!caseAccess) {
+          return NextResponse.json({ error: 'Forbidden caseId' }, { status: 403 })
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unable to verify case access.'
+        return NextResponse.json({ error: message }, { status: 500 })
       }
     }
     const results: any[] = []

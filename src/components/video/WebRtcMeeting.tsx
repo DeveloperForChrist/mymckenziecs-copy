@@ -49,6 +49,7 @@ export type SignalPayload = HelloPayload | OfferPayload | AnswerPayload | IcePay
 export type WebRtcMeetingProps = {
   roomName: string;
   displayName?: string;
+  hideRoomChrome?: boolean;
   className?: string;
   videoGridClassName?: string;
   primaryButtonClassName?: string;
@@ -60,6 +61,7 @@ export type WebRtcMeetingProps = {
 export default function WebRtcMeeting({
   roomName,
   displayName = 'Participant',
+  hideRoomChrome = false,
   className,
   videoGridClassName,
   primaryButtonClassName,
@@ -112,6 +114,7 @@ export default function WebRtcMeeting({
   }, [roomName]);
 
   const defaultMode = !className && !videoGridClassName && !primaryButtonClassName && !secondaryButtonClassName;
+  const showRoomChrome = defaultMode && !hideRoomChrome;
   const stageClass = defaultMode ? styles.stage : styles.embeddedStage;
 
   const copyInvite = async () => {
@@ -480,7 +483,7 @@ export default function WebRtcMeeting({
 
   return (
     <div className={className || styles.meetingShell}>
-      {defaultMode && (
+      {showRoomChrome && (
         <header className={styles.topBar}>
           <div className={styles.brandBlock}>
             <span className={styles.brandMark}>M</span>
@@ -584,7 +587,7 @@ export default function WebRtcMeeting({
           </div>
         </main>
 
-        {defaultMode && (
+        {showRoomChrome && (
           <aside className={styles.sidePanel} aria-label="Call details">
             <div className={styles.panelHeading}>
               <div>

@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/database/supabase-browser";
 import { getAppMarketFromPathname, getAppRouteForMarket } from "@/lib/markets/app-routes";
+import { createUploadBatches } from "@/lib/documents/upload-batching";
 import styles from "./documents-page-new.module.css";
 import DocumentsActionBar from "./documents/DocumentsActionBar";
 import DocumentsFolderModal from "./documents/DocumentsFolderModal";
@@ -232,14 +233,21 @@ export default function DocumentsClient({
     setUploading(true);
     try {
       const files = Array.from(e.target.files);
-      const formData = new FormData();
-      files.forEach(file => formData.append('files', file));
       const targetFolderId = activeFolder || uploadFolderId || undefined;
+      const uploadBatches = createUploadBatches(files);
+      const uploadedRows: any[] = [];
 
-      const res = await fetch('/api/documents', { method: 'POST', body: formData, credentials: 'include' });
-      const data: any = await readApiJson(res);
-      if (!res.ok) throw new Error(data?.error || 'Upload failed');
-      const newDocs: Document[] = (data.documents || []).map((x: any)=> mapApiDocument(x, folderMap, targetFolderId));
+      for (const batch of uploadBatches) {
+        const formData = new FormData();
+        batch.forEach(file => formData.append('files', file));
+
+        const res = await fetch('/api/documents', { method: 'POST', body: formData, credentials: 'include' });
+        const data: any = await readApiJson(res);
+        if (!res.ok) throw new Error(data?.error || 'Upload failed');
+        uploadedRows.push(...(Array.isArray(data?.documents) ? data.documents : []));
+      }
+
+      const newDocs: Document[] = uploadedRows.map((x: any)=> mapApiDocument(x, folderMap, targetFolderId));
       setDocuments(p=>[...newDocs,...p]);
       const mapFolderId = targetFolderId || '';
       if (mapFolderId) {

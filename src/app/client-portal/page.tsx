@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
+import { createUploadBatches } from '@/lib/documents/upload-batching'
 import {
   Mail,
   FileText,
@@ -693,23 +694,28 @@ function ClientPortalContent() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      const formData = new FormData()
-      formData.append('source', 'client-portal')
-      for (const file of Array.from(files)) {
-        formData.append('files', file)
+      const uploadBatches = createUploadBatches(Array.from(files))
+      let uploadedCount = 0
+
+      for (const batch of uploadBatches) {
+        const formData = new FormData()
+        formData.append('source', 'client-portal')
+        for (const file of batch) {
+          formData.append('files', file)
+        }
+
+        const response = await fetch('/api/documents', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+        })
+        const payload = await response.json().catch(() => ({}))
+        if (!response.ok) {
+          throw new Error(payload?.error || 'Upload failed.')
+        }
+        uploadedCount += Array.isArray(payload?.documents) ? payload.documents.length : batch.length
       }
 
-      const response = await fetch('/api/documents', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      })
-      const payload = await response.json().catch(() => ({}))
-      if (!response.ok) {
-        throw new Error(payload?.error || 'Upload failed.')
-      }
-
-      const uploadedCount = Array.isArray(payload?.documents) ? payload.documents.length : files.length
       setPortalUploadNotice(
         activeSyncTarget
           ? `${uploadedCount} document${uploadedCount === 1 ? '' : 's'} uploaded. You can now share them into ${activeSyncTarget.matterLabel}.`
@@ -780,7 +786,7 @@ function ClientPortalContent() {
     }).format(date)
   }
 
-  const meetingHref = (roomName: string) => `/video-call?room=${encodeURIComponent(roomName)}`
+  const meetingHref = (roomName: string) => `/video-call?room=${encodeURIComponent(roomName)}&viewer=client`
 
   if (loading) {
     return (

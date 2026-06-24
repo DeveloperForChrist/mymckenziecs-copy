@@ -313,7 +313,7 @@ export async function GET(request: Request) {
       const businessName = buildBusinessName({ user, business, profile })
       const dateLabel = formatDateLabel(meetingDateTime)
       const timeLabel = formatTimeLabel(meeting.meeting_time)
-      const joinUrl = `${appUrl}/video-call?room=${encodeURIComponent(String(meeting.room_name || ''))}`
+      const joinUrl = `${appUrl}/video-call?room=${encodeURIComponent(String(meeting.room_name || ''))}&viewer=client`
       const nowIso = now.toISOString()
 
       await createBusinessAlert({

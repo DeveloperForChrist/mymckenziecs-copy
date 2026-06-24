@@ -1801,7 +1801,7 @@
 }
 
 .meetingVideoFrame {
-  min-height: 420px !important;
+  min-height: min(72vh, 860px) !important;
   border-radius: 8px !important;
 }
 
@@ -2613,7 +2613,7 @@
   }
 
   .meetingVideoFrame {
-    min-height: 330px !important;
+    min-height: 56vh !important;
   }
 
   .pageContent {
