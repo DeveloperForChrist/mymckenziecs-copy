@@ -375,8 +375,10 @@ function formatChatHistoryDate(isoDate: string) {
 
 function BusinessChatWorkspace({
   initialChatPlan,
+  mainSidebarExpanded,
 }: {
   initialChatPlan: InitialChatPlanState;
+  mainSidebarExpanded: boolean;
 }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -489,7 +491,7 @@ function BusinessChatWorkspace({
         </div>
       </div>
 
-      <div className={styles.chatWorkspace}>
+      <div className={`${styles.chatWorkspace} ${mainSidebarExpanded ? styles.chatWorkspaceWithMainSidebar : styles.chatWorkspaceWithoutMainSidebar}`}>
         <div className={styles.chatbotFrame}>
           <ChatInterface
             initialAuthPlan={initialChatPlan}
@@ -1124,7 +1126,7 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
 
       <section className={styles.workspace}>
         {activeId === 'home' ? (
-          <BusinessChatWorkspace initialChatPlan={initialChatPlan} />
+          <BusinessChatWorkspace initialChatPlan={initialChatPlan} mainSidebarExpanded={sidebarOpen} />
         ) : (
           <div className={styles.pageWorkspace}>
               <BusinessWorkspacePage
