@@ -106,8 +106,8 @@
   scrollbar-width: none;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 14px 10px 4px;
+  gap: 3px;
+  padding: 12px 10px 4px;
 }
 
 .navList::-webkit-scrollbar {
@@ -196,15 +196,15 @@
 
 .navItem {
   width: 100%;
-  min-height: 44px;
+  min-height: 40px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   border: 1px solid transparent;
   border-radius: 10px;
   background: transparent;
   color: rgba(255, 255, 255, 0.78);
-  padding: 10px 12px;
+  padding: 8px 12px;
   cursor: pointer;
   text-align: left;
   transition:

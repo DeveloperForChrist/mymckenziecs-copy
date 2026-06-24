@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { CalendarPlus } from 'lucide-react'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import { hasReminderAccess as planHasReminderAccess } from '@/lib/plans/access'
 import styles from './calendar-new.module.css'
@@ -608,6 +609,21 @@ export default function EnhancedCalendarClient({
     }
   }
 
+  const categoryDotClass = (category?: CalendarEvent['category']) => {
+    switch (category) {
+      case 'deadline':
+        return styles.eventDotDeadline
+      case 'hearing':
+        return styles.eventDotHearing
+      case 'meeting':
+        return styles.eventDotMeeting
+      case 'reminder':
+        return styles.eventDotReminder
+      default:
+        return styles.eventDotOther
+    }
+  }
+
   const statusClass = (status: EventStatus) => {
     if (status === 'overdue') return styles.eventStatusOverdue
     if (status === 'today') return styles.eventStatusToday
@@ -630,7 +646,7 @@ export default function EnhancedCalendarClient({
       <div className={styles.header}>
         <div className={styles.headerTitle}>
           <h1>MyCalendar</h1>
-          <p>Track events, hearings, and case milestones in one place.</p>
+          <p>Manage hearings, filing deadlines, client meetings and case milestones.</p>
         </div>
         <div className={styles.headerActions}>
           <button className={styles.navButton} onClick={() => setVisibleMonth(addMonths(visibleMonth, -1))}>
@@ -668,8 +684,18 @@ export default function EnhancedCalendarClient({
                     cell.isToday ? styles.dayCellToday : ''
                   } ${cell.isSelected ? styles.dayCellActive : ''}`}
                 >
-                  <div className={styles.dayNumber}>{cell.date.getDate()}</div>
+                  <div className={styles.dayTopRow}>
+                    <div className={styles.dayNumber}>{cell.date.getDate()}</div>
+                    {cell.isToday && <span className={styles.todayBadge}>Today</span>}
+                  </div>
                   {events.length > 0 && <div className={styles.dayEventCount}>{events.length}</div>}
+                  {events.length > 0 && (
+                    <div className={styles.eventDots} aria-label={`${events.length} scheduled event${events.length === 1 ? '' : 's'}`}>
+                      {events.slice(0, 3).map((event) => (
+                        <span key={`${event.id}-dot`} className={`${styles.eventDot} ${categoryDotClass(event.category)}`} />
+                      ))}
+                    </div>
+                  )}
                   {events.slice(0, 2).map((event) => {
                     const status = getEventStatus(event)
                     return (
@@ -714,18 +740,20 @@ export default function EnhancedCalendarClient({
 
           <div className={`${styles.card} ${styles.sidebar} ${eventsPanelMode === 'add' ? styles.sidebarAddMode : ''}`}>
             <div className={styles.eventsPanelHeader}>
-              <div className={styles.sidebarTitle}>Events</div>
+              <div className={styles.sidebarTitle}>Upcoming Events</div>
               <div className={styles.eventsModeSwitch}>
                 <button
                   type="button"
                   className={`${styles.eventsModeButton} ${eventsPanelMode === 'view' ? styles.eventsModeButtonActive : ''}`}
                   onClick={() => setEventsPanelMode('view')}
                 >
-                  Events Set
+                  Upcoming
                 </button>
                 <button
                   type="button"
-                  className={`${styles.eventsModeButton} ${eventsPanelMode === 'add' ? styles.eventsModeButtonActive : ''} ${
+                  className={`${styles.eventsModeButton} ${styles.eventsAddButton} ${
+                    eventsPanelMode === 'add' ? styles.eventsModeButtonActive : ''
+                  } ${
                     !canManageEvents ? styles.eventsModeButtonDisabled : ''
                   }`}
                   onClick={() => {
@@ -746,19 +774,38 @@ export default function EnhancedCalendarClient({
             {eventsPanelMode === 'view' ? (
               <>
                 <div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 700, marginTop: 6 }}>
-                    {eventsLoading ? 'Loading...' : `${allEventsList.length} total`}
+                  <div className={styles.eventsSummary}>
+                    {eventsLoading ? 'Loading...' : `${allEventsList.length} scheduled`}
                   </div>
                 </div>
 
                 <div>
-                  <div className={styles.sidebarTitle}>Events</div>
                   <div className={styles.eventList}>
                     {eventsLoading && (
                       <div className={styles.emptyState}>Loading events...</div>
                     )}
                     {!eventsLoading && allEventsList.length === 0 && (
-                      <div className={styles.emptyState}>No events set yet. Add an event to get started.</div>
+                      <div className={styles.emptyState}>
+                        <div className={styles.emptyStateIcon}>
+                          <CalendarPlus size={22} aria-hidden="true" />
+                        </div>
+                        <strong>No events scheduled</strong>
+                        <span>Add hearings, client meetings, filing deadlines and reminders to keep matters on track.</span>
+                        <button
+                          type="button"
+                          className={styles.emptyStateAction}
+                          onClick={() => {
+                            if (!canManageEvents) {
+                              setFormError(CALENDAR_READ_ONLY_MESSAGE)
+                              return
+                            }
+                            setEventsPanelMode('add')
+                          }}
+                          disabled={!canManageEvents}
+                        >
+                          Add Event
+                        </button>
+                      </div>
                     )}
                     {!eventsLoading && allEventsList.map((event) => {
                       const status = getEventStatus(event)

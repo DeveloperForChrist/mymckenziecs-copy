@@ -98,12 +98,11 @@ export async function GET() {
       return NextResponse.json({ message: 'Unable to load alerts.' }, { status: 500 })
     }
 
-    const persistedAlerts: AlertResponseItem[] = (data || [])
-      .map((row) => {
+    const persistedAlerts = (data || []).reduce<AlertResponseItem[]>((alerts, row) => {
         const typedRow = row as PersistedAlertRow
         const type = String(typedRow.type || 'system')
-        if (!isImportantBusinessAlertType(type)) return null
-        return {
+        if (!isImportantBusinessAlertType(type)) return alerts
+        alerts.push({
           id: String(typedRow.id),
           type,
           priority: String(typedRow.priority || 'medium'),
@@ -114,9 +113,9 @@ export async function GET() {
           clientName: typedRow.client_name ? String(typedRow.client_name) : undefined,
           actionLabel: typedRow.action_label ? String(typedRow.action_label) : undefined,
           metadata: typedRow.metadata || {},
-        }
-      })
-      .filter((alert): alert is AlertResponseItem => Boolean(alert))
+        })
+        return alerts
+      }, [])
 
     const derivedAlerts: AlertResponseItem[] = []
 
