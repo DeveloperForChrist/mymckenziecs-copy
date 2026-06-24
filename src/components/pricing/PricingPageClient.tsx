@@ -16,7 +16,7 @@ import {
 import { getAppRouteForMarket } from '@/lib/markets/app-routes';
 import { buildMarketAwareAuthHref } from '@/lib/markets/public-routes';
 import { isBillingActiveStripeStatus, isTrialingStripeStatus } from '@/lib/payments/subscription-status';
-import styles from '@/components/assistant/assistantPricing.module.css';
+import styles from '@/components/dashboard/userdashboard.module.css';
 
 type PricingGuideLink = {
   href: string;
@@ -39,7 +39,6 @@ type PricingPageClientProps = {
 };
 
 type PricingAudience = 'individual' | 'professionals';
-type IndividualProduct = 'assistant' | 'workspace';
 type PricingCard = {
   key: string;
   name: string;
@@ -61,7 +60,7 @@ const defaultGuideLinks: PricingGuideLink[] = [
 ];
 
 export default function PricingPageClient({
-  audienceDescription = 'Use Assistant for quick help. Use Case workspace to organise a matter.',
+  audienceDescription = 'Use Case workspace to organise your legal matters.',
   availabilityMessage = 'Case-law tools are available now for UK legal matters. U.S. authority coverage and database access will be introduced soon.',
   guideIntroText = 'If you are managing your own matter, start with the',
   guideLinks = defaultGuideLinks,
@@ -163,7 +162,6 @@ export default function PricingPageClient({
   const [checkoutErrorPlanKey, setCheckoutErrorPlanKey] = useState<string | null>(null);
   const [changePlanMessage, setChangePlanMessage] = useState<string | null>(null);
   const [pricingAudience, setPricingAudience] = useState<PricingAudience>('individual');
-  const [individualProduct, setIndividualProduct] = useState<IndividualProduct>('assistant');
 
   const hasConfiguredPriceId = (priceId: string) => priceId.trim().length > 0;
   const isCurrentPlanLabel = (planName: string) => currentPlan.trim().toLowerCase() === planName.trim().toLowerCase();
@@ -229,12 +227,10 @@ export default function PricingPageClient({
     const idToken = session?.access_token;
     if (!idToken || !isBillingEligibleUser(session?.user)) {
       const matchedPlan = findPlanByAnyPriceId(priceId);
-      const isAssistantPlanSelection = matchedPlan?.name.toLowerCase().startsWith('assistant ') || false;
       const redirectTo = getAppRouteForMarket(`/dashboard?activatePlan=${encodeURIComponent(priceId)}`, billingMarket);
       window.location.href = buildMarketAwareAuthHref('/auth/signup', billingMarket, {
         planId: priceId,
         plan: matchedPlan?.name,
-        signupSource: isAssistantPlanSelection ? 'assistant' : undefined,
         redirect: redirectTo,
       });
       return;
@@ -349,8 +345,6 @@ export default function PricingPageClient({
   const basicPlanFeatures = decoratePlanFeaturesForMarket(getPlanFeatures('Basic'));
   const premiumPlanFeatures = decoratePlanFeaturesForMarket(getPlanFeatures('Premium'));
   const premiumPlusPlanFeatures = decoratePlanFeaturesForMarket(getPlanFeatures('Premium +'));
-  const assistantPlusPlanFeatures = getPlanFeatures('Assistant Plus');
-  const assistantProPlanFeatures = decoratePlanFeaturesForMarket(getPlanFeatures('Assistant Pro'));
 
   const businessSignupHref = () => {
     const params = new URLSearchParams({
@@ -538,7 +532,7 @@ export default function PricingPageClient({
     const disabled = Boolean(
       card.priceId &&
       (checkoutLoading === card.priceId || (hasPaidPlan && card.planName && isCurrentPlanLabel(card.planName)))
-    ) || Boolean(card.planName && !card.priceId && card.key.startsWith('assistant-'));
+    );
 
     return (
       <article key={card.key} className={`${styles.card} ${card.highlighted ? styles.highlighted : ''}`}>
@@ -816,25 +810,6 @@ export default function PricingPageClient({
           </div>
         </div>
 
-        {pricingAudience === 'individual' && (
-          <div className={styles.productTabs} aria-label="Individual product">
-              <button
-                type="button"
-                className={`${styles.productTab} ${individualProduct === 'assistant' ? styles.productTabActive : ''}`}
-                onClick={() => setIndividualProduct('assistant')}
-              >
-                MyMcKenzie Assistant
-              </button>
-              <button
-                type="button"
-                className={`${styles.productTab} ${individualProduct === 'workspace' ? styles.productTabActive : ''}`}
-                onClick={() => setIndividualProduct('workspace')}
-              >
-                Case workspace
-              </button>
-          </div>
-        )}
-
         {checkoutError && !checkoutErrorPlanKey && (
           <div className={styles.errorBox}>{checkoutError}</div>
         )}
@@ -845,9 +820,7 @@ export default function PricingPageClient({
           aria-label={
             pricingAudience === 'professionals'
               ? 'Professional plans'
-              : individualProduct === 'assistant'
-                ? 'Assistant plans'
-                : 'Case workspace plans'
+              : 'Case workspace plans'
           }
         >
           {activeCards.map(renderCard)}
