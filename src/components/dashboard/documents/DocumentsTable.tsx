@@ -27,7 +27,7 @@ export default function DocumentsTable({
       <div className={styles.tableHeader}>
         <div className={styles.headerCell}>Name</div>
         <div className={styles.headerCell}>Type</div>
-        <div className={styles.headerCell}>Modified</div>
+        <div className={styles.headerCell}>Date</div>
         <div className={styles.headerCell}>Size</div>
       </div>
 
@@ -79,7 +79,7 @@ export default function DocumentsTable({
               </div>
             </div>
             <div className={styles.cell} data-label="Type">{doc.type}</div>
-            <div className={styles.cell} data-label="Modified">{formatDate(doc.createdAt)}</div>
+            <div className={styles.cell} data-label="Date">{formatDate(doc.createdAt)}</div>
             <div className={styles.cell} data-label="Size">{formatSize(doc.size || 0)}</div>
           </div>
         ))}

@@ -53,7 +53,6 @@ export default function DocumentsClient({
   const [documents, setDocuments] = useState<Document[]>([]);
   const [customFolders, setCustomFolders] = useState<Folder[]>([]);
   const [folderMap, setFolderMap] = useState<Record<string, string>>({});
-  const [uploadFolderId, setUploadFolderId] = useState<string>('');
   const [uid, setUid] = useState<string | null>(null);
   const [viewingDocument, setViewingDocument] = useState<Document | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -123,10 +122,6 @@ export default function DocumentsClient({
       cancelled = true;
     };
   }, [uid]);
-
-  useEffect(() => {
-    if (activeFolder) setUploadFolderId(activeFolder);
-  }, [activeFolder]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -249,7 +244,7 @@ export default function DocumentsClient({
     setUploading(true);
     try {
       const files = Array.from(e.target.files);
-      const targetFolderId = activeFolder || uploadFolderId || undefined;
+      const targetFolderId = activeFolder || undefined;
       const uploadBatches = createUploadBatches(files);
       const uploadedRows: any[] = [];
 
@@ -747,9 +742,6 @@ export default function DocumentsClient({
         <DocumentsActionBar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          folders={folders}
-          uploadFolderId={uploadFolderId}
-          onUploadFolderChange={setUploadFolderId}
           uploading={uploading}
           canUpload={canUpload}
           onUpload={handleUpload}
