@@ -260,11 +260,11 @@ export async function POST(request: NextRequest) {
     const appUrl = getAppUrl(request)
 
     const verifyUrl = `${appUrl}/api/email/verify?token=${encodeURIComponent(rawToken)}&redirect=${encodeURIComponent(redirect)}`
-    const firstName = fullName.split(' ')[0] || 'there'
+    const verificationFirstName = fullName.split(' ')[0] || 'there'
     const htmlBody = renderPlainEmail({
       preheader: 'Confirm your email to finish setting up your secure MyMcKenzieCS workspace.',
       title: 'Confirm your email address',
-      greeting: `Hello ${firstName},`,
+      greeting: `Hello ${verificationFirstName},`,
       intro: 'Please confirm your email address so we can finish setting up your secure MyMcKenzieCS workspace.',
       detailsTitle: 'Account details',
       details: [
