@@ -423,6 +423,9 @@ export function VideoCallPanel({
   const endMeeting=(m:Meeting)=>{
     void completeMeeting(m)
   }
+  const restoreMeeting=(m:Meeting)=>{
+    void updateStatus(m, 'scheduled')
+  }
   const copyLink=async(m:Meeting)=>{
     const link=meetingLink(m.roomName)
     try{await navigator.clipboard.writeText(link)}catch{void 0}
@@ -543,6 +546,11 @@ export function VideoCallPanel({
                 </button>
                 {selected.status==='scheduled'&&<button type="button" className={styles.ghostBtn} onClick={()=>void updateStatus(selected, 'cancelled')}><XCircle size={14}/>Cancel</button>}
                 {selected.status==='in_progress'&&<button type="button" className={styles.ghostBtn} onClick={()=>endMeeting(selected)}><CheckCircle2 size={14}/>Mark Done</button>}
+                {(selected.status==='completed'||selected.status==='cancelled'||selected.status==='no_show')&&(
+                  <button type="button" className={styles.ghostBtn} onClick={()=>restoreMeeting(selected)}>
+                    <CheckCircle2 size={14}/>Restore
+                  </button>
+                )}
               </div>
             </div>
             <div className={styles.detailBody}>

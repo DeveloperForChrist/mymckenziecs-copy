@@ -9,14 +9,9 @@
 import {
   Camera,
   CameraOff,
-  Check,
-  Clipboard,
-  FileText,
   Mic,
   MicOff,
   PhoneOff,
-  ShieldCheck,
-  Sparkles,
   UserRound,
   UsersRound,
 } from 'lucide-react';
@@ -61,7 +56,6 @@ export type WebRtcMeetingProps = {
 export default function WebRtcMeeting({
   roomName,
   displayName = 'Participant',
-  hideRoomChrome = false,
   className,
   videoGridClassName,
   primaryButtonClassName,
@@ -95,7 +89,6 @@ export default function WebRtcMeeting({
   const [rejoinNonce, setRejoinNonce] = useState(0);
   const [localReady, setLocalReady] = useState(false);
   const [remoteReady, setRemoteReady] = useState(false);
-  const [roomCopied, setRoomCopied] = useState(false);
 
   const initials = useMemo(() => {
     const source = displayName.trim() || 'Participant';
@@ -106,26 +99,8 @@ export default function WebRtcMeeting({
       .join('');
   }, [displayName]);
 
-  const shareUrl = useMemo(() => {
-    if (typeof window === 'undefined') return roomName;
-    const url = new URL(window.location.href);
-    url.searchParams.set('room', roomName);
-    return url.toString();
-  }, [roomName]);
-
   const defaultMode = !className && !videoGridClassName && !primaryButtonClassName && !secondaryButtonClassName;
-  const showRoomChrome = defaultMode && !hideRoomChrome;
   const stageClass = defaultMode ? styles.stage : styles.embeddedStage;
-
-  const copyInvite = async () => {
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setRoomCopied(true);
-      window.setTimeout(() => setRoomCopied(false), 1800);
-    } catch {
-      setRoomCopied(false);
-    }
-  };
 
   const flushIce = useCallback(async (pc: RTCPeerConnection) => {
     const buf = iceBufRef.current;
@@ -483,24 +458,6 @@ export default function WebRtcMeeting({
 
   return (
     <div className={className || styles.meetingShell}>
-      {showRoomChrome && (
-        <header className={styles.topBar}>
-          <div className={styles.brandBlock}>
-            <span className={styles.brandMark}>M</span>
-            <div>
-              <p className={styles.eyebrow}>Client portal video room</p>
-              <h1 className={styles.title}>Secure consultation with MyMcKenzieCS</h1>
-            </div>
-          </div>
-          <div className={styles.sessionMeta}>
-            <span className={styles.statusPill}>
-              <span className={styles.statusDot} />
-              {status}
-            </span>
-          </div>
-        </header>
-      )}
-
       <div className={defaultMode ? styles.mainLayout : undefined}>
         <main className={stageClass}>
           {error && <p className={styles.error}>{error}</p>}
@@ -586,60 +543,6 @@ export default function WebRtcMeeting({
             {footerAction}
           </div>
         </main>
-
-        {showRoomChrome && (
-          <aside className={styles.sidePanel} aria-label="Call details">
-            <div className={styles.panelHeading}>
-              <div>
-                <h2>Session details</h2>
-                <p>Use this room for client portal consultations and litigant support calls.</p>
-              </div>
-              <span className={styles.panelIcon}>
-                <ShieldCheck size={18} />
-              </span>
-            </div>
-
-            <div className={styles.panelList}>
-              <div className={styles.panelItem}>
-                <ShieldCheck size={17} />
-                <div>
-                  <strong>Private room link</strong>
-                  <span>Only people with this invite can attempt to join this room.</span>
-                </div>
-              </div>
-              <div className={styles.panelItem}>
-                <FileText size={17} />
-                <div>
-                  <strong>Consultation ready</strong>
-                  <span>Designed for client updates, document walkthroughs, and case-preparation meetings.</span>
-                </div>
-              </div>
-              <div className={styles.panelItem}>
-                <Sparkles size={17} />
-                <div>
-                  <strong>Browser based</strong>
-                  <span>No app install needed. Camera and microphone permissions are requested by your browser.</span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <p className={styles.eyebrow}>Invite link</p>
-              <div className={styles.copyRow}>
-                <code className={styles.roomCode}>{shareUrl}</code>
-                <button
-                  type="button"
-                  className={styles.copyButton}
-                  onClick={copyInvite}
-                  aria-label={roomCopied ? 'Invite copied' : 'Copy invite link'}
-                  title={roomCopied ? 'Copied' : 'Copy invite link'}
-                >
-                  {roomCopied ? <Check size={16} /> : <Clipboard size={16} />}
-                </button>
-              </div>
-            </div>
-          </aside>
-        )}
       </div>
     </div>
   );

@@ -2,25 +2,11 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 14px;
   padding: clamp(14px, 2vw, 24px);
   background:
     radial-gradient(circle at top left, rgba(20, 184, 166, 0.18), transparent 34rem),
     linear-gradient(135deg, #0f172a 0%, #101827 46%, #16111f 100%);
   color: #f8fafc;
-}
-
-.topBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 16px;
-  border: 1px solid rgba(226, 232, 240, 0.14);
-  border-radius: 8px;
-  background: rgba(15, 23, 42, 0.74);
-  box-shadow: 0 24px 70px rgba(2, 6, 23, 0.34);
-  backdrop-filter: blur(18px);
 }
 
 .brandBlock,
@@ -102,9 +88,7 @@
 .mainLayout {
   flex: 1;
   min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
-  gap: 14px;
+  display: block;
 }
 
 .stage {
@@ -303,86 +287,6 @@
   line-height: 1.45;
 }
 
-.sidePanel {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 16px;
-  border: 1px solid rgba(226, 232, 240, 0.14);
-  border-radius: 8px;
-  background: rgba(15, 23, 42, 0.68);
-  box-shadow: 0 24px 70px rgba(2, 6, 23, 0.3);
-  backdrop-filter: blur(18px);
-}
-
-.panelHeading {
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.12);
-}
-
-.panelHeading h2 {
-  margin: 0;
-  color: #ffffff;
-  font-size: 1rem;
-  line-height: 1.25;
-}
-
-.panelHeading p {
-  margin: 4px 0 0;
-  color: #94a3b8;
-  font-size: 0.82rem;
-  line-height: 1.4;
-}
-
-.panelIcon {
-  width: 36px;
-  height: 36px;
-  display: inline-grid;
-  place-items: center;
-  flex: 0 0 auto;
-  border-radius: 8px;
-  background: rgba(20, 184, 166, 0.16);
-  color: #99f6e4;
-}
-
-.panelList {
-  display: grid;
-  gap: 10px;
-}
-
-.panelItem {
-  align-items: flex-start;
-  gap: 10px;
-  padding: 12px;
-  border: 1px solid rgba(226, 232, 240, 0.1);
-  border-radius: 8px;
-  background: rgba(15, 23, 42, 0.62);
-}
-
-.panelItem svg {
-  flex: 0 0 auto;
-  margin-top: 2px;
-  color: #5eead4;
-}
-
-.panelItem strong {
-  display: block;
-  color: #f8fafc;
-  font-size: 0.84rem;
-  line-height: 1.25;
-}
-
-.panelItem span {
-  display: block;
-  margin-top: 3px;
-  color: #94a3b8;
-  font-size: 0.78rem;
-  line-height: 1.4;
-}
-
 .callControls {
   z-index: 2;
   justify-content: center;
@@ -460,16 +364,6 @@
   color: #cbd5e1;
 }
 
-@media (max-width: 1100px) {
-  .mainLayout {
-    grid-template-columns: 1fr;
-  }
-
-  .sidePanel {
-    order: 2;
-  }
-}
-
 @media (max-width: 1400px) {
   .embeddedStage {
     gap: 10px;
@@ -489,12 +383,6 @@
   .meetingShell {
     padding: 10px;
     gap: 12px;
-  }
-
-  .topBar,
-  .sessionMeta {
-    align-items: flex-start;
-    flex-direction: column;
   }
 
   .videoGrid {
