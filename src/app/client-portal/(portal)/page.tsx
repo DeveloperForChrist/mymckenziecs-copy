@@ -411,11 +411,12 @@ function ClientPortalContent() {
       if (!user) return
       const userEmail = normalizeEmail(user.email)
 
-      const { data: links } = await supabase
-        .from('client_business_links')
-        .select('*, businesses(name)')
-        .eq('client_id', user.id)
-        .eq('status', 'active')
+      const linksResponse = await fetch('/api/client/business-links', {
+        credentials: 'include',
+        cache: 'no-store',
+      })
+      const linksPayload = await linksResponse.json().catch(() => ({}))
+      const links = linksResponse.ok && Array.isArray(linksPayload?.links) ? linksPayload.links : []
 
       let statuses: Record<string, any> = {}
       try {
@@ -440,7 +441,7 @@ function ClientPortalContent() {
             business_id: String(link.business_id),
             client_name: String(link.client_name || '').trim() || 'Client',
             status: String(link.status || 'active'),
-            business_name: String(link.businesses?.name || 'Legal Professional'),
+            business_name: String(link.business_name || 'Legal Professional'),
             has_open_matter: Boolean(statusEntry.hasOpenMatter),
             is_closed: Boolean(statusEntry.isClosed),
             latestMatterId: typeof statusEntry.latestMatterId === 'string' ? statusEntry.latestMatterId : null,

@@ -7,6 +7,43 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+export async function GET() {
+  try {
+    const supabase = await createSupabaseRouteClient()
+    const { data: authData } = await supabase.auth.getUser()
+    const user = authData?.user
+    if (!user) return NextResponse.json({ message: 'Unauthorized.' }, { status: 401 })
+
+    const { data: links, error } = await supabaseAdmin
+      .from('client_business_links')
+      .select('id, business_id, client_name, client_email, status, created_at, updated_at, businesses(name)')
+      .eq('client_id', user.id)
+      .eq('status', 'active')
+      .order('updated_at', { ascending: false })
+
+    if (error) {
+      console.error('Client business links load error:', error)
+      return NextResponse.json({ message: 'Unable to load client portal connections.' }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      links: (links || []).map((link: any) => ({
+        id: String(link.id),
+        business_id: String(link.business_id),
+        client_name: String(link.client_name || '').trim(),
+        client_email: String(link.client_email || '').trim(),
+        status: String(link.status || 'active'),
+        created_at: link.created_at || null,
+        updated_at: link.updated_at || null,
+        business_name: String(link.businesses?.name || 'Legal Professional'),
+      })),
+    })
+  } catch (error) {
+    console.error('Client business links GET error:', error)
+    return NextResponse.json({ message: 'Unable to load client portal connections.' }, { status: 500 })
+  }
+}
+
 export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteClient()
