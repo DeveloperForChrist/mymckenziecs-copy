@@ -279,21 +279,6 @@ function createRoomName(userId: string, clientName: string, meetingDate: string)
   return `mymckenzie-${owner}-${client}-${meetingDate.replace(/-/g, '')}-${createLocalId('room').slice(-8)}`;
 }
 
-function loadLocalJson<T>(key: string, fallback: T): T {
-  if (typeof window === 'undefined') return fallback;
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function saveLocalJson<T>(key: string, value: T) {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(key, JSON.stringify(value));
-}
-
 function normaliseMeetingTime(value: unknown) {
   if (typeof value !== 'string' || !value) return '';
   return value.slice(0, 5);

@@ -546,7 +546,6 @@ export default function AdminDashboard() {
           router.push('/jesusistheadmin')
           return
         }
-        localStorage.setItem('adminLoggedIn', 'true')
         void refreshAll()
       } catch {
         router.push('/jesusistheadmin')
@@ -674,8 +673,6 @@ export default function AdminDashboard() {
       try {
         await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' })
       } catch {}
-      localStorage.removeItem('adminLoggedIn')
-      localStorage.removeItem('adminEmail')
       router.push('/jesusistheadmin')
     }
     void perform()

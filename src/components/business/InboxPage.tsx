@@ -92,7 +92,6 @@ type PendingComposeSend = {
 }
 
 const COMPOSE_DRAFT_STORAGE_KEY = 'business-inbox-compose-draft-v1'
-const SENT_MESSAGES_STORAGE_KEY = 'business-inbox-sent-messages-v1'
 
 const ROLE_LABEL: Record<string, string> = {
   owner: 'Owner', solicitor: 'Solicitor/McKenzie Friend',
@@ -171,44 +170,6 @@ function buildDraftMessage(draft: SavedComposeDraft): Message {
     metadata: {
       invited_email: draft.to,
     },
-  }
-}
-
-function loadStoredMessages(key: string): Message[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = window.localStorage.getItem(key)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed)) return []
-    return parsed
-      .filter((entry): entry is Message => Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry) && typeof (entry as Message).id === 'string')
-      .map((entry) => ({
-        ...entry,
-        sender: String(entry.sender || 'Unknown'),
-        senderEmail: String(entry.senderEmail || ''),
-        subject: String(entry.subject || ''),
-        preview: String(entry.preview || '').slice(0, 100),
-        content: String(entry.content || ''),
-        timestamp: String(entry.timestamp || fmtTime(new Date().toISOString())),
-        isRead: Boolean(entry.isRead),
-        isStarred: Boolean(entry.isStarred),
-        type: entry.type === 'draft' ? 'draft' : 'email',
-        isSentByBusiness: Boolean(entry.isSentByBusiness),
-        metadata: entry.metadata && typeof entry.metadata === 'object' ? entry.metadata : undefined,
-        deletedAt: typeof entry.deletedAt === 'string' ? entry.deletedAt : null,
-      }))
-  } catch {
-    return []
-  }
-}
-
-function saveStoredMessages(key: string, messages: Message[]) {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.setItem(key, JSON.stringify(messages))
-  } catch {
-    // ignore localStorage failures
   }
 }
 
@@ -292,6 +253,10 @@ export default function InboxPage({
     if (!hasMeaningfulComposeDraft(draft)) {
       window.localStorage.removeItem(COMPOSE_DRAFT_STORAGE_KEY)
       setSavedDraft(null)
+      void fetch('/api/business/inbox/draft', {
+        method: 'DELETE',
+        credentials: 'include',
+      }).catch(() => {})
       return
     }
 
@@ -304,6 +269,12 @@ export default function InboxPage({
 
     window.localStorage.setItem(COMPOSE_DRAFT_STORAGE_KEY, JSON.stringify(nextDraft))
     setSavedDraft(nextDraft)
+    void fetch('/api/business/inbox/draft', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(nextDraft),
+    }).catch(() => {})
   }
 
   const resetRecipientPicker = () => {
@@ -465,19 +436,51 @@ export default function InboxPage({
   }, [])
 
   useEffect(() => {
-    try {
-      const rawDraft = window.localStorage.getItem(COMPOSE_DRAFT_STORAGE_KEY)
-      if (!rawDraft) return
-      const parsed = JSON.parse(rawDraft) as Partial<SavedComposeDraft>
-      if (!hasMeaningfulComposeDraft(parsed as SavedComposeDraft)) return
-      setSavedDraft({
-        to: String(parsed.to || ''),
-        subject: String(parsed.subject || ''),
-        body: String(parsed.body || ''),
-        updatedAt: typeof parsed.updatedAt === 'string' ? parsed.updatedAt : new Date().toISOString(),
-      })
-    } catch {
-      window.localStorage.removeItem(COMPOSE_DRAFT_STORAGE_KEY)
+    let cancelled = false
+
+    const normalizeDraft = (draft: Partial<SavedComposeDraft> | null | undefined): SavedComposeDraft | null => {
+      if (!hasMeaningfulComposeDraft(draft as SavedComposeDraft)) return null
+      return {
+        to: String(draft?.to || ''),
+        subject: String(draft?.subject || ''),
+        body: String(draft?.body || ''),
+        updatedAt: typeof draft?.updatedAt === 'string' ? draft.updatedAt : new Date().toISOString(),
+      }
+    }
+
+    const loadDraft = async () => {
+      let localDraft: SavedComposeDraft | null = null
+      try {
+        const rawDraft = window.localStorage.getItem(COMPOSE_DRAFT_STORAGE_KEY)
+        if (rawDraft) localDraft = normalizeDraft(JSON.parse(rawDraft) as Partial<SavedComposeDraft>)
+      } catch {
+        window.localStorage.removeItem(COMPOSE_DRAFT_STORAGE_KEY)
+      }
+
+      try {
+        const response = await fetch('/api/business/inbox/draft', { credentials: 'include', cache: 'no-store' })
+        const payload = await response.json().catch(() => ({}))
+        if (!response.ok) throw new Error(payload?.message || 'Unable to load draft')
+        const serverDraft = normalizeDraft(payload?.draft)
+        if (cancelled) return
+
+        const localTime = localDraft?.updatedAt ? new Date(localDraft.updatedAt).getTime() : 0
+        const serverTime = serverDraft?.updatedAt ? new Date(serverDraft.updatedAt).getTime() : 0
+        const nextDraft = localTime > serverTime ? localDraft : serverDraft
+        setSavedDraft(nextDraft)
+        if (nextDraft) {
+          window.localStorage.setItem(COMPOSE_DRAFT_STORAGE_KEY, JSON.stringify(nextDraft))
+        } else {
+          window.localStorage.removeItem(COMPOSE_DRAFT_STORAGE_KEY)
+        }
+      } catch {
+        if (!cancelled && localDraft) setSavedDraft(localDraft)
+      }
+    }
+
+    void loadDraft()
+    return () => {
+      cancelled = true
     }
   }, [])
 
@@ -809,13 +812,9 @@ export default function InboxPage({
               return sentSenderEmail === currentUserEmail || Boolean(message.isSentByBusiness)
             })
         : []
-      const storedSentMessages = loadStoredMessages(SENT_MESSAGES_STORAGE_KEY)
-      const mergedSentMessages = dedupeMessages([...allSentMessages, ...storedSentMessages])
-
       setMessages(allMessages.filter((m: Message) => !m.metadata?.fromClient))
       setClientMessages(allMessages.filter((m: Message) => m.metadata?.fromClient))
-      setSentMessages(mergedSentMessages)
-      saveStoredMessages(SENT_MESSAGES_STORAGE_KEY, mergedSentMessages)
+      setSentMessages(dedupeMessages(allSentMessages))
 
       const { data: invs } = await supabase
         .from('team_invitations').select('*')
@@ -985,7 +984,6 @@ export default function InboxPage({
       }
       setSentMessages((prev) => {
         const next = dedupeMessages([sentMessage, ...prev])
-        saveStoredMessages(SENT_MESSAGES_STORAGE_KEY, next)
         return next
       })
 

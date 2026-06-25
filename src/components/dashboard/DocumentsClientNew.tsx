@@ -125,33 +125,37 @@ export default function DocumentsClient({
   }, [uid]);
 
   useEffect(() => {
-    try {
-      const storedFolders = localStorage.getItem('documentFolders:v1');
-      const storedMap = localStorage.getItem('documentFolderMap:v1');
-      if (storedFolders) {
-        setCustomFolders(JSON.parse(storedFolders));
-      }
-      if (storedMap) {
-        setFolderMap(JSON.parse(storedMap));
-      }
-    } catch (_) {}
-  }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('documentFolders:v1', JSON.stringify(customFolders));
-    } catch (_) {}
-  }, [customFolders]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('documentFolderMap:v1', JSON.stringify(folderMap));
-    } catch (_) {}
-  }, [folderMap]);
-
-  useEffect(() => {
     if (activeFolder) setUploadFolderId(activeFolder);
   }, [activeFolder]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadFolders = async () => {
+      if (!uid) {
+        setCustomFolders([]);
+        setFolderMap({});
+        return;
+      }
+      try {
+        const res = await fetch('/api/documents/folders', {
+          credentials: 'include',
+          cache: 'no-store',
+          signal: controller.signal,
+        });
+        const data: any = await readApiJson(res);
+        if (!res.ok) throw new Error(data?.error || 'Failed to load folders');
+        setCustomFolders(Array.isArray(data?.folders) ? data.folders : []);
+        setFolderMap(data?.folderMap && typeof data.folderMap === 'object' ? data.folderMap : {});
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
+        setUploadError(err?.message || 'Failed to load folders');
+      }
+    };
+
+    void loadFolders();
+    return () => controller.abort();
+  }, [uid]);
 
   // Intentionally keyed by uid only; folder reassignment is handled in a separate effect.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -268,6 +272,20 @@ export default function DocumentsClient({
           newDocs.forEach(doc => { next[doc.id] = mapFolderId; });
           return next;
         });
+        await Promise.all(
+          newDocs.map(async (doc) => {
+            const assignRes = await fetch('/api/documents/folders', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ documentId: doc.id, folderId: mapFolderId }),
+            });
+            const assignData: any = await readApiJson(assignRes);
+            if (!assignRes.ok) {
+              throw new Error(assignData?.error || 'Failed to save uploaded document folder');
+            }
+          })
+        );
       }
     } catch (err: any) {
       setUploadError(err?.message || 'Upload failed');
@@ -278,8 +296,27 @@ export default function DocumentsClient({
   };
 
   const handleFolderAssignment = (docId: string, folderId: string) => {
-    setDocuments(p => p.map(d => d.id == docId ? { ...d, folderId: folderId || undefined } : d));
-    setFolderMap(p => ({ ...p, [docId]: folderId }));
+    const nextFolderId = folderId || '';
+    const previousFolderId = folderMap[docId] || '';
+    setDocuments(p => p.map(d => d.id == docId ? { ...d, folderId: nextFolderId || undefined } : d));
+    setFolderMap(p => ({ ...p, [docId]: nextFolderId }));
+
+    void (async () => {
+      try {
+        const res = await fetch('/api/documents/folders', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ documentId: docId, folderId: nextFolderId }),
+        });
+        const data: any = await readApiJson(res);
+        if (!res.ok) throw new Error(data?.error || 'Failed to save folder assignment');
+      } catch (err: any) {
+        setDocuments(p => p.map(d => d.id == docId ? { ...d, folderId: previousFolderId || undefined } : d));
+        setFolderMap(p => ({ ...p, [docId]: previousFolderId }));
+        setUploadError(err?.message || 'Failed to save folder assignment');
+      }
+    })();
   };
 
   const toggleStar = async (id: string) => {
@@ -336,11 +373,42 @@ export default function DocumentsClient({
   };
 
   const confirmDeleteFolder = (folderId: string) => {
-    setCustomFolders(p => p.filter(f => f.id !== folderId));
-    if (activeFolder === folderId) {
-      setActiveFolder(null);
-      try { router.replace(documentsHref); } catch(e){}
-    }
+    void (async () => {
+      const previousFolders = customFolders;
+      const previousFolderMap = folderMap;
+      setCustomFolders(p => p.filter(f => f.id !== folderId));
+      setFolderMap((prev) => {
+        const next = { ...prev };
+        Object.keys(next).forEach((docId) => {
+          if (next[docId] === folderId) delete next[docId];
+        });
+        return next;
+      });
+      setDocuments((prev) => prev.map((doc) => doc.folderId === folderId ? { ...doc, folderId: undefined } : doc));
+      if (activeFolder === folderId) {
+        setActiveFolder(null);
+        try { router.replace(documentsHref); } catch(e){}
+      }
+
+      try {
+        const res = await fetch('/api/documents/folders', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ folderId }),
+        });
+        const data: any = await readApiJson(res);
+        if (!res.ok) throw new Error(data?.error || 'Failed to delete folder');
+      } catch (err: any) {
+        setCustomFolders(previousFolders);
+        setFolderMap(previousFolderMap);
+        setDocuments((prev) => prev.map((doc) => ({
+          ...doc,
+          folderId: previousFolderMap[doc.id] || undefined,
+        })));
+        setUploadError(err?.message || 'Failed to delete folder');
+      }
+    })();
   };
 
   const createFolder = () => {
@@ -349,11 +417,28 @@ export default function DocumentsClient({
   };
 
   const handleCreateFolder = () => {
-    if (newFolderName.trim()) {
-      setCustomFolders(p => [...p, { id: `folder-${Date.now()}`, name: newFolderName.trim() }]);
-      setShowFolderModal(false);
-      setNewFolderName('');
-    }
+    const trimmed = newFolderName.trim();
+    if (!trimmed) return;
+
+    void (async () => {
+      try {
+        const res = await fetch('/api/documents/folders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ name: trimmed }),
+        });
+        const data: any = await readApiJson(res);
+        if (!res.ok) throw new Error(data?.error || 'Failed to create folder');
+        if (data?.folder?.id) {
+          setCustomFolders((p) => [...p, data.folder]);
+        }
+        setShowFolderModal(false);
+        setNewFolderName('');
+      } catch (err: any) {
+        setUploadError(err?.message || 'Failed to create folder');
+      }
+    })();
   };
 
   // Summarize / analyse actions removed per product decision.

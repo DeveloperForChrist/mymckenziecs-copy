@@ -18,8 +18,6 @@ export default function AdminLoginPage() {
         const response = await fetch('/api/admin/session', { credentials: 'include' })
         const data = response.ok ? await response.json() : null
         if (!cancelled && data?.authenticated) {
-          localStorage.setItem('adminLoggedIn', 'true')
-          if (data?.email) localStorage.setItem('adminEmail', String(data.email))
           router.push('/jesusistheadmin/dashboard')
         }
       } catch {
@@ -49,8 +47,6 @@ export default function AdminLoginPage() {
         setLoading(false)
         return
       }
-      localStorage.setItem('adminLoggedIn', 'true')
-      localStorage.setItem('adminEmail', email)
       router.push('/jesusistheadmin/dashboard')
     } catch {
       setError('Login failed. Please try again.')
