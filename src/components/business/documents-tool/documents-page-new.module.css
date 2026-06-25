@@ -12,7 +12,7 @@
   flex-shrink: 0;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.04) 100%);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 24px;
+  border-radius: 8px;
   box-shadow: 0 18px 60px rgba(0, 0, 0, 0.24);
   backdrop-filter: blur(18px);
   display: flex;
@@ -48,7 +48,7 @@
   width: 30px;
   height: 30px;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 10px;
+  border-radius: 5px;
   background: rgba(255, 255, 255, 0.08);
   color: rgba(248, 250, 252, 0.94);
   cursor: pointer;
@@ -72,7 +72,7 @@
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: 5px;
   border: 1px solid transparent;
   color: rgba(248, 250, 252, 0.96);
   background: rgba(255, 255, 255, 0.03);
@@ -102,7 +102,7 @@
   width: 24px;
   height: 24px;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   background: transparent;
   color: rgba(248, 250, 252, 0.72);
   cursor: pointer;
@@ -128,7 +128,7 @@
   width: 100%;
   justify-content: center;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 5px;
   color: rgba(248, 250, 252, 0.98);
   text-decoration: none;
   font-weight: 600;
@@ -146,7 +146,7 @@
   padding: 28px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 24px;
+  border-radius: 8px;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
   backdrop-filter: blur(18px);
   display: flex;
@@ -162,7 +162,7 @@
   flex-wrap: wrap;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.04) 100%);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 20px;
+  border-radius: 8px;
   padding: 20px;
 }
 
@@ -189,7 +189,7 @@
 .statItem {
   min-width: 118px;
   padding: 10px 14px;
-  border-radius: 14px;
+  border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(15, 23, 42, 0.25);
   display: flex;
@@ -222,7 +222,7 @@
   gap: 12px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.04) 100%);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
+  border-radius: 6px;
   padding: 12px;
 }
 
@@ -233,7 +233,7 @@
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: 5px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(15, 23, 42, 0.35);
   color: rgba(226, 232, 240, 0.78);
@@ -295,7 +295,7 @@
 .folderInlineSelect,
 .dialogInput {
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 10px;
+  border-radius: 5px;
   background: rgba(15, 23, 42, 0.35);
   color: rgba(248, 250, 252, 0.96);
   font-size: 0.86rem;
@@ -314,7 +314,7 @@
 .primaryBtn,
 .secondaryBtn {
   border: none;
-  border-radius: 10px;
+  border-radius: 5px;
   padding: 0 14px;
   height: 40px;
   font-weight: 600;
@@ -358,13 +358,13 @@
   gap: 8px;
   padding: 6px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.05);
 }
 
 .tab {
   border: none;
-  border-radius: 999px;
+  border-radius: 5px;
   background: transparent;
   color: rgba(226, 232, 240, 0.86);
   padding: 8px 16px;
@@ -378,7 +378,7 @@
 }
 
 .fileListContainer {
-  border-radius: 18px;
+  border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.04) 100%);
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
@@ -481,7 +481,7 @@
   width: 30px;
   height: 30px;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.06);
   color: rgba(226, 232, 240, 0.86);
   cursor: pointer;
@@ -523,7 +523,7 @@
 .readOnlyNotice {
   margin: -4px 0 0;
   padding: 8px 10px;
-  border-radius: 10px;
+  border-radius: 5px;
   border: 1px solid rgba(251, 191, 36, 0.38);
   background: rgba(120, 53, 15, 0.3);
   color: rgba(254, 240, 138, 0.96);
@@ -534,7 +534,7 @@
 .caseFilterBar{
   margin: 10px 0 0;
   padding: 10px 12px;
-  border-radius: 14px;
+  border-radius: 6px;
   border: 1px solid rgba(167, 139, 250, 0.28);
   background: rgba(88, 28, 135, 0.18);
   color: rgba(237, 233, 254, 0.96);
@@ -550,7 +550,7 @@
 .caseFilterClearBtn{
   height: 32px;
   padding: 0 12px;
-  border-radius: 12px;
+  border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.08);
   color: rgba(248, 250, 252, 0.96);
@@ -579,7 +579,7 @@
   width: min(920px, 95vw);
   max-height: 90vh;
   overflow: auto;
-  border-radius: 18px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(20, 12, 32, 0.96);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
@@ -619,7 +619,7 @@
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.08);
   color: rgba(248, 250, 252, 0.94);
-  border-radius: 10px;
+  border-radius: 5px;
   width: 34px;
   height: 34px;
   cursor: pointer;
@@ -669,7 +669,7 @@
 .viewerPane,
 .sideCard {
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 14px;
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.05);
 }
 
@@ -693,7 +693,7 @@
   width: 46px;
   min-height: 120px;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 16px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.08);
   color: rgba(248, 250, 252, 0.94);
   cursor: pointer;
@@ -724,7 +724,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
+  border-radius: 6px;
   background: rgba(15, 23, 42, 0.35);
   padding: 12px;
 }
@@ -732,14 +732,14 @@
 .viewerMedia img {
   max-width: 100%;
   max-height: 520px;
-  border-radius: 10px;
+  border-radius: 5px;
 }
 
 .viewerFrame {
   width: 100%;
   min-height: 520px;
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   background: #fff;
 }
 
@@ -774,7 +774,7 @@
 }
 
 .viewerHtml {
-  border-radius: 12px;
+  border-radius: 6px;
   padding: 18px;
   background: #fff;
   color: #111827;
@@ -821,7 +821,7 @@
 
 .issueItem {
   padding: 8px 10px;
-  border-radius: 10px;
+  border-radius: 5px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(15, 23, 42, 0.38);
   font-size: 0.84rem;
@@ -847,7 +847,7 @@
 
 .modalCard {
   width: min(420px, 92vw);
-  border-radius: 16px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(20, 12, 32, 0.95);
   color: rgba(248, 250, 252, 0.98);
@@ -875,7 +875,7 @@
 
 .modalButtonSecondary,
 .modalButtonDanger {
-  border-radius: 10px;
+  border-radius: 5px;
   font-size: 0.86rem;
   font-weight: 650;
   cursor: pointer;
@@ -897,7 +897,7 @@
 @media (max-width: 900px) {
   .mainContent {
     padding: 14px;
-    border-radius: 16px;
+    border-radius: 8px;
   }
 
   .headerSection {
@@ -967,7 +967,7 @@
     grid-template-columns: minmax(0, 1fr);
     row-gap: 10px;
     padding: 12px;
-    border-radius: 12px;
+    border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(255, 255, 255, 0.03);
   }
@@ -1057,7 +1057,7 @@
   gap: 8px;
   width: 100%;
   padding: 8px 14px;
-  border-radius: 20px;
+  border-radius: 6px;
   border: 1px solid #444;
   background: transparent;
   color: #d4d4d4;
@@ -1290,7 +1290,7 @@
 .viewTabActive { background: #2d2d2d; color: #fff; }
 .fileTypeTabs { display: flex; gap: 4px; flex-wrap: wrap; }
 .fileTypeTab {
-  padding: 4px 12px; border-radius: 20px; border: 1px solid #3a3a3a;
+  padding: 4px 12px; border-radius: 5px; border: 1px solid #3a3a3a;
   background: transparent; color: #aaa; font-size: .81rem; font-weight: 600; cursor: pointer;
 }
 .fileTypeTab:hover { background: #2a2a2a; color: #d4d4d4; border-color: #555; }
@@ -1405,7 +1405,7 @@
 /* modals */
 .modalContent, .viewerModal, .dialogContent, .modalCard {
   border: 1px solid #333; background: #252525; color: #d4d4d4;
-  box-shadow: 0 24px 80px rgba(0,0,0,.6); border-radius: 12px; padding: 20px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.6); border-radius: 8px; padding: 20px;
 }
 .modalContent, .viewerModal { width: min(920px, 95vw); max-height: 90vh; overflow: auto; }
 .viewerModalFullscreen {
