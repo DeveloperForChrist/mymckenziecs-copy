@@ -54,6 +54,7 @@ export default function ChatbotNavbar({
   const [activeCaseId, setActiveCaseId] = useState<string | null>(null)
   const [uid, setUid] = useState<string | null>(null)
   const [deleteTargetConversationId, setDeleteTargetConversationId] = useState<string | null>(null)
+  const [deleteMode, setDeleteMode] = useState<'single' | 'all'>('single')
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isDeletingConversation, setIsDeletingConversation] = useState(false)
   const [deleteConversationError, setDeleteConversationError] = useState<string | null>(null)
@@ -268,31 +269,60 @@ export default function ChatbotNavbar({
     if (isDeletingConversation) return
     setIsDeleteModalOpen(false)
     setDeleteTargetConversationId(null)
+    setDeleteMode('single')
     setDeleteConversationError(null)
   }
 
   const handleDeleteConversation = (conversationId: string, e: MouseEvent) => {
     e.stopPropagation()
     setDeleteTargetConversationId(conversationId)
+    setDeleteMode('single')
+    setDeleteConversationError(null)
+    setIsDeleteModalOpen(true)
+  }
+
+  const handleDeleteAllConversations = () => {
+    setDeleteTargetConversationId(null)
+    setDeleteMode('all')
     setDeleteConversationError(null)
     setIsDeleteModalOpen(true)
   }
 
   const confirmDeleteConversation = async () => {
-    if (!deleteTargetConversationId || isDeletingConversation) return
+    if ((deleteMode === 'single' && !deleteTargetConversationId) || isDeletingConversation) return
     setIsDeletingConversation(true)
     setDeleteConversationError(null)
     try {
+      const activeConversationId = new URLSearchParams(window.location.search).get('conversationId') || ''
+      const storedConversationId = localStorage.getItem('currentConversationId') || ''
       const response = await fetch('/api/chat-history', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversationId: deleteTargetConversationId })
+        body: JSON.stringify(
+          deleteMode === 'all'
+            ? { deleteAll: true, activeConversationId: activeConversationId || storedConversationId }
+            : { conversationId: deleteTargetConversationId }
+        )
       })
 
       if (response.ok) {
+        if (deleteMode === 'all') {
+          const next = new URL(chatbotHref, 'https://app.local')
+          const nextHref = `${next.pathname}${next.search}${next.hash}`
+          localStorage.removeItem('currentConversationId')
+          window.history.replaceState({}, '', nextHref)
+          window.dispatchEvent(
+            new CustomEvent('chatFreshConversationRequested', {
+              detail: { homeHref: nextHref },
+            })
+          )
+          setConversations([])
+          setIsDeleteModalOpen(false)
+          setDeleteTargetConversationId(null)
+          setDeleteMode('single')
+          return
+        }
         const deletedConversationId = deleteTargetConversationId
-        const activeConversationId = new URLSearchParams(window.location.search).get('conversationId')
-        const storedConversationId = localStorage.getItem('currentConversationId')
         const deletedActiveConversation =
           activeConversationId === deletedConversationId || storedConversationId === deletedConversationId
 
@@ -314,12 +344,21 @@ export default function ChatbotNavbar({
         setConversations((prev) => prev.filter((conv) => conv.id !== deleteTargetConversationId))
         setIsDeleteModalOpen(false)
         setDeleteTargetConversationId(null)
+        setDeleteMode('single')
       } else {
-        setDeleteConversationError('Failed to delete conversation. Please try again.')
+        setDeleteConversationError(
+          deleteMode === 'all'
+            ? 'Failed to delete conversations. Please try again.'
+            : 'Failed to delete conversation. Please try again.'
+        )
       }
     } catch (error) {
       console.error('Delete failed:', error)
-      setDeleteConversationError('Failed to delete conversation. Please try again.')
+      setDeleteConversationError(
+        deleteMode === 'all'
+          ? 'Failed to delete conversations. Please try again.'
+          : 'Failed to delete conversation. Please try again.'
+      )
     } finally {
       setIsDeletingConversation(false)
     }
@@ -714,6 +753,7 @@ export default function ChatbotNavbar({
                 formatDate={formatDate}
                 onOpenConversation={openConversation}
                 onDeleteConversation={handleDeleteConversation}
+                onDeleteAllConversations={handleDeleteAllConversations}
               />
             )}
           </div>
@@ -880,6 +920,7 @@ export default function ChatbotNavbar({
         error={deleteConversationError}
         onCancel={closeDeleteModal}
         onConfirm={confirmDeleteConversation}
+        mode={deleteMode}
       />
     </>
   )

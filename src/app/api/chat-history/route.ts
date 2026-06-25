@@ -423,17 +423,67 @@ export async function DELETE(request: NextRequest) {
 
     const authUid = authData.user.id;
     const authEmail = authData.user.email || null;
-    const { conversationId } = await request.json();
+    const body = await request.json().catch(() => ({}));
+    const { conversationId } = body;
+
+    const scopedUserIds = await resolveScopedUserIds(authUid, authEmail);
+    const caseIds = await getOwnedCaseIds(scopedUserIds);
+    if (body?.deleteAll === true) {
+      const { data: memoryRowsData, error: memoryError } = await supabaseAdmin
+        .from('chat_memory')
+        .select('conversation_id')
+        .in('user_id', scopedUserIds)
+        .not('conversation_id', 'is', null)
+        .limit(1000);
+
+      if (memoryError) {
+        console.error('Delete all chat memory lookup error:', memoryError);
+        return NextResponse.json({ error: 'Failed to load conversations for deletion' }, { status: 500 });
+      }
+
+      const caseMessageRows = await fetchMessagesByCaseIds(caseIds, 5000);
+      const activeConversationId =
+        typeof body?.activeConversationId === 'string' ? body.activeConversationId.trim() : '';
+      const activeConversationIds =
+        activeConversationId && await canAccessConversation(scopedUserIds, activeConversationId, caseIds)
+          ? [activeConversationId]
+          : [];
+      const conversationIds = dedupe([
+        ...((memoryRowsData || []).map((row: any) => row.conversation_id).filter(Boolean) as string[]),
+        ...(caseMessageRows.map((row) => row.conversation_id).filter(Boolean) as string[]),
+        ...activeConversationIds,
+      ]);
+
+      for (const chunk of chunkArray(conversationIds, 80)) {
+        const { error: deleteMessagesError } = await supabaseAdmin
+          .from('messages')
+          .delete()
+          .in('conversation_id', chunk);
+
+        if (deleteMessagesError) {
+          console.error('Delete all messages error:', deleteMessagesError);
+          return NextResponse.json({ error: 'Failed to delete conversations' }, { status: 500 });
+        }
+      }
+
+      await supabaseAdmin.from('chat_action_items').delete().in('user_id', scopedUserIds);
+      await supabaseAdmin.from('chat_memory').delete().in('user_id', scopedUserIds);
+
+      return NextResponse.json({
+        success: true,
+        deletedAll: true,
+        deletedConversationIds: conversationIds,
+        deletedCount: conversationIds.length,
+      });
+    }
 
     if (!conversationId || typeof conversationId !== 'string') {
       return NextResponse.json(
-        { error: 'conversationId is required. Deletion by case/profile is not allowed.' },
+        { error: 'conversationId is required unless deleteAll is true.' },
         { status: 400 }
       );
     }
 
-    const scopedUserIds = await resolveScopedUserIds(authUid, authEmail);
-    const caseIds = await getOwnedCaseIds(scopedUserIds);
     const allowed = await canAccessConversation(scopedUserIds, conversationId, caseIds);
     if (!allowed) {
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });

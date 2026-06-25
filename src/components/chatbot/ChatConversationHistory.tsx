@@ -15,6 +15,7 @@ type ChatConversationHistoryProps = {
   formatDate: (isoDate: string) => string
   onOpenConversation: (conversationId: string) => void
   onDeleteConversation: (conversationId: string, e: MouseEvent) => void
+  onDeleteAllConversations?: () => void
 }
 
 export default function ChatConversationHistory({
@@ -23,6 +24,7 @@ export default function ChatConversationHistory({
   formatDate,
   onOpenConversation,
   onDeleteConversation,
+  onDeleteAllConversations,
 }: ChatConversationHistoryProps) {
   const [collapsed, setCollapsed] = useState(false)
 
@@ -102,24 +104,47 @@ export default function ChatConversationHistory({
           <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
             Conversation history
           </div>
-          <button
-            type="button"
-            onClick={() => setCollapsed((prev) => !prev)}
-            style={{
-              border: '1px solid rgba(255,255,255,0.2)',
-              background: 'rgba(255,255,255,0.08)',
-              color: 'white',
-              borderRadius: '8px',
-              width: '28px',
-              height: '24px',
-              cursor: 'pointer',
-              lineHeight: 1
-            }}
-            aria-label={collapsed ? 'Expand conversation history' : 'Collapse conversation history'}
-            title={collapsed ? 'Expand' : 'Collapse'}
-          >
-            {collapsed ? '▾' : '▴'}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {onDeleteAllConversations && (
+              <button
+                type="button"
+                onClick={onDeleteAllConversations}
+                style={{
+                  border: '1px solid rgba(239,68,68,0.35)',
+                  background: 'rgba(127,29,29,0.28)',
+                  color: '#fecaca',
+                  borderRadius: '8px',
+                  height: '24px',
+                  padding: '0 8px',
+                  cursor: 'pointer',
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Delete all
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setCollapsed((prev) => !prev)}
+              style={{
+                border: '1px solid rgba(255,255,255,0.2)',
+                background: 'rgba(255,255,255,0.08)',
+                color: 'white',
+                borderRadius: '8px',
+                width: '28px',
+                height: '24px',
+                cursor: 'pointer',
+                lineHeight: 1
+              }}
+              aria-label={collapsed ? 'Expand conversation history' : 'Collapse conversation history'}
+              title={collapsed ? 'Expand' : 'Collapse'}
+            >
+              {collapsed ? '▾' : '▴'}
+            </button>
+          </div>
         </div>
         {!collapsed && loadingHistory ? (
           <div style={{ fontSize: '12px', color: 'rgba(226,232,240,0.7)' }}>Loading history…</div>

@@ -6,6 +6,7 @@ type DeleteConversationModalProps = {
   error: string | null
   onCancel: () => void
   onConfirm: () => void
+  mode?: 'single' | 'all'
 }
 
 export default function DeleteConversationModal({
@@ -13,7 +14,8 @@ export default function DeleteConversationModal({
   isDeleting,
   error,
   onCancel,
-  onConfirm
+  onConfirm,
+  mode = 'single',
 }: DeleteConversationModalProps) {
   if (!isOpen) return null
 
@@ -48,10 +50,12 @@ export default function DeleteConversationModal({
         }}
       >
         <div style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>
-          Delete conversation?
+          {mode === 'all' ? 'Delete all conversations?' : 'Delete conversation?'}
         </div>
         <div style={{ fontSize: '14px', color: 'rgba(226,232,240,0.85)', lineHeight: 1.5, marginBottom: '14px' }}>
-          This will permanently remove the selected conversation from your history.
+          {mode === 'all'
+            ? 'This will permanently remove every saved conversation from your history and start a fresh chat.'
+            : 'This will permanently remove the selected conversation from your history.'}
         </div>
         {error && (
           <div style={{ fontSize: '13px', color: '#fca5a5', marginBottom: '12px' }}>
@@ -87,7 +91,7 @@ export default function DeleteConversationModal({
             }}
             disabled={isDeleting}
           >
-            {isDeleting ? 'Deleting...' : 'Delete'}
+            {isDeleting ? 'Deleting...' : mode === 'all' ? 'Delete all' : 'Delete'}
           </button>
         </div>
       </div>
