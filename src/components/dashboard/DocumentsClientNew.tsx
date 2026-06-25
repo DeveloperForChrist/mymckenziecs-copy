@@ -295,30 +295,6 @@ export default function DocumentsClient({
     }
   };
 
-  const handleFolderAssignment = (docId: string, folderId: string) => {
-    const nextFolderId = folderId || '';
-    const previousFolderId = folderMap[docId] || '';
-    setDocuments(p => p.map(d => d.id == docId ? { ...d, folderId: nextFolderId || undefined } : d));
-    setFolderMap(p => ({ ...p, [docId]: nextFolderId }));
-
-    void (async () => {
-      try {
-        const res = await fetch('/api/documents/folders', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ documentId: docId, folderId: nextFolderId }),
-        });
-        const data: any = await readApiJson(res);
-        if (!res.ok) throw new Error(data?.error || 'Failed to save folder assignment');
-      } catch (err: any) {
-        setDocuments(p => p.map(d => d.id == docId ? { ...d, folderId: previousFolderId || undefined } : d));
-        setFolderMap(p => ({ ...p, [docId]: previousFolderId }));
-        setUploadError(err?.message || 'Failed to save folder assignment');
-      }
-    })();
-  };
-
   const toggleStar = async (id: string) => {
     const target = documents.find((d) => d.id === id);
     if (!target) return;
@@ -799,7 +775,6 @@ export default function DocumentsClient({
             <>
               <DocumentsTable
                 items={items}
-                folders={folders}
                 formatDate={fmt}
                 formatSize={fmtSize}
                 onView={handleViewDocument}
@@ -807,7 +782,6 @@ export default function DocumentsClient({
                 onToggleStar={toggleStar}
                 canDelete={canUpload}
                 onDelete={deleteDocument}
-                onFolderChange={handleFolderAssignment}
               />
               {documentsHasMore && (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0 4px' }}>

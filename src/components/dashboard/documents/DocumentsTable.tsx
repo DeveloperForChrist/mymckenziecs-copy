@@ -1,9 +1,8 @@
 import styles from "../documents-page-new.module.css";
-import type { Document, Folder } from "./types";
+import type { Document } from "./types";
 
 type DocumentsTableProps = {
   items: Document[];
-  folders: Folder[];
   formatDate: (value: string) => string;
   formatSize: (value: number) => string;
   onView: (doc: Document) => void;
@@ -11,12 +10,10 @@ type DocumentsTableProps = {
   onToggleStar: (id: string) => void;
   canDelete: boolean;
   onDelete: (id: string) => void;
-  onFolderChange: (docId: string, folderId: string) => void;
 };
 
 export default function DocumentsTable({
   items,
-  folders,
   formatDate,
   formatSize,
   onView,
@@ -24,7 +21,6 @@ export default function DocumentsTable({
   onToggleStar,
   canDelete,
   onDelete,
-  onFolderChange,
 }: DocumentsTableProps) {
   return (
     <div className={styles.fileTable}>
@@ -33,8 +29,6 @@ export default function DocumentsTable({
         <div className={styles.headerCell}>Type</div>
         <div className={styles.headerCell}>Modified</div>
         <div className={styles.headerCell}>Size</div>
-        <div className={styles.headerCell}>Folder</div>
-        <div className={styles.headerCell}>Actions</div>
       </div>
 
       <div className={styles.tableBody}>
@@ -45,26 +39,7 @@ export default function DocumentsTable({
                 <i className="bx bx-file"></i>
                 <span title={doc.title}>{doc.title}</span>
               </div>
-            </div>
-            <div className={styles.cell} data-label="Type">{doc.type}</div>
-            <div className={styles.cell} data-label="Modified">{formatDate(doc.createdAt)}</div>
-            <div className={styles.cell} data-label="Size">{formatSize(doc.size || 0)}</div>
-            <div className={styles.cell} data-label="Folder">
-              <select
-                className={styles.folderInlineSelect}
-                value={doc.folderId || ""}
-                onChange={(event) => onFolderChange(doc.id, event.target.value)}
-              >
-                <option value="">No folder</option>
-                {folders.map((folder) => (
-                  <option key={folder.id} value={folder.id}>
-                    {folder.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className={styles.cell} data-label="Actions">
-              <div className={styles.actions}>
+              <div className={styles.rowActions}>
                 <button
                   className={styles.actionIcon}
                   onClick={() => onView(doc)}
@@ -103,6 +78,9 @@ export default function DocumentsTable({
                 </button>
               </div>
             </div>
+            <div className={styles.cell} data-label="Type">{doc.type}</div>
+            <div className={styles.cell} data-label="Modified">{formatDate(doc.createdAt)}</div>
+            <div className={styles.cell} data-label="Size">{formatSize(doc.size || 0)}</div>
           </div>
         ))}
       </div>

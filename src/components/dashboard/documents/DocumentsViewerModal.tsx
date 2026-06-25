@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "../documents-page-new.module.css";
 import type { Document } from "./types";
 
@@ -37,6 +37,11 @@ export default function DocumentsViewerModal({
   onClose,
 }: DocumentsViewerModalProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [pdfPage, setPdfPage] = useState(1);
+
+  useEffect(() => {
+    setPdfPage(1);
+  }, [document?.id]);
 
   if (!document) return null;
 
@@ -47,6 +52,10 @@ export default function DocumentsViewerModal({
   if (previewText) {
     highlightedParts = buildHighlights(previewText, issues);
   }
+  const canPagePreview = previewKind === "pdf" && Boolean(previewUrl);
+  const pdfPreviewUrl = canPagePreview && previewUrl
+    ? `${previewUrl.split("#")[0]}#page=${pdfPage}`
+    : previewUrl;
 
   return (
     <div className={styles.modal} onClick={onClose}>
@@ -73,8 +82,21 @@ export default function DocumentsViewerModal({
           </div>
         </div>
         <div className={styles.viewerBody}>
+          <button
+            className={styles.pageArrow}
+            type="button"
+            aria-label="Previous page"
+            title={canPagePreview ? "Previous page" : "Page navigation is available for PDFs"}
+            disabled={!canPagePreview || pdfPage <= 1}
+            onClick={() => setPdfPage((page) => Math.max(1, page - 1))}
+          >
+            <i className="bx bx-chevron-left" />
+          </button>
           <div className={styles.viewerPane}>
-            <div className={styles.viewerPaneTitle}>Document Preview</div>
+            <div className={styles.viewerPaneTitle}>
+              <span>Document Preview</span>
+              {canPagePreview && <span>Page {pdfPage}</span>}
+            </div>
             {previewLoading ? (
               <div className={styles.loading}>
                 <i className="bx bx-loader-alt bx-spin"></i>
@@ -105,11 +127,21 @@ export default function DocumentsViewerModal({
                 <img src={previewUrl} alt={document.title} />
               </div>
             ) : previewKind === "pdf" && previewUrl ? (
-              <iframe className={styles.viewerFrame} src={previewUrl} title={document.title} />
+              <iframe className={styles.viewerFrame} src={pdfPreviewUrl || previewUrl} title={document.title} />
             ) : (
               <div className={styles.viewerText}>No inline preview available.</div>
             )}
           </div>
+          <button
+            className={styles.pageArrow}
+            type="button"
+            aria-label="Next page"
+            title={canPagePreview ? "Next page" : "Page navigation is available for PDFs"}
+            disabled={!canPagePreview}
+            onClick={() => setPdfPage((page) => page + 1)}
+          >
+            <i className="bx bx-chevron-right" />
+          </button>
         </div>
       </div>
     </div>
