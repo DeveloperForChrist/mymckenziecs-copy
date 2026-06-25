@@ -53,6 +53,10 @@ function mapApiError(message: string) {
   return message || 'We could not create your account right now. Please try again.'
 }
 
+function normalizeEmail(value: string | null | undefined) {
+  return String(value || '').trim().toLowerCase()
+}
+
 export default function SignUpForm() {
   const router = useRouter()
   const pathname = usePathname()
@@ -80,6 +84,8 @@ export default function SignUpForm() {
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [activeSessionEmail, setActiveSessionEmail] = useState('')
+  const [switchingAccount, setSwitchingAccount] = useState(false)
   const [invitationLoading, setInvitationLoading] = useState(Boolean(invitationToken))
   const [invitation, setInvitation] = useState<null | {
     invitedEmail: string
@@ -127,8 +133,32 @@ export default function SignUpForm() {
       : fallbackRedirect
   const selectedCountry = getCountryOption(formData.countryCode)
   const jurisdictionOptions = getJurisdictionOptions(formData.countryCode)
+  const hasBlockingActiveSession = Boolean(activeSessionEmail) && (
+    invitationToken
+      ? !invitation?.invitedEmail || normalizeEmail(activeSessionEmail) !== normalizeEmail(invitation.invitedEmail)
+      : true
+  )
 
   const shouldShowCountrySelect = editingCountry || !selectedCountry
+
+  useEffect(() => {
+    let cancelled = false
+    const loadSession = async () => {
+      try {
+        const supabase = getSupabaseBrowserClient()
+        const { data } = await supabase.auth.getUser()
+        if (!cancelled) {
+          setActiveSessionEmail(data?.user?.email || '')
+        }
+      } catch {
+        if (!cancelled) setActiveSessionEmail('')
+      }
+    }
+    void loadSession()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -255,9 +285,34 @@ export default function SignUpForm() {
     }
   }, [invitationToken])
 
+  const handleUseDifferentAccount = async () => {
+    setError('')
+    setSwitchingAccount(true)
+    try {
+      const supabase = getSupabaseBrowserClient()
+      await safeBrowserSignOut(supabase)
+      setActiveSessionEmail('')
+      router.refresh()
+    } catch {
+      setError('Could not switch account right now. Please refresh and try again.')
+    } finally {
+      setSwitchingAccount(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (hasBlockingActiveSession) {
+      setError(
+        invitationToken
+          ? 'Use a different account first to open this client portal invite.'
+          : 'Use a different account first before creating a new account in this browser.'
+      )
+      return
+    }
+
     setLoading(true)
 
     if (!acceptedTerms) {
@@ -397,6 +452,24 @@ export default function SignUpForm() {
           {invitation.businessName
             ? `${invitation.businessName} invited you to join their client portal.`
             : 'You have been invited to join a client portal.'}
+        </div>
+      )}
+      {activeSessionEmail && (
+        <div className={styles.successBox}>
+          Signed in as <strong>{activeSessionEmail}</strong>.{' '}
+          {hasBlockingActiveSession
+            ? invitationToken
+              ? 'Open this invite in a separate browser profile, or switch accounts first so your current workspace is not replaced.'
+              : 'Use a different account before creating another account in this browser.'
+            : 'You can continue if this is the same invited account.'}{' '}
+          <button
+            type="button"
+            onClick={() => { void handleUseDifferentAccount() }}
+            disabled={switchingAccount}
+            className={styles.inlineTextButton}
+          >
+            {switchingAccount ? 'Switching...' : 'Use a different account'}
+          </button>
         </div>
       )}
       {error && (
@@ -606,7 +679,7 @@ export default function SignUpForm() {
 
       <button
         type="submit"
-        disabled={loading || invitationLoading || !acceptedTerms}
+        disabled={loading || invitationLoading || !acceptedTerms || hasBlockingActiveSession}
         className={styles.primaryButton}
       >
         {loading

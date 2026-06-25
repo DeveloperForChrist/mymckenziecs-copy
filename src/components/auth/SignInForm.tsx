@@ -27,6 +27,10 @@ function isAssistantPlanLabel(plan: unknown) {
   return String(plan || '').trim().toLowerCase().startsWith('assistant ')
 }
 
+function normalizeEmail(value: string | null | undefined) {
+  return String(value || '').trim().toLowerCase()
+}
+
 function navigateAfterAuth(path: string) {
   window.location.assign(path)
 }
@@ -59,6 +63,11 @@ export default function SignInForm() {
   const [activeSessionEmail, setActiveSessionEmail] = useState('')
   const [switchingAccount, setSwitchingAccount] = useState(false)
   const [invitation, setInvitation] = useState<null | { invitedEmail: string; businessName?: string | null }>(null)
+  const hasBlockingInviteSession =
+    Boolean(invitationToken) &&
+    Boolean(invitation?.invitedEmail) &&
+    Boolean(activeSessionEmail) &&
+    normalizeEmail(activeSessionEmail) !== normalizeEmail(invitation?.invitedEmail)
 
   useEffect(() => {
     let cancelled = false
@@ -140,6 +149,12 @@ export default function SignInForm() {
     e.preventDefault()
     setError('')
     setResendMessage('')
+
+    if (hasBlockingInviteSession) {
+      setError('Use a different account first to open this client portal invite.')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -352,7 +367,10 @@ export default function SignInForm() {
       )}
       {activeSessionEmail && (
         <div className={styles.successBox}>
-          Signed in as <strong>{activeSessionEmail}</strong>. Need another email?{' '}
+          Signed in as <strong>{activeSessionEmail}</strong>.{' '}
+          {hasBlockingInviteSession
+            ? 'Open this invite in a separate browser profile, or switch accounts first.'
+            : 'Need another email? '}
           <button
             type="button"
             onClick={() => { void handleUseDifferentAccount() }}
@@ -411,7 +429,7 @@ export default function SignInForm() {
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || hasBlockingInviteSession}
         className={styles.primaryButton}
       >
         {loading ? 'Signing in...' : invitation ? 'Sign in and open portal' : 'Sign In'}

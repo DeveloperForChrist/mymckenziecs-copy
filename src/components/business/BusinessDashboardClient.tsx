@@ -1085,6 +1085,7 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
               key={item.id}
               type="button"
               className={`${styles.navItem} ${active ? styles.navItemActive : ''}`}
+              data-testid={`business-nav-${item.id}`}
               onClick={() => {
                 if (item.id === 'documents') setDocumentsCaseIdOverride(null);
                 setActiveId(item.id);

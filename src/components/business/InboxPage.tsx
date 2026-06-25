@@ -1669,7 +1669,7 @@ export default function InboxPage({
                 </p>
               )}
               <div className={styles.composeActions}>
-                <button type="submit" className={styles.composeSendBtn} disabled={inviteSending}>
+                <button type="submit" className={styles.composeSendBtn} disabled={inviteSending} data-testid="send-client-invite">
                   {inviteSending ? <Loader2 size={14} className={styles.spin}/> : <Send size={14}/>}
                   {inviteSending ? 'Sending…' : 'Send Invite'}
                 </button>
@@ -1699,7 +1699,7 @@ export default function InboxPage({
             >
               <Mail size={15}/>Compose
             </button>
-            <button className={styles.composeButton} onClick={() => setShowClientInvite(true)}>
+            <button className={styles.composeButton} data-testid="invite-client-button" onClick={() => setShowClientInvite(true)}>
               <UserPlus size={15}/>Invite Client
             </button>
           </div>

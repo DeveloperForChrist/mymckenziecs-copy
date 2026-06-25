@@ -58,7 +58,7 @@ export default function DocumentsActionBar({
               aria-disabled={!canUpload}
             >
               {canUpload ? (uploading ? "Uploading…" : "Upload +") : "Upload locked"}
-              <input type="file" multiple hidden onChange={onUpload} disabled={!canUpload || uploading} />
+              <input data-testid="documents-upload-input" type="file" multiple hidden onChange={onUpload} disabled={!canUpload || uploading} />
             </label>
           </div>
         </div>

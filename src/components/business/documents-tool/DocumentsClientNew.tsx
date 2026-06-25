@@ -780,6 +780,7 @@ export default function DocumentsClient({
               <button
                 type="button"
                 className={styles.modalButtonDanger}
+                data-testid="documents-confirm-delete"
                 onClick={() => {
                   const target = deleteModal;
                   setDeleteModal(null);

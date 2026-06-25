@@ -23,6 +23,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
+    "e2e:ui": "playwright test --ui",
     "stripe:sync-passes": "node scripts/stripe/sync-stripe-passes.mjs"
   },
   "dependencies": {
@@ -55,6 +58,7 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@testing-library/dom": "^10.4.1",
     "@types/node": "^20.0.0",
     "@types/nodemailer": "^7.0.9",

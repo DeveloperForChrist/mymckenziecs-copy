@@ -39,7 +39,7 @@ export default function DocumentsTable({
 
       <div className={styles.tableBody}>
         {items.map((doc) => (
-          <div key={doc.id} className={styles.tableRow}>
+          <div key={doc.id} className={styles.tableRow} data-testid="document-row" data-document-title={doc.title}>
             <div className={styles.cell} data-label="Name">
               <div className={styles.fileName}>
                 <i className="bx bx-file"></i>
@@ -66,6 +66,7 @@ export default function DocumentsTable({
             <div className={styles.cell} data-label="Actions">
               <div className={styles.actions}>
                 <button
+                  data-testid="document-view-button"
                   className={styles.actionIcon}
                   onClick={() => onView(doc)}
                   title="View"
@@ -74,6 +75,7 @@ export default function DocumentsTable({
                   <i className="bx bx-show"></i>
                 </button>
                 <button
+                  data-testid="document-download-button"
                   className={styles.actionIcon}
                   onClick={() => onDownload(doc)}
                   title="Download"
@@ -82,14 +84,17 @@ export default function DocumentsTable({
                   <i className="bx bx-download"></i>
                 </button>
                 <button
+                  data-testid="document-star-button"
                   className={`${styles.actionIcon} ${doc.starred ? styles.starActive : ""}`}
                   onClick={() => onToggleStar(doc.id)}
                   title="Star"
+                  aria-pressed={doc.starred}
                   type="button"
                 >
                   <i className={doc.starred ? "bx bxs-star" : "bx bx-star"}></i>
                 </button>
                 <button
+                  data-testid="document-delete-button"
                   className={`${styles.actionIcon} ${styles.deleteBtn}`}
                   onClick={() => {
                     if (!canDelete) return;
