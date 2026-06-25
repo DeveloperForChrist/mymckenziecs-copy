@@ -546,6 +546,28 @@
   border-bottom: 1px solid #edf1f7;
 }
 
+.dashboardReturnButton {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  border: 1px solid rgba(36, 48, 76, 0.14);
+  border-radius: 6px;
+  background: #ffffff;
+  color: #24304c;
+  padding: 0 12px;
+  margin-bottom: 10px;
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.dashboardReturnButton:hover {
+  border-color: rgba(15, 118, 110, 0.32);
+  background: #f8fafc;
+}
+
 .listTitle {
   margin: 0;
   color: #182033;
@@ -574,6 +596,38 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 10px;
+}
+
+.messageTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.messageTab,
+.messageTabActive {
+  min-height: 34px;
+  border: 1px solid #dce4ef;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #516079;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.messageTab:hover {
+  background: #f8fafc;
+  color: #24304c;
+}
+
+.messageTabActive {
+  border-color: rgba(15, 118, 110, 0.42);
+  background: #e6fffb;
+  color: #0f766e;
 }
 
 .filterChip,
