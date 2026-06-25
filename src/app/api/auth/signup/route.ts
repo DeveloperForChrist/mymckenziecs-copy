@@ -9,6 +9,12 @@ import { findPlanByAnyPriceId, getBillingMarketFromCountryCode } from '@/constan
 import type { BillingMarket } from '@/constants'
 import { getAppRouteForMarket } from '@/lib/markets/app-routes'
 import {
+  acceptClientInvitationForUser,
+  getClientInvitationByToken,
+  isClientInvitationExpired,
+  normalizePortalEmail,
+} from '@/lib/client-portal/invitations'
+import {
   getCountryOption,
   getJurisdictionLabel,
   isSupportedCountryCode,
@@ -94,6 +100,7 @@ export async function POST(request: NextRequest) {
     )
     const plan = typeof body?.plan === 'string' ? body.plan.trim() : ''
     const planId = typeof body?.planId === 'string' ? body.planId.trim() : ''
+    const invitationToken = typeof body?.invitationToken === 'string' ? body.invitationToken.trim() : ''
     const resolvedPlan = plan || findPlanByAnyPriceId(planId)?.name || ''
     const market = String(body?.market || '').trim().toUpperCase() === 'US' ? 'US' : 'GB'
     const selectedBusinessPlan = normalizeBusinessPlan(resolvedPlan)
@@ -135,6 +142,22 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 }
       )
+    }
+
+    if (invitationToken) {
+      const { data: invitation, error: invitationError } = await getClientInvitationByToken(invitationToken)
+      if (invitationError || !invitation) {
+        return NextResponse.json({ message: 'Invalid or expired invitation link.' }, { status: 404 })
+      }
+      if (isClientInvitationExpired(invitation.expires_at)) {
+        return NextResponse.json({ message: 'Invitation link has expired.' }, { status: 410 })
+      }
+      if (invitation.status !== 'pending' && invitation.status !== 'accepted') {
+        return NextResponse.json({ message: 'Invitation is no longer active.' }, { status: 409 })
+      }
+      if (normalizePortalEmail(invitation.invited_email) !== email) {
+        return NextResponse.json({ message: 'This invitation is for a different email address.' }, { status: 403 })
+      }
     }
 
     const billingCountryCode = isSupportedCountryCode(effectiveCountryCode) ? effectiveCountryCode : market
@@ -186,6 +209,8 @@ export async function POST(request: NextRequest) {
     const rawToken = randomBytes(32).toString('hex')
     const tokenHash = createHash('sha256').update(rawToken).digest('hex')
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    const nowIso = new Date().toISOString()
+    const skipEmailVerification = Boolean(invitationToken)
 
     const { error: userUpsertError } = await supabaseAdmin
       .from('users')
@@ -199,9 +224,9 @@ export async function POST(request: NextRequest) {
           country_code: profileCountryCode,
           jurisdiction_code: profileJurisdictionCode,
           jurisdiction_label: jurisdictionLabel,
-          verification_token_hash: tokenHash,
-          verification_token_expires_at: expiresAt,
-          email_verified_at: null,
+          verification_token_hash: skipEmailVerification ? null : tokenHash,
+          verification_token_expires_at: skipEmailVerification ? null : expiresAt,
+          email_verified_at: skipEmailVerification ? nowIso : null,
         },
         { onConflict: 'id' }
       )
@@ -209,6 +234,27 @@ export async function POST(request: NextRequest) {
     if (userUpsertError) {
       await supabaseAdmin.auth.admin.deleteUser(userId)
       return NextResponse.json({ message: 'Unable to create account profile.' }, { status: 500 })
+    }
+
+    if (invitationToken) {
+      const accepted = await acceptClientInvitationForUser({
+        token: invitationToken,
+        userId,
+        userEmail: email,
+        userDisplayName: fullName,
+        autoVerify: true,
+      })
+
+      if (!accepted.ok) {
+        await supabaseAdmin.auth.admin.deleteUser(userId)
+        return NextResponse.json({ message: accepted.message }, { status: accepted.status })
+      }
+
+      return NextResponse.json({
+        success: true,
+        verificationEmailSent: false,
+        invitationAccepted: true,
+      })
     }
 
     const appUrl = getAppUrl(request)

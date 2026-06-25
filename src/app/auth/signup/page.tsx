@@ -20,6 +20,7 @@ type SignUpPageProps = {
 
 export default async function SignUpPage({ searchParams }: SignUpPageProps) {
   const params = await searchParams
+  const invitationToken = typeof params?.token === 'string' ? params.token.trim() : ''
   const redirectPath = typeof params?.redirect === 'string' ? params.redirect : null
   const market = getPublicMarket({
     pathname: redirectPath,
@@ -29,6 +30,7 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
   const faqHref = getPublicRouteForMarket('/faq', market)
   const signInHref = buildMarketAwareAuthHref('/auth/signin', market, {
     redirect: redirectPath,
+    token: invitationToken || undefined,
   })
 
   return (
@@ -68,7 +70,9 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
             <div>
               <h2 className={styles.formTitle}>Create your account</h2>
               <p className={styles.formSubtitle}>
-                Enter your details. We&apos;ll send a verification email next.
+                {invitationToken
+                  ? 'Enter your details to open the invited client portal.'
+                  : 'Enter your details. We&apos;ll send a verification email next.'}
               </p>
             </div>
             <Suspense fallback={<div className={styles.formSubtitle}>Loading account form...</div>}>

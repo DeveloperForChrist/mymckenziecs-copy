@@ -20,6 +20,7 @@ type SignInPageProps = {
 
 export default async function SignInPage({ searchParams }: SignInPageProps) {
   const params = await searchParams
+  const invitationToken = typeof params?.token === 'string' ? params.token.trim() : ''
   const redirectPath = typeof params?.redirect === 'string' ? params.redirect : null
   const market = getPublicMarket({
     pathname: redirectPath,
@@ -29,6 +30,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   const faqHref = getPublicRouteForMarket('/faq', market)
   const signUpHref = buildMarketAwareAuthHref('/auth/signup', market, {
     redirect: redirectPath,
+    token: invitationToken || undefined,
   })
 
   return (

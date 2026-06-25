@@ -34,6 +34,7 @@ function navigateAfterAuth(path: string) {
 export default function SignInForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const invitationToken = (searchParams?.get('token') || '').trim()
   const verifyState = (searchParams?.get('verify') || '').trim().toLowerCase()
   const verifiedState = (searchParams?.get('verified') || '').trim().toLowerCase()
   const billingOptOutState = (searchParams?.get('billing_opt_out') || '').trim().toLowerCase()
@@ -57,6 +58,7 @@ export default function SignInForm() {
   const [resendMessage, setResendMessage] = useState('')
   const [activeSessionEmail, setActiveSessionEmail] = useState('')
   const [switchingAccount, setSwitchingAccount] = useState(false)
+  const [invitation, setInvitation] = useState<null | { invitedEmail: string; businessName?: string | null }>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -76,6 +78,46 @@ export default function SignInForm() {
       cancelled = true
     }
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    if (!invitationToken) {
+      setInvitation(null)
+      return () => {
+        cancelled = true
+      }
+    }
+
+    const loadInvitation = async () => {
+      try {
+        const response = await fetch(`/api/client/invitations?token=${encodeURIComponent(invitationToken)}`, {
+          credentials: 'include',
+          cache: 'no-store',
+        })
+        const payload = await response.json().catch(() => ({}))
+        if (!response.ok || !payload?.invitation) {
+          throw new Error(payload?.message || 'Invalid or expired invitation link.')
+        }
+        if (cancelled) return
+        setInvitation(payload.invitation)
+        setFormData((current) => ({
+          ...current,
+          email: String(payload.invitation.invitedEmail || current.email || '').trim(),
+        }))
+      } catch (err) {
+        if (cancelled) return
+        setInvitation(null)
+        setError(err instanceof Error ? err.message : 'Invalid or expired invitation link.')
+      }
+    }
+
+    void loadInvitation()
+
+    return () => {
+      cancelled = true
+    }
+  }, [invitationToken])
 
   const handleUseDifferentAccount = async () => {
     setError('')
@@ -109,6 +151,30 @@ export default function SignInForm() {
 
       if (error) {
         throw error
+      }
+
+      if (invitationToken) {
+        const { data: sessionData } = await supabase.auth.getSession()
+        const accessToken = sessionData.session?.access_token
+        if (!accessToken) {
+          throw new Error('Please sign in again to finish opening your client portal.')
+        }
+
+        const inviteResponse = await fetch('/api/client/invitations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ token: invitationToken }),
+        })
+        const invitePayload = await inviteResponse.json().catch(() => ({}))
+        if (!inviteResponse.ok) {
+          if (inviteResponse.status === 403) {
+            await safeBrowserSignOut(supabase)
+          }
+          throw new Error(invitePayload?.message || 'Failed to accept invitation.')
+        }
       }
 
       let isVerified = true
@@ -165,6 +231,7 @@ export default function SignInForm() {
 
       const isAssistantAccount = preferredProduct === 'assistant' || isAssistantPlanLabel(planLabel)
       const accountDashboardHref = (() => {
+        if (invitationToken) return clientPortalHref
         if (hasExplicitRedirect) return nextPath
         if (isBusinessAccount && isDashboardRedirect) return businessDashboardHref
         if (hasClientPortalAccess && !isBusinessAccount && isDashboardRedirect) return clientPortalHref
@@ -188,7 +255,7 @@ export default function SignInForm() {
         ? (isBusinessAccount ? businessDashboardHref : isAssistantAccount ? '/assistant' : defaultDashboardHref)
         : accountDashboardHref
       navigateAfterAuth(verifiedRedirect)
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err instanceof AuthApiError) {
         setError(mapSupabaseError(err))
       } else if (err instanceof Error) {
@@ -276,6 +343,13 @@ export default function SignInForm() {
           {resendMessage}
         </div>
       )}
+      {invitation && (
+        <div className={styles.successBox}>
+          {invitation.businessName
+            ? `Sign in with ${invitation.invitedEmail} to open ${invitation.businessName}'s client portal.`
+            : `Sign in with ${invitation.invitedEmail} to open your client portal.`}
+        </div>
+      )}
       {activeSessionEmail && (
         <div className={styles.successBox}>
           Signed in as <strong>{activeSessionEmail}</strong>. Need another email?{' '}
@@ -301,6 +375,7 @@ export default function SignInForm() {
           className={styles.input}
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          disabled={Boolean(invitation?.invitedEmail)}
         />
       </div>
 
@@ -339,7 +414,7 @@ export default function SignInForm() {
         disabled={loading}
         className={styles.primaryButton}
       >
-        {loading ? 'Signing in...' : 'Sign In'}
+        {loading ? 'Signing in...' : invitation ? 'Sign in and open portal' : 'Sign In'}
       </button>
 
       {showResendVerification && (

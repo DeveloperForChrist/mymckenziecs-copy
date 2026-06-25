@@ -57,6 +57,7 @@ export default function SignUpForm() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const invitationToken = (searchParams?.get('token') || '').trim()
   const [editingCountry, setEditingCountry] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -79,6 +80,13 @@ export default function SignUpForm() {
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [invitationLoading, setInvitationLoading] = useState(Boolean(invitationToken))
+  const [invitation, setInvitation] = useState<null | {
+    invitedEmail: string
+    inviterEmail?: string | null
+    clientName?: string | null
+    businessName?: string | null
+  }>(null)
 
   const selectedPlanId = (searchParams?.get('planId') || '').trim()
   const selectedPlanName = (searchParams?.get('plan') || '').trim()
@@ -100,6 +108,7 @@ export default function SignUpForm() {
     redirectParam.startsWith('/assistant/') ||
     signupSourceParam === 'assistant' ||
     isAssistantPlanSelection
+  const isClientInviteSignup = Boolean(invitationToken)
   const publicMarket = getPublicMarket({
     pathname: redirectParam || pathname,
     explicitMarket: searchParams?.get('market'),
@@ -111,8 +120,9 @@ export default function SignUpForm() {
     : selectedPlanId
     ? getAppRouteForMarket(`/dashboard?activatePlan=${encodeURIComponent(selectedPlanId)}`, publicMarket)
     : getAppRouteForMarket('/dashboard', publicMarket)
-  const nextRedirect =
-    redirectParam.startsWith('/')
+  const nextRedirect = invitation
+    ? '/client-portal'
+    : redirectParam.startsWith('/')
       ? redirectParam
       : fallbackRedirect
   const selectedCountry = getCountryOption(formData.countryCode)
@@ -123,7 +133,7 @@ export default function SignUpForm() {
   useEffect(() => {
     let cancelled = false
 
-    if (isBusinessSignup || isAssistantSignup) {
+    if (isBusinessSignup || isAssistantSignup || isClientInviteSignup) {
       setGeoHint({
         status: 'ready',
         message: '',
@@ -197,7 +207,53 @@ export default function SignUpForm() {
     return () => {
       cancelled = true
     }
-  }, [isBusinessSignup, isAssistantSignup])
+  }, [isBusinessSignup, isAssistantSignup, isClientInviteSignup])
+
+  useEffect(() => {
+    let cancelled = false
+
+    if (!invitationToken) {
+      setInvitationLoading(false)
+      setInvitation(null)
+      return () => {
+        cancelled = true
+      }
+    }
+
+    const loadInvitation = async () => {
+      setInvitationLoading(true)
+      try {
+        const response = await fetch(`/api/client/invitations?token=${encodeURIComponent(invitationToken)}`, {
+          credentials: 'include',
+          cache: 'no-store',
+        })
+        const payload = await response.json().catch(() => ({}))
+        if (!response.ok || !payload?.invitation) {
+          throw new Error(payload?.message || 'Invalid or expired invitation link.')
+        }
+        if (cancelled) return
+        setInvitation(payload.invitation)
+        setFormData((current) => ({
+          ...current,
+          email: String(payload.invitation.invitedEmail || current.email || '').trim(),
+        }))
+      } catch (err) {
+        if (cancelled) return
+        setInvitation(null)
+        setError(err instanceof Error ? err.message : 'Invalid or expired invitation link.')
+      } finally {
+        if (!cancelled) {
+          setInvitationLoading(false)
+        }
+      }
+    }
+
+    void loadInvitation()
+
+    return () => {
+      cancelled = true
+    }
+  }, [invitationToken])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -223,13 +279,13 @@ export default function SignUpForm() {
       return
     }
 
-    if (!isBusinessSignup && !isAssistantSignup && !selectedCountry) {
+    if (!isBusinessSignup && !isAssistantSignup && !isClientInviteSignup && !selectedCountry) {
       setError('Please select the country your legal matter is in.')
       setLoading(false)
       return
     }
 
-    if (!isBusinessSignup && !isAssistantSignup && !jurisdictionOptions.some((option) => option.code === formData.jurisdictionCode)) {
+    if (!isBusinessSignup && !isAssistantSignup && !isClientInviteSignup && !jurisdictionOptions.some((option) => option.code === formData.jurisdictionCode)) {
       setError(`Please select your ${selectedCountry?.jurisdictionLabel.toLowerCase() || 'jurisdiction'}.`)
       setLoading(false)
       return
@@ -252,12 +308,13 @@ export default function SignUpForm() {
           firstName,
           lastName,
           businessName: isBusinessSignup ? formData.businessName.trim() : undefined,
-          countryCode: isBusinessSignup || isAssistantSignup ? null : formData.countryCode,
-          jurisdictionCode: isBusinessSignup || isAssistantSignup ? null : formData.jurisdictionCode,
+          countryCode: isBusinessSignup || isAssistantSignup || isClientInviteSignup ? null : formData.countryCode,
+          jurisdictionCode: isBusinessSignup || isAssistantSignup || isClientInviteSignup ? null : formData.jurisdictionCode,
           audience: isBusinessSignup ? 'business' : 'litigant',
           plan: resolvedSelectedPlanName,
           planId: selectedPlanId || undefined,
           signupSource: isAssistantSignup ? 'assistant' : undefined,
+          invitationToken: invitationToken || undefined,
           market: publicMarket,
           redirect: nextRedirect,
         }),
@@ -277,8 +334,35 @@ export default function SignUpForm() {
         if (selectedPlanId) {
           throw new Error('Account created, but we could not start payment. Please sign in and continue from pricing.')
         }
-        const signInParams = new URLSearchParams({ verify: 'sent', redirect: nextRedirect })
+        const signInParams = new URLSearchParams({ redirect: nextRedirect })
+        if (!invitationToken) {
+          signInParams.set('verify', 'sent')
+        }
+        if (invitationToken) {
+          signInParams.set('token', invitationToken)
+        }
         router.push(`/auth/signin?${signInParams.toString()}`)
+        router.refresh()
+        return
+      }
+
+      if (invitationToken) {
+        const { data: sessionData } = await supabase.auth.getSession()
+        if (sessionData.session?.access_token) {
+          const inviteResponse = await fetch('/api/client/invitations', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${sessionData.session.access_token}`,
+            },
+            body: JSON.stringify({ token: invitationToken }),
+          })
+          const invitePayload = await inviteResponse.json().catch(() => ({}))
+          if (!inviteResponse.ok) {
+            throw new Error(invitePayload?.message || 'Failed to accept invitation.')
+          }
+        }
+        router.push('/client-portal')
         router.refresh()
         return
       }
@@ -290,7 +374,7 @@ export default function SignUpForm() {
       if (selectedPlanId) verifyParams.set('planId', selectedPlanId)
       router.push(`/auth/verify-email?${verifyParams.toString()}`)
       router.refresh()
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message || 'An error occurred during sign up')
       } else {
@@ -303,6 +387,18 @@ export default function SignUpForm() {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
+      {invitationLoading && (
+        <div className={styles.successBox}>
+          Loading your client portal invitation...
+        </div>
+      )}
+      {invitation && (
+        <div className={styles.successBox}>
+          {invitation.businessName
+            ? `${invitation.businessName} invited you to join their client portal.`
+            : 'You have been invited to join a client portal.'}
+        </div>
+      )}
       {error && (
         <div className={styles.errorBox}>
           {error}
@@ -350,10 +446,11 @@ export default function SignUpForm() {
           className={styles.input}
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          disabled={Boolean(invitation?.invitedEmail)}
         />
       </div>
 
-      {!isBusinessSignup && !isAssistantSignup && (
+      {!isBusinessSignup && !isAssistantSignup && !isClientInviteSignup && (
         <>
           <div>
             <div className={styles.fieldHeader}>
@@ -509,12 +606,14 @@ export default function SignUpForm() {
 
       <button
         type="submit"
-        disabled={loading || !acceptedTerms}
+        disabled={loading || invitationLoading || !acceptedTerms}
         className={styles.primaryButton}
       >
         {loading
           ? (selectedPlanId ? 'Preparing checkout...' : 'Creating account...')
-          : (selectedPlanId ? 'Continue to payment' : 'Sign Up')}
+          : invitation
+            ? 'Create account and open portal'
+            : (selectedPlanId ? 'Continue to payment' : 'Sign Up')}
       </button>
     </form>
   )

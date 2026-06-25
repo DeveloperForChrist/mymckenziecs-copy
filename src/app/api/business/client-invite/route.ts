@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
 
     // Generate signup link with token
     const appUrl = getAppUrl(request)
-    const signupUrl = `${appUrl}/signup?token=${encodeURIComponent(invitation.token)}`
+    const signupUrl = `${appUrl}/auth/signup?token=${encodeURIComponent(invitation.token)}&redirect=${encodeURIComponent('/client-portal')}`
 
     const subject = `Invitation to join ${businessData.name}'s client portal`
     const textBody = [

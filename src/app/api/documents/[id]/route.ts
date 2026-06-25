@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { hasUserPlatformAccess } from '@/lib/auth/platform-access'
+import { BusinessWorkspaceError, ensureBusinessContext } from '@/lib/business/business-workspace'
+import type { User } from '@supabase/supabase-js'
+
+type DocumentQueryClient = Pick<typeof supabaseAdmin, 'from'>
 
 async function hasPaidAccess(userId: string): Promise<boolean> {
   return hasUserPlatformAccess(userId)
 }
 
-async function getAccessibleDocument(supabase: any, docId: string) {
+async function getAccessibleDocument(supabase: DocumentQueryClient, docId: string) {
   const { data: doc, error } = await supabase
     .from('documents')
     .select('id, uploaded_by, case_id, storage_path')
@@ -17,6 +21,59 @@ async function getAccessibleDocument(supabase: any, docId: string) {
 
   if (error || !doc) return null
   return doc
+}
+
+async function canAccessDocument(options: {
+  supabase: Awaited<ReturnType<typeof createSupabaseRouteClient>>
+  user: User
+  doc: { uploaded_by: string | null; case_id: string | null }
+}) {
+  const { supabase, user, doc } = options
+
+  if (doc.uploaded_by === user.id) {
+    return true
+  }
+
+  if (!doc.case_id) {
+    return false
+  }
+
+  const { data: ownedCase, error: ownedCaseError } = await supabase
+    .from('cases')
+    .select('id')
+    .eq('id', doc.case_id)
+    .eq('user_id', user.id)
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  if (ownedCaseError) {
+    throw new Error(ownedCaseError.message)
+  }
+
+  if (ownedCase?.id) {
+    return true
+  }
+
+  try {
+    const workspace = await ensureBusinessContext(user)
+    const { data: matterRow, error: matterError } = await supabaseAdmin
+      .from('client_matters')
+      .select('id')
+      .eq('business_id', workspace.businessId)
+      .eq('case_id', doc.case_id)
+      .maybeSingle()
+
+    if (matterError) {
+      throw new Error(matterError.message)
+    }
+
+    return Boolean(matterRow?.id)
+  } catch (error) {
+    if (error instanceof BusinessWorkspaceError && error.status === 403) {
+      return false
+    }
+    throw error
+  }
 }
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
@@ -37,12 +94,17 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       return NextResponse.json({ error: 'starred must be a boolean' }, { status: 400 })
     }
 
-    const doc = await getAccessibleDocument(supabase, id)
+    const doc = await getAccessibleDocument(supabaseAdmin, id)
     if (!doc) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 })
     }
 
-    const { data: updated, error: updateErr } = await supabase
+    const hasAccess = await canAccessDocument({ supabase, user: authData.user, doc })
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const { data: updated, error: updateErr } = await supabaseAdmin
       .from('documents')
       .update({ starred: body.starred })
       .eq('id', id)
@@ -57,7 +119,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     }
 
     return NextResponse.json({ success: true, document: { id: updated?.id || id, starred: Boolean(updated?.starred) } })
-  } catch (error: any) {
+  } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to update document'
     return NextResponse.json({ error: message }, { status: 500 })
   }
@@ -83,9 +145,14 @@ export async function DELETE(_request: NextRequest, context: { params: Promise<{
       return NextResponse.json({ error: 'Missing document id' }, { status: 400 })
     }
 
-    const doc = await getAccessibleDocument(supabase, id)
+    const doc = await getAccessibleDocument(supabaseAdmin, id)
     if (!doc) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 })
+    }
+
+    const hasAccess = await canAccessDocument({ supabase, user: authData.user, doc })
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     // Best-effort delete from Storage using service role after access check.
@@ -98,7 +165,7 @@ export async function DELETE(_request: NextRequest, context: { params: Promise<{
     }
 
     const nowIso = new Date().toISOString()
-    const { error: updateErr } = await supabase
+    const { error: updateErr } = await supabaseAdmin
       .from('documents')
       .update({ deleted_at: nowIso })
       .eq('id', id)
@@ -108,7 +175,7 @@ export async function DELETE(_request: NextRequest, context: { params: Promise<{
     }
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
+  } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to delete document'
     return NextResponse.json({ error: message }, { status: 500 })
   }

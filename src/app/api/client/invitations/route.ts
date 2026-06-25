@@ -1,21 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { createBusinessAlert } from '@/lib/business/alerts'
+import {
+  acceptClientInvitationForUser,
+  getClientInvitationByToken,
+  isClientInvitationExpired,
+} from '@/lib/client-portal/invitations'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
-
-function normalizeEmail(value: string | null | undefined) {
-  return String(value || '').trim().toLowerCase()
-}
-
-function isExpired(expiresAt: string | null | undefined) {
-  if (!expiresAt) return false
-  const ts = Date.parse(expiresAt)
-  if (Number.isNaN(ts)) return false
-  return ts < Date.now()
-}
 
 async function recordInvitationOpenAlert(invitation: {
   id: string
@@ -87,7 +81,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Invitation is no longer pending.' }, { status: 409 })
     }
 
-    if (isExpired(invitation.expires_at)) {
+    if (isClientInvitationExpired(invitation.expires_at)) {
       return NextResponse.json({ message: 'Invitation link has expired.' }, { status: 410 })
     }
 
@@ -100,12 +94,14 @@ export async function GET(request: NextRequest) {
       portal_opened_at: invitation.portal_opened_at,
     })
 
+    const businessRelation = invitation as { businesses?: { name?: string | null } | null }
     return NextResponse.json({
       invitation: {
+        token,
         invitedEmail: invitation.invited_email,
         inviterEmail: invitation.inviter_email,
         clientName: invitation.client_name,
-        businessName: (invitation as any).businesses?.name || null,
+        businessName: businessRelation.businesses?.name || null,
       },
     })
   } catch (error) {
@@ -137,31 +133,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Unauthorized.' }, { status: 401 })
     }
 
-    const { data: invitation, error: invitationError } = await supabaseAdmin
-      .from('client_invitations')
-      .select('id, business_id, invited_email, client_name, status, expires_at, portal_opened_at')
-      .eq('token', token)
-      .single()
-
+    const { data: invitation, error: invitationError } = await getClientInvitationByToken(token)
     if (invitationError || !invitation) {
       return NextResponse.json({ message: 'Invalid invitation token.' }, { status: 404 })
-    }
-
-    const invitedEmail = normalizeEmail(invitation.invited_email)
-    const userEmail = normalizeEmail(user.email)
-    if (!invitedEmail || invitedEmail !== userEmail) {
-      return NextResponse.json(
-        { message: 'This invitation is for a different email address.' },
-        { status: 403 },
-      )
-    }
-
-    if (invitation.status !== 'pending' && invitation.status !== 'accepted') {
-      return NextResponse.json({ message: 'Invitation is no longer active.' }, { status: 409 })
-    }
-
-    if (isExpired(invitation.expires_at)) {
-      return NextResponse.json({ message: 'Invitation link has expired.' }, { status: 410 })
     }
 
     await recordInvitationOpenAlert({
@@ -173,59 +147,20 @@ export async function POST(request: NextRequest) {
       portal_opened_at: invitation.portal_opened_at,
     })
 
-    const clientName =
-      invitation.client_name ||
-      String(user.user_metadata?.full_name || user.user_metadata?.display_name || '').trim() ||
-      user.email?.split('@')[0] ||
-      'Client'
-    const clientEmail = normalizeEmail(user.email)
-
-    const { error: linkError } = await supabaseAdmin
-      .from('client_business_links')
-      .upsert(
-        {
-          client_id: user.id,
-          business_id: invitation.business_id,
-          client_name: clientName,
-          client_email: clientEmail || null,
-          status: 'active',
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'client_id,business_id' },
-      )
-
-    if (linkError) {
-      console.error('Invitation accept link upsert error:', linkError)
-      return NextResponse.json({ message: 'Unable to link client to business.' }, { status: 500 })
-    }
-
-    if (invitation.status === 'pending') {
-      const { error: acceptError } = await supabaseAdmin
-        .from('client_invitations')
-        .update({ status: 'accepted', accepted_at: new Date().toISOString() })
-        .eq('id', invitation.id)
-        .eq('status', 'pending')
-
-      if (acceptError) {
-        console.error('Invitation accept update error:', acceptError)
-        return NextResponse.json({ message: 'Unable to mark invitation as accepted.' }, { status: 500 })
-      }
-    }
-
-    await createBusinessAlert({
-      businessId: String(invitation.business_id),
-      type: 'lead',
-      priority: 'medium',
-      title: 'Client invitation accepted',
-      body: `${user.email || 'Client'} accepted their portal invitation.`,
-      clientName: clientName,
-      actionLabel: 'Open Client Work',
-      metadata: {
-        invitationId: invitation.id,
-        clientId: user.id,
-        clientEmail: clientEmail || null,
-      },
+    const accepted = await acceptClientInvitationForUser({
+      token,
+      userId: user.id,
+      userEmail: user.email,
+      userDisplayName:
+        String(user.user_metadata?.full_name || user.user_metadata?.display_name || '').trim() ||
+        user.email?.split('@')[0] ||
+        'Client',
+      autoVerify: true,
     })
+
+    if (!accepted.ok) {
+      return NextResponse.json({ message: accepted.message }, { status: accepted.status })
+    }
 
     return NextResponse.json({ message: 'Invitation accepted successfully.' })
   } catch (error) {
