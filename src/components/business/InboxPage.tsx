@@ -1613,7 +1613,7 @@ export default function InboxPage({
               <p className={styles.composeHint} role="note">
                 {selectedRecipient && deliveryMode === 'portal'
                   ? 'The client receives an email notification and replies inside their secure portal.'
-                  : 'Direct email sends to the address shown above. Undo is only available during the 5 second send delay.'}
+                  : 'Direct emails are sent to the external address and recorded in Sent. To keep replies inside your workspace, onboard the client to the secure client portal.'}
               </p>
             </form>
           </div>

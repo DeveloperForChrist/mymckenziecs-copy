@@ -477,25 +477,22 @@ serve(async (req) => {
           const priorityLabel = formatLabel(ev.priority);
           const dueInDays = daysUntil(d);
           const dueLabel = dueInDays === 0 ? 'Today' : dueInDays === 1 ? 'Tomorrow' : `In ${dueInDays} days`;
-          const rowBg = dueInDays <= 1 ? '#fef2f2' : dueInDays <= 3 ? '#fff7ed' : '#f9fafb';
-          const rowBorder = dueInDays <= 1 ? '#fecaca' : dueInDays <= 3 ? '#fed7aa' : '#e5e7eb';
-          const dueBadgeBg = dueInDays <= 1 ? '#991b1b' : dueInDays <= 3 ? '#9a3412' : '#155e75';
           const notesHtml = ev.notes ? `<div style="color:#6b7280; font-size:12px; margin-top:4px;">${escapeHtml(ev.notes)}</div>` : '';
           return `
             <tr>
-              <td style="padding:14px 16px; border:1px solid ${rowBorder}; border-radius:10px; background:${rowBg};">
+              <td style="padding:14px 0; border-top:1px solid #edf2f7;">
                 <div style="font-weight:700; color:#111827; font-size:15px;">${escapeHtml(ev.title)}</div>
                 <div style="margin-top:4px; color:#374151; font-size:13px;">${dateLabel}${timeLabel ? ` at${timeLabel}` : ''}</div>
                 <div style="margin-top:8px; font-size:12px; color:#4b5563;">
-                  ${categoryLabel ? `<span style="display:inline-block; background:#eef2ff; color:#1e3a8a; border-radius:999px; padding:3px 8px; margin-right:6px;">${escapeHtml(categoryLabel)}</span>` : ''}
-                  ${priorityLabel ? `<span style="display:inline-block; background:#fef3c7; color:#92400e; border-radius:999px; padding:3px 8px; margin-right:6px;">${escapeHtml(priorityLabel)} priority</span>` : ''}
-                  <span style="display:inline-block; background:${dueBadgeBg}; color:#ffffff; border-radius:999px; padding:3px 8px;">${dueLabel}</span>
+                  ${categoryLabel ? `<span style="display:inline-block; color:#1e3a8a; margin-right:10px;">${escapeHtml(categoryLabel)}</span>` : ''}
+                  ${priorityLabel ? `<span style="display:inline-block; color:#92400e; margin-right:10px;">${escapeHtml(priorityLabel)} priority</span>` : ''}
+                  <span style="display:inline-block; color:#17324d; font-weight:700;">${dueLabel}</span>
                 </div>
                 ${notesHtml}
               </td>
             </tr>`;
         })
-        .join('<tr><td style="height:10px;"></td></tr>');
+        .join('');
 
       const calendarUrl = `${APP_URL}/dashboard/calendar`;
       const htmlBody = renderTemplate(REMINDER_TEMPLATE, {

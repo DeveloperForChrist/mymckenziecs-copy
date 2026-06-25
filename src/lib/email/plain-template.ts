@@ -5,7 +5,7 @@ type DetailRow = {
   value: string
 }
 
-type PlainEmailOptions = {
+export type PlainEmailOptions = {
   preheader?: string
   title: string
   greeting?: string
@@ -40,14 +40,19 @@ export function renderPlainEmail(options: PlainEmailOptions) {
 
   const detailsHtml = details.length
     ? `
-      <div style="margin:0 0 24px;padding:18px 20px;border:1px solid #d8e0ea;border-radius:14px;background:#f8fafc;">
-        ${detailsTitle ? `<p style="margin:0 0 12px;font-size:12px;font-weight:800;color:#31516f;text-transform:uppercase;letter-spacing:.08em;">${detailsTitle}</p>` : ''}
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 24px;border-collapse:collapse;border-top:1px solid #d9e2ec;border-bottom:1px solid #d9e2ec;">
+        ${detailsTitle ? `
+          <tr>
+            <td colspan="2" style="padding:14px 0 8px;font-size:12px;font-weight:700;color:#3b4a5a;text-transform:uppercase;letter-spacing:.08em;">${detailsTitle}</td>
+          </tr>
+        ` : ''}
         ${details.map((row) => `
-          <p style="margin:0 0 8px;font-size:14px;color:#243447;">
-            <strong style="color:#0f2236;">${htmlEscape(row.label)}:</strong> ${htmlEscape(row.value)}
-          </p>
+          <tr>
+            <td style="width:34%;padding:9px 16px 9px 0;border-top:1px solid #edf2f7;font-size:13px;color:#5b6775;font-weight:700;vertical-align:top;">${htmlEscape(row.label)}</td>
+            <td style="padding:9px 0;border-top:1px solid #edf2f7;font-size:14px;color:#17202a;vertical-align:top;">${htmlEscape(row.value)}</td>
+          </tr>
         `).join('')}
-      </div>
+      </table>
     `
     : ''
 
@@ -57,8 +62,8 @@ export function renderPlainEmail(options: PlainEmailOptions) {
 
   const actionHtml = ctaUrl && ctaLabel
     ? `
-      <p style="margin:0 0 20px;">
-        <a href="${htmlEscape(ctaUrl)}" style="display:inline-block;padding:14px 20px;border-radius:12px;border:1px solid #193957;background:#0f2f4a;color:#ffffff;text-decoration:none;font-weight:800;font-size:14px;letter-spacing:.01em;">
+      <p style="margin:0 0 22px;">
+        <a href="${htmlEscape(ctaUrl)}" style="display:inline-block;padding:12px 16px;border:1px solid #17324d;background:#17324d;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;line-height:1.2;">
           ${ctaLabel}
         </a>
       </p>
@@ -81,44 +86,35 @@ export function renderPlainEmail(options: PlainEmailOptions) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${title}</title>
   </head>
-  <body style="margin:0;padding:0;background:#eef2f6;font-family:Arial,Helvetica,sans-serif;color:#0f172a;line-height:1.6;">
+  <body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#17202a;line-height:1.6;">
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${preheader}</div>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" data-mymckenziecs-email="plain">
       <tr>
-        <td align="center" style="padding:28px 16px;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;background:#ffffff;border:1px solid #d8e0ea;border-radius:20px;overflow:hidden;box-shadow:0 18px 48px rgba(15,47,74,.10);">
+        <td align="center" style="padding:0 16px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;">
             <tr>
-              <td style="padding:22px 26px;background:#0f2f4a;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                  <tr>
-                    <td style="vertical-align:middle;">
-                      <p style="margin:0;font-size:16px;font-weight:800;letter-spacing:.02em;color:#ffffff;">MyMcKenzieCS</p>
-                      <p style="margin:4px 0 0;font-size:12px;color:#b9d5e8;letter-spacing:.08em;text-transform:uppercase;">Secure case workspace</p>
-                    </td>
-                    <td align="right" style="vertical-align:middle;">
-                      <span style="display:inline-block;padding:6px 10px;border:1px solid rgba(255,255,255,.24);border-radius:999px;color:#dff4ff;font-size:12px;font-weight:700;">Account notice</span>
-                    </td>
-                  </tr>
-                </table>
+              <td style="padding:30px 0 18px;border-bottom:2px solid #17324d;">
+                <p style="margin:0;font-size:18px;font-weight:800;letter-spacing:.01em;color:#17324d;">MyMcKenzieCS</p>
+                <p style="margin:4px 0 0;font-size:12px;color:#5b6775;letter-spacing:.08em;text-transform:uppercase;">Secure legal case workspace</p>
               </td>
             </tr>
             <tr>
-              <td style="padding:32px 28px 28px;">
-                <h1 style="margin:0 0 18px;font-size:28px;line-height:1.2;color:#0f2236;font-weight:800;letter-spacing:-.02em;">${title}</h1>
-                <p style="margin:0 0 16px;font-size:15px;color:#0f2236;">${greeting}</p>
-                <p style="margin:0 0 20px;font-size:15px;color:#3f5368;">${intro}</p>
+              <td style="padding:30px 0 26px;">
+                <h1 style="margin:0 0 18px;font-size:26px;line-height:1.25;color:#17202a;font-weight:800;letter-spacing:-.01em;">${title}</h1>
+                <p style="margin:0 0 16px;font-size:15px;color:#17202a;">${greeting}</p>
+                <p style="margin:0 0 20px;font-size:15px;color:#344054;">${intro}</p>
                 ${detailsHtml}
                 ${bodyHtml}
                 ${actionHtml}
                 ${urlFallbackHtml}
-                ${note ? `<p style="margin:0 0 20px;padding:14px 16px;border-left:3px solid #77b7d7;background:#f4f8fb;font-size:14px;color:#40566d;">${note}</p>` : ''}
-                <p style="margin:0;font-size:14px;color:#3f5368;">${closing}</p>
+                ${note ? `<p style="margin:0 0 20px;padding:0 0 0 12px;border-left:3px solid #98a6b3;font-size:14px;color:#4b5563;">${note}</p>` : ''}
+                <p style="margin:0;font-size:14px;color:#344054;">${closing}</p>
               </td>
             </tr>
             <tr>
-              <td style="padding:18px 28px;background:#f8fafc;border-top:1px solid #e3e9f0;">
-                <p style="margin:0 0 6px;font-size:12px;color:#60758a;">This transactional email was sent by MyMcKenzieCS in relation to your account, workspace, or client portal activity.</p>
-                <p style="margin:0;font-size:12px;color:#60758a;">For your security, never share account links with anyone you do not trust.</p>
+              <td style="padding:18px 0 34px;border-top:1px solid #d9e2ec;">
+                <p style="margin:0 0 6px;font-size:12px;color:#667085;">This transactional email was sent by MyMcKenzieCS in relation to your account, workspace, billing, client portal, meeting, or security activity.</p>
+                <p style="margin:0;font-size:12px;color:#667085;">For security, do not forward sign-in, password, billing, or portal links to anyone you do not trust.</p>
               </td>
             </tr>
           </table>
@@ -127,4 +123,37 @@ export function renderPlainEmail(options: PlainEmailOptions) {
     </table>
   </body>
 </html>`
+}
+
+export function renderPlainEmailText(options: PlainEmailOptions) {
+  const lines = [
+    options.title,
+    '',
+    options.greeting || 'Hello,',
+    '',
+    options.intro,
+    '',
+  ]
+
+  if (options.details?.length) {
+    if (options.detailsTitle) {
+      lines.push(options.detailsTitle, '')
+    }
+    for (const row of options.details) {
+      lines.push(`${row.label}: ${row.value}`)
+    }
+    lines.push('')
+  }
+
+  if (options.ctaLabel && options.ctaUrl) {
+    lines.push(`${options.ctaLabel}:`, options.ctaUrl, '')
+  }
+
+  if (options.note) {
+    lines.push(options.note, '')
+  }
+
+  lines.push(options.closing || 'Kind regards,\nMyMcKenzieCS')
+
+  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim()
 }

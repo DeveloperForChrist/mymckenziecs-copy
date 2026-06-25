@@ -8,6 +8,7 @@ import { renderPlainEmail } from '@/lib/email/plain-template'
 import { EMAIL_ATTACHMENT_LABEL, isAllowedEmailAttachment } from '@/lib/inbox/attachment-policy'
 import { isMissingDocumentSharesTable } from '@/lib/documents/client-document-access'
 import { enforceIpRateLimit } from '@/lib/utils/rate-limit'
+import { htmlEscape } from '@/lib/utils/html-escape'
 import nodemailer from 'nodemailer'
 
 export const runtime = 'nodejs'
@@ -424,7 +425,7 @@ export async function POST(request: NextRequest) {
           ? [{ label: 'Matter', value: relatedMatter?.matter_number || relatedMatter?.issue_type || 'Client matter' }]
           : []),
       ],
-      bodyHtml: `<p style="margin:0;white-space:pre-wrap;">${body}</p>`,
+      bodyHtml: `<p style="margin:0;white-space:pre-wrap;">${htmlEscape(body)}</p>`,
       note: 'This message was delivered directly by email. It is not a portal-only thread.',
       closing: `Kind regards,\n${senderName}`,
     })

@@ -6,6 +6,7 @@ import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { isPremiumPlusPlan, planDisplayName } from '@/lib/plans/access';
 import { emailDailyRateLimiter, emailRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit';
 import { htmlEscape } from '@/lib/utils/html-escape';
+import { renderPlainEmail } from '@/lib/email/plain-template';
 
 export async function POST(req: NextRequest) {
   try {
@@ -79,36 +80,22 @@ ${safeMessage}
 ---
 Sent from MyMcKenzieCS Contact Form
       `;
-    const htmlBody = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #4c1d95;">New Contact Form Submission</h2>
-          <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>From:</strong></td>
-              <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${safeUserName}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Email:</strong></td>
-              <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${safeUserEmail}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Plan:</strong></td>
-              <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${planLabel}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Subject:</strong></td>
-              <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${safeSubject}</td>
-            </tr>
-          </table>
-          <div style="margin-top: 20px; padding: 20px; background: #f9fafb; border-radius: 8px;">
-            <h3 style="margin-top: 0;">Message:</h3>
-            <p style="white-space: pre-wrap;">${safeMessage}</p>
-          </div>
-          <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">
-            Sent from MyMcKenzieCS Contact Form
-          </p>
-        </div>
-      `;
+    const htmlBody = renderPlainEmail({
+      preheader: `${safeUserName} submitted a support message from MyMcKenzieCS.`,
+      title: 'New contact form submission',
+      greeting: 'Hello MyMcKenzieCS support,',
+      intro: 'A user has submitted a contact form message from the platform.',
+      detailsTitle: 'Submission details',
+      details: [
+        { label: 'From', value: userName },
+        { label: 'Email', value: userEmail },
+        { label: 'Plan', value: planLabel },
+        { label: 'Subject', value: subject },
+      ],
+      bodyHtml: `<p style="margin:0 0 8px;font-weight:700;color:#17202a;">Message</p><p style="margin:0;white-space:pre-wrap;">${safeMessage}</p>`,
+      note: 'This message was sent from the MyMcKenzieCS contact form.',
+      closing: 'MyMcKenzieCS platform notification',
+    });
 
     const priorityHeaders = {
       'X-Plan': normalizedPlanLabel,

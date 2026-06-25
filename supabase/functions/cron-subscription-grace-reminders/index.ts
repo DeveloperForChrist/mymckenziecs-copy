@@ -54,26 +54,36 @@ const formatDateLabel = (value?: Date | number | string | null): string => {
 }
 
 const standardReminderTemplate = (vars: Record<string, string>) => `<!doctype html>
-<html><body><div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-<h1>Payment reminder</h1>
-<p>Hi ${vars.name},</p>
-<p>We still haven’t been able to complete your payment.</p>
-<p>We’ll retry your payment on ${vars.next_retry_date}.</p>
-<p>If payment isn’t completed by ${vars.grace_end_date}, your account moves to the Free plan.</p>
-<p><a href="${vars.manage_url}">Update payment method</a></p>
-<p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MyMcKenzieCS</p>
-</div></body></html>`
+<html><body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#17202a;line-height:1.6;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" data-mymckenziecs-email="plain"><tr><td align="center" style="padding:0 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#ffffff;">
+<tr><td style="padding:30px 0 18px;border-bottom:2px solid #17324d;"><p style="margin:0;font-size:18px;font-weight:800;color:#17324d;">MyMcKenzieCS</p><p style="margin:4px 0 0;font-size:12px;color:#5b6775;letter-spacing:.08em;text-transform:uppercase;">Secure legal case workspace</p></td></tr>
+<tr><td style="padding:30px 0 26px;"><h1 style="margin:0 0 18px;font-size:26px;line-height:1.25;color:#17202a;">Payment reminder</h1>
+<p style="margin:0 0 16px;">Hi ${vars.name},</p>
+<p style="margin:0 0 16px;color:#344054;">We still have not been able to complete your payment.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 22px;border-top:1px solid #d9e2ec;border-bottom:1px solid #d9e2ec;border-collapse:collapse;">
+<tr><td style="width:34%;padding:9px 16px 9px 0;border-top:1px solid #edf2f7;font-size:13px;color:#5b6775;font-weight:700;">Next retry date</td><td style="padding:9px 0;border-top:1px solid #edf2f7;font-size:14px;color:#17202a;">${vars.next_retry_date}</td></tr>
+<tr><td style="width:34%;padding:9px 16px 9px 0;border-top:1px solid #edf2f7;font-size:13px;color:#5b6775;font-weight:700;">Grace period ends</td><td style="padding:9px 0;border-top:1px solid #edf2f7;font-size:14px;color:#17202a;">${vars.grace_end_date}</td></tr>
+</table>
+<p style="margin:0 0 22px;color:#344054;">If payment is not completed by the grace period end date, your account will move to the Free plan.</p>
+<p style="margin:0 0 22px;"><a href="${vars.manage_url}" style="display:inline-block;background:#17324d;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 16px;">Update payment method</a></p>
+<p style="margin:0;font-size:14px;color:#344054;">Kind regards,<br />The MyMcKenzieCS team</p></td></tr>
+<tr><td style="padding:18px 0 34px;border-top:1px solid #d9e2ec;font-size:12px;color:#667085;">This transactional email was sent in relation to your MyMcKenzieCS billing activity.</td></tr>
+</table></td></tr></table></body></html>`
 
 const finalReminderTemplate = (vars: Record<string, string>) => `<!doctype html>
-<html><body><div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-<h1>Final payment reminder</h1>
-<p>Hi ${vars.name},</p>
-<p>This is your final reminder. We still haven’t been able to collect your subscription payment.</p>
-<p>If payment is not completed by <strong>${vars.grace_end_date}</strong>, your subscription access will end and your account will move to the Free plan.</p>
-<p>Please update your payment method now to avoid interruption.</p>
-<p><a href="${vars.manage_url}">Update payment method now</a></p>
-<p style="margin-top: 24px; color: #6b7280; font-size: 12px;">MyMcKenzieCS</p>
-</div></body></html>`
+<html><body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#17202a;line-height:1.6;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" data-mymckenziecs-email="plain"><tr><td align="center" style="padding:0 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#ffffff;">
+<tr><td style="padding:30px 0 18px;border-bottom:2px solid #17324d;"><p style="margin:0;font-size:18px;font-weight:800;color:#17324d;">MyMcKenzieCS</p><p style="margin:4px 0 0;font-size:12px;color:#5b6775;letter-spacing:.08em;text-transform:uppercase;">Secure legal case workspace</p></td></tr>
+<tr><td style="padding:30px 0 26px;"><h1 style="margin:0 0 18px;font-size:26px;line-height:1.25;color:#17202a;">Final payment reminder</h1>
+<p style="margin:0 0 16px;">Hi ${vars.name},</p>
+<p style="margin:0 0 16px;color:#344054;">This is your final reminder. We still have not been able to collect your subscription payment.</p>
+<p style="margin:0 0 22px;color:#344054;">If payment is not completed by <strong>${vars.grace_end_date}</strong>, your subscription access will end and your account will move to the Free plan.</p>
+<p style="margin:0 0 22px;"><a href="${vars.manage_url}" style="display:inline-block;background:#17324d;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 16px;">Update payment method now</a></p>
+<p style="margin:0;font-size:14px;color:#344054;">Kind regards,<br />The MyMcKenzieCS team</p></td></tr>
+<tr><td style="padding:18px 0 34px;border-top:1px solid #d9e2ec;font-size:12px;color:#667085;">This transactional email was sent in relation to your MyMcKenzieCS billing activity.</td></tr>
+</table></td></tr></table></body></html>`
 
 serve(async () => {
   try {
