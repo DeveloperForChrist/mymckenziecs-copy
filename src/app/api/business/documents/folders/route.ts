@@ -13,6 +13,23 @@ type AssignmentRow = {
   folder_id: string | null
 }
 
+const isMissingDocumentFoldersTableError = (error: unknown) => {
+  if (!error || typeof error !== 'object') return false
+  const candidate = error as { code?: string; message?: string }
+  if (candidate.code === 'PGRST205' || candidate.code === '42P01') return true
+  return typeof candidate.message === 'string' && (
+    candidate.message.includes('public.document_folders') ||
+    candidate.message.includes('public.document_folder_assignments') ||
+    candidate.message.includes("Could not find the table 'public.document_folders'") ||
+    candidate.message.includes("Could not find the table 'public.document_folder_assignments'")
+  )
+}
+
+const missingDocumentFoldersResponse = () => NextResponse.json(
+  { error: 'Document folders are not ready yet. Apply the latest Supabase migrations first.' },
+  { status: 503 },
+)
+
 async function getBusinessUser() {
   const supabase = await createSupabaseRouteClient()
   const { data, error } = await supabase.auth.getUser()
@@ -51,9 +68,15 @@ export async function GET() {
     ])
 
     if (foldersError) {
+      if (isMissingDocumentFoldersTableError(foldersError)) {
+        return NextResponse.json({ folders: [], folderMap: {}, setupRequired: true })
+      }
       return NextResponse.json({ error: foldersError.message || 'Unable to load folders.' }, { status: 500 })
     }
     if (assignmentsError) {
+      if (isMissingDocumentFoldersTableError(assignmentsError)) {
+        return NextResponse.json({ folders: [], folderMap: {}, setupRequired: true })
+      }
       return NextResponse.json({ error: assignmentsError.message || 'Unable to load folder assignments.' }, { status: 500 })
     }
 
@@ -98,6 +121,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (error) {
+      if (isMissingDocumentFoldersTableError(error)) return missingDocumentFoldersResponse()
       return NextResponse.json({ error: error.message || 'Unable to create folder.' }, { status: 500 })
     }
 
@@ -148,6 +172,7 @@ export async function PATCH(request: NextRequest) {
         .eq('document_id', documentId)
 
       if (error) {
+        if (isMissingDocumentFoldersTableError(error)) return missingDocumentFoldersResponse()
         return NextResponse.json({ error: error.message || 'Unable to clear folder assignment.' }, { status: 500 })
       }
 
@@ -162,6 +187,7 @@ export async function PATCH(request: NextRequest) {
       .maybeSingle()
 
     if (folderError) {
+      if (isMissingDocumentFoldersTableError(folderError)) return missingDocumentFoldersResponse()
       return NextResponse.json({ error: folderError.message || 'Unable to verify folder.' }, { status: 500 })
     }
     if (!folder?.id) {
@@ -177,6 +203,7 @@ export async function PATCH(request: NextRequest) {
       }, { onConflict: 'document_id' })
 
     if (error) {
+      if (isMissingDocumentFoldersTableError(error)) return missingDocumentFoldersResponse()
       return NextResponse.json({ error: error.message || 'Unable to save folder assignment.' }, { status: 500 })
     }
 
@@ -205,6 +232,7 @@ export async function DELETE(request: NextRequest) {
       .eq('user_id', auth.user.id)
 
     if (error) {
+      if (isMissingDocumentFoldersTableError(error)) return missingDocumentFoldersResponse()
       return NextResponse.json({ error: error.message || 'Unable to delete folder.' }, { status: 500 })
     }
 
