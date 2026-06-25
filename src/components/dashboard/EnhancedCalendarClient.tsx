@@ -743,13 +743,6 @@ export default function EnhancedCalendarClient({
               <div className={styles.eventsModeSwitch}>
                 <button
                   type="button"
-                  className={`${styles.eventsModeButton} ${eventsPanelMode === 'view' ? styles.eventsModeButtonActive : ''}`}
-                  onClick={() => setEventsPanelMode('view')}
-                >
-                  Upcoming
-                </button>
-                <button
-                  type="button"
                   className={`${styles.eventsModeButton} ${styles.eventsAddButton} ${
                     eventsPanelMode === 'add' ? styles.eventsModeButtonActive : ''
                   } ${
