@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { createBusinessAlert } from '@/lib/business/alerts'
 import { sendPlatformMessageNotification } from '@/lib/email/platform-notifications'
+import { enforceIpRateLimit } from '@/lib/utils/rate-limit'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -21,6 +22,14 @@ function normalizeEmail(value: string | null | undefined) {
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = await enforceIpRateLimit(request.headers, {
+      key: 'client:message',
+      tokens: 30,
+      windowMs: 10 * 60 * 1000,
+      message: 'Too many client messages from this network. Please try again later.',
+    })
+    if (limited) return limited
+
     const body = await request.json() as ClientMessageFormData
 
     if (!body.businessId || !body.subject || !body.content) {

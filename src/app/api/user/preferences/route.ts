@@ -3,6 +3,7 @@ import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { supabaseAdmin } from '@/lib/database/supabase-server';
 import { getOrSyncUserEntitlementSnapshot } from '@/lib/payments/entitlements';
 import { hasReminderAccess } from '@/lib/plans/access';
+import { enforceIpRateLimit } from '@/lib/utils/rate-limit';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -62,6 +63,13 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
+    const limited = await enforceIpRateLimit(request.headers, {
+      key: 'user:preferences:update',
+      tokens: 60,
+      windowMs: 10 * 60 * 1000,
+    });
+    if (limited) return limited;
+
     const supabase = await createSupabaseRouteClient();
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) {

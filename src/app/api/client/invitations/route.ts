@@ -6,6 +6,7 @@ import {
   getClientInvitationByToken,
   isClientInvitationExpired,
 } from '@/lib/client-portal/invitations'
+import { enforceIpRateLimit } from '@/lib/utils/rate-limit'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -62,6 +63,14 @@ async function recordInvitationOpenAlert(invitation: {
 
 export async function GET(request: NextRequest) {
   try {
+    const limited = await enforceIpRateLimit(request.headers, {
+      key: 'client:invitation-lookup',
+      tokens: 30,
+      windowMs: 10 * 60 * 1000,
+      message: 'Too many invitation lookups from this network. Please try again later.',
+    })
+    if (limited) return limited
+
     const token = request.nextUrl.searchParams.get('token')
     if (!token) {
       return NextResponse.json({ message: 'Invitation token is required.' }, { status: 400 })
@@ -112,6 +121,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = await enforceIpRateLimit(request.headers, {
+      key: 'client:invitation-accept',
+      tokens: 10,
+      windowMs: 10 * 60 * 1000,
+      message: 'Too many invitation attempts from this network. Please try again later.',
+    })
+    if (limited) return limited
+
     const body = await request.json().catch(() => ({}))
     const token = typeof body?.token === 'string' ? body.token : ''
     if (!token) {

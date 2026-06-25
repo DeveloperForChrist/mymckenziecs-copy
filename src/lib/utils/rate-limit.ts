@@ -338,6 +338,19 @@ export const apiRateLimiter = redis
   : null
 
 /**
+ * General IP limiter for API routes.
+ * 120 requests per 60 seconds per IP.
+ */
+export const apiIpRateLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(120, '60 s'),
+      analytics: true,
+      prefix: 'ratelimit:api_ip',
+    })
+  : null
+
+/**
  * Rate limiter for authentication attempts
  * 5 requests per 300 seconds (5 minutes) per IP
  */
@@ -563,4 +576,31 @@ export function rateLimitExceededResponse(
       },
     }
   )
+}
+
+type IpRateLimitOptions = {
+  key: string
+  tokens?: number
+  windowMs?: number
+  message?: string
+}
+
+export async function enforceIpRateLimit(headers: Headers, options: IpRateLimitOptions) {
+  const ip = getClientIp(headers)
+  const identifier = `${options.key}:ip:${getIdentifier(undefined, ip)}`
+  const result = await rateLimit(
+    apiIpRateLimiter,
+    identifier,
+    options.tokens ?? 120,
+    options.windowMs ?? 60 * 1000
+  )
+
+  if (!result.success) {
+    return rateLimitExceededResponse(
+      result,
+      options.message || 'Too many requests from this network. Please try again shortly.'
+    )
+  }
+
+  return null
 }

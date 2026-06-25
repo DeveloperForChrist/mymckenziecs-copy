@@ -7,6 +7,7 @@ import { sendResendEmail } from '@/lib/email/resend'
 import { renderPlainEmail } from '@/lib/email/plain-template'
 import { EMAIL_ATTACHMENT_LABEL, isAllowedEmailAttachment } from '@/lib/inbox/attachment-policy'
 import { isMissingDocumentSharesTable } from '@/lib/documents/client-document-access'
+import { enforceIpRateLimit } from '@/lib/utils/rate-limit'
 import nodemailer from 'nodemailer'
 
 export const runtime = 'nodejs'
@@ -129,6 +130,14 @@ async function sendDirectEmailMessage(params: {
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = await enforceIpRateLimit(request.headers, {
+      key: 'business:inbox-message',
+      tokens: 30,
+      windowMs: 10 * 60 * 1000,
+      message: 'Too many message sends from this network. Please try again later.',
+    })
+    if (limited) return limited
+
     const { user, workspace } = await getContext()
     const payload = (await request.json().catch(() => ({}))) as SendPortalMessagePayload
     const senderEmail = normalizeEmail(asString(user.email || ''))

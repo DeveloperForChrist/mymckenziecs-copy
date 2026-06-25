@@ -3,6 +3,7 @@ import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { BusinessWorkspaceError, ensureBusinessContext } from '@/lib/business/business-workspace'
 import { createBusinessAlert } from '@/lib/business/alerts'
+import { enforceIpRateLimit } from '@/lib/utils/rate-limit'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -161,6 +162,13 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = await enforceIpRateLimit(request.headers, {
+      key: 'business:meetings:create',
+      tokens: 40,
+      windowMs: 10 * 60 * 1000,
+    })
+    if (limited) return limited
+
     const context = await getContext()
     const body = asRecord(await request.json())
     if (!body) return NextResponse.json({ message: 'Invalid meeting payload.' }, { status: 400 })
@@ -286,6 +294,13 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const limited = await enforceIpRateLimit(request.headers, {
+      key: 'business:meetings:update',
+      tokens: 80,
+      windowMs: 10 * 60 * 1000,
+    })
+    if (limited) return limited
+
     const context = await getContext()
     const body = asRecord(await request.json())
     if (!body) return NextResponse.json({ message: 'Invalid meeting payload.' }, { status: 400 })

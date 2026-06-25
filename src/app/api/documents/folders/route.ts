@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
+import { enforceIpRateLimit } from '@/lib/utils/rate-limit'
 
 type FolderRow = {
   id: string | null
@@ -94,6 +95,13 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = await enforceIpRateLimit(request.headers, {
+      key: 'documents:folders:create',
+      tokens: 40,
+      windowMs: 10 * 60 * 1000,
+    })
+    if (limited) return limited
+
     const auth = await getUser()
     if (auth.error) return auth.error
 
@@ -128,6 +136,13 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    const limited = await enforceIpRateLimit(request.headers, {
+      key: 'documents:folders:update',
+      tokens: 80,
+      windowMs: 10 * 60 * 1000,
+    })
+    if (limited) return limited
+
     const auth = await getUser()
     if (auth.error) return auth.error
 
@@ -205,6 +220,13 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const limited = await enforceIpRateLimit(request.headers, {
+      key: 'documents:folders:delete',
+      tokens: 40,
+      windowMs: 10 * 60 * 1000,
+    })
+    if (limited) return limited
+
     const auth = await getUser()
     if (auth.error) return auth.error
 

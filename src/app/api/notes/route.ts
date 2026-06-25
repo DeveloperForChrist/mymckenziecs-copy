@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseRouteClient } from "@/lib/database/supabase-route";
 import { supabaseAdmin } from "@/lib/database/supabase-server";
 import { hasUserPlatformAccess } from "@/lib/auth/platform-access";
+import { enforceIpRateLimit } from "@/lib/utils/rate-limit";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -134,6 +135,13 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
+    const limited = await enforceIpRateLimit(request.headers, {
+      key: "notes:update",
+      tokens: 60,
+      windowMs: 10 * 60 * 1000,
+    });
+    if (limited) return limited;
+
     const supabase = await createSupabaseRouteClient();
     const { data: authData, error: authError } = await supabase.auth.getUser();
     if (authError || !authData?.user) {

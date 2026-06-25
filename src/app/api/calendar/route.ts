@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/database/supabase-route';
 import { hasUserPlatformAccess } from '@/lib/auth/platform-access';
+import { enforceIpRateLimit } from '@/lib/utils/rate-limit';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -231,6 +232,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = await enforceIpRateLimit(request.headers, {
+      key: 'calendar:create',
+      tokens: 40,
+      windowMs: 10 * 60 * 1000,
+    });
+    if (limited) return limited;
+
     const supabase = await createSupabaseRouteClient();
     const { data: authData, error: authError } = await supabase.auth.getUser();
 
@@ -305,6 +313,13 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const limited = await enforceIpRateLimit(request.headers, {
+      key: 'calendar:update',
+      tokens: 80,
+      windowMs: 10 * 60 * 1000,
+    });
+    if (limited) return limited;
+
     const supabase = await createSupabaseRouteClient();
     const { data: authData, error: authError } = await supabase.auth.getUser();
 
@@ -435,6 +450,13 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const limited = await enforceIpRateLimit(request.headers, {
+      key: 'calendar:delete',
+      tokens: 40,
+      windowMs: 10 * 60 * 1000,
+    });
+    if (limited) return limited;
+
     const supabase = await createSupabaseRouteClient();
     const { data: authData, error: authError } = await supabase.auth.getUser();
 

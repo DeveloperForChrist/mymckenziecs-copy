@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/database/supabase-server'
+import { enforceIpRateLimit } from '@/lib/utils/rate-limit'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -37,6 +38,14 @@ function dateOnly(value: unknown) {
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = await enforceIpRateLimit(request.headers, {
+      key: 'public:direct-contact',
+      tokens: 5,
+      windowMs: 10 * 60 * 1000,
+      message: 'Too many direct enquiries from this network. Please try again later.',
+    })
+    if (limited) return limited
+
     const body = await request.json() as DirectContactFormData
 
     // Validate required fields

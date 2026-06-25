@@ -5,6 +5,7 @@ import { getAppUrl } from '@/lib/app-url'
 import nodemailer from 'nodemailer'
 import { createBusinessAlert } from '@/lib/business/alerts'
 import { renderPlainEmail } from '@/lib/email/plain-template'
+import { enforceIpRateLimit } from '@/lib/utils/rate-limit'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -21,6 +22,14 @@ function normalizeEmail(value: string | null | undefined) {
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = await enforceIpRateLimit(request.headers, {
+      key: 'business:client-invite',
+      tokens: 10,
+      windowMs: 10 * 60 * 1000,
+      message: 'Too many client invitation requests from this network. Please try again later.',
+    })
+    if (limited) return limited
+
     const body = await request.json() as ClientInviteFormData
     const invitedEmail = normalizeEmail(body.email)
 
