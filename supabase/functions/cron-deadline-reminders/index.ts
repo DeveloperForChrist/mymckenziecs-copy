@@ -267,6 +267,7 @@ serve(async (req) => {
         .select('id, user_id, title, notes, time, date, category, priority, completed')
         .gte('date', start)
         .lt('date', endExclusive)
+        .eq('category', 'deadline')
         .eq('completed', false)
         .order('date', { ascending: true })
         .range(from, to);

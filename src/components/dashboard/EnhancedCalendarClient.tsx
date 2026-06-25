@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { CalendarPlus } from 'lucide-react'
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import { hasReminderAccess as planHasReminderAccess } from '@/lib/plans/access'
@@ -173,6 +173,8 @@ export default function EnhancedCalendarClient({
   const [eventsLoading, setEventsLoading] = useState(true)
   const [calendarLoadError, setCalendarLoadError] = useState<string | null>(null)
   const [eventsPanelMode, setEventsPanelMode] = useState<'view' | 'add'>('view')
+  const [deadlineModalDateKey, setDeadlineModalDateKey] = useState<string | null>(null)
+  const [autoReminderAttempted, setAutoReminderAttempted] = useState(false)
 
   const mapEventsToDateMap = (rows: any[]): EventsByDate => {
     const map: EventsByDate = {}
@@ -341,6 +343,29 @@ export default function EnhancedCalendarClient({
     }
   }
 
+  const enableDeadlineReminders = useCallback(async () => {
+    if (!uid || !hasReminderAccess || !hasPaidAccess || remindersEnabled || prefsSaving) return
+    setPrefsSaving(true)
+    setPrefsError(null)
+    try {
+      const res = await fetch('/api/user/preferences', {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deadline_reminders: true }),
+      })
+      if (!res.ok) {
+        throw new Error('Failed to enable deadline reminders')
+      }
+      setRemindersEnabled(true)
+    } catch (error) {
+      console.error('Failed to enable deadline reminders', error)
+      setPrefsError('Deadline was saved, but reminder emails could not be enabled automatically.')
+    } finally {
+      setPrefsSaving(false)
+    }
+  }, [hasPaidAccess, hasReminderAccess, prefsSaving, remindersEnabled, uid])
+
   const resetForm = () => {
     setNewTitle('')
     setNewTime('')
@@ -430,6 +455,10 @@ export default function EnhancedCalendarClient({
         })
         return next
       })
+
+      if (newCategory === 'deadline') {
+        await enableDeadlineReminders()
+      }
 
       resetForm()
     } catch (error) {
@@ -578,6 +607,38 @@ export default function EnhancedCalendarClient({
     })
   }, [eventsByDate])
 
+  const hasDeadlineEvents = useMemo(
+    () => Object.values(eventsByDate).some((list) => list.some((event) => event.category === 'deadline' && !event.completed)),
+    [eventsByDate]
+  )
+
+  useEffect(() => {
+    if (!hasDeadlineEvents || eventsLoading || prefsLoading || remindersEnabled || autoReminderAttempted) return
+    setAutoReminderAttempted(true)
+    void enableDeadlineReminders()
+  }, [autoReminderAttempted, enableDeadlineReminders, eventsLoading, hasDeadlineEvents, prefsLoading, remindersEnabled])
+
+  const deadlineModalEvents = useMemo(() => {
+    if (!deadlineModalDateKey) return []
+    return (eventsByDate[deadlineModalDateKey] || [])
+      .filter((event) => event.category === 'deadline')
+      .sort((a, b) => {
+        const statusDiff = statusRank(getEventStatus(a)) - statusRank(getEventStatus(b))
+        if (statusDiff !== 0) return statusDiff
+        const timeDiff = (a.time || '').localeCompare(b.time || '')
+        if (timeDiff !== 0) return timeDiff
+        return (a.title || '').localeCompare(b.title || '')
+      })
+  }, [deadlineModalDateKey, eventsByDate])
+
+  const deadlineModalDate = deadlineModalDateKey ? parseEventDate(deadlineModalDateKey) : null
+
+  useEffect(() => {
+    if (deadlineModalDateKey && deadlineModalEvents.length === 0) {
+      setDeadlineModalDateKey(null)
+    }
+  }, [deadlineModalDateKey, deadlineModalEvents.length])
+
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   const categoryClass = (category?: CalendarEvent['category']) => {
     switch (category) {
@@ -676,17 +737,29 @@ export default function EnhancedCalendarClient({
             {monthCells.map((cell) => {
               const key = dateKey(cell.date)
               const events = eventsByDate[key] || []
+              const deadlineEvents = events.filter((event) => event.category === 'deadline')
+              const hasDeadline = deadlineEvents.length > 0
               return (
                 <div
                   key={cell.date.toISOString()}
-                  onClick={() => setSelectedDate(cell.date)}
+                  onClick={() => {
+                    setSelectedDate(cell.date)
+                    if (hasDeadline) {
+                      setDeadlineModalDateKey(key)
+                    }
+                  }}
                   className={`${styles.dayCell} ${cell.inCurrentMonth ? '' : styles.dayCellMuted} ${
                     cell.isToday ? styles.dayCellToday : ''
-                  } ${cell.isSelected ? styles.dayCellActive : ''}`}
+                  } ${hasDeadline ? styles.dayCellDeadline : ''} ${cell.isSelected ? styles.dayCellActive : ''}`}
                 >
                   <div className={styles.dayTopRow}>
                     <div className={styles.dayNumber}>{cell.date.getDate()}</div>
                   </div>
+                  {hasDeadline && (
+                    <div className={styles.deadlineDayLabel}>
+                      {deadlineEvents.length} deadline{deadlineEvents.length === 1 ? '' : 's'}
+                    </div>
+                  )}
                   {events.length > 0 && <div className={styles.dayEventCount}>{events.length}</div>}
                   {events.length > 0 && (
                     <div className={styles.eventDots} aria-label={`${events.length} scheduled event${events.length === 1 ? '' : 's'}`}>
@@ -915,6 +988,70 @@ export default function EnhancedCalendarClient({
           </div>
         </div>
       </div>
+      {deadlineModalDateKey && (
+        <div
+          className={styles.deadlineModalOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Deadline details"
+          onClick={() => setDeadlineModalDateKey(null)}
+        >
+          <div className={styles.deadlineModalCard} onClick={(event) => event.stopPropagation()}>
+            <div className={styles.deadlineModalHeader}>
+              <div>
+                <p className={styles.deadlineModalEyebrow}>Deadline details</p>
+                <h2>
+                  {deadlineModalDate
+                    ? deadlineModalDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+                    : deadlineModalDateKey}
+                </h2>
+              </div>
+              <button className={styles.deadlineModalClose} type="button" onClick={() => setDeadlineModalDateKey(null)}>
+                Close
+              </button>
+            </div>
+            <div className={styles.deadlineReminderNotice}>
+              Reminder emails are enabled automatically for eligible accounts and sent for incomplete deadline events on the configured reminder days.
+            </div>
+            <div className={styles.deadlineModalList}>
+              {deadlineModalEvents.map((event) => {
+                const status = getEventStatus(event)
+                return (
+                  <div key={event.id} className={styles.deadlineModalItem}>
+                    <div className={styles.deadlineModalItemHeader}>
+                      <strong>{event.title}</strong>
+                      <span className={`${styles.eventStatus} ${statusClass(status)}`}>{statusLabel(event)}</span>
+                    </div>
+                    <div className={styles.eventMeta}>
+                      {event.time ? `Time: ${event.time}` : 'No time set'}
+                      {event.priority ? ` · Priority: ${event.priority}` : ''}
+                    </div>
+                    {event.notes && <div className={styles.deadlineModalNotes}>{event.notes}</div>}
+                    <div className={styles.eventActions}>
+                      <button
+                        className={styles.inlineButton}
+                        onClick={() => toggleCompleted(deadlineModalDateKey, event.id)}
+                        disabled={!canManageEvents}
+                        type="button"
+                      >
+                        {event.completed ? 'Unmark' : 'Mark done'}
+                      </button>
+                      <button
+                        className={styles.inlineButton}
+                        onClick={() => deleteEvent(deadlineModalDateKey, event.id)}
+                        disabled={!canManageEvents}
+                        type="button"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -190,6 +190,18 @@
   box-shadow: 0 0 0 1px rgba(90, 255, 220, 0.24), 0 10px 26px rgba(25, 114, 120, 0.12);
 }
 
+.dayCellDeadline {
+  background: linear-gradient(180deg, rgba(254, 242, 242, 0.98), rgba(255, 247, 247, 0.94));
+  border-color: rgba(220, 38, 38, 0.52);
+  box-shadow: inset 3px 0 0 rgba(220, 38, 38, 0.82), 0 10px 24px rgba(127, 29, 29, 0.1);
+}
+
+.dayCellToday.dayCellDeadline {
+  background: linear-gradient(180deg, rgba(254, 226, 226, 0.98), rgba(255, 247, 237, 0.96));
+  border-color: rgba(220, 38, 38, 0.62);
+  box-shadow: inset 3px 0 0 rgba(220, 38, 38, 0.9), 0 0 0 1px rgba(220, 38, 38, 0.18), 0 12px 28px rgba(127, 29, 29, 0.12);
+}
+
 .dayTopRow {
   display: flex;
   align-items: flex-start;
@@ -230,6 +242,18 @@
   color: #0f172a;
   background: rgba(25, 114, 120, 0.2);
   border: 1px solid rgba(25, 114, 120, 0.35);
+}
+
+.deadlineDayLabel {
+  width: fit-content;
+  padding: 3px 6px;
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  background: rgba(220, 38, 38, 0.1);
+  color: #991b1b;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .eventDots {
@@ -732,6 +756,101 @@
   transform: translateX(20px);
 }
 
+.deadlineModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.58);
+}
+
+.deadlineModalCard {
+  width: min(620px, 94vw);
+  max-height: min(760px, 88vh);
+  overflow: auto;
+  background: #ffffff;
+  border: 1px solid rgba(220, 38, 38, 0.22);
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28);
+  padding: 22px;
+}
+
+.deadlineModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(16, 22, 31, 0.1);
+}
+
+.deadlineModalEyebrow {
+  margin: 0 0 6px;
+  color: #b91c1c;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.deadlineModalHeader h2 {
+  margin: 0;
+  color: var(--admin-ink);
+  font-size: 1.35rem;
+}
+
+.deadlineModalClose {
+  border: 1px solid rgba(16, 22, 31, 0.14);
+  background: #ffffff;
+  color: var(--admin-ink);
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.deadlineReminderNotice {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-left: 3px solid #dc2626;
+  background: rgba(254, 242, 242, 0.85);
+  color: #7f1d1d;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.deadlineModalList {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.deadlineModalItem {
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  border-left: 4px solid #dc2626;
+  background: #fffafa;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.deadlineModalItemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.deadlineModalNotes {
+  color: #4b5563;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
 @media (max-width: 1100px) {
   .calendarPage {
     padding: 24px;
@@ -876,3 +995,13 @@
 :global([data-theme="dark"]) .toggleButton{background:#333;border-color:#444}
 :global([data-theme="dark"]) .toggleKnob{background:#e5e7eb}
 :global([data-theme="dark"]) .formGroup input:disabled,:global([data-theme="dark"]) .formGroup select:disabled,:global([data-theme="dark"]) .formGroup textarea:disabled{background:#242424;color:#6b7280}
+:global([data-theme="dark"]) .dayCellDeadline{background:linear-gradient(180deg,rgba(69,10,10,.84),rgba(40,20,20,.86));border-color:rgba(248,113,113,.55);box-shadow:inset 3px 0 0 rgba(248,113,113,.82),0 10px 24px rgba(127,29,29,.16)}
+:global([data-theme="dark"]) .dayCellToday.dayCellDeadline{background:linear-gradient(180deg,rgba(76,19,19,.9),rgba(41,25,20,.88));border-color:rgba(248,113,113,.68);box-shadow:inset 3px 0 0 rgba(248,113,113,.9),0 0 0 1px rgba(248,113,113,.22),0 10px 26px rgba(0,0,0,.28)}
+:global([data-theme="dark"]) .deadlineDayLabel{background:rgba(248,113,113,.14);border-color:rgba(248,113,113,.34);color:#fecaca}
+:global([data-theme="dark"]) .deadlineModalCard{background:#1e1e1e;border-color:rgba(248,113,113,.28);color:#e5e7eb}
+:global([data-theme="dark"]) .deadlineModalHeader{border-color:#333}
+:global([data-theme="dark"]) .deadlineModalHeader h2{color:#f8fafc}
+:global([data-theme="dark"]) .deadlineModalClose{background:#262626;border-color:#444;color:#f8fafc}
+:global([data-theme="dark"]) .deadlineReminderNotice{background:rgba(127,29,29,.24);color:#fecaca}
+:global([data-theme="dark"]) .deadlineModalItem{background:#261f1f;border-color:rgba(248,113,113,.24)}
+:global([data-theme="dark"]) .deadlineModalNotes{color:#cbd5e1}
