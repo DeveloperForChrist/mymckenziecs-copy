@@ -33,6 +33,9 @@
   --admin-amber: #d99c3b;
   --admin-rose: #d8695a;
   --admin-shadow: 0 24px 80px rgba(16, 22, 31, 0.15);
+
+  --radius-control: 6px;
+  --radius-surface: 8px;
 }
 
 * {
@@ -187,6 +190,72 @@ a {
   text-decoration: none;
 }
 
+/* Keep the app feeling professional and squared-off rather than bubbly. */
+:where(.rounded-lg) {
+  border-radius: var(--radius-control) !important;
+}
+
+:where(.rounded-xl, .rounded-2xl, .rounded-3xl, [class*="rounded-["]) {
+  border-radius: var(--radius-surface) !important;
+}
+
+:where(a.rounded-full, button.rounded-full, span.rounded-full) {
+  border-radius: var(--radius-control) !important;
+}
+
+:where(
+  [class*="Card"],
+  [class*="card"],
+  [class*="Panel"],
+  [class*="panel"],
+  [class*="Shell"],
+  [class*="shell"],
+  [class*="Section"],
+  [class*="section"],
+  [class*="Container"],
+  [class*="container"],
+  [class*="Modal"],
+  [class*="modal"],
+  [class*="Dialog"],
+  [class*="dialog"],
+  [class*="Tile"],
+  [class*="tile"],
+  [class*="Item"],
+  [class*="item"],
+  [class*="Row"],
+  [class*="row"],
+  [class*="Nav"],
+  [class*="nav"],
+  [class*="Link"],
+  [class*="link"],
+  [class*="Notice"],
+  [class*="notice"],
+  [class*="Alert"],
+  [class*="alert"],
+  [class*="Badge"],
+  [class*="badge"]
+):not([class*="avatar" i]):not([class*="Avatar"]):not([class*="spinner" i]) {
+  border-radius: var(--radius-surface) !important;
+}
+
+:where(
+  button,
+  input,
+  select,
+  textarea,
+  [role="button"],
+  [class*="Button"],
+  [class*="button"],
+  [class*="Btn"],
+  [class*="btn"],
+  [class*="Input"],
+  [class*="input"],
+  [class*="Select"],
+  [class*="select"]
+):not([class*="avatar" i]):not([class*="Avatar"]) {
+  border-radius: var(--radius-control) !important;
+}
+
 @media print {
   html,
   body {
@@ -302,7 +371,7 @@ a {
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   border: 1px solid rgba(255, 255, 255, 0.3);
   background: rgba(255, 255, 255, 0.08);
   color: #ffffff;
@@ -319,7 +388,7 @@ a {
 .app-icon-button {
   width: 40px;
   height: 40px;
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   border: 1px solid rgba(255, 255, 255, 0.22);
   background: rgba(255, 255, 255, 0.06);
   color: #ffffff;
