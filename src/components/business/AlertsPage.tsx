@@ -43,15 +43,6 @@ export default function AlertsPage() {
   const unreadCount = alerts.filter(a => !a.read).length
 
   useEffect(() => {
-    const cachedAlerts = loadStoredAlerts()
-    if (cachedAlerts.length > 0) {
-      setAlerts(cachedAlerts)
-      setHasLoaded(true)
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
     dispatchBusinessAlertsUpdated({
       unreadCount: countUnreadAlerts(alerts),
     })
@@ -81,6 +72,7 @@ export default function AlertsPage() {
         if (!silent) {
           setAlerts([])
           setSelected(null)
+          saveStoredAlerts([])
         }
       } finally {
         setHasLoaded(true)

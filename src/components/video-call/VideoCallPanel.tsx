@@ -573,19 +573,6 @@ export function VideoCallPanel({
       {inCall&&selected&&(
         <div className={styles.callModalBackdrop}>
           <div className={styles.callModal}>
-            <div className={styles.callModalHeader}>
-              <div className={styles.callModalBrandBlock}>
-                <span className={styles.callModalBrandMark}>M</span>
-                <div>
-                  <p className={styles.callModalEyebrow}>Professional video room</p>
-                  <p className={styles.callModalTitle}>{selected.title}</p>
-                  <span className={styles.callModalMeta}>{selected.clientName} · {selected.roomName}</span>
-                </div>
-              </div>
-              <div className={styles.callModalActions}>
-                <button type="button" className={styles.callModalCloseBtn} onClick={closeCall}><XCircle size={14}/>Leave</button>
-              </div>
-            </div>
             <div className={styles.callModalBody}>
               <section className={styles.callMeetingStage}>
                 <WebRtcMeeting

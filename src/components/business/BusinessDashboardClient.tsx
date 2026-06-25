@@ -872,8 +872,6 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
       setAlertsCount(countUnreadAlerts(cachedAlerts))
     }
 
-    syncAlertsFromStorage()
-
     const fetchCounts = async () => {
       try {
         const [leadsResponse, calendarResponse, alertsResponse, meetingsResponse] = await Promise.all([

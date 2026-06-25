@@ -68,23 +68,15 @@
 .jitsiWrap{flex:1;overflow:hidden;background:#1a1a2e;min-height:400px}
 .callToolbar{padding:12px 28px;border-top:1px solid #e5e7eb;display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#f9fafb}
 .callModalBackdrop{position:fixed;inset:0;z-index:2000;display:flex;align-items:stretch;justify-content:stretch;padding:14px;background:radial-gradient(circle at top left,rgba(20,184,166,.18),transparent 34rem),linear-gradient(135deg,#0f172a 0%,#101827 46%,#16111f 100%)}
-.callModal{position:relative;width:100%;height:100%;min-height:0;display:flex;flex-direction:column;gap:14px;padding:16px;border:1px solid rgba(226,232,240,.14);border-radius:18px;background:rgba(11,18,32,.92);overflow:hidden;box-shadow:0 32px 90px rgba(2,6,23,.56);backdrop-filter:blur(18px)}
-.callModalHeader{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid rgba(226,232,240,.14);border-radius:14px;background:rgba(15,23,42,.74);box-shadow:0 24px 70px rgba(2,6,23,.34);flex-shrink:0}
-.callModalBrandBlock{display:flex;align-items:center;gap:12px;min-width:0;flex:1 1 auto}
-.callModalBrandMark{width:40px;height:40px;display:inline-grid;place-items:center;flex:0 0 auto;border-radius:8px;background:#f8fafc;color:#0f766e;font-size:1.35rem;font-weight:800}
-.callModalEyebrow{margin:0 0 3px;color:#99f6e4;font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
-.callModalTitle{font-size:clamp(1.02rem,1.4vw,1.25rem);font-weight:700;line-height:1.2;color:#fff;margin:0}
-.callModalMeta{display:block;max-width:100%;margin-top:4px;font-size:.8rem;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.callModalActions{display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
-.callModalCloseBtn{display:flex;align-items:center;gap:6px;min-height:40px;padding:9px 15px;background:rgba(220,38,38,.16);border:1px solid rgba(248,113,113,.38);border-radius:10px;color:#fecaca;font-size:.82rem;font-weight:800;line-height:1.2;cursor:pointer;transition:transform .14s ease,background .14s ease,border-color .14s ease}
-.callModalCloseBtn:hover{transform:translateY(-1px);background:rgba(220,38,38,.26);border-color:rgba(248,113,113,.56);color:#fff}
-.callModalBody{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch;gap:14px}
-.callMeetingStage{min-width:0;min-height:0;flex:1 1 auto;display:flex;padding:12px;border:1px solid rgba(226,232,240,.14);border-radius:16px;background:rgba(15,23,42,.68);box-shadow:0 24px 70px rgba(2,6,23,.3);overflow:hidden}
+.callModal{position:relative;width:100%;height:100%;min-height:0;display:flex;flex-direction:column;padding:10px;border:1px solid rgba(226,232,240,.14);border-radius:18px;background:rgba(11,18,32,.92);overflow:hidden;box-shadow:0 32px 90px rgba(2,6,23,.56);backdrop-filter:blur(18px)}
+.callModalBody{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch}
+.callMeetingStage{min-width:0;min-height:0;flex:1 1 auto;display:flex;padding:0;border:none;border-radius:14px;background:transparent;box-shadow:none;overflow:hidden}
 .callMeetingStage>*{flex:1 1 auto;min-width:0;min-height:0}
 .callModalGhostBtn{display:flex;align-items:center;gap:6px;min-height:42px;padding:11px 18px;background:rgba(248,250,252,.1);border:1px solid rgba(226,232,240,.14);border-radius:10px;color:#f8fafc;font-size:.82rem;line-height:1.2;cursor:pointer;font-weight:800;transition:transform .14s ease,background .14s ease,border-color .14s ease}
 .callModalGhostBtn:hover{transform:translateY(-1px);background:rgba(248,250,252,.16);border-color:rgba(226,232,240,.28);color:#fff}
 .callModalMeetingShell{height:100%;min-width:0;min-height:0;flex:1 1 auto;display:flex;flex-direction:column}
-.callModalMeetingShell>main{height:100%;min-height:0}
+.callModalMeetingShell>div{height:100%;min-height:0;flex:1 1 auto;display:flex;flex-direction:column}
+.callModalMeetingShell>div>main{height:100%;min-height:0;flex:1 1 auto}
 .callModalJitsiWrap{flex:1;overflow:hidden;background:#0a0a0a;border-radius:12px;min-height:0}
 .detailBody{flex:1;overflow-y:auto;padding:22px 28px;display:flex;flex-direction:column;gap:18px;background:#fff}
 .detailSection{display:flex;flex-direction:column;gap:6px}
@@ -137,43 +129,14 @@
     width: 100vw;
     height: 100vh;
     border-radius: 0;
-    padding: 10px;
-    gap: 10px;
-  }
-
-  .callModalHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 12px;
-  }
-
-  .callModalBrandBlock {
-    width: 100%;
-  }
-
-  .callModalMeta {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
-  }
-
-  .callModalActions {
-    gap: 6px;
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .callModalCloseBtn {
-    flex: 1 1 150px;
-    justify-content: center;
+    padding: 8px;
   }
 
   .callModalBody {
-    gap: 10px;
+    min-height: 0;
   }
 
   .callMeetingStage {
-    padding: 10px;
-    border-radius: 14px;
+    border-radius: 12px;
   }
 }
