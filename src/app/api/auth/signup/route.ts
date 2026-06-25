@@ -4,7 +4,7 @@ import { authRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceed
 import { supabaseAdmin } from '@/lib/database/supabase-server'
 import { sendResendEmail } from '@/lib/email/resend'
 import { createHash, randomBytes } from 'node:crypto'
-import { htmlEscape } from '@/lib/utils/html-escape'
+import { renderPlainEmail } from '@/lib/email/plain-template'
 import { findPlanByAnyPriceId, getBillingMarketFromCountryCode } from '@/constants'
 import type { BillingMarket } from '@/constants'
 import { getAppRouteForMarket } from '@/lib/markets/app-routes'
@@ -260,22 +260,22 @@ export async function POST(request: NextRequest) {
     const appUrl = getAppUrl(request)
 
     const verifyUrl = `${appUrl}/api/email/verify?token=${encodeURIComponent(rawToken)}&redirect=${encodeURIComponent(redirect)}`
-    const safeFirstName = htmlEscape(fullName.split(' ')[0] || 'there')
-    const htmlBody = `
-      <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
-        <h2 style="margin: 0 0 12px;">Verify your email</h2>
-        <p>Hi ${safeFirstName},</p>
-        <p>Click the button below to verify your email and open your dashboard.</p>
-        <p style="margin: 22px 0;">
-          <a href="${verifyUrl}" style="background:#2e1065;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;display:inline-block;">
-            Verify email and open dashboard
-          </a>
-        </p>
-        <p>If the button does not work, use this link:</p>
-        <p><a href="${verifyUrl}">${verifyUrl}</a></p>
-        <p>This link expires in 24 hours.</p>
-      </div>
-    `
+    const firstName = fullName.split(' ')[0] || 'there'
+    const htmlBody = renderPlainEmail({
+      preheader: 'Confirm your email to finish setting up your secure MyMcKenzieCS workspace.',
+      title: 'Confirm your email address',
+      greeting: `Hello ${firstName},`,
+      intro: 'Please confirm your email address so we can finish setting up your secure MyMcKenzieCS workspace.',
+      detailsTitle: 'Account details',
+      details: [
+        { label: 'Email', value: email },
+        { label: 'Link expires', value: '24 hours' },
+      ],
+      ctaLabel: 'Confirm email address',
+      ctaUrl: verifyUrl,
+      note: 'If you did not create a MyMcKenzieCS account, you can safely ignore this email.',
+      closing: 'Kind regards,\nThe MyMcKenzieCS team',
+    })
 
     let verificationEmailSent = true
     try {

@@ -6,7 +6,7 @@ import { getAppUrl } from '@/lib/app-url'
 import { getBillingMarketFromCountryCode } from '@/constants'
 import { getAppRouteForMarket } from '@/lib/markets/app-routes'
 import { emailDailyRateLimiter, emailRateLimiter, getClientIp, getIdentifier, rateLimit, rateLimitExceededResponse } from '@/lib/utils/rate-limit'
-import { htmlEscape } from '@/lib/utils/html-escape'
+import { renderPlainEmail } from '@/lib/email/plain-template'
 
 type VerificationUserRow = {
   id: string
@@ -96,22 +96,22 @@ export async function POST(request: NextRequest) {
     const appUrl = getAppUrl(request)
 
     const verifyUrl = `${appUrl}/api/email/verify?token=${encodeURIComponent(rawToken)}&redirect=${encodeURIComponent(redirect)}`
-    const firstName = htmlEscape((typedUserRow.name || '').trim().split(/\s+/)[0] || email.split('@')[0] || 'there')
-    const htmlBody = `
-      <div style="font-family: Arial, sans-serif; color: #111; line-height: 1.6;">
-        <h2 style="margin: 0 0 12px;">Verify your email</h2>
-        <p>Hi ${firstName},</p>
-        <p>Click below to verify your email and open your dashboard.</p>
-        <p style="margin: 22px 0;">
-          <a href="${verifyUrl}" style="background:#2e1065;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;display:inline-block;">
-            Verify email and open dashboard
-          </a>
-        </p>
-        <p>If the button does not work, use this link:</p>
-        <p><a href="${verifyUrl}">${verifyUrl}</a></p>
-        <p>This link expires in 24 hours.</p>
-      </div>
-    `
+    const firstName = (typedUserRow.name || '').trim().split(/\s+/)[0] || email.split('@')[0] || 'there'
+    const htmlBody = renderPlainEmail({
+      preheader: 'Use this fresh link to confirm your MyMcKenzieCS email address.',
+      title: 'Confirm your email address',
+      greeting: `Hello ${firstName},`,
+      intro: 'Here is a fresh verification link for your MyMcKenzieCS account.',
+      detailsTitle: 'Account details',
+      details: [
+        { label: 'Email', value: email },
+        { label: 'Link expires', value: '24 hours' },
+      ],
+      ctaLabel: 'Confirm email address',
+      ctaUrl: verifyUrl,
+      note: 'If you did not request this email, you can safely ignore it.',
+      closing: 'Kind regards,\nThe MyMcKenzieCS team',
+    })
 
     await sendResendEmail({
       to: authUserData.user.email,

@@ -253,8 +253,11 @@ export default function SignInForm() {
         if (!isBusinessAccount && !hasClientPortalAccess && isAssistantAccount && isDashboardRedirect) return '/assistant'
         return nextPath
       })()
+      const canOpenInvitedClientPortalWithoutEmailVerification =
+        Boolean(invitationToken) ||
+        (hasClientPortalAccess && accountDashboardHref === clientPortalHref)
 
-      if (!isVerified) {
+      if (!isVerified && !canOpenInvitedClientPortalWithoutEmailVerification) {
         const verifyRedirectTarget = accountDashboardHref
         const verifyRedirect = `/auth/verify-email?redirect=${encodeURIComponent(verifyRedirectTarget)}`
         navigateAfterAuth(verifyRedirect)

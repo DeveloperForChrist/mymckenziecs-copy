@@ -111,13 +111,13 @@ export async function POST(request: NextRequest) {
     const appUrl = getAppUrl(request)
     const signupUrl = `${appUrl}/auth/signup?token=${encodeURIComponent(invitation.token)}&redirect=${encodeURIComponent('/client-portal')}`
 
-    const subject = `Invitation to join ${businessData.name}'s client portal`
+    const subject = `${businessData.name} invited you to a secure MyMcKenzieCS portal`
     const textBody = [
       `Hello ${body.name || invitedEmail},`,
       '',
-      `${businessData.name} has invited you to join their secure client portal on MyMcKenzieCS.`,
+      `${businessData.name} has invited you to a secure client portal on MyMcKenzieCS.`,
       '',
-      `Please use the link below to sign in or create your account and access your client workspace:`,
+      `Use the link below to sign in or create your account and access your private workspace:`,
       signupUrl,
       '',
       `If you were not expecting this invitation, you can safely ignore this email.`,
@@ -126,17 +126,17 @@ export async function POST(request: NextRequest) {
       businessData.name,
     ].join('\n')
     const htmlBody = renderPlainEmail({
-      preheader: `${businessData.name} invited you to a secure client portal.`,
-      title: 'Join your secure client portal',
+      preheader: `${businessData.name} invited you to a private MyMcKenzieCS workspace.`,
+      title: 'You have been invited to a secure client portal',
       greeting: `Hello ${body.name || invitedEmail},`,
-      intro: `${businessData.name} has invited you to join their secure client portal on MyMcKenzieCS. The portal gives you a private place to view messages, meetings, shared documents, and ongoing updates from your professional.`,
+      intro: `${businessData.name} has invited you to a secure client portal on MyMcKenzieCS. Your portal is a private workspace for messages, meetings, shared documents, and updates from your professional.`,
       detailsTitle: 'Invitation details',
       details: [
         { label: 'Business', value: businessData.name },
         { label: 'Invited email', value: invitedEmail },
       ],
-      bodyHtml: `<p style="margin:0 0 16px;">Use the button below to sign in or create your account and access your client workspace.</p>`,
-      ctaLabel: 'Join the client portal',
+      bodyHtml: `<p style="margin:0 0 16px;">Use the button below to sign in or create your account and access your private workspace.</p>`,
+      ctaLabel: 'Open secure portal',
       ctaUrl: signupUrl,
       note: 'If you were not expecting this invitation, you can safely ignore this email.',
       closing: `Kind regards,\n${businessData.name}`,
