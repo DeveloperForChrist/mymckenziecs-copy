@@ -98,6 +98,7 @@ const UNVERIFIED_ALLOWED_API_PATHS = new Set(['/api/chat', '/api/user', '/api/us
 
 const PROTECTED_PATHS = [
   '/dashboard',
+  '/client-portal',
   '/chatbot',
   '/settings',
   '/api/analyze-document',
@@ -515,6 +516,7 @@ export const config = {
     '/admin/:path*',
     '/jesusistheadmin/:path*',
     '/dashboard/:path*',
+    '/client-portal',
     '/chatbot/:path*',
     '/settings/:path*',
     '/business/:path*',

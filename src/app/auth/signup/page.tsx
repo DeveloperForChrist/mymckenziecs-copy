@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import SignUpForm from '@/components/auth/SignUpForm'
 import styles from '@/app/auth/auth.module.css'
 import { Suspense } from 'react'
+import { redirect } from 'next/navigation'
 import { buildPageMetadata } from '@/lib/seo'
 import { buildMarketAwareAuthHref, getPublicMarket, getPublicRouteForMarket } from '@/lib/markets/public-routes'
 
@@ -22,6 +23,14 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
   const params = await searchParams
   const invitationToken = typeof params?.token === 'string' ? params.token.trim() : ''
   const redirectPath = typeof params?.redirect === 'string' ? params.redirect : null
+  const isPortalRedirect = Boolean(redirectPath && redirectPath.startsWith('/client-portal'))
+  if (invitationToken || isPortalRedirect) {
+    const target = `/client-portal/auth/signup?${new URLSearchParams({
+      ...(invitationToken ? { token: invitationToken } : {}),
+      redirect: '/client-portal',
+    }).toString()}`
+    redirect(target)
+  }
   const market = getPublicMarket({
     pathname: redirectPath,
     explicitMarket: typeof params?.market === 'string' ? params.market : null,

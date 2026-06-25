@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
 
     // Generate signup link with token
     const appUrl = getAppUrl(request)
-    const signupUrl = `${appUrl}/auth/signup?token=${encodeURIComponent(invitation.token)}&redirect=${encodeURIComponent('/client-portal')}`
+    const signupUrl = `${appUrl}/client-portal/auth/signup?token=${encodeURIComponent(invitation.token)}&redirect=${encodeURIComponent('/client-portal')}`
 
     const subject = `${businessData.name} invited you to a secure MyMcKenzieCS portal`
     const textBody = [

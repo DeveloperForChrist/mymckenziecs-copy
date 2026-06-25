@@ -24,7 +24,7 @@ import {
   RefreshCcw,
 } from 'lucide-react'
 import Link from 'next/link'
-import styles from './clientPortal.module.css'
+import styles from '../clientPortal.module.css'
 import { parseInboxAttachments, type InboxMessageAttachment } from '@/lib/inbox/attachments'
 import type { LucideIcon } from 'lucide-react'
 
