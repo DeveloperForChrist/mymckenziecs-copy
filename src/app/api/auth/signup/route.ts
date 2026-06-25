@@ -131,11 +131,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Please choose a stronger password.' }, { status: 400 })
     }
 
-    if (!isBusinessSignup && !isAssistantSignup && !isSupportedCountryCode(countryCode)) {
+    if (!isBusinessSignup && !isAssistantSignup && !invitationToken && !isSupportedCountryCode(countryCode)) {
       return NextResponse.json({ message: 'Please select the country your legal matter is in.' }, { status: 400 })
     }
 
-    if (!isBusinessSignup && !isAssistantSignup && !isSupportedJurisdictionCode(countryCode, jurisdictionCode)) {
+    if (!isBusinessSignup && !isAssistantSignup && !invitationToken && !isSupportedJurisdictionCode(countryCode, jurisdictionCode)) {
       return NextResponse.json(
         {
           message: `Please select a valid ${getCountryOption(countryCode)?.jurisdictionLabel.toLowerCase() || 'jurisdiction'}.`,

@@ -191,15 +191,15 @@
 }
 
 .dayCellDeadline {
-  background: linear-gradient(180deg, rgba(254, 242, 242, 0.98), rgba(255, 247, 247, 0.94));
-  border-color: rgba(220, 38, 38, 0.52);
-  box-shadow: inset 3px 0 0 rgba(220, 38, 38, 0.82), 0 10px 24px rgba(127, 29, 29, 0.1);
+  background: linear-gradient(180deg, rgba(255, 236, 236, 0.99), rgba(255, 216, 216, 0.96));
+  border-color: rgba(239, 68, 68, 0.66);
+  box-shadow: inset 3px 0 0 rgba(220, 38, 38, 0.94), 0 10px 24px rgba(127, 29, 29, 0.12);
 }
 
 .dayCellToday.dayCellDeadline {
-  background: linear-gradient(180deg, rgba(254, 226, 226, 0.98), rgba(255, 247, 237, 0.96));
-  border-color: rgba(220, 38, 38, 0.62);
-  box-shadow: inset 3px 0 0 rgba(220, 38, 38, 0.9), 0 0 0 1px rgba(220, 38, 38, 0.18), 0 12px 28px rgba(127, 29, 29, 0.12);
+  background: linear-gradient(180deg, rgba(255, 226, 226, 0.99), rgba(255, 208, 208, 0.96));
+  border-color: rgba(239, 68, 68, 0.76);
+  box-shadow: inset 3px 0 0 rgba(220, 38, 38, 0.98), 0 0 0 1px rgba(239, 68, 68, 0.24), 0 12px 28px rgba(127, 29, 29, 0.14);
 }
 
 .dayTopRow {
@@ -995,9 +995,9 @@
 :global([data-theme="dark"]) .toggleButton{background:#333;border-color:#444}
 :global([data-theme="dark"]) .toggleKnob{background:#e5e7eb}
 :global([data-theme="dark"]) .formGroup input:disabled,:global([data-theme="dark"]) .formGroup select:disabled,:global([data-theme="dark"]) .formGroup textarea:disabled{background:#242424;color:#6b7280}
-:global([data-theme="dark"]) .dayCellDeadline{background:linear-gradient(180deg,rgba(69,10,10,.84),rgba(40,20,20,.86));border-color:rgba(248,113,113,.55);box-shadow:inset 3px 0 0 rgba(248,113,113,.82),0 10px 24px rgba(127,29,29,.16)}
-:global([data-theme="dark"]) .dayCellToday.dayCellDeadline{background:linear-gradient(180deg,rgba(76,19,19,.9),rgba(41,25,20,.88));border-color:rgba(248,113,113,.68);box-shadow:inset 3px 0 0 rgba(248,113,113,.9),0 0 0 1px rgba(248,113,113,.22),0 10px 26px rgba(0,0,0,.28)}
-:global([data-theme="dark"]) .deadlineDayLabel{background:rgba(248,113,113,.14);border-color:rgba(248,113,113,.34);color:#fecaca}
+:global([data-theme="dark"]) .dayCellDeadline{background:linear-gradient(180deg,rgba(92,18,18,.92),rgba(58,14,14,.9));border-color:rgba(248,113,113,.72);box-shadow:inset 3px 0 0 rgba(248,113,113,.96),0 10px 24px rgba(127,29,29,.2)}
+:global([data-theme="dark"]) .dayCellToday.dayCellDeadline{background:linear-gradient(180deg,rgba(104,26,26,.96),rgba(68,18,18,.92));border-color:rgba(248,113,113,.8);box-shadow:inset 3px 0 0 rgba(248,113,113,1),0 0 0 1px rgba(248,113,113,.28),0 10px 26px rgba(0,0,0,.3)}
+:global([data-theme="dark"]) .deadlineDayLabel{background:rgba(248,113,113,.2);border-color:rgba(248,113,113,.46);color:#fecaca}
 :global([data-theme="dark"]) .deadlineModalCard{background:#1e1e1e;border-color:rgba(248,113,113,.28);color:#e5e7eb}
 :global([data-theme="dark"]) .deadlineModalHeader{border-color:#333}
 :global([data-theme="dark"]) .deadlineModalHeader h2{color:#f8fafc}
