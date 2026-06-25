@@ -686,7 +686,6 @@ export default function EnhancedCalendarClient({
                 >
                   <div className={styles.dayTopRow}>
                     <div className={styles.dayNumber}>{cell.date.getDate()}</div>
-                    {cell.isToday && <span className={styles.todayBadge}>Today</span>}
                   </div>
                   {events.length > 0 && <div className={styles.dayEventCount}>{events.length}</div>}
                   {events.length > 0 && (
