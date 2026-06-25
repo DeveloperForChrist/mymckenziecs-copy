@@ -46,10 +46,10 @@ export default function DocumentsTable({
                 <span title={doc.title}>{doc.title}</span>
               </div>
             </div>
-            <div className={styles.cell} data-label="Type">{doc.type}</div>
-            <div className={styles.cell} data-label="Modified">{formatDate(doc.createdAt)}</div>
-            <div className={styles.cell} data-label="Size">{formatSize(doc.size || 0)}</div>
-            <div className={styles.cell} data-label="Folder">
+            <div className={`${styles.cell} ${styles.metaCell}`} data-label="Type">{doc.type}</div>
+            <div className={`${styles.cell} ${styles.metaCell}`} data-label="Modified">{formatDate(doc.createdAt)}</div>
+            <div className={`${styles.cell} ${styles.metaCell}`} data-label="Size">{formatSize(doc.size || 0)}</div>
+            <div className={`${styles.cell} ${styles.folderCell}`} data-label="Folder">
               <select
                 className={styles.folderInlineSelect}
                 value={doc.folderId || ""}
@@ -63,7 +63,7 @@ export default function DocumentsTable({
                 ))}
               </select>
             </div>
-            <div className={styles.cell} data-label="Actions">
+            <div className={`${styles.cell} ${styles.actionsCell}`} data-label="Actions">
               <div className={styles.actions}>
                 <button
                   data-testid="document-view-button"

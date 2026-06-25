@@ -405,7 +405,7 @@
 .tableHeader,
 .tableRow {
   display: grid;
-  grid-template-columns: minmax(220px, 2.1fr) 1fr 1fr 0.8fr 1fr 0.9fr;
+  grid-template-columns: minmax(260px, 2.4fr) minmax(84px, 0.7fr) minmax(120px, 0.95fr) minmax(84px, 0.65fr) minmax(180px, 1.2fr) minmax(152px, 0.9fr);
   align-items: center;
   column-gap: 14px;
   padding: 12px 20px;
@@ -446,11 +446,16 @@
   font-size: 0.88rem;
 }
 
+.metaCell {
+  white-space: nowrap;
+}
+
 .fileName {
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 600;
+  min-width: 0;
 }
 
 .fileName span {
@@ -460,10 +465,26 @@
   text-overflow: ellipsis;
 }
 
+.folderCell,
+.actionsCell {
+  display: flex;
+  align-items: center;
+}
+
+.folderCell {
+  justify-content: stretch;
+}
+
+.actionsCell {
+  justify-content: flex-end;
+}
+
 .actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 6px;
+  width: 100%;
 }
 
 .actionIcon {
@@ -503,6 +524,10 @@
 .folderInlineSelect:disabled {
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.folderInlineSelect {
+  min-width: 0;
 }
 
 .readOnlyNotice {
