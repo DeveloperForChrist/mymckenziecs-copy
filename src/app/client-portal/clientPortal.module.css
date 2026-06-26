@@ -328,6 +328,12 @@
   background: #f3f5fb;
 }
 
+.portalMainSection {
+  background:
+    radial-gradient(circle at top right, rgba(91, 33, 182, 0.22), transparent 28%),
+    linear-gradient(180deg, #14071f 0%, #12061b 42%, #0f0918 100%);
+}
+
 .portalHeader {
   flex: 0 0 auto;
   display: grid;
@@ -336,6 +342,34 @@
   padding: 22px 24px 18px;
   border-bottom: 1px solid #e3e8f3;
   background: #ffffff;
+}
+
+.portalHeaderSection {
+  border-bottom: 1px solid rgba(147, 51, 234, 0.16);
+  background: rgba(12, 10, 24, 0.78);
+  backdrop-filter: blur(12px);
+}
+
+.portalHeaderSection .summaryTitle {
+  color: #ffffff;
+}
+
+.portalHeaderSection .summaryCopy {
+  color: rgba(226, 232, 240, 0.74);
+}
+
+.portalHeaderSection .summaryCard {
+  border: 1px solid rgba(147, 51, 234, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(226, 232, 240, 0.74);
+}
+
+.portalHeaderSection .summaryCard strong {
+  color: #ffffff;
+}
+
+.portalHeaderSection .summaryCard svg {
+  color: #c084fc;
 }
 
 .summaryText {
@@ -401,6 +435,10 @@
   gap: 14px;
   padding: 16px 24px 24px;
   overflow: auto;
+}
+
+.portalContentSection {
+  padding-top: 22px;
 }
 
 .dashboardCardGrid {
@@ -502,6 +540,12 @@
   color: #5b21b6;
 }
 
+.noticeSection {
+  border: 1px solid rgba(147, 51, 234, 0.18);
+  background: rgba(147, 51, 234, 0.08);
+  color: rgba(233, 213, 255, 0.94);
+}
+
 .emptyConnection {
   border: 1px solid #fed7aa;
   background: #fff7ed;
@@ -532,6 +576,10 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+.workspaceSection {
+  max-width: 1320px;
+}
+
 .listPanel,
 .detailPanel {
   min-height: 520px;
@@ -545,9 +593,62 @@
   overflow: hidden;
 }
 
+.listPanelSection {
+  border: 1px solid rgba(147, 51, 234, 0.18);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 24px 56px rgba(0, 0, 0, 0.28);
+}
+
 .listHeader {
   padding: 15px 16px;
   border-bottom: 1px solid #edf1f7;
+}
+
+.listHeaderSection {
+  border-bottom: 1px solid rgba(147, 51, 234, 0.14);
+  background: rgba(11, 10, 23, 0.34);
+}
+
+.listHeaderSection .dashboardReturnButton {
+  border-color: rgba(147, 51, 234, 0.26);
+  background: rgba(255, 255, 255, 0.04);
+  color: #f5f3ff;
+}
+
+.listHeaderSection .dashboardReturnButton:hover {
+  border-color: rgba(192, 132, 252, 0.34);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.listHeaderSection .listTitle {
+  color: #ffffff;
+  font-size: 1.05rem;
+}
+
+.listHeaderSection .listSub {
+  color: rgba(226, 232, 240, 0.68);
+}
+
+.listHeaderSection .filterChip,
+.listHeaderSection .messageTab,
+.listHeaderSection .toggleLink {
+  color: rgba(226, 232, 240, 0.8);
+}
+
+.listHeaderSection .filterChip,
+.listHeaderSection .messageTab {
+  border-color: rgba(147, 51, 234, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.listHeaderSection .filterChipActive,
+.listHeaderSection .messageTabActive {
+  border-color: rgba(192, 132, 252, 0.34);
+  background: rgba(147, 51, 234, 0.16);
+  color: #ffffff;
 }
 
 .dashboardReturnButton {
@@ -677,11 +778,77 @@
   overflow: auto;
 }
 
+.listPanelSection .listContent {
+  padding: 16px;
+  gap: 14px;
+}
+
 .listItem {
   border: 1px solid #e3e8f3;
   border-radius: 8px;
   background: #ffffff;
   padding: 12px;
+}
+
+.listPanelSection .listItem,
+.listPanelSection .sharedDocsPanel,
+.listPanelSection .uploadPanel,
+.listPanelSection .syncPanel {
+  border: 1px solid rgba(147, 51, 234, 0.18);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.listPanelSection .sharedDocsHeader {
+  border-bottom: 1px solid rgba(147, 51, 234, 0.12);
+  background: rgba(147, 51, 234, 0.08);
+}
+
+.listPanelSection .itemTitle,
+.listPanelSection .uploadPanelTitle {
+  color: #ffffff;
+}
+
+.listPanelSection .itemMeta,
+.listPanelSection .itemPreview,
+.listPanelSection .uploadPanelCopy,
+.listPanelSection .sharedDocsEmpty,
+.listPanelSection .sharedDocsRow .itemMeta {
+  color: rgba(226, 232, 240, 0.7);
+}
+
+.listPanelSection .itemTime {
+  color: rgba(196, 181, 253, 0.8);
+}
+
+.listPanelSection .emptyState {
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.listPanelSection .emptyState strong {
+  color: #ffffff;
+}
+
+.listPanelSection .emptyState svg {
+  color: rgba(192, 132, 252, 0.62);
+}
+
+.listPanelSection .secondaryButton {
+  border-color: rgba(147, 51, 234, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  color: #f5f3ff;
+}
+
+.listPanelSection .secondaryButton:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.listPanelSection .sharedDocsCount,
+.listPanelSection .statusPill {
+  background: rgba(147, 51, 234, 0.18);
+  color: #f3e8ff;
+  border: 1px solid rgba(192, 132, 252, 0.2);
 }
 
 .listItemUnread {

@@ -326,6 +326,7 @@ function ClientPortalContent({ forcedSection }: { forcedSection?: PortalTab }) {
   const activePortalPage = forcedSection || portalTabFromPath(pathname)
   const currentTab = activePortalPage || selectedTab
   const isPortalDashboard = !forcedSection && !portalTabFromPath(pathname)
+  const useProfessionalSectionLayout = !isPortalDashboard && currentTab !== 'matter'
   const portalIntroText =
     'Secure messages stay in the portal. Email only sends a sign-in prompt, while case history, meetings, and shared documents stay organised by professional and matter.'
   const portalCards: Array<{
@@ -847,8 +848,8 @@ function ClientPortalContent({ forcedSection }: { forcedSection?: PortalTab }) {
     <div className={styles.portalPage}>
       <aside className={styles.portalSidebar} aria-hidden="true" />
 
-      <main className={styles.portalMain}>
-        <header className={styles.portalHeader}>
+      <main className={`${styles.portalMain} ${useProfessionalSectionLayout ? styles.portalMainSection : ''}`}>
+        <header className={`${styles.portalHeader} ${useProfessionalSectionLayout ? styles.portalHeaderSection : ''}`}>
           <div className={styles.summaryText}>
             <p className={styles.overline}>Client workspace</p>
             <h2 className={styles.summaryTitle}>Messages, meetings, and documents grouped by professional and matter.</h2>
@@ -872,7 +873,7 @@ function ClientPortalContent({ forcedSection }: { forcedSection?: PortalTab }) {
           </div>
         </header>
 
-        <div className={styles.portalContent}>
+        <div className={`${styles.portalContent} ${useProfessionalSectionLayout ? styles.portalContentSection : ''}`}>
           {isPortalDashboard && (
           <section className={styles.dashboardCardGrid} aria-label="Client portal sections">
             {portalCards.map((card) => {
@@ -915,13 +916,13 @@ function ClientPortalContent({ forcedSection }: { forcedSection?: PortalTab }) {
           )}
 
           {!isPortalDashboard && portalNotice && (
-            <div className={styles.notice}>
+            <div className={`${styles.notice} ${useProfessionalSectionLayout ? styles.noticeSection : ''}`}>
               <p>{portalNotice}</p>
             </div>
           )}
 
           {!isPortalDashboard && (upcomingMeetingCount > 0 || unreadMessageCount > 0) && (
-            <div className={styles.notice}>
+            <div className={`${styles.notice} ${useProfessionalSectionLayout ? styles.noticeSection : ''}`}>
               <h2>Client portal updates</h2>
               <p>
                 {[
@@ -933,9 +934,9 @@ function ClientPortalContent({ forcedSection }: { forcedSection?: PortalTab }) {
           )}
 
           {!isPortalDashboard && (
-          <section className={`${styles.workspace} ${styles.workspaceSingle}`}>
-            <section className={styles.listPanel}>
-              <div className={styles.listHeader}>
+          <section className={`${styles.workspace} ${styles.workspaceSingle} ${useProfessionalSectionLayout ? styles.workspaceSection : ''}`}>
+            <section className={`${styles.listPanel} ${useProfessionalSectionLayout ? styles.listPanelSection : ''}`}>
+              <div className={`${styles.listHeader} ${useProfessionalSectionLayout ? styles.listHeaderSection : ''}`}>
                 <Link href="/client-portal" className={styles.dashboardReturnButton}>
                   Back to dashboard
                 </Link>
