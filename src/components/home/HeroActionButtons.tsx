@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
+import { resolveSignedInAppDestinationFromFlags } from '@/lib/auth/workspace-routes';
 
 type HeroActionButtonsProps = {
   pricingHref?: string;
@@ -32,14 +33,11 @@ export default function HeroActionButtons({
         const res = await fetch('/api/user', { credentials: 'include', cache: 'no-store' });
         if (cancelled || !res.ok) return;
         const payload = await res.json().catch(() => ({}));
-        const accountType = String(payload?.accountType || '').toLowerCase();
-        const hasClientPortalAccess = Boolean(payload?.hasClientPortalAccess);
         setDashboardHref(
-          accountType === 'business'
-            ? '/business/dashboard'
-            : hasClientPortalAccess
-              ? '/client-portal'
-              : '/dashboard'
+          resolveSignedInAppDestinationFromFlags({
+            accountType: String(payload?.accountType || '').toLowerCase() === 'business' ? 'business' : 'litigant',
+            hasClientPortalAccess: Boolean(payload?.hasClientPortalAccess),
+          })
         );
       } catch {
         // fail silently — unauthenticated state is fine

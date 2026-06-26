@@ -1,25 +1,18 @@
 import type { ReactNode } from 'react'
 import { redirect } from 'next/navigation'
-import { getDashboardSession } from '@/lib/auth/dashboard-session'
+import { getDashboardEntryState } from '@/lib/auth/server-workspace-routes'
 import { isAssistantOnlyAccount } from '@/lib/auth/product-access'
 import { NO_INDEX_METADATA } from '@/lib/seo'
 
 export const metadata = NO_INDEX_METADATA
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const { authUser, isEligible, emailVerified, hasClientPortalAccess } = await getDashboardSession()
-  if (!authUser || !isEligible) {
-    redirect('/auth/signin?redirect=/dashboard')
+  const { session, redirectPath } = await getDashboardEntryState('/dashboard')
+  if (redirectPath) {
+    redirect(redirectPath)
   }
 
-  if (!emailVerified && hasClientPortalAccess) {
-    redirect('/client-portal')
-  }
-
-  if (!emailVerified) {
-    redirect('/auth/verify-email?redirect=%2Fdashboard')
-  }
-
+  const { authUser } = session
   if (await isAssistantOnlyAccount(authUser)) {
     redirect('/assistant')
   }

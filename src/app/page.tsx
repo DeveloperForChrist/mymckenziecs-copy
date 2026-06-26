@@ -1,11 +1,8 @@
 import type { Metadata } from 'next';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import MarketHomepage from '@/components/home/MarketHomepage';
 import { DEADLINE_REMINDER_FEATURE } from '@/constants';
-import { getAccountTypeForUser } from '@/lib/auth/account-type';
-import { supabaseAdmin } from '@/lib/database/supabase-server';
+import { getServerAuthUser, resolveSignedInAppDestination } from '@/lib/auth/server-workspace-routes';
 import { buildPageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = {
@@ -18,55 +15,6 @@ export const metadata: Metadata = {
 };
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
-
-async function getSignedInRootRedirect() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {
-          // No-op in server component render context.
-        },
-      },
-    }
-  );
-
-  const { data: authData } = await supabase.auth.getUser();
-  const authUser = authData?.user ?? null;
-  if (!authUser) return null;
-
-  const [accountType, ownedBusinessResult, clientLinkResult] = await Promise.all([
-    getAccountTypeForUser(authUser),
-    supabaseAdmin
-      .from('businesses')
-      .select('id')
-      .eq('owner_user_id', authUser.id)
-      .limit(1)
-      .maybeSingle(),
-    supabaseAdmin
-      .from('client_business_links')
-      .select('id')
-      .eq('client_id', authUser.id)
-      .eq('status', 'active')
-      .limit(1)
-      .maybeSingle(),
-  ]);
-
-  if (accountType === 'business' || ownedBusinessResult.data?.id) {
-    return '/business/dashboard';
-  }
-
-  if (clientLinkResult.data?.id) {
-    return '/client-portal';
-  }
-
-  return '/dashboard';
-}
 
 const commonProblems = [
   {
@@ -193,7 +141,8 @@ const guidePages = [
 ];
 
 export default async function UkHomePage() {
-  const signedInRedirect = await getSignedInRootRedirect();
+  const { authUser } = await getServerAuthUser();
+  const signedInRedirect = await resolveSignedInAppDestination(authUser);
   if (signedInRedirect) {
     redirect(signedInRedirect);
   }

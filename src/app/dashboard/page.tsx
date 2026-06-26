@@ -1,18 +1,19 @@
 import DashboardHomeClient from '@/components/dashboard/DashboardHomeClient';
 import { getUserPlanData } from '@/lib/payments/user-plan';
-import { getDashboardSession } from '@/lib/auth/dashboard-session';
 import { getAccountTypeForUser } from '@/lib/auth/account-type';
+import { getDashboardEntryState } from '@/lib/auth/server-workspace-routes';
 import { redirect } from 'next/navigation';
 
 export default async function DashboardPage() {
-  const { authUser, emailVerified, hasClientPortalAccess } = await getDashboardSession();
+  const { session, redirectPath } = await getDashboardEntryState('/dashboard');
+  if (redirectPath) {
+    redirect(redirectPath);
+  }
+
+  const { authUser, emailVerified } = session;
 
   if (authUser && await getAccountTypeForUser(authUser) === 'business') {
     redirect('/business/dashboard');
-  }
-
-  if (authUser && hasClientPortalAccess && !emailVerified) {
-    redirect('/client-portal');
   }
 
   let initialPlan = 'No plan';
