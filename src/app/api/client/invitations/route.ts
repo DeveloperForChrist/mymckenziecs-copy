@@ -5,6 +5,8 @@ import {
   acceptClientInvitationForUser,
   getClientInvitationByToken,
   isClientInvitationExpired,
+  markInvitedAccountVerified,
+  normalizePortalEmail,
 } from '@/lib/client-portal/invitations'
 import { enforceIpRateLimit } from '@/lib/utils/rate-limit'
 
@@ -131,8 +133,54 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json().catch(() => ({}))
     const token = typeof body?.token === 'string' ? body.token : ''
+    const email = typeof body?.email === 'string' ? body.email : ''
+    const mode = typeof body?.mode === 'string' ? body.mode.trim().toLowerCase() : ''
     if (!token) {
       return NextResponse.json({ message: 'Invitation token is required.' }, { status: 400 })
+    }
+
+    const { data: invitation, error: invitationError } = await getClientInvitationByToken(token)
+    if (invitationError || !invitation) {
+      return NextResponse.json({ message: 'Invalid invitation token.' }, { status: 404 })
+    }
+
+    if (mode === 'prepare-signin') {
+      const normalizedEmail = normalizePortalEmail(email)
+      const invitedEmail = normalizePortalEmail(invitation.invited_email)
+      if (!normalizedEmail) {
+        return NextResponse.json({ message: 'Email is required.' }, { status: 400 })
+      }
+      if (!invitedEmail || invitedEmail !== normalizedEmail) {
+        return NextResponse.json({ message: 'This invitation is for a different email address.' }, { status: 403 })
+      }
+      if (invitation.status !== 'pending' && invitation.status !== 'accepted') {
+        return NextResponse.json({ message: 'Invitation is no longer active.' }, { status: 409 })
+      }
+      if (isClientInvitationExpired(invitation.expires_at)) {
+        return NextResponse.json({ message: 'Invitation link has expired.' }, { status: 410 })
+      }
+
+      const { data: userRow, error: userLookupError } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .eq('email', normalizedEmail)
+        .limit(1)
+        .maybeSingle()
+
+      if (userLookupError) {
+        console.error('Invitation pre-verify user lookup error:', userLookupError)
+        return NextResponse.json({ message: 'Unable to prepare invited account.' }, { status: 500 })
+      }
+      if (!userRow?.id) {
+        return NextResponse.json({ message: 'Open the invite by creating your client portal account first.' }, { status: 404 })
+      }
+
+      const verified = await markInvitedAccountVerified(String(userRow.id))
+      if (!verified.ok) {
+        return NextResponse.json({ message: verified.message }, { status: verified.status })
+      }
+
+      return NextResponse.json({ message: 'Invited account prepared.' })
     }
 
     const authHeader = request.headers.get('authorization')
@@ -148,11 +196,6 @@ export async function POST(request: NextRequest) {
 
     if (userError || !user) {
       return NextResponse.json({ message: 'Unauthorized.' }, { status: 401 })
-    }
-
-    const { data: invitation, error: invitationError } = await getClientInvitationByToken(token)
-    if (invitationError || !invitation) {
-      return NextResponse.json({ message: 'Invalid invitation token.' }, { status: 404 })
     }
 
     await recordInvitationOpenAlert({

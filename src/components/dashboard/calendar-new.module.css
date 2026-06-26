@@ -400,10 +400,10 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px;
+  padding: 0;
   border-radius: 999px;
-  background: rgba(16, 22, 31, 0.06);
-  border: 1px solid rgba(16, 22, 31, 0.1);
+  background: transparent;
+  border: none;
 }
 
 .eventsModeButton {
@@ -985,7 +985,7 @@
 :global([data-theme="dark"]) .dayCell:hover{box-shadow:0 10px 24px rgba(0,0,0,.3)}
 :global([data-theme="dark"]) .dayCellToday{background:#153838;border-color:rgba(90,255,220,.36);box-shadow:0 0 0 1px rgba(90,255,220,.22),0 10px 26px rgba(0,0,0,.28)}
 :global([data-theme="dark"]) .todayBadge{background:rgba(45,212,191,.14);border-color:rgba(45,212,191,.28);color:#99f6e4}
-:global([data-theme="dark"]) .eventsModeSwitch{background:#2d2d2d;border-color:#444}
+:global([data-theme="dark"]) .eventsModeSwitch{background:transparent;border:none}
 :global([data-theme="dark"]) .eventsModeButton{color:#9ca3af}
 :global([data-theme="dark"]) .eventsModeButtonActive{background:#3a3a3a;color:#fff}
 :global([data-theme="dark"]) .eventsAddButton,:global([data-theme="dark"]) .eventsAddButton.eventsModeButtonActive{background:#6d28d9;border-color:rgba(167,139,250,.65);color:#fff;box-shadow:0 10px 22px rgba(109,40,217,.3)}

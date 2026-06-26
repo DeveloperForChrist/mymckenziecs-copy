@@ -67,7 +67,9 @@ import {
   countUnreadAlerts,
   dispatchBusinessAlertsRefresh,
   loadStoredAlerts,
+  setBusinessAlertsStorageScope,
 } from '@/lib/business/alerts-cache';
+import { setBusinessStorageScope } from '@/lib/business/client-matters';
 import BusinessFeedbackPage from './BusinessFeedbackPage';
 import { hasReminderAccess as planHasReminderAccess } from '@/lib/plans/access';
 import styles from './businessDashboard.module.css';
@@ -743,6 +745,7 @@ const THEME_KEY = 'mymckenzie-dash-theme';
 const DASHBOARD_ACTIVE_ID_KEY = 'mymckenzie-business-dashboard-active-id';
 
 export default function BusinessDashboardClient({ initialChatPlan, initialActiveId = 'home' }: BusinessDashboardClientProps) {
+  const dashboardActiveIdStorageKey = `${DASHBOARD_ACTIVE_ID_KEY}:${initialChatPlan.userId}`;
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeId, setActiveId] = useState(initialActiveId);
   const [visitedWorkspaceIds, setVisitedWorkspaceIds] = useState<NavItem['id'][]>([initialActiveId]);
@@ -762,6 +765,11 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
   const themeManuallyUpdatedRef = useRef(false);
 
   useEffect(() => {
+    setBusinessStorageScope(initialChatPlan.userId);
+    setBusinessAlertsStorageScope(initialChatPlan.userId);
+  }, [initialChatPlan.userId]);
+
+  useEffect(() => {
     try {
       const persisted = localStorage.getItem(THEME_KEY);
       if (persisted === 'dark' || persisted === 'light') {
@@ -777,22 +785,22 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
     try {
       const urlSection = new URLSearchParams(window.location.search).get('section');
       if (urlSection && navItems.some((item) => item.id === urlSection)) return;
-      const storedActiveId = localStorage.getItem(DASHBOARD_ACTIVE_ID_KEY);
+      const storedActiveId = localStorage.getItem(dashboardActiveIdStorageKey);
       if (!storedActiveId) return;
       if (!navItems.some((item) => item.id === storedActiveId)) return;
       setActiveId(storedActiveId as NavItem['id']);
     } catch {
       // ignore
     }
-  }, []);
+  }, [dashboardActiveIdStorageKey]);
 
   useEffect(() => {
     try {
-      localStorage.setItem(DASHBOARD_ACTIVE_ID_KEY, activeId);
+      localStorage.setItem(dashboardActiveIdStorageKey, activeId);
     } catch {
       // ignore
     }
-  }, [activeId]);
+  }, [activeId, dashboardActiveIdStorageKey]);
 
   useEffect(() => {
     setVisitedWorkspaceIds((current) => (
@@ -992,7 +1000,7 @@ export default function BusinessDashboardClient({ initialChatPlan, initialActive
         .catch(() => {});
     };
     const onStorage = (event: StorageEvent) => {
-      if (event.key !== BUSINESS_ALERTS_STORAGE_KEY) return;
+      if (!event.key?.startsWith(BUSINESS_ALERTS_STORAGE_KEY)) return;
       syncAlertsFromStorage();
     };
     const onMeetingsUpdated = () => { void fetchCounts(); };

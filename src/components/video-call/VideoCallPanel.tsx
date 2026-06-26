@@ -50,10 +50,14 @@ function toTime(value: string) {
   return value ? value.slice(0, 5) : ''
 }
 
-function saveLocal(meetings: Meeting[], clients: ClientContact[]) {
+function scopedStorageKey(baseKey: string, userId: string) {
+  return `${baseKey}:${userId}`
+}
+
+function saveLocal(userId: string, meetings: Meeting[], clients: ClientContact[]) {
   try {
-    localStorage.setItem(LOCAL_MEETINGS_KEY, JSON.stringify(meetings))
-    localStorage.setItem(LOCAL_CLIENTS_KEY, JSON.stringify(clients))
+    localStorage.setItem(scopedStorageKey(LOCAL_MEETINGS_KEY, userId), JSON.stringify(meetings))
+    localStorage.setItem(scopedStorageKey(LOCAL_CLIENTS_KEY, userId), JSON.stringify(clients))
   } catch {
     // ignore localStorage failures
   }
@@ -81,26 +85,29 @@ function looksLikeLegacyMockMeetings(meetings: Meeting[]) {
   return meetings.every((meeting) => LEGACY_MOCK_MEETING_IDS.has(meeting.id))
 }
 
-function cleanupLegacyMockMeetingCache() {
+function cleanupLegacyMockMeetingCache(userId: string) {
   try {
-    if (localStorage.getItem(LEGACY_MOCK_MEETINGS_CACHE_CLEANUP_KEY) === '1') return
-    const rawMeetings = localStorage.getItem(LOCAL_MEETINGS_KEY)
+    const cleanupKey = scopedStorageKey(LEGACY_MOCK_MEETINGS_CACHE_CLEANUP_KEY, userId)
+    if (localStorage.getItem(cleanupKey) === '1') return
+    const rawMeetings = localStorage.getItem(scopedStorageKey(LOCAL_MEETINGS_KEY, userId))
     const parsedMeetings = rawMeetings ? JSON.parse(rawMeetings) : null
     if (Array.isArray(parsedMeetings) && looksLikeLegacyMockMeetings(parsedMeetings as Meeting[])) {
-      localStorage.setItem(LOCAL_MEETINGS_KEY, JSON.stringify([]))
-      localStorage.setItem(LOCAL_CLIENTS_KEY, JSON.stringify([]))
+      localStorage.setItem(scopedStorageKey(LOCAL_MEETINGS_KEY, userId), JSON.stringify([]))
+      localStorage.setItem(scopedStorageKey(LOCAL_CLIENTS_KEY, userId), JSON.stringify([]))
     }
-    localStorage.setItem(LEGACY_MOCK_MEETINGS_CACHE_CLEANUP_KEY, '1')
+    localStorage.removeItem(LOCAL_MEETINGS_KEY)
+    localStorage.removeItem(LOCAL_CLIENTS_KEY)
+    localStorage.setItem(cleanupKey, '1')
   } catch {
     // ignore localStorage failures
   }
 }
 
-function loadLocal(): { meetings: Meeting[]; clients: ClientContact[] } {
+function loadLocal(userId: string): { meetings: Meeting[]; clients: ClientContact[] } {
   try {
-    cleanupLegacyMockMeetingCache()
-    const meetings = JSON.parse(localStorage.getItem(LOCAL_MEETINGS_KEY) || 'null') as Meeting[] | null
-    const clients = JSON.parse(localStorage.getItem(LOCAL_CLIENTS_KEY) || 'null') as ClientContact[] | null
+    cleanupLegacyMockMeetingCache(userId)
+    const meetings = JSON.parse(localStorage.getItem(scopedStorageKey(LOCAL_MEETINGS_KEY, userId)) || 'null') as Meeting[] | null
+    const clients = JSON.parse(localStorage.getItem(scopedStorageKey(LOCAL_CLIENTS_KEY, userId)) || 'null') as ClientContact[] | null
     if (Array.isArray(meetings) && Array.isArray(clients)) return { meetings, clients }
   } catch {
     // ignore parse errors
@@ -130,7 +137,7 @@ function mapRowsToMeetings(rows: MeetingRow[], clients: ClientContact[]): Meetin
 }
 
 export function VideoCallPanel({
-  userId: _userId,
+  userId,
   meetingPreset,
   onMeetingPresetConsumed,
 }: {
@@ -193,9 +200,9 @@ export function VideoCallPanel({
           if (!current) return null
           return nextMeetings.find((meeting) => meeting.id === current.id) || null
         })
-        saveLocal(nextMeetings, nextClients)
+        saveLocal(userId, nextMeetings, nextClients)
       } catch {
-        const local = loadLocal()
+        const local = loadLocal(userId)
         if (!mounted) return
         setClients(local.clients)
         setMeetings(local.meetings)
@@ -213,7 +220,7 @@ export function VideoCallPanel({
     return () => {
       mounted = false
     }
-  }, [])
+  }, [userId])
 
   useEffect(() => {
     const cleanupPromise = loadMeetings()
@@ -303,7 +310,7 @@ export function VideoCallPanel({
 
       setMeetings((current) => {
         const next = [persisted, ...current]
-        saveLocal(next, nextClients)
+        saveLocal(userId, next, nextClients)
         return next
       })
       notifyMeetingsUpdated()
@@ -311,7 +318,7 @@ export function VideoCallPanel({
     } catch {
       setMeetings((current) => {
         const next = [localMeeting, ...current]
-        saveLocal(next, clients)
+        saveLocal(userId, next, clients)
         return next
       })
       setSelected(localMeeting)
@@ -348,12 +355,12 @@ export function VideoCallPanel({
     setForm({title:'',clientName:'',clientEmail:'',date:'',time:'',duration:'60',agenda:'',inviteMessage:''})
     setShowForm(false)
     setTimeout(()=>setNotice(''),3000)
-  },[clients,form])
+  },[clients,form,userId])
 
   const updateStatus = useCallback(async (meeting: Meeting, status: MeetingStatus, options?: { keepalive?: boolean; quiet?: boolean; signal?: AbortSignal }) => {
     setMeetings((current) => {
       const next = current.map((entry) => entry.id === meeting.id ? { ...entry, status } : entry)
-      saveLocal(next, clients)
+      saveLocal(userId, next, clients)
       return next
     })
     setSelected((current) => current?.id === meeting.id ? { ...current, status } : current)
@@ -380,7 +387,7 @@ export function VideoCallPanel({
         setTimeout(() => setNotice(''), 3000)
       }
     }
-  }, [clients])
+  }, [clients, userId])
 
   const join=(m:Meeting)=>{
     exitCallRef.current = false

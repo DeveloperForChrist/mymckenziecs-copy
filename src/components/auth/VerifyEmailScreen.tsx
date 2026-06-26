@@ -40,6 +40,9 @@ export default function VerifyEmailScreen() {
     return defaultDashboardHref
   }, [defaultDashboardHref, planId, publicMarket, redirectParam])
   const verifyCopy = useMemo(() => {
+    if (postVerifyRedirect === '/client-portal') {
+      return 'Checking your client portal access. If your invited account is ready, we will take you straight into the portal.'
+    }
     if (postVerifyRedirect.includes('activatePlan=')) {
       return 'Open your inbox, click Verify email, and you will be taken to your dashboard. You can start using the platform straight away and review your selected plan later.'
     }
@@ -67,18 +70,29 @@ export default function VerifyEmailScreen() {
         if (cancelled) return
 
         const isVerified = typeof payload?.emailVerified === 'boolean' ? payload.emailVerified : true
+        const hasClientPortalAccess = Boolean(payload?.hasClientPortalAccess)
         const email = typeof payload?.email === 'string' ? payload.email : ''
+        const canOpenRequestedDestination =
+          isVerified || (postVerifyRedirect === '/client-portal' && hasClientPortalAccess)
 
-        if (isVerified) {
+        if (canOpenRequestedDestination) {
           if (verified === 'success') {
-            setNotice('Congratulations, you have been verified and your dashboard is ready. Redirecting you now...')
+            setNotice(
+              postVerifyRedirect === '/client-portal'
+                ? 'Your client portal is ready. Redirecting you now...'
+                : 'Congratulations, you have been verified and your dashboard is ready. Redirecting you now...'
+            )
             window.setTimeout(() => {
               window.location.replace(postVerifyRedirect)
             }, 900)
             return
           }
           if (verify === 'sent') {
-            setNotice('Congratulations, you have been verified and your dashboard is ready. Redirecting you now...')
+            setNotice(
+              postVerifyRedirect === '/client-portal'
+                ? 'Your client portal is ready. Redirecting you now...'
+                : 'Congratulations, you have been verified and your dashboard is ready. Redirecting you now...'
+            )
             window.setTimeout(() => {
               window.location.replace(postVerifyRedirect)
             }, 900)

@@ -93,7 +93,7 @@ export default function AlertsPage() {
     }
 
     const onStorage = (event: StorageEvent) => {
-      if (event.key !== BUSINESS_ALERTS_STORAGE_KEY) return
+      if (!event.key?.startsWith(BUSINESS_ALERTS_STORAGE_KEY)) return
       const nextAlerts = loadStoredAlerts()
       applyAlerts(nextAlerts)
       setHasLoaded(true)

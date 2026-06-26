@@ -14,6 +14,7 @@ export interface BusinessAlert {
 }
 
 export const BUSINESS_ALERTS_STORAGE_KEY = 'mymckenzie-business-alerts'
+export const BUSINESS_ALERTS_SCOPE_STORAGE_KEY = 'mymckenzie-business-alerts-scope'
 export const BUSINESS_ALERTS_UPDATED_EVENT = 'mymckenzie-business-alerts-updated'
 export const BUSINESS_ALERTS_REFRESH_EVENT = 'mymckenzie-business-alerts-refresh'
 
@@ -26,10 +27,31 @@ export type BusinessAlertsRefreshDetail = {
   unreadCount?: number
 }
 
+function getScopedAlertsStorageKey() {
+  if (typeof window === 'undefined') return BUSINESS_ALERTS_STORAGE_KEY
+  const scope = window.localStorage.getItem(BUSINESS_ALERTS_SCOPE_STORAGE_KEY) || ''
+  return scope ? `${BUSINESS_ALERTS_STORAGE_KEY}:${scope}` : BUSINESS_ALERTS_STORAGE_KEY
+}
+
+export function setBusinessAlertsStorageScope(scope: string) {
+  if (typeof window === 'undefined') return
+  try {
+    const normalizedScope = String(scope || '').trim()
+    if (!normalizedScope) {
+      window.localStorage.removeItem(BUSINESS_ALERTS_SCOPE_STORAGE_KEY)
+      return
+    }
+    window.localStorage.setItem(BUSINESS_ALERTS_SCOPE_STORAGE_KEY, normalizedScope)
+    window.localStorage.removeItem(BUSINESS_ALERTS_STORAGE_KEY)
+  } catch {
+    // ignore localStorage failures
+  }
+}
+
 export function loadStoredAlerts(): BusinessAlert[] {
   if (typeof window === 'undefined') return []
   try {
-    const raw = window.localStorage.getItem(BUSINESS_ALERTS_STORAGE_KEY)
+    const raw = window.localStorage.getItem(getScopedAlertsStorageKey())
     if (!raw) return []
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) return []
@@ -54,7 +76,7 @@ export function loadStoredAlerts(): BusinessAlert[] {
 export function saveStoredAlerts(alerts: BusinessAlert[]) {
   if (typeof window === 'undefined') return
   try {
-    window.localStorage.setItem(BUSINESS_ALERTS_STORAGE_KEY, JSON.stringify(alerts))
+    window.localStorage.setItem(getScopedAlertsStorageKey(), JSON.stringify(alerts))
   } catch {
     // ignore localStorage failures
   }

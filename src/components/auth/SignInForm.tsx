@@ -23,6 +23,23 @@ function mapSupabaseError(error: AuthApiError) {
   return error.message || 'We could not sign you in. Please try again.'
 }
 
+async function prepareInvitedPortalAccount(invitationToken: string, email: string) {
+  const response = await fetch('/api/client/invitations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      token: invitationToken,
+      email,
+      mode: 'prepare-signin',
+    }),
+  })
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}))
+    throw new Error(payload?.message || 'Unable to prepare invited account.')
+  }
+}
+
 function isAssistantPlanLabel(plan: unknown) {
   return String(plan || '').trim().toLowerCase().startsWith('assistant ')
 }
@@ -159,10 +176,19 @@ export default function SignInForm() {
 
     try {
       const supabase = getSupabaseBrowserClient()
-      const { error } = await supabase.auth.signInWithPassword({
+      let { error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password
       })
+
+      if (error && invitationToken && (error.message || '').toLowerCase().includes('email not confirmed')) {
+        await prepareInvitedPortalAccount(invitationToken, formData.email.trim())
+        const retryResult = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        })
+        error = retryResult.error
+      }
 
       if (error) {
         throw error

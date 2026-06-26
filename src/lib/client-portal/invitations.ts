@@ -35,6 +35,34 @@ export async function getClientInvitationByToken(token: string) {
   return result as { data: ClientInvitationRecord | null; error: unknown }
 }
 
+export async function markInvitedAccountVerified(userId: string) {
+  const nowIso = new Date().toISOString()
+
+  const { error: authVerifyError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+    email_confirm: true,
+  })
+  if (authVerifyError) {
+    console.error('Invitation auto-verify auth update error:', authVerifyError)
+    return { ok: false as const, status: 500, message: 'Unable to verify invited account.' }
+  }
+
+  const { error: profileVerifyError } = await supabaseAdmin
+    .from('users')
+    .update({
+      email_verified_at: nowIso,
+      verification_token_hash: null,
+      verification_token_expires_at: null,
+    })
+    .eq('id', userId)
+
+  if (profileVerifyError) {
+    console.error('Invitation auto-verify profile update error:', profileVerifyError)
+    return { ok: false as const, status: 500, message: 'Unable to verify invited account.' }
+  }
+
+  return { ok: true as const, verifiedAt: nowIso }
+}
+
 export async function acceptClientInvitationForUser(params: {
   token: string
   userId: string
@@ -86,26 +114,9 @@ export async function acceptClientInvitationForUser(params: {
   }
 
   if (params.autoVerify) {
-    const { error: authVerifyError } = await supabaseAdmin.auth.admin.updateUserById(params.userId, {
-      email_confirm: true,
-    })
-    if (authVerifyError) {
-      console.error('Invitation auto-verify auth update error:', authVerifyError)
-      return { ok: false as const, status: 500, message: 'Unable to verify invited account.' }
-    }
-
-    const { error: profileVerifyError } = await supabaseAdmin
-      .from('users')
-      .update({
-        email_verified_at: nowIso,
-        verification_token_hash: null,
-        verification_token_expires_at: null,
-      })
-      .eq('id', params.userId)
-
-    if (profileVerifyError) {
-      console.error('Invitation auto-verify profile update error:', profileVerifyError)
-      return { ok: false as const, status: 500, message: 'Unable to verify invited account.' }
+    const verificationResult = await markInvitedAccountVerified(params.userId)
+    if (!verificationResult.ok) {
+      return verificationResult
     }
   }
 

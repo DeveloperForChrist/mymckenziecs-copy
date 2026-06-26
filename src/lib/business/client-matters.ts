@@ -54,6 +54,7 @@ export interface ClientMatter {
 
 export const BUSINESS_LEADS_KEY = 'mymckenzie-business-leads'
 export const CLIENT_MATTERS_KEY = 'mymckenzie-business-client-matters'
+export const BUSINESS_STORAGE_SCOPE_KEY = 'mymckenzie-business-storage-scope'
 export const BUSINESS_LEADS_UPDATED_EVENT = 'mymckenzie-business-leads-updated'
 export const CLIENT_MATTERS_UPDATED_EVENT = 'mymckenzie-business-client-matters-updated'
 const CLIENT_MATTERS_API_PATH = '/api/business/client-matters'
@@ -66,10 +67,32 @@ function canUseStorage() {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
 }
 
+function scopedKey(baseKey: string) {
+  if (!canUseStorage()) return baseKey
+  const scope = window.localStorage.getItem(BUSINESS_STORAGE_SCOPE_KEY) || ''
+  return scope ? `${baseKey}:${scope}` : baseKey
+}
+
+export function setBusinessStorageScope(scope: string) {
+  if (!canUseStorage()) return
+  try {
+    const normalizedScope = String(scope || '').trim()
+    if (!normalizedScope) {
+      window.localStorage.removeItem(BUSINESS_STORAGE_SCOPE_KEY)
+      return
+    }
+    window.localStorage.setItem(BUSINESS_STORAGE_SCOPE_KEY, normalizedScope)
+    window.localStorage.removeItem(BUSINESS_LEADS_KEY)
+    window.localStorage.removeItem(CLIENT_MATTERS_KEY)
+  } catch {
+    // Keep the UI usable when storage is blocked.
+  }
+}
+
 function readJsonArray<T>(key: string, fallback: T[]): T[] {
   if (!canUseStorage()) return fallback
   try {
-    const raw = window.localStorage.getItem(key)
+    const raw = window.localStorage.getItem(scopedKey(key))
     const parsed = raw ? JSON.parse(raw) : fallback
     return Array.isArray(parsed) ? parsed : fallback
   } catch {
@@ -80,7 +103,7 @@ function readJsonArray<T>(key: string, fallback: T[]): T[] {
 function writeJsonArray<T>(key: string, value: T[], eventName: string) {
   if (!canUseStorage()) return
   try {
-    window.localStorage.setItem(key, JSON.stringify(value))
+    window.localStorage.setItem(scopedKey(key), JSON.stringify(value))
     window.dispatchEvent(new CustomEvent(eventName))
   } catch {
     // Keep the UI usable when storage is blocked.
@@ -90,7 +113,7 @@ function writeJsonArray<T>(key: string, value: T[], eventName: string) {
 function cacheJsonArray<T>(key: string, value: T[]) {
   if (!canUseStorage()) return
   try {
-    window.localStorage.setItem(key, JSON.stringify(value))
+    window.localStorage.setItem(scopedKey(key), JSON.stringify(value))
   } catch {
     // Cache writes are best effort.
   }
@@ -112,7 +135,7 @@ export function cleanupLegacyMockBusinessLeadsCache() {
 
     const leads = readBusinessLeads()
     if (looksLikeLegacyMockLeads(leads)) {
-      window.localStorage.setItem(BUSINESS_LEADS_KEY, JSON.stringify([]))
+      window.localStorage.setItem(scopedKey(BUSINESS_LEADS_KEY), JSON.stringify([]))
 
       const matters = readClientMatters()
       if (matters.length > 0) {
@@ -120,7 +143,7 @@ export function cleanupLegacyMockBusinessLeadsCache() {
           if (!matter.leadId) return true
           return !['1', '2', '3', '4', 'lead-1', 'lead-2', 'lead-3', 'lead-4'].includes(matter.leadId)
         })
-        window.localStorage.setItem(CLIENT_MATTERS_KEY, JSON.stringify(filtered))
+        window.localStorage.setItem(scopedKey(CLIENT_MATTERS_KEY), JSON.stringify(filtered))
       }
     }
 
