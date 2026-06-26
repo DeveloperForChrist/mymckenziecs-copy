@@ -16,7 +16,7 @@ import {
 import { getAppRouteForMarket } from '@/lib/markets/app-routes';
 import { buildMarketAwareAuthHref } from '@/lib/markets/public-routes';
 import { isBillingActiveStripeStatus, isTrialingStripeStatus } from '@/lib/payments/subscription-status';
-import styles from '@/components/dashboard/userdashboard.module.css';
+import styles from '@/components/pricing/pricingPage.module.css';
 
 type PricingGuideLink = {
   href: string;
