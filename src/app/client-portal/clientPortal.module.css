@@ -528,6 +528,10 @@
   gap: 16px;
 }
 
+.workspaceSingle {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .listPanel,
 .detailPanel {
   min-height: 520px;

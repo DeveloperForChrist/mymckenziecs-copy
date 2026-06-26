@@ -117,7 +117,7 @@ interface SyncTarget {
   matterLabel: string
 }
 
-type PortalTab = 'messages' | 'meetings' | 'documents' | 'matter'
+export type PortalTab = 'messages' | 'meetings' | 'documents' | 'matter'
 
 function normalizeTab(value: string | null | undefined): PortalTab {
   if (value === 'messages' || value === 'meetings' || value === 'documents' || value === 'matter') return value
@@ -191,7 +191,7 @@ function formatCurrency(value: number | null | undefined) {
   }).format(amount)
 }
 
-function ClientPortalContent() {
+function ClientPortalContent({ forcedSection }: { forcedSection?: PortalTab }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [businessLinks, setBusinessLinks] = useState<BusinessLink[]>([])
@@ -323,8 +323,9 @@ function ClientPortalContent() {
   const upcomingMeetingCount = meetings.length
   const connectedProfessionalCount = businessLinks.length
   const visibleMessages = messageView === 'sent' ? filteredSentMessages : filteredMessages
-  const activePortalPage = portalTabFromPath(pathname)
-  const isPortalDashboard = !activePortalPage
+  const activePortalPage = forcedSection || portalTabFromPath(pathname)
+  const currentTab = activePortalPage || selectedTab
+  const isPortalDashboard = !forcedSection && !portalTabFromPath(pathname)
   const portalIntroText =
     'Secure messages stay in the portal. Email only sends a sign-in prompt, while case history, meetings, and shared documents stay organised by professional and matter.'
   const portalCards: Array<{
@@ -372,10 +373,6 @@ function ClientPortalContent() {
       href: '/client-portal/matter',
     },
   ]
-
-  const handleTabNavigation = (tab: PortalTab) => {
-    setSelectedTab(tab)
-  }
 
   useEffect(() => {
     void loadData()
@@ -876,17 +873,17 @@ function ClientPortalContent() {
         </header>
 
         <div className={styles.portalContent}>
+          {isPortalDashboard && (
           <section className={styles.dashboardCardGrid} aria-label="Client portal sections">
             {portalCards.map((card) => {
               const Icon = card.icon
-              const isActive = !isPortalDashboard && selectedTab === card.tab
+              const isActive = !isPortalDashboard && currentTab === card.tab
               return (
                 <Link
                   key={card.tab}
                   href={card.href}
                   prefetch={false}
                   className={styles.dashboardCardLink}
-                  onClick={() => handleTabNavigation(card.tab)}
                 >
                   <article
                     className={`${styles.dashboardCard} ${isActive ? styles.dashboardCardActive : ''}`}
@@ -908,6 +905,7 @@ function ClientPortalContent() {
               )
             })}
           </section>
+          )}
 
           {!isPortalDashboard && businessLinks.length === 0 && (
             <div className={styles.emptyConnection}>
@@ -935,27 +933,27 @@ function ClientPortalContent() {
           )}
 
           {!isPortalDashboard && (
-          <section className={styles.workspace}>
+          <section className={`${styles.workspace} ${styles.workspaceSingle}`}>
             <section className={styles.listPanel}>
               <div className={styles.listHeader}>
                 <Link href="/client-portal" className={styles.dashboardReturnButton}>
                   Back to dashboard
                 </Link>
                 <h2 className={styles.listTitle}>
-                  {selectedTab === 'messages' && 'Messages'}
-                  {selectedTab === 'meetings' && 'Video meetings'}
-                  {selectedTab === 'documents' && 'Documents'}
-                  {selectedTab === 'matter' && 'My matter'}
+                  {currentTab === 'messages' && 'Messages'}
+                  {currentTab === 'meetings' && 'Video meetings'}
+                  {currentTab === 'documents' && 'Documents'}
+                  {currentTab === 'matter' && 'My matter'}
                 </h2>
                 <p className={styles.listSub}>
-                  {selectedTab === 'messages' && (
+                  {currentTab === 'messages' && (
                     messageView === 'video'
                       ? `${filteredMeetings.length} video invite${filteredMeetings.length === 1 ? '' : 's'} in this view`
                       : `${visibleMessages.length} ${messageView === 'sent' ? 'sent ' : ''}message${visibleMessages.length === 1 ? '' : 's'} in this view`
                   )}
-                  {selectedTab === 'meetings' && `${filteredMeetings.length} meeting${filteredMeetings.length === 1 ? '' : 's'} in this view`}
-                  {selectedTab === 'documents' && `${filteredSharedDocuments.length + documents.length} document${filteredSharedDocuments.length + documents.length === 1 ? '' : 's'} available`}
-                  {selectedTab === 'matter' && 'Matter details shared with you by your professional'}
+                  {currentTab === 'meetings' && `${filteredMeetings.length} meeting${filteredMeetings.length === 1 ? '' : 's'} in this view`}
+                  {currentTab === 'documents' && `${filteredSharedDocuments.length + documents.length} document${filteredSharedDocuments.length + documents.length === 1 ? '' : 's'} available`}
+                  {currentTab === 'matter' && 'Matter details shared with you by your professional'}
                 </p>
                 {selectedBusiness && (
                   <div className={styles.filterBar}>
@@ -991,7 +989,7 @@ function ClientPortalContent() {
                     ))}
                   </div>
                 )}
-                {selectedTab === 'messages' && (
+                {currentTab === 'messages' && (
                   <div className={styles.messageTabs} aria-label="Message folders">
                     <button
                       type="button"
@@ -1018,7 +1016,7 @@ function ClientPortalContent() {
                 )}
               </div>
               <div className={styles.listContent}>
-                {selectedTab === 'messages' && (
+                {currentTab === 'messages' && (
                   messageView === 'video' ? (
                     filteredMeetings.length === 0 ? (
                       <div className={styles.emptyState}>
@@ -1111,7 +1109,7 @@ function ClientPortalContent() {
                   )
                 )}
 
-            {selectedTab === 'meetings' && (
+            {currentTab === 'meetings' && (
               filteredMeetings.length === 0 ? (
                 <div className={styles.emptyState}>
                   <div>
@@ -1152,7 +1150,7 @@ function ClientPortalContent() {
               )
             )}
 
-            {selectedTab === 'documents' && (
+            {currentTab === 'documents' && (
               <>
                 <div className={styles.sharedDocsPanel}>
                   <div className={styles.sharedDocsHeader}>
@@ -1289,7 +1287,7 @@ function ClientPortalContent() {
               </>
             )}
 
-            {selectedTab === 'matter' && (
+            {currentTab === 'matter' && (
               <div className={styles.profileStack}>
                 {selectedMatter ? (
                   <>
@@ -1415,91 +1413,6 @@ function ClientPortalContent() {
               </div>
             </section>
 
-            <section className={styles.detailPanel}>
-              <div className={styles.detailHeader}>
-                <h2 className={styles.detailTitle}>Matter overview</h2>
-              </div>
-              <div className={styles.detailBody}>
-                {selectedBusiness ? (
-                  <>
-                    <div className={styles.timelineCard}>
-                      <p className={styles.timelineEyebrow}>Focused professional</p>
-                      <h3 className={styles.timelineTitle}>{selectedBusiness.business_name}</h3>
-                      <p className={styles.detailText}>
-                        {selectedMatter
-                          ? `You are currently viewing ${formatMatterLabel(selectedMatter)}. Secure replies stay in the portal, and documents can be shared directly into this matter.`
-                          : 'Choose a matter chip to narrow the view to one case, or stay at the professional level to see everything for this relationship.'}
-                      </p>
-                    </div>
-
-                    {selectedMatter ? (
-                      <div className={styles.timelineCard}>
-                        <p className={styles.timelineEyebrow}>Case timeline</p>
-                        <h3 className={styles.timelineTitle}>{formatMatterLabel(selectedMatter)}</h3>
-                        <div className={styles.timelineList}>
-                          <div className={styles.timelineRow}>
-                            <span className={styles.timelineLabel}>Stage</span>
-                            <strong>{formatStageLabel(selectedMatter.stage)}</strong>
-                          </div>
-                          <div className={styles.timelineRow}>
-                            <span className={styles.timelineLabel}>Status</span>
-                            <strong>{formatStatusLabel(selectedMatter.status)}</strong>
-                          </div>
-                          <div className={styles.timelineRow}>
-                            <span className={styles.timelineLabel}>Last activity</span>
-                            <strong>{formatDateTime(selectedMatter.lastActivityAt)}</strong>
-                          </div>
-                          <div className={styles.timelineRow}>
-                            <span className={styles.timelineLabel}>Next deadline</span>
-                            <strong>{formatDate(selectedMatter.nextDeadline)}</strong>
-                          </div>
-                          <div className={styles.timelineRow}>
-                            <span className={styles.timelineLabel}>Next action</span>
-                            <strong>{selectedMatter.nextAction || 'No action published yet'}</strong>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className={styles.timelineCard}>
-                        <p className={styles.timelineEyebrow}>Relationship summary</p>
-                        <h3 className={styles.timelineTitle}>{selectedBusiness.matters.length} matter{selectedBusiness.matters.length === 1 ? '' : 's'} on record</h3>
-                        <div className={styles.timelineList}>
-                          <div className={styles.timelineRow}>
-                            <span className={styles.timelineLabel}>Open matters</span>
-                            <strong>{selectedBusiness.matters.filter((matter) => matter.status !== 'archived' && matter.stage !== 'closed').length}</strong>
-                          </div>
-                          <div className={styles.timelineRow}>
-                            <span className={styles.timelineLabel}>Archived matters</span>
-                            <strong>{selectedBusiness.matters.filter((matter) => matter.status === 'archived' || matter.stage === 'closed').length}</strong>
-                          </div>
-                          <div className={styles.timelineRow}>
-                            <span className={styles.timelineLabel}>Last portal activity</span>
-                            <strong>{formatDateTime(selectedBusiness.lastActivityAt)}</strong>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedTab === 'meetings' && filteredMeetings[0] && (
-                      <div className={styles.listItem}>
-                        <h3 className={styles.itemTitle}>Next meeting</h3>
-                        <p className={styles.itemMeta}>
-                          {filteredMeetings[0].title} with {filteredMeetings[0].businessName}
-                          {filteredMeetings[0].matterLabel ? ` • ${filteredMeetings[0].matterLabel}` : ''}
-                        </p>
-                        <div className={styles.cardActions}>
-                          <Link href={meetingHref(filteredMeetings[0].roomName)} className={styles.primaryButton}><Video size={16} />Join meeting</Link>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <p className={styles.detailText}>
-                    Once a professional connects you to the portal, your matter timeline, meetings, and shared documents will appear here.
-                  </p>
-                )}
-              </div>
-            </section>
           </section>
           )}
         </div>
@@ -1651,10 +1564,10 @@ function ClientPortalContent() {
   )
 }
 
-export default function ClientPortalPage() {
+export default function ClientPortalPage({ forcedSection }: { forcedSection?: PortalTab }) {
   return (
     <Suspense fallback={null}>
-      <ClientPortalContent />
+      <ClientPortalContent forcedSection={forcedSection} />
     </Suspense>
   )
 }

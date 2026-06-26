@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import ClientPortalPage from '../page'
+import ClientPortalPage, { type PortalTab } from '../page'
 
 const PORTAL_SECTIONS = new Set(['messages', 'meetings', 'documents', 'matter'])
 
@@ -11,5 +11,5 @@ export default async function ClientPortalSectionPage({ params }: ClientPortalSe
   const { section } = await params
   if (!PORTAL_SECTIONS.has(section)) notFound()
 
-  return <ClientPortalPage />
+  return <ClientPortalPage forcedSection={section as PortalTab} />
 }
