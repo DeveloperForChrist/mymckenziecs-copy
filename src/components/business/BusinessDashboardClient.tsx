@@ -70,6 +70,7 @@ import {
   setBusinessAlertsStorageScope,
 } from '@/lib/business/alerts-cache';
 import { setBusinessStorageScope } from '@/lib/business/client-matters';
+import { getConversationStorageKey } from '@/lib/chat/conversation-storage';
 import BusinessFeedbackPage from './BusinessFeedbackPage';
 import { hasReminderAccess as planHasReminderAccess } from '@/lib/plans/access';
 import styles from './businessDashboard.module.css';
@@ -368,6 +369,7 @@ function BusinessChatWorkspace({
   mainSidebarExpanded: boolean;
 }) {
   const router = useRouter();
+  const conversationStorageKey = getConversationStorageKey(initialChatPlan.userId);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -406,7 +408,7 @@ function BusinessChatWorkspace({
   const startNewChat = () => {
     const next = new URL(businessChatHref, window.location.origin);
     const nextHref = `${next.pathname}${next.search}${next.hash}`;
-    localStorage.removeItem('currentConversationId');
+    localStorage.removeItem(conversationStorageKey);
     window.dispatchEvent(
       new CustomEvent('chatFreshConversationRequested', {
         detail: { homeHref: nextHref },
@@ -445,7 +447,7 @@ function BusinessChatWorkspace({
     setDeleteConversationError(null);
     try {
       const activeConversationId = new URLSearchParams(window.location.search).get('conversationId') || '';
-      const storedConversationId = localStorage.getItem('currentConversationId') || '';
+      const storedConversationId = localStorage.getItem(conversationStorageKey) || '';
       const response = await fetch('/api/chat-history', {
         method: 'DELETE',
         credentials: 'include',
@@ -469,7 +471,7 @@ function BusinessChatWorkspace({
       if (deleteMode === 'all') {
         const next = new URL(businessChatHref, window.location.origin);
         const nextHref = `${next.pathname}${next.search}${next.hash}`;
-        localStorage.removeItem('currentConversationId');
+        localStorage.removeItem(conversationStorageKey);
         window.history.replaceState({}, '', nextHref);
         window.dispatchEvent(
           new CustomEvent('chatFreshConversationRequested', {
@@ -489,7 +491,7 @@ function BusinessChatWorkspace({
       if (deletedActiveConversation) {
         const next = new URL(businessChatHref, window.location.origin);
         const nextHref = `${next.pathname}${next.search}${next.hash}`;
-        localStorage.removeItem('currentConversationId');
+        localStorage.removeItem(conversationStorageKey);
         window.history.replaceState({}, '', nextHref);
         window.dispatchEvent(
           new CustomEvent('chatFreshConversationRequested', {

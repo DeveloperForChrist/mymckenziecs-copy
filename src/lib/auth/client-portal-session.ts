@@ -4,26 +4,7 @@ import { cache } from 'react'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { isUserEmailVerified } from '@/lib/auth/account-verification'
-import { supabaseAdmin } from '@/lib/database/supabase-server'
-
-async function hasActiveClientPortalLink(userId: string) {
-  if (!userId) return false
-
-  const { data, error } = await supabaseAdmin
-    .from('client_business_links')
-    .select('id')
-    .eq('client_id', userId)
-    .eq('status', 'active')
-    .limit(1)
-    .maybeSingle()
-
-  if (error) {
-    console.error('Failed to load client portal access state', error)
-    return false
-  }
-
-  return Boolean(data?.id)
-}
+import { hasActiveClientPortalAccess } from '@/lib/auth/client-portal-access'
 
 export const getClientPortalSession = cache(async () => {
   const cookieStore = await cookies()
@@ -47,13 +28,13 @@ export const getClientPortalSession = cache(async () => {
   const [emailVerified, hasClientPortalAccess] = authUser
     ? await Promise.all([
         isUserEmailVerified(authUser.id),
-        hasActiveClientPortalLink(authUser.id),
+        hasActiveClientPortalAccess(authUser.id),
       ])
     : [false, false]
 
   return {
     supabase,
-    authUser,
+      authUser,
     emailVerified,
     hasClientPortalAccess,
     canOpenClientPortal: emailVerified || hasClientPortalAccess,

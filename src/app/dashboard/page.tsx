@@ -5,10 +5,14 @@ import { getAccountTypeForUser } from '@/lib/auth/account-type';
 import { redirect } from 'next/navigation';
 
 export default async function DashboardPage() {
-  const { authUser, emailVerified } = await getDashboardSession();
+  const { authUser, emailVerified, hasClientPortalAccess } = await getDashboardSession();
 
   if (authUser && await getAccountTypeForUser(authUser) === 'business') {
     redirect('/business/dashboard');
+  }
+
+  if (authUser && hasClientPortalAccess && !emailVerified) {
+    redirect('/client-portal');
   }
 
   let initialPlan = 'No plan';

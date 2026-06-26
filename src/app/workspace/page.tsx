@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { isBillingEligibleUser } from '@/lib/auth/session-user'
 import { getUserPlanData } from '@/lib/payments/user-plan'
 import { isUserEmailVerified } from '@/lib/auth/account-verification'
+import { hasActiveClientPortalAccess } from '@/lib/auth/client-portal-access'
 import { getAppRouteForMarket } from '@/lib/markets/app-routes'
 import { NO_INDEX_METADATA } from '@/lib/seo'
 
@@ -42,9 +43,16 @@ export default async function WorkspacePage() {
     redirect(dashboardHref)
   }
 
-  const emailVerified = await isUserEmailVerified(authUser.id)
+  const [emailVerified, hasClientPortalAccess] = await Promise.all([
+    isUserEmailVerified(authUser.id),
+    hasActiveClientPortalAccess(authUser.id),
+  ])
   if (emailVerified) {
     redirect(dashboardHref)
+  }
+
+  if (hasClientPortalAccess) {
+    redirect('/client-portal')
   }
 
   redirect(`/auth/verify-email?redirect=${encodeURIComponent(dashboardHref)}`)

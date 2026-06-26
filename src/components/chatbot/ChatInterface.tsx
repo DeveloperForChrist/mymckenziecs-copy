@@ -14,6 +14,7 @@ import {
   parseAssistantResponse,
 } from '@/lib/chat/assistant-presentation'
 import { fetchConversationHistoryPage } from '@/lib/chat/history-client'
+import { getConversationStorageKey } from '@/lib/chat/conversation-storage'
 import { useChatAuthPlan, type InitialChatPlanState } from '@/components/chatbot/hooks/useChatAuthPlan'
 import { useConversationBootstrap } from '@/components/chatbot/hooks/useConversationBootstrap'
 import { hasCaseProfileAccess } from '@/lib/plans/access'
@@ -416,6 +417,7 @@ export default function ChatInterface({
   const [loadingOlderHistory, setLoadingOlderHistory] = useState(false)
   const [noticeModal, setNoticeModal] = useState<{ title: string; message: string } | null>(null)
   const [floatingNotice, setFloatingNotice] = useState<string | null>(null)
+  const conversationStorageKey = getConversationStorageKey(supabaseUser?.id || userId)
   const [activeInlineStreamMessageId, setActiveInlineStreamMessageId] = useState<string | null>(null)
   const isSignedInPlanLocked = Boolean(supabaseUser) && planLoaded && !platformAccess
   const canUploadAttachments = Boolean(supabaseUser) && paidAccess
@@ -897,12 +899,12 @@ export default function ChatInterface({
     const sessionUserMessageCount =
       messages.filter((msg) => msg.role === 'user').length + 1
     let targetConversationId =
-      (conversationId || (typeof window !== 'undefined' ? localStorage.getItem('currentConversationId') : '') || '').trim()
+      (conversationId || (typeof window !== 'undefined' ? localStorage.getItem(conversationStorageKey) : '') || '').trim()
     if (!targetConversationId) {
       targetConversationId = generateUUID()
       setConversationId(targetConversationId)
       if (typeof window !== 'undefined') {
-        localStorage.setItem('currentConversationId', targetConversationId)
+        localStorage.setItem(conversationStorageKey, targetConversationId)
       }
     }
 
@@ -1482,7 +1484,7 @@ export default function ChatInterface({
       const nextConversationId = generateUUID()
       setConversationId(nextConversationId)
       conversationIdRef.current = nextConversationId
-      localStorage.setItem('currentConversationId', nextConversationId)
+      localStorage.setItem(conversationStorageKey, nextConversationId)
 
       const destinationHref = nextHref || conversationHomeHref || window.location.pathname
       window.history.replaceState({}, '', destinationHref)
@@ -1495,7 +1497,7 @@ export default function ChatInterface({
 
       const activeConversationId =
         conversationIdRef.current ||
-        (typeof window !== 'undefined' ? localStorage.getItem('currentConversationId') || '' : '')
+        (typeof window !== 'undefined' ? localStorage.getItem(conversationStorageKey) || '' : '')
       const urlConversationId =
         typeof window !== 'undefined'
           ? new URLSearchParams(window.location.search).get('conversationId') || ''
@@ -1652,12 +1654,12 @@ export default function ChatInterface({
 
     setMessages((prev) => [...prev, userMessage])
     let targetConversationId =
-      (conversationId || (typeof window !== 'undefined' ? localStorage.getItem('currentConversationId') : '') || '').trim()
+      (conversationId || (typeof window !== 'undefined' ? localStorage.getItem(conversationStorageKey) : '') || '').trim()
     if (!targetConversationId) {
       targetConversationId = generateUUID()
       setConversationId(targetConversationId)
       if (typeof window !== 'undefined') {
-        localStorage.setItem('currentConversationId', targetConversationId)
+        localStorage.setItem(conversationStorageKey, targetConversationId)
       }
     }
     setInput('')

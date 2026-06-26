@@ -2,6 +2,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser';
 import { safeBrowserSignOut } from '@/lib/auth/safe-browser-signout';
+import { getConversationStorageKey } from '@/lib/chat/conversation-storage';
 import { flushNotesDraftNow } from '@/lib/notes/flush-notes-draft';
 import type { User } from '@supabase/supabase-js';
 import styles from './settingsPage.module.css';
@@ -147,7 +148,7 @@ export default function AccountSection({ publicMarket }: { publicMarket?: 'GB' |
       await safeBrowserSignOut(supabase);
       if (typeof window !== 'undefined') {
         localStorage.removeItem('userId');
-        localStorage.removeItem('currentConversationId');
+        localStorage.removeItem(getConversationStorageKey(authUserId));
         localStorage.removeItem('chatHistory');
         window.location.replace('/');
       }
@@ -416,7 +417,7 @@ export default function AccountSection({ publicMarket }: { publicMarket?: 'GB' |
       await safeBrowserSignOut(supabase);
       if (typeof window !== 'undefined') {
         localStorage.removeItem('userId');
-        localStorage.removeItem('currentConversationId');
+        localStorage.removeItem(getConversationStorageKey(authUserId));
         localStorage.removeItem('chatHistory');
         window.location.replace('/');
       }

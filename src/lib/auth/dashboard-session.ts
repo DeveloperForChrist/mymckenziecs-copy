@@ -4,6 +4,7 @@ import { cache } from 'react';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { isUserEmailVerified } from '@/lib/auth/account-verification';
+import { hasActiveClientPortalAccess } from '@/lib/auth/client-portal-access';
 import { isBillingEligibleUser } from '@/lib/auth/session-user';
 
 export const getDashboardSession = cache(async () => {
@@ -26,12 +27,19 @@ export const getDashboardSession = cache(async () => {
   const { data: authData } = await supabase.auth.getUser();
   const authUser = authData?.user ?? null;
   const isEligible = isBillingEligibleUser(authUser);
-  const emailVerified = isEligible && authUser ? await isUserEmailVerified(authUser.id) : false;
+  const [emailVerified, hasClientPortalAccess] =
+    isEligible && authUser
+      ? await Promise.all([
+          isUserEmailVerified(authUser.id),
+          hasActiveClientPortalAccess(authUser.id),
+        ])
+      : [false, false];
 
   return {
     supabase,
     authUser,
     isEligible,
     emailVerified,
+    hasClientPortalAccess,
   };
 });

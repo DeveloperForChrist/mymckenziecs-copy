@@ -7,6 +7,7 @@ import type { AssistantMetadata, Message } from '@/components/chatbot/chat-types
 import { getSupabaseBrowserClient } from '@/lib/database/supabase-browser'
 import { fetchConversationHistoryPage } from '@/lib/chat/history-client'
 import { getAppMarketFromPathname, getAppRouteForMarket } from '@/lib/markets/app-routes'
+import { getConversationStorageKey } from '@/lib/chat/conversation-storage'
 
 type UseConversationBootstrapArgs = {
   normalizeUserId: (value?: string | null) => string | null
@@ -36,7 +37,6 @@ export function useConversationBootstrap({
   const searchParamsKey = searchParams?.toString() || ''
 
   useEffect(() => {
-    const conversationStorageKey = 'currentConversationId'
     const lastSignInAtStorageKey = 'chatbotLastSignInAt'
     const chatbotHref = conversationHomeHref || getAppRouteForMarket('/chatbot', getAppMarketFromPathname(pathname))
     let cancelled = false
@@ -107,6 +107,7 @@ export function useConversationBootstrap({
       const supabase = getSupabaseBrowserClient()
       const { data: authData } = await supabase.auth.getUser()
       const authUserId = authData?.user?.id || null
+      const conversationStorageKey = getConversationStorageKey(authUserId)
       const currentSignInAt = String(authData?.user?.last_sign_in_at || '').trim()
 
       let storedUserId = localStorage.getItem('userId')

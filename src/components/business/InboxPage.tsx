@@ -93,6 +93,11 @@ type PendingComposeSend = {
 
 const COMPOSE_DRAFT_STORAGE_KEY = 'business-inbox-compose-draft-v1'
 
+function getComposeDraftStorageKey(userId?: string | null) {
+  const normalizedUserId = String(userId || '').trim()
+  return normalizedUserId ? `${COMPOSE_DRAFT_STORAGE_KEY}:${normalizedUserId}` : COMPOSE_DRAFT_STORAGE_KEY
+}
+
 const ROLE_LABEL: Record<string, string> = {
   owner: 'Owner', solicitor: 'Solicitor/McKenzie Friend',
   paralegal: 'Paralegal', admin: 'Admin', viewer: 'Viewer',
@@ -220,6 +225,7 @@ export default function InboxPage({
   const [composeNotice, setComposeNotice] = useState('')
   const [inviteNotice, setInviteNotice] = useState('')
   const [savedDraft, setSavedDraft] = useState<SavedComposeDraft | null>(null)
+  const [authUserId, setAuthUserId] = useState('')
   const [existingDocuments, setExistingDocuments] = useState<StoredDocumentOption[]>([])
   const [existingDocumentsLoading, setExistingDocumentsLoading] = useState(false)
   const [existingDocumentsError, setExistingDocumentsError] = useState('')
@@ -250,8 +256,9 @@ export default function InboxPage({
 
   const persistComposeDraft = (draft: { to: string; subject: string; body: string } | null) => {
     if (typeof window === 'undefined') return
+    const storageKey = getComposeDraftStorageKey(authUserId)
     if (!hasMeaningfulComposeDraft(draft)) {
-      window.localStorage.removeItem(COMPOSE_DRAFT_STORAGE_KEY)
+      window.localStorage.removeItem(storageKey)
       setSavedDraft(null)
       void fetch('/api/business/inbox/draft', {
         method: 'DELETE',
@@ -267,7 +274,7 @@ export default function InboxPage({
       updatedAt: new Date().toISOString(),
     } satisfies SavedComposeDraft
 
-    window.localStorage.setItem(COMPOSE_DRAFT_STORAGE_KEY, JSON.stringify(nextDraft))
+    window.localStorage.setItem(storageKey, JSON.stringify(nextDraft))
     setSavedDraft(nextDraft)
     void fetch('/api/business/inbox/draft', {
       method: 'PUT',
@@ -449,12 +456,13 @@ export default function InboxPage({
     }
 
     const loadDraft = async () => {
+      const storageKey = getComposeDraftStorageKey(authUserId)
       let localDraft: SavedComposeDraft | null = null
       try {
-        const rawDraft = window.localStorage.getItem(COMPOSE_DRAFT_STORAGE_KEY)
+        const rawDraft = window.localStorage.getItem(storageKey)
         if (rawDraft) localDraft = normalizeDraft(JSON.parse(rawDraft) as Partial<SavedComposeDraft>)
       } catch {
-        window.localStorage.removeItem(COMPOSE_DRAFT_STORAGE_KEY)
+        window.localStorage.removeItem(storageKey)
       }
 
       try {
@@ -469,9 +477,9 @@ export default function InboxPage({
         const nextDraft = localTime > serverTime ? localDraft : serverDraft
         setSavedDraft(nextDraft)
         if (nextDraft) {
-          window.localStorage.setItem(COMPOSE_DRAFT_STORAGE_KEY, JSON.stringify(nextDraft))
+          window.localStorage.setItem(storageKey, JSON.stringify(nextDraft))
         } else {
-          window.localStorage.removeItem(COMPOSE_DRAFT_STORAGE_KEY)
+          window.localStorage.removeItem(storageKey)
         }
       } catch {
         if (!cancelled && localDraft) setSavedDraft(localDraft)
@@ -482,7 +490,7 @@ export default function InboxPage({
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [authUserId])
 
   useEffect(() => {
     return () => {
@@ -781,6 +789,7 @@ export default function InboxPage({
       ])
       const session = sessionData.session
       const user = userData.user
+      setAuthUserId(user?.id || '')
 
       if (!session?.access_token || !user?.email) {
         setMessages([])

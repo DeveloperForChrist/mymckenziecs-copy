@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { isBillingEligibleUser } from '@/lib/auth/session-user';
 import { getUserPlanData } from '@/lib/payments/user-plan';
 import { isUserEmailVerified } from '@/lib/auth/account-verification';
+import { hasActiveClientPortalAccess } from '@/lib/auth/client-portal-access';
 import { NO_INDEX_METADATA } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
@@ -40,9 +41,16 @@ export default async function UsWorkspacePage() {
     redirect('/us/dashboard');
   }
 
-  const emailVerified = await isUserEmailVerified(authUser.id);
+  const [emailVerified, hasClientPortalAccess] = await Promise.all([
+    isUserEmailVerified(authUser.id),
+    hasActiveClientPortalAccess(authUser.id),
+  ]);
   if (emailVerified) {
     redirect('/us/dashboard');
+  }
+
+  if (hasClientPortalAccess) {
+    redirect('/client-portal');
   }
 
   redirect('/auth/verify-email?redirect=%2Fus%2Fdashboard');

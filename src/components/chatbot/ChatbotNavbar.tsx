@@ -11,6 +11,7 @@ import DeleteConversationModal from '@/components/chatbot/DeleteConversationModa
 import { hasCaseProfileAccess } from '@/lib/plans/access'
 import { isTrialingStripeStatus } from '@/lib/payments/subscription-status'
 import { getAppMarketFromPathname, getAppRouteForMarket } from '@/lib/markets/app-routes'
+import { getConversationStorageKey } from '@/lib/chat/conversation-storage'
 import { buildMarketAwareAuthHref, getPublicMarket, getPublicRouteForMarket } from '@/lib/markets/public-routes'
 
 interface Conversation {
@@ -253,9 +254,10 @@ export default function ChatbotNavbar({
   }
 
   const startFreshConversation = () => {
+    const conversationStorageKey = getConversationStorageKey(typeof window !== 'undefined' ? localStorage.getItem('userId') : '')
     const next = new URL(chatbotHref, 'https://app.local')
     const nextHref = `${next.pathname}${next.search}${next.hash}`
-    localStorage.removeItem('currentConversationId')
+    localStorage.removeItem(conversationStorageKey)
     window.dispatchEvent(
       new CustomEvent('chatFreshConversationRequested', {
         detail: { homeHref: nextHref },
@@ -293,8 +295,9 @@ export default function ChatbotNavbar({
     setIsDeletingConversation(true)
     setDeleteConversationError(null)
     try {
+      const conversationStorageKey = getConversationStorageKey(typeof window !== 'undefined' ? localStorage.getItem('userId') : '')
       const activeConversationId = new URLSearchParams(window.location.search).get('conversationId') || ''
-      const storedConversationId = localStorage.getItem('currentConversationId') || ''
+      const storedConversationId = localStorage.getItem(conversationStorageKey) || ''
       const response = await fetch('/api/chat-history', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -309,7 +312,7 @@ export default function ChatbotNavbar({
         if (deleteMode === 'all') {
           const next = new URL(chatbotHref, 'https://app.local')
           const nextHref = `${next.pathname}${next.search}${next.hash}`
-          localStorage.removeItem('currentConversationId')
+          localStorage.removeItem(conversationStorageKey)
           window.history.replaceState({}, '', nextHref)
           window.dispatchEvent(
             new CustomEvent('chatFreshConversationRequested', {
@@ -327,7 +330,7 @@ export default function ChatbotNavbar({
           activeConversationId === deletedConversationId || storedConversationId === deletedConversationId
 
         if (deletedActiveConversation) {
-          localStorage.removeItem('currentConversationId')
+          localStorage.removeItem(conversationStorageKey)
           const next = new URL(chatbotHref, 'https://app.local')
           window.history.replaceState({}, '', `${next.pathname}${next.search}${next.hash}`)
         }

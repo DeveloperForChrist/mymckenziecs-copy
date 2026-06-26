@@ -33,7 +33,14 @@ export default function HeroActionButtons({
         if (cancelled || !res.ok) return;
         const payload = await res.json().catch(() => ({}));
         const accountType = String(payload?.accountType || '').toLowerCase();
-        setDashboardHref(accountType === 'business' ? '/business/dashboard' : '/dashboard');
+        const hasClientPortalAccess = Boolean(payload?.hasClientPortalAccess);
+        setDashboardHref(
+          accountType === 'business'
+            ? '/business/dashboard'
+            : hasClientPortalAccess
+              ? '/client-portal'
+              : '/dashboard'
+        );
       } catch {
         // fail silently — unauthenticated state is fine
       }
